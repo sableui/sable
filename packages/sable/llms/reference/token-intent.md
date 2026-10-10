@@ -1,0 +1,324 @@
+## Token intent
+
+Which token to reach for, and what it is most often confused with. Generated from `src/themes/token-docs.ts`; the full data is `registry.json → tokens`.
+
+### semantic (44)
+
+- **`background`** — The page. The furthest-back surface in the page register. *Use for:* The document body, and any surface meant to read as 'the page itself'. Never anything that floats: background is the BOTTOM of the surface stack (background < card < popover in every dark mode), so a floating panel painted with it reads as a hole beneath the cards it hovers over.
+    - **Not** `popover` for anything floating, `card` for a bounded block on the page. `canvas`. `canvas` is the *work* surface in a tool — the artboard being edited — which is not the page behind the UI. Using `background` for an artboard makes the thing being edited indistinguishable from the chrome around it.
+- **`foreground`** — The default ink, for `background`. *Use for:* Body text and any content sitting directly on the page.
+    - **Not** any other surface's ink. On `card`, `popover`, `panel` or a tone, use that surface's own `-foreground`.
+- **`card`** — A raised content container on the page. *Use for:* A bounded block of related content on a page: an article teaser, a settings group, a stat panel.
+    - **Not** `popover`. A card sits *in* the document flow; a popover floats above it and needs its own elevation and border treatment. And never inside a docked panel — use `panel` surfaces and `PanelSection`; a card in a 240px panel spends its border and inset on nothing. Never rely on `card` as a FILL to separate something from the page: a preset's `card` can equal `background`, because a card separates by its border. A track, well or pad that must read with no border is `muted`.
+- **`card-foreground`** — Ink paired with `card`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `card`. Use them as a pair — `bg-card text-card-foreground` — so a theme can retune the surface and the ink together.
+    - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
+- **`popover`** — A floating surface: menu, popover, tooltip body, select list, dialog, and any persistent floating panel (an inspector, a toolbar over a canvas). *Use for:* Anything rendered in a layer above the page that needs its own background, dismissible or not. The test is elevation: if it floats over content (`shadow-md` or higher, fixed or absolutely positioned above the page), it is popover. Pair with `text-popover-foreground`.
+    - **Not** `card` and `background`. The distinction is elevation, not shape or lifetime: a panel that stays open is still floating. `background` is the page ground and `card` sits on it; both read as sunk under a floating panel. In light mode several presets make all three equal, so a floating surface also needs its edge (ring or border) and shadow, never the fill alone.
+- **`popover-foreground`** — Ink paired with `popover`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `popover`. Use them as a pair — `bg-popover text-popover-foreground` — so a theme can retune the surface and the ink together.
+    - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
+- **`muted`** — A recessed surface. Quieter than the page, not interactive. *Use for:* An inset well: a code block background, a disabled field, a read-only region, a table's zebra stripe, a segmented-control track. On the page it always differs from `background`. Inside any OTHER surface (a card, a popover, a floating panel) use the `sable-well` utility instead: it derives the well from the surface it sits in, so it is the same visible step everywhere, whereas `muted` can land within a step of a popover in some dark modes. Never compensate with an outline on every well — that turns a panel into a stack of boxes.
+    - **Not** `secondary` and `accent`. All three are near-identical in most themes, which is exactly why the rule is by ROLE: `muted` is *recessed and inert*, `secondary` is a *control fill*, `accent` is a *transient state*. Pick by what the surface does, never by which looks right — they diverge in other themes.
+- **`muted-foreground`** — De-emphasised ink. The single most-used token after `foreground`. *Use for:* Secondary text: captions, helper text, placeholder-adjacent labels, a property name next to its value, timestamps.
+    - **Not** `foreground` at reduced opacity. Opacity on text compounds unpredictably against whatever is behind it and can fall below the contrast floor; this token is a tuned value that does not.
+- **`border`** — The default hairline. Tuned to be subtle. *Use for:* Input outlines, badge edges, card borders — chrome that should not draw the eye.
+    - **Not** `border-strong`. Reach for `border-strong` when the line carries *structure* (a grid rule, a table divider, a section separator) and for `border` when it merely bounds a control.
+- **`border-strong`** — A structural divider. Visibly stronger than `border`. *Use for:* Grid lines, table rules, separators between major sections.
+    - **Not** `border`. If removing the line would make the layout ambiguous, it is structural and belongs here.
+- **`input`** — The outline of a form control specifically. *Use for:* Text inputs, textareas, selects, and the resting edge of a checkbox or radio.
+    - **Not** `border`. They are often the same value, but a theme is entitled to make form controls read differently from other chrome, and only this token gives it the hook.
+- **`ring`** — The focus indicator colour. *Use for:* Only for `focus-visible`. Nothing else.
+    - **Not** `primary`. Focus must remain distinguishable from selection; if the ring is the same colour as a selected state, a keyboard user cannot tell where focus is.
+- **`primary`** — The one high-emphasis action colour. *Use for:* The single most important action on a surface — one per view. A submit button, the primary CTA.
+    - **Not** `accent`. `primary` says *do this*; `accent` says *this is the current one*. Two primary buttons on one screen means neither is primary.
+- **`primary-foreground`** — Ink paired with `primary`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `primary`. Use them as a pair — `bg-primary text-primary-foreground` — so a theme can retune the surface and the ink together.
+    - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
+- **`secondary`** — A lower-emphasis control fill. *Use for:* A secondary button, a segmented control's resting fill, a neutral chip.
+    - **Not** `muted`. `secondary` is for something you can *press*; `muted` is for a surface that is inert. See the `muted` note — role, not appearance.
+- **`secondary-foreground`** — Ink paired with `secondary`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `secondary`. Use them as a pair — `bg-secondary text-secondary-foreground` — so a theme can retune the surface and the ink together.
+    - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
+- **`accent`** — A transient state fill: hover, selected, current. *Use for:* The fill behind a hovered menu item, a selected list row, the active segment of a switcher.
+    - **Not** `primary` for selection, and `muted` for hover. `accent` is the state layer; the other two are emphasis and recession respectively.
+- **`accent-foreground`** — Ink paired with `accent`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `accent`. Use them as a pair — `bg-accent text-accent-foreground` — so a theme can retune the surface and the ink together.
+    - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
+- **`destructive`** — Irreversible or data-losing actions. *Use for:* Delete, revoke, remove, discard — and the error state of a form field.
+    - **Not** `tone-warning`. Destructive means *this destroys something*; warning means *be careful*. A confirmation dialog's action is destructive; the banner explaining it is a warning.
+- **`destructive-foreground`** — Ink paired with `destructive`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `destructive`. Use them as a pair — `bg-destructive text-destructive-foreground` — so a theme can retune the surface and the ink together.
+    - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
+- **`success`** — A confirmed, completed, healthy state. *Use for:* A passing check, a saved indicator, a healthy status dot.
+    - **Not** `tone-info`. Success asserts an outcome; info asserts a fact. 'Saved' is success, '3 items' is info.
+- **`success-foreground`** — Ink paired with `success`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `success`. Use them as a pair — `bg-success text-success-foreground` — so a theme can retune the surface and the ink together.
+    - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
+- **`tone-standard`** — Domain tone: the baseline classification in a set. Part of the `tone-*` family, which exists so a product can classify content without inventing colours per feature. *Use for:* The default category of a classified item — the one that means 'nothing special'.
+    - **Not** `muted`. A tone is *semantic classification* that a reader is meant to decode; `muted` is de-emphasis. If a legend would help the user, it is a tone.
+- **`tone-collectible`** — Domain tone: a scarce or owned item. *Use for:* Marking an item as collectible/owned in a classified set.
+    - **Not** `primary`. A tone classifies the *thing*; primary drives an *action*. A collectible badge is not a button.
+- **`tone-edition`** — Domain tone: an edition or release. *Use for:* Marking editioned content in a classified set.
+    - **Not** `tone-collectible`. Distinct classifications must stay visually distinct.
+- **`tone-info`** — Domain tone: neutral, factual information. *Use for:* An informational note or banner, a neutral count, a 'did you know' surface.
+    - **Not** `success`. Info states a fact; success states an outcome. Also not `primary` — an info banner is not an action.
+- **`tone-warning`** — Domain tone: proceed with care, nothing is broken yet. *Use for:* A caution banner, a nearing-limit indicator, a soloed/overridden state in a tool.
+    - **Not** `destructive`. Warning is *advisory*; destructive is *consequential*. If nothing is lost by continuing, it is a warning.
+- **`highlight`** — A marker on content the user is meant to notice — search hits, diffs, annotations. *Use for:* Highlighting matched text, a changed line, a called-out passage.
+    - **Not** `accent`. `accent` is UI state that follows the pointer or selection; `highlight` marks the *content* and persists independently of interaction.
+- **`tone-standard-foreground`** — Ink paired with `tone-standard`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `tone-standard`. Use them as a pair — `bg-tone-standard text-tone-standard-foreground` — so a theme can retune the surface and the ink together.
+    - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
+- **`tone-collectible-foreground`** — Ink paired with `tone-collectible`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `tone-collectible`. Use them as a pair — `bg-tone-collectible text-tone-collectible-foreground` — so a theme can retune the surface and the ink together.
+    - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
+- **`tone-edition-foreground`** — Ink paired with `tone-edition`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `tone-edition`. Use them as a pair — `bg-tone-edition text-tone-edition-foreground` — so a theme can retune the surface and the ink together.
+    - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
+- **`tone-info-foreground`** — Ink paired with `tone-info`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `tone-info`. Use them as a pair — `bg-tone-info text-tone-info-foreground` — so a theme can retune the surface and the ink together.
+    - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
+- **`tone-warning-foreground`** — Ink paired with `tone-warning`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `tone-warning`. Use them as a pair — `bg-tone-warning text-tone-warning-foreground` — so a theme can retune the surface and the ink together.
+    - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
+- **`highlight-foreground`** — Ink paired with `highlight`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `highlight`. Use them as a pair — `bg-highlight text-highlight-foreground` — so a theme can retune the surface and the ink together.
+    - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
+- **`overlay`** — A scrim over the page behind a modal, and the wash behind media chrome. *Use for:* Dialog and sheet backdrops, letterboxing, a pill sitting on top of an image.
+    - **Not** `bg-black/50`. Pure black is never right — it crushes whatever is behind it, and a theme cannot tune it. This token is the sanctioned answer, which is why `raw-black-white` is a lint rule.
+- **`overlay-foreground`** — Ink paired with `overlay`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `overlay`. Use them as a pair — `bg-overlay text-overlay-foreground` — so a theme can retune the surface and the ink together.
+    - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
+- **`sidebar`** — The app sidebar's own surface. Heads a small family (`sidebar-*`) that lets navigation chrome diverge from the page without overriding page tokens. *Use for:* The `Sidebar` / `SideNav` background.
+    - **Not** `card`. A sidebar is persistent chrome, not content — a theme frequently wants it a different tone from the cards inside the page it frames.
+- **`sidebar-foreground`** — Ink paired with `sidebar`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `sidebar`. Use them as a pair — `bg-sidebar text-sidebar-foreground` — so a theme can retune the surface and the ink together.
+    - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
+- **`sidebar-primary`** — The high-emphasis colour *within* the sidebar. *Use for:* The active nav item's fill, when the sidebar has its own tonal world.
+    - **Not** `primary`. Page primary on a sidebar surface may not clear contrast; this token is tuned against `sidebar`.
+- **`sidebar-primary-foreground`** — Ink paired with `sidebar-primary`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `sidebar-primary`. Use them as a pair — `bg-sidebar-primary text-sidebar-primary-foreground` — so a theme can retune the surface and the ink together.
+    - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
+- **`sidebar-accent`** — The state layer within the sidebar — hover, current. *Use for:* Hovered or current nav items.
+    - **Not** `accent`, for the same contrast reason as `sidebar-primary`.
+- **`sidebar-accent-foreground`** — Ink paired with `sidebar-accent`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `sidebar-accent`. Use them as a pair — `bg-sidebar-accent text-sidebar-accent-foreground` — so a theme can retune the surface and the ink together.
+    - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
+- **`sidebar-border`** — Hairlines inside the sidebar. *Use for:* Dividers between nav sections, and the sidebar's own trailing edge.
+    - **Not** `border`, which is tuned against page surfaces.
+- **`sidebar-ring`** — Focus indicator inside the sidebar. *Use for:* `focus-visible` on nav items.
+    - **Not** `ring`, which is tuned against page surfaces.
+
+### typography (25)
+
+- **`display-4xl`** — The largest type: display-lg through display-4xl. Marketing-scale, one per view at most. *Use for:* A landing page hero, a section opener on a brand surface.
+    - **Not** `heading-1` for page titles. Display is a *statement*; headings are *structure*. A settings page titled in display-3xl looks like an advert.
+- **`display-3xl`** — The largest type: display-lg through display-4xl. Marketing-scale, one per view at most. *Use for:* A landing page hero, a section opener on a brand surface.
+    - **Not** `heading-1` for page titles. Display is a *statement*; headings are *structure*. A settings page titled in display-3xl looks like an advert.
+- **`display-2xl`** — The largest type: display-lg through display-4xl. Marketing-scale, one per view at most. *Use for:* A landing page hero, a section opener on a brand surface.
+    - **Not** `heading-1` for page titles. Display is a *statement*; headings are *structure*. A settings page titled in display-3xl looks like an advert.
+- **`display-xl`** — The largest type: display-lg through display-4xl. Marketing-scale, one per view at most. *Use for:* A landing page hero, a section opener on a brand surface.
+    - **Not** `heading-1` for page titles. Display is a *statement*; headings are *structure*. A settings page titled in display-3xl looks like an advert.
+- **`display-lg`** — The largest type: display-lg through display-4xl. Marketing-scale, one per view at most. *Use for:* A landing page hero, a section opener on a brand surface.
+    - **Not** `heading-1` for page titles. Display is a *statement*; headings are *structure*. A settings page titled in display-3xl looks like an advert.
+- **`heading-1`** — Structural document headings, heading-1 through heading-4. *Use for:* The real outline of a page. Pick the level by depth in the document, not by desired size.
+    - **Not** `display` for size, or `title` for structure. If it belongs in a table of contents, it is a heading.
+- **`heading-2`** — Structural document headings, heading-1 through heading-4. *Use for:* The real outline of a page. Pick the level by depth in the document, not by desired size.
+    - **Not** `display` for size, or `title` for structure. If it belongs in a table of contents, it is a heading.
+- **`heading-3`** — Structural document headings, heading-1 through heading-4. *Use for:* The real outline of a page. Pick the level by depth in the document, not by desired size.
+    - **Not** `display` for size, or `title` for structure. If it belongs in a table of contents, it is a heading.
+- **`heading-4`** — Structural document headings, heading-1 through heading-4. *Use for:* The real outline of a page. Pick the level by depth in the document, not by desired size.
+    - **Not** `display` for size, or `title` for structure. If it belongs in a table of contents, it is a heading.
+- **`title-lg`** — The title of a *component*, not of a document. *Use for:* A card's heading, a dialog title, a section label inside a panel.
+    - **Not** `heading-*`. A card title is not part of the page outline, and using a heading tier for it produces a document structure that lies to a screen reader's heading navigation.
+- **`title-sm`** — The title of a *component*, not of a document. *Use for:* A card's heading, a dialog title, a section label inside a panel.
+    - **Not** `heading-*`. A card title is not part of the page outline, and using a heading tier for it produces a document structure that lies to a screen reader's heading navigation.
+- **`body-lg`** — The reading tier: body-lg through body-xs. Prose and long-form content. *Use for:* Paragraphs, descriptions, help text, anything a person reads a sentence of.
+    - **Not** `label-*`. Body is for reading, label is for naming. A form's help text is body; the field's name is a label. Getting this wrong is why some UIs feel like a wall of controls.
+- **`body-md`** — The reading tier: body-lg through body-xs. Prose and long-form content. *Use for:* Paragraphs, descriptions, help text, anything a person reads a sentence of.
+    - **Not** `label-*`. Body is for reading, label is for naming. A form's help text is body; the field's name is a label. Getting this wrong is why some UIs feel like a wall of controls.
+- **`body-sm`** — The reading tier: body-lg through body-xs. Prose and long-form content. *Use for:* Paragraphs, descriptions, help text, anything a person reads a sentence of.
+    - **Not** `label-*`. Body is for reading, label is for naming. A form's help text is body; the field's name is a label. Getting this wrong is why some UIs feel like a wall of controls.
+- **`body-xs`** — The reading tier: body-lg through body-xs. Prose and long-form content. *Use for:* Paragraphs, descriptions, help text, anything a person reads a sentence of.
+    - **Not** `label-*`. Body is for reading, label is for naming. A form's help text is body; the field's name is a label. Getting this wrong is why some UIs feel like a wall of controls.
+- **`label-lg`** — The naming tier: label-lg through label-xs. Short, denser, slightly heavier. *Use for:* Field labels, table column headers, button text, tab titles, chip text.
+    - **Not** `body-*` at the same size. Labels carry more weight and tighter leading because they are scanned, not read.
+- **`label-md`** — The naming tier: label-lg through label-xs. Short, denser, slightly heavier. *Use for:* Field labels, table column headers, button text, tab titles, chip text.
+    - **Not** `body-*` at the same size. Labels carry more weight and tighter leading because they are scanned, not read.
+- **`label-sm`** — The naming tier: label-lg through label-xs. Short, denser, slightly heavier. *Use for:* Field labels, table column headers, button text, tab titles, chip text.
+    - **Not** `body-*` at the same size. Labels carry more weight and tighter leading because they are scanned, not read.
+- **`label-xs`** — The naming tier: label-lg through label-xs. Short, denser, slightly heavier. *Use for:* Field labels, table column headers, button text, tab titles, chip text.
+    - **Not** `body-*` at the same size. Labels carry more weight and tighter leading because they are scanned, not read.
+- **`caption`** — The smallest page-register tier. Metadata beneath something. *Use for:* Image captions, timestamps, footnotes, a card's secondary line.
+    - **Not** `text-overline`. Caption sits *below* and explains; overline sits *above* and categorises.
+- **`mono-xl`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`mono-lg`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`mono-md`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`mono-caption`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`mono-sm`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+
+### radii (7)
+
+- **`none`** — Square. A deliberate 0. *Use for:* Edge-to-edge surfaces, table cells, anything whose corners meet another element's corners.
+    - **Not** omitting a radius class. Stating `none` records the intent; omitting it means the next person cannot tell square-on-purpose from square-by-accident.
+- **`xs`** — The tightest real corner. Reads as 'crisp', not 'rounded'. *Use for:* Tool-chrome controls, tree rows, small swatches — anywhere the radius should be felt but not seen. The workspace register runs ~5px on essentially everything.
+    - **Not** `sm`. In a 24px-tall control an `sm` radius starts to read as a lozenge.
+- **`sm`** — The default control corner. *Use for:* Inputs, buttons in the page register, badges, small cards.
+- **`md`** — A container corner. *Use for:* Cards, panels, popovers, menus — surfaces that hold other things.
+    - **Not** `sm`. A container should be softer than the controls inside it, or the nesting reads inverted.
+- **`lg`** — A prominent container corner. *Use for:* Dialogs, sheets, hero media, feature cards.
+- **`xl`** — The softest rectangular corner. A styling statement. *Use for:* Marketing surfaces, large imagery, a theme that wants a soft character.
+    - **Not** `full`. `xl` is still a rectangle with soft corners; `full` is a capsule. Using `xl` on a small element makes it look like a failed capsule.
+- **`full`** — A capsule or circle — radius exceeds half the height. *Use for:* Avatars, status dots, notification badges, pills, and page-register actions (the 'round action in a tight container' contrast that says *this is a control*).
+    - **Not** any fixed radius, for circles. And NOT in tool chrome: neither Figma nor Paper has a single pill in its chrome, which is why the compact density scope flattens `--button-radius` to ~5px.
+
+### layout (11)
+
+- **`rhythm-unit`** — The vertical rhythm base — two spacing steps (8px at the default scale). Every vertical measure is a multiple of it, and it follows the density control with the spacing scale. *Use for:* Through `Stack`/`Row`/`Grid` gap numbers, which are rhythm units rather than pixels. A gap of 2 is 16px at the default scale, and grows or tightens with density.
+    - **Not** arbitrary vertical spacing. The rhythm is what makes unrelated sections of a page feel like one document.
+- **`grid-columns`** — The column count of the content grid — 12. *Use for:* `Grid`/`Columns`, WITHIN a region, for genuinely multi-column content.
+    - **Not** using a column span as the page's reading width. A span is not a measure — see `measure-prose`.
+- **`grid-gutter`** — The gap between grid columns. *Use for:* `Grid`/`Columns` spacing.
+- **`page-inset`** — The page's outer breathing room, left and right. *Use for:* The gutter between content and the viewport edge, at every breakpoint.
+    - **Not** a global max-width. Sable caps width per REGION by role, never once for the whole page.
+- **`measure-prose`** — The maximum comfortable line length for prose, in `ch`. *Use for:* Any long-form text column.
+    - **Not** a layout width. Measure and width are different things: a wide region can still hold a narrow measure, and capping the region instead makes everything else in it too narrow.
+- **`region-form`** — The region cap for a form — narrow, because fields should not run long. *Use for:* Settings pages, auth screens, any column of inputs.
+    - **Not** `region-content`. A 700px-wide text input is harder to use, not more generous.
+- **`region-feed`** — The region cap for a scrolling list of items. *Use for:* Feeds, timelines, search results.
+- **`region-content`** — The default region cap for mixed page content. *Use for:* Article bodies with media, documentation, most product pages.
+- **`region-wide`** — A wide region for dense or tabular content. *Use for:* Data tables, dashboards, galleries — content that genuinely needs the room.
+- **`region-full`** — No cap. Edge to edge. *Use for:* Hero imagery, full-bleed sections, and a workspace, which is always edge-to-edge.
+- **`region-ultrawide (legacy — prefer region-full)`** — Deprecated. Kept so existing usage keeps resolving. *Use for:* Nothing new. Use `region-full`.
+    - **Not** `region-full`, which is what this became.
+
+### typographyOverrides (60)
+
+- **`type-display-4xl-size`** — The largest type: display-lg through display-4xl. Marketing-scale, one per view at most. *Use for:* A landing page hero, a section opener on a brand surface.
+    - **Not** `heading-1` for page titles. Display is a *statement*; headings are *structure*. A settings page titled in display-3xl looks like an advert.
+- **`type-title-lg-size`** — The title of a *component*, not of a document. *Use for:* A card's heading, a dialog title, a section label inside a panel.
+    - **Not** `heading-*`. A card title is not part of the page outline, and using a heading tier for it produces a document structure that lies to a screen reader's heading navigation.
+- **`type-title-sm-size`** — The title of a *component*, not of a document. *Use for:* A card's heading, a dialog title, a section label inside a panel.
+    - **Not** `heading-*`. A card title is not part of the page outline, and using a heading tier for it produces a document structure that lies to a screen reader's heading navigation.
+- **`type-body-lg-size`** — The reading tier: body-lg through body-xs. Prose and long-form content. *Use for:* Paragraphs, descriptions, help text, anything a person reads a sentence of.
+    - **Not** `label-*`. Body is for reading, label is for naming. A form's help text is body; the field's name is a label. Getting this wrong is why some UIs feel like a wall of controls.
+- **`type-body-lg-weight`** — The reading tier: body-lg through body-xs. Prose and long-form content. *Use for:* Paragraphs, descriptions, help text, anything a person reads a sentence of.
+    - **Not** `label-*`. Body is for reading, label is for naming. A form's help text is body; the field's name is a label. Getting this wrong is why some UIs feel like a wall of controls.
+- **`type-body-lg-leading`** — The reading tier: body-lg through body-xs. Prose and long-form content. *Use for:* Paragraphs, descriptions, help text, anything a person reads a sentence of.
+    - **Not** `label-*`. Body is for reading, label is for naming. A form's help text is body; the field's name is a label. Getting this wrong is why some UIs feel like a wall of controls.
+- **`type-body-lg-tracking`** — The reading tier: body-lg through body-xs. Prose and long-form content. *Use for:* Paragraphs, descriptions, help text, anything a person reads a sentence of.
+    - **Not** `label-*`. Body is for reading, label is for naming. A form's help text is body; the field's name is a label. Getting this wrong is why some UIs feel like a wall of controls.
+- **`type-body-md-size`** — The reading tier: body-lg through body-xs. Prose and long-form content. *Use for:* Paragraphs, descriptions, help text, anything a person reads a sentence of.
+    - **Not** `label-*`. Body is for reading, label is for naming. A form's help text is body; the field's name is a label. Getting this wrong is why some UIs feel like a wall of controls.
+- **`type-body-md-weight`** — The reading tier: body-lg through body-xs. Prose and long-form content. *Use for:* Paragraphs, descriptions, help text, anything a person reads a sentence of.
+    - **Not** `label-*`. Body is for reading, label is for naming. A form's help text is body; the field's name is a label. Getting this wrong is why some UIs feel like a wall of controls.
+- **`type-body-md-leading`** — The reading tier: body-lg through body-xs. Prose and long-form content. *Use for:* Paragraphs, descriptions, help text, anything a person reads a sentence of.
+    - **Not** `label-*`. Body is for reading, label is for naming. A form's help text is body; the field's name is a label. Getting this wrong is why some UIs feel like a wall of controls.
+- **`type-body-md-tracking`** — The reading tier: body-lg through body-xs. Prose and long-form content. *Use for:* Paragraphs, descriptions, help text, anything a person reads a sentence of.
+    - **Not** `label-*`. Body is for reading, label is for naming. A form's help text is body; the field's name is a label. Getting this wrong is why some UIs feel like a wall of controls.
+- **`type-body-sm-size`** — The reading tier: body-lg through body-xs. Prose and long-form content. *Use for:* Paragraphs, descriptions, help text, anything a person reads a sentence of.
+    - **Not** `label-*`. Body is for reading, label is for naming. A form's help text is body; the field's name is a label. Getting this wrong is why some UIs feel like a wall of controls.
+- **`type-body-sm-weight`** — The reading tier: body-lg through body-xs. Prose and long-form content. *Use for:* Paragraphs, descriptions, help text, anything a person reads a sentence of.
+    - **Not** `label-*`. Body is for reading, label is for naming. A form's help text is body; the field's name is a label. Getting this wrong is why some UIs feel like a wall of controls.
+- **`type-body-sm-leading`** — The reading tier: body-lg through body-xs. Prose and long-form content. *Use for:* Paragraphs, descriptions, help text, anything a person reads a sentence of.
+    - **Not** `label-*`. Body is for reading, label is for naming. A form's help text is body; the field's name is a label. Getting this wrong is why some UIs feel like a wall of controls.
+- **`type-body-sm-tracking`** — The reading tier: body-lg through body-xs. Prose and long-form content. *Use for:* Paragraphs, descriptions, help text, anything a person reads a sentence of.
+    - **Not** `label-*`. Body is for reading, label is for naming. A form's help text is body; the field's name is a label. Getting this wrong is why some UIs feel like a wall of controls.
+- **`type-body-xs-size`** — The reading tier: body-lg through body-xs. Prose and long-form content. *Use for:* Paragraphs, descriptions, help text, anything a person reads a sentence of.
+    - **Not** `label-*`. Body is for reading, label is for naming. A form's help text is body; the field's name is a label. Getting this wrong is why some UIs feel like a wall of controls.
+- **`type-body-xs-weight`** — The reading tier: body-lg through body-xs. Prose and long-form content. *Use for:* Paragraphs, descriptions, help text, anything a person reads a sentence of.
+    - **Not** `label-*`. Body is for reading, label is for naming. A form's help text is body; the field's name is a label. Getting this wrong is why some UIs feel like a wall of controls.
+- **`type-body-xs-leading`** — The reading tier: body-lg through body-xs. Prose and long-form content. *Use for:* Paragraphs, descriptions, help text, anything a person reads a sentence of.
+    - **Not** `label-*`. Body is for reading, label is for naming. A form's help text is body; the field's name is a label. Getting this wrong is why some UIs feel like a wall of controls.
+- **`type-body-xs-tracking`** — The reading tier: body-lg through body-xs. Prose and long-form content. *Use for:* Paragraphs, descriptions, help text, anything a person reads a sentence of.
+    - **Not** `label-*`. Body is for reading, label is for naming. A form's help text is body; the field's name is a label. Getting this wrong is why some UIs feel like a wall of controls.
+- **`type-label-lg-size`** — The naming tier: label-lg through label-xs. Short, denser, slightly heavier. *Use for:* Field labels, table column headers, button text, tab titles, chip text.
+    - **Not** `body-*` at the same size. Labels carry more weight and tighter leading because they are scanned, not read.
+- **`type-label-lg-weight`** — The naming tier: label-lg through label-xs. Short, denser, slightly heavier. *Use for:* Field labels, table column headers, button text, tab titles, chip text.
+    - **Not** `body-*` at the same size. Labels carry more weight and tighter leading because they are scanned, not read.
+- **`type-label-lg-leading`** — The naming tier: label-lg through label-xs. Short, denser, slightly heavier. *Use for:* Field labels, table column headers, button text, tab titles, chip text.
+    - **Not** `body-*` at the same size. Labels carry more weight and tighter leading because they are scanned, not read.
+- **`type-label-lg-tracking`** — The naming tier: label-lg through label-xs. Short, denser, slightly heavier. *Use for:* Field labels, table column headers, button text, tab titles, chip text.
+    - **Not** `body-*` at the same size. Labels carry more weight and tighter leading because they are scanned, not read.
+- **`type-label-md-size`** — The naming tier: label-lg through label-xs. Short, denser, slightly heavier. *Use for:* Field labels, table column headers, button text, tab titles, chip text.
+    - **Not** `body-*` at the same size. Labels carry more weight and tighter leading because they are scanned, not read.
+- **`type-label-md-weight`** — The naming tier: label-lg through label-xs. Short, denser, slightly heavier. *Use for:* Field labels, table column headers, button text, tab titles, chip text.
+    - **Not** `body-*` at the same size. Labels carry more weight and tighter leading because they are scanned, not read.
+- **`type-label-md-leading`** — The naming tier: label-lg through label-xs. Short, denser, slightly heavier. *Use for:* Field labels, table column headers, button text, tab titles, chip text.
+    - **Not** `body-*` at the same size. Labels carry more weight and tighter leading because they are scanned, not read.
+- **`type-label-md-tracking`** — The naming tier: label-lg through label-xs. Short, denser, slightly heavier. *Use for:* Field labels, table column headers, button text, tab titles, chip text.
+    - **Not** `body-*` at the same size. Labels carry more weight and tighter leading because they are scanned, not read.
+- **`type-label-sm-size`** — The naming tier: label-lg through label-xs. Short, denser, slightly heavier. *Use for:* Field labels, table column headers, button text, tab titles, chip text.
+    - **Not** `body-*` at the same size. Labels carry more weight and tighter leading because they are scanned, not read.
+- **`type-label-sm-weight`** — The naming tier: label-lg through label-xs. Short, denser, slightly heavier. *Use for:* Field labels, table column headers, button text, tab titles, chip text.
+    - **Not** `body-*` at the same size. Labels carry more weight and tighter leading because they are scanned, not read.
+- **`type-label-sm-leading`** — The naming tier: label-lg through label-xs. Short, denser, slightly heavier. *Use for:* Field labels, table column headers, button text, tab titles, chip text.
+    - **Not** `body-*` at the same size. Labels carry more weight and tighter leading because they are scanned, not read.
+- **`type-label-sm-tracking`** — The naming tier: label-lg through label-xs. Short, denser, slightly heavier. *Use for:* Field labels, table column headers, button text, tab titles, chip text.
+    - **Not** `body-*` at the same size. Labels carry more weight and tighter leading because they are scanned, not read.
+- **`type-label-xs-size`** — The naming tier: label-lg through label-xs. Short, denser, slightly heavier. *Use for:* Field labels, table column headers, button text, tab titles, chip text.
+    - **Not** `body-*` at the same size. Labels carry more weight and tighter leading because they are scanned, not read.
+- **`type-label-xs-weight`** — The naming tier: label-lg through label-xs. Short, denser, slightly heavier. *Use for:* Field labels, table column headers, button text, tab titles, chip text.
+    - **Not** `body-*` at the same size. Labels carry more weight and tighter leading because they are scanned, not read.
+- **`type-label-xs-leading`** — The naming tier: label-lg through label-xs. Short, denser, slightly heavier. *Use for:* Field labels, table column headers, button text, tab titles, chip text.
+    - **Not** `body-*` at the same size. Labels carry more weight and tighter leading because they are scanned, not read.
+- **`type-label-xs-tracking`** — The naming tier: label-lg through label-xs. Short, denser, slightly heavier. *Use for:* Field labels, table column headers, button text, tab titles, chip text.
+    - **Not** `body-*` at the same size. Labels carry more weight and tighter leading because they are scanned, not read.
+- **`type-label-xs-transform`** — The naming tier: label-lg through label-xs. Short, denser, slightly heavier. *Use for:* Field labels, table column headers, button text, tab titles, chip text.
+    - **Not** `body-*` at the same size. Labels carry more weight and tighter leading because they are scanned, not read.
+- **`type-caption-size`** — The smallest page-register tier. Metadata beneath something. *Use for:* Image captions, timestamps, footnotes, a card's secondary line.
+    - **Not** `text-overline`. Caption sits *below* and explains; overline sits *above* and categorises.
+- **`type-caption-weight`** — The smallest page-register tier. Metadata beneath something. *Use for:* Image captions, timestamps, footnotes, a card's secondary line.
+    - **Not** `text-overline`. Caption sits *below* and explains; overline sits *above* and categorises.
+- **`type-caption-leading`** — The smallest page-register tier. Metadata beneath something. *Use for:* Image captions, timestamps, footnotes, a card's secondary line.
+    - **Not** `text-overline`. Caption sits *below* and explains; overline sits *above* and categorises.
+- **`type-caption-tracking`** — The smallest page-register tier. Metadata beneath something. *Use for:* Image captions, timestamps, footnotes, a card's secondary line.
+    - **Not** `text-overline`. Caption sits *below* and explains; overline sits *above* and categorises.
+- **`type-mono-xl-size`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`type-mono-xl-weight`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`type-mono-xl-leading`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`type-mono-xl-tracking`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`type-mono-lg-size`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`type-mono-lg-weight`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`type-mono-lg-leading`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`type-mono-lg-tracking`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`type-mono-md-size`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`type-mono-md-weight`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`type-mono-md-leading`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`type-mono-md-tracking`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`type-mono-caption-size`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`type-mono-caption-weight`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`type-mono-caption-leading`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`type-mono-caption-tracking`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`type-mono-sm-size`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`type-mono-sm-weight`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`type-mono-sm-leading`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+- **`type-mono-sm-tracking`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
+    - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
+
+### derived (8)
+
+- **`canvas`** — The WORK surface — the artboard, the document being edited. *Use for:* Behind the thing the tool operates on. `WorkspaceCanvas` uses it.
+    - **Not** `background`. The thing being edited is not the page behind the UI, and collapsing the two makes the document indistinguishable from its chrome.
+- **`canvas-foreground`** — Ink paired with `canvas`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `canvas`. Use them as a pair — `bg-canvas text-canvas-foreground` — so a theme can retune the surface and the ink together.
+    - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
+- **`panel`** — Docked chrome: the surface of a side panel or an inspector. *Use for:* `Panel`, `WorkspaceBar`, `StatusBar` backgrounds.
+    - **Not** `card`. Panels are chrome and sit in a deliberately compressed tonal band — see DESIGN.md → Registers. A card's elevation language is wrong here.
+- **`panel-foreground`** — Ink paired with `panel`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `panel`. Use them as a pair — `bg-panel text-panel-foreground` — so a theme can retune the surface and the ink together.
+    - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
+- **`panel-raised`** — One step up from `panel`: a selected row, a hover fill, a nested well. *Use for:* Tree row selection, hovered panel rows, and the light square of a checkerboard.
+    - **Not** `accent`. In a workspace the tonal band is only a few units wide; `accent` is a page-register step and reads as a shout in chrome.
+- **`hairline`** — The 1px structural line that carries all separation in tool chrome. *Use for:* Between panel sections, under a toolbar, above a status bar.
+    - **Not** a bigger tonal step. This is one of the two rules the workspace register deliberately reverses: on a page prefer space or tone over a line, in chrome the hairline *is* the structure.
+- **`hairline-strong`** — A hairline that must be seen — an input edge, a swatch ring. *Use for:* Bounding a control whose fill is arbitrary (a colour swatch) or user content.
+    - **Not** `hairline`, when the line would otherwise disappear against what it bounds.
+- **`border-floating`** — The edge of a floating surface. Fainter than `border`: the shadow carries the elevation. *Use for:* Every floating surface — popover, menu, select, tooltip, dialog, sheet, toast, a floating panel — as `border-border-floating` or `ring-border-floating`, together with `bg-popover` and a `shadow-md`+ shadow. Derived for every theme (a faint alpha of the foreground); a theme may tune it with `--theme-border-floating`.
+    - **Not** `border`. A full hairline plus a shadow stacks into a heavy outline around anything that floats. `border` is for resting edges: inputs, cards, badges.

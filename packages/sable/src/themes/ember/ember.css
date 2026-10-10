@@ -1,0 +1,270 @@
+/* ==========================================================================
+   Ember — a Sable theme, developed from reference analysis.
+
+   Components must reference the SEMANTIC tokens (--background, --primary,
+   --tone-edition, …), never any palette ramp directly. See themes/_contract.ts.
+   ========================================================================== */
+
+/* Scoped only — never a bare `:root`. Base alone owns `:root` as the
+   package default; a second theme claiming it leaks its tokens into every other
+   theme, and `themes.test.ts` fails the build on it. */
+[data-sable-theme="ember"] {
+	/* Font stacks (theme-internal; host app provides the actual font files).
+
+	   The reference's observed face is Helvetica Neue — a Linotype commercial
+	   font, NOT available on Google Fonts. (The resolver claims otherwise:
+	   Google's API answers for it via the restricted `/l/font?kit=` endpoint,
+	   which is not an open licence.)
+
+	   Rather than substitute a neutral lookalike, this theme takes a DELIBERATE
+	   DIVERGENCE: Work Sans, chosen for a little warmth without commentary. It
+	   keeps the reference's grotesque bones and its wide, even rhythm at display
+	   size, while its slightly humanist details stop the page reading as
+	   anonymous the way a pure neutral does. It carries a genuine 300 weight,
+	   which the whole theme depends on.
+
+	   Space Grotesk was tried first and pulled back from: its technical, quirky
+	   letterforms competed with the registration chrome rather than supporting
+	   it — two things talking at once on a page that is already maximal in
+	   colour.
+
+	   Helvetica Neue is deliberately NOT first in the stack: leading with it
+	   would mean anyone who licenses it silently gets a different design than
+	   the one that was chosen. */
+	--font-sans: "Work Sans", sans-serif;
+	--font-mono: "DM Mono", ui-monospace, monospace;
+
+	/* Layout foundation — px, never rem. These MUST be declared here even where
+	   a value equals Sable's default: `styles.css` unconditionally imports
+	   the original default theme's CSS, which declared these on a bare `:root`, so a theme that
+	   omits them silently inherits that theme's caps regardless of which
+	   `data-sable-theme` is active. Values from the reference's own measured
+	   container widths — 1280px grid inside an 80px page inset at 1440.
+
+	   rem here would be a bug, not a style choice: the responsive root is 14px
+	   on desktop, so `80rem` renders 1120px, not the 1280px it reads as. */
+	--page-inset: clamp(20px, 5.5vw, 80px);
+	--region-form: 480px;
+	--region-feed: 640px;
+	--region-content: 960px;
+	--region-wide: 1280px;
+	--region-full: 1536px;
+	--region-ultrawide: 1800px;
+
+	/* Theme foundation vars consumed by styles.css. */
+	--theme-radius-none: 0px;
+	--theme-radius-xs: 6px;
+	--theme-radius-sm: 10px;
+	--theme-radius-md: 12px;
+	--theme-radius-lg: 20px;
+	--theme-radius-xl: 28px;
+	--theme-radius-full: 9999px;
+
+	/* Type-scale foundation vars consumed by styles.css's paired text-* utilities. */
+	--type-display-4xl-weight: 300;
+	--type-display-4xl-leading: 0.92;
+	--type-display-4xl-tracking: -0.02em;
+	--type-display-3xl-size: 5.4286rem;
+	--type-display-3xl-weight: 300;
+	--type-display-3xl-leading: 0.95;
+	--type-display-3xl-tracking: -0.015em;
+	--type-display-2xl-size: 4.8571rem;
+	--type-display-2xl-weight: 300;
+	--type-display-2xl-leading: 1;
+	--type-display-2xl-tracking: -0.01em;
+	--type-display-xl-size: 3.7143rem;
+	--type-display-xl-weight: 300;
+	--type-display-xl-leading: 1.2;
+	--type-display-xl-tracking: -0.01em;
+	--type-display-lg-size: 2.8571rem;
+	--type-display-lg-weight: 300;
+	--type-display-lg-leading: 1.1;
+	--type-display-lg-tracking: -0.005em;
+	--type-heading-weight: 300;
+	--type-heading-1-size: 2.2857rem;
+	--type-heading-1-leading: 1.1;
+	--type-heading-1-tracking: -0.005em;
+	--type-heading-2-size: 1.7143rem;
+	--type-heading-2-leading: 1.1;
+	--type-heading-2-tracking: 0em;
+	--type-heading-3-size: 1.4286rem;
+	--type-heading-3-leading: 1.4;
+	--type-heading-3-tracking: 0em;
+	--type-heading-4-size: 1.2857rem;
+	--type-heading-4-leading: 1.4;
+	--type-heading-4-tracking: 0em;
+	--type-title-weight: 500;
+	--type-title-leading: 1.25;
+	--type-title-tracking: 0em;
+	--type-title-sm-tracking: 0em;
+
+	/* Overline/eyebrow foundation vars consumed by styles.css's text-overline utility. */
+	--type-overline-size: 0.7143rem;
+	--type-overline-weight: 500;
+	--type-overline-leading: 1;
+	--type-overline-tracking: 0.1em;
+	--type-overline-transform: uppercase;
+
+	/* ----------------------------------------------------------------------
+	   Palette ramps. Theme-internal — never used directly by components.
+	   ---------------------------------------------------------------------- */
+	/* ember */
+	--ember-50: oklch(97% 0.02 32.9);
+	--ember-100: oklch(94% 0.045 32.9);
+	--ember-200: oklch(88% 0.08 32.9);
+	--ember-300: oklch(80% 0.13 32.9);
+	--ember-400: oklch(72% 0.19 32.9);
+	--ember-500: oklch(65.2% 0.235 32.9);
+	--ember-600: oklch(58% 0.245 32.9);
+	--ember-700: oklch(50% 0.21 32.9);
+	--ember-800: oklch(42% 0.17 32.9);
+	--ember-900: oklch(34% 0.13 32.9);
+	--ember-950: oklch(24% 0.09 32.9);
+
+	/* soot — one continuous warm neutral. Steps 50-500 were chroma 0 while
+	   600-950 were warm, so the ramp changed temperature halfway and light mode
+	   read as a different theme from dark mode. */
+	--soot-50: oklch(97% 0.005 80);
+	--soot-100: oklch(93.1% 0.007 78);
+	--soot-200: oklch(85.8% 0.008 76);
+	--soot-300: oklch(79.2% 0.010 74);
+	--soot-400: oklch(61% 0.010 72);
+	--soot-500: oklch(46.8% 0.010 70);
+	--soot-600: oklch(32.9% 0.010 61.1);
+	--soot-700: oklch(25.2% 0.012 67.2);
+	--soot-800: oklch(18.8% 0.013 55.5);
+	/* Warm, like every step around it. This was `oklch(15.9% 0 90)` — chroma 0,
+	   a neutral grey punched into an otherwise warm ramp — and because it feeds
+	   `--sidebar` and `--secondary` in dark mode, the docs rail read as a cold
+	   panel floating on a warm ground. The chroma/hue here are interpolated
+	   between its neighbours (950 at 0.018/70.5, 800 at 0.013/55.5); the
+	   lightness is untouched, so only the temperature changed. */
+	--soot-900: oklch(15.9% 0.016 65);
+	--soot-950: oklch(14.1% 0.018 70.5);
+
+	/* ----------------------------------------------------------------------
+	   Semantic tokens — light mode
+	   ---------------------------------------------------------------------- */
+	--background: oklch(96.5% 0.008 78);
+	--foreground: oklch(23.1% 0.014 70);
+	--card: oklch(99% 0.004 80);
+	--card-foreground: oklch(23.1% 0.014 70);
+	--popover: oklch(99% 0.004 80);
+	--popover-foreground: oklch(23.1% 0.014 70);
+	--muted: oklch(93% 0.007 76);
+	--muted-foreground: oklch(46.8% 0.010 70);
+	--border: oklch(88% 0.008 74);
+	--border-strong: oklch(82% 0.010 73);
+	--input: oklch(85% 0.009 74);
+	--ring: oklch(58% 0.245 32.9);
+	--primary: oklch(58% 0.245 32.9);
+	--primary-foreground: oklch(100% 0 0);
+	--secondary: oklch(91% 0.010 75);
+	--secondary-foreground: oklch(23.1% 0.014 70);
+	--accent: oklch(92% 0.011 74);
+	--accent-foreground: oklch(23.1% 0.014 70);
+	--destructive: oklch(50% 0.17 25);
+	--destructive-foreground: oklch(100% 0 0);
+	--success: oklch(43% 0.10 165);
+	--success-foreground: oklch(100% 0 0);
+	--tone-standard: oklch(40% 0.07 130);
+	--tone-collectible: oklch(46% 0.14 285);
+	--tone-edition: oklch(45% 0.15 309);
+	--tone-info: oklch(48% 0.13 250);
+	--tone-warning: oklch(50% 0.12 52);
+	--highlight: oklch(58% 0.245 32.9);
+	--tone-standard-foreground: oklch(100% 0 0);
+	--tone-collectible-foreground: oklch(100% 0 0);
+	--tone-edition-foreground: oklch(100% 0 0);
+	--tone-info-foreground: oklch(100% 0 0);
+	--tone-warning-foreground: oklch(100% 0 0);
+	--highlight-foreground: oklch(100% 0 0);
+	--overlay: oklch(14.1% 0.018 70.5);
+	--overlay-foreground: oklch(100% 0 0);
+	--sidebar: oklch(96.5% 0.008 78);
+	--sidebar-foreground: oklch(23.1% 0.014 70);
+	--sidebar-primary: oklch(58% 0.245 32.9);
+	--sidebar-primary-foreground: oklch(100% 0 0);
+	--sidebar-accent: oklch(93% 0.007 76);
+	--sidebar-accent-foreground: oklch(23.1% 0.014 70);
+	--sidebar-border: oklch(88% 0.008 74);
+	--sidebar-ring: oklch(58% 0.245 32.9);
+
+	/* ----------------------------------------------------------------------
+	   Motion tokens (mode-independent)
+	   ---------------------------------------------------------------------- */
+	--motion-scale: 1;
+	--motion-duration-instant: calc(100ms * var(--motion-scale));
+	--motion-duration-fast: calc(200ms * var(--motion-scale));
+	--motion-duration-base: calc(300ms * var(--motion-scale));
+	--motion-duration-slow: calc(400ms * var(--motion-scale));
+	--motion-duration-slower: calc(650ms * var(--motion-scale));
+	--motion-duration-enter: calc(400ms * var(--motion-scale));
+	--motion-duration-exit: calc(200ms * var(--motion-scale));
+	--motion-ease-standard: cubic-bezier(0.6, 0, 0.3, 1);
+	--motion-ease-decelerate: cubic-bezier(0.16, 1, 0.3, 1);
+	--motion-ease-emphasized: cubic-bezier(0.785, 0.135, 0.15, 0.86);
+	--motion-ease-spring: cubic-bezier(0.34, 1.35, 0.5, 1);
+	--motion-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+	--motion-ease-linear: linear;
+}
+
+/* ==========================================================================
+   Semantic tokens — dark mode
+   ========================================================================== */
+/* Scoped only — a bare `.dark` in this group leaks Ember's dark tokens into
+   every other theme's dark mode. That is a shipped bug the registry test now
+   pins, and the generator emitted it here again. */
+.dark[data-sable-theme="ember"],
+[data-sable-theme="ember"].dark,
+/* A dark island inside a light page: an inspector, a dark sidebar, a dark
+   hero. Without this arm, a nested .dark kept the light tokens. */
+[data-sable-theme="ember"] .dark,
+/* …and the reverse: a preset-scoped subtree inside a dark page follows the page
+   into dark mode. Add `.light` to the subtree to pin it light. */
+.dark [data-sable-theme="ember"]:not(.light) {
+	--background: oklch(14.1% 0.018 70.5);
+	--foreground: oklch(100% 0 0);
+	--card: oklch(21% 0.013 55.5);
+	--card-foreground: oklch(100% 0 0);
+	--popover: oklch(24.5% 0.013 57);
+	--popover-foreground: oklch(100% 0 0);
+	--muted: oklch(27% 0.010 60); /* above --popover: a hover row or chip inside a menu/dialog must still read */
+	--muted-foreground: oklch(66% 0.006 67.7);
+	--border: oklch(32% 0.012 67.2); /* lifted with the fills: a hairline must still show on muted */
+	--border-strong: oklch(37% 0.010 61.1);
+	--input: oklch(33% 0.012 65);
+	--ring: oklch(65.2% 0.235 32.9);
+	--primary: oklch(65.2% 0.235 32.9);
+	--primary-foreground: oklch(14.1% 0.018 70.5);
+	--secondary: oklch(26% 0.012 67.2); /* a step ABOVE the card, so a secondary Button reads on a card and on the page */
+	--secondary-foreground: oklch(100% 0 0);
+	--accent: oklch(29% 0.014 60);
+	--accent-foreground: oklch(100% 0 0);
+	--destructive: oklch(62% 0.16 25);
+	--destructive-foreground: oklch(14.1% 0.018 70.5);
+	--success: oklch(72% 0.12 165);
+	--success-foreground: oklch(14.1% 0.018 70.5);
+	--tone-standard: oklch(70% 0.09 130);
+	--tone-collectible: oklch(70% 0.12 285);
+	--tone-edition: oklch(68% 0.14 309);
+	--tone-info: oklch(72% 0.11 250);
+	--tone-warning: oklch(78% 0.13 60);
+	--highlight: oklch(65.2% 0.235 32.9);
+	--tone-standard-foreground: oklch(14.1% 0.018 70.5);
+	--tone-collectible-foreground: oklch(14.1% 0.018 70.5);
+	--tone-edition-foreground: oklch(14.1% 0.018 70.5);
+	--tone-info-foreground: oklch(14.1% 0.018 70.5);
+	--tone-warning-foreground: oklch(14.1% 0.018 70.5);
+	--highlight-foreground: oklch(14.1% 0.018 70.5);
+	--overlay: oklch(14.1% 0.018 70.5);
+	--overlay-foreground: oklch(100% 0 0);
+	--sidebar: oklch(15.9% 0.016 65);
+	--sidebar-foreground: oklch(100% 0 0);
+	--sidebar-primary: oklch(65.2% 0.235 32.9);
+	--sidebar-primary-foreground: oklch(14.1% 0.018 70.5);
+	--sidebar-accent: oklch(22% 0.010 60);
+	--sidebar-accent-foreground: oklch(100% 0 0);
+	--sidebar-border: oklch(25.2% 0.012 67.2);
+	--sidebar-ring: oklch(65.2% 0.235 32.9);
+}

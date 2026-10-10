@@ -1,0 +1,90 @@
+import { useEffect, useState } from "react"
+
+/**
+ * Path router — `/typography`, `/button`, `/guide/conventions`.
+ *
+ * The site used `#/slug` for a long time. Hash routes are invisible to a
+ * crawler or an agent fetching a page — every URL was the same document — so
+ * a docs site built for agents could not be read by one. Real paths fix that,
+ * and old `#/` links are rewritten on load so nothing already shared breaks.
+ *
+ * The query string is preserved across navigation on purpose: it carries the
+ * Customize panel's `?look=`, so a tuned look follows the reader page to page.
+ */
+
+const EVENT = "sable-docs-navigate"
+
+function slugFromLocation(): string {
+	if (typeof window === "undefined") return "introduction"
+	const path = window.location.pathname.replace(/^\/+|\/+$/g, "")
+	return path || "introduction"
+}
+
+/** Rewrite a legacy `#/slug` URL to `/slug` before the first render. */
+function upgradeLegacyHash() {
+	if (typeof window === "undefined") return
+	const { hash, search } = window.location
+	if (!hash.startsWith("#/")) return
+	const slug = hash.slice(2)
+	window.history.replaceState(window.history.state, "", `/${slug}${search}`)
+}
+
+export function useRoute(): string {
+	const [slug, setSlug] = useState(() => {
+		upgradeLegacyHash()
+		return slugFromLocation()
+	})
+	useEffect(() => {
+		const onChange = () => setSlug(slugFromLocation())
+		window.addEventListener("popstate", onChange)
+		window.addEventListener(EVENT, onChange)
+		return () => {
+			window.removeEventListener("popstate", onChange)
+			window.removeEventListener(EVENT, onChange)
+		}
+	}, [])
+
+	// Same-origin <a href="/slug"> links route without a reload. Modified
+	// clicks, new-tab targets, downloads and other origins behave natively.
+	useEffect(() => {
+		function onClick(event: MouseEvent) {
+			if (event.defaultPrevented || event.button !== 0) return
+			if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+			const anchor = (event.target as Element | null)?.closest?.("a")
+			if (!anchor || anchor.target || anchor.hasAttribute("download")) return
+			const href = anchor.getAttribute("href")
+			if (!href || !href.startsWith("/") || href.startsWith("//")) return
+			if (/\.(md|txt|json|png|svg|jpe?g|webp|mp4)$/i.test(href.split("?")[0])) return
+			event.preventDefault()
+			navigate(href.slice(1))
+		}
+		document.addEventListener("click", onClick)
+		return () => document.removeEventListener("click", onClick)
+	}, [])
+	return slug
+}
+
+/** @deprecated Kept as an alias while call sites migrate; use `useRoute`. */
+export const useHashRoute = useRoute
+
+/** The href for a slug — use for `<a href>` so links work with or without JS. */
+export function hrefFor(slug: string): string {
+	return `/${slug}`
+}
+
+/** Like navigate, but replaces the history entry — for retired URLs. */
+export function redirect(slug: string): void {
+	window.history.replaceState(null, "", `/${slug.replace(/^\/+/, "")}${window.location.search}`)
+	window.dispatchEvent(new Event(EVENT))
+}
+
+export function navigate(slug: string): void {
+	const target = `/${slug.replace(/^\/+/, "")}${window.location.search}`
+	if (target !== `${window.location.pathname}${window.location.search}`) {
+		window.history.pushState(null, "", target)
+		window.dispatchEvent(new Event(EVENT))
+	}
+	const main = document.getElementById("docs-main")
+	main?.scrollTo({ top: 0 })
+	window.scrollTo({ top: 0 })
+}

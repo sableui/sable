@@ -1,0 +1,120 @@
+import { PageHeader, Section } from "../components/docs-ui"
+
+interface Spec {
+	name: string
+	cls: string
+	meta: string
+	sample: string
+}
+
+function SpecRow({ spec }: { spec: Spec }) {
+	return (
+		<div className="grid grid-cols-1 items-baseline gap-2 border-b border-border py-5 last:border-0 md:grid-cols-12 md:gap-4">
+			<div className="md:col-span-3">
+				<p className="text-title-sm">{spec.name}</p>
+				<code className="text-mono-sm text-muted-foreground">{spec.cls}</code>
+			</div>
+			<div className={`md:col-span-6 ${spec.cls}`}>{spec.sample}</div>
+			<div className="text-mono-sm text-muted-foreground md:col-span-3">
+				{spec.meta}
+			</div>
+		</div>
+	)
+}
+
+const display: Spec[] = [
+	{ name: "Display 2XL", cls: "text-display-2xl", meta: "72 · 700", sample: "Permanent art." },
+	{ name: "Display LG", cls: "text-display-lg", meta: "48 · 700", sample: "Preserve the work." },
+]
+const heading: Spec[] = [
+	{ name: "Heading 1", cls: "text-heading-1", meta: "36 · 600", sample: "Discover new work" },
+	{ name: "Heading 2", cls: "text-heading-2", meta: "28 · 600", sample: "Recently collected" },
+	{ name: "Heading 3", cls: "text-heading-3", meta: "22 · 600", sample: "Pricing & royalties" },
+	{ name: "Heading 4", cls: "text-heading-4", meta: "18 · 600", sample: "Notification preferences" },
+]
+const title: Spec[] = [
+	{ name: "Title LG", cls: "text-title-lg", meta: "16 · 600", sample: "Untitled (gold rush)" },
+	// design-lint-disable-next-line inline-color -- "#042" is an edition NUMBER in a type-tier sample string, not a colour
+	{ name: "Title SM", cls: "text-title-sm", meta: "14 · 600", sample: "Edition #042" },
+]
+const body: Spec[] = [
+	{
+		name: "Body LG",
+		cls: "text-body-lg",
+		meta: "17 · 400",
+		sample:
+			"Choose clear, readable type that helps people understand the page and complete their task.",
+	},
+	{
+		name: "Body MD",
+		cls: "text-body-md",
+		meta: "15 · 400",
+		sample: "Save your work, share it with your team, and come back when you're ready.",
+	},
+	{
+		name: "Body SM",
+		cls: "text-body-sm",
+		meta: "13 · 400",
+		sample: "You can change this later from privacy settings.",
+	},
+	{
+		name: "Body XS",
+		cls: "text-body-xs",
+		meta: "12 · 400",
+		sample: "Queued 3 of 12 · retrying on rate limit · last run 14:02:36.",
+	},
+]
+const label: Spec[] = [
+	{ name: "Label LG", cls: "text-label-lg", meta: "14 · 600", sample: "Collect edition" },
+	{ name: "Label MD", cls: "text-label-md", meta: "12 · 600", sample: "12 collectors" },
+	{ name: "Label XS", cls: "text-label-xs", meta: "11 · 600", sample: "Trending now" },
+	{ name: "Caption", cls: "text-caption", meta: "12 · 400", sample: "Posted 2 hours ago" },
+]
+const mono: Spec[] = [
+	{ name: "Mono MD", cls: "text-mono-md", meta: "13 · 400 · tabular", sample: "5J7s…8xQp · 0xab12cd34" },
+	{ name: "Mono Caption", cls: "text-mono-caption", meta: "12 · 400 · tabular", sample: "b4c1…9f2e · 341 ms · 0.0021 SOL" },
+	{ name: "Mono SM", cls: "text-mono-sm", meta: "11 · 500 · tabular", sample: "tx_5J7s8xQp" },
+]
+
+export function TypographyPage() {
+	return (
+		<>
+			<PageHeader
+				eyebrow="Foundations"
+				title="Typography"
+				lede="A small, fixed set of type styles, each picked by the job the text does rather than its size."
+			/>
+
+			<Section title="Display" description="Type as image, for heroes and campaign moments. One per view, never in app chrome.">
+				{display.map((s) => (
+					<SpecRow key={s.name} spec={s} />
+				))}
+			</Section>
+			<Section title="Heading" description="The page outline, from the page title down to a card group.">
+				{heading.map((s) => (
+					<SpecRow key={s.name} spec={s} />
+				))}
+			</Section>
+			<Section title="Title" description="Names a card, dialog, sheet or list row.">
+				{title.map((s) => (
+					<SpecRow key={s.name} spec={s} />
+				))}
+			</Section>
+			<Section title="Body" description="Reading text, from the lede down to dense metadata.">
+				{body.map((s) => (
+					<SpecRow key={s.name} spec={s} />
+				))}
+			</Section>
+			<Section title="Label" description="Short, scannable UI text: buttons, fields, badges, timestamps.">
+				{label.map((s) => (
+					<SpecRow key={s.name} spec={s} />
+				))}
+			</Section>
+			<Section title="Mono" description="Code, IDs and numbers that need to line up.">
+				{mono.map((s) => (
+					<SpecRow key={s.name} spec={s} />
+				))}
+			</Section>
+		</>
+	)
+}

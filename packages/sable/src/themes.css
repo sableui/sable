@@ -1,0 +1,30 @@
+/* ==========================================================================
+   @sableui/react — all bundled alternate themes, in one import.
+
+     @import "tailwindcss";
+     @import "@sableui/react/styles.css";
+     @import "@sableui/react/themes.css";   ← this file
+
+   For an app that offers the bundled set as user-selectable themes (a
+   `<ThemeSelector>` over Base / Meridian / Prism / Verdant / Ember / Poppy). `styles.css`
+   carries Base alone, since the alternates are `[data-sable-theme]`-scoped
+   and dead weight in the overwhelmingly common single-theme app.
+
+   Needing exactly one alternate? Import just that one instead — this file is a
+   convenience for "all of them", not the recommended default:
+
+     @import "@sableui/react/theme/prism.css";
+
+   Base is NOT here: it ships in `styles.css` and must, since it declares
+   the layout floor (`--page-inset`, `--region-*`, `--rhythm-unit`) on a bare
+   `:root` that every other theme inherits.
+   ========================================================================== */
+
+@import "./themes/meridian/meridian.css";
+@import "./themes/prism/prism.css";
+@import "./themes/verdant/verdant.css";
+@import "./themes/ember/ember.css";
+@import "./themes/poppy/poppy.css";
+
+/* Legacy selectors remain available for existing consumers. */
+@import "./themes/atelier/atelier.css";

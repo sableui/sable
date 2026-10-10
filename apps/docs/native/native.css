@@ -1,0 +1,6 @@
+@import "tailwindcss";
+@import "../src/generated/sable.css";
+@import "../src/generated/sable-ios.css";
+@source "./";
+
+body { margin: 0; -webkit-font-smoothing: antialiased; }

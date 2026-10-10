@@ -1,0 +1,58 @@
+name: Release
+
+# Publishes @sableui/react to npm, with provenance, when a v* tag is pushed
+# (`pnpm release` validates and pushes it). Authentication: an npm automation
+# token in the NPM_TOKEN secret for the first publish. After it, configure this
+# workflow as a trusted publisher on npmjs.com (package → Settings) and the
+# token can be deleted: npm then accepts this job's GitHub identity instead.
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # npm provenance (and trusted publishing)
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          # Node 22 (LTS) — the package build regenerates registry.json from the
+          # metas via Node's built-in TypeScript type-stripping (needs 22.18+).
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
+      - name: the tag names the version being published
+        # A tag that disagrees with package.json publishes the wrong number (or
+        # fails late, after every build). Refuse before anything runs.
+        run: |
+          version=$(node -p "require('./packages/sable/package.json').version")
+          if [ "$GITHUB_REF_TYPE" != "tag" ]; then
+            echo "::error::Publish only from a v* tag (this run is on $GITHUB_REF_TYPE $GITHUB_REF_NAME)."
+            exit 1
+          fi
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match packages/sable version $version."
+            exit 1
+          fi
+      - run: pnpm install --frozen-lockfile
+      - name: verify the release contract
+        run: |
+          pnpm design-lint
+          pnpm registry:check
+          pnpm ios:check
+          pnpm typecheck
+          pnpm test
+      - run: pnpm --filter @sableui/react build
+      - name: verify the packed consumer before publishing
+        run: pnpm package:check
+      - run: pnpm docs:build
+      - run: pnpm --filter @sableui/react publish --no-git-checks --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true

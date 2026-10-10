@@ -1,0 +1,5 @@
+/* Host-page layout for PhoneFrame only. The device itself is Sable's Phone, so it
+   follows the host's theme; nothing here reaches the native document. */
+.ios-preview-host { width: 100%; min-width: 0; margin-inline: auto; position: relative; }
+.ios-phone-frame { position: absolute; inset-inline-start: 0; top: 0; transform-origin: top left; }
+.ios-phone-screen { display: block; width: 100%; height: 100%; border: 0; }

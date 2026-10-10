@@ -1,0 +1,7 @@
+packages:
+  - 'packages/*'
+  - 'apps/*'
+
+approveBuilds: sharp
+
+onlyBuiltDependencies: esbuild protobufjs

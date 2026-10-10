@@ -1,0 +1,10 @@
+# Meridian — art direction / illustration style
+
+Style vocabulary only — treatment, never subject matter.
+
+- **Mood:** clinical, archival, patient, quietly authoritative — "field notebook meets prospectus."
+- **Texture/material language:** a two-layer sandwich everywhere — grainy monochrome photographic grounds (film-like grain, soft mid-gray tonal range, slightly lifted blacks) with crisp uniform hairline vector annotation floated on top. The vector layer is pure line: no fills except the occasional single solid circle, no gradients, no texture of its own.
+- **Lighting/shading:** none in the vector work — completely flat, unshaded line art. Photography carries all tonal depth; illustration deliberately refuses it.
+- **Line weight / geometric language:** thin, uniform ~1px strokes throughout — the illustration line weight IS the UI hairline border token. Vocabulary of geometric primitives: ellipses, circles, radial ray bursts, right-angle connector brackets; dashed strokes for implied/ghost geometry, solid strokes for real geometry. Corners are square (echoing the 0px radius language); the only curves are perfect circles/ellipses (echoing the pill radius).
+- **Recurring effects (observed only):** photographic grain; grayscale as a *state* (desaturate-to-monochrome hover system); dashed-vs-solid stroke duality; rotated mono uppercase captioning attached to diagrams ("Fig. A"); registration/crop-mark corner-tick framing. No blur, glow, halftone, or duotone.
+- **Color inside illustrations vs. UI chrome:** the illustration layer is MORE austere than the UI — strictly monochrome (off-white or ink hairlines on photo/surface grounds); the pop accent (#f34e30) almost never enters the drawings themselves — orange lives in UI furniture (numerals, arrows, active pills, dots) adjacent to the diagrams, not within them. Photography is either zero-color (brand: grainy B&W) or full-color (proof: real-world evidence). Reusable rule: *drawings get one ink; photographs get either zero color or all of it; the accent belongs to typography and controls.*

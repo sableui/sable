@@ -1,0 +1,42 @@
+name: CI
+
+# The contract gate. Runs on every PR and on pushes to main. design-lint enforces
+# the design-system hard rules (no palette refs, no inline colors, no kill-switch-
+# bypassing motion, no decomposed typography, no typo'd tokens); typecheck + build
+# + docs build prove the package and its living catalog still compile. Docs are a
+# suggestion; this job is the contract.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          # Node 22 (LTS) — build-registry.mjs imports the .meta.ts files directly
+          # via Node's built-in TypeScript type-stripping (22.18+, unflagged).
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: design-lint (enforce the hard rules)
+        run: pnpm design-lint
+      - name: registry in sync (generated from *.meta.ts)
+        run: pnpm registry:check
+      - name: iOS target map (real Konsta exports, CLI retrieval)
+        run: pnpm ios:check
+      - name: typecheck
+        run: pnpm typecheck
+      - name: test (behavior + a11y gate)
+        run: pnpm test
+      - name: build package
+        run: pnpm build
+      - name: packed consumer (published exports, CLI, React, Tailwind)
+        run: pnpm package:check
+      - name: build docs (integration gate)
+        run: pnpm docs:build

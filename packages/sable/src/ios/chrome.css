@@ -1,0 +1,83 @@
+/* Optional shared browser iOS material; imported only in the native document. */
+/* The scroll-edge effect under the status bar and navigation: a fade from the
+   page color, not a backdrop blur. A blur darkens toward the edges of whatever
+   clips it, which drew grey smudges in the screen's top corners when framed. */
+.ios-route::before {
+  content: ''; position: absolute; inset: 0 0 auto; height: var(--ios-header-height); z-index: 10; pointer-events: none;
+  background: linear-gradient(to bottom, var(--ios-canvas) 45%, color-mix(in srgb, var(--ios-canvas) 85%, transparent) 65%, color-mix(in srgb, var(--ios-canvas) 40%, transparent) 85%, transparent);
+}
+.ios-prototype .k-navbar { top: var(--ios-safe-top); margin-top: var(--ios-navbar-offset, var(--ios-safe-top)); color: var(--ios-ink); background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+/* A single full-height scrim owns the header, avoiding the upstream gradient restart. */
+.ios-prototype .k-navbar > .pointer-events-none { display: none; }
+.ios-navigation-title, .ios-prototype .ios-sheet-heading h2 { font-family: var(--ios-display, inherit); font-weight: var(--ios-title-weight, 600); }
+.ios-glass-filters { position: absolute; pointer-events: none; }
+.ios-prototype .k-glass {
+  position: relative;
+  background: color-mix(in srgb, var(--ios-canvas) calc(var(--ios-glass-tint) * 100%), transparent);
+  -webkit-backdrop-filter: blur(7px) saturate(1.25);
+  backdrop-filter: blur(7px) saturate(1.25);
+  --tw-shadow:
+    inset 0 .75px .5px rgb(255 255 255 / .75),
+    inset 0 -.75px .5px rgb(255 255 255 / .5),
+    inset .75px 0 .5px rgb(255 255 255 / .35),
+    inset 0 -2px 6px color-mix(in srgb, var(--ios-ink) 4%, transparent),
+    0 3px 12px color-mix(in srgb, var(--ios-ink) 7%, transparent),
+    0 .5px 2px color-mix(in srgb, var(--ios-ink) 3%, transparent);
+}
+/* Chromium can refract the actual backdrop; other engines retain the CSS material. */
+@supports (backdrop-filter: url('#glass')) {
+  .ios-prototype .k-glass {
+    backdrop-filter: var(--ios-glass-optics, blur(7px)) saturate(1.25);
+  }
+}
+.ios-prototype.dark .k-glass {
+  --tw-shadow:
+    inset 0 .75px .5px rgb(255 255 255 / .4),
+    inset 0 -.75px .5px rgb(255 255 255 / .2),
+    inset .75px 0 .5px rgb(255 255 255 / .15),
+    0 3px 12px rgb(0 0 0 / .14);
+}
+/* Directional rim reflections and a faint surface reflection, separate from the fill. */
+.ios-prototype .k-glass::before,
+.ios-prototype .k-glass::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+}
+.ios-prototype .k-glass::before {
+  padding: 1px;
+  background: linear-gradient(145deg, rgb(255 255 255 / .95), rgb(255 255 255 / .1) 32%, rgb(255 255 255 / .4) 60%, rgb(255 255 255 / .8));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+.ios-prototype .k-glass::after {
+  background: linear-gradient(165deg, rgb(255 255 255 / .17), transparent 42%, transparent 70%, rgb(255 255 255 / .06));
+}
+.ios-prototype.dark .k-glass::before { opacity: .55; }
+.ios-prototype.dark .k-glass::after { opacity: .65; }
+.ios-prototype :focus-visible { outline-color: var(--color-primary); }
+.native-tabbar { position: absolute; z-index: 30; bottom: var(--ios-tabbar-bottom); }
+/* Carry the toolbar's background through the home safe area, not just to the glass bar. */
+.native-tabbar > .pointer-events-none {
+  bottom: calc(-1 * var(--ios-tabbar-bottom));
+  height: calc(var(--k-safe-area-bottom) + 96px + var(--ios-tabbar-bottom));
+}
+/* The home-area fade under the tab bar is unblurred for the same reason as the
+   header; the glass bar above it keeps its material. */
+.native-tabbar > .pointer-events-none { -webkit-backdrop-filter: none; backdrop-filter: none; }
+.native-tab-scrim { background: linear-gradient(to top, color-mix(in srgb, var(--ios-canvas) 92%, transparent) 25%, color-mix(in srgb, var(--ios-canvas) 60%, transparent) 60%, transparent); }
+.native-tab-glass { display: flex; width: 100%; border-radius: 36px; }
+.native-tab-glass > button { flex: 1; position: relative; z-index: 1; }
+.native-tab-glass > button:not([aria-current='page']) { color: var(--ios-ink); }
+.ios-prototype .ios-icon-action { width: 44px; height: 44px; min-width: 44px; padding: 0; flex-shrink: 0; }
+.ios-icon-action svg { flex-shrink: 0; }
+.native-tab-glass > button[aria-current='page']::before {
+  content: ''; position: absolute; inset: 5px 6px; z-index: -1; border-radius: 28px; pointer-events: none;
+  background: color-mix(in srgb, var(--ios-ink) 6%, transparent);
+  box-shadow: inset 0 .5px 0 rgb(255 255 255 / .3);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .ios-prototype .k-glass { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .native-tabbar > .pointer-events-none { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .ios-prototype .k-glass::after { display: none; }
+}

@@ -1,0 +1,77 @@
+@import 'konsta/react/theme.css';
+@import './chrome.css';
+@source './**/*.{ts,tsx,js,mjs}';
+/* Import after Tailwind in the native document only. */
+/*
+ * Chrome follows the Sable preset. When Sable's styles are loaded in this
+ * document (the recommended setup), every value below resolves from the active
+ * preset and mode, so `data-sable-theme` on <html> themes the native chrome and
+ * Sable content together. Without them, the iOS system values apply.
+ * NativeApp's `tokens` prop sets the same semantic names inline to override.
+ */
+.ios-prototype {
+  --ios-canvas: var(--background, #f2f2f7); --ios-ink: var(--foreground, #1c1c1e); --ios-secondary: var(--muted-foreground, #636366);
+  --ios-panel: var(--card, #fff); --ios-primary-ink: var(--primary-foreground, #fff);
+  --ios-display: var(--font-display, var(--font-sans, inherit)); --ios-title-weight: var(--type-title-weight, 600);
+  --color-primary: var(--primary, var(--k-color-primary));
+  --color-ios-primary-shade: color-mix(in srgb, var(--color-primary) 85%, var(--ios-ink));
+  --color-ios-light-surface: var(--ios-canvas); --color-ios-dark-surface: var(--ios-canvas);
+  --color-ios-light-surface-1: var(--ios-panel); --color-ios-dark-surface-1: var(--ios-panel);
+  --color-ios-light-surface-1-shade: var(--muted, #f1f1f5); --color-ios-dark-surface-1-tint: var(--muted, #444447);
+  /* Geometry of the standard 402×874 phone. Retune together for other sizes. */
+  /* The page margin native titles, search and inset lists sit on: align content to it (px-(--ios-inset)). */
+  --ios-inset: 16px;
+  --ios-motion: 300ms; --ios-safe-top: 62px; --ios-header-height: 154px; --ios-tabbar-bottom: 28px; --ios-content-bottom: 110px;
+  font-family: var(--font-sans, system-ui, sans-serif); color: var(--ios-ink); background: var(--ios-canvas); height: 100dvh; overflow: hidden;
+}
+.ios-prototype.dark {
+  --ios-canvas: var(--background, #000); --ios-ink: var(--foreground, #f2f2f7); --ios-secondary: var(--muted-foreground, #aeaeb2);
+  --ios-panel: var(--card, #1c1c1e); --ios-primary-ink: var(--primary-foreground, #fff);
+}
+/*
+ * Sable and Konsta share Tailwind's spacing and radius names. Sable's preset
+ * and density rescale them; native chrome keeps iOS geometry, so the chrome
+ * pins Tailwind's defaults. Sable content placed beside it keeps the preset's.
+ */
+.ios-prototype :is(.k-navbar, .k-tabbar, .k-toolbar, .ios-sheet-grabber, .ios-sheet-heading) {
+  --spacing: 0.25rem; --theme-radius-xs: 0.125rem; --theme-radius-sm: 0.25rem; --theme-radius-md: 0.375rem; --theme-radius-lg: 0.5rem; --theme-radius-xl: 0.75rem;
+}
+/* The system status bar: time and icons centred on the island's midline, each in
+   the space beside it, in the system font (it never takes the app's). */
+.ios-status-bar { position: absolute; inset: 0 0 auto; height: var(--ios-safe-top); display: grid; grid-template-columns: 1fr 84px 1fr; grid-template-rows: 35px; align-content: start; align-items: center; padding: 11px 16px 0; z-index: 40; pointer-events: none; font: 600 17px/1 -apple-system, "SF Pro Text", system-ui, sans-serif; letter-spacing: -0.02em; }
+.ios-status-bar > span:first-child { justify-self: center; font-variant-numeric: tabular-nums; }
+/* The smaller island of current Pro phones. */
+.ios-island { width: 84px; height: 35px; border-radius: 18px; background: #000; }
+.ios-status-icons { justify-self: center; display: flex; align-items: center; gap: 5px; }
+.ios-home-indicator { position: absolute; z-index: 100; bottom: 8px; left: 50%; transform: translateX(-50%); width: 134px; height: 5px; border-radius: 4px; background: var(--ios-ink); pointer-events: none; }
+.ios-navigation-stack { position: absolute; inset: 0; }
+.ios-route { position: relative; height: 100%; animation: ios-route-enter var(--ios-motion) cubic-bezier(.2,.8,.2,1); }
+.ios-navigation-stack[data-direction='pop'] .ios-route { animation-name: ios-route-back; }
+.ios-route[hidden], .ios-navigation-stack[hidden] { display: none; }
+.ios-route > .k-page { height: 100%; padding-bottom: var(--ios-content-bottom); scrollbar-width: none; }
+.ios-route > .k-page::-webkit-scrollbar { display: none; }
+/* A screen's content starts a step below its title, as iOS spaces a large title from the first section. */
+.ios-prototype .k-page > .k-navbar + * { margin-block-start: 12px; }
+/* Touch targets on native chrome; Sable content keeps its preset's control sizes. */
+.ios-prototype :is(.k-navbar, .k-tabbar, .ios-sheet-heading) :is(button, a) { min-height: 44px; }
+/* Headings take focus on navigation for screen readers; that is not a ring to show. */
+.ios-prototype [tabindex='-1']:focus { outline: none; }
+.ios-prototype :focus-visible { outline: 3px solid var(--color-primary); outline-offset: 2px; }
+.ios-prototype .native-tabbar { position: absolute; }
+.ios-prototype .native-tabbar > .k-glass { width: 100%; }
+.ios-sheet-dialog { position: fixed; inset: 0; padding: 0; border: 0; width: 100%; max-width: none; height: 100%; max-height: none; background: transparent; color: var(--ios-ink); overflow: hidden; }
+.ios-sheet-dialog::backdrop { background: #0005; }
+.ios-sheet { border-radius: 32px 32px 0 0; background: var(--ios-canvas); transition-duration: var(--ios-motion); padding-bottom: 34px; }
+.ios-sheet-grabber { display: flex; margin-inline: auto; width: 80px; touch-action: none; }
+.ios-grabber-mark { width: 36px; height: 5px; border-radius: 4px; background: var(--ios-secondary); }
+.ios-sheet-heading { display: flex; align-items: center; justify-content: space-between; padding-inline: 20px; }
+.ios-sheet-heading h2 { font-size: 22px; font-weight: 700; }
+.ios-sheet-heading > button { width: auto; flex-shrink: 0; }
+.ios-sheet::after { content: ''; position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 134px; height: 5px; border-radius: 4px; background: var(--ios-ink); }
+.ios-sheet-content { height: calc(100% - 88px); overflow-y: auto; scrollbar-width: none; padding: 16px 20px; }
+.ios-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+@keyframes ios-route-enter { from { opacity: .7; transform: translateX(28px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes ios-route-back { from { opacity: .7; transform: translateX(-16px); } to { opacity: 1; transform: translateX(0); } }
+.ios-prototype[data-reduced-motion] *, .ios-prototype[data-reduced-motion] *::before, .ios-prototype[data-reduced-motion] *::after { animation-duration: 0s !important; transition-duration: 0s !important; }
+@media (prefers-reduced-motion: reduce) { .ios-prototype *, .ios-prototype *::before, .ios-prototype *::after { animation-duration: 0s !important; transition-duration: 0s !important; } }
+@media (prefers-reduced-transparency: reduce) { .ios-prototype { --ios-glass-tint: 1 !important; } }

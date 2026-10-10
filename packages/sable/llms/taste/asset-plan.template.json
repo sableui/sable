@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "recordType": "asset-plan",
+  "status": "planned",
+  "surface": "Describe the target surface and audience",
+  "direction": {
+    "message": "What the assets should make understandable",
+    "sharedTreatment": "Composition, material, light or line, and color relationships",
+    "intentionalDifferences": "How subjects remain distinguishable within the set"
+  },
+  "initialPayloadBudgetBytes": null,
+  "assets": [
+    {
+      "id": "primary-visual",
+      "kind": "illustration",
+      "role": "Explain this asset's job in the surface",
+      "subject": "Specify the actual subject and important details",
+      "source": {
+        "origin": "unresolved",
+        "location": null,
+        "creator": null,
+        "usageStatus": "unresolved",
+        "permissionOrLicense": null,
+        "attribution": null
+      },
+      "treatment": "Specify framing, material, light or geometry, and color",
+      "variants": [
+        {
+          "id": "wide",
+          "placement": "Describe where and at which viewport this is used",
+          "focalSubject": "What must survive the crop",
+          "crop": "Describe framing and any reserved text area",
+          "path": null,
+          "width": null,
+          "height": null,
+          "format": null,
+          "budgetBytes": null,
+          "actualBytes": null
+        }
+      ],
+      "accessibility": {
+        "decorative": false,
+        "textAlternative": null
+      },
+      "fallback": "Describe the usable missing/loading-media state",
+      "readiness": "planned",
+      "verification": []
+    }
+  ],
+  "fonts": [],
+  "reviewedCaptures": [],
+  "openQuestions": []
+}

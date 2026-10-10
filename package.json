@@ -1,0 +1,41 @@
+{
+	"name": "sable-workspace",
+	"private": true,
+	"version": "0.18.0",
+	"description": "Sable — an owned, themeable React component system. Monorepo root (the publishable package is packages/sable → @sableui/react).",
+	"type": "module",
+	"scripts": {
+		"build": "pnpm --filter @sableui/react build",
+		"typecheck": "pnpm -r typecheck",
+		"design-lint": "pnpm --filter @sableui/react design-lint && pnpm app-lint",
+		"app-lint": "node packages/sable/bin/sable-lint.mjs apps/docs/src apps/docs/native",
+		"registry:check": "pnpm --filter @sableui/react build:registry:check",
+		"test": "pnpm --filter @sableui/react test:run",
+		"docs:dev": "pnpm --filter @sableui/docs dev",
+		"docs:build": "pnpm --filter @sableui/docs build",
+		"package:check": "node scripts/check-package.mjs",
+		"release": "node scripts/release.mjs",
+		"published": "node scripts/published.mjs",
+		"public:check": "node scripts/check-public-release.mjs",
+		"public:inventory": "node scripts/public-inventory.mjs",
+		"public:export": "node scripts/public-export.mjs",
+		"docs:verify-presets": "node apps/docs/scripts/verify-presets.mjs",
+		"ios:check": "node scripts/verify-ios-target.mjs",
+		"ios:evidence": "node scripts/verify-ios-prototype.mjs && node scripts/verify-ios-canvas.mjs"
+	},
+	"author": "Sable contributors",
+	"license": "MIT",
+	"packageManager": "pnpm@10.33.2",
+	"engines": {
+		"node": "22.x"
+	},
+	"devDependencies": {
+		"puppeteer": "^25.3.0"
+	},
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"puppeteer",
+			"esbuild"
+		]
+	}
+}

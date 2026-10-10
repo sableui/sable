@@ -1,0 +1,43 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "pnpm build && pnpm docs:build",
+  "outputDirectory": "apps/docs/dist",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/spacing", "destination": "/dimensions", "permanent": true },
+    { "source": "/surfaces", "destination": "/elevation", "permanent": true },
+    { "source": "/relative-css", "destination": "/elevation", "permanent": true },
+    { "source": "/components", "destination": "/button", "permanent": true },
+    { "source": "/references", "destination": "/patterns", "permanent": true },
+    { "source": "/reference/:path*", "destination": "/patterns", "permanent": true },
+    { "source": "/guide/guidelines", "destination": "/guidelines", "permanent": true },
+    { "source": "/guide/:path*", "destination": "/", "permanent": true },
+    { "source": "/playground", "destination": "/button", "permanent": true },
+    { "source": "/playground/:slug", "destination": "/:slug", "permanent": true }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        {
+          "key": "Permissions-Policy",
+          "value": "accelerometer=(), autoplay=(self), bluetooth=(), browsing-topics=(), camera=(), display-capture=(), fullscreen=(self), geolocation=(), gyroscope=(), hid=(), magnetometer=(), microphone=(), midi=(), payment=(), publickey-credentials-get=(), serial=(), usb=(), xr-spatial-tracking=()"
+        },
+        {
+          "key": "Content-Security-Policy-Report-Only",
+          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://images.unsplash.com; media-src 'self' blob: https://interactive-examples.mdn.mozilla.net; connect-src 'self' https://api.github.com; frame-src 'self'; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    }
+  ]
+}

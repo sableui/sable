@@ -1,0 +1,1893 @@
+/* ==========================================================================
+   @sableui/react — styles entry.
+
+   Import this AFTER `@import "tailwindcss"` in the CONSUMER's root CSS:
+
+     @import "tailwindcss";
+     @import "@sableui/react/styles.css";
+
+   Do NOT add `@import "tailwindcss"` here — the consumer owns Tailwind, and
+   importing it twice loads the whole framework twice. This file ships only:
+   the default theme tokens, the @theme color map, the paired typography
+   @utility set, and an @source directive so Tailwind scans the package.
+   ========================================================================== */
+
+/* Base ONLY. It is the default theme, and it is also the layout floor:
+   `--page-inset`, the `--region-*` caps, `--rhythm-unit`, `--grid-*` and
+   `--z-*` are declared here on a bare `:root`, so every other theme — bundled
+   or app-owned — inherits them. Removing it does not save 18 KB, it silently
+   changes layout everywhere.
+
+   The bundled ALTERNATES are opt-in, because they are
+   `[data-sable-theme="…"]`-scoped and an app that never sets that attribute
+   can never match them. Shipping them by default put 5.5 KB gzip of
+   permanently-dead CSS in every consuming app — found by a real app's build
+   audit, not in theory. Want one? Import it:
+
+     @import "@sableui/react/theme/meridian.css";
+
+   Want all of them (a theme switcher over the bundled set, like the docs app)?
+     @import "@sableui/react/themes.css";
+
+   The failure mode if you forget: `data-sable-theme` is set, nothing matches,
+   and the page renders as Base — no error, just the wrong theme. If a
+   theme selector looks like it does nothing, this import is the first thing
+   to check. */
+@import "./themes/base/base.css";
+
+/* Scan the package for utility classes (path is relative to THIS file). Covers
+   both workspace source (.ts/.tsx next to this file in src/) and the compiled
+   dist (.js next to the copied styles.css), so the same file works in both. */
+@source "./**/*.{ts,tsx,js,mjs,jsx}";
+
+@theme inline {
+	/* Radii — theme-provided so alternate themes can tighten or soften the shell. */
+	--radius-none: var(--theme-radius-none, 0px);
+	--radius-xs: var(--theme-radius-xs, 4px);
+	--radius-sm: var(--theme-radius-sm, 8px);
+	--radius-md: var(--theme-radius-md, 12px);
+	--radius-lg: var(--theme-radius-lg, 16px);
+	--radius-xl: var(--theme-radius-xl, 20px);
+	--radius-full: var(--theme-radius-full, 9999px);
+
+	/* Elevation — theme-provided so docs/app shells can express a different surface
+	   feel without touching component code. */
+	--shadow-sm: var(--theme-shadow-sm, 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.03));
+	--shadow: var(--theme-shadow, 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 2px 6px -1px rgb(0 0 0 / 0.05));
+	--shadow-md: var(--theme-shadow-md, 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 4px 8px -2px rgb(0 0 0 / 0.06), 0 12px 24px -6px rgb(0 0 0 / 0.07));
+	--shadow-lg: var(--theme-shadow-lg, 0 2px 4px 0 rgb(0 0 0 / 0.04), 0 8px 16px -4px rgb(0 0 0 / 0.07), 0 24px 48px -12px rgb(0 0 0 / 0.11));
+	--shadow-xl: var(--theme-shadow-xl, 0 2px 4px 0 rgb(0 0 0 / 0.04), 0 12px 24px -6px rgb(0 0 0 / 0.08), 0 32px 64px -16px rgb(0 0 0 / 0.13));
+
+	/* Semantic color tokens → Tailwind utilities (bg-card, text-muted-foreground…) */
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-destructive: var(--destructive);
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-success: var(--success);
+	--color-success-foreground: var(--success-foreground);
+	--color-border: var(--border);
+	--color-border-strong: var(--border-strong);
+	--color-border-floating: var(--border-floating);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+
+	/* Sidebar set */
+	--color-sidebar: var(--sidebar);
+	--color-sidebar-foreground: var(--sidebar-foreground);
+	--color-sidebar-primary: var(--sidebar-primary);
+	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+	--color-sidebar-accent: var(--sidebar-accent);
+	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+	--color-sidebar-border: var(--sidebar-border);
+	--color-sidebar-ring: var(--sidebar-ring);
+
+	/* Post-type tones + highlight (semantic — carry meaning) */
+	--color-tone-standard: var(--tone-standard);
+	--color-tone-collectible: var(--tone-collectible);
+	--color-tone-edition: var(--tone-edition);
+	--color-tone-warning: var(--tone-warning);
+	--color-tone-info: var(--tone-info);
+	--color-highlight: var(--highlight);
+
+	/* Tone ink — theme-adaptive legible text/icon color ON a tone fill, so a
+	   component writes `text-tone-edition-foreground` (no palette name, no dark:). */
+	--color-tone-standard-foreground: var(--tone-standard-foreground);
+	--color-tone-collectible-foreground: var(--tone-collectible-foreground);
+	--color-tone-edition-foreground: var(--tone-edition-foreground);
+	--color-tone-warning-foreground: var(--tone-warning-foreground);
+	--color-tone-info-foreground: var(--tone-info-foreground);
+	--color-highlight-foreground: var(--highlight-foreground);
+
+	/* Overlay — fixed dark scrim/media surface + its light ink (bg-overlay,
+	   bg-overlay/50, text-overlay-foreground). Replaces ad-hoc bg-black/text-white. */
+	--color-overlay: var(--overlay);
+	--color-overlay-foreground: var(--overlay-foreground);
+
+	/* Motion easings → ease-* utilities (ease-standard/decelerate/emphasized;
+	   `linear` is built-in). Durations stay raw CSS vars and are consumed via
+	   `duration-(--motion-duration-*)` so the --motion-scale kill-switch applies.
+	   See themes/base/base.css → Motion tokens, and DESIGN.md → Motion. */
+	--ease-standard: var(--motion-ease-standard);
+	--ease-decelerate: var(--motion-ease-decelerate);
+	--ease-emphasized: var(--motion-ease-emphasized);
+	--ease-spring: var(--motion-ease-spring);
+	--ease-bounce: var(--motion-ease-bounce);
+
+	/* Workspace surfaces → bg-canvas / bg-panel / border-hairline utilities.
+	   The register's surface roles; see the derivation block below. */
+	--color-canvas: var(--canvas);
+	--color-canvas-foreground: var(--canvas-foreground);
+	--color-panel: var(--panel);
+	--color-panel-foreground: var(--panel-foreground);
+	--color-panel-raised: var(--panel-raised);
+	--color-hairline: var(--hairline);
+	--color-hairline-strong: var(--hairline-strong);
+}
+
+/* ==========================================================================
+   Layering (z-index) — one ordered scale, owned by the CONTRACT.
+
+   This lived in the original default theme's CSS until 0.44.0, which made a theme the
+   owner of a scale every component references: `z-(--z-nav)` in AppHeader,
+   BottomNav and AppShell, `z-(--z-sticky)` in Banner, `z-(--z-toast)` in the
+   toast viewport, `z-(--z-skip-link)` in AppShell and Workspace. It only
+   worked because that theme's block happened to carry a `:root` arm — a consumer
+   shipping one of the other four themes on its own got no scale at all, and
+   every one of those utilities silently resolved to `z-index: auto`.
+
+   A theme may still override an individual step; it may not be the only place
+   the step exists. Reference these by name and never write a raw `z-[9999]`.
+   See DESIGN.md → Layering.
+   ========================================================================== */
+
+:root {
+	--z-sticky: 30; /* sticky in-content chrome: table headers, sticky banners */
+	--z-nav: 40; /* app chrome: AppHeader, Sidebar, BottomNav, status banners */
+	--z-overlay: 50; /* portaled transient surfaces: dialog, sheet, popover, menu, tooltip */
+	--z-toast: 60; /* toasts — above modals so they're never hidden */
+	--z-skip-link: 100; /* the skip-to-content link — above all chrome */
+}
+
+/* ==========================================================================
+   The page ground. Without it, `.dark` on <html> turned the ink light while the
+   page stayed the browser's white, so a fresh install in dark mode was
+   unreadable until the app thought to paint its body. `color-scheme` lets
+   native scrollbars and form controls follow the mode. An app that paints its
+   own body still wins: this sits on <html>, in the base layer.
+   ========================================================================== */
+
+@layer base {
+	html {
+		background-color: var(--background);
+		color: var(--foreground);
+		color-scheme: light;
+	}
+	html.dark {
+		color-scheme: dark;
+	}
+}
+
+/* ==========================================================================
+   Density — the control ladder both REGISTERS render from.
+   See DESIGN.md → Registers and themes/_contract.ts → DENSITY_TOKENS.
+
+   Every sized component reads `--control-*` rather than hardcoding a height, so
+   a density scope only has to redefine the vars. That is the whole mechanism:
+   no selector reaches into rendered output to override a height after the fact,
+   which is what an app-local `[data-density] button { height: … }` hack has to
+   do (and which loses to any competing utility of equal specificity).
+   ========================================================================== */
+
+:root,
+[data-density="comfortable"] {
+	/* Page register — reading surfaces, touch-friendly targets. These values are
+	   exactly what the components hardcoded before the ladder existed, so the
+	   default register renders byte-identical. */
+	--control-xs: 28px;
+	--control-sm: 32px;
+	--control-md: 40px; /* the default control height */
+	--control-cta: 44px; /* prominent / touch-first CTA */
+	--control-lg: 48px;
+	--field-numeric-width: 72px;
+	--control-gap: 8px;
+	--item-px: 8px;
+	--item-gap: 8px;
+
+	--panel-width: 280px;
+	--panel-width-min: 220px;
+	--panel-width-max: 420px;
+	--chrome-bar-height: 48px;
+	--status-bar-height: 28px;
+
+	/* Tree geometry. --tree-indent MUST equal --tree-column (see _contract.ts). */
+	--tree-rail: 12px;
+	--tree-column: 20px;
+	--tree-indent: 20px;
+
+	/* Declared here as well as in compact, and the symmetry is the point: a density
+	   scope must be able to RESTORE every value it can override. Compact flattened
+	   this to 5px and comfortable said nothing, so a comfortable subtree nested in a
+	   compact one — a settings form inside a tool, exactly the mixed-register case —
+	   recovered the whole control ladder and kept flat buttons with no way back.
+	   Found in a real conversion: md 40px ✓, xs 28px ✓, radius 5px ✗.
+
+	   Routed through a --theme-* hook rather than hardcoded, so a theme can still
+	   choose its own button shape without fighting this scope. */
+	--button-radius: var(--theme-button-radius, 9999px);
+}
+
+/* Workspace register — measured from the Figma and Paper editors (2026-07-26),
+   not estimated. Figma's dominant control is 32px, Paper's is 24px, and neither
+   uses anything near 40px in chrome. */
+[data-density="compact"] {
+	--control-xs: 24px; /* icon buttons, numeric fields (Paper's dominant size) */
+	--control-sm: 28px;
+	--control-md: 32px; /* the workspace default (Figma's dominant size) */
+	--control-cta: 36px; /* full-width prominent action (Paper's 36px) */
+	--control-lg: 40px;
+	--field-numeric-width: 44px;
+	--control-gap: 6px;
+	--item-px: 6px;
+	--item-gap: 6px;
+
+	/* Chrome controls are not pills. DESIGN.md → Registers lists this as one of
+	   the two rules the workspace register deliberately reverses: neither Figma
+	   nor Paper has a single pill in its chrome — both run one ~5px radius on
+	   essentially everything. The theme hook preserves an explicit shape choice
+	   such as Meridian's square corners. */
+	--button-radius: var(--theme-button-radius, 5px);
+
+	--panel-width: 240px; /* Figma 241/241, Paper 240 */
+	--panel-width-min: 200px;
+	--panel-width-max: 400px;
+	--chrome-bar-height: 40px;
+	--status-bar-height: 24px;
+
+	/* Tree geometry. --tree-indent MUST equal --tree-column (see _contract.ts).
+	   20px measured in Figma's layers panel; 18px here because the marks are
+	   authored on an 18 grid and render 1:1 at 18px. Reicon (and every general
+	   set) authors on a 24 grid and only scales — its documented 12/18/24/32 are
+	   render sizes, not per-size geometry — so a general glyph at 18px lands its
+	   strokes off the device-pixel grid no matter which name you pick. That is
+	   why Tree owns its disclosure and add marks. */
+	--tree-rail: 8px;
+	--tree-column: 18px;
+	--tree-indent: 18px;
+}
+
+/* ==========================================================================
+   Workspace surfaces — DERIVED from each theme's own semantic tokens, so every
+   theme inherits a coherent workspace band without hand-authoring ten values
+   per mode. A theme tunes by declaring the `--theme-*` hook.
+
+   The band is deliberately COMPRESSED and the hairline is deliberately quiet:
+   Paper's entire panel ladder spans 249 → 242 → 238 (3-7 RGB units) and lets a
+   1px low-contrast edge do the structural work. In this register hairlines carry
+   structure INSTEAD of tonal steps — the reverse of the page register's rule.
+   ========================================================================== */
+
+/* Declared on every element that can re-declare the base colors, not just
+   :root. A custom property resolves where it is declared and inherits as a
+   finished color, so on :root alone a nested `.dark` island (an inspector, a
+   dark sidebar) or a preset-scoped preview kept the PAGE's canvas and panel:
+   white fields inside a dark panel. */
+:root,
+[data-sable-theme],
+.dark {
+	/* The work surface. NOT `background`: the artboard is the subject, not the
+	   page behind the UI. Pulled a touch away from the page so docked panels can
+	   sit above it without a border. */
+	--canvas: var(--theme-canvas, color-mix(in oklch, var(--background) 97%, var(--foreground)));
+	--canvas-foreground: var(--theme-canvas-foreground, var(--foreground));
+
+	/* Docked chrome, one compressed step off the canvas. */
+	--panel: var(--theme-panel, var(--background));
+	--panel-foreground: var(--theme-panel-foreground, var(--foreground));
+	--panel-raised: var(--theme-panel-raised, color-mix(in oklch, var(--background) 94%, var(--foreground)));
+
+	/* The structural edge. Alpha-based so it holds over any surface beneath it. */
+	--hairline: var(--theme-hairline, color-mix(in oklch, transparent 93%, var(--foreground)));
+	--hairline-strong: var(--theme-hairline-strong, color-mix(in oklch, transparent 86%, var(--foreground)));
+
+	/* The edge of a FLOATING surface (popover, menu, select, tooltip, a floating
+	   panel). Lighter than `--border` on purpose: the shadow carries the
+	   elevation, and a full hairline plus a shadow stacks into a dark outline.
+	   Alpha-based, so it defines the shape on a same-colour page in light mode
+	   and reads as a faint lit edge in dark mode, where shadows barely show. */
+	--border-floating: var(--theme-border-floating, color-mix(in oklch, transparent 92%, var(--foreground)));
+
+	/* The Switch knob when OFF: light in BOTH modes, like every physical toggle.
+	   It used to be `--background`, which in a dark theme is a near-black knob on
+	   a dark track (well under 3:1). When ON the knob takes `--primary-foreground`,
+	   the ink every theme already tunes against its primary fill. */
+	--switch-thumb: var(--theme-switch-thumb, oklch(99% 0.002 90));
+}
+
+/* ==========================================================================
+   Typography — six tiers. Each utility bundles size + weight + line-height +
+   tracking. Compose with color/margin only; never override the four paired
+   properties individually. Mono uses the theme's --font-mono.
+   ========================================================================== */
+
+@utility text-display-4xl {
+	font-family: var(--font-display, var(--font-sans));
+	font-size: var(--type-display-4xl-size, clamp(4.5rem, 12vw, 12rem));
+	font-weight: var(--type-display-4xl-weight, 800);
+	line-height: var(--type-display-4xl-leading, 0.9);
+	letter-spacing: var(--type-display-4xl-tracking, -0.05em);
+}
+@utility text-display-3xl {
+	font-family: var(--font-display, var(--font-sans));
+	font-size: var(--type-display-3xl-size, 6rem);
+	font-weight: var(--type-display-3xl-weight, 700);
+	line-height: var(--type-display-3xl-leading, 0.95);
+	letter-spacing: var(--type-display-3xl-tracking, -0.045em);
+}
+@utility text-display-2xl {
+	font-family: var(--font-display, var(--font-sans));
+	font-size: var(--type-display-2xl-size, 4.5rem);
+	font-weight: var(--type-display-2xl-weight, 700);
+	line-height: var(--type-display-2xl-leading, 1);
+	letter-spacing: var(--type-display-2xl-tracking, -0.04em);
+}
+@utility text-display-xl {
+	font-family: var(--font-display, var(--font-sans));
+	font-size: var(--type-display-xl-size, 3.75rem);
+	font-weight: var(--type-display-xl-weight, 700);
+	line-height: var(--type-display-xl-leading, 1.05);
+	letter-spacing: var(--type-display-xl-tracking, -0.035em);
+}
+@utility text-display-lg {
+	font-family: var(--font-display, var(--font-sans));
+	font-size: var(--type-display-lg-size, 3rem);
+	font-weight: var(--type-display-lg-weight, 700);
+	line-height: var(--type-display-lg-leading, 1.1);
+	letter-spacing: var(--type-display-lg-tracking, -0.03em);
+}
+
+@utility text-heading-1 {
+	font-family: var(--font-display, var(--font-sans));
+	font-size: var(--type-heading-1-size, 2.25rem);
+	font-weight: var(--type-heading-weight, 600);
+	line-height: var(--type-heading-1-leading, 1.15);
+	letter-spacing: var(--type-heading-1-tracking, -0.025em);
+}
+@utility text-heading-2 {
+	font-family: var(--font-display, var(--font-sans));
+	font-size: var(--type-heading-2-size, 1.75rem);
+	font-weight: var(--type-heading-weight, 600);
+	line-height: var(--type-heading-2-leading, 1.2);
+	letter-spacing: var(--type-heading-2-tracking, -0.02em);
+}
+@utility text-heading-3 {
+	font-family: var(--font-display, var(--font-sans));
+	font-size: var(--type-heading-3-size, 1.375rem);
+	font-weight: var(--type-heading-weight, 600);
+	line-height: var(--type-heading-3-leading, 1.25);
+	letter-spacing: var(--type-heading-3-tracking, -0.015em);
+}
+@utility text-heading-4 {
+	font-family: var(--font-display, var(--font-sans));
+	font-size: var(--type-heading-4-size, 1.125rem);
+	font-weight: var(--type-heading-weight, 600);
+	line-height: var(--type-heading-4-leading, 1.3);
+	letter-spacing: var(--type-heading-4-tracking, -0.01em);
+}
+
+/* The tiers below the heading ramp — title, body, label, caption, mono — read
+   OPTIONAL `--type-*` overrides with their current values as fallbacks. Unlike
+   the display/heading/title-weight vars (TYPE_SCALE_TOKENS) and the overline's
+   (TYPE_OVERLINE_TOKENS), these are optional TYPE_REFINEMENT_TOKENS in
+   `themes/_contract.ts`: a theme may retune a tier, and a theme that says
+   nothing renders exactly as it always has. They exist because a dense register
+   (a trading desk, an operator console) needs its own body/label/mono sizes,
+   and pinning them in a page's own <style> block is a patch, not a theme. */
+@utility text-title-lg {
+	font-size: var(--type-title-lg-size, 1rem);
+	font-weight: var(--type-title-weight, 600);
+	line-height: var(--type-title-leading, 1.4);
+	letter-spacing: var(--type-title-tracking, -0.01em);
+}
+@utility text-title-sm {
+	font-size: var(--type-title-sm-size, 0.875rem);
+	font-weight: var(--type-title-weight, 600);
+	line-height: var(--type-title-leading, 1.4);
+	letter-spacing: var(--type-title-sm-tracking, -0.005em);
+}
+
+/* The LEDE tier — the standfirst under a headline, a card's description, a
+   section's one-paragraph intro. It carries `text-wrap: pretty` and the tiers
+   below it deliberately do not.
+
+   The pairing rule: `balance` for headings, `pretty` for ledes. `balance` evens
+   the line lengths of a short block and is capped by browsers at a handful of
+   lines, so it belongs on the 1-3 line headline. `pretty` is the cheaper rule
+   that only refuses a bad last line — no orphaned single word — which is
+   exactly the failure a two-to-four-line lede has. Not on `text-body-md` /
+   `text-body-sm`: those also serve long-form prose and table cells, where
+   `pretty` costs layout work over many lines to fix a break nobody reads as an
+   error. Ledes are short by definition, so the cost is bounded here. */
+@utility text-body-lg {
+	font-size: var(--type-body-lg-size, 1.0625rem);
+	font-weight: var(--type-body-lg-weight, 400);
+	line-height: var(--type-body-lg-leading, 1.6);
+	letter-spacing: var(--type-body-lg-tracking, -0.005em);
+	text-wrap: pretty;
+}
+@utility text-body-md {
+	font-size: var(--type-body-md-size, 0.9375rem);
+	font-weight: var(--type-body-md-weight, 400);
+	line-height: var(--type-body-md-leading, 1.55);
+	letter-spacing: var(--type-body-md-tracking, -0.005em);
+}
+@utility text-body-sm {
+	font-size: var(--type-body-sm-size, 0.8125rem);
+	font-weight: var(--type-body-sm-weight, 400);
+	line-height: var(--type-body-sm-leading, 1.5);
+	letter-spacing: var(--type-body-sm-tracking, 0);
+}
+/* The dense floor of the body ramp — running text in operator consoles,
+   dense table cells, and metadata. Same size as text-caption but with body
+   leading: caption is tuned for one-line annotation, body-xs for wrapping. */
+@utility text-body-xs {
+	font-size: var(--type-body-xs-size, 0.75rem);
+	font-weight: var(--type-body-xs-weight, 400);
+	line-height: var(--type-body-xs-leading, 1.5);
+	letter-spacing: var(--type-body-xs-tracking, 0);
+}
+
+@utility text-label-lg {
+	font-size: var(--type-label-lg-size, 0.875rem);
+	font-weight: var(--type-label-lg-weight, 600);
+	line-height: var(--type-label-lg-leading, 1.25);
+	letter-spacing: var(--type-label-lg-tracking, -0.005em);
+}
+@utility text-label-md {
+	font-size: var(--type-label-md-size, 0.75rem);
+	font-weight: var(--type-label-md-weight, 600);
+	line-height: var(--type-label-md-leading, 1.2);
+	letter-spacing: var(--type-label-md-tracking, 0);
+}
+@utility text-label-sm {
+	font-size: var(--type-label-sm-size, 0.6875rem);
+	font-weight: var(--type-label-sm-weight, 600);
+	line-height: var(--type-label-sm-leading, 1.2);
+	letter-spacing: var(--type-label-sm-tracking, 0);
+}
+/* Sentence case like every other label (UI text is sentence case). The
+   uppercase, letter-spaced eyebrow is its own tier, text-overline — opt in to
+   it (Label `eyebrow`) rather than getting caps from the smallest label. The
+   transform stays a themeable hook for a theme that wants caps here. */
+@utility text-label-xs {
+	font-size: var(--type-label-xs-size, 0.6875rem);
+	font-weight: var(--type-label-xs-weight, 600);
+	line-height: var(--type-label-xs-leading, 1.2);
+	letter-spacing: var(--type-label-xs-tracking, 0.01em);
+	text-transform: var(--type-label-xs-transform, none);
+}
+@utility text-caption {
+	font-size: var(--type-caption-size, 0.75rem);
+	font-weight: var(--type-caption-weight, 400);
+	line-height: var(--type-caption-leading, 1.4);
+	letter-spacing: var(--type-caption-tracking, 0);
+}
+
+/* Overline / eyebrow / kicker — the small, uppercase, letter-spaced annotation
+   role used for badge labels, section eyebrows, and stat captions. Themeable
+   via TYPE_OVERLINE_TOKENS (see _contract.ts); `--type-overline-transform`
+   lets a theme opt out of all-caps rather than hardcoding `uppercase`. */
+@utility text-overline {
+	font-size: var(--type-overline-size, 0.75rem);
+	font-weight: var(--type-overline-weight, 600);
+	line-height: var(--type-overline-leading, 1.2);
+	letter-spacing: var(--type-overline-tracking, 0.08em);
+	text-transform: var(--type-overline-transform, uppercase);
+}
+
+/* Metric mono — KPI values and prominent counts in product UI. The number IS
+   the content, so it earns display size, but in the mono family (tabular, on
+   the technical voice) rather than a heading tier — headings stay semantic. */
+@utility text-mono-xl {
+	font-family: var(--font-mono);
+	font-size: var(--type-mono-xl-size, 1.75rem);
+	font-weight: var(--type-mono-xl-weight, 500);
+	line-height: var(--type-mono-xl-leading, 1.15);
+	letter-spacing: var(--type-mono-xl-tracking, -0.01em);
+	font-variant-numeric: tabular-nums;
+}
+@utility text-mono-lg {
+	font-family: var(--font-mono);
+	font-size: var(--type-mono-lg-size, 1.25rem);
+	font-weight: var(--type-mono-lg-weight, 500);
+	line-height: var(--type-mono-lg-leading, 1.25);
+	letter-spacing: var(--type-mono-lg-tracking, 0);
+	font-variant-numeric: tabular-nums;
+}
+@utility text-mono-md {
+	font-family: var(--font-mono);
+	font-size: var(--type-mono-md-size, 0.8125rem);
+	font-weight: var(--type-mono-md-weight, 400);
+	line-height: var(--type-mono-md-leading, 1.5);
+	letter-spacing: var(--type-mono-md-tracking, 0);
+	font-variant-numeric: tabular-nums;
+}
+/* Caption-sized mono — dense technical data (IDs, hashes, aligned numbers)
+   at the caption/body-xs size, so it never needs a decomposed
+   `font-mono text-caption` recomposition. */
+@utility text-mono-caption {
+	font-family: var(--font-mono);
+	font-size: var(--type-mono-caption-size, 0.75rem);
+	font-weight: var(--type-mono-caption-weight, 400);
+	line-height: var(--type-mono-caption-leading, 1.4);
+	letter-spacing: var(--type-mono-caption-tracking, 0);
+	font-variant-numeric: tabular-nums;
+}
+@utility text-mono-sm {
+	font-family: var(--font-mono);
+	font-size: var(--type-mono-sm-size, 0.6875rem);
+	font-weight: var(--type-mono-sm-weight, 500);
+	line-height: var(--type-mono-sm-leading, 1.2);
+	letter-spacing: var(--type-mono-sm-tracking, 0.02em);
+	font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Optical label centring.
+
+   A control centred with `align-items: center` centres its LINE BOX, which is
+   ascent-to-descent — not the band of glyphs the eye reads. Fonts are not
+   symmetric about that band, so the visible label lands off centre by however
+   lopsided the face is. Measured on a 40px control at 14px/600/1.25: Helvetica
+   sits a full 1px high, Segoe UI ~0.13px, Verdana ~0.06px.
+
+   That spread is exactly why this is not a `padding-top: 1px` fix — a nudge
+   tuned to one face is wrong for the next, and every Sable theme ships its own.
+   `text-box-trim` cuts the box to cap-height/baseline instead, so centring it
+   centres what reads, derived from each font's own metrics.
+
+   Applied via `lib/trim-label.tsx`, which wraps only TEXT children: the property
+   is inert on a flex container (no line boxes of its own), and a flex
+   container's text children are anonymous boxes CSS cannot target, so the label
+   needs a real element. Element children stay separate flex items so `gap`
+   still spaces icons from labels.
+
+   Guarded by @supports on purpose: where `text-box` is unimplemented this class
+   does nothing at all and rendering is identical to before it existed.
+   ========================================================================== */
+
+@supports (text-box: trim-both cap alphabetic) {
+	.sable-label-trim {
+		text-box: trim-both cap alphabetic;
+	}
+	/* Retire the legacy hand-tuned nudge wherever the metric-derived fix applies.
+	   Marked controls keep their em correction as a fallback for browsers with no
+	   `text-box`; here it would double-correct, so it goes back to symmetric.
+
+	   Symmetric, NOT zero. `padding-block: 0` was the first version of this rule
+	   and it collapsed every Pill in the system to a 7.5px sliver the moment
+	   Chrome shipped `text-box` — the trimmed label box is cap height, so with no
+	   padding the pill is exactly as tall as its capitals and the fill stops
+	   short of the descenders. The legacy `pt-[0.23em] pb-[0.1em]` was doing two
+	   jobs at once: correcting the optical centre AND providing the pill's actual
+	   vertical breathing room. `text-box` replaces the first job only.
+
+	   0.4em restores the pre-`text-box` height: the untrimmed line box (1.2em)
+	   plus the legacy 0.33em of padding is 1.53em, and the trimmed cap box plus
+	   2 × 0.4em lands on the same place. It is a constant rather than a
+	   font-derived value on purpose — now that the content box is cap height, a
+	   fixed padding is what makes the space around the capitals identical across
+	   every theme's typeface, which is the whole reason for trimming. */
+	.sable-optical-pad {
+		/* A component may ask for more room (Badge does: a status label reads
+		   cramped at the 0.4em a Pill wants). */
+		padding-block: var(--sable-optical-pad, 0.4em);
+	}
+}
+
+/* ==========================================================================
+   UI tier — the WORKSPACE register's chrome typography. A separate ramp from the
+   six page tiers above, on purpose.
+
+   Tool chrome runs 10-12px at weight 450-550. Measured: Figma 11px/400 and
+   11px/550 with 16px leading plus a 9px/450 micro tier; Paper 12px/500, 12px/400
+   and 12px/465, also on 16px leading. At that size the page register's 600 reads
+   as shouting and 400 goes muddy, which is why the weights sit in between.
+
+   Same rules as every other paired tier: bundles size + weight + leading +
+   tracking, composes with colour only, never decomposed — and registered in
+   lib/cn.ts's `ds-typography` group, without which tailwind-merge treats
+   `text-ui-md` as a COLOUR utility and silently drops the real colour class.
+   ========================================================================== */
+
+@utility text-ui-md {
+	font-size: var(--type-ui-md-size, 12px);
+	font-weight: var(--type-ui-md-weight, 500);
+	line-height: var(--type-ui-leading, 16px);
+	letter-spacing: normal;
+}
+
+@utility text-ui-sm {
+	font-size: var(--type-ui-sm-size, 11px);
+	font-weight: var(--type-ui-sm-weight, 500);
+	line-height: var(--type-ui-leading, 16px);
+	letter-spacing: 0.005em;
+}
+
+/* The reading variant — descriptions and help text inside chrome. */
+@utility text-ui-body {
+	font-size: var(--type-ui-md-size, 12px);
+	font-weight: 400;
+	line-height: var(--type-ui-leading, 16px);
+	letter-spacing: normal;
+}
+
+/* Panel section headers. Tracked rather than uppercase-shouted: at this density
+   an all-caps overline is louder than the content it labels. */
+@utility text-ui-section {
+	font-size: var(--type-ui-sm-size, 11px);
+	font-weight: var(--type-ui-section-weight, 550);
+	line-height: var(--type-ui-leading, 16px);
+	letter-spacing: 0.01em;
+}
+
+/* Micro tier — chrome annotations (Figma's 9px/450). Use sparingly. */
+@utility text-ui-micro {
+	font-size: var(--type-ui-micro-size, 10px);
+	font-weight: var(--type-ui-micro-weight, 450);
+	line-height: 14px;
+	letter-spacing: 0.02em;
+}
+
+/* Numeric values in a property grid — tabular so a column of numbers doesn't
+   dance while a slider drags. */
+@utility text-ui-num {
+	font-family: var(--font-mono);
+	font-size: var(--type-ui-sm-size, 11px);
+	font-weight: 400;
+	line-height: var(--type-ui-leading, 16px);
+	font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Relative CSS primitives - stable state selectors, semantic surfaces, and
+   concentric radius helpers owned by Sable's semantic token contract.
+   ========================================================================== */
+
+@custom-variant sable-highlighted (&:where([data-highlighted], [data-active], [data-active-item]));
+@custom-variant sable-selected (&:where([data-selected], [data-checked], [aria-selected="true"], [aria-checked="true"]));
+@custom-variant sable-open (&:where([data-open], [data-popup-open], [data-panel-open], [aria-expanded="true"]));
+@custom-variant sable-disabled (&:where(:disabled, [disabled], [data-disabled], [aria-disabled="true"]));
+@custom-variant sable-invalid (&:where([aria-invalid="true"], [data-invalid]));
+
+@utility sable-surface {
+	--sable-surface-bg: var(--card);
+	--sable-surface-fg: var(--card-foreground);
+	--sable-surface-edge: var(--border);
+	--sable-surface-hover-bg: color-mix(
+		in oklab,
+		var(--foreground) 8%,
+		var(--sable-surface-bg)
+	);
+	--sable-surface-active-bg: color-mix(
+		in oklab,
+		var(--foreground) 12%,
+		var(--sable-surface-bg)
+	);
+	background-color: var(--sable-surface-bg);
+	color: var(--sable-surface-fg);
+	border-color: var(--sable-surface-edge);
+}
+@utility sable-surface-muted {
+	--sable-surface-bg: var(--muted);
+	--sable-surface-fg: var(--foreground);
+	--sable-surface-edge: var(--border);
+}
+@utility sable-surface-popover {
+	--sable-surface-bg: var(--popover);
+	--sable-surface-fg: var(--popover-foreground);
+	--sable-surface-edge: var(--border-floating);
+}
+@utility sable-surface-accent {
+	--sable-surface-bg: var(--accent);
+	--sable-surface-fg: var(--accent-foreground);
+	--sable-surface-edge: var(--border);
+}
+/* A recessed area ON whatever surface it sits in: a segmented-control track, a
+   pad, a preview well. Derived from the surface underneath (the inherited
+   --sable-surface-bg, page background by default), so it is the same visible
+   step inside a card, a popover or the page, in every theme and mode. A fixed
+   `bg-muted` cannot do that: inside a popover it can sit within a step of the
+   panel in some dark modes, and the fix that tempts — an outline on every
+   well — turns a panel into a stack of boxes. A well needs no edge. */
+@utility sable-well {
+	background-color: color-mix(
+		in oklab,
+		var(--foreground) 7%,
+		var(--sable-surface-bg, var(--background))
+	);
+}
+@utility sable-surface-interactive {
+	&:where(:hover, [data-highlighted], [data-active], [data-active-item]) {
+		background-color: var(
+			--sable-surface-hover-bg,
+			color-mix(in oklab, var(--foreground) 8%, transparent)
+		);
+		color: var(--sable-surface-hover-fg, var(--foreground));
+	}
+	&:where(:active, [data-selected], [data-checked], [aria-selected="true"], [aria-checked="true"]) {
+		background-color: var(--sable-surface-active-bg, var(--accent));
+		color: var(--sable-surface-active-fg, var(--accent-foreground));
+	}
+}
+
+/* Popup geometry, derived from the popup's own radius so rows nest
+   concentrically at every corner setting (Menu, Select, Combobox, ContextMenu). The inset grows with the radius: a rounder popup needs more
+   room, or its rows' corners approach half their height and every row turns
+   into a pill. The row radius is what is left. At the default ladder (md 12px)
+   this is exactly the old 4px inset and 8px rows. Utilities rather than :root
+   tokens so the math runs on the element, inside whatever preset it sits in. */
+@utility popup-inset {
+	padding: max(--spacing(1), calc(var(--radius-md) / 3));
+}
+@utility rounded-popup-item {
+	border-radius: max(0px, calc(var(--radius-md) - max(--spacing(1), calc(var(--radius-md) / 3))));
+}
+/* A rule (separator) that runs edge to edge through the popup padding. It
+   bleeds by exactly popup-inset, so it reaches both edges at every radius; a
+   fixed -mx-1 stopped short of them once a rounder preset grew the inset. */
+@utility popup-bleed {
+	margin-inline: calc(-1 * max(--spacing(1), calc(var(--radius-md) / 3)));
+}
+
+@utility sable-frame {
+	--sable-frame-radius: var(--radius-lg);
+	--sable-frame-padding: --spacing(4);
+	--sable-frame-border-width: 1px;
+	--sable-frame-edge: var(--sable-surface-edge, var(--border));
+	/* Concentric with the frame when the row sits near its edge (a popover's
+	   4px inset), floored at the theme's small radius: deep inside a padded
+	   card the subtraction leaves ~1px, and a near-square row inside a
+	   rounded card reads as a different system, not a parallel curve. */
+	--sable-frame-inner-radius: max(
+		var(--radius-sm),
+		calc(
+			var(--sable-frame-radius) - var(--sable-frame-padding) -
+				var(--sable-frame-border-width)
+		)
+	);
+	padding: var(--sable-frame-padding);
+	border: var(--sable-frame-border-width) solid var(--sable-frame-edge);
+	border-radius: var(--sable-frame-radius);
+}
+@utility sable-frame-popover {
+	--sable-frame-radius: var(--radius-md);
+	--sable-frame-padding: --spacing(1);
+	--sable-frame-edge: var(--border-floating);
+	box-shadow: var(--shadow-lg);
+}
+@utility sable-frame-borderless {
+	--sable-frame-border-width: 0px;
+}
+@utility sable-frame-r-* {
+	--sable-frame-radius: --value(--radius-*, [*]);
+}
+@utility sable-frame-p-* {
+	--sable-frame-padding: --value(--spacing-*, [*]);
+	--sable-frame-padding: --spacing(--value(number));
+}
+@utility sable-frame-inner {
+	border-radius: var(--sable-frame-inner-radius, var(--radius-sm));
+}
+@utility rounded-concentric-* {
+	border-radius: max(
+		0px,
+		calc(--value(--radius-*, [*]) - --modifier(--spacing-*, [*]))
+	);
+	border-radius: max(
+		0px,
+		calc(--value(--radius-*, [*]) - --spacing(--modifier(number)))
+	);
+}
+
+/* ==========================================================================
+   Hit target — the sanctioned implementation of the WCAG 2.5.5 touch floor for
+   a control that is genuinely smaller than it.
+
+   The control ladder guarantees box height, so most controls clear 44px on
+   their own and need nothing here. What it cannot cover is the marks that are
+   deliberately sub-24px because that IS the design: `Tree`'s ~18px disclosure
+   and add marks, `Toast`'s close glyph, a tag's remove affordance. DESIGN.md
+   has blessed "keeps the 44px hit area via padding or hit-slop, not a bigger
+   glyph" for a long time without shipping the hit-slop; every consumer invented
+   it, or skipped it.
+
+   A transparent `::after` rather than padding, because padding changes the box:
+   it moves the glyph off the row's optical grid, breaks a tight `gap`, and in a
+   flex row pushes every sibling. The pseudo-element overlays instead — the
+   target grows, the layout does not move a pixel.
+
+   NEVER put this on an `<input>` (or any replaced element: img, select,
+   textarea). Replaced elements do not render ::before/::after reliably, so the
+   rule silently does nothing and the target stays 18px with no error anywhere.
+   Wrap the input in a label and put the class on that.
+
+   And SHRINK it where targets sit side by side — two adjacent 44px slops on
+   20px-apart marks overlap, and the later one in source order wins the taps for
+   both. Override per use rather than dropping the utility:
+
+     <button class="hit-target [--hit-target-size:32px]">
+
+   Not motion, so --motion-scale and prefers-reduced-motion do not touch it. */
+@utility hit-target {
+	position: relative;
+
+	&::after {
+		content: "";
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		/* A literal 44px, and deliberately NOT a --control-* step. The WCAG floor
+		   is not a control-ladder height: the compact register retunes every
+		   control and must never retune the hit-area floor (DESIGN.md →
+		   Registers). Reading `--control-cta` here would shrink it to 36px in a
+		   workspace scope, which is the exact bug the ladder is not allowed to
+		   cause. */
+		width: var(--hit-target-size, 44px);
+		height: var(--hit-target-size, 44px);
+	}
+}
+
+/* Link underline — driven by the FONT'S OWN metrics, so it retunes itself when
+   a theme swaps typeface (which Sable themes do). `from-font` takes the
+   underline position and thickness the type designer shipped in the face,
+   instead of the engine's guess or a hand-picked `underline-offset-4` that is
+   right for Figtree and wrong for the next theme's face. `skip-ink: auto` lifts
+   the rule around descenders so a "g" or "y" stays readable.
+
+   Only `text-decoration-color` animates reliably — thickness and offset are
+   not interpolated by every engine, and where they are they force a relayout of
+   the line box. If you want an underline that GROWS on hover, that is a
+   separate element (a positioned pseudo-element with a scaled transform), not
+   this utility. Pair with `motion-interactive`, whose transition-property list
+   already covers `color`. */
+@utility link-underline {
+	text-decoration-line: underline;
+	text-underline-position: from-font;
+	text-decoration-thickness: from-font;
+	text-decoration-skip-ink: auto;
+}
+
+/* ==========================================================================
+   Highlight glide (lib/highlight-glide.tsx).
+
+   A popup that mounts <HighlightGlide> is marked [data-glide]. The single
+   travelling highlight then draws the active row, so each row's own
+   data-[highlighted] FILL steps aside — its text colour stays, and so does the
+   fill everywhere the glide is not mounted (the no-JS fallback). Rows become
+   positioned so they paint above the absolutely positioned highlight.
+   ========================================================================== */
+/* Layered, so a row's own positioning utility wins. Unlayered, this beat
+   ComboboxVirtualList's `absolute` rows: they fell back into normal flow and
+   then shifted by their `top`, so the gap between rows grew row by row. */
+@layer components {
+	[data-glide] {
+		position: relative;
+	}
+	[data-glide] :where([role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"], [role="option"]) {
+		position: relative;
+	}
+}
+[data-glide] [data-highlighted]:not([data-highlight-glide]) {
+	background-color: transparent;
+}
+
+/* Minimal scrollbars — thin, translucent themed thumb on a transparent track
+   (iOS/macOS feel). Opt-in: add `scrollbar-quiet` to any scroll container. */
+/*
+ * A quiet scrollbar for bounded regions: no stepper arrows, a thumb that floats
+ * clear of the container's edges, and nothing visible until the reader is
+ * actually in the region.
+ *
+ * ── Why `scrollbar-width` is NOT set here ───────────────────────────────────
+ * It used to be, and that single declaration caused every symptom this utility
+ * now fixes. In Chromium, specifying the standard `scrollbar-width` makes the
+ * engine ignore `::-webkit-scrollbar` pseudo-elements completely and paint the
+ * PLATFORM scrollbar instead. On Windows that is the classic thin bar: stepper
+ * arrows at both ends, hard against the padding edge — so inside any rounded
+ * container the arrows collide with the corner radius and poke out of it. The
+ * old utility could not have removed them, because it had opted out of the only
+ * mechanism that can. It is set again below, but only where the pseudo-elements
+ * do not exist.
+ *
+ * ── The floating thumb ──────────────────────────────────────────────────────
+ * The thumb is a 10px-wide box with a 3px TRANSPARENT border and
+ * `background-clip: padding-box`, which paints a 4px bar centred in a 10px
+ * gutter. That is what keeps it off the container's border and out of its
+ * corners without reserving a wide channel. The track carries a small margin so
+ * the thumb stops short of both ends rather than running into the radius.
+ *
+ * ── Hidden at rest, quiet when it appears ───────────────────────────────────
+ * The thumb is transparent until the reader is in the region, then arrives
+ * quietly. It used to jump to 22% foreground (38% on hover), louder than the
+ * content around it. A brief faint-at-rest experiment (8%) was rolled back:
+ * on long chrome like a docs sidebar it read as a permanent stripe. The ramp:
+ *
+ *   hidden at rest → 12% while the region is scrolling / hovered / focused
+ *   → 16% under the pointer → 20% while dragging
+ *
+ * The thumb also sits 2px off the outer edge (an uneven transparent border:
+ * 1px toward the content, 5px toward the edge), and widens from 4px to 6px
+ * under the pointer so it is easier to grab. Border widths do not animate in
+ * WebKit, so the widening is an instant step; the colour is what fades.
+ *
+ * Fade timing is asymmetric: in at --motion-duration-fast with no delay, out
+ * after a short hold. Both carry --motion-scale, so reduced motion is instant.
+ * The gutter is reserved either way, so nothing reflows.
+ */
+@utility scrollbar-quiet {
+	&::-webkit-scrollbar {
+		width: 10px;
+		height: 10px;
+	}
+	&::-webkit-scrollbar-track {
+		margin: 4px;
+		background: transparent;
+	}
+	/* The dead square where two scrollbars meet. */
+	&::-webkit-scrollbar-corner {
+		background: transparent;
+	}
+	/* The arrows. */
+	&::-webkit-scrollbar-button {
+		display: none;
+		width: 0;
+		height: 0;
+	}
+	&::-webkit-scrollbar-thumb {
+		background-color: transparent;
+		border-radius: var(--theme-radius-full, 9999px);
+		border: 3px solid transparent;
+		background-clip: padding-box;
+		/*
+		 * Fades rather than blinks. The duration token already carries
+		 * `--motion-scale`, so the reduced-motion policy collapses this to an
+		 * instant swap along with everything else — a scrollbar that keeps
+		 * animating after the user asked for stillness is the same bug as any
+		 * other, just smaller.
+		 */
+		transition: background-color var(--motion-duration-fast)
+			var(--motion-ease-standard) calc(160ms * var(--motion-scale, 1));
+	}
+	/* 1px toward the content, 5px toward the edge: a 4px bar, 2px off the edge. */
+	&::-webkit-scrollbar-thumb:vertical {
+		border-left-width: 1px;
+		border-right-width: 5px;
+	}
+	&::-webkit-scrollbar-thumb:horizontal {
+		border-top-width: 1px;
+		border-bottom-width: 5px;
+	}
+	/*
+	 * Three ways to earn a visible thumb, in order of how well they model
+	 * "someone is scrolling":
+	 *
+	 * `[data-scrolling]` is the real signal — set by `useScrollActivity` for a
+	 * moment after each scroll event and then removed. It is the only one that
+	 * catches a touch drag or a programmatic auto-scroll, neither of which
+	 * hovers anything, and it is what makes a streamed chat flash its position
+	 * as the transcript moves.
+	 *
+	 * Hover and focus-within are the no-JS baseline, so the bare utility still
+	 * behaves for a consumer who never reaches for the hook. They also hold the
+	 * thumb visible while the pointer is parked over the region, which is what
+	 * you want when someone is about to grab it.
+	 */
+	&[data-scrolling]::-webkit-scrollbar-thumb,
+	&:hover::-webkit-scrollbar-thumb,
+	&:focus-within::-webkit-scrollbar-thumb {
+		background-color: color-mix(in oklab, var(--foreground) 12%, transparent);
+		transition-delay: 0s;
+	}
+	&::-webkit-scrollbar-thumb:hover {
+		background-color: color-mix(in oklab, var(--foreground) 16%, transparent);
+	}
+	&::-webkit-scrollbar-thumb:active {
+		background-color: color-mix(in oklab, var(--foreground) 20%, transparent);
+	}
+	/* Wider under the pointer: 6px, still 2px off the edge. */
+	&::-webkit-scrollbar-thumb:vertical:hover,
+	&::-webkit-scrollbar-thumb:vertical:active {
+		border-right-width: 3px;
+	}
+	&::-webkit-scrollbar-thumb:horizontal:hover,
+	&::-webkit-scrollbar-thumb:horizontal:active {
+		border-bottom-width: 3px;
+	}
+
+}
+
+/*
+ * Firefox — which has no `::-webkit-scrollbar` and never drew arrows in its thin
+ * scrollbar anyway. It cannot inset the thumb, so it gets the same policy at
+ * lower fidelity: thin, and coloured only on interaction.
+ *
+ * ── Why the guard is `-moz-orient` and not `not selector(::-webkit-scrollbar)` ─
+ * The obvious guard is the feature itself, and it does not survive the build.
+ * Lightning CSS **downlevels `@supports not selector(…)`** — for engines that
+ * cannot evaluate `selector()` it emits a duplicate of the rule OUTSIDE the
+ * guard — so the compiled sheet contained:
+ *
+ *     .scrollbar-quiet{scrollbar-width:thin;scrollbar-color:transparent transparent}
+ *
+ * unconditionally, in every browser. That re-created the original bug exactly:
+ * `scrollbar-width` is the one property that makes Chromium ignore the
+ * pseudo-elements, so everything above silently stopped applying and the
+ * platform drew its own bar again. Moving the block to the top level did not
+ * help; the duplication is the compiler's, not the nesting's.
+ *
+ * `-moz-orient` is a property Firefox alone implements, so this is a plain
+ * property query — universally evaluable, nothing for Lightning to downlevel,
+ * and verified false in Chromium. Do not "simplify" it back to a selector query.
+ *
+ * The invariant, stated plainly: **`scrollbar-width` must never reach a
+ * Chromium browser.** Anything that puts it there disables everything above.
+ */
+@supports (-moz-orient: inline) {
+	.scrollbar-quiet {
+		scrollbar-width: thin;
+		scrollbar-color: transparent transparent;
+	}
+	.scrollbar-quiet[data-scrolling],
+	.scrollbar-quiet:hover,
+	.scrollbar-quiet:focus-within {
+		scrollbar-color: color-mix(in oklab, var(--foreground) 16%, transparent)
+			transparent;
+	}
+}
+
+/*
+ * No scrollbar at all — the region still scrolls, it just never draws a bar.
+ *
+ * For surfaces where the affordance is carried by something better than a
+ * scrollbar: a horizontal strip whose edge fades already say "there is more
+ * this way", a carousel with paging controls, a canvas panned by drag. This is
+ * the default for horizontal scrolling in Sable (see `Scroller`), because a
+ * 4px bar under a row of media tiles is both uglier and less informative than
+ * the fade it sits beneath.
+ *
+ * Use it deliberately, not to tidy something up. A VERTICAL region with no bar
+ * and no fade tells a reader nothing about how far through a long list they
+ * are, and there is no keyboard or pointer affordance left to discover. If you
+ * cannot name the thing carrying the affordance instead, you want
+ * `scrollbar-quiet`.
+ */
+@utility scrollbar-hidden {
+	scrollbar-width: none;
+
+	&::-webkit-scrollbar {
+		display: none;
+		width: 0;
+		height: 0;
+	}
+}
+
+/* ==========================================================================
+   The type half of the density ladder.
+
+   `--control-*` retunes every control's HEIGHT inside a `data-density` scope
+   for free, because heights are custom properties. Typography is not: the page
+   and workspace registers are separate paired utilities, so anything naming
+   `text-body-md` kept page-register type while its box shrank around it. A
+   compact `Input` was a 32px control carrying 15px text, and every form in a
+   workspace read oversized — which is exactly how it was reported.
+
+   Sable's own components ask for the right tier through `useTypeTier()`, and a
+   test enforces that (`lib/register-type.test.ts`). But a component sweep
+   cannot reach the OTHER half of the problem: the markup a consuming app — or
+   an agent working in one — writes itself. `<p class="text-body-md">` inside a
+   tool panel is page-register type in a workspace, and no amount of correctness
+   inside our components changes it.
+
+   So the utilities retune too, and for the same reason the control ladder does:
+   the register is a scope, and everything in it should speak the register.
+
+   ── Sizes compress, weights move onto the workspace scale ───────────────────
+   Both, and the weight half is not optional. DESIGN.md → Registers specifies
+   the workspace voice as 10–12px at weights 450–550, and `useTypeTier()`
+   already hands components exactly that. If these overrides kept the page
+   weights, a compact panel would carry 600 labels from raw utilities beside
+   500 labels from wired components — the same nominal tier rendering two
+   weights in one panel. Hierarchy still survives: label stays heavier than
+   body at both registers, just on the register's own scale.
+
+   Specificity `0,2,0` against the utilities' `0,1,0`, and unlayered so it wins
+   over `@layer utilities` regardless of order. A `Dialog` opened from a tool
+   resets `data-density` to comfortable, so task surfaces are unaffected — see
+   lib/density.tsx → Registers.
+   ========================================================================== */
+[data-density="compact"] {
+	/*
+	 * Every value is `min(page, workspace)`, so the register can only ever
+	 * COMPRESS. Without it these grow on some apps: the page tiers are `rem`
+	 * and the workspace tiers are absolute px, so at a 14px root
+	 * `text-label-md` is 10.5px on the page and would jump to 12px inside a
+	 * tool panel — a "denser" register rendering larger text than the page it
+	 * sits beside. `min()` makes that impossible at any root size.
+	 */
+	& .text-body-lg {
+		font-size: min(1.0625rem, var(--type-ui-md-size, 12px));
+		line-height: var(--type-ui-leading, 16px);
+	}
+	& .text-body-md {
+		font-size: min(0.9375rem, var(--type-ui-md-size, 12px));
+		line-height: var(--type-ui-leading, 16px);
+	}
+	& .text-body-sm {
+		font-size: min(0.8125rem, var(--type-ui-sm-size, 11px));
+		line-height: var(--type-ui-leading, 16px);
+	}
+	& .text-body-xs,
+	& .text-caption {
+		font-size: min(0.75rem, var(--type-ui-sm-size, 11px));
+		line-height: var(--type-ui-leading, 16px);
+	}
+	& .text-label-lg {
+		font-size: min(0.875rem, var(--type-ui-md-size, 12px));
+		font-weight: var(--type-ui-md-weight, 500);
+		line-height: var(--type-ui-leading, 16px);
+	}
+	& .text-label-md {
+		font-size: min(0.75rem, var(--type-ui-md-size, 12px));
+		font-weight: var(--type-ui-md-weight, 500);
+		line-height: var(--type-ui-leading, 16px);
+	}
+	& .text-label-sm,
+	& .text-label-xs {
+		font-size: min(0.6875rem, var(--type-ui-micro-size, 10px));
+		font-weight: var(--type-ui-micro-weight, 450);
+		line-height: 14px;
+	}
+	& .text-title-sm {
+		font-size: min(0.875rem, var(--type-ui-md-size, 12px));
+		font-weight: var(--type-ui-section-weight, 550);
+		line-height: var(--type-ui-leading, 16px);
+	}
+	& .text-title-lg {
+		font-size: min(1rem, var(--type-ui-md-size, 12px));
+		font-weight: var(--type-ui-section-weight, 550);
+		line-height: var(--type-ui-leading, 16px);
+	}
+}
+
+/* ==========================================================================
+   Layout — responsive grid spans + split panes.
+
+   The fluid layout primitives (Region, Grid, Stack…) compute their styles inline
+   so any dynamic value works without Tailwind scanning a class. Breakpoint-aware
+   layout can't be inline (a style attribute has no media queries), so `Col` and
+   `SplitPane` set per-breakpoint CSS custom properties inline and these rules
+   resolve them mobile-first. Breakpoints match Tailwind's defaults
+   (sm 40 / md 48 / lg 64 / xl 80 / 2xl 96 rem) so they line up with the `lg:*`
+   visibility utilities the app-shell components already use.
+   ========================================================================== */
+
+/* `Col span={{ base, md, lg }}` / `start={…}` — each breakpoint resolves to the
+   most specific value defined at or below it (mobile-first cascade). */
+[data-sable-col] {
+	grid-column: var(--col-start, auto) / span var(--col-span, 1);
+	--col-span: var(--col-span-base, 1);
+	--col-start: var(--col-start-base, auto);
+}
+@media (width >= 40rem) {
+	[data-sable-col] {
+		--col-span: var(--col-span-sm, var(--col-span-base, 1));
+		--col-start: var(--col-start-sm, var(--col-start-base, auto));
+	}
+}
+@media (width >= 48rem) {
+	[data-sable-col] {
+		--col-span: var(--col-span-md, var(--col-span-sm, var(--col-span-base, 1)));
+		--col-start: var(--col-start-md, var(--col-start-sm, var(--col-start-base, auto)));
+	}
+}
+@media (width >= 64rem) {
+	[data-sable-col] {
+		--col-span: var(--col-span-lg, var(--col-span-md, var(--col-span-sm, var(--col-span-base, 1))));
+		--col-start: var(--col-start-lg, var(--col-start-md, var(--col-start-sm, var(--col-start-base, auto))));
+	}
+}
+@media (width >= 80rem) {
+	[data-sable-col] {
+		--col-span: var(--col-span-xl, var(--col-span-lg, var(--col-span-md, var(--col-span-sm, var(--col-span-base, 1)))));
+		--col-start: var(--col-start-xl, var(--col-start-lg, var(--col-start-md, var(--col-start-sm, var(--col-start-base, auto)))));
+	}
+}
+@media (width >= 96rem) {
+	[data-sable-col] {
+		--col-span: var(--col-span-2xl, var(--col-span-xl, var(--col-span-lg, var(--col-span-md, var(--col-span-sm, var(--col-span-base, 1))))));
+		--col-start: var(--col-start-2xl, var(--col-start-xl, var(--col-start-lg, var(--col-start-md, var(--col-start-sm, var(--col-start-base, auto))))));
+	}
+}
+
+/* `Columns count` / `Grid cols` as a breakpoint map — set per-breakpoint --cols-*
+   props inline; resolved mobile-first into the track's column count, so a grid
+   thins to fewer columns on small screens (e.g. 2 → 6 → 12). */
+[data-sable-grid-cols] {
+	display: grid;
+	grid-template-columns: repeat(var(--cols, var(--grid-columns)), minmax(0, 1fr));
+	--cols: var(--cols-base, var(--grid-columns));
+}
+@media (width >= 40rem) {
+	[data-sable-grid-cols] {
+		--cols: var(--cols-sm, var(--cols-base, var(--grid-columns)));
+	}
+}
+@media (width >= 48rem) {
+	[data-sable-grid-cols] {
+		--cols: var(--cols-md, var(--cols-sm, var(--cols-base, var(--grid-columns))));
+	}
+}
+@media (width >= 64rem) {
+	[data-sable-grid-cols] {
+		--cols: var(
+			--cols-lg,
+			var(--cols-md, var(--cols-sm, var(--cols-base, var(--grid-columns))))
+		);
+	}
+}
+@media (width >= 80rem) {
+	[data-sable-grid-cols] {
+		--cols: var(
+			--cols-xl,
+			var(
+				--cols-lg,
+				var(--cols-md, var(--cols-sm, var(--cols-base, var(--grid-columns))))
+			)
+		);
+	}
+}
+@media (width >= 96rem) {
+	[data-sable-grid-cols] {
+		--cols: var(
+			--cols-2xl,
+			var(
+				--cols-xl,
+				var(
+					--cols-lg,
+					var(--cols-md, var(--cols-sm, var(--cols-base, var(--grid-columns))))
+				)
+			)
+		);
+	}
+}
+
+/* `SplitPane collapseBelow="lg"` — a single stacked column below the breakpoint;
+   a two-column track (primary:secondary fr ratio) at or above it. */
+[data-sable-split] {
+	display: grid;
+	gap: var(--split-gap, var(--grid-gutter));
+	grid-template-columns: 1fr;
+}
+@media (width >= 40rem) {
+	[data-sable-split][data-collapse="sm"] {
+		grid-template-columns: var(--split-primary, 1fr) var(--split-secondary, 1fr);
+	}
+}
+@media (width >= 48rem) {
+	[data-sable-split][data-collapse="md"] {
+		grid-template-columns: var(--split-primary, 1fr) var(--split-secondary, 1fr);
+	}
+}
+@media (width >= 64rem) {
+	[data-sable-split][data-collapse="lg"] {
+		grid-template-columns: var(--split-primary, 1fr) var(--split-secondary, 1fr);
+	}
+}
+@media (width >= 80rem) {
+	[data-sable-split][data-collapse="xl"] {
+		grid-template-columns: var(--split-primary, 1fr) var(--split-secondary, 1fr);
+	}
+}
+@media (width >= 96rem) {
+	[data-sable-split][data-collapse="2xl"] {
+		grid-template-columns: var(--split-primary, 1fr) var(--split-secondary, 1fr);
+	}
+}
+
+/* ==========================================================================
+   Motion — keyframes, recipes, and policy.
+
+   Motion is a first-class layer of Sable. Three ideas:
+
+   1. TOKENS (themes/base/base.css): a duration ladder + semantic
+      easings, every duration scaled by --motion-scale.
+   2. RECIPES (below): named, reusable motion behaviours a component opts into
+      with ONE class (e.g. `motion-pop`, `motion-press`) instead of hand-rolling
+      a transition string per component. Enter/exit recipes drive off Base UI's
+      data-[starting-style]/data-[ending-style] attributes, so the same class
+      animates both directions and is fully interruptible.
+   3. POLICY (bottom): `prefers-reduced-motion` and the <MotionProvider> toggle
+      collapse --motion-scale to 0 — one switch makes all token-driven motion
+      static (transitions resolve instantly; loaders hold their first frame).
+
+   Keep motion subtle: opacity + transform only (compositor-friendly), short
+   durations, no spring/overshoot. See DESIGN.md → Motion.
+   ========================================================================== */
+
+@keyframes sable-spin {
+	to {
+		rotate: 360deg;
+	}
+}
+@keyframes sable-shimmer {
+	from {
+		background-position: 200% 0;
+	}
+	to {
+		background-position: -200% 0;
+	}
+}
+@keyframes sable-pulse-soft {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.55;
+	}
+}
+@keyframes sable-dot-bounce {
+	0%,
+	80%,
+	100% {
+		translate: 0 0;
+		opacity: 0.5;
+	}
+	40% {
+		translate: 0 -25%;
+		opacity: 1;
+	}
+}
+@keyframes sable-ping {
+	75%,
+	100% {
+		scale: 2;
+		opacity: 0;
+	}
+}
+/* One arriving token. Blur is the point, not decoration: a pure fade makes each
+   word a separate event, while resolving OUT OF BLUR reads as the word coming
+   into focus — one continuous sentence rather than a queue. Kept to 4px, which
+   is legible-adjacent; heavier looks like a rendering fault. */
+@keyframes sable-stream-in {
+	from {
+		opacity: 0;
+		filter: blur(4px);
+	}
+	to {
+		opacity: 1;
+		filter: blur(0);
+	}
+}
+/* The idle caret. `step-end` so it snaps rather than pulses — a caret that
+   fades is a caret that looks like it is still doing something. */
+@keyframes sable-caret-blink {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0;
+	}
+}
+@keyframes sable-fade-in {
+	from {
+		opacity: 0;
+	}
+}
+@keyframes sable-fade-up {
+	from {
+		opacity: 0;
+		translate: 0 0.5rem;
+	}
+}
+@keyframes sable-fade-down {
+	from {
+		opacity: 0;
+		translate: 0 -0.5rem;
+	}
+}
+
+/* --------------------------------------------------------------------------
+   Interaction recipes — for always-mounted elements (hover/focus/press).
+   -------------------------------------------------------------------------- */
+
+/* The transparency checkerboard — what "no colour here" looks like. Two real
+   consumers: the artboard behind a canvas, and a colour swatch whose value is
+   transparent. Both were hand-rolling the same gradient.
+
+   The light square is `--panel`, so it is themeable and correct in both modes
+   rather than two hardcoded greys. The dark square is DERIVED with a deliberate
+   step rather than borrowed from `--panel-raised`, and that was a correction: the
+   first version used `--panel-raised`, whose job is a selected row, and which
+   therefore lives in the workspace register's deliberately COMPRESSED tonal band.
+   Measured, that gave the two squares 19/255 apart in light and only 12/255 in
+   dark — against roughly 31 for Figma's transparency checker and 51 for
+   Photoshop's. A compressed band is right for chrome that should not shout and
+   exactly wrong for a pattern whose whole job is to be seen. 88% doubles the step.
+
+   Override `--checkerboard-alt` for a specific pairing. Size is tunable per use —
+   an artboard wants ~16px, a 24px swatch wants ~8px:
+
+     <div class="checkerboard [--checkerboard-size:8px]" />
+
+   NOT named `bg-checkerboard`, deliberately. A custom utility starting with
+   `bg-` lands in tailwind-merge's background group and would silently evict (or
+   be evicted by) a real `bg-*` colour class — the same failure that shipped
+   white text on a white button via `text-ws-md`. See lib/cn.ts. An unprefixed
+   name belongs to no merge group and is passed through untouched. */
+@utility checkerboard {
+	background-image: repeating-conic-gradient(
+		var(--panel) 0% 25%,
+		var(--checkerboard-alt, color-mix(in oklch, var(--panel) 88%, var(--foreground)))
+			0% 50%
+	);
+	background-size: var(--checkerboard-size, 16px) var(--checkerboard-size, 16px);
+	background-position: 0 0;
+}
+
+/* The default transition for interactive chrome — hover/focus/selection colour
+   shifts plus the press/slide transforms. The single transition declarer for
+   interactive controls: it lists scale + translate too, so `motion-press` and
+   thumb/indicator transforms compose without a conflicting transition-property.
+   Replaces ad-hoc `transition-colors`.
+
+   It also carries the two TOUCH declarations, and this is the right host for
+   them precisely because CONTRIBUTING.md → Motion already mandates this class on
+   every interactive control (`response` slot, "replaces transition-colors").
+   One hook reaches everything; a separate `touch-*` utility would have to be
+   remembered per component, which is how the package got to zero uses of
+   `touch-action` in the first place.
+
+   `touch-action: manipulation` drops the ~300ms click delay mobile engines hold
+   in case a tap turns into a double-tap-to-zoom. Nothing in Sable wants
+   double-tap zoom on a control, so the wait buys nothing and costs every tap on
+   every button, tab, and menu item. It still permits pan and pinch-zoom on the
+   page — only the double-tap gesture goes.
+
+   `-webkit-tap-highlight-color: transparent` removes the platform's grey flash,
+   which paints an unthemeable rectangle over our own hover/press chrome (and
+   over a rounded corner, squarely). We already answer "you touched this" with
+   `motion-press` and the hover/active surface — the flash is a second, worse
+   answer. Both are inert on pointer devices, and neither is motion, so
+   --motion-scale: 0 and prefers-reduced-motion leave them untouched: the delay
+   fix keeps working when animation is off, which is when it matters most. */
+@utility motion-interactive {
+	transition-property: color, background-color, border-color, box-shadow,
+		opacity, fill, stroke, scale, translate;
+	transition-duration: var(--motion-duration-fast);
+	transition-timing-function: var(--motion-ease-standard);
+	touch-action: manipulation;
+	-webkit-tap-highlight-color: transparent;
+}
+
+/* Tactile press feedback — a small settle on pointer-down. Adds only the
+   pressed-state target; pair it with `motion-interactive` (which declares the
+   transition). Skips disabled elements. */
+@utility motion-press {
+	&:active:not(:disabled):not([data-disabled]):not([aria-disabled="true"]) {
+		scale: 0.97;
+	}
+}
+
+/* --------------------------------------------------------------------------
+   Enter/exit recipes — for Base UI overlays/portals. The element rests in its
+   open state; data-[starting-style] (just-mounted) and data-[ending-style]
+   (closing) supply the from/to. transform-origin follows Base UI's anchor.
+   -------------------------------------------------------------------------- */
+
+/* Backdrops / scrims — opacity only. */
+@utility motion-fade {
+	transition-property: opacity;
+	transition-duration: var(--motion-duration-enter);
+	transition-timing-function: var(--motion-ease-standard);
+	&[data-starting-style],
+	&[data-ending-style] {
+		opacity: 0;
+	}
+}
+
+/* Anchored & centered surfaces — popover, menu, select, tooltip, dialog,
+   combobox, command menu, date picker. Opacity + a slight scale from the
+   anchor edge. */
+@utility motion-pop {
+	transform-origin: var(--transform-origin, center);
+	transition-property: opacity, scale, translate;
+	transition-duration: var(--motion-duration-enter);
+	transition-timing-function: var(--motion-ease-spring);
+	&[data-ending-style] {
+		transition-duration: var(--motion-duration-exit);
+		transition-timing-function: var(--motion-ease-standard);
+	}
+	&[data-starting-style],
+	&[data-ending-style] {
+		opacity: 0;
+		scale: 0.96;
+	}
+}
+
+/* Directional fade-slide (small 0.5rem offset) — toasts, banners, dropdowns
+   that read better sliding than scaling. Suffix = travel direction on enter. */
+@utility motion-slide-up {
+	transition-property: opacity, translate;
+	transition-duration: var(--motion-duration-enter);
+	transition-timing-function: var(--motion-ease-spring);
+	&[data-ending-style] {
+		transition-duration: var(--motion-duration-exit);
+		transition-timing-function: var(--motion-ease-standard);
+	}
+	&[data-starting-style],
+	&[data-ending-style] {
+		opacity: 0;
+		translate: 0 0.5rem;
+	}
+}
+@utility motion-slide-down {
+	transition-property: opacity, translate;
+	transition-duration: var(--motion-duration-enter);
+	transition-timing-function: var(--motion-ease-spring);
+	&[data-ending-style] {
+		transition-duration: var(--motion-duration-exit);
+		transition-timing-function: var(--motion-ease-standard);
+	}
+	&[data-starting-style],
+	&[data-ending-style] {
+		opacity: 0;
+		translate: 0 -0.5rem;
+	}
+}
+@utility motion-slide-left {
+	transition-property: opacity, translate;
+	transition-duration: var(--motion-duration-enter);
+	transition-timing-function: var(--motion-ease-spring);
+	&[data-ending-style] {
+		transition-duration: var(--motion-duration-exit);
+		transition-timing-function: var(--motion-ease-standard);
+	}
+	&[data-starting-style],
+	&[data-ending-style] {
+		opacity: 0;
+		translate: 0.5rem 0;
+	}
+}
+@utility motion-slide-right {
+	transition-property: opacity, translate;
+	transition-duration: var(--motion-duration-enter);
+	transition-timing-function: var(--motion-ease-spring);
+	&[data-ending-style] {
+		transition-duration: var(--motion-duration-exit);
+		transition-timing-function: var(--motion-ease-standard);
+	}
+	&[data-starting-style],
+	&[data-ending-style] {
+		opacity: 0;
+		translate: -0.5rem 0;
+	}
+}
+
+/* Disclosure — height + fade transition for accordion/collapsible panels. The
+   component sets the target height (height: var(--…-panel-height)) and zeroes
+   it on data-[starting-style]/data-[ending-style]; this recipe carries the
+   overflow, the transition, and the content fade. */
+@utility motion-disclosure {
+	overflow: hidden;
+	transition-property: height, opacity;
+	transition-duration: var(--motion-duration-base);
+	transition-timing-function: var(--motion-ease-standard);
+	&[data-starting-style],
+	&[data-ending-style] {
+		opacity: 0;
+	}
+}
+
+/* Icon swap — the `transition` slot for a control whose GLYPH changes with its
+   state: play→pause, mute→unmute, outline→fill, copy→check. Nothing in the
+   four-slot contract covered it, so components either snapped (the icon simply
+   becomes a different icon between two frames) or hand-rolled a transition.
+
+   Both icons stay in the DOM and are stacked on the same cell; the one that is
+   not current is marked `aria-hidden="true"` (or `data-active="false"`) and
+   cross-fades out while the other fades in. Keying off `aria-hidden` is
+   deliberate: with both glyphs mounted you have to hide the inactive one from
+   assistive tech anyway, so the correct markup IS the animation hook and there
+   is no second thing to remember.
+
+     <span class="motion-icon-swap">
+       <Icon name="play"  aria-hidden={playing} />
+       <Icon name="pause" aria-hidden={!playing} />
+     </span>
+
+   Stacked with a one-cell grid rather than `position: absolute` on the second
+   child: absolute positioning takes the icon out of flow, so the wrapper
+   collapses and every consumer has to restate the size. `grid-area: 1 / 1`
+   stacks them while the wrapper still sizes to the largest glyph.
+
+   Scale 0.25 + blur 4px, not a plain cross-fade. A pure opacity swap between
+   two marks occupying the same box reads as a smear — for a moment you see
+   both. Collapsing the outgoing glyph toward its centre out of focus (and the
+   incoming one out of blur, the same 4px `sable-stream-in` uses) makes it read
+   as one mark being replaced. Compositor-only properties throughout.
+
+   Durations come from --motion-duration-enter/--motion-duration-exit and the
+   easing from the ease-emphasized token — never a literal ms or bezier, which
+   would opt out of --motion-scale and keep animating after the user asked for
+   stillness. Under the policy the scaled duration is 0 and the swap is instant,
+   which is the correct reduced-motion behaviour: the glyph still changes. */
+@utility motion-icon-swap {
+	display: inline-grid;
+	place-items: center;
+	& > * {
+		grid-area: 1 / 1;
+		transition-property: opacity, scale, filter;
+		transition-duration: var(--motion-duration-enter);
+		transition-timing-function: var(--motion-ease-emphasized);
+	}
+	& > [aria-hidden="true"],
+	& > [data-active="false"] {
+		opacity: 0;
+		scale: 0.25;
+		filter: blur(4px);
+		/* Not interactive while invisible — it is still stacked over the live one. */
+		pointer-events: none;
+		transition-duration: var(--motion-duration-exit);
+	}
+}
+
+/* --------------------------------------------------------------------------
+   Loader recipes — looping indicators. Durations scale with --motion-scale, so
+   the policy switch freezes them to a static first frame.
+   -------------------------------------------------------------------------- */
+@utility motion-spin {
+	animation: sable-spin calc(700ms * var(--motion-scale)) linear infinite;
+}
+/* Orbit — a SLOW continuous rotation for ambient line-art / schematic figures
+   (the "alive" loop a captured canvas illustration keeps after it draws on;
+   pairs with motion-draw on the same element). Duration via
+   --motion-orbit-duration (default 24s), direction via --motion-orbit-direction.
+   Scaled by --motion-scale, so reduced motion collapses the duration to 0 and
+   the figure holds still. transform-origin centers the spin on any viewBox. */
+@utility motion-orbit {
+	animation-name: sable-spin;
+	animation-duration: calc(var(--motion-orbit-duration, 24s) * var(--motion-scale, 1));
+	animation-timing-function: linear;
+	animation-iteration-count: infinite;
+	animation-direction: var(--motion-orbit-direction, normal);
+	transform-origin: center;
+}
+@utility motion-pulse {
+	animation: sable-pulse-soft calc(1600ms * var(--motion-scale))
+		var(--motion-ease-standard) infinite;
+}
+@utility motion-shimmer {
+	background-image: linear-gradient(
+		100deg,
+		transparent 40%,
+		color-mix(in oklab, var(--foreground) 8%, transparent) 50%,
+		transparent 60%
+	);
+	background-size: 200% 100%;
+	background-repeat: no-repeat;
+	animation: sable-shimmer calc(1800ms * var(--motion-scale)) linear infinite;
+}
+/*
+ * The same sweep, but through the glyphs instead of behind them — for live
+ * status *text*: "Thinking…", "Running search", "Generating response". The
+ * surface `motion-shimmer` is wrong for that job: it paints a faint band on the
+ * box, which reads as a loading skeleton sitting under real words.
+ *
+ * `background-clip: text` + a transparent fill makes the gradient BE the text,
+ * so the sweep is legible at body sizes where an 8% band over the box is not.
+ * The gradient runs muted → foreground → muted rather than transparent →
+ * something: text that fades to transparent is text that disappears, and a
+ * status line has to stay readable through every frame of its own animation.
+ *
+ * Named `motion-*`, not `text-*`, for two reasons. It is a motion recipe and
+ * belongs with the family whose durations `--motion-scale` can freeze; and
+ * `text-shimmer` would be parsed by tailwind-merge as a text utility, which is
+ * the exact footgun CONTRIBUTING.md → Registers #4 documents (an unregistered
+ * `text-foo` silently drops the real colour class).
+ */
+@utility motion-text-shimmer {
+	background-image: linear-gradient(
+		100deg,
+		var(--muted-foreground) 40%,
+		var(--foreground) 50%,
+		var(--muted-foreground) 60%
+	);
+	background-size: 200% 100%;
+	/*
+	 * `repeat`, NOT the `no-repeat` the surface shimmer uses — and the
+	 * difference is the whole reason this recipe is separate. The keyframe
+	 * travels the background from 200% to -200%, so with `no-repeat` the band
+	 * spends part of every cycle entirely off the element. On a surface that
+	 * just means no sweep for a moment. Clipped to text over a transparent
+	 * fill it means no *text*: the label blinks out mid-word. The gradient
+	 * begins and ends on the same colour, so tiling it is seamless and every
+	 * pixel of every glyph is always painted.
+	 */
+	background-repeat: repeat;
+	background-clip: text;
+	-webkit-background-clip: text;
+	color: transparent;
+	animation: sable-shimmer calc(1800ms * var(--motion-scale)) linear infinite;
+}
+@utility motion-dot-bounce {
+	animation: sable-dot-bounce calc(1400ms * var(--motion-scale))
+		var(--motion-ease-standard) infinite;
+}
+@utility motion-ping {
+	animation: sable-ping calc(1100ms * var(--motion-scale))
+		var(--motion-ease-decelerate) infinite;
+}
+
+/* --------------------------------------------------------------------------
+   Entrance & reveal — one-shot mount animations (page transitions, lists) and
+   the scroll-reveal recipe used by <Reveal>/<TextReveal>. `both` fill holds the
+   from-state before start and the to-state after, so there's no flash; under
+   the off/reduced policy the scaled duration is 0 and content simply appears.
+   -------------------------------------------------------------------------- */
+@utility animate-fade-in {
+	animation: sable-fade-in var(--motion-duration-base)
+		var(--motion-ease-decelerate) both;
+}
+@utility animate-fade-up {
+	animation: sable-fade-up var(--motion-duration-slow)
+		var(--motion-ease-decelerate) both;
+}
+@utility animate-fade-down {
+	animation: sable-fade-down var(--motion-duration-slow)
+		var(--motion-ease-decelerate) both;
+}
+
+/* --------------------------------------------------------------------------
+   Streaming — tokens arriving from a live source, one at a time. Distinct from
+   the reveal recipes above, which stage text that is ALREADY THERE: nothing here
+   knows the final length, so there is no stagger to compute and no `both` fill
+   to hold. Each token animates once, on mount, and never again.
+   -------------------------------------------------------------------------- */
+@utility motion-stream-in {
+	animation: sable-stream-in var(--motion-duration-slow)
+		var(--motion-ease-decelerate) both;
+	/* Blur and opacity on a text run are expensive enough to be worth hinting,
+	   and the hint is cheap because the element is short-lived by construction. */
+	will-change: filter, opacity;
+}
+
+/* The trailing edge of a live stream. A hard cut at the newest token reads as a
+   sentence that has ENDED; softening it says "more is coming" without spending
+   an animation on it. Static — the mask does not move, the text moves past it. */
+@utility stream-tail {
+	filter: blur(1.6px);
+	/* A mask reads only the ALPHA channel, so the colour here is machinery, not a
+	   design decision — written `rgb(0 0 0 / …)` rather than `#000`/`#0003` so it
+	   needs no `inline-color` exception. Ends at 20% rather than 0: the newest
+	   token stays faintly readable instead of vanishing mid-word. */
+	mask-image: linear-gradient(90deg, rgb(0 0 0) 20%, rgb(0 0 0 / 20%));
+	-webkit-mask-image: linear-gradient(90deg, rgb(0 0 0) 20%, rgb(0 0 0 / 20%));
+}
+
+/* The caret. Note the inversion: it blinks only when IDLE, and holds steady
+   while tokens are arriving. Everyone ships the opposite, and the opposite is
+   two competing rhythms — text moving at one rate, a caret flashing at another.
+   Steady-while-streaming reads calm, and the blink returning is itself the
+   signal that generation finished. */
+@utility motion-caret {
+	animation: sable-caret-blink calc(1000ms * var(--motion-scale)) step-end
+		infinite;
+	&[data-streaming="true"] {
+		animation: none;
+	}
+}
+
+/* Scroll/enter reveal — <Reveal>/<TextReveal> flip data-reveal to "in" when the
+   element intersects the viewport. Out-of-view rests hidden + nudged down;
+   reduced/off policy keeps content visible (the JS forces "in"). */
+@utility motion-reveal {
+	transition-property: opacity, translate;
+	transition-duration: var(--motion-duration-slow);
+	transition-timing-function: var(--motion-ease-decelerate);
+	&[data-reveal="out"] {
+		opacity: 0;
+		translate: 0 0.75rem;
+	}
+}
+
+/* Draw — SVG line-art draw-on for illustration paths. Put `motion-draw` on a
+   path/shape that ALSO sets pathLength="1" (required — it normalizes the dash
+   math for any geometry), then wrap the figure in <Reveal>: the path renders
+   drawn at rest and "draws on" when the ancestor's data-reveal flips to "in".
+   Stagger sibling paths via --motion-draw-delay (scaled by --motion-scale so
+   reduced motion shows the completed drawing instantly, with no dead delay).
+   Like motion-disclosure's height, stroke-dashoffset is a deliberate
+   non-compositor exception — cheap at illustration path counts. */
+@utility motion-draw {
+	stroke-dasharray: 1;
+	stroke-dashoffset: 0;
+	transition-property: stroke-dashoffset;
+	/* Default 500ms (the `slower` step); large hero-tier schematics read better
+	   drawn over 1.5-2s — override via --motion-draw-duration (raw ms; scaled
+	   here, so reduced motion still completes instantly). */
+	transition-duration: calc(var(--motion-draw-duration, 500ms) * var(--motion-scale, 1));
+	transition-timing-function: var(--motion-ease-decelerate);
+	transition-delay: calc(var(--motion-draw-delay, 0s) * var(--motion-scale, 1));
+	[data-reveal="out"] & {
+		stroke-dashoffset: 1;
+	}
+}
+
+/* --------------------------------------------------------------------------
+   Marquee — seamless infinite loop. <Marquee> renders N identical groups in a
+   track and sets --sable-marquee-distance (one group + gap, in px) + the
+   animation inline, so one iteration aligns the next group exactly — seamless
+   for any content/gap. Pauses on hover/focus (WCAG 2.2.2); freezes under the
+   motion policy (the component drops the animation when motion is off/reduced).
+   -------------------------------------------------------------------------- */
+@keyframes sable-marquee-x {
+	to {
+		translate: calc(-1 * var(--sable-marquee-distance, 50%)) 0;
+	}
+}
+@keyframes sable-marquee-y {
+	to {
+		translate: 0 calc(-1 * var(--sable-marquee-distance, 50%));
+	}
+}
+[data-sable-marquee][data-pause-on-hover]:hover [data-sable-marquee-track],
+[data-sable-marquee]:focus-within [data-sable-marquee-track] {
+	animation-play-state: paused;
+}
+
+/* --------------------------------------------------------------------------
+   Motion policy. Collapsing --motion-scale to 0 damps every token-driven
+   duration to 0. Default (no [data-motion]) follows the OS preference; the
+   <MotionProvider> sets [data-motion] to force a policy in-app.
+
+   The policy MUST also target [data-sable-theme] and descend into it: each
+   theme block sets `--motion-scale: 1` (a required MOTION_TOKEN), so when a
+   theme is applied to a SUBTREE (not :root) that nested declaration would
+   otherwise re-assert 1 and defeat a :root-only policy for everything inside
+   the themed element — silently breaking reduced-motion in every themed
+   subtree. Equal-specificity `[data-sable-theme]` wins by later source order;
+   the descendant combinators (0,2,0) beat the theme block for the in-app
+   toggle case. Policy values are important because app-owned preset CSS loads
+   after this stylesheet and can have more specific mode selectors. Theme values
+   must not re-enable motion after the OS or provider disables it. ------------ */
+@media (prefers-reduced-motion: reduce) {
+	:root,
+	[data-sable-theme] {
+		--motion-scale: 0 !important;
+	}
+}
+[data-motion="full"],
+[data-motion="full"] [data-sable-theme] {
+	--motion-scale: 1 !important;
+}
+[data-motion="reduced"],
+[data-motion="reduced"] [data-sable-theme],
+[data-motion="off"],
+[data-motion="off"] [data-sable-theme] {
+	--motion-scale: 0 !important;
+}

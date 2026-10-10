@@ -1,0 +1,533 @@
+import { execFileSync } from "node:child_process"
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join, resolve } from "node:path"
+import { afterAll, describe, expect, it } from "vitest"
+
+const PKG_ROOT = resolve(__dirname, "..", "..")
+const BIN = join(PKG_ROOT, "bin", "sable-lint.mjs")
+const registry = JSON.parse(readFileSync(join(PKG_ROOT, "registry.json"), "utf8"))
+const contractSrc = readFileSync(
+	join(PKG_ROOT, "src", "themes", "_contract.ts"),
+	"utf8",
+)
+
+/** The same reader the build scripts use, so all three see identical arrays. */
+function readArray(name: string): string[] {
+	const start = contractSrc.indexOf(`${name} = [`)
+	const body = contractSrc
+		.slice(start, contractSrc.indexOf("]", start))
+		.replace(/\/\*[\s\S]*?\*\//g, "")
+		.replace(/(^|[^:])\/\/[^\n]*/g, "$1")
+	return [...body.matchAll(/"([^"]+)"/g)].map((m) => m[1])
+}
+
+/**
+ * `sable-lint` is the bin consumers run against their own app. It cannot read
+ * `_contract.ts` — that file isn't published — so it reconstructs the token
+ * vocabulary from `registry.json`, which is. These tests pin that reconstruction.
+ *
+ * The failure this guards against is silent and nasty: if the registry's shape
+ * drifted, the consumer linter would validate against a vocabulary that is merely
+ * *plausible* and would either miss real typos or flag correct tokens, in someone
+ * else's codebase, with no signal here.
+ */
+describe("consumer lint contract", () => {
+	it("reconstructs SEMANTIC_TOKENS exactly from registry.json", () => {
+		const fromRegistry = registry.tokens.semantic.map((t: { name: string }) => t.name)
+		expect(new Set(fromRegistry)).toEqual(new Set(readArray("SEMANTIC_TOKENS")))
+	})
+
+	it("reconstructs MOTION_TOKENS exactly from registry.json", () => {
+		// The registry stores durations/easings as bare names; the contract stores
+		// full token names. The bin reassembles them, and this asserts the assembly
+		// rule is right rather than merely reasonable-looking.
+		const m = registry.tokens.motion
+		const fromRegistry = [
+			...m.durations.map((d: string) => `motion-duration-${d}`),
+			...m.easings.map((e: string) => `motion-ease-${e}`),
+			m.scale,
+		]
+		expect(new Set(fromRegistry)).toEqual(new Set(readArray("MOTION_TOKENS")))
+	})
+})
+
+const tmp = mkdtempSync(join(tmpdir(), "sable-lint-"))
+afterAll(() => rmSync(tmp, { recursive: true, force: true }))
+
+function lint(source: string, args: string[] = []) {
+	writeFileSync(join(tmp, "sample.tsx"), source)
+	try {
+		const out = execFileSync(process.execPath, [BIN, tmp, ...args], {
+			encoding: "utf8",
+			stdio: ["ignore", "pipe", "pipe"],
+		})
+		return { code: 0, out }
+	} catch (e) {
+		const err = e as { status: number; stdout: string; stderr: string }
+		return { code: err.status, out: err.stdout + err.stderr }
+	}
+}
+
+describe("sable-lint bin", () => {
+	it("keeps semantic focus ink at its tested opacity", () => {
+		const faded = lint('export const A = () => <button className="motion-interactive focus-visible:ring-2 focus-visible:ring-ring/40">Open</button>')
+		expect(faded.code).toBe(1)
+		expect(faded.out).toContain("faded-focus-ring")
+		const full = lint('export const A = () => <button className="motion-interactive focus-visible:ring-2 focus-visible:ring-ring">Open</button>')
+		expect(full.code).toBe(0)
+	})
+
+	it("catches the drift that actually shipped to a consumer", () => {
+		// `border-orange-500` shipped in a converted app for weeks. The package
+		// linter would never have seen it, and the consumer had no way to run one —
+		// they hand-grepped. This is that exact string.
+		const r = lint(`export const A = () => <div className="border-orange-500" />`)
+		expect(r.code).toBe(1)
+		expect(r.out).toContain("palette-ref")
+		expect(r.out).toContain("border-orange-500")
+	})
+
+	it("passes clean code that uses semantic tokens", () => {
+		const r = lint(
+			`export const A = () => <div className="bg-card text-muted-foreground rounded-md" />`,
+		)
+		expect(r.code).toBe(0)
+		expect(r.out).toContain("clean")
+	})
+
+	it("does not police the package's internal rules on consumer code", () => {
+		// `self-import` is scope: "package". Importing @sableui/react is precisely
+		// what a consumer is supposed to do — flagging it would make the bin useless
+		// on the first file of every real app.
+		const r = lint(`import { Button } from "@sableui/react"\nexport const A = () => <Button />`)
+		expect(r.code).toBe(0)
+	})
+
+	it("honours a reasoned disable, and rejects a reasonless one", () => {
+		const withReason = lint(
+			`// design-lint-disable-next-line palette-ref -- vendor logo spec\nexport const A = () => <div className="bg-orange-500" />`,
+		)
+		expect(withReason.code).toBe(0)
+
+		const without = lint(
+			`// design-lint-disable-next-line palette-ref\nexport const A = () => <div className="bg-orange-500" />`,
+		)
+		expect(without.code).toBe(1)
+		expect(without.out).toContain("directive-reason")
+	})
+
+	it("catches a raw z-index that joins the global layer order", () => {
+		// The rule DESIGN.md stated from 0.17.0 and nothing checked until 0.44.0 —
+		// by which point fourteen of Sable's OWN portaled surfaces wrote `z-50`
+		// while --z-overlay sat declared and used by nothing.
+		const bare = lint(`export const A = () => <div className="fixed z-50" />`)
+		expect(bare.code).toBe(1)
+		expect(bare.out).toContain("raw-z-index")
+		expect(bare.out).toContain("z-50")
+
+		const arbitrary = lint(`export const A = () => <div className="fixed z-[9999]" />`)
+		expect(arbitrary.code).toBe(1)
+		expect(arbitrary.out).toContain("raw-z-index")
+	})
+
+	it("leaves local stacking alone — the scale starts at 30 for that reason", () => {
+		// z-0/z-10/z-20 order things inside one component's own box (an arrow over
+		// its slide). Flagging those would make the rule noise, and noise is how a
+		// contract rule gets disabled wholesale.
+		const r = lint(
+			`export const A = () => <div className="relative z-10"><span className="z-0" /></div>`,
+		)
+		expect(r.code).toBe(0)
+	})
+
+	it("accepts the named layer steps", () => {
+		const r = lint(
+			`export const A = () => <div className="fixed z-(--z-overlay)"><i className="z-(--z-toast)" /></div>`,
+		)
+		expect(r.code).toBe(0)
+	})
+
+	it("skips paths under --ignore", () => {
+		const src = `export const P = ["#8C9B82"]`
+		expect(lint(src).code).toBe(1)
+		expect(lint(src, ["--ignore", "**/sample.tsx"]).code).toBe(0)
+	})
+
+	it("sees .html — the file the tool was blind to", () => {
+		// Reported from a real conversion: `bg-zinc-950 text-zinc-100` sat on <body>
+		// in index.html while sable-lint said "✓ 29 files clean — the contract
+		// holds." The walker only yielded .ts/.tsx/.js/.jsx. That gap landed hardest
+		// on converting-an-app.md, which is largely about migrating an app's CSS.
+		writeFileSync(join(tmp, "index.html"), `<body class="bg-zinc-950 text-zinc-100">x</body>`)
+		const r = lint(`export const A = () => null`)
+		rmSync(join(tmp, "index.html"))
+		expect(r.code).toBe(1)
+		expect(r.out).toContain("index.html")
+		expect(r.out).toContain("bg-zinc-950")
+	})
+
+	it("lints .css but exempts custom-property DECLARATIONS, not references", () => {
+		// The distinction that makes the rule usable on a stylesheet at all: a
+		// consumer's own theme file is where colour literals legitimately live, so
+		// `--brand-500: oklch(…)` is authoring. Borrowing a palette step by
+		// reference, or a raw literal in an ordinary rule, is still a violation.
+		writeFileSync(
+			join(tmp, "theme.css"),
+			`:root { --brand-500: oklch(0.7 0.2 250); }\n.card { color: #ffffff; border-color: var(--zinc-700); }`,
+		)
+		const r = lint(`export const A = () => null`)
+		rmSync(join(tmp, "theme.css"))
+		expect(r.out).not.toContain("--brand-500")
+		expect(r.out).toContain("--zinc-700")
+		expect(r.out).toContain("#ffffff")
+	})
+
+	/* ── static-interactive: the one PRESCRIPTIVE rule. ───────────────────────
+	 * Every other motion rule fires on motion that is present and wrong, so a
+	 * component that simply snaps between states cleared the whole contract —
+	 * which is exactly what an agent writes, because an agent writes what is
+	 * checked. These pin the boundary: it has to fire on the real case and stay
+	 * quiet everywhere a fix would be wrong, or it gets disabled wholesale. */
+	it("catches an element styled for pointer states with no motion", () => {
+		const r = lint(
+			`export const A = () => <div className="bg-card hover:bg-accent" />`,
+		)
+		expect(r.code).toBe(1)
+		expect(r.out).toContain("static-interactive")
+	})
+
+	it("passes once the recipe is there", () => {
+		const r = lint(
+			`export const A = () => <div className="text-muted-foreground motion-interactive hover:text-foreground" />`,
+		)
+		expect(r.code).toBe(0)
+	})
+
+	it("sees a hover state many lines below the tag it belongs to", () => {
+		// The reason this rule reads whole files instead of lines: a real JSX tag
+		// spans a dozen attributes, and the class string that says "I react to a
+		// pointer" is never on the same line as the tag name.
+		const r = lint(
+			[
+				`export const A = () => (`,
+				`  <button`,
+				`    type="button"`,
+				`    aria-label="Close"`,
+				`    onClick={() => {}}`,
+				`    className="rounded-md p-2 hover:bg-accent"`,
+				`  />`,
+				`)`,
+			].join("\n"),
+		)
+		expect(r.code).toBe(1)
+		expect(r.out).toContain("static-interactive")
+	})
+
+	it("leaves Sable components alone — they bring their own motion", () => {
+		// Flagging <Button className="hover:…"> would teach people to bolt a second
+		// recipe onto a component that already has one, and two transitions fighting
+		// over the same property is worse than the snap.
+		const r = lint(
+			`export const A = () => <Button className="hover:text-foreground">x</Button>`,
+		)
+		expect(r.code).toBe(0)
+	})
+
+	it("flags a state painted with a fixed surface, and points at the recipe", () => {
+		const r = lint(`export const A = () => <div className="motion-interactive hover:bg-muted" />`)
+		expect(r.code).toBe(1)
+		expect(r.out).toContain("surface-hover")
+		expect(r.out).toContain("sable-surface-interactive")
+	})
+
+	it("accepts the surface-relative recipe and an opacity step on the same surface", () => {
+		expect(lint(`export const A = () => <div className="sable-surface-interactive motion-interactive" />`).code).toBe(0)
+		expect(lint(`export const A = () => <div className="bg-popover/90 motion-interactive hover:bg-popover" />`).code).toBe(0)
+	})
+
+	it("does not double-report with transition-colors", () => {
+		// Same element, same fix. Reporting both just makes the output look like the
+		// rule set is nagging.
+		const r = lint(
+			`export const A = () => <div className="transition-colors hover:bg-accent" />`,
+		)
+		expect(r.out).toContain("transition-colors")
+		expect(r.out).not.toContain("static-interactive")
+	})
+
+	it("honours a reasoned disable on the tag's own line", () => {
+		const r = lint(
+			`// design-lint-disable-next-line static-interactive -- text-decoration is discrete\nexport const A = () => <a className="hover:underline" />`,
+		)
+		expect(r.code).toBe(0)
+	})
+
+	it("does not flag an anti-pattern that a comment merely NAMES", () => {
+		// The recurring failure: a codebase that fixed something properly leaves a
+		// comment saying so, and the comment names the thing it removed. Sable's own
+		// doc comment describing the transition-colors rule tripped that rule, and a
+		// consuming app's note that a stray z-[60] had been measured and deleted was
+		// reported as a live raw-z-index. In both the linter flagged the evidence
+		// that the work was done — which is how a team decides the tool cries wolf.
+		const r = lint(
+			[
+				"/* There was a `z-[60]` here and it never did anything — measured",
+				"   under both themes before deleting it. Also dropped the bare",
+				"   `transition-colors` in favour of the motion-interactive recipe,",
+				"   and the `animate-pulse` that --motion-scale could not freeze. */",
+				'export const A = () => <div className="fixed z-(--z-toast)" />',
+			].join("\n"),
+		)
+		expect(r.code).toBe(0)
+	})
+
+	it("still flags the same patterns in real class strings", () => {
+		// The other half of the pair: opting these rules out of comments must not
+		// opt them out of code.
+		const r = lint(`export const A = () => <div className="fixed z-50 transition-colors" />`)
+		expect(r.code).toBe(1)
+		expect(r.out).toContain("raw-z-index")
+		expect(r.out).toContain("transition-colors")
+	})
+
+	it("validates tokens against the installed contract, not a guess", () => {
+		const r = lint(`export const A = () => <div className="bg-tone-notareal" />`)
+		expect(r.code).toBe(1)
+		expect(r.out).toContain("unknown-token")
+	})
+
+	/* ── native-ui-import: iOS screens are Sable; Konsta is chrome only. ───── */
+	it("catches a direct Konsta import in an iOS prototype", () => {
+		for (const src of [
+			`import { Toggle, ListInput } from "konsta/react"\nexport const A = () => <Toggle />`,
+			`import { App } from 'konsta'\nexport const A = () => <App />`,
+		]) {
+			const r = lint(src)
+			expect(r.code, src).toBe(1)
+			expect(r.out, src).toContain("native-ui-import")
+		}
+	})
+
+	it("allows the adapter's chrome", () => {
+		const r = lint(`import { NativeApp, IosPage } from "@sableui/react/ios"\nexport const A = () => <NativeApp><IosPage /></NativeApp>`)
+		expect(r.out).not.toContain("native-ui-import")
+	})
+
+	/* ── hand-rolled-control: use the component Sable ships. ─────────────────
+	 * Sable's own Customize panel was a row of role="radio" buttons with no
+	 * arrow keys, a native range and a native colour input, and nothing could
+	 * say so. These pin what it catches and what it must leave alone. */
+	it("catches a hand-built radio group and names the component", () => {
+		const r = lint(
+			`export const A = () => <div role="radiogroup"><button role="radio" aria-checked /></div>`,
+		)
+		expect(r.code).toBe(1)
+		expect(r.out).toContain("hand-rolled-control")
+		expect(r.out).toContain("RadioGroup")
+	})
+
+	it("catches native range, colour and select controls", () => {
+		for (const src of [
+			`export const A = () => <input type="range" />`,
+			`export const A = () => <input type="color" />`,
+			`export const A = () => <select><option /></select>`,
+		]) {
+			const r = lint(src)
+			expect(r.out, src).toContain("hand-rolled-control")
+		}
+	})
+
+	it("leaves Sable components and plain inputs alone", () => {
+		const r = lint(
+			`export const A = () => <><Radio role="radio" /><input type="text" /><Slider /></>`,
+		)
+		expect(r.out).not.toContain("hand-rolled-control")
+	})
+
+	it("accepts the escape hatch with a reason", () => {
+		const r = lint(
+			`// design-lint-disable-next-line hand-rolled-control -- 2D pad, no Sable equivalent
+export const A = () => <div role="slider" />`,
+		)
+		expect(r.out).not.toContain("hand-rolled-control")
+	})
+
+	/* ── floating-surface: a floating surface is popover, not the page. ────
+	 * Sable's Customize inspector floated over the canvas on bg-background,
+	 * which sits BELOW the cards it hovered over in every dark mode. */
+	it("catches a floating surface painted with the page ground", () => {
+		const r = lint(
+			`export const A = () => <aside className="fixed right-4 rounded-md bg-background shadow-lg ring-1 ring-border" />`,
+		)
+		expect(r.code).toBe(1)
+		expect(r.out).toContain("floating-surface")
+	})
+
+	it("passes a floating popover surface and a raised sticky header", () => {
+		const r = lint(
+			`export const A = () => <><aside className="fixed bg-popover border border-border-floating shadow-lg" /><header className="sticky top-0 bg-background shadow-sm" /></>`,
+		)
+		expect(r.out).not.toContain("floating-surface")
+	})
+
+	it("catches a floating surface on bg-card, and the full border on anything floating", () => {
+		// Dialog, Sheet and Toast shipped on bg-card with border-border.
+		const fill = lint(`export const A = () => <div className="fixed rounded-lg bg-card p-6 shadow-lg" />`)
+		expect(fill.out).toContain("bg-card + floating shadow")
+		const edge = lint(`export const A = () => <div className="rounded-md border border-border bg-popover shadow-md" />`)
+		expect(edge.out).toContain("border-border + floating shadow")
+		const ring = lint(`export const A = () => <aside className="bg-popover ring-1 ring-border shadow-xl" />`)
+		expect(ring.out).toContain("ring-border + floating shadow")
+	})
+
+	/* ── lookalike-control: a raw element in a component's clothes. ──────────
+	 * The docs header was a <button> wearing the search field's shell, and
+	 * every styling rule passed it because every class was a semantic token. */
+	it("catches a raw element dressed as a field or a button", () => {
+		const field = lint(
+			`export const A = () => <button className="flex h-8 rounded-sm border border-input bg-card px-2.5 motion-interactive">Search</button>`,
+		)
+		expect(field.out).toContain("lookalike-control")
+		expect(field.out).toContain("field shell")
+		const fill = lint(`export const A = () => <a href="/x" className="rounded-full bg-primary px-4 text-primary-foreground">Go</a>`)
+		expect(fill.out).toContain("use Button")
+		const sized = lint(`export const A = () => <button className="h-(--control-md) rounded-sm px-3">Save</button>`)
+		expect(sized.out).toContain("sized as a control")
+	})
+
+	it("leaves components, text links and native fields to their own rules", () => {
+		const r = lint(
+			`export const A = () => <><Button className="bg-secondary">Ok</Button><a href="/x" className="text-foreground underline">Read</a><Input className="border-input" /></>`,
+		)
+		expect(r.out).not.toContain("lookalike-control")
+	})
+
+	/* ── hand-derived-surface: mixing ink into a surface by hand. ───────────
+	 * The relative-surface utilities compute exactly this; a hand-written
+	 * color-mix is how an agent shows it skipped them. */
+	it("catches ink hand-mixed into a surface, in a class or a style", () => {
+		const cls = lint(
+			`export const A = () => <div className="bg-[color-mix(in_oklab,var(--foreground)_7%,var(--popover))]" />`,
+		)
+		expect(cls.out).toContain("hand-derived-surface")
+		const style = lint(
+			`export const A = () => <div style={{ background: "color-mix(in oklab, var(--foreground) 8%, var(--card))" }} />`,
+		)
+		expect(style.out).toContain("hand-derived-surface")
+	})
+
+	it("leaves the utilities and other colour mixes alone", () => {
+		const r = lint(
+			`export const A = () => <div className="sable-well bg-hairline" style={{ color: "color-mix(in oklab, var(--primary) 50%, transparent)" }} />`,
+		)
+		expect(r.out).not.toContain("hand-derived-surface")
+	})
+
+	it("leaves a hover shadow on a resting card alone", () => {
+		const r = lint(
+			`export const A = () => <a className="rounded-lg border border-border bg-card motion-interactive hover:shadow-md" />`,
+		)
+		expect(r.out).not.toContain("floating-surface")
+	})
+	/* ── clickable-static: a click handler on a non-control. ─────────────────
+	 * Mouse-only: no focus, no Enter/Space, no role. */
+	it("catches onClick on a div, and leaves role-owned rows and Button alone", () => {
+		const div = lint(`export const A = ({ go }: { go: () => void }) => <div className="p-2" onClick={go}>Open</div>`)
+		expect(div.out).toContain("clickable-static")
+		const option = lint(
+			`export const A = ({ go }: { go: () => void }) => <div role="option" aria-selected={false} onClick={go}>Row</div>`,
+		)
+		expect(option.out).not.toContain("clickable-static")
+		const button = lint(`export const A = ({ go }: { go: () => void }) => <Button variant="ghost" onClick={go}>Open</Button>`)
+		expect(button.out).not.toContain("clickable-static")
+	})
+
+	/* ── hand-written-fade: an edge fade masked by hand. ─────────────────────
+	 * Scroller owns the edge fade (only on the side with more, following scroll). */
+	it("catches a hand-written mask gradient", () => {
+		const cls = lint(`export const A = () => <div className="overflow-auto [mask-image:linear-gradient(to_bottom,black_80%,transparent)]" />`)
+		expect(cls.out).toContain("hand-written-fade")
+		const style = lint(
+			`export const A = () => <div style={{ maskImage: "linear-gradient(to right, black 80%, transparent)" }} />`,
+		)
+		expect(style.out).toContain("hand-written-fade")
+	})
+
+	/* ── hand-rolled-control: meters, progress bars and separators by role. ── */
+	it("catches a hand-rolled meter, progress bar or separator", () => {
+		expect(lint(`export const A = () => <div role="progressbar" aria-valuenow={4} />`).out).toContain("use Progress")
+		expect(lint(`export const A = () => <div role="meter" aria-valuenow={4} />`).out).toContain("use Meter")
+		expect(lint(`export const A = () => <hr className="border-border" />`).out).toContain("use Separator")
+	})
+})
+
+/* ── Restyling and hand-tuned spacing. Each rule names the variant or
+ * utility that replaces the override, and each leaves layout classes alone. ── */
+describe("variants over overrides", () => {
+	it("catches a destructive menu row coloured by className", () => {
+		const r = lint(`export const A = () => <MenuItem className="text-destructive" onClick={() => {}}>Delete</MenuItem>`)
+		expect(r.out).toContain("destructive-item-ink")
+		expect(r.out).toContain('variant="destructive"')
+		const ctx = lint(`export const A = () => <ContextMenuItem className={cn("gap-2", "data-[highlighted]:text-destructive")}>Delete</ContextMenuItem>`)
+		expect(ctx.out).toContain("destructive-item-ink")
+		const ok = lint(`export const A = () => <MenuItem variant="destructive" className="gap-2">Delete</MenuItem>`)
+		expect(ok.out).not.toContain("destructive-item-ink")
+	})
+
+	it("catches a look-changing class on Button, Pill or Badge, and allows layout", () => {
+		expect(lint(`export const A = () => <Button variant="outline" className="rounded-full">Sign in</Button>`).out).toContain("component-restyle")
+		expect(lint(`export const A = () => <Pill className={cn("border", x && "bg-card")}>Tag</Pill>`).out).toContain("component-restyle")
+		expect(lint(`export const A = () => <Badge className="hover:shadow-md">New</Badge>`).out).toContain("component-restyle")
+		const layout = lint(`export const A = () => <Button variant="floating" className="absolute end-2 top-2 w-full shrink-0 mt-4">Go</Button>`)
+		expect(layout.out).not.toContain("component-restyle")
+	})
+
+	it("catches hand-set edge padding on table cells", () => {
+		expect(lint(`export const A = () => <TableHead className="pl-6">Name</TableHead>`).out).toContain("table-edge-padding")
+		expect(lint(`export const A = () => <TableCell className="text-end pe-6">3</TableCell>`).out).toContain("table-edge-padding")
+		expect(lint(`export const A = () => <TableCell className="py-3 text-end">3</TableCell>`).out).not.toContain("table-edge-padding")
+	})
+
+	it("catches a fixed bleed on a popup separator", () => {
+		expect(lint(`export const A = () => <MenuSeparator className="-mx-1" />`).out).toContain("popup-separator-bleed")
+		expect(lint(`export const A = () => <div className="-mx-1 my-1 h-px bg-border" />`).out).toContain("popup-separator-bleed")
+		expect(lint(`export const A = () => <div className="popup-bleed my-1 h-px bg-border" />`).out).not.toContain("popup-separator-bleed")
+	})
+})
+
+describe("fixed-spacing (package scope)", () => {
+	type Hit = { ruleId: string; match: string }
+	type LintModule = {
+		makeRules: (c: { semanticTokens: Set<string>; motionTokens: Set<string> }) => unknown[]
+		lintText: (text: string, rules: unknown[], ctx?: object) => Hit[]
+	}
+	const run = async (src: string) => {
+		const path = join(PKG_ROOT, "scripts", "lint-rules.mjs")
+		const mod = (await import(/* @vite-ignore */ path)) as LintModule
+		const rules = mod.makeRules({ semanticTokens: new Set(), motionTokens: new Set() })
+		return mod.lintText(src, rules).filter((v) => v.ruleId === "fixed-spacing").map((v) => v.match)
+	}
+
+	it("catches rem and px padding, gaps and insets off the spacing scale", async () => {
+		expect(await run(`const v = "p-[1.5rem] px-[12px] gap-[0.5rem] -mt-[6px]"`)).toEqual([
+			"p-[1.5rem]",
+			"px-[12px]",
+			"gap-[0.5rem]",
+			"-mt-[6px]",
+		])
+		expect(await run(`const s = { padding: "12px", "--card-p": "1.5rem" }`)).toHaveLength(2)
+	})
+
+	it("leaves the scale, hairlines, em values and positional offsets alone", async () => {
+		expect(
+			await run(`const v = "p-4 gap-2 p-[var(--card-p,--spacing(6))] mt-[1px] pt-[0.23em] top-[-6px] w-[12rem]"`),
+		).toEqual([])
+		expect(consumerSkips()).toBe(true)
+	})
+})
+
+/** fixed-spacing is package-only: an app's arbitrary values are its own business. */
+function consumerSkips() {
+	return lint(`export const A = () => <div className="p-[1.5rem]" />`).out.includes("fixed-spacing") === false
+}

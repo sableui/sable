@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "lessons": [
+    {
+      "schemaVersion": 1,
+      "id": "hierarchy-is-a-relationship",
+      "title": "Choose type together with measure and content",
+      "tags": ["typography", "hierarchy", "editorial", "display", "wrapping", "spacing"],
+      "register": "page",
+      "mode": "either",
+      "principle": "A correct size token does not guarantee the intended hierarchy. Compare rendered size, weight, line count, measure, and adjacent content as one composition.",
+      "appliesWhen": "A display-led page feels timid or a headline wraps into many more lines than the brief intended.",
+      "avoidWhen": "Do not inflate headings in task-dense workspace chrome or replace factual copy merely to force a preferred wrap.",
+      "provenance": { "kind": "curated-precedent", "source": "Distilled recurring typography defects in maintained build reviews", "date": "2026-09-06" },
+      "evidence": [{ "kind": "source", "path": "llms/taste/hierarchy-is-a-relationship.md", "observation": "Prior builds used valid title tokens but flattened display-led feature headings; narrow containers also turned a three-line headline into six lines." }]
+    },
+    {
+      "schemaVersion": 1,
+      "id": "composition-follows-content",
+      "title": "Give unequal content unequal emphasis",
+      "tags": ["composition", "story", "layout", "rhythm", "asymmetry", "cards"],
+      "register": "page",
+      "mode": "either",
+      "principle": "Choose a section's structure from what it must communicate: a sequence, comparison, decision, object, or reading passage. Repetition is useful when the content is equivalent.",
+      "appliesWhen": "Distinct sections all collapse into centered headings above identical icon-and-card grids.",
+      "avoidWhen": "Do not make equally important records different sizes or rearrange a familiar operating flow to manufacture novelty.",
+      "provenance": { "kind": "curated-precedent", "source": "Distilled mixed-width feature and editorial reference audit patterns", "date": "2026-09-06" },
+      "evidence": [{ "kind": "source", "path": "llms/taste/composition-follows-content.md", "observation": "Reference audits preserved larger feature areas for primary ideas while secondary facts used compact rows, captions, or rules." }]
+    },
+    {
+      "schemaVersion": 1,
+      "id": "motion-needs-a-reason",
+      "title": "Use motion to explain a change",
+      "tags": ["motion", "animation", "interaction", "reduced", "timing", "restraint"],
+      "register": "either",
+      "mode": "either",
+      "principle": "Declare a trigger, purpose, duration, interruption behavior, and reduced-motion result. A static initial state can be intentional; every user action still needs understandable feedback.",
+      "appliesWhen": "A build has indiscriminate scroll reveals, generic spring entrances, or no feedback between meaningful states.",
+      "avoidWhen": "Do not transfer slow editorial choreography into frequent workspace operations, hide initial content while waiting for animation, or simulate scroll-driven behavior with an entrance fade.",
+      "provenance": { "kind": "curated-precedent", "source": "Contrasting editorial motion and dense technical tool reference audits", "date": "2026-09-06" },
+      "evidence": [{ "kind": "source", "path": "llms/taste/motion-needs-a-reason.md", "observation": "Editorial audits recorded deliberate cascades; technical audits recorded short ease-out feedback without overshoot. Their motion grammars were different." }]
+    },
+    {
+      "schemaVersion": 1,
+      "id": "surface-states-travel-together",
+      "title": "Retheme the complete interaction state",
+      "tags": ["color", "contrast", "hover", "interaction", "surface", "theme"],
+      "register": "either",
+      "mode": "either",
+      "principle": "Foreground, fill, border, hover, focus, selected, and disabled states form one surface contract. Inspect the actual rendered states after an override.",
+      "appliesWhen": "An existing control is moved onto an inverted, tinted, or media-backed section.",
+      "avoidWhen": "Do not add per-call-site color overrides when the theme already expresses the intended semantic surface.",
+      "provenance": { "kind": "curated-precedent", "source": "Recorded dark-band button hover regression in build guidance", "date": "2026-09-06" },
+      "evidence": [{ "kind": "source", "path": "llms/taste/surface-states-travel-together.md", "observation": "An outline button had readable resting text on a dark band, but its inherited hover foreground was tuned for a light surface and disappeared." }]
+    }
+  ]
+}
