@@ -1,5 +1,10 @@
 # What's new
 
+## 0.1.1
+
+- Published with npm trusted publishing: releases come from `sableui/sable`'s
+  release workflow with provenance and no stored token. No library changes.
+
 ## 0.1.0 — first public release
 
 Sable is on npm as `@sableui/react`: `pnpm add @sableui/react`. No registry setup
