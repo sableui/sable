@@ -1,10 +1,9 @@
 name: Release
 
-# Publishes @sableui/react to npm, with provenance, when a v* tag is pushed
-# (`pnpm release` validates and pushes it). Authentication: an npm automation
-# token in the NPM_TOKEN secret for the first publish. After it, configure this
-# workflow as a trusted publisher on npmjs.com (package → Settings) and the
-# token can be deleted: npm then accepts this job's GitHub identity instead.
+# Publishes @sableui/react to npm when a v* tag is pushed (`pnpm release`
+# validates and pushes it). Authentication is npm trusted publishing: npm
+# accepts this job's GitHub OIDC identity (sableui/sable → release.yml), so no
+# token is stored, and provenance is attached automatically.
 on:
   push:
     tags:
@@ -53,7 +52,9 @@ jobs:
       - name: verify the packed consumer before publishing
         run: pnpm package:check
       - run: pnpm docs:build
-      - run: pnpm --filter @sableui/react publish --no-git-checks --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
+      # pnpm packs (it applies publishConfig, which repoints exports at dist/);
+      # npm publishes that exact tarball, because trusted publishing needs the
+      # npm CLI 11.5.1 or newer.
+      - run: npm install -g npm@latest
+      - run: pnpm --filter @sableui/react pack --pack-destination "$RUNNER_TEMP"
+      - run: npm publish "$RUNNER_TEMP"/sableui-react-*.tgz --access public
