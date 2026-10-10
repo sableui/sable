@@ -47,8 +47,9 @@ jobs:
           pnpm registry:check
           pnpm ios:check
           pnpm typecheck
-          pnpm test
+      # Build before testing: the preset CLI tests run the built package.
       - run: pnpm --filter @sableui/react build
+      - run: pnpm test
       - name: verify the packed consumer before publishing
         run: pnpm package:check
       - run: pnpm docs:build

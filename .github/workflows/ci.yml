@@ -32,10 +32,11 @@ jobs:
         run: pnpm ios:check
       - name: typecheck
         run: pnpm typecheck
-      - name: test (behavior + a11y gate)
-        run: pnpm test
+      # Build before testing: the preset CLI tests run the built package.
       - name: build package
         run: pnpm build
+      - name: test (behavior + a11y gate)
+        run: pnpm test
       - name: packed consumer (published exports, CLI, React, Tailwind)
         run: pnpm package:check
       - name: build docs (integration gate)
