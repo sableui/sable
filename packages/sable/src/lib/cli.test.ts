@@ -122,11 +122,11 @@ describe("pattern skeletons", () => {
 		// The four things the shell exists to demonstrate.
 		expect(tree).toContain("<AppShell />")
 		expect(tree).toContain('<Page max="wide"')
-		expect(tree).toContain("cols={{ base: 1, sm: 2, xl: 4 }}")
+		expect(tree).toContain("cols={{ base: 2, xl: 4 }}")
 		expect(tree).toContain("sidebar:")
-		// …and none of the fixtures that make the real source 127 lines long.
+		// …and none of the demo fixtures the real source carries.
 		expect(tree).not.toContain("Revenue")
-		expect(tree).not.toContain("$12,480")
+		expect(tree).not.toContain("Gold Rush")
 	})
 
 	it("never invents a prop out of a closing tag", () => {
@@ -141,7 +141,8 @@ describe("pattern skeletons", () => {
 
 	it("collapses repeated siblings instead of printing them out", () => {
 		const { tree } = skeletonize(patterns.find((p) => p.name === "DashboardPage")!.code)
-		expect(tree).toMatch(/<SidebarItem \/>\s+×5/)
+		// The bottom nav is five identical items; the sidebar no longer is (one carries a badge).
+		expect(tree).toMatch(/<BottomNavItem \/>\s+×5/)
 	})
 
 	it("is reachable from the CLI with the fixture count reported", () => {

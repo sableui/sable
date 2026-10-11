@@ -16,6 +16,25 @@ export const SELECTION_CARD_SHELL = [
 	"data-disabled:cursor-not-allowed data-disabled:opacity-50 data-disabled:hover:border-input",
 ].join(" ")
 
+/**
+ * The two card layouts, keyed by whether an icon is present. With an icon the
+ * card becomes a tile — glyph top-left, indicator top-right, copy below — and
+ * takes the larger radius a 2D tile wants; without one it is a row. Both cards
+ * read this, so a CheckboxCard and a RadioCard with icons in one form share a
+ * shape and a glyph size (they had drifted: one tile at 16px with a 24px glyph,
+ * one row at 12px with a 20px glyph).
+ */
+export const SELECTION_CARD_LAYOUT = {
+	row: "items-start gap-3 rounded-md",
+	tile: "flex-col gap-3 rounded-lg",
+} as const
+
+/** The tile's top line: the glyph at the start, the indicator at the end. */
+export const SELECTION_CARD_TILE_HEAD = "flex w-full items-start justify-between gap-3"
+
+/** The icon glyph in a tile. */
+export const SELECTION_CARD_GLYPH = "shrink-0 text-2xl leading-none motion-interactive"
+
 export const SELECTION_CARD_TONES = ["neutral", "standard", "collectible", "edition", "info", "warning"] as const
 export type SelectionCardTone = (typeof SELECTION_CARD_TONES)[number]
 
@@ -40,7 +59,24 @@ export const SELECTION_CARD_CHECKED: Record<SelectionCardTone, string> = {
  * CheckboxCard off the card's (`group-data-[checked]`), each with its tone.
  */
 export const CHECK_BOX =
-	"flex size-4.5 shrink-0 items-center justify-center rounded-xs border border-input bg-card motion-interactive"
+	"flex size-4.5 shrink-0 items-center justify-center rounded-xs border border-control-border bg-card motion-interactive"
+
+/**
+ * The radio ring — CHECK_BOX's round sibling, shared by Radio and RadioCard's
+ * marker for the same reason. They had drifted to two sizes: Radio a fixed
+ * 18px that ignored density with a fractional 8.33px dot, RadioCard on the
+ * spacing scale. Same footprint as CHECK_BOX, so a checkbox and a radio in one
+ * form are the same size. The dot is RADIO_DOT, on the same scale.
+ *
+ * Its resting edge is `control-border` (3:1), like CHECK_BOX: an unselected
+ * radio has no fill, so the ring is the whole control.
+ */
+export const RADIO_RING =
+	"relative inline-flex size-4.5 shrink-0 rounded-full border border-control-border bg-card motion-interactive"
+
+/** The selected dot inside RADIO_RING: 8px of an 18px ring, absolutely centred. */
+export const RADIO_DOT =
+	"absolute left-1/2 top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full motion-interactive ease-spring data-[starting-style]:scale-0 data-[ending-style]:scale-0"
 
 /** The check / dash glyph size inside CHECK_BOX: 11px of an 18px box, on the same scale. */
 export const CHECK_MARK_SIZE = "text-[length:--spacing(2.75)]"

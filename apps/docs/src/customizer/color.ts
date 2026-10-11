@@ -149,7 +149,14 @@ export function resolveTheme(themeId: string): ResolvedTheme {
 }
 
 /** Is this token actually neutral in this preset? Meridian's accent is orange. */
-export const isNeutral = (c: Oklch) => c.c < 0.045
+/**
+ * A surface or ink a look may retint, as opposed to a colour the preset chose.
+ * Tinted neutrals run to chroma ~0.077 (Poppy's plum surfaces, Prism's blue dark
+ * ones); the first deliberate colour among these tokens is Meridian's 0.2 accent.
+ * The old 0.045 cut split one preset across modes: Prism's light surfaces were
+ * neutral and its dark ones were not.
+ */
+export const isNeutral = (c: Oklch) => c.c < 0.1
 
 export function mix(a: Oklch, b: Oklch, t: number): Oklch {
 	// Interpolate in lightness only plus chroma; hue follows the more chromatic.

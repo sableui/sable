@@ -109,11 +109,13 @@ export function ThemeSelector({
 							render={<button type="button" />}
 							nativeButton
 							className={cn(
-								// sable-frame-inner: concentric inside a sable-frame host (a popover, a
-								// docked panel); the theme's small radius anywhere else.
+								// sable-frame-inner: concentric inside a sable-frame host (a frame-styled
+								// popover, a docked panel); the theme's small radius anywhere else.
 								"flex h-(--control-sm) w-full items-center gap-2 px-1.5 text-start motion-interactive sable-frame-inner",
-								"hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring",
-								"aria-checked:bg-muted",
+								// Menu / Select rows' fills and ink, so a theme list beside a
+								// menu reads as the same kind of row.
+								"hover:bg-accent hover:text-accent-foreground focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring",
+								"aria-checked:bg-accent aria-checked:text-accent-foreground",
 							)}
 						>
 							<span

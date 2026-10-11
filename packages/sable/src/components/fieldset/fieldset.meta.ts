@@ -63,7 +63,6 @@ export const fieldsetMeta: ComponentMeta = {
 		components: [
 			"Form",
 			"Label",
-			"Description",
 		],
 	},
 	props: [

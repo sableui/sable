@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const bubbleMeta: ComponentMeta = {
 	name: "Bubble",
 	summary:
-		"The surface a message's content sits on: four treatments, an align-aware tail corner, a readable measure cap, and an optional row of reaction pills.",
+		"The surface a message's content sits on: four treatments, an align-aware tail, a readable measure cap, and an optional row of reaction pills.",
 	status: "stable",
 	keywords: [
 		"chat bubble",
@@ -31,7 +31,7 @@ export const bubbleMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
-					"Pass the same `align` you gave the enclosing Message, so the flattened corner lands on the speaker's side.",
+					"Pass the same `align` you gave the enclosing Message, so the tail lands on the speaker's side.",
 			},
 			{
 				guidance: "do",
@@ -69,7 +69,7 @@ export const bubbleMeta: ComponentMeta = {
 				name: "Bubble",
 				required: true,
 				description:
-					"The surface itself. Holds the variant, the side, and the flattened tail corner.",
+					"The surface itself. Holds the variant, the side, and the tail.",
 			},
 			{
 				name: "BubbleReactions",
@@ -101,14 +101,14 @@ export const bubbleMeta: ComponentMeta = {
 			type: '"start" | "end"',
 			default: '"start"',
 			description:
-				"Which side of the conversation the bubble is on — flattens the corner nearest the speaker. Match it to the enclosing Message.",
+				"Which side of the conversation the bubble is on — puts the tail on the speaker's side. Match it to the enclosing Message.",
 		},
 		{
 			name: "tail",
 			type: "boolean",
 			default: "true",
 			description:
-				"Flatten the speaker-side corner. A flattened corner rather than a drawn arrow, so it holds up in every theme's radius language (flat through fully pilled) with no per-theme geometry. Turn it off for the continuation bubbles in a grouped run.",
+				"Draw the tail: a small ear off the speaker-side top corner, which goes square to meet it. The same 5px in every theme's radius language, flat through fully pilled. The bubble keeps the ear's space either way, so turning it off for the continuation bubbles in a grouped run keeps the run aligned.",
 		},
 		{
 			name: "...div props",

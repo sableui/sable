@@ -389,10 +389,6 @@ const pages: Record<string, ComponentType> = {
 		() => import("./pages/components/EmptyStatePage"),
 		"EmptyStatePage",
 	),
-	description: page(
-		() => import("./pages/components/DescriptionPage"),
-		"DescriptionPage",
-	),
 	"search-input": page(
 		() => import("./pages/components/SearchInputPage"),
 		"SearchInputPage",

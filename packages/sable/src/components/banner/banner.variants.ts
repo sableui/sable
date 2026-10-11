@@ -14,7 +14,7 @@ import { cva } from "class-variance-authority"
  * and `sticky` positioning live in `banner.tsx`.
  */
 export const bannerVariants = cva(
-	"relative flex w-full items-center gap-3 px-4 py-2.5 text-label-md",
+	"relative flex min-h-(--control-md) w-full items-center gap-3 px-4 py-2 text-label-md",
 	{
 		variants: {
 			tone: {

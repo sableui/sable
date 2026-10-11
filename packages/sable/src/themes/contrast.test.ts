@@ -207,11 +207,11 @@ describe("evaluateNonTextContrast — the structural gate", () => {
 		// A token added to the contract and forgotten here is a gate that silently
 		// does not run — the exact shape of the gap this whole file closes.
 		expect(Object.keys(NON_TEXT_PAIRS).sort()).toEqual(
-			["border", "border-strong", "input", "ring", "sidebar-border", "sidebar-ring"],
+			["border", "border-strong", "control-border", "input", "ring", "sidebar-border", "sidebar-ring"],
 		)
 		for (const [token, pair] of Object.entries(NON_TEXT_PAIRS)) {
 			expect(pair.surfaces.length, `${token} pairs with no surface`).toBeGreaterThan(0)
-			expect(["focus", "hairline"]).toContain(pair.tier)
+			expect(["focus", "control", "hairline"]).toContain(pair.tier)
 		}
 	})
 })

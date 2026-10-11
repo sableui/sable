@@ -37,7 +37,8 @@ function lineHeightOf(el: HTMLElement): number {
 /**
  * ShowMore — a collapsible content region with a bottom fade and a toggle.
  * Clips its children to `collapsedLines` (or `collapsedHeight`) while
- * collapsed, overlays a gradient fade (from-background) so the cut text
+ * collapsed, overlays a gradient fade (from the surface it sits on — the
+ * `--sable-surface-bg` a Card or popover publishes, else the page) so the cut text
  * dissolves, and reveals the full content on toggle. Self-contained state
  * (useState); no Base UI behavior.
  *
@@ -97,7 +98,7 @@ export function ShowMore({
 					<div
 						aria-hidden
 						className={cn(
-							"pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-background to-transparent motion-interactive",
+							"pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-[var(--sable-surface-bg,var(--background))] to-transparent motion-interactive",
 							expanded && "opacity-0",
 						)}
 					/>

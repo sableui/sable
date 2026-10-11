@@ -353,6 +353,16 @@ function colorDecls(look: Look, base: ThemeBase, mode: "light" | "dark"): string
 		const ink = formatOklch(inkOn(brand))
 		const fill = formatOklch(brand)
 		if (look.primary === "brand") out.push(`--primary: ${fill};`, `--primary-foreground: ${ink};`)
+		// A preset whose selection colour is a colour, not a tinted neutral
+		// (Meridian's orange accent: pressed toggles, selected tabs), carries its
+		// brand there too, so it follows the brand at its own depth. Neutral
+		// accents are the Neutrals control's job, above.
+		for (const token of ["accent", "sidebar-accent"] as const) {
+			const value = resolved[token]
+			if (!value || isNeutral(value)) continue
+			const hued = { ...value, h: brand.h, c: fitChroma(value.l, value.c, brand.h) }
+			out.push(`--${token}: ${formatOklch(hued)};`, `--${token}-foreground: ${formatOklch(inkOn(hued))};`)
+		}
 		out.push(
 			`--ring: ${fill};`,
 			`--highlight: ${fill};`,
@@ -509,14 +519,39 @@ function shapeDecls(look: Look, base: ThemeBase): string[] {
 }
 
 /**
+ * The light block sits on :root, so it applies in BOTH modes; any colour it sets
+ * that the dark block does not set again leaks its light value into dark mode.
+ * (Prism with Mono neutrals: its light surfaces were retinted and its dark ones
+ * were not, so dark mode got light wells and light selected toggles.) Every
+ * colour token the light block declares is declared for dark too, from the
+ * look's own dark value when it has one and the preset's dark value otherwise.
+ */
+function darkCovering(light: string[], dark: string[], base: ThemeBase): string[] {
+	const name = (decl: string) => decl.slice(0, decl.indexOf(":"))
+	const covered = new Set(dark.map(name))
+	const out = [...dark]
+	for (const decl of light) {
+		const token = name(decl)
+		if (covered.has(token)) continue
+		const value = base.colors?.dark?.[token.slice(2) as keyof NonNullable<ThemeBase["colors"]>["dark"]]
+		if (value) {
+			out.push(`${token}: ${formatOklch(value)};`)
+			covered.add(token)
+		}
+	}
+	return out
+}
+
+/**
  * Render a look as CSS. Selectors are deliberately heavy (`:root:root:root`):
  * the export is pasted AFTER the theme CSS and must beat a theme's
  * `[data-sable-theme="x"].dark` block without `!important`, which would also
  * beat a consumer's own later override.
  */
 export function toCss(look: Look, base: ThemeBase, themeId: string): string {
-	const root = [...shapeDecls(look, base), ...colorDecls(look, base, "light")]
-	const dark = colorDecls(look, base, "dark")
+	const light = colorDecls(look, base, "light")
+	const root = [...shapeDecls(look, base), ...light]
+	const dark = darkCovering(light, colorDecls(look, base, "dark"), base)
 
 	const header = [
 		"/* Sable look — paste AFTER your Sable imports:",

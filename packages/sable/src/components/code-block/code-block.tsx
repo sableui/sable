@@ -69,7 +69,7 @@ export function CodeBlock({
 				className={cn("flex items-center justify-between gap-3 rounded-md border border-border bg-muted/40 py-1 ps-3 pe-1", className)}
 				{...props}
 			>
-				<code className="truncate text-mono-sm text-foreground">
+				<code className="truncate text-mono-md text-foreground">
 					<span className="select-none text-muted-foreground">{prompt} </span>
 					{code}
 				</code>

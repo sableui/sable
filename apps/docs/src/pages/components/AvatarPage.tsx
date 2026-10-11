@@ -8,7 +8,24 @@ import {
 	ledeFor,
 } from "../../components/docs-ui"
 
-const PFP = "/media/avatar-example.svg"
+/** Illustrated example portraits, one per person, so each example reads as a real roster. */
+const photo = (name: string) => `/media/avatars/${name}.jpg`
+
+const GROUP = [
+	["alex-morgan", "Alex Morgan", "AM"],
+	["mo-ortiz", "Mo Ortiz", "MO"],
+	["sam-reyes", "Sam Reyes", "SR"],
+	["jo-lund", "Jo Lund", "JL"],
+	["ari-kim", "Ari Kim", "AK"],
+	["nova-reed", "Nova Reed", "NR"],
+	["ana-chen", "Ana Chen", "AC"],
+] as const
+
+const ATTENDEES = [
+	["kofi-mensah", "Kofi Mensah", "KM"],
+	["amira-haddad", "Amira Haddad", "AH"],
+	["tala-begay", "Tala Begay", "TB"],
+] as const
 
 export function AvatarPage() {
 	return (
@@ -21,8 +38,8 @@ export function AvatarPage() {
 				title="With image"
 				description="Initials show while the photo loads, or if it's missing."
 			>
-				<Example code='<Avatar src={pfp} alt="Alex Morgan" fallback="AM" />'>
-					<Avatar src={PFP} alt="Alex Morgan" fallback="AM" />
+				<Example code='<Avatar src="/media/avatars/alex-morgan.jpg" alt="Alex Morgan" fallback="AM" />'>
+					<Avatar src={photo("alex-morgan")} alt="Alex Morgan" fallback="AM" />
 				</Example>
 			</Section>
 
@@ -43,13 +60,13 @@ export function AvatarPage() {
 
 			<Section title="Sizes">
 				<Example
-					code={`<Avatar src={pfp} alt="Alex Morgan" fallback="AM" size="sm" />
-<Avatar src={pfp} alt="Alex Morgan" fallback="AM" size="md" />
-<Avatar src={pfp} alt="Alex Morgan" fallback="AM" size="lg" />`}
+					code={`<Avatar src="/media/avatars/ana-chen.jpg" alt="Ana Chen" fallback="AC" size="sm" />
+<Avatar src="/media/avatars/ana-chen.jpg" alt="Ana Chen" fallback="AC" size="md" />
+<Avatar src="/media/avatars/ana-chen.jpg" alt="Ana Chen" fallback="AC" size="lg" />`}
 				>
-					<Avatar src={PFP} alt="Alex Morgan" fallback="AM" size="sm" />
-					<Avatar src={PFP} alt="Alex Morgan" fallback="AM" size="md" />
-					<Avatar src={PFP} alt="Alex Morgan" fallback="AM" size="lg" />
+					<Avatar src={photo("ana-chen")} alt="Ana Chen" fallback="AC" size="sm" />
+					<Avatar src={photo("ana-chen")} alt="Ana Chen" fallback="AC" size="md" />
+					<Avatar src={photo("ana-chen")} alt="Ana Chen" fallback="AC" size="lg" />
 				</Example>
 			</Section>
 
@@ -59,13 +76,13 @@ export function AvatarPage() {
 			>
 				<Example
 					code={`<Entity
-  leading={<Avatar src={pfp} alt="Nova Reed" fallback="NR" status={<StatusDot tone="success" />} />}
+  leading={<Avatar src="/media/avatars/nova-reed.jpg" alt="Nova Reed" fallback="NR" status={<StatusDot tone="success" />} />}
   title="Nova Reed"
   subtitle="Online"
 />`}
 				>
 					<Entity
-						leading={<Avatar src={PFP} alt="Nova Reed" fallback="NR" status={<StatusDot tone="success" />} />}
+						leading={<Avatar src={photo("nova-reed")} alt="Nova Reed" fallback="NR" status={<StatusDot tone="success" />} />}
 						title="Nova Reed"
 						subtitle="Online"
 					/>
@@ -78,40 +95,36 @@ export function AvatarPage() {
 			>
 				<Example
 					code={`<AvatarGroup aria-label="7 collaborators" max={3}>
-  <Avatar src={pfp} alt="Alex Morgan" fallback="AM" />
-  <Avatar fallback="MO" alt="Mo Ortiz" />
-  <Avatar fallback="SR" alt="Sam Reyes" />
-  <Avatar fallback="JL" alt="Jo Lund" />
-  <Avatar fallback="AK" alt="Ari Kim" />
-  <Avatar fallback="NR" alt="Nova Reed" />
-  <Avatar fallback="AC" alt="Ana Chen" />
+  <Avatar src="/media/avatars/alex-morgan.jpg" alt="Alex Morgan" fallback="AM" />
+  <Avatar src="/media/avatars/mo-ortiz.jpg" alt="Mo Ortiz" fallback="MO" />
+  <Avatar src="/media/avatars/sam-reyes.jpg" alt="Sam Reyes" fallback="SR" />
+  <Avatar src="/media/avatars/jo-lund.jpg" alt="Jo Lund" fallback="JL" />
+  <Avatar src="/media/avatars/ari-kim.jpg" alt="Ari Kim" fallback="AK" />
+  <Avatar src="/media/avatars/nova-reed.jpg" alt="Nova Reed" fallback="NR" />
+  <Avatar src="/media/avatars/ana-chen.jpg" alt="Ana Chen" fallback="AC" />
 </AvatarGroup>
 
 <Card>
   <CardContent>
     <AvatarGroup aria-label="12 attendees" total={12} size="sm" surface="card">
-      <Avatar fallback="MO" alt="Mo Ortiz" />
-      <Avatar fallback="SR" alt="Sam Reyes" />
-      <Avatar fallback="JL" alt="Jo Lund" />
+      <Avatar src="/media/avatars/kofi-mensah.jpg" alt="Kofi Mensah" fallback="KM" />
+      <Avatar src="/media/avatars/amira-haddad.jpg" alt="Amira Haddad" fallback="AH" />
+      <Avatar src="/media/avatars/tala-begay.jpg" alt="Tala Begay" fallback="TB" />
     </AvatarGroup>
   </CardContent>
 </Card>`}
 				>
 					<AvatarGroup aria-label="7 collaborators" max={3}>
-						<Avatar src={PFP} alt="Alex Morgan" fallback="AM" />
-						<Avatar fallback="MO" alt="Mo Ortiz" />
-						<Avatar fallback="SR" alt="Sam Reyes" />
-						<Avatar fallback="JL" alt="Jo Lund" />
-						<Avatar fallback="AK" alt="Ari Kim" />
-						<Avatar fallback="NR" alt="Nova Reed" />
-						<Avatar fallback="AC" alt="Ana Chen" />
+						{GROUP.map(([name, label, initials]) => (
+							<Avatar key={name} src={photo(name)} alt={label} fallback={initials} />
+						))}
 					</AvatarGroup>
 					<Card>
 						<CardContent>
 							<AvatarGroup aria-label="12 attendees" total={12} size="sm" surface="card">
-								<Avatar fallback="MO" alt="Mo Ortiz" />
-								<Avatar fallback="SR" alt="Sam Reyes" />
-								<Avatar fallback="JL" alt="Jo Lund" />
+								{ATTENDEES.map(([name, label, initials]) => (
+									<Avatar key={name} src={photo(name)} alt={label} fallback={initials} />
+								))}
 							</AvatarGroup>
 						</CardContent>
 					</Card>

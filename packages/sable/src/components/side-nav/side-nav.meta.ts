@@ -36,7 +36,7 @@ export const sideNavMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
-					"Inside a rounded, padded frame, give each item rounded-concentric-<outer>/<inset> (e.g. rounded-concentric-lg/2 in a rounded-lg p-2 box). The rows' own radius is fixed per size, and a same-radius row inset into a frame reads as a second system.",
+					"Rows are rounded-sm, which nests in the usual rounded-lg p-2 frame. In any other rounded, padded frame give each item rounded-concentric-<outer>/<inset> — a same-radius row inset into a frame reads as a second system.",
 			},
 			{
 				guidance: "dont",

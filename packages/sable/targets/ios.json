@@ -324,10 +324,9 @@
       "components": [
         "Card",
         "CardList",
-        "Entity",
-        "Description"
+        "Entity"
       ],
-      "guidance": "On a phone a table becomes rows: Entity per record in a CardList, with the detail on a pushed screen (Description for its fields). Keep sorting and filtering the task needs."
+      "guidance": "On a phone a table becomes rows: Entity per record in a CardList, with the detail on a pushed screen (a `<dl className=\"sable-list-dl\">` for its fields). Keep sorting and filtering the task needs."
     },
     "DatePicker": {
       "source": "DatePicker",
@@ -335,15 +334,6 @@
       "importFrom": "@sableui/react",
       "components": [
         "DatePicker"
-      ],
-      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
-    },
-    "Description": {
-      "source": "Description",
-      "strategy": "preserve",
-      "importFrom": "@sableui/react",
-      "components": [
-        "Description"
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
@@ -864,10 +854,9 @@
       "components": [
         "Card",
         "CardList",
-        "Entity",
-        "Description"
+        "Entity"
       ],
-      "guidance": "On a phone a table becomes rows: Entity per record in a CardList, with the detail on a pushed screen (Description for its fields). Keep sorting and filtering the task needs."
+      "guidance": "On a phone a table becomes rows: Entity per record in a CardList, with the detail on a pushed screen (a `<dl className=\"sable-list-dl\">` for its fields). Keep sorting and filtering the task needs."
     },
     "Tabs": {
       "source": "Tabs",

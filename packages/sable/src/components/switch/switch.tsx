@@ -22,7 +22,9 @@ export function Switch({ className, ...props }: RootProps) {
 		<Base.Root
 			className={cn(
 				"inline-flex h-6 w-10 shrink-0 cursor-pointer items-center rounded-full p-0.5 motion-interactive",
-				"bg-input data-[checked]:bg-primary",
+				// Off, the track is the whole control (the thumb is light in both modes), so
+				// it takes the 3:1 control edge, not the quiet `input` hairline.
+				"bg-control-border data-[checked]:bg-primary",
 				"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
 				"data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
 				className,

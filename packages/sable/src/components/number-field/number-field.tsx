@@ -2,8 +2,8 @@ import { NumberField as Base } from "@base-ui/react/number-field"
 import type { ComponentProps } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
-import { useTypeTier } from "../../lib/density"
-import { FIELD_SHELL } from "../../lib/field-shell"
+import { useDensity, useTypeTier } from "../../lib/density"
+import { FIELD_SHELL, MOBILE_FIELD_TIER } from "../../lib/field-shell"
 import { Button } from "../button/button"
 
 export type NumberFieldProps = Omit<
@@ -45,15 +45,19 @@ export function NumberField({
 	// The steppers ARE Sable's icon Button — Base UI's `render` prop composes
 	// its press/hold-to-repeat behaviour onto it — so hit size, focus ring, press
 	// and hover wash follow every other icon button instead of a hand-styled
-	// copy. Inset a hair from the shell's border so the pill hover sits inside.
+	// copy. Inset by the same step on every side — half of what the shell's
+	// inner height leaves around the button (3px at comfortable: 40 − 2px of
+	// border − 32), at every density — and `shrink-0`: as a flex child it used to be squeezed to
+	// 21px wide, turning the round hover into a capsule and halving the target.
 	const step = (
 		<Button
 			variant="ghost"
 			size="icon-sm"
-			className="mx-0.5 self-center text-muted-foreground"
+			className="mx-[calc((var(--control-md)-var(--control-sm)-2px)/2)] shrink-0 self-center text-muted-foreground"
 		/>
 	)
 	const tier = useTypeTier()
+	const density = useDensity()
 	return (
 		<Base.Root {...root}>
 			<Base.Group
@@ -70,6 +74,7 @@ export function NumberField({
 					// Tailwind scan; keep in step with lib/field-shell.
 					"has-[input[aria-invalid=true]]:border-destructive has-[input[aria-invalid=true]]:ring-destructive/30",
 					tier.body,
+					density === "comfortable" && MOBILE_FIELD_TIER,
 					className,
 				)}
 			>
@@ -84,9 +89,9 @@ export function NumberField({
 					aria-label={ariaLabel}
 					className={cn(
 						"w-full min-w-0 bg-transparent tabular-nums outline-none",
-						// Centred between two steppers; left-aligned without them, so a
-						// column of stepper-less fields reads as a column of values.
-						steppers ? "px-2 text-center" : "px-2 text-left",
+						// Centred between two steppers; left-aligned without them, on
+						// Input's px-3 text column so a stack of fields shares one edge.
+						steppers ? "px-2 text-center" : "px-3 text-left",
 					)}
 				/>
 				{steppers ? (

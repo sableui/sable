@@ -20,7 +20,7 @@ function PanelGroupDemo() {
 	return (
 		<div
 			data-density="compact"
-			className="flex h-72 flex-col overflow-hidden rounded-lg border border-border bg-panel"
+			className="sable-frame sable-frame-tool overflow-hidden flex h-72 flex-col bg-panel"
 		>
 			<PanelGroup>
 				<Panel label="Layers" width={leftWidth}>

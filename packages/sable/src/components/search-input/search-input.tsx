@@ -1,8 +1,8 @@
 import { type ComponentPropsWithRef, useState } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
-import { FIELD_INVALID, FIELD_SHELL } from "../../lib/field-shell"
-import { useTypeTier } from "../../lib/density"
+import { FIELD_INVALID, FIELD_SHELL, MOBILE_FIELD_TIER } from "../../lib/field-shell"
+import { useDensity, useTypeTier } from "../../lib/density"
 import { Button } from "../button/button"
 
 export interface SearchInputProps
@@ -72,6 +72,7 @@ export function SearchInput({
 	}
 
 	const tier = useTypeTier()
+	const density = useDensity()
 	return (
 		// The wrapper is the field: className lands here, so a width cap moves the
 		// clear button with the input instead of leaving it at the far edge of a
@@ -94,6 +95,7 @@ export function SearchInput({
 					FIELD_INVALID,
 					"[&::-webkit-search-cancel-button]:appearance-none",
 					tier.body,
+					density === "comfortable" && MOBILE_FIELD_TIER,
 					inputClassName,
 				)}
 				{...props}

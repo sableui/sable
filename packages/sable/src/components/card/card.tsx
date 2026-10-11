@@ -75,6 +75,12 @@ export function Card({
 				// group/card: parts can answer the card's hover, e.g. a trailing
 				// chevron with `group-hover/card:translate-x-0.5`.
 				"group/card block rounded-lg text-card-foreground",
+				// The corner a box inset by the card padding should wear: concentric
+				// (card radius less padding and border), floored at radius-sm like
+				// sable-frame — at Sable's paddings the subtraction runs to ~0, and a
+				// near-square box inside a rounded card reads as another system.
+				// A field or panel inside reads it (ChatComposer does).
+				"[--card-inner-radius:max(var(--radius-sm),calc(var(--radius-lg)-var(--card-p)-1px))]",
 				// Declares its surface so sable-well / sable-surface-interactive inside derive from the card.
 				variant === "default" && "border border-border bg-card shadow-sm [--sable-surface-bg:var(--card)]",
 				// A CardList runs its rows to the card's edges, and an interactive
@@ -177,6 +183,8 @@ export function CardContent({
 }: CardContentProps) {
 	return (
 		<div
+			data-slot="card-content"
+			data-flush={flush ? "" : undefined}
 			className={cn(
 				flush
 					? "p-0 [--table-edge-px:var(--card-p,--spacing(6))]"
@@ -226,14 +234,29 @@ export function CardList({
 	)
 }
 
+/**
+ * The card's closing band. Its top padding is zero because the part above
+ * normally owns the seam (CardContent's own bottom padding) — so the two cases
+ * where nothing above does are handled here:
+ *
+ * - straight after a CardHeader (no content between), it takes the card
+ *   padding, or the actions sat right on the title;
+ * - after an edge-to-edge part (a flush CardContent, a CardList), whose last
+ *   row runs to the card's edges, it takes the padding AND a hairline — the
+ *   mirror of the hairline CardList draws under a CardHeader. Without it the
+ *   footer read as one more row of the table or list above it.
+ */
 export function CardFooter({
 	className,
 	...props
 }: ComponentPropsWithRef<"div">) {
 	return (
 		<div
+			data-slot="card-footer"
 			className={cn(
 				"flex items-center gap-2 p-[var(--card-p,--spacing(6))] pt-0",
+				"[[data-slot=card-header]+&]:pt-[var(--card-p,--spacing(6))]",
+				"[:is([data-slot=card-list],[data-slot=card-content][data-flush])+&]:border-t [:is([data-slot=card-list],[data-slot=card-content][data-flush])+&]:border-border [:is([data-slot=card-list],[data-slot=card-content][data-flush])+&]:pt-[var(--card-p,--spacing(6))]",
 				className,
 			)}
 			{...props}

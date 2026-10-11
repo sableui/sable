@@ -22,7 +22,7 @@ export function EmptyStatePage() {
 			>
 				<Example className="justify-center">
 					<EmptyState
-						icon={<Icon name="info" />}
+						icon={<Icon name="image-stack" />}
 						title="No posts yet"
 						description="Create your first."
 						action={<Button>New post</Button>}

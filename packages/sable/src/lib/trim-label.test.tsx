@@ -93,13 +93,14 @@ describe("controls that adopted it", () => {
 		expect(container.querySelector(".sable-label-trim")).toBeNull()
 	})
 
-	it("Pill keeps the legacy em nudge as the no-text-box fallback", () => {
+	it("Pill is a fixed-height chip, so it needs no em nudge", () => {
+		// Both sizes sit on fixed heights and centre with items-center, which
+		// is what the legacy padding nudge was standing in for; the label is
+		// still trimmed so it centres optically where text-box exists.
 		const { container } = render(<Pill>Draft</Pill>)
 		const pill = container.firstElementChild!
-		// Both must be present: the class @supports neutralises the padding for,
-		// and the tuned padding that is still the only correction without it.
-		expect(pill.className).toContain("sable-optical-pad")
-		expect(pill.className).toContain("pt-[0.23em]")
+		expect(pill.className).toContain("h-(--control-xs)")
+		expect(pill.className).not.toContain("pt-[0.23em]")
 		expect(pill.querySelector(".sable-label-trim")?.textContent).toBe("Draft")
 	})
 

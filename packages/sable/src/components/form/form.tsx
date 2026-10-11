@@ -249,7 +249,7 @@ export function Field({
 				// line tall (`h-[1lh]` in the label's own type step), so it centres
 				// on the first line and stays there when the label wraps. Helper and
 				// error text live in the label's column, not under the control.
-				<div className="flex items-start gap-2.5">
+				<div className="flex items-start gap-2">
 					<div className="flex h-[1lh] shrink-0 items-center text-label-lg">
 						{control}
 					</div>

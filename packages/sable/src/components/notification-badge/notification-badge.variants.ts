@@ -13,7 +13,7 @@ export const notificationDotVariants = cva("inline-block rounded-full", {
 		tone: {
 			destructive: "bg-destructive",
 			primary: "bg-primary",
-			neutral: "bg-secondary-foreground",
+			neutral: "bg-muted-foreground", // StatusDot's neutral, so the two dots are one grey
 		},
 		size: {
 			sm: "size-1.5",

@@ -32,7 +32,7 @@ Use Skeleton to reserve space and hint at the shape of content while data is loa
 - **arrival** · Root · _no motion_ — A skeleton stands in for content that has not arrived; fading the placeholder in adds a wait before the wait.
 - **response** · Root · _no motion_ — Nothing here is interactive. A skeleton that reacted to the pointer would invite a click on a thing that cannot be clicked.
 - **transition** · Root · _no motion_ — The skeleton has one state. Swapping it for real content is the parent's job, and the parent decides whether that swap is animated.
-- **activity** · Root · `motion-shimmer` — The sweep is the entire point of the component: it is what separates 'still loading' from 'loaded, and empty'. A static grey block is indistinguishable from a broken layout, which is why users reload the page.
+- **activity** · Root · `motion-shimmer` — The sweep is the entire point of the component: it is what separates 'still loading' from 'loaded, and empty'. A static grey block is indistinguishable from a broken layout, which is why users reload the page. It is one band of light against the viewport, so every skeleton in a loading layout lights in sequence as a single wave rather than each block flashing at its own speed; each pass eases in, glides and settles, then rests off-screen before the next.
 
 ## Accessibility
 

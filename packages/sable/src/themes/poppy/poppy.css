@@ -69,6 +69,8 @@
 	--border: oklch(69.96908% 0.055090 333.3586);
 	--border-strong: oklch(54.87925% 0.056525 333.9456);
 	--input: oklch(69.96908% 0.055090 333.3586);
+	/* The resting edge of a control whose outline IS the control (checkbox, radio, an off switch track). Held to WCAG 1.4.11 3:1 on every surface, unlike the quieter --input field outline. */
+	--control-border: oklch(60% 0.0598 321.39);
 	--ring: oklch(40.99289% 0.130336 325.3125);
 	--primary: oklch(38.38082% 0.116390 323.6155);
 	--primary-foreground: oklch(100.00000% 0.000000 89.8756);
@@ -119,14 +121,27 @@
 	--spacing: 0.28rem;
 	--theme-button-radius: 12px;
 	--button-radius: var(--theme-button-radius);
+	/* Hard offsets the whole way up. Only sm and md were declared, so the
+	   default, lg and xl steps fell through to Base's soft blurs and one ladder
+	   spoke two shadow languages. Offset doubles roughly per step. */
 	--theme-shadow-sm: 3px 3px 0 oklch(32% 0.05 320 / 0.12);
+	--theme-shadow: 4px 4px 0 oklch(32% 0.05 320 / 0.13);
 	--theme-shadow-md: 5px 5px 0 oklch(32% 0.05 320 / 0.14);
+	--theme-shadow-lg: 8px 8px 0 oklch(32% 0.05 320 / 0.16);
+	--theme-shadow-xl: 12px 12px 0 oklch(32% 0.05 320 / 0.18);
 }
 
 .dark[data-sable-theme="poppy"],
 [data-sable-theme="poppy"].dark,
 [data-sable-theme="poppy"] .dark,
 .dark [data-sable-theme="poppy"]:not(.light) {
+	/* The light ladder's ink is 32% lightness — LIGHTER than this 20% page, so
+	   in dark mode it drew a faint glow, not a shadow. Same offsets, near-black. */
+	--theme-shadow-sm: 3px 3px 0 oklch(8% 0.03 320 / 0.5);
+	--theme-shadow: 4px 4px 0 oklch(8% 0.03 320 / 0.52);
+	--theme-shadow-md: 5px 5px 0 oklch(8% 0.03 320 / 0.55);
+	--theme-shadow-lg: 8px 8px 0 oklch(8% 0.03 320 / 0.6);
+	--theme-shadow-xl: 12px 12px 0 oklch(8% 0.03 320 / 0.65);
 	--background: oklch(20.33265% 0.047438 308.8247);
 	--foreground: oklch(96.99788% 0.031195 84.5922);
 	--card: oklch(28.82474% 0.059607 315.2029);
@@ -138,6 +153,7 @@
 	--border: oklch(62.48980% 0.070560 325.5308);
 	--border-strong: oklch(72.17143% 0.060424 328.9840);
 	--input: oklch(62.48980% 0.070560 325.5308);
+	--control-border: oklch(67.3% 0.0412 332.63);
 	--ring: oklch(86.64637% 0.118528 86.6791);
 	--primary: oklch(86.64637% 0.118528 86.6791);
 	--primary-foreground: oklch(27.91553% 0.070219 323.8141);

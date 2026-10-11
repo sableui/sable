@@ -18,7 +18,7 @@ export const themeSelectorMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
-					'Use layout="list" in a popover, a menu, or a docked panel. Rows sit on the --control-sm ladder and still show each theme\'s swatch strip, so the choice stays visible rather than described. Rows take `sable-frame-inner`, so host the list in a sable-frame (a Popover, or `sable-frame sable-surface sable-surface-popover sable-frame-popover`) and their corners nest concentrically.',
+					'Use layout="list" in a popover, a menu, or a docked panel. Rows sit on the --control-sm ladder and still show each theme\'s swatch strip, so the choice stays visible rather than described. Rows take `sable-frame-inner`, so host the list in a sable-frame (`sable-frame sable-surface sable-surface-popover sable-frame-popover` — PopoverContent is not one; give it that class list, or its p-4 leaves the rows unnested) and their corners nest concentrically.',
 			},
 			{
 				guidance: "do",

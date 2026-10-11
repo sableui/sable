@@ -31,8 +31,10 @@
 	/* Elevation, light. Layered: a tight contact shadow plus one or two soft drops
 	   whose offsets roughly double per step. A single 5% blur read mushy and
 	   barely separated a menu from the page (DESIGN.md → Elevation). */
-	--theme-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.03);
-	--theme-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 2px 6px -1px rgb(0 0 0 / 0.05);
+	--theme-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+	/* A visible step above sm: sm and this differed by one 5% layer, which no
+	   one could tell apart. */
+	--theme-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05), 0 3px 8px -2px rgb(0 0 0 / 0.08);
 	--theme-shadow-md: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 4px 8px -2px rgb(0 0 0 / 0.06), 0 12px 24px -6px rgb(0 0 0 / 0.07);
 	--theme-shadow-lg: 0 2px 4px 0 rgb(0 0 0 / 0.04), 0 8px 16px -4px rgb(0 0 0 / 0.07), 0 24px 48px -12px rgb(0 0 0 / 0.11);
 	--theme-shadow-xl: 0 2px 4px 0 rgb(0 0 0 / 0.04), 0 12px 24px -6px rgb(0 0 0 / 0.08), 0 32px 64px -16px rgb(0 0 0 / 0.13);
@@ -239,6 +241,8 @@
 	   step on the same neutral ramp as --border. */
 	--border-strong: var(--zinc-300);
 	--input: var(--zinc-200);
+	/* The resting edge of a control whose outline IS the control (checkbox, radio, an off switch track). Held to WCAG 1.4.11 3:1 on every surface, unlike the quieter --input field outline. */
+	--control-border: var(--zinc-500);
 	--ring: var(--zinc-500);
 
 	/* Tones — light (all clear WCAG AA on white) */
@@ -375,7 +379,7 @@
 	   catches "light" on anything floating. Deeper drops than light mode, since
 	   black on near-black needs more alpha to read at all. */
 	--theme-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-	--theme-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.3), 0 2px 6px -1px rgb(0 0 0 / 0.25);
+	--theme-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.3), 0 4px 10px -2px rgb(0 0 0 / 0.4);
 	--theme-shadow-md: inset 0 1px 0 0 rgb(255 255 255 / 0.04), 0 1px 2px 0 rgb(0 0 0 / 0.3), 0 8px 20px -6px rgb(0 0 0 / 0.45);
 	--theme-shadow-lg: inset 0 1px 0 0 rgb(255 255 255 / 0.05), 0 2px 4px 0 rgb(0 0 0 / 0.3), 0 20px 40px -12px rgb(0 0 0 / 0.55);
 	--theme-shadow-xl: inset 0 1px 0 0 rgb(255 255 255 / 0.05), 0 2px 4px 0 rgb(0 0 0 / 0.3), 0 28px 56px -16px rgb(0 0 0 / 0.6);
@@ -409,6 +413,7 @@
 	--border: oklch(from var(--zinc-700) l c h / 0.4);
 	--border-strong: oklch(from var(--zinc-500) l c h / 0.55);
 	--input: oklch(from var(--zinc-700) l c h / 0.4);
+	--control-border: var(--zinc-500);
 	--ring: var(--zinc-500);
 
 	/* Tones — dark-tuned (boosted chroma for vibrancy on the dark canvas) */
@@ -438,6 +443,8 @@
 	--sidebar-primary-foreground: var(--zinc-950);
 	--sidebar-accent: var(--zinc-800);
 	--sidebar-accent-foreground: var(--zinc-50);
-	--sidebar-border: var(--zinc-900);
+	/* zinc-800, not zinc-900: on the zinc-950 sidebar zinc-900 measured 1.16:1,
+	   fainter than the page's own border. */
+	--sidebar-border: var(--zinc-800);
 	--sidebar-ring: var(--zinc-500);
 }

@@ -10,7 +10,7 @@ import {
 import { Icon } from "../../icon"
 import { anchoredListScroll } from "../../lib/anchored-scroll"
 import { cn } from "../../lib/cn"
-import { FIELD_SHELL_XS } from "../../lib/field-shell"
+import { FIELD_INVALID, FIELD_SHELL_XS, MOBILE_FIELD_TIER } from "../../lib/field-shell"
 import { withPortalThemeScope } from "../../lib/portal-theme-scope"
 import { useAnchoredDensity, useDensity, useTypeTier } from "../../lib/density"
 import { HighlightGlide } from "../../lib/highlight-glide"
@@ -180,7 +180,7 @@ export function SelectTrigger({
 	// sits in a page-register form row.
 	const density = useDensity()
 	const mobileTier =
-		density === "comfortable" && size === "md" && "max-sm:text-body-lg"
+		density === "comfortable" && size === "md" && MOBILE_FIELD_TIER
 	return (
 		<Base.Trigger
 			className={cn(
@@ -191,6 +191,10 @@ export function SelectTrigger({
 					: "h-(--control-md) gap-2 rounded-sm border border-input bg-card px-3",
 				"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
 				"data-[popup-open]:ring-2 data-[popup-open]:ring-ring",
+				// Invalid like every other field: Base UI marks the trigger
+				// `data-invalid` inside a Field, an explicit aria-invalid works too.
+				"data-[invalid]:border-destructive data-[invalid]:ring-destructive/30",
+				FIELD_INVALID,
 				"disabled:cursor-not-allowed disabled:opacity-50",
 				className,
 			)}

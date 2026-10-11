@@ -31,7 +31,9 @@ export function Checkbox({ className, children, ...props }: RootProps) {
 				"data-[checked]:border-primary data-[checked]:bg-primary",
 				"data-[indeterminate]:border-primary data-[indeterminate]:bg-primary",
 				"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-				"disabled:cursor-not-allowed disabled:opacity-50",
+				// Base UI renders the root as a <span>, which `:disabled` never matches —
+				// the state is the data attribute, as on Switch.
+				"data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
 				className,
 			)}
 			{...props}

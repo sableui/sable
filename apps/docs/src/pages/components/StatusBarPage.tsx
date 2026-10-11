@@ -11,7 +11,7 @@ function StatusBarDemo() {
 	return (
 		<div
 			data-density="compact"
-			className="overflow-hidden rounded-lg border border-border bg-panel"
+			className="sable-frame sable-frame-tool overflow-hidden bg-panel"
 		>
 			{/* A stand-in for the canvas, not WorkspaceCanvas: that renders the page's
 			    <main id="main-content">, and this demo already sits inside one. */}

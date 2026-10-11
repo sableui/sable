@@ -251,7 +251,8 @@ export function SettingsScene() {
 	)
 }
 
-function InviteScene() {
+/** `onSend` lets the iPhone canvas answer Send; on the web it stays a specimen. */
+export function InviteScene({ onSend }: { onSend?: () => void } = {}) {
 	return (
 		<Stage>
 			<Card className={SCENE}>
@@ -267,7 +268,7 @@ function InviteScene() {
 					</AvatarGroup>
 					<div className="flex gap-2">
 						<Input placeholder="name@company.com" aria-label="Email address" />
-						<Button>Send</Button>
+						<Button onClick={onSend}>Send</Button>
 					</div>
 				</CardContent>
 			</Card>
@@ -314,7 +315,7 @@ function CommandScene() {
 }
 
 /** A type specimen: the scale itself is the subject, so it is bare type. */
-function TypeScene() {
+export function TypeScene() {
 	return (
 		<Stage>
 			<div className={cn(SCENE, "flex flex-col gap-3 text-center")}>
@@ -521,7 +522,7 @@ export function TasksScene() {
 	)
 }
 
-export function SignInScene() {
+export function SignInScene({ onSignIn }: { onSignIn?: () => void } = {}) {
 	return (
 		<Stage>
 			<Card className={SCENE}>
@@ -534,9 +535,9 @@ export function SignInScene() {
 						<Input type="email" placeholder="you@studio.com" aria-label="Email" />
 						<Input type="password" placeholder="Password" aria-label="Password" />
 					</div>
-					<Button className="w-full">Sign in</Button>
+					<Button className="w-full" onClick={onSignIn}>Sign in</Button>
 					<Separator label="or" />
-					<Button variant="outline" className="w-full" iconStart={<Icon name="lock" />}>
+					<Button variant="outline" className="w-full" iconStart={<Icon name="lock" />} onClick={onSignIn}>
 						Use a passkey
 					</Button>
 				</CardContent>
@@ -545,11 +546,13 @@ export function SignInScene() {
 	)
 }
 
-function UploadScene() {
+export function UploadScene() {
 	return (
 		<Stage>
 			<div className={cn(SCENE, "flex flex-col gap-2")}>
+				{/* An upload list, not chips: rows fill the scene (the stage caps it on the web). */}
 				<Attachment
+					className="max-w-none"
 					name="brand-guidelines.pdf"
 					meta="4.2 MB of 6.8 MB"
 					status="uploading"
@@ -561,6 +564,7 @@ function UploadScene() {
 					}
 				/>
 				<Attachment
+					className="max-w-none"
 					name="cover-final.png"
 					icon="image-stack"
 					meta="Uploaded · 2.1 MB"
@@ -623,7 +627,8 @@ export function WalletScene() {
 	)
 }
 
-function FeedbackScene() {
+/** `onDone` closes the iPhone canvas's sheet from Skip or Send. */
+export function FeedbackScene({ onDone }: { onDone?: (sent: boolean) => void } = {}) {
 	const [score, setScore] = useState<string>("4")
 	return (
 		<Stage>
@@ -643,10 +648,10 @@ function FeedbackScene() {
 					<Textarea placeholder="What worked, what didn’t…" aria-label="Notes" rows={3} />
 				</CardContent>
 				<CardFooter className="justify-end">
-					<Button variant="ghost" size="sm">
+					<Button variant="ghost" size="sm" onClick={() => onDone?.(false)}>
 						Skip
 					</Button>
-					<Button size="sm">Send feedback</Button>
+					<Button size="sm" onClick={() => onDone?.(true)}>Send feedback</Button>
 				</CardFooter>
 			</Card>
 		</Stage>

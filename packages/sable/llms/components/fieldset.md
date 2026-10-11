@@ -56,7 +56,7 @@ Use Fieldset to group related controls under a shared label or explanation.
 
 ## Related
 
-- Components: Form, Label, Description
+- Components: Form, Label
 
 ## Examples
 

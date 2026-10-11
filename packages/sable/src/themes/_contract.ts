@@ -25,6 +25,11 @@ export const SEMANTIC_TOKENS = [
 	// higher-contrast step. See DESIGN.md / CONTRIBUTING.md → "Theme contract".
 	"border-strong",
 	"input",
+	// The resting edge of a control whose outline IS the control — a checkbox,
+	// a radio, an off switch track. Unlike `input` (a text field also has a fill
+	// and a caret to find it by), nothing else marks these, so WCAG 1.4.11 holds
+	// them to 3:1 on every surface. Gated in contrast.ts → NON_TEXT_PAIRS.
+	"control-border",
 	"ring",
 	// Actions
 	"primary",

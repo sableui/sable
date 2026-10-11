@@ -1,7 +1,14 @@
 import { Radio as RadioBase } from "@base-ui/react/radio"
 import type { ComponentProps, ReactNode } from "react"
 import { cn } from "../../lib/cn"
-import { SELECTION_CARD_SHELL } from "../../lib/selection-card"
+import {
+	RADIO_DOT,
+	RADIO_RING,
+	SELECTION_CARD_GLYPH,
+	SELECTION_CARD_LAYOUT,
+	SELECTION_CARD_SHELL,
+	SELECTION_CARD_TILE_HEAD,
+} from "../../lib/selection-card"
 import { type RadioCardTone, radioCardToneClasses } from "./radio-card.variants"
 
 /**
@@ -79,13 +86,13 @@ export function RadioCard({
 	const marker = (
 		<span
 			className={cn(
-				"relative inline-flex size-4.5 shrink-0 rounded-full border border-input bg-card motion-interactive",
+				RADIO_RING,
 				t.marker,
 			)}
 		>
 			<RadioBase.Indicator
 				className={cn(
-					"absolute left-1/2 top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full motion-interactive ease-spring data-[starting-style]:scale-0 data-[ending-style]:scale-0",
+					RADIO_DOT,
 					t.dot,
 				)}
 			/>
@@ -114,22 +121,15 @@ export function RadioCard({
 				SELECTION_CARD_SHELL,
 
 				t.card,
-				icon != null ? "flex-col gap-3 rounded-lg" : "items-start gap-3 rounded-md",
+				icon != null ? SELECTION_CARD_LAYOUT.tile : SELECTION_CARD_LAYOUT.row,
 				className,
 			)}
 			{...props}
 		>
 			{icon != null ? (
 				<>
-					<span className="flex w-full items-start justify-between gap-3">
-						<span
-							className={cn(
-								"shrink-0 text-2xl leading-none motion-interactive",
-								t.glyph,
-							)}
-						>
-							{icon}
-						</span>
+					<span className={SELECTION_CARD_TILE_HEAD}>
+						<span className={cn(SELECTION_CARD_GLYPH, t.glyph)}>{icon}</span>
 						{marker}
 					</span>
 					{content}

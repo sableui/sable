@@ -170,12 +170,12 @@ export function ChatComposer({
 			{...props}
 		>
 			{attachments ? (
-				// The chips sit p-2 inside this box's rounded-lg corner, so they take
-				// its radius less that inset (never under 4px) — concentric, rather
-				// than their own rounded-md bulging against the curve.
+				// The chips sit p-2 and a 1px border inside this box's corner, so
+				// they take its radius less both (never under 4px) — concentric,
+				// rather than their own rounded-md bulging against the curve.
 				<div
 					data-slot="chat-composer-attachments"
-					className="flex flex-wrap items-start gap-2 [--attachment-radius:max(--spacing(1),calc(var(--radius-lg)-(--spacing(2))))]"
+					className="flex flex-wrap items-start gap-2 [--attachment-radius:max(--spacing(1),calc(var(--chat-composer-r)-(--spacing(2))-1px))]"
 				>
 					{attachments}
 				</div>
@@ -196,7 +196,9 @@ export function ChatComposer({
 				// field inside it is stripped back to text. `max-h-40` is the cap that
 				// stops a pasted essay from pushing the conversation off the screen.
 				className={cn(
-					"min-h-0 max-h-40 resize-none border-0 bg-transparent p-1 focus-visible:ring-0",
+					// Inline padding puts the text on the attach glyph's edge: an
+					// icon-sm button centres a 1.125rem glyph in --control-sm.
+					"min-h-0 max-h-40 resize-none border-0 bg-transparent px-[calc((var(--control-sm)-1.125rem)/2)] py-1 focus-visible:ring-0",
 					// What you type has to match what it becomes: the field and the
 					// Bubble it turns into both read `prose`, so the message does not
 					// change size the moment it is sent.
@@ -246,7 +248,7 @@ export function ChatComposer({
 			</div>
 
 			{footer ? (
-				<p className={cn("px-1 text-muted-foreground", tier.secondary)}>
+				<p className={cn("px-[calc((var(--control-sm)-1.125rem)/2)] text-muted-foreground", tier.secondary)}>
 					{footer}
 				</p>
 			) : null}

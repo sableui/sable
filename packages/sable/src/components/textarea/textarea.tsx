@@ -1,7 +1,7 @@
 import { Field as BaseField } from "@base-ui/react/field"
 import type { ComponentPropsWithRef, Ref } from "react"
 import { cn } from "../../lib/cn"
-import { FIELD_INVALID, FIELD_SHELL } from "../../lib/field-shell"
+import { FIELD_INVALID, FIELD_SHELL, MOBILE_FIELD_TIER } from "../../lib/field-shell"
 import { useDensity, useTypeTier } from "../../lib/density"
 
 export interface TextareaProps extends ComponentPropsWithRef<"textarea"> {
@@ -50,7 +50,7 @@ export function Textarea({
 				FIELD_INVALID,
 				autoResize && "field-sizing-content resize-none",
 				tier.body,
-				density === "comfortable" && "max-sm:text-body-lg",
+				density === "comfortable" && MOBILE_FIELD_TIER,
 				className,
 			)}
 			{...(props as unknown as BaseField.Control.Props)}

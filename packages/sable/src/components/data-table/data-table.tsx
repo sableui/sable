@@ -18,7 +18,9 @@ type Align = "start" | "center" | "end"
 const ALIGN: Record<Align, string> = {
 	start: "text-start",
 	center: "text-center",
-	end: "text-end",
+	// End-aligned columns are the numeric ones: tabular figures keep the
+	// digits on one grid down the column.
+	end: "text-end tabular-nums",
 }
 
 export interface DataTableColumn<Row> {
@@ -138,12 +140,17 @@ export function DataTable<Row>({
 								{col.sortable ? (
 									// The negative inline margin cancels Button's padding so
 									// the label stays on the column's text edge; the header's
-									// own type and ink win over Button's action tier.
+									// own type and ink win over Button's action tier. In an
+									// end-aligned column the chevron leads, so the LABEL is
+									// what sits on the numbers' edge.
 									<Button
 										variant="ghost"
 										size="xs"
 										onClick={() => toggleSort(col.key)}
-										className="-mx-2 gap-1 text-label-md text-muted-foreground hover:text-foreground"
+										className={cn(
+											"-mx-2 gap-1 text-label-md text-muted-foreground hover:text-foreground",
+											col.align === "end" && "flex-row-reverse",
+										)}
 									>
 										{col.header}
 										<Icon
@@ -152,7 +159,9 @@ export function DataTable<Row>({
 													? "chevron-down"
 													: "chevron-up"
 											}
-											className={cn("text-xs", !active && "opacity-30")}
+											// Resting at 60%: still clearly quieter than the active
+											// chevron, but a visible mark (30% fell under 3:1).
+											className={cn("text-xs", !active && "opacity-60")}
 										/>
 									</Button>
 								) : (

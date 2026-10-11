@@ -15,7 +15,7 @@ Use SideNav for vertical navigation inside a settings page, documentation area, 
 - Do: Use aria-label on SideNav when a page contains more than one nav landmark.
 - Do: Group related items with SideNavGroup when the rail has more than one conceptual area.
 - Do: Use size='lg' and activeVariant='sidebar' when the nav is part of persistent app chrome.
-- Do: Inside a rounded, padded frame, give each item rounded-concentric-<outer>/<inset> (e.g. rounded-concentric-lg/2 in a rounded-lg p-2 box). The rows' own radius is fixed per size, and a same-radius row inset into a frame reads as a second system.
+- Do: Rows are rounded-sm, which nests in the usual rounded-lg p-2 frame. In any other rounded, padded frame give each item rounded-concentric-<outer>/<inset> — a same-radius row inset into a frame reads as a second system.
 - Don't: Use SideNav for bottom mobile navigation; use BottomNav in AppShell's bottomNav slot.
 - Don't: Mix content and sidebar active variants in the same rail unless individual items intentionally override the group.
 

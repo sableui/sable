@@ -171,7 +171,6 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 	   value within a known range (a reading), which is not loading or progress. */
 	Avatar: ["Data display", "either"],
 	DataTable: ["Data display", "either"],
-	Description: ["Data display", "either"],
 	Entity: ["Data display", "either"],
 	GlidingHighlight: ["Data display", "either"],
 	Meter: ["Data display", "either"],

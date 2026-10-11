@@ -100,6 +100,8 @@
 	--border: oklch(92% 0 0);
 	--border-strong: oklch(85% 0 0);
 	--input: oklch(92% 0 0);
+	/* The resting edge of a control whose outline IS the control (checkbox, radio, an off switch track). Held to WCAG 1.4.11 3:1 on every surface, unlike the quieter --input field outline. */
+	--control-border: oklch(62.3% 0 0);
 	--ring: #000000;
 	--primary: #000000;
 	--primary-foreground: #ffffff;
@@ -177,6 +179,7 @@
 	--border: oklch(29% 0 0);
 	--border-strong: oklch(36% 0 0);
 	--input: oklch(29% 0 0);
+	--control-border: oklch(54.9% 0 0);
 	--ring: #ffffff;
 	--primary: #ffffff;
 	--primary-foreground: #000000;

@@ -39,8 +39,12 @@ export function Fieldset({ className, ...props }: RootProps) {
 				// min-w-0: a native <fieldset> defaults to min-inline-size: min-content
 				// and would refuse to shrink below its widest control. overflow-hidden
 				// keeps the footer's wash inside the rounded corners.
-				"min-w-0 overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-sm",
-				"data-[disabled]:opacity-60",
+				// Publishes its surface like Card, so wells, stepper discs and
+				// interactive rows inside derive from the card, not the page.
+				"min-w-0 overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-sm [--sable-surface-bg:var(--card)]",
+				// No opacity of its own: a disabled fieldset disables every control
+				// in it, and each already dims to 50% — dimming here as well stacked
+				// to ~30%, against 50% everywhere else in the system.
 				className,
 			)}
 			{...props}

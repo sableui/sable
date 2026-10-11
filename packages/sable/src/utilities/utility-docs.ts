@@ -228,6 +228,20 @@ export const UTILITY_DOCS: UtilityDoc[] = [
 		pairsWith: ["sable-frame", "sable-surface-popover"],
 	},
 	{
+		name: "sable-frame-tool",
+		kind: "utility",
+		family: "frame",
+		intent:
+			"The frame for edge-to-edge tool chrome at the theme's radius, with no padding. It publishes concentric geometry for what's inside: `--panel-inset` (row side padding, grown so rows clear the corner), `--panel-field-radius` (compact fields curve parallel to the frame) and `--panel-edge` (the first and last section's extra top and bottom). PanelSection and the xs field shell read them. Applied over `sable-frame`.",
+		whenToUse:
+			"Framing PanelSections, ScrubFields, a Tree, a StatusBar or a PanelGroup outside a Workspace (a docs demo, a floating inspector). Add `overflow-hidden` to clip to the corners.",
+		insteadOf:
+			"`rounded-lg border overflow-hidden` by hand: the panel keeps its square-column 8px inset and small field radius, so a rounded preset crowds the first label and last field into the curve.",
+		example: `<div className="sable-frame sable-frame-tool overflow-hidden bg-panel" data-density="compact"><PanelSection title="Layer">…</PanelSection></div>`,
+		keywords: ["panel frame", "inspector frame", "tool panel", "workspace demo", "concentric"],
+		pairsWith: ["sable-frame"],
+	},
+	{
 		name: "sable-frame-borderless",
 		kind: "utility",
 		family: "frame",
@@ -288,7 +302,7 @@ export const UTILITY_DOCS: UtilityDoc[] = [
 		kind: "utility",
 		family: "geometry",
 		intent:
-			"A border radius computed as an outer radius minus an inset: `rounded-concentric-<radius>/<spacing>`, clamped at zero. `rounded-concentric-md/1` = `radius-md` − `spacing-1`.",
+			"A border radius computed as an outer radius minus an inset: `rounded-concentric-<radius>/<spacing>`, floored at `radius-xs` so a deep inset never leaves a 1-2px sliver. `rounded-concentric-md/1` = `radius-md` − `spacing-1`.",
 		whenToUse:
 			"A one-off rounded element nested inside another — a tab trigger inside a tab list, a thumb inside a track, a row inside a well — where a `sable-frame` would be overkill. The outer radius and the inset are the parent's.",
 		insteadOf:
@@ -319,7 +333,7 @@ export const UTILITY_DOCS: UtilityDoc[] = [
 			"The row radius that nests inside a `popup-inset` popup: `radius-md` minus the popup inset, clamped at zero.",
 		whenToUse: "On every row inside a `popup-inset` container.",
 		insteadOf:
-			"`rounded-sm` on menu rows, which matches only the default ladder (12px popup, 4px inset, 8px rows).",
+			"`rounded-sm` on menu rows, which matches no ladder exactly (a 12px popup with a 4px inset and 1px border wants 7px rows).",
 		example: `<div role="option" className="rounded-popup-item px-2 py-1.5 sable-highlighted:bg-accent">…</div>`,
 		keywords: ["menu item radius", "option radius", "row corner", "list item radius"],
 		pairsWith: ["popup-inset"],
@@ -430,6 +444,51 @@ export const UTILITY_DOCS: UtilityDoc[] = [
 	},
 
 	/* ── Text ──────────────────────────────────────────────────────────────── */
+	{
+		name: "sable-list",
+		kind: "utility",
+		family: "text",
+		intent:
+			"A bulleted list as typography: body type, a hanging muted marker, and item rhythm. Put it on a native `<ul>`.",
+		whenToUse: "Running content with bullets: release notes, a feature list, steps that are not ordered.",
+		insteadOf: "A stack of `<div>`s with a hand-drawn dot, or an unstyled `<ul>` that inherits the reset (no markers, no indent).",
+		example: `<ul className="sable-list"><li>Faster sync</li><li>Offline drafts</li></ul>`,
+		keywords: ["bullet list", "unordered list", "ul", "bullets", "list"],
+	},
+	{
+		name: "sable-list-numbered",
+		kind: "utility",
+		family: "text",
+		intent: "A numbered list as typography: `sable-list` with decimal markers in tabular figures. Put it on a native `<ol>`.",
+		whenToUse: "Ordered content in running text: setup steps, a ranked list. For a stepped flow with state, use Stepper.",
+		insteadOf: "Numbers typed into the text, which neither renumber nor read as a list to assistive tech.",
+		example: `<ol className="sable-list-numbered"><li>Install</li><li>Import the styles</li></ol>`,
+		keywords: ["numbered list", "ordered list", "ol", "steps"],
+	},
+	{
+		name: "sable-list-dl",
+		kind: "utility",
+		family: "text",
+		intent:
+			"Label/value pairs on a native `<dl>`: muted label-tier `<dt>`s and body-tier `<dd>`s on a baseline-aligned two-column grid; long values wrap inside their column. Colour a status value with a `text-*` utility on its `<dd>`.",
+		whenToUse: "Read-only details: an order summary, a record's metadata, a settings summary, profile stats.",
+		insteadOf: "A grid of `<div>`s (screen readers lose the term/value pairing), or Table for a single record. For editable values use Form and Field.",
+		example: `<dl className="sable-list-dl"><dt>Network</dt><dd>Solana</dd><dt>Status</dt><dd className="text-success">Active</dd></dl>`,
+		keywords: ["description list", "definition list", "dl", "key value", "metadata", "details", "label value"],
+		pairsWith: ["sable-list-dl-2"],
+	},
+	{
+		name: "sable-list-dl-2",
+		kind: "utility",
+		family: "text",
+		intent:
+			"Two label/value pairs a row once the nearest `@container` ancestor is at least 28rem wide. Add to `sable-list-dl`.",
+		whenToUse: "A compact metadata block in a wide card or panel. Put `@container` on a parent so it measures the room it actually has.",
+		insteadOf: "A viewport breakpoint, which gives a narrow card on a wide screen four columns it cannot fit.",
+		example: `<div className="@container"><dl className="sable-list-dl sable-list-dl-2">…</dl></div>`,
+		keywords: ["two column details", "metadata grid", "dl columns"],
+		pairsWith: ["sable-list-dl"],
+	},
 	{
 		name: "text-overline",
 		kind: "utility",

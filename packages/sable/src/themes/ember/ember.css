@@ -156,6 +156,8 @@
 	--border: oklch(88% 0.008 74);
 	--border-strong: oklch(82% 0.010 73);
 	--input: oklch(85% 0.009 74);
+	/* The resting edge of a control whose outline IS the control (checkbox, radio, an off switch track). Held to WCAG 1.4.11 3:1 on every surface, unlike the quieter --input field outline. */
+	--control-border: oklch(60.2% 0.0095 70);
 	--ring: oklch(58% 0.245 32.9);
 	--primary: oklch(58% 0.245 32.9);
 	--primary-foreground: oklch(100% 0 0);
@@ -234,6 +236,7 @@
 	--border: oklch(32% 0.012 67.2); /* lifted with the fills: a hairline must still show on muted */
 	--border-strong: oklch(37% 0.010 61.1);
 	--input: oklch(33% 0.012 65);
+	--control-border: oklch(55.6% 0.0084 67.7);
 	--ring: oklch(65.2% 0.235 32.9);
 	--primary: oklch(65.2% 0.235 32.9);
 	--primary-foreground: oklch(14.1% 0.018 70.5);

@@ -32,8 +32,17 @@ export function PanelSection({
 	...props
 }: SectionProps) {
 	return (
-		<section className={cn("flex flex-col border-t border-hairline", className)} {...props}>
-			<header className="flex h-7 items-center justify-between gap-2 px-2">
+		// Side padding and the first/last section's top/bottom come from a framing
+		// sable-frame-tool, so rows stay concentric with a rounded frame's corners;
+		// in a square Workspace column they fall back to the 8px tool inset.
+		<section
+			className={cn(
+				"flex flex-col border-t border-hairline first:pt-[var(--panel-edge,0px)] last:pb-[var(--panel-edge,0px)]",
+				className,
+			)}
+			{...props}
+		>
+			<header className="flex h-7 items-center justify-between gap-2 px-[var(--panel-inset,--spacing(2))]">
 				<h3 className="text-ui-section text-foreground">{title}</h3>
 				{action}
 			</header>
@@ -46,7 +55,7 @@ export function PanelSection({
 			    A column of stacked slider rows then had no grouping at all: every
 			    label sat equidistant between the slider above it and its own, and
 			    the section read as one undifferentiated stack. */}
-			<div className="flex flex-col gap-1.5 px-2 pb-2">{children}</div>
+			<div className="flex flex-col gap-1.5 px-[var(--panel-inset,--spacing(2))] pb-2">{children}</div>
 		</section>
 	)
 }

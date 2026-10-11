@@ -7,17 +7,27 @@ describe("Bubble", () => {
 		return container.firstElementChild as HTMLElement
 	}
 
-	it("flattens the corner on the speaker's side", () => {
+	it("squares the speaker-side corner and hangs the tail off it", () => {
 		const { container: start } = renderWithProviders(<Bubble>hi</Bubble>)
-		expect(surface(start).className).toContain("rounded-tl-sm")
+		expect(surface(start).className).toContain("rounded-ss-none")
+		expect(surface(start).querySelector("svg")?.getAttribute("class")).toContain("end-[calc(100%-1px)]")
 
 		const { container: end } = renderWithProviders(<Bubble align="end">hi</Bubble>)
-		expect(surface(end).className).toContain("rounded-tr-sm")
+		expect(surface(end).className).toContain("rounded-se-none")
+		expect(surface(end).querySelector("svg")?.getAttribute("class")).toContain("start-[calc(100%-1px)]")
+	})
+
+	it("reserves the tail's space with or without it, so a grouped run lines up", () => {
+		const { container: tailed } = renderWithProviders(<Bubble align="end">hi</Bubble>)
+		const { container: grouped } = renderWithProviders(<Bubble align="end" tail={false}>hi</Bubble>)
+		expect(surface(tailed).className).toContain("me-(--bubble-ear)")
+		expect(surface(grouped).className).toContain("me-(--bubble-ear)")
 	})
 
 	it("drops the tail on request, for continuations in a run", () => {
 		const { container } = renderWithProviders(<Bubble tail={false}>hi</Bubble>)
-		expect(surface(container).className).not.toContain("rounded-tl-sm")
+		expect(surface(container).className).not.toContain("rounded-ss-none")
+		expect(surface(container).querySelector("svg")).toBeNull()
 	})
 
 	it("pairs the primary fill with its own foreground token, never a raw white", () => {
@@ -36,8 +46,10 @@ describe("Bubble", () => {
 		const el = surface(container)
 		expect(el.className).toContain("bg-transparent")
 		expect(el.className).toContain("max-w-none")
-		// A surfaceless bubble has no corner to flatten.
-		expect(el.className).not.toContain("rounded-tl-sm")
+		// A surfaceless bubble has no surface to hang a tail from.
+		expect(el.className).not.toContain("rounded-ss-none")
+		expect(el.className).not.toContain("ms-(--bubble-ear)")
+		expect(el.querySelector("svg")).toBeNull()
 	})
 
 	it("caps at a reading measure by default", () => {

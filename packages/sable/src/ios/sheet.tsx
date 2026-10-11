@@ -1,7 +1,12 @@
-import { Button, Sheet } from 'konsta/react'
+import { Button, Glass, Sheet } from 'konsta/react'
 import { useEffect, useId, useRef, useState, type ReactNode, type PointerEvent } from 'react'
 
-/** Browser dialog owns focus trapping, Escape, inert background, and restoration. */
+/**
+ * An iOS 26 sheet. At the medium detent it floats inset from the screen edges in
+ * Liquid Glass; at the large detent it is opaque and meets the bottom edge. The
+ * header is a glass close button and a centered inline title.
+ * Browser dialog owns focus trapping, Escape, inert background, and restoration.
+ */
 export function IosSheet({ open, onOpenChange, title, children, detent = 'medium' }: {
   open: boolean; onOpenChange: (open: boolean) => void; title: string; children: ReactNode; detent?: 'medium' | 'large'
 }) {
@@ -32,7 +37,7 @@ export function IosSheet({ open, onOpenChange, title, children, detent = 'medium
   return <dialog ref={dialog} className="ios-sheet-dialog" aria-labelledby={titleId}
     onCancel={event => { event.preventDefault(); onOpenChange(false) }}
     onClick={event => { if (event.target === event.currentTarget) onOpenChange(false) }}>
-    <Sheet opened={shown} backdrop={false} className="ios-sheet" style={{ height: expanded ? '90%' : '56%' }}>
+    <Sheet opened={shown} backdrop={false} className="ios-sheet" data-detent={expanded ? 'large' : 'medium'} style={{ height: expanded ? '90%' : '56%' }}>
       <Button clear className="ios-sheet-grabber" aria-label={expanded ? 'Reduce sheet height' : 'Expand sheet'}
         onClick={() => { if (dragged.current) { dragged.current = false; return }; setExpanded(value => !value) }}
         onPointerDown={(event: PointerEvent<HTMLButtonElement>) => { startY.current = event.clientY; dragged.current = false; event.currentTarget.setPointerCapture(event.pointerId) }}
@@ -45,7 +50,14 @@ export function IosSheet({ open, onOpenChange, title, children, detent = 'medium
           else if (distance < -40) setExpanded(true)
         }}><span className="ios-grabber-mark" /></Button>
       <div className="ios-sheet-heading">{/* Opening focuses the title, not the grabber: a reader hears what opened. */}
-        <h2 id={titleId} tabIndex={-1}>{title}</h2><Button clear onClick={() => onOpenChange(false)}>Cancel</Button></div>
+        <Glass className="ios-sheet-close">
+          <Button inline rounded clear className="ios-icon-action" aria-label="Close" onClick={() => onOpenChange(false)}>
+            {/* SF Symbols' xmark: system chrome, so it doesn't follow the app's icon set. */}
+            <svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16"><path d="M3.5 3.5l9 9m0-9l-9 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" /></svg>
+          </Button>
+        </Glass>
+        <h2 id={titleId} tabIndex={-1}>{title}</h2>
+      </div>
       <div className="ios-sheet-content">{children}</div>
     </Sheet>
   </dialog>

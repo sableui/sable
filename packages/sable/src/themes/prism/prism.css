@@ -12,7 +12,7 @@
 	--region-ultrawide: 1800px;
 	--theme-radius-none: 0px;
 	--theme-radius-xs: 2px;
-	--theme-radius-sm: 4px;
+	--theme-radius-sm: 3px; /* a step of its own — sm and md were both 4px, which erased a rung of the ladder */
 	--theme-radius-md: 4px;
 	--theme-radius-lg: 6px;
 	--theme-radius-xl: 8px;
@@ -69,6 +69,8 @@
 	--border: oklch(79.84882% 0.029246 251.5080);
 	--border-strong: oklch(64.27577% 0.042824 253.1390);
 	--input: oklch(79.84882% 0.029246 251.5080);
+	/* The resting edge of a control whose outline IS the control (checkbox, radio, an off switch track). Held to WCAG 1.4.11 3:1 on every surface, unlike the quieter --input field outline. */
+	--control-border: oklch(60% 0.0298 252.77);
 	--ring: oklch(50.45463% 0.203215 263.5596);
 	--primary: oklch(50.45463% 0.203215 263.5596);
 	--primary-foreground: oklch(100.00000% 0.000000 89.8756);
@@ -147,6 +149,7 @@
 	--border: oklch(58.06940% 0.052170 251.5856);
 	--border-strong: oklch(69.19219% 0.042050 253.1082);
 	--input: oklch(58.06940% 0.052170 251.5856);
+	--control-border: oklch(67.7% 0.0275 255.1);
 	--ring: oklch(82.28684% 0.088371 261.1846);
 	--primary: oklch(82.28684% 0.088371 261.1846);
 	--primary-foreground: oklch(25.20350% 0.047984 259.9119);

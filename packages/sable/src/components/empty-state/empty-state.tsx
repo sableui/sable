@@ -4,7 +4,7 @@ import { cn } from "../../lib/cn"
 import { Card } from "../card"
 
 export interface EmptyStateProps extends Omit<ComponentPropsWithRef<"div">, "title"> {
-	/** A glyph in a tinted disc. A destructive state shows a warning by default. */
+	/** A glyph, image or illustration above the title. A destructive state shows a warning by default. */
 	icon?: ReactNode
 	title: ReactNode
 	description?: ReactNode
@@ -12,7 +12,7 @@ export interface EmptyStateProps extends Omit<ComponentPropsWithRef<"div">, "tit
 	/** A large figure above the title — an error code like 404. */
 	code?: ReactNode
 	/**
-	 * `destructive` is an error state: a destructive disc, and `role="alert"` so
+	 * `destructive` is an error state: a destructive glyph, and `role="alert"` so
 	 * it is announced. @default "neutral"
 	 */
 	tone?: "neutral" | "destructive"
@@ -27,7 +27,7 @@ export interface EmptyStateProps extends Omit<ComponentPropsWithRef<"div">, "tit
 
 /**
  * EmptyState — the centred "nothing here / something went wrong" block: an
- * optional disc or code, a title, a description and an action. One component
+ * optional glyph or code, a title, a description and an action. One component
  * for empty lists, page-level errors (`tone="destructive"`, `code`, `size="lg"`)
  * and error cards (`surface="card"`); it used to be three — EmptyState,
  * ErrorState and ErrorCard — whose titles, widths and spacing had drifted.
@@ -50,23 +50,31 @@ export function EmptyState({
 	const body = (
 		<>
 			{code != null ? <p className="text-display-lg text-muted-foreground">{code}</p> : null}
+			{/* The glyph stands on its own: no disc behind it. A disc was a second
+			    shape competing with the title, and it couldn't hold an image or an
+			    illustration. An Icon takes the size and ink; anything else renders as given. */}
 			{glyph != null ? (
 				<div
 					className={cn(
-						"flex size-12 items-center justify-center rounded-full text-2xl",
-						destructive ? "bg-destructive/15 text-destructive" : "bg-muted text-muted-foreground",
+						"flex items-center justify-center text-3xl",
+						destructive ? "text-destructive" : "text-muted-foreground",
 					)}
 				>
 					{glyph}
 				</div>
 			) : null}
-			<Title className={size === "lg" ? "text-heading-2" : "text-title-lg"}>{title}</Title>
-			{description != null ? <p className="max-w-md text-body-md text-muted-foreground">{description}</p> : null}
-			{action != null ? <div className="mt-2">{action}</div> : null}
+			{/* Title and description are one statement, so they sit closer to each
+			    other than to the glyph above or the action below — with one gap
+			    for everything, nothing read as a group. */}
+			<div className={cn("flex flex-col items-center", size === "lg" ? "gap-2" : "gap-1")}>
+				<Title className={size === "lg" ? "text-heading-2" : "text-title-lg"}>{title}</Title>
+				{description != null ? <p className="max-w-md text-body-md text-muted-foreground">{description}</p> : null}
+			</div>
+			{action != null ? <div className="mt-1">{action}</div> : null}
 		</>
 	)
 	const layout = cn(
-		"flex flex-col items-center justify-center gap-3 text-center",
+		"flex flex-col items-center justify-center gap-4 text-center",
 		size === "lg" ? "px-6 py-20" : "px-6 py-12",
 	)
 	const a11y = destructive ? { role: "alert" as const } : {}

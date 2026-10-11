@@ -9,11 +9,47 @@ import { cva } from "class-variance-authority"
  * rendered table, a code block — reach for `variant="plain"`, which drops the
  * surface and the cap together.
  *
- * The tail is a flattened corner rather than a drawn arrow: it survives every
- * theme's radius language (including the flat and the fully-pilled ones) with no
- * per-theme geometry, and it reads as "this side is the speaker" at a glance
- * without adding a shape the palette has to support.
+ * The tail is a small ear drawn off the speaker-side top corner, which goes
+ * square to meet it; the other three corners keep the theme's radius. The ear
+ * is the same 5px in every radius language, flat through fully pilled, so a
+ * bubble always says "this side is the speaker". In a rounded theme its tip and
+ * the inner corner where it meets the bubble are rounded too; square, both stay
+ * sharp. See BubbleTail in bubble.tsx.
  */
+// --bubble-ear is the tail's width. Every surfaced bubble reserves it as a margin
+// on the speaker side, tailed or not, so a grouped run's continuations line up with
+// the tailed bubble above them and a bubble flush with a scroller's edge (own
+// messages usually are) doesn't have its tail clipped. The tail itself is BubbleTail
+// in bubble.tsx: an SVG, so its tip and its inner corner can be rounded.
+const EAR_SPACE = "[--bubble-ear:5px]"
+/** The tail's placement and mirroring, per side and surface. */
+export const bubbleTailVariants = cva(
+	"pointer-events-none absolute h-[9.5px] w-[6px] overflow-visible",
+	{
+		variants: {
+			// Its x = 1 is the bubble's outer edge: on a solid bubble that is the
+			// padding edge, so the box tucks 1px under it; outline's 1px border puts
+			// the outer edge 1px further out, and its top 1px higher.
+			surface: {
+				solid: "top-0",
+				outline: "-top-px",
+			},
+			// Drawn pointing to the end side; the start tail is its mirror image,
+			// and in a right-to-left layout each swaps.
+			align: {
+				start: "-scale-x-100 rtl:scale-x-100",
+				end: "rtl:-scale-x-100",
+			},
+		},
+		compoundVariants: [
+			{ surface: "solid", align: "start", className: "end-[calc(100%-1px)]" },
+			{ surface: "solid", align: "end", className: "start-[calc(100%-1px)]" },
+			{ surface: "outline", align: "start", className: "end-full" },
+			{ surface: "outline", align: "end", className: "start-full" },
+		],
+	},
+)
+
 export const bubbleVariants = cva(
 	"relative w-fit max-w-[42rem] whitespace-pre-wrap break-words rounded-lg px-3.5 py-2.5 text-body-md",
 	{
@@ -42,10 +78,13 @@ export const bubbleVariants = cva(
 			},
 		},
 		compoundVariants: [
-			{ tail: true, align: "start", className: "rounded-tl-sm" },
-			{ tail: true, align: "end", className: "rounded-tr-sm" },
-			// A surfaceless bubble has no corner to flatten; flattening one anyway
-			// would round the *text*'s invisible box and show nothing.
+			{ variant: ["muted", "primary", "outline"], className: EAR_SPACE },
+			{ align: "start", variant: ["muted", "primary", "outline"], className: "ms-(--bubble-ear)" },
+			{ align: "end", variant: ["muted", "primary", "outline"], className: "me-(--bubble-ear)" },
+			// The speaker-side top corner goes square to meet the tail.
+			{ tail: true, align: "start", variant: ["muted", "primary", "outline"], className: "rounded-ss-none" },
+			{ tail: true, align: "end", variant: ["muted", "primary", "outline"], className: "rounded-se-none" },
+			// A surfaceless bubble has no surface to hang a tail from.
 			{ variant: "plain", className: "rounded-none" },
 		],
 		defaultVariants: {

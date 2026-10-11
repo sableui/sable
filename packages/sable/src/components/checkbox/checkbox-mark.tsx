@@ -30,7 +30,11 @@ export function CheckboxMark({ className }: { className?: string }) {
 				<span {...indicatorProps}>
 					<Icon
 						name={state.indeterminate ? "minus" : "check"}
-						className={CHECK_MARK_SIZE}
+						// Weight, not size: a 24-unit glyph drawn at 11px thins its 1.5-unit
+						// line to ~0.7px, lost on a filled box. A 2-unit stroke in the same
+						// ink, round-joined, brings it to ~1.6px; on a stroked set it only
+						// pins the width, so the mark reads at one weight in any set.
+						className={cn(CHECK_MARK_SIZE, "[&_path]:stroke-current [&_path]:[stroke-width:2] [&_path]:[stroke-linejoin:round] [&_path]:[stroke-linecap:round]")}
 					/>
 				</span>
 			)}

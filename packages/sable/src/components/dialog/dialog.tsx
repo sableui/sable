@@ -61,7 +61,7 @@ export function DialogOverlay({ className, size = "default", ...props }: Overlay
 			data-size={size}
 			className={cn(
 				"fixed inset-0 z-(--z-overlay) motion-fade",
-				size === "fullscreen" ? "bg-overlay/95" : "bg-overlay/50",
+				size === "fullscreen" ? "bg-overlay/95" : "bg-overlay/(--scrim-alpha)",
 				className,
 			)}
 			{...props}

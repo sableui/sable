@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-The surface a message's content sits on: four treatments, an align-aware tail corner, a readable measure cap, and an optional row of reaction pills.
+The surface a message's content sits on: four treatments, an align-aware tail, a readable measure cap, and an optional row of reaction pills.
 
 **Keywords:** chat bubble, message bubble, speech bubble, reactions, conversation, messaging, ai chat
 
@@ -14,7 +14,7 @@ The tinted (or untinted) surface a turn's content sits on. Kept separate from Me
 
 - Do: Use `muted` for the other party and `primary` for the reader's own messages. Two treatments is the whole vocabulary a conversation needs to say who is speaking.
 - Do: Reach for `variant="plain"` for long-form assistant output — rendered markdown, code blocks, tables. A tinted box around three paragraphs reads as a quote block rather than as a turn, and `plain` drops the measure cap with the surface.
-- Do: Pass the same `align` you gave the enclosing Message, so the flattened corner lands on the speaker's side.
+- Do: Pass the same `align` you gave the enclosing Message, so the tail lands on the speaker's side.
 - Do: Set `tail={false}` on the continuation bubbles in a grouped run — the tail marks where a speaker starts, and repeating it on every line makes a block of one person's messages look like four separate turns.
 - Do: Let the register size it. Inside `<Density value="compact">` a Bubble sets itself in the workspace prose tier automatically — a docked agent panel needs no per-call-site sizing, and hardcoding one defeats the mechanism.
 - Don't: Do not remove the measure cap to fill a wide window. ~42rem is a reading measure; a bubble spanning a 1600px viewport is a paragraph at 140 characters per line.
@@ -26,7 +26,7 @@ The tinted (or untinted) surface a turn's content sits on. Kept separate from Me
 
 | Part | Required | Description |
 | --- | --- | --- |
-| Bubble | yes | The surface itself. Holds the variant, the side, and the flattened tail corner. |
+| Bubble | yes | The surface itself. Holds the variant, the side, and the tail. |
 | BubbleReactions | no | The row of reaction pills, just under the bubble at the message column's small gap, so it reads as belonging to that message rather than the next row. |
 | BubbleReaction | no | One reaction pill — emoji, count (hidden at 1), and pressed state. |
 
@@ -42,8 +42,8 @@ The tinted (or untinted) surface a turn's content sits on. Kept separate from Me
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
 | variant | "muted" \| "primary" \| "outline" \| "plain" | "muted" | Surface treatment. `muted` for the other party, `primary` for the reader's own messages, `outline` for a quieter own-side, `plain` for long-form output that should not sit in a box (also drops the measure cap and padding). |
-| align | "start" \| "end" | "start" | Which side of the conversation the bubble is on — flattens the corner nearest the speaker. Match it to the enclosing Message. |
-| tail | boolean | true | Flatten the speaker-side corner. A flattened corner rather than a drawn arrow, so it holds up in every theme's radius language (flat through fully pilled) with no per-theme geometry. Turn it off for the continuation bubbles in a grouped run. |
+| align | "start" \| "end" | "start" | Which side of the conversation the bubble is on — puts the tail on the speaker's side. Match it to the enclosing Message. |
+| tail | boolean | true | Draw the tail: a small ear off the speaker-side top corner, which goes square to meet it. The same 5px in every theme's radius language, flat through fully pilled. The bubble keeps the ear's space either way, so turning it off for the continuation bubbles in a grouped run keeps the run aligned. |
 | ...div props | ComponentPropsWithRef<"div"> | — | Spread onto the surface element. |
 
 ## Variants

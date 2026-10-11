@@ -890,7 +890,7 @@ export function CommandMenuItem({
 			// on Enter. `aria-selected` is the single source of that paint.
 			onMouseMove={() => ctx?.setActiveId(id)}
 			className={cn(
-				`flex items-center gap-2 rounded-[max(0px,calc(var(--radius-lg)-var(--cm-inset,--spacing(1))))] px-(--cm-pad,--spacing(2)) py-2 ${tier.body} outline-none motion-interactive aria-selected:bg-accent aria-selected:text-accent-foreground [&_svg]:shrink-0`,
+				`flex items-center gap-2 rounded-[max(0px,calc(var(--radius-lg)-var(--cm-inset,--spacing(1))-1px))] px-(--cm-pad,--spacing(2)) py-2 ${tier.body} outline-none motion-interactive aria-selected:bg-accent aria-selected:text-accent-foreground [&_svg]:shrink-0`,
 				disabled
 					? "cursor-default text-muted-foreground"
 					: "cursor-pointer text-foreground",

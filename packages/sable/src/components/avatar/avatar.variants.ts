@@ -4,15 +4,17 @@ import { cva } from "class-variance-authority"
  * Avatar root — a circular, fixed-size frame that clips its image. The only axis
  * is `size`, which sets the square footprint; the image and fallback inherit it.
  * `bg-muted` is the resting surface shown behind a loading or missing image.
+ * Each size also sets the label tier its initials (and a group's "+N") take,
+ * so the initials grow with the circle instead of one 12px label in all three.
  */
 export const avatarVariants = cva(
 	"relative inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-muted",
 	{
 		variants: {
 			size: {
-				sm: "size-8",
-				md: "size-10",
-				lg: "size-12",
+				sm: "size-8 text-label-sm",
+				md: "size-10 text-label-md",
+				lg: "size-12 text-label-lg",
 			},
 		},
 		defaultVariants: {

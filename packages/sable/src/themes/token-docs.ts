@@ -106,9 +106,16 @@ const SEMANTIC_BASES: Record<string, TokenDoc> = {
 	},
 	input: {
 		intent: "The outline of a form control specifically.",
-		whenToUse: "Text inputs, textareas, selects, and the resting edge of a checkbox or radio.",
+		whenToUse: "Text inputs, textareas and selects. Not the edge of a checkbox, radio or switch — that is `control-border`.",
 		insteadOf:
 			"`border`. They are often the same value, but a theme is entitled to make form controls read differently from other chrome, and only this token gives it the hook.",
+	},
+	"control-border": {
+		intent: "The resting edge of a control whose outline is the whole control. Held to 3:1 (WCAG 1.4.11) on every surface.",
+		whenToUse:
+			"An unchecked checkbox, an unselected radio, an off switch track, a selection card's check or radio mark — anywhere removing the edge would make the control disappear.",
+		insteadOf:
+			"`input`. A text field is also found by its fill, caret and placeholder, so its outline may stay quiet; a checkbox has nothing else, and at `input`'s strength it measures about 1.4:1.",
 	},
 	ring: {
 		intent: "The focus indicator colour.",

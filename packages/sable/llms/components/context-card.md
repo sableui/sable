@@ -67,7 +67,7 @@ import { Avatar, ContextCard, ContextCardContent, ContextCardTrigger, Entity } f
 ### With stat row
 
 ```tsx
-import { Avatar, ContextCard, ContextCardContent, ContextCardTrigger, Description, DescriptionItem, Entity } from "@sableui/react"
+import { Avatar, ContextCard, ContextCardContent, ContextCardTrigger, Entity } from "@sableui/react"
 
-<ContextCard><ContextCardTrigger render={<a href='/u/nyx' className='text-title-sm underline-offset-2 hover:underline'>@nyx</a>} /><ContextCardContent><Entity className='[--entity-px:0] [--entity-py:0]' leading={<Avatar fallback='NY' size='lg' />} title='Nyx' subtitle='@nyx' /><Description cols='2' className='mt-4 border-t border-border pt-3'><DescriptionItem term='Posts' detail='128' /><DescriptionItem term='Followers' detail='4.2k' /></Description></ContextCardContent></ContextCard>
+<ContextCard><ContextCardTrigger render={<a href='/u/nyx' className='text-title-sm underline-offset-2 hover:underline'>@nyx</a>} /><ContextCardContent><Entity className='[--entity-px:0] [--entity-py:0]' leading={<Avatar fallback='NY' size='lg' />} title='Nyx' subtitle='@nyx' /><div className='@container mt-4 border-t border-border pt-3'><dl className='sable-list-dl sable-list-dl-2'><dt>Posts</dt><dd>128</dd><dt>Followers</dt><dd>4.2k</dd></dl></div></ContextCardContent></ContextCard>
 ```

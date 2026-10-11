@@ -2,7 +2,13 @@ import { Checkbox as Base } from "@base-ui/react/checkbox"
 import { CheckboxGroup as BaseGroup } from "@base-ui/react/checkbox-group"
 import type { ComponentProps, ReactNode } from "react"
 import { cn } from "../../lib/cn"
-import { CHECK_BOX, SELECTION_CARD_SHELL } from "../../lib/selection-card"
+import {
+	CHECK_BOX,
+	SELECTION_CARD_GLYPH,
+	SELECTION_CARD_LAYOUT,
+	SELECTION_CARD_SHELL,
+	SELECTION_CARD_TILE_HEAD,
+} from "../../lib/selection-card"
 import { CheckboxMark } from "../checkbox/checkbox-mark"
 import {
 	type CheckboxCardTone,
@@ -119,30 +125,33 @@ export function CheckboxCard({
 	...props
 }: CheckboxCardProps) {
 	const t = checkboxCardToneClasses[tone]
+	const box = (
+		<span className={cn(CHECK_BOX, t.box)}>
+			<CheckboxMark className={t.check} />
+		</span>
+	)
 	return (
 		<Base.Root
 			className={cn(
 				SELECTION_CARD_SHELL,
-				"items-start gap-3 rounded-md",
-
+				icon != null ? SELECTION_CARD_LAYOUT.tile : SELECTION_CARD_LAYOUT.row,
 				t.card,
 				className,
 			)}
 			{...props}
 		>
-			{/* The box and the glyph sit on the title's first line — a box `1lh`
-			    tall in the title's tier, centred — rather than nudged down by a
-			    fixed margin that only matched one line height. */}
-			<span className="flex h-[1lh] shrink-0 items-center text-title-sm">
-				<span className={cn(CHECK_BOX, t.box)}>
-					<CheckboxMark className={t.check} />
-				</span>
-			</span>
 			{icon != null ? (
-				<span className="flex h-[1lh] shrink-0 items-center text-title-sm">
-					<span className={cn("text-xl leading-none", t.glyph)}>{icon}</span>
+				// The tile, as RadioCard draws it (lib/selection-card).
+				<span className={SELECTION_CARD_TILE_HEAD}>
+					<span className={cn(SELECTION_CARD_GLYPH, t.glyph)}>{icon}</span>
+					{box}
 				</span>
-			) : null}
+			) : (
+				// The box sits on the title's first line — a box `1lh` tall in the
+				// title's tier, centred — rather than nudged down by a fixed margin
+				// that only matched one line height.
+				<span className="flex h-[1lh] shrink-0 items-center text-title-sm">{box}</span>
+			)}
 			<span className="flex min-w-0 flex-1 flex-col gap-0.5">
 				<span className="text-title-sm">{title}</span>
 				{description ? (

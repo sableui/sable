@@ -300,10 +300,14 @@ export const HAIRLINE_VISIBILITY_FLOOR = 1.1
  *   separately. WCAG 2.4.11 concerns obscuration, not a numeric contrast floor;
  *   2.4.13 adds focus appearance requirements at AAA. A house pass here does
  *   not establish either criterion. https://www.w3.org/TR/WCAG22/#non-text-contrast
+ * - `control` — WCAG 1.4.11's 3:1, ratio only. For an edge that is the only
+ *   thing identifying a control (an unchecked checkbox or radio, an off switch
+ *   track): there is no perceptual arm, because nothing else on screen can
+ *   stand in for the boundary.
  * - `hairline` — the visibility floor above. A divider is entitled to be quiet;
  *   it is not entitled to be absent.
  */
-export type NonTextTier = "focus" | "hairline"
+export type NonTextTier = "focus" | "control" | "hairline"
 
 /**
  * Which structural tokens must be visible against which surfaces, and how hard.
@@ -329,6 +333,10 @@ export const NON_TEXT_PAIRS: Record<
 	// this whole defect class, since an invisible outline makes a text field
 	// indistinguishable from the surface it sits on.
 	input: { surfaces: ["background", "card", "popover", "muted"], tier: "hairline" },
+	// …and where the outline is the WHOLE control, the boundary is the 1.4.11 case
+	// with no softer reading: an unchecked checkbox at 1.4:1 is not a quiet
+	// checkbox, it is a missing one.
+	"control-border": { surfaces: ["background", "card", "popover", "muted"], tier: "control" },
 	ring: { surfaces: ["background", "card", "popover", "muted"], tier: "focus" },
 	// The sidebar family repeats the set against its own surface, which is exactly
 	// why it exists as a family (see token-docs: "tuned against `sidebar`").
@@ -353,6 +361,9 @@ export function evaluateNonTextContrast(
 	if (tier === "hairline") {
 		const passes = ratio >= HAIRLINE_VISIBILITY_FLOOR
 		return { ratio, lc, wcagRatioPasses, passes, basis: wcagRatioPasses ? "wcag" : passes ? "visibility" : "none" }
+	}
+	if (tier === "control") {
+		return { ratio, lc, wcagRatioPasses, passes: wcagRatioPasses, basis: wcagRatioPasses ? "wcag" : "none" }
 	}
 	if (wcagRatioPasses) return { ratio, lc, wcagRatioPasses, passes: true, basis: "wcag" }
 	if (Math.abs(lc) >= NON_TEXT_PERCEPTUAL_FLOOR && ratio >= NON_TEXT_HARD_FLOOR) {

@@ -24,15 +24,20 @@ export const BADGE_APPEARANCES = ["soft", "outline", "solid", "overlay", "plain"
 export type BadgeAppearance = (typeof BADGE_APPEARANCES)[number]
 
 const MATRIX: Record<BadgeAppearance, Record<BadgeTone, string>> = {
+	// The ink is the tone pulled a quarter of the way to the page's own ink. The
+	// raw tone clears 4.5:1 on the page, but on its own 15% wash it did not
+	// (light info 4.2:1, dark edition 3.6:1, most of Verdant's tones ~4.1:1).
+	// Mixing toward --foreground moves it AWAY from the wash in both modes and
+	// every theme, and keeps the hue.
 	soft: {
 		neutral: "bg-secondary text-secondary-foreground",
-		standard: "bg-tone-standard/15 text-tone-standard",
-		collectible: "bg-tone-collectible/15 text-tone-collectible",
-		edition: "bg-tone-edition/15 text-tone-edition",
-		info: "bg-tone-info/15 text-tone-info",
-		success: "bg-success/15 text-success",
-		warning: "bg-tone-warning/15 text-tone-warning",
-		destructive: "bg-destructive/15 text-destructive",
+		standard: "bg-tone-standard/15 text-[color-mix(in_oklch,var(--tone-standard)_75%,var(--foreground))]",
+		collectible: "bg-tone-collectible/15 text-[color-mix(in_oklch,var(--tone-collectible)_75%,var(--foreground))]",
+		edition: "bg-tone-edition/15 text-[color-mix(in_oklch,var(--tone-edition)_75%,var(--foreground))]",
+		info: "bg-tone-info/15 text-[color-mix(in_oklch,var(--tone-info)_75%,var(--foreground))]",
+		success: "bg-success/15 text-[color-mix(in_oklch,var(--success)_75%,var(--foreground))]",
+		warning: "bg-tone-warning/15 text-[color-mix(in_oklch,var(--tone-warning)_75%,var(--foreground))]",
+		destructive: "bg-destructive/15 text-[color-mix(in_oklch,var(--destructive)_75%,var(--foreground))]",
 	},
 	outline: {
 		neutral: "border border-border text-foreground",
@@ -80,7 +85,16 @@ export const badgeVariants = cva(
 	"sable-optical-pad [--sable-optical-pad:0.6em] inline-flex w-fit items-center whitespace-nowrap rounded-full",
 	{
 		variants: {
-			appearance: { soft: "gap-1", outline: "gap-1", solid: "gap-1", overlay: "gap-1", plain: "gap-1.5" },
+			// Every drawn appearance carries a 1px border — transparent unless it is
+			// the outline — so soft, solid and outline badges are one height in a
+			// mixed row (outline alone was a pixel taller).
+			appearance: {
+				soft: "gap-1 border border-transparent",
+				outline: "gap-1",
+				solid: "gap-1 border border-transparent",
+				overlay: "gap-1 border border-transparent",
+				plain: "gap-1.5",
+			},
 			tone: { neutral: "", standard: "", collectible: "", edition: "", info: "", success: "", warning: "", destructive: "" },
 			size: {
 				sm: "text-label-sm",

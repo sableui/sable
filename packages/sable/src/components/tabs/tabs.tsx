@@ -69,7 +69,9 @@ export function TabsTrigger({ className, children, ...props }: TriggerProps) {
 			className={cn(
 				"cursor-pointer text-label-lg text-muted-foreground motion-interactive hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[active]:text-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
 				variant === "underline"
-					? "-mb-px border-b-2 border-transparent px-3 py-2 data-[active]:border-foreground"
+					? // On the control ladder like the pill variant (it was py-2 plus
+					// the label's line, ~36px — no rung).
+					"-mb-px inline-flex h-(--control-md) items-center border-b-2 border-transparent px-3 data-[active]:border-foreground"
 					: "inline-flex h-(--control-sm) items-center rounded-sm px-3 data-[active]:bg-muted",
 				className,
 			)}

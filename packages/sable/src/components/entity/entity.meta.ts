@@ -37,7 +37,7 @@ export const entityMeta: ComponentMeta = {
 		],
 	},
 	related: {
-		components: ["Avatar", "Badge", "Description"],
+		components: ["Avatar", "Badge"],
 	},
 	props: [
 		{

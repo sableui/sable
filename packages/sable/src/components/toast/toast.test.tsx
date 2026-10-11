@@ -18,6 +18,18 @@ function mount() {
 	return renderWithProviders(<ToastProvider timeout={0} />)
 }
 
+describe("ToastViewport placement", () => {
+	it("portals out of the provider's subtree", async () => {
+		// Rendered in place, the fixed viewport anchored to any transformed
+		// ancestor — a route's enter animation put the stack mid-page.
+		const { container } = mount()
+		toast("Saved")
+		const row = (await screen.findByText("Saved")).closest("[role=dialog]") as HTMLElement
+		expect(container.contains(row)).toBe(false)
+		expect(document.body.contains(row)).toBe(true)
+	})
+})
+
 describe("ToastList actions", () => {
 	it("renders the action a toast was given", async () => {
 		mount()

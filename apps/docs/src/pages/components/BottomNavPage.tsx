@@ -61,8 +61,11 @@ export function BottomNavPage() {
 				description="Add captions when the icons alone aren't obvious."
 			>
 				<Example className="!block">
+					{/* The frame owns the edge: drop the nav's border-t so the top line
+					    isn't drawn twice, and its backdrop blur, which Chrome doesn't
+					    clip to the rounded corners and so paints over the border. */}
 					<div className="overflow-hidden rounded-lg border border-border">
-						<BottomNav className={DEMO_OVERRIDES}>
+						<BottomNav className={`${DEMO_OVERRIDES} border-t-0 backdrop-blur-none`}>
 							<BottomNavItem icon={<Icon name="home" />} label="Home" showLabel active />
 							<BottomNavItem icon={<Icon name="search" />} label="Explore" showLabel />
 							<BottomNavItem icon={<Icon name="image-stack" />} label="Library" showLabel />

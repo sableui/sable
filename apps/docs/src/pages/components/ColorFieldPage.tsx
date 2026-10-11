@@ -28,7 +28,7 @@ function ColorFieldDemo() {
 	return (
 		<div
 			data-density="compact"
-			className="w-65 overflow-hidden rounded-lg border border-border bg-panel"
+			className="sable-frame sable-frame-tool overflow-hidden w-65 bg-panel"
 		>
 			<PanelSection title="Canvas">
 				<PropertyRow label="Background">

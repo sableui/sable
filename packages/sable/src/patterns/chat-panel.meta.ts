@@ -13,7 +13,11 @@ export const chatPanelMeta: PatternMeta = {
 		"Region cap is `feed` (640px) — a conversation is a reading column, and the Bubble measure cap is tuned to the same assumption.",
 		"The composer sits outside the scroll region, in a bordered CardFooter, so it stays put while the transcript moves.",
 		"Grouping is derived from the data (`turns[i - 1].mine === turn.mine`) rather than hand-set, and the tail is dropped on continuations — that pairing is what makes a run read as one block.",
-		"The assistant's long-form answer uses `variant=\"plain\"`. A tinted box around a code block reads as a quote rather than as a turn.",
+		"What the assistant did before answering — a doc it read, a tool it ran — is a `Marker variant=\"note\"` in that message's `header`, so it reads as part of the turn rather than as an event between turns.",
+		"The assistant's long-form answer uses `variant=\"plain\"` and continues the same grouped run. A tinted box around a code block reads as a quote rather than as a turn. A plain Bubble sizes to its content with no measure cap, so it takes `max-w-full` here: bounded by the column, a wide code line scrolls inside the CodeBlock instead of pushing the transcript sideways on a phone.",
+		"A settled answer carries its actions (copy, regenerate) in the Message `footer` as a `Toolbar` of icon `ToolbarButton`s with tooltips — one tab stop, arrow keys between them. The answer still streaming has none: there is nothing to copy or regenerate until it settles, and Stop lives in the composer.",
+		"One turn, one Message: the reader's question and the file it refers to stack inside a single end-aligned Message rather than being sent as two.",
+		"Assistant turns share one Avatar with a glyph fallback and `alt=\"Assistant\"` — initials like \"AI\" read as a person, and a fallback-only avatar is otherwise unnamed.",
 		"The answer in flight is a `StreamingText` in a `plain` Bubble, and ONE `pending` flag drives both it and the composer's `busy`. They are the same wait reported at the two ends of the panel; letting them drift gives you a composer still saying 'sending' under an answer that already finished.",
 		"A spinner `Marker` (or `ThinkingOrb`) belongs BEFORE the first token and is replaced once tokens land, not kept alongside. Two indicators for one wait read as two things happening — which is also why `StreamingText` takes `caret={false}` when something adjacent already reports it.",
 		"MessageScroller needs no configuring for this: it re-follows on \"a message grew\" (ResizeObserver) as well as \"a message arrived\", so the newest token stays pinned while a reader who has scrolled up is left alone.",
@@ -22,6 +26,6 @@ export const chatPanelMeta: PatternMeta = {
 	a11y: [
 		"The panel header's title is the page's <h1> (an h1 inside CardTitle, which carries the type); the transcript is a scroll region with native overflow, so keyboard scrolling works unchanged.",
 		"The answer in flight carries `aria-busy` rather than sitting in a live region. That is deliberate: a live region around streamed text announces every token, which is unusable. Announce once when the turn settles, from whatever owns the turn — the incomplete state is still exposed, just not narrated.",
-		"The composer is a real <form> whose Enter handling skips IME composition, and every icon-only control in the panel carries an accessible label.",
+		"The composer is a real <form> whose Enter handling skips IME composition, and every icon-only control in the panel carries an accessible label — the answer actions also carry a tooltip, and the stop control is named for what it stops (`stopLabel=\"Stop answering\"`).",
 	],
 }

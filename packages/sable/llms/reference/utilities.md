@@ -26,7 +26,7 @@ The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, wh
     - **Instead of** `bg-muted`, which is fixed: inside a popover it can sit within a step of the panel in some dark modes. And never a hand-mixed `color-mix(… var(--foreground) …)` or an outline on every well to compensate — that turns a panel into a stack of boxes. For a segmented control itself, use `ToggleGroup`; the well is for what no component draws.
     - `<div className="sable-well rounded-md p-1">…</div>`
 
-### frame (6)
+### frame (7)
 
 - **`sable-frame`** — A bordered, padded, rounded container that computes the radius its children need: `--sable-frame-inner-radius` = radius − padding − border width, floored at `radius-sm`. *Use for:* A container whose children have their own rounded backgrounds (rows, tiles, a nested preview), so the corners nest concentrically and keep doing so when the radius ladder is rescaled. Defaults: `radius-lg`, `--spacing(4)` padding (1rem at the default scale, and it follows the density control), a 1px edge from the surface (`--sable-surface-edge`, else `border`). Size it with `sable-frame-r-*` / `sable-frame-p-*`; children take `sable-frame-inner`.
     - **Instead of** `rounded-lg p-4 border` on the parent plus a guessed `rounded-sm` on each child — the guess is concentric only at the default ladder. For a one-off nested corner without a frame, `rounded-concentric-*`.
@@ -34,6 +34,9 @@ The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, wh
 - **`sable-frame-popover`** — The popup frame recipe: `radius-md`, `--spacing(1)` padding, the `border-floating` edge and `shadow-lg`, applied over `sable-frame`. *Use for:* A hand-composed floating list or panel that must match Sable's menus (with `sable-frame sable-surface sable-surface-popover`); rows inside take `sable-frame-inner`.
     - **Instead of** Copying a Menu's class string. And use `Menu`, `Select`, `Popover` or `Combobox` first — they own focus and dismissal; this is only for floating chrome no component covers.
     - `<div className="sable-frame sable-surface sable-surface-popover sable-frame-popover">…</div>`
+- **`sable-frame-tool`** — The frame for edge-to-edge tool chrome at the theme's radius, with no padding. It publishes concentric geometry for what's inside: `--panel-inset` (row side padding, grown so rows clear the corner), `--panel-field-radius` (compact fields curve parallel to the frame) and `--panel-edge` (the first and last section's extra top and bottom). PanelSection and the xs field shell read them. Applied over `sable-frame`. *Use for:* Framing PanelSections, ScrubFields, a Tree, a StatusBar or a PanelGroup outside a Workspace (a docs demo, a floating inspector). Add `overflow-hidden` to clip to the corners.
+    - **Instead of** `rounded-lg border overflow-hidden` by hand: the panel keeps its square-column 8px inset and small field radius, so a rounded preset crowds the first label and last field into the curve.
+    - `<div className="sable-frame sable-frame-tool overflow-hidden bg-panel" data-density="compact"><PanelSection title="Layer">…</PanelSection></div>`
 - **`sable-frame-borderless`** — Sets a `sable-frame`'s border width to 0 while keeping the inner-radius math correct. *Use for:* A frame that separates by fill or space rather than an edge (a well, a tinted group) but still needs concentric children.
     - **Instead of** `border-0` on a `sable-frame`, which removes the border but leaves 1px in the inner-radius calculation.
     - `<div className="sable-frame sable-frame-borderless sable-well sable-frame-r-md sable-frame-p-1">…</div>`
@@ -49,14 +52,14 @@ The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, wh
 
 ### geometry (4)
 
-- **`rounded-concentric-*`** — A border radius computed as an outer radius minus an inset: `rounded-concentric-<radius>/<spacing>`, clamped at zero. `rounded-concentric-md/1` = `radius-md` − `spacing-1`. *Use for:* A one-off rounded element nested inside another — a tab trigger inside a tab list, a thumb inside a track, a row inside a well — where a `sable-frame` would be overkill. The outer radius and the inset are the parent's.
+- **`rounded-concentric-*`** — A border radius computed as an outer radius minus an inset: `rounded-concentric-<radius>/<spacing>`, floored at `radius-xs` so a deep inset never leaves a 1-2px sliver. `rounded-concentric-md/1` = `radius-md` − `spacing-1`. *Use for:* A one-off rounded element nested inside another — a tab trigger inside a tab list, a thumb inside a track, a row inside a well — where a `sable-frame` would be overkill. The outer radius and the inset are the parent's.
     - **Instead of** Picking the next ladder step down by eye (`rounded-sm` inside `rounded-md p-1`). That is concentric only at the default ladder; the utility recomputes from live tokens. Registered in `cn()` as a radius, so it correctly overrides a component's own `rounded-*`.
     - `<div className="sable-well rounded-md p-1"><button className="rounded-concentric-md/1 px-2 py-1">…</button></div>`
 - **`popup-inset`** — The padding of a popup list, derived from the popup's radius: a third of `radius-md`, at least `--spacing(1)`. A rounder popup gets more room, and the floor is on the spacing scale, so the density control moves it. *Use for:* On a hand-composed rounded-md popup that holds a list of rows. Sable's Menu, Select, Combobox and ContextMenu already use it.
     - **Instead of** `p-1`. A fixed inset at a larger radius preset leaves the rows' corners approaching half their height, so every row turns into a pill.
     - `<div className="rounded-md bg-popover popup-inset shadow-md">…</div>`
 - **`rounded-popup-item`** — The row radius that nests inside a `popup-inset` popup: `radius-md` minus the popup inset, clamped at zero. *Use for:* On every row inside a `popup-inset` container.
-    - **Instead of** `rounded-sm` on menu rows, which matches only the default ladder (12px popup, 4px inset, 8px rows).
+    - **Instead of** `rounded-sm` on menu rows, which matches no ladder exactly (a 12px popup with a 4px inset and 1px border wants 7px rows).
     - `<div role="option" className="rounded-popup-item px-2 py-1.5 sable-highlighted:bg-accent">…</div>`
 - **`popup-bleed`** — A negative inline margin of exactly one `popup-inset`, so a separator inside a padded popup runs edge to edge at every radius and density. *Use for:* On a hand-composed separator (a 1px rule) inside a `popup-inset` popup. Sable's MenuSeparator, ContextMenuSeparator and SelectSeparator already use it.
     - **Instead of** `-mx-1`, which matches the inset only at the default ladder and stops short of both edges once a rounder preset or a roomier density grows it. design-lint flags it (`popup-separator-bleed`).
@@ -89,8 +92,20 @@ The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, wh
     - **Instead of** `scrollbar-quiet` on a vertical list. A vertical region with no bar and no fade tells a reader nothing about how far through they are.
     - `<div className="flex gap-3 overflow-x-auto scrollbar-hidden">…</div>`
 
-### text (8)
+### text (12)
 
+- **`sable-list`** — A bulleted list as typography: body type, a hanging muted marker, and item rhythm. Put it on a native `<ul>`. *Use for:* Running content with bullets: release notes, a feature list, steps that are not ordered.
+    - **Instead of** A stack of `<div>`s with a hand-drawn dot, or an unstyled `<ul>` that inherits the reset (no markers, no indent).
+    - `<ul className="sable-list"><li>Faster sync</li><li>Offline drafts</li></ul>`
+- **`sable-list-numbered`** — A numbered list as typography: `sable-list` with decimal markers in tabular figures. Put it on a native `<ol>`. *Use for:* Ordered content in running text: setup steps, a ranked list. For a stepped flow with state, use Stepper.
+    - **Instead of** Numbers typed into the text, which neither renumber nor read as a list to assistive tech.
+    - `<ol className="sable-list-numbered"><li>Install</li><li>Import the styles</li></ol>`
+- **`sable-list-dl`** — Label/value pairs on a native `<dl>`: muted label-tier `<dt>`s and body-tier `<dd>`s on a baseline-aligned two-column grid; long values wrap inside their column. Colour a status value with a `text-*` utility on its `<dd>`. *Use for:* Read-only details: an order summary, a record's metadata, a settings summary, profile stats.
+    - **Instead of** A grid of `<div>`s (screen readers lose the term/value pairing), or Table for a single record. For editable values use Form and Field.
+    - `<dl className="sable-list-dl"><dt>Network</dt><dd>Solana</dd><dt>Status</dt><dd className="text-success">Active</dd></dl>`
+- **`sable-list-dl-2`** — Two label/value pairs a row once the nearest `@container` ancestor is at least 28rem wide. Add to `sable-list-dl`. *Use for:* A compact metadata block in a wide card or panel. Put `@container` on a parent so it measures the room it actually has.
+    - **Instead of** A viewport breakpoint, which gives a narrow card on a wide screen four columns it cannot fit.
+    - `<div className="@container"><dl className="sable-list-dl sable-list-dl-2">…</dl></div>`
 - **`text-overline`** — The eyebrow / overline / kicker tier: small, letter-spaced, uppercase by default (a theme may set sentence case via `--type-overline-transform`). *Use for:* A section eyebrow above a heading, a stat's label, a badge-style category line. Sits ABOVE and categorises.
     - **Instead of** `text-label-xs uppercase tracking-wider` assembled by hand, or `text-caption`, which sits BELOW and explains. In tool chrome, panel headers use `text-ui-section` instead.
     - `<p className="text-overline text-muted-foreground">Latest news</p>`

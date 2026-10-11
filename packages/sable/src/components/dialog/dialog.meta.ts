@@ -133,7 +133,7 @@ export const dialogMeta: ComponentMeta = {
 			name: "DialogOverlay",
 			type: 'Base UI Backdrop props + size?: "default" | "fullscreen" + className',
 			description:
-				"The styleable scrim/backdrop — bg-overlay/50 by default, near-opaque bg-overlay/95 at size=\"fullscreen\". Composed into DialogContent (at the matching size) by default; exported for manual styling.",
+				"The styleable scrim/backdrop — bg-overlay/(--scrim-alpha) by default (50% light, 72% dark, so it dims a near-black page as visibly as a white one), near-opaque bg-overlay/95 at size=\"fullscreen\". Composed into DialogContent (at the matching size) by default; exported for manual styling.",
 		},
 		{
 			name: "DialogTrigger",

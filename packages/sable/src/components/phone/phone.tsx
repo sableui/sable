@@ -56,7 +56,11 @@ export function Phone({ statusBar = true, systemChrome = true, className, childr
 			    the two stay concentric. The inset ring is the titanium band: dark
 			    hardware on a dark page reads by its edge, as a real phone does. */}
 			<div className="relative rounded-[18cqi] bg-(--phone-body) p-[3.7cqi] shadow-xl ring-[0.5cqi] ring-(--phone-band) ring-inset">
-				<div className="relative aspect-[402/874] overflow-hidden rounded-[14.3cqi] bg-background text-foreground">
+				{/* clip-path as well as overflow-hidden: Chrome does not clip a
+				    backdrop-filter child (a blurred BottomNav) to a rounded
+				    overflow-hidden parent, and its square corners poked past the
+				    screen's curve. A clip-path does clip it. */}
+				<div className="relative aspect-[402/874] overflow-hidden rounded-[14.3cqi] bg-background text-foreground [clip-path:inset(0_round_14.3cqi)]">
 					<div className={cn("h-full overflow-auto overscroll-contain scrollbar-hidden", statusBar && "pt-[14.3cqi]")}>
 						{children}
 					</div>

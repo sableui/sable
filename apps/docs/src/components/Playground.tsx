@@ -216,7 +216,7 @@ function ControlRow({
 		</label>
 	)
 	return (
-		<div className="flex min-h-(--control-sm) items-center justify-between gap-3 py-1.5">
+		<div className="flex min-h-(--control-md) items-center justify-between gap-3 py-1.5">
 			{label}
 			{control.kind === "boolean" ? (
 				<Switch id={id} checked={value === true} onCheckedChange={(checked: boolean) => onChange(checked)} />
@@ -238,7 +238,10 @@ function ControlRow({
 					onValueChange={(next) => typeof next === "string" && onChange(next)}
 					items={control.options.map((option) => ({ value: option, label: humanize(option) }))}
 				>
-					<SelectTrigger id={id} size="xs" className="w-40" />
+					{/* The form field, like the Text input above it — the xs rung is the
+					    tool-panel field (a fill with no edge), and on a tinted panel like
+					    Poppy's it all but vanished. */}
+					<SelectTrigger id={id} className="w-40" />
 					<SelectContent>
 						{control.options.map((option) => (
 							<SelectItem key={option} value={option} label={humanize(option)}>
@@ -356,7 +359,7 @@ export function Playground({
 						</Button>
 					</div>
 					{initialText !== undefined ? (
-						<div className="flex min-h-(--control-sm) items-center justify-between gap-3 py-1.5">
+						<div className="flex min-h-(--control-md) items-center justify-between gap-3 py-1.5">
 							<label htmlFor="playground-children" className="text-body-sm text-muted-foreground" title="children">
 								Text
 							</label>
@@ -364,12 +367,12 @@ export function Playground({
 								id="playground-children"
 								value={text}
 								onChange={(event) => setText(event.target.value)}
-								className="h-(--control-sm) w-40"
+								className="w-40"
 							/>
 						</div>
 					) : null}
 					{slots.map((slot) => (
-						<div key={slot.prop} className="flex min-h-(--control-sm) items-center justify-between gap-3 py-1.5">
+						<div key={slot.prop} className="flex min-h-(--control-md) items-center justify-between gap-3 py-1.5">
 							<label htmlFor={`playground-slot-${slot.prop}`} className="text-body-sm text-muted-foreground" title={slot.prop}>
 								{slot.label}
 							</label>

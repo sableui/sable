@@ -26,8 +26,22 @@ describe("typography art direction", () => {
 		const properties = { size: "font-size", weight: "font-weight", leading: "line-height", tracking: "letter-spacing" }
 		for (const [, tier, block] of utilities.filter((utility) => /^(body|label|caption|mono)(-|$)/.test(utility[1]))) {
 			for (const [suffix, property] of Object.entries(properties)) {
-				expect(block, `${tier} ${property}`).toContain(`${property}: var(--type-${tier}-${suffix},`)
+				// Leading is the theme's ratio, snapped to the 0.25rem grid.
+				const expected =
+					suffix === "leading"
+						? `line-height: round(nearest, calc(var(--type-${tier}-leading,`
+						: `${property}: var(--type-${tier}-${suffix},`
+				expect(block, `${tier} ${property}`).toContain(expected)
 			}
+		}
+	})
+
+	it("puts every page-tier leading on the 0.25rem grid, keeping the theme's ratio", () => {
+		const page = utilities.filter((utility) => !utility[1].startsWith("ui-"))
+		for (const [, tier, block] of page) {
+			const leading = block.match(/line-height:\s*([^;]+);/)?.[1]
+			if (!leading) continue
+			expect(leading, tier).toMatch(/^round\(nearest, calc\(var\(--type-[\w-]+-leading, [\d.]+\) \* 1em\), 0\.25rem\)$/)
 		}
 	})
 

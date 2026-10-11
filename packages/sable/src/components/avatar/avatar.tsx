@@ -75,7 +75,8 @@ type FallbackProps = Omit<ComponentProps<typeof Base.Fallback>, "className"> & {
 export function AvatarFallback({ className, ...props }: FallbackProps) {
 	return (
 		<Base.Fallback
-			className={cn("text-label-md text-muted-foreground", className)}
+			// Type comes from the root's size (avatarVariants).
+			className={cn("text-muted-foreground", className)}
 			{...props}
 		/>
 	)
@@ -132,9 +133,13 @@ export function Avatar({
 	return (
 		<span data-slot="avatar-status-anchor" className={cn("relative inline-flex shrink-0 rounded-full", className)}>
 			{avatar}
+			{/* Centred ON the circle's rim at 45°, not in the bounding box's corner
+			    (which lies ~15% of the size outside the circle, so the dot floated
+			    off it): r(1 − 1/√2) ≈ 14.6% in from each edge, then pulled back by
+			    half its own size. */}
 			<span
 				data-slot="avatar-status"
-				className="absolute end-0 bottom-0 flex rounded-full *:ring-2 *:ring-[color:var(--avatar-group-ring,var(--background))]"
+				className="absolute end-[14.6%] bottom-[14.6%] flex translate-x-1/2 translate-y-1/2 rounded-full rtl:-translate-x-1/2 *:ring-2 *:ring-[color:var(--avatar-group-ring,var(--background))]"
 			>
 				{status}
 			</span>
@@ -165,7 +170,7 @@ export function AvatarGroupCount({
 }: AvatarGroupCountProps) {
 	return (
 		<AvatarRoot className={className} {...props}>
-			<span aria-hidden className="text-label-md text-muted-foreground">
+			<span aria-hidden className="text-muted-foreground">
 				+{count}
 			</span>
 			<span className="sr-only">{label ?? `and ${count} more`}</span>

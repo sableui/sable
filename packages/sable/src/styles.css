@@ -52,8 +52,8 @@
 
 	/* Elevation — theme-provided so docs/app shells can express a different surface
 	   feel without touching component code. */
-	--shadow-sm: var(--theme-shadow-sm, 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.03));
-	--shadow: var(--theme-shadow, 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 2px 6px -1px rgb(0 0 0 / 0.05));
+	--shadow-sm: var(--theme-shadow-sm, 0 1px 2px 0 rgb(0 0 0 / 0.05));
+	--shadow: var(--theme-shadow, 0 1px 2px 0 rgb(0 0 0 / 0.05), 0 3px 8px -2px rgb(0 0 0 / 0.08));
 	--shadow-md: var(--theme-shadow-md, 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 4px 8px -2px rgb(0 0 0 / 0.06), 0 12px 24px -6px rgb(0 0 0 / 0.07));
 	--shadow-lg: var(--theme-shadow-lg, 0 2px 4px 0 rgb(0 0 0 / 0.04), 0 8px 16px -4px rgb(0 0 0 / 0.07), 0 24px 48px -12px rgb(0 0 0 / 0.11));
 	--shadow-xl: var(--theme-shadow-xl, 0 2px 4px 0 rgb(0 0 0 / 0.04), 0 12px 24px -6px rgb(0 0 0 / 0.08), 0 32px 64px -16px rgb(0 0 0 / 0.13));
@@ -81,6 +81,7 @@
 	--color-border-strong: var(--border-strong);
 	--color-border-floating: var(--border-floating);
 	--color-input: var(--input);
+	--color-control-border: var(--control-border);
 	--color-ring: var(--ring);
 
 	/* Sidebar set */
@@ -158,6 +159,27 @@
 	--z-overlay: 50; /* portaled transient surfaces: dialog, sheet, popover, menu, tooltip */
 	--z-toast: 60; /* toasts — above modals so they're never hidden */
 	--z-skip-link: 100; /* the skip-to-content link — above all chrome */
+}
+
+/* ==========================================================================
+   Scrim strength — how much a modal's backdrop (`bg-overlay/(--scrim-alpha)`)
+   dims what is behind it, per mode.
+
+   `--overlay` is near-black in every theme and mode, which is right for a
+   scrim. But a dark page is near-black too: Base's dark `--background` IS its
+   `--overlay`, so a 50% scrim over it changed nothing, and with a dialog open
+   the page's text stayed at nearly full strength — while foundations/surfaces
+   calls the scrim "the primary depth cue" for a modal. Dark mode needs more of
+   the same scrim to dim the lighter things (cards, text, imagery) by as much.
+   A token rather than a `dark:` variant, like everything else mode-dependent.
+   ========================================================================== */
+
+:root,
+.light {
+	--scrim-alpha: 50%;
+}
+.dark {
+	--scrim-alpha: 72%;
 }
 
 /* ==========================================================================
@@ -319,41 +341,50 @@
    Typography — six tiers. Each utility bundles size + weight + line-height +
    tracking. Compose with color/margin only; never override the four paired
    properties individually. Mono uses the theme's --font-mono.
+
+   Leading is authored as a RATIO (the `--type-*-leading` hooks every theme
+   tunes) and rendered on the 0.25rem grid: `round(nearest, ratio × 1em,
+   0.25rem)`. Ratios alone landed almost nowhere on the grid DESIGN.md
+   promises (15px body at 1.55 = 23.25px, a 36px h1 at 1.15 = 41.4px), so
+   stacked text drifted off the vertical rhythm a fraction of a pixel per
+   line. Rounding keeps each tier's (and each theme's) intended proportion and
+   snaps the result — 24px and 40px there — at any root size, because the grid
+   step is in rem too. The `ui-*` tier is already whole px on the grid.
    ========================================================================== */
 
 @utility text-display-4xl {
 	font-family: var(--font-display, var(--font-sans));
 	font-size: var(--type-display-4xl-size, clamp(4.5rem, 12vw, 12rem));
 	font-weight: var(--type-display-4xl-weight, 800);
-	line-height: var(--type-display-4xl-leading, 0.9);
+	line-height: round(nearest, calc(var(--type-display-4xl-leading, 0.9) * 1em), 0.25rem);
 	letter-spacing: var(--type-display-4xl-tracking, -0.05em);
 }
 @utility text-display-3xl {
 	font-family: var(--font-display, var(--font-sans));
 	font-size: var(--type-display-3xl-size, 6rem);
 	font-weight: var(--type-display-3xl-weight, 700);
-	line-height: var(--type-display-3xl-leading, 0.95);
+	line-height: round(nearest, calc(var(--type-display-3xl-leading, 0.95) * 1em), 0.25rem);
 	letter-spacing: var(--type-display-3xl-tracking, -0.045em);
 }
 @utility text-display-2xl {
 	font-family: var(--font-display, var(--font-sans));
 	font-size: var(--type-display-2xl-size, 4.5rem);
 	font-weight: var(--type-display-2xl-weight, 700);
-	line-height: var(--type-display-2xl-leading, 1);
+	line-height: round(nearest, calc(var(--type-display-2xl-leading, 1) * 1em), 0.25rem);
 	letter-spacing: var(--type-display-2xl-tracking, -0.04em);
 }
 @utility text-display-xl {
 	font-family: var(--font-display, var(--font-sans));
 	font-size: var(--type-display-xl-size, 3.75rem);
 	font-weight: var(--type-display-xl-weight, 700);
-	line-height: var(--type-display-xl-leading, 1.05);
+	line-height: round(nearest, calc(var(--type-display-xl-leading, 1.05) * 1em), 0.25rem);
 	letter-spacing: var(--type-display-xl-tracking, -0.035em);
 }
 @utility text-display-lg {
 	font-family: var(--font-display, var(--font-sans));
 	font-size: var(--type-display-lg-size, 3rem);
 	font-weight: var(--type-display-lg-weight, 700);
-	line-height: var(--type-display-lg-leading, 1.1);
+	line-height: round(nearest, calc(var(--type-display-lg-leading, 1.1) * 1em), 0.25rem);
 	letter-spacing: var(--type-display-lg-tracking, -0.03em);
 }
 
@@ -361,28 +392,28 @@
 	font-family: var(--font-display, var(--font-sans));
 	font-size: var(--type-heading-1-size, 2.25rem);
 	font-weight: var(--type-heading-weight, 600);
-	line-height: var(--type-heading-1-leading, 1.15);
+	line-height: round(nearest, calc(var(--type-heading-1-leading, 1.15) * 1em), 0.25rem);
 	letter-spacing: var(--type-heading-1-tracking, -0.025em);
 }
 @utility text-heading-2 {
 	font-family: var(--font-display, var(--font-sans));
 	font-size: var(--type-heading-2-size, 1.75rem);
 	font-weight: var(--type-heading-weight, 600);
-	line-height: var(--type-heading-2-leading, 1.2);
+	line-height: round(nearest, calc(var(--type-heading-2-leading, 1.2) * 1em), 0.25rem);
 	letter-spacing: var(--type-heading-2-tracking, -0.02em);
 }
 @utility text-heading-3 {
 	font-family: var(--font-display, var(--font-sans));
 	font-size: var(--type-heading-3-size, 1.375rem);
 	font-weight: var(--type-heading-weight, 600);
-	line-height: var(--type-heading-3-leading, 1.25);
+	line-height: round(nearest, calc(var(--type-heading-3-leading, 1.25) * 1em), 0.25rem);
 	letter-spacing: var(--type-heading-3-tracking, -0.015em);
 }
 @utility text-heading-4 {
 	font-family: var(--font-display, var(--font-sans));
 	font-size: var(--type-heading-4-size, 1.125rem);
 	font-weight: var(--type-heading-weight, 600);
-	line-height: var(--type-heading-4-leading, 1.3);
+	line-height: round(nearest, calc(var(--type-heading-4-leading, 1.3) * 1em), 0.25rem);
 	letter-spacing: var(--type-heading-4-tracking, -0.01em);
 }
 
@@ -397,13 +428,13 @@
 @utility text-title-lg {
 	font-size: var(--type-title-lg-size, 1rem);
 	font-weight: var(--type-title-weight, 600);
-	line-height: var(--type-title-leading, 1.4);
+	line-height: round(nearest, calc(var(--type-title-leading, 1.4) * 1em), 0.25rem);
 	letter-spacing: var(--type-title-tracking, -0.01em);
 }
 @utility text-title-sm {
 	font-size: var(--type-title-sm-size, 0.875rem);
 	font-weight: var(--type-title-weight, 600);
-	line-height: var(--type-title-leading, 1.4);
+	line-height: round(nearest, calc(var(--type-title-leading, 1.4) * 1em), 0.25rem);
 	letter-spacing: var(--type-title-sm-tracking, -0.005em);
 }
 
@@ -422,20 +453,20 @@
 @utility text-body-lg {
 	font-size: var(--type-body-lg-size, 1.0625rem);
 	font-weight: var(--type-body-lg-weight, 400);
-	line-height: var(--type-body-lg-leading, 1.6);
+	line-height: round(nearest, calc(var(--type-body-lg-leading, 1.6) * 1em), 0.25rem);
 	letter-spacing: var(--type-body-lg-tracking, -0.005em);
 	text-wrap: pretty;
 }
 @utility text-body-md {
 	font-size: var(--type-body-md-size, 0.9375rem);
 	font-weight: var(--type-body-md-weight, 400);
-	line-height: var(--type-body-md-leading, 1.55);
+	line-height: round(nearest, calc(var(--type-body-md-leading, 1.55) * 1em), 0.25rem);
 	letter-spacing: var(--type-body-md-tracking, -0.005em);
 }
 @utility text-body-sm {
 	font-size: var(--type-body-sm-size, 0.8125rem);
 	font-weight: var(--type-body-sm-weight, 400);
-	line-height: var(--type-body-sm-leading, 1.5);
+	line-height: round(nearest, calc(var(--type-body-sm-leading, 1.5) * 1em), 0.25rem);
 	letter-spacing: var(--type-body-sm-tracking, 0);
 }
 /* The dense floor of the body ramp — running text in operator consoles,
@@ -444,26 +475,104 @@
 @utility text-body-xs {
 	font-size: var(--type-body-xs-size, 0.75rem);
 	font-weight: var(--type-body-xs-weight, 400);
-	line-height: var(--type-body-xs-leading, 1.5);
+	line-height: round(nearest, calc(var(--type-body-xs-leading, 1.5) * 1em), 0.25rem);
 	letter-spacing: var(--type-body-xs-tracking, 0);
+}
+
+/* ==========================================================================
+   Lists — typography for semantic HTML lists, not components. A list is text
+   with structure, so it is styled where the rest of the type is: put the class
+   on the native <ul>, <ol> or <dl> and keep the elements' own semantics.
+
+   - sable-list / sable-list-numbered: body type, a hanging marker in the muted
+     ink (the marker is punctuation, not content), and the same rhythm between
+     items as between a stacked label and its control.
+   - sable-list-dl: label/value pairs on a two-column grid — muted label tier
+     for the <dt>, body tier for the <dd>, aligned on the baseline. A long
+     unbroken value (an address, a hash, a URL) wraps inside its column rather
+     than widening the grid. Colour a status value with a text-* utility on the
+     <dd> (text-success, text-destructive…).
+   - sable-list-dl-2: two pairs a row once the nearest @container ancestor is
+     at least 28rem wide — the room the list actually has, not the viewport, so
+     it does not overflow a narrow card on a wide screen.
+   Compact density retunes all of them with the rest of the type (see the
+   [data-density="compact"] block).
+   ========================================================================== */
+@utility sable-list {
+	list-style: disc;
+	padding-inline-start: 1.25em;
+	font-size: var(--type-body-md-size, 0.9375rem);
+	line-height: round(nearest, calc(var(--type-body-md-leading, 1.55) * 1em), 0.25rem);
+	color: var(--foreground);
+	& > li + li {
+		margin-block-start: --spacing(1.5);
+	}
+	& > li::marker {
+		color: var(--muted-foreground);
+	}
+}
+@utility sable-list-numbered {
+	list-style: decimal;
+	padding-inline-start: 1.5em;
+	font-size: var(--type-body-md-size, 0.9375rem);
+	line-height: round(nearest, calc(var(--type-body-md-leading, 1.55) * 1em), 0.25rem);
+	color: var(--foreground);
+	& > li + li {
+		margin-block-start: --spacing(1.5);
+	}
+	& > li::marker {
+		color: var(--muted-foreground);
+		font-variant-numeric: tabular-nums;
+	}
+}
+@utility sable-list-dl {
+	display: grid;
+	grid-template-columns: max-content minmax(0, 1fr);
+	align-items: baseline;
+	column-gap: --spacing(6);
+	row-gap: --spacing(3);
+	/* The values' type and ink live on the list and the <dd>s inherit them, so a
+	   text-* utility on a <dd> (text-success, text-mono-md) simply wins. The term
+	   and the wrapping rules sit in :where(), which adds no specificity. */
+	font-size: var(--type-body-md-size, 0.9375rem);
+	line-height: round(nearest, calc(var(--type-body-md-leading, 1.55) * 1em), 0.25rem);
+	letter-spacing: var(--type-body-md-tracking, -0.005em);
+	color: var(--foreground);
+	& > :where(dt) {
+		font-size: var(--type-label-md-size, 0.75rem);
+		font-weight: var(--type-label-md-weight, 600);
+		line-height: round(nearest, calc(var(--type-label-md-leading, 1.2) * 1em), 0.25rem);
+		letter-spacing: var(--type-label-md-tracking, 0);
+		color: var(--muted-foreground);
+	}
+	& > :where(dd) {
+		margin: 0;
+		min-width: 0;
+		overflow-wrap: break-word;
+	}
+}
+@utility sable-list-dl-2 {
+	@container (min-width: 28rem) {
+		grid-template-columns: max-content minmax(0, 1fr) max-content minmax(0, 1fr);
+	}
 }
 
 @utility text-label-lg {
 	font-size: var(--type-label-lg-size, 0.875rem);
 	font-weight: var(--type-label-lg-weight, 600);
-	line-height: var(--type-label-lg-leading, 1.25);
+	line-height: round(nearest, calc(var(--type-label-lg-leading, 1.25) * 1em), 0.25rem);
 	letter-spacing: var(--type-label-lg-tracking, -0.005em);
 }
 @utility text-label-md {
 	font-size: var(--type-label-md-size, 0.75rem);
 	font-weight: var(--type-label-md-weight, 600);
-	line-height: var(--type-label-md-leading, 1.2);
+	line-height: round(nearest, calc(var(--type-label-md-leading, 1.2) * 1em), 0.25rem);
 	letter-spacing: var(--type-label-md-tracking, 0);
 }
 @utility text-label-sm {
 	font-size: var(--type-label-sm-size, 0.6875rem);
 	font-weight: var(--type-label-sm-weight, 600);
-	line-height: var(--type-label-sm-leading, 1.2);
+	line-height: round(nearest, calc(var(--type-label-sm-leading, 1.2) * 1em), 0.25rem);
 	letter-spacing: var(--type-label-sm-tracking, 0);
 }
 /* Sentence case like every other label (UI text is sentence case). The
@@ -473,14 +582,14 @@
 @utility text-label-xs {
 	font-size: var(--type-label-xs-size, 0.6875rem);
 	font-weight: var(--type-label-xs-weight, 600);
-	line-height: var(--type-label-xs-leading, 1.2);
+	line-height: round(nearest, calc(var(--type-label-xs-leading, 1.2) * 1em), 0.25rem);
 	letter-spacing: var(--type-label-xs-tracking, 0.01em);
 	text-transform: var(--type-label-xs-transform, none);
 }
 @utility text-caption {
 	font-size: var(--type-caption-size, 0.75rem);
 	font-weight: var(--type-caption-weight, 400);
-	line-height: var(--type-caption-leading, 1.4);
+	line-height: round(nearest, calc(var(--type-caption-leading, 1.4) * 1em), 0.25rem);
 	letter-spacing: var(--type-caption-tracking, 0);
 }
 
@@ -491,7 +600,7 @@
 @utility text-overline {
 	font-size: var(--type-overline-size, 0.75rem);
 	font-weight: var(--type-overline-weight, 600);
-	line-height: var(--type-overline-leading, 1.2);
+	line-height: round(nearest, calc(var(--type-overline-leading, 1.2) * 1em), 0.25rem);
 	letter-spacing: var(--type-overline-tracking, 0.08em);
 	text-transform: var(--type-overline-transform, uppercase);
 }
@@ -503,7 +612,7 @@
 	font-family: var(--font-mono);
 	font-size: var(--type-mono-xl-size, 1.75rem);
 	font-weight: var(--type-mono-xl-weight, 500);
-	line-height: var(--type-mono-xl-leading, 1.15);
+	line-height: round(nearest, calc(var(--type-mono-xl-leading, 1.15) * 1em), 0.25rem);
 	letter-spacing: var(--type-mono-xl-tracking, -0.01em);
 	font-variant-numeric: tabular-nums;
 }
@@ -511,7 +620,7 @@
 	font-family: var(--font-mono);
 	font-size: var(--type-mono-lg-size, 1.25rem);
 	font-weight: var(--type-mono-lg-weight, 500);
-	line-height: var(--type-mono-lg-leading, 1.25);
+	line-height: round(nearest, calc(var(--type-mono-lg-leading, 1.25) * 1em), 0.25rem);
 	letter-spacing: var(--type-mono-lg-tracking, 0);
 	font-variant-numeric: tabular-nums;
 }
@@ -519,7 +628,7 @@
 	font-family: var(--font-mono);
 	font-size: var(--type-mono-md-size, 0.8125rem);
 	font-weight: var(--type-mono-md-weight, 400);
-	line-height: var(--type-mono-md-leading, 1.5);
+	line-height: round(nearest, calc(var(--type-mono-md-leading, 1.5) * 1em), 0.25rem);
 	letter-spacing: var(--type-mono-md-tracking, 0);
 	font-variant-numeric: tabular-nums;
 }
@@ -530,7 +639,7 @@
 	font-family: var(--font-mono);
 	font-size: var(--type-mono-caption-size, 0.75rem);
 	font-weight: var(--type-mono-caption-weight, 400);
-	line-height: var(--type-mono-caption-leading, 1.4);
+	line-height: round(nearest, calc(var(--type-mono-caption-leading, 1.4) * 1em), 0.25rem);
 	letter-spacing: var(--type-mono-caption-tracking, 0);
 	font-variant-numeric: tabular-nums;
 }
@@ -538,7 +647,7 @@
 	font-family: var(--font-mono);
 	font-size: var(--type-mono-sm-size, 0.6875rem);
 	font-weight: var(--type-mono-sm-weight, 500);
-	line-height: var(--type-mono-sm-leading, 1.2);
+	line-height: round(nearest, calc(var(--type-mono-sm-leading, 1.2) * 1em), 0.25rem);
 	letter-spacing: var(--type-mono-sm-tracking, 0.02em);
 	font-variant-numeric: tabular-nums;
 }
@@ -736,13 +845,16 @@
    concentrically at every corner setting (Menu, Select, Combobox, ContextMenu). The inset grows with the radius: a rounder popup needs more
    room, or its rows' corners approach half their height and every row turns
    into a pill. The row radius is what is left. At the default ladder (md 12px)
-   this is exactly the old 4px inset and 8px rows. Utilities rather than :root
-   tokens so the math runs on the element, inside whatever preset it sits in. */
+   this is a 4px inset and 7px rows: the popup's 1px border is part of the
+   distance from the outer curve, so it comes off the radius too (sable-frame
+   already subtracts it; this used to be the one formula that did not).
+   Utilities rather than :root tokens so the math runs on the element, inside
+   whatever preset it sits in. */
 @utility popup-inset {
 	padding: max(--spacing(1), calc(var(--radius-md) / 3));
 }
 @utility rounded-popup-item {
-	border-radius: max(0px, calc(var(--radius-md) - max(--spacing(1), calc(var(--radius-md) / 3))));
+	border-radius: max(0px, calc(var(--radius-md) - max(--spacing(1), calc(var(--radius-md) / 3)) - 1px));
 }
 /* A rule (separator) that runs edge to edge through the popup padding. It
    bleeds by exactly popup-inset, so it reaches both edges at every radius; a
@@ -771,11 +883,40 @@
 	border: var(--sable-frame-border-width) solid var(--sable-frame-edge);
 	border-radius: var(--sable-frame-radius);
 }
+/* The same geometry and elevation as the Menu / Select / Combobox popups, so a
+   list hosted in a frame floats beside a menu as its equal: popup-inset's
+   padding (it grows with the radius) and shadow-md, the floating-surface step
+   (shadow-lg is for surfaces with a scrim — foundations/surfaces). */
 @utility sable-frame-popover {
 	--sable-frame-radius: var(--radius-md);
-	--sable-frame-padding: --spacing(1);
+	--sable-frame-padding: max(--spacing(1), calc(var(--radius-md) / 3));
 	--sable-frame-edge: var(--border-floating);
-	box-shadow: var(--shadow-lg);
+	box-shadow: var(--shadow-md);
+}
+/* A frame around edge-to-edge tool chrome — panel sections, a tree, a status
+   bar — at the theme's own radius. It publishes the geometry its contents need
+   to stay concentric with it, the way Card does with --card-inner-radius and
+   popups with popup-inset:
+   - --panel-field-radius: a compact field's corner. It aims for the theme's small
+     radius but no more than a quarter of the field's height (a rounder preset
+     would otherwise turn 24px fields into pills), and is then whatever keeps it
+     parallel to the frame's curve.
+   - --panel-inset: the rows' side padding, frame radius less that field radius,
+     never under the 8px a tool row always has. A rounder preset gets more room
+     instead of crowding its first label and last field into the corners.
+   - --panel-edge: the extra the first and last section take top and bottom, so
+     the vertical edge breathes by the same amount.
+   Unframed — a square Workspace column — none of these are set, and panels fall
+   back to the 8px inset and the field shell's own radius. Custom properties only,
+   like every sable-frame-* modifier: a real property would sort this rule ahead of
+   .sable-frame and lose to it. Clip with overflow-hidden on the element. */
+@utility sable-frame-tool {
+	--sable-frame-radius: var(--radius-lg);
+	--sable-frame-padding: 0px;
+	--panel-field-target: min(var(--radius-sm), calc(var(--control-xs) / 4));
+	--panel-inset: max(--spacing(2), calc(var(--sable-frame-radius) - var(--panel-field-target)));
+	--panel-field-radius: max(0px, calc(var(--sable-frame-radius) - var(--panel-inset)));
+	--panel-edge: calc(var(--panel-inset) - --spacing(2));
 }
 @utility sable-frame-borderless {
 	--sable-frame-border-width: 0px;
@@ -790,13 +931,17 @@
 @utility sable-frame-inner {
 	border-radius: var(--sable-frame-inner-radius, var(--radius-sm));
 }
+/* Floored at radius-xs, not zero: an inset at or past the outer radius left a
+   1-2px sliver (the docs' composer measured 2px, Toast's close 1.5px) that is
+   neither square nor round and reads as a mistake. A square theme's xs is 0,
+   so it still goes square. */
 @utility rounded-concentric-* {
 	border-radius: max(
-		0px,
+		var(--radius-xs),
 		calc(--value(--radius-*, [*]) - --modifier(--spacing-*, [*]))
 	);
 	border-radius: max(
-		0px,
+		var(--radius-xs),
 		calc(--value(--radius-*, [*]) - --spacing(--modifier(number)))
 	);
 }
@@ -1154,6 +1299,17 @@
 		font-weight: var(--type-ui-md-weight, 500);
 		line-height: var(--type-ui-leading, 16px);
 	}
+	/* The list utilities carry their own type, so they follow the same tiers:
+	   items and values as body-md, terms as label-md. */
+	& :is(.sable-list, .sable-list-numbered, .sable-list-dl) {
+		font-size: min(0.9375rem, var(--type-ui-md-size, 12px));
+		line-height: var(--type-ui-leading, 16px);
+	}
+	& .sable-list-dl > :where(dt) {
+		font-size: min(0.75rem, var(--type-ui-md-size, 12px));
+		font-weight: var(--type-ui-md-weight, 500);
+		line-height: var(--type-ui-leading, 16px);
+	}
 	& .text-label-sm,
 	& .text-label-xs {
 		font-size: min(0.6875rem, var(--type-ui-micro-size, 10px));
@@ -1338,6 +1494,20 @@
 	}
 	to {
 		background-position: -200% 0;
+	}
+}
+/* The skeleton sweep. One pass eases in, glides and settles (no constant-speed
+   conveyor), then the band waits off-screen for the last 30% before the next.
+   The resting position — the from/to — is off-screen right, so a frozen
+   animation (reduced motion) leaves a plain block, not a stuck highlight. */
+@keyframes sable-sweep {
+	0% {
+		background-position: 100% 0;
+		animation-timing-function: cubic-bezier(0.55, 0, 0.2, 1);
+	}
+	70%,
+	100% {
+		background-position: 0% 0;
 	}
 }
 @keyframes sable-pulse-soft {
@@ -1681,16 +1851,44 @@
 	animation: sable-pulse-soft calc(1600ms * var(--motion-scale))
 		var(--motion-ease-standard) infinite;
 }
+/*
+ * The skeleton sweep: ONE band of light passing through a whole loading layout,
+ * not a separate flash per block.
+ *
+ * - `background-attachment: fixed` lays the gradient against the viewport, so
+ *   every skeleton on screen is a window onto the same band. A text line, an
+ *   avatar and a card below it light up in sequence, a single wave, instead of
+ *   each box sweeping at its own speed (a 40px line and a 600px card used to
+ *   race each other). iOS Safari ignores fixed backgrounds and falls back to a
+ *   per-box sweep, which is the old behaviour, not a broken one.
+ * - The image is two viewports plus 600px wide with the band at its centre, so
+ *   from 100% to 0% the band travels from 300px off the left edge to 300px off
+ *   the right, and its width (360px, feathered over five stops) holds at any
+ *   screen size rather than scaling with the box.
+ * - The band is light catching the block, not a shadow crossing it: the skeleton's
+ *   own muted fill, a few lightness steps up, so it is a sheen in light AND dark
+ *   mode with no per-theme value (mixing in the foreground darkened it in light).
+ * - The base position is the resting one, off-screen: under --motion-scale 0
+ *   the skeleton is a calm block.
+ *
+ * Background-position is painted, not composited, unlike most recipes here. It
+ * buys the coherent wave, which a per-element transform cannot, and skeletons
+ * are small and short-lived.
+ */
 @utility motion-shimmer {
 	background-image: linear-gradient(
 		100deg,
-		transparent 40%,
-		color-mix(in oklab, var(--foreground) 8%, transparent) 50%,
-		transparent 60%
+		transparent calc(50% - 180px),
+		oklch(from var(--muted) calc(l + 0.02) c h / 0.6) calc(50% - 90px),
+		oklch(from var(--muted) calc(l + 0.055) c h / 0.9) 50%,
+		oklch(from var(--muted) calc(l + 0.02) c h / 0.6) calc(50% + 90px),
+		transparent calc(50% + 180px)
 	);
-	background-size: 200% 100%;
+	background-size: calc(200% + 600px) 100%;
 	background-repeat: no-repeat;
-	animation: sable-shimmer calc(1800ms * var(--motion-scale)) linear infinite;
+	background-attachment: fixed;
+	background-position: 0% 0;
+	animation: sable-sweep calc(2400ms * var(--motion-scale)) infinite;
 }
 /*
  * The same sweep, but through the glyphs instead of behind them — for live

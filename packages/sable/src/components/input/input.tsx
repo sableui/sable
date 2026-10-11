@@ -1,7 +1,7 @@
 import { Input as BaseInput } from "@base-ui/react/input"
 import type { ComponentPropsWithRef } from "react"
 import { cn } from "../../lib/cn"
-import { FIELD_INVALID, FIELD_SHELL, FIELD_SHELL_XS } from "../../lib/field-shell"
+import { FIELD_INVALID, FIELD_SHELL, FIELD_SHELL_XS, MOBILE_FIELD_TIER } from "../../lib/field-shell"
 import { useDensity, useTypeTier } from "../../lib/density"
 
 /**
@@ -30,10 +30,10 @@ import { useDensity, useTypeTier } from "../../lib/density"
  * weight for 400 while staying 12px. A tool panel on an iPhone is a register
  * mismatch, not a type bug.
  *
- * Textarea and SelectTrigger carry the same clause; this is where the reasoning
- * is written down.
+ * Every text-entry field (and SelectTrigger / DatePicker, which stand in the
+ * same row) wears it via lib/field-shell; this is where the reasoning is
+ * written down.
  */
-const MOBILE_FIELD_TIER = "max-sm:text-body-lg"
 
 export interface InputProps extends Omit<ComponentPropsWithRef<"input">, "size"> {
 	/**

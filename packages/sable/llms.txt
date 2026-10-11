@@ -1,6 +1,6 @@
 # Sable (@sableui/react)
 
-> An owned, themeable React component system. Default theme: **Base** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 97 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
+> An owned, themeable React component system. Default theme: **Base** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 96 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
 
 ## Start here — brief, composition, evidence
 
@@ -267,14 +267,14 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 
 ### Patterns (8) — canonical page shells, copy as route starting points (registry.json → patterns; importable from `@sableui/react/patterns`)
 
-- **AuthPage** — Centered auth card: a form-width region vertically centered in the viewport, one Card holding the Form, an alternate-action divider, and a quiet switch-to-sign-up link beneath it. → [`llms/patterns/auth-page.md`](./llms/patterns/auth-page.md)
-- **BrandLandingPage** — High-fidelity brand/product landing page: pill navigation, editorial hero type, a dark product scene, calm status tones, CTA pair, feature cards, metrics, and a complete branded footer. → [`llms/patterns/brand-landing-page.md`](./llms/patterns/brand-landing-page.md)
+- **AuthPage** — Split sign-in page: a form column (brand mark, heading, email + password, primary sign-in, passkey and wallet alternatives, sign-up switch, terms) beside a brand panel painted from the theme's tones with a featured release card. → [`llms/patterns/auth-page.md`](./llms/patterns/auth-page.md)
+- **BrandLandingPage** — High-fidelity brand/product landing page: pill navigation, editorial hero type, a dark product scene, a value section, a how-it-works sequence, a customer story with outcomes, a closing CTA band, and a complete branded footer. → [`llms/patterns/brand-landing-page.md`](./llms/patterns/brand-landing-page.md)
 - **ChatPanel** — A full-height conversation surface: titled header, scrolling transcript, and a composer pinned to the bottom — the assembled shape of an AI assistant, a support thread, or a DM. → [`llms/patterns/chat-panel.md`](./llms/patterns/chat-panel.md)
-- **DashboardPage** — App-shell dashboard: sidebar chrome (AppHeader + BottomNav below lg), a wide content region, a stat-card row that breathes, and a data table — the default shape for operator/analytics home routes. → [`llms/patterns/dashboard-page.md`](./llms/patterns/dashboard-page.md)
-- **FeedPage** — Single-column reading feed: a feed-width region, one Card per post (Entity byline, zero-shift media, body copy, quiet action row), and explicit load-more pagination. → [`llms/patterns/feed-page.md`](./llms/patterns/feed-page.md)
-- **LandingPage** — Marketing hero + feature grid: display-tier headline as the page's single loud moment, an eyebrow kicker, a two-action CTA row, and a three-up feature grid that reveals on scroll. → [`llms/patterns/landing-page.md`](./llms/patterns/landing-page.md)
-- **ListDetailPage** — Two-column list-detail: a wide region split 8/4, the record list as Entity rows in the main column, and a sticky supporting rail (detail, filters, or summary) beside it. → [`llms/patterns/list-detail-page.md`](./llms/patterns/list-detail-page.md)
-- **SettingsPage** — Stacked settings sections inside the app shell: a content-width region, one Fieldset card per concern (each with its own save), auto-wired Form/Field rows, and a destructive zone last. → [`llms/patterns/settings-page.md`](./llms/patterns/settings-page.md)
+- **DashboardPage** — App-shell creator dashboard: a branded Sidebar with an account footer (AppHeader + BottomNav below lg), a KPI row, an edge-to-edge editions table with sell-through Meters, and supporting payout, collector, release and activity cards — the default shape for an operator or analytics home route. → [`llms/patterns/dashboard-page.md`](./llms/patterns/dashboard-page.md)
+- **FeedPage** — Social reading feed with a side rail: a feed-width main column (composer, For you / Following Tabs, one Card per post, an edition drop with price, supply Meter and Collect, a Skeleton for the next page) beside a sticky rail of who-to-follow and upcoming drops that drops away below lg. → [`llms/patterns/feed-page.md`](./llms/patterns/feed-page.md)
+- **LandingPage** — Product / open-source landing page: a centered hero with an eyebrow Badge, one display headline, lede, two CTAs and a copyable install command; a Browser-framed product preview composed from real components; a six-up feature grid; a setup section with tabbed code; an agent-workflow section with terminal output; a CTA card; and a link-column footer. → [`llms/patterns/landing-page.md`](./llms/patterns/landing-page.md)
+- **ListDetailPage** — Searchable list beside the selected record's detail: interactive Entity rows in a CardList (5 of 12 columns) and a sticky detail pane (7) with an editable field, a label/value list, record actions with a destructive confirmation, and recent activity. → [`llms/patterns/list-detail-page.md`](./llms/patterns/list-detail-page.md)
+- **SettingsPage** — Account settings inside the app shell: a sticky SideNav section rail beside a column of section Cards — a Profile form with the page's one explicit save, Card + CardList + Entity rows with Switches that apply instantly, a read-only payouts summary, account rows, and a delete card confirmed through DestructiveActionModal. → [`llms/patterns/settings-page.md`](./llms/patterns/settings-page.md)
 
 ### Layout primitives (13) — full contracts in registry.json → layoutPrimitives
 
@@ -292,18 +292,18 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **SafeArea** — Pads for device safe-areas (notch, home indicator) on fixed or native-shell surfaces. → [`llms/layout/safe-area.md`](./llms/layout/safe-area.md)
 - **GridOverlay** — Dev/docs structure visualizer — overlays the column grid so the layout skeleton is legible. → [`llms/layout/grid-overlay.md`](./llms/layout/grid-overlay.md)
 
-### Utilities (34) — relative surfaces, frames, state variants, scroll policies, chrome type; reach for these before hand-written CSS (registry.json → utilities; `sable utility <name>`) → [`llms/reference/utilities.md`](./llms/reference/utilities.md)
+### Utilities (39) — relative surfaces, frames, state variants, scroll policies, chrome type; reach for these before hand-written CSS (registry.json → utilities; `sable utility <name>`) → [`llms/reference/utilities.md`](./llms/reference/utilities.md)
 
 - **relative surface** — `sable-surface`, `sable-surface-muted`, `sable-surface-popover`, `sable-surface-accent`, `sable-surface-interactive`, `sable-well`
-- **frame** — `sable-frame`, `sable-frame-popover`, `sable-frame-borderless`, `sable-frame-r-*`, `sable-frame-p-*`, `sable-frame-inner`
+- **frame** — `sable-frame`, `sable-frame-popover`, `sable-frame-tool`, `sable-frame-borderless`, `sable-frame-r-*`, `sable-frame-p-*`, `sable-frame-inner`
 - **geometry** — `rounded-concentric-*`, `popup-inset`, `rounded-popup-item`, `popup-bleed`
 - **state variant** — `sable-highlighted:`, `sable-selected:`, `sable-open:`, `sable-disabled:`, `sable-invalid:`
 - **scroll** — `scrollbar-quiet`, `scrollbar-hidden`
-- **text** — `text-overline`, `text-ui-md`, `text-ui-sm`, `text-ui-body`, `text-ui-section`, `text-ui-micro`, `text-ui-num`, `stream-tail`
+- **text** — `sable-list`, `sable-list-numbered`, `sable-list-dl`, `sable-list-dl-2`, `text-overline`, `text-ui-md`, `text-ui-sm`, `text-ui-body`, `text-ui-section`, `text-ui-micro`, `text-ui-num`, `stream-tail`
 - **helper** — `hit-target`, `link-underline`, `checkerboard`
 - **elsewhere** — paired `text-*` page tiers: registry.json → tokens.typography; `motion-*` / `animate-*` recipes: registry.json → tokens.motion.recipes.
 
-### Components (97) — full props/subcomponents/variants/guidance/a11y/examples in registry.json → components
+### Components (96) — full props/subcomponents/variants/guidance/a11y/examples in registry.json → components
 
 - **Accordion** — Stacked, collapsible disclosure sections over Base UI Accordion — roving focus, arrow-key navigation, ARIA region/heading/button wiring, and an animated height transition. *Parts:* AccordionItem, AccordionTrigger, AccordionPanel. → [`llms/components/accordion.md`](./llms/components/accordion.md)
 - **AppHeader** — Mobile top bar (sticky, hidden at lg) with leading / title / actions slots on a 3-column grid that keeps the title optically centered. → [`llms/components/app-header.md`](./llms/components/app-header.md)
@@ -315,7 +315,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **BottomNav** — Mobile bottom tab bar (fixed, hidden at lg), with home-indicator safe-area padding and evenly distributed BottomNavItem tabs. *Parts:* BottomNavItem. → [`llms/components/bottom-nav.md`](./llms/components/bottom-nav.md)
 - **Breadcrumbs** — Navigation trail showing the path to the current page. *Parts:* BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator. → [`llms/components/breadcrumbs.md`](./llms/components/breadcrumbs.md)
 - **Browser** — A generic, current browser window: one compact toolbar (window controls, back/forward/reload, a centered address field) around page content. → [`llms/components/browser.md`](./llms/components/browser.md)
-- **Bubble** — The surface a message's content sits on: four treatments, an align-aware tail corner, a readable measure cap, and an optional row of reaction pills. *Parts:* BubbleReactions, BubbleReaction. → [`llms/components/bubble.md`](./llms/components/bubble.md)
+- **Bubble** — The surface a message's content sits on: four treatments, an align-aware tail, a readable measure cap, and an optional row of reaction pills. *Parts:* BubbleReactions, BubbleReaction. → [`llms/components/bubble.md`](./llms/components/bubble.md)
 - **Button** — Pill-shaped action primitive (theme-driven radius via --button-radius, defaults to full). → [`llms/components/button.md`](./llms/components/button.md)
 - **Calendar** — Date picker grid wrapping react-day-picker v9, themed entirely with semantic tokens (no external stylesheet). → [`llms/components/calendar.md`](./llms/components/calendar.md)
 - **Card** — Raised surface container (rounded-lg) with optional Header/Title/Description/Action/Content/Footer parts. *Parts:* CardHeader, CardTitle, CardDescription, CardAction, CardContent, CardList, CardFooter. → [`llms/components/card.md`](./llms/components/card.md)
@@ -333,11 +333,10 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **ContextMenu** — Right-click menu over Base UI ContextMenu — opens on the native contextmenu event or long press and positions at the pointer. *Parts:* ContextMenuTrigger, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuGroup, ContextMenuGroupLabel. → [`llms/components/context-menu.md`](./llms/components/context-menu.md)
 - **DataTable** — A data-driven table over the Table primitives — a columns def + data array with built-in client-side sorting (click a sortable header to cycle asc → desc → none), optional row click / selection, and an empty state. → [`llms/components/data-table.md`](./llms/components/data-table.md)
 - **DatePicker** — Date (and optionally time) picker: a field-shaped trigger (the Input / SelectTrigger shell) opens a Popover holding Sable's Calendar. → [`llms/components/date-picker.md`](./llms/components/date-picker.md)
-- **Description** — A labeled key/value list (definition list). *Parts:* DescriptionTerm, DescriptionDetail, DescriptionItem. → [`llms/components/description.md`](./llms/components/description.md)
 - **DestructiveActionModal** — Confirmation modal for irreversible actions, built on AlertDialog (role=alertdialog; a backdrop click does not dismiss). → [`llms/components/destructive-action-modal.md`](./llms/components/destructive-action-modal.md)
 - **Dialog** — Modal surface over Base UI Dialog (focus trap, scroll lock, Esc/outside dismissal). *Parts:* DialogContent, DialogOverlay, DialogTrigger, DialogClose, DialogHeader, DialogTitle, DialogDescription, DialogFooter, AlertDialog (Root), AlertDialogTrigger, AlertDialogContent / AlertDialogOverlay / AlertDialogTitle / AlertDialogDescription / AlertDialogHeader / AlertDialogFooter / AlertDialogClose. → [`llms/components/dialog.md`](./llms/components/dialog.md)
 - **DotsMenu** — An overflow ellipsis icon button that opens a Menu. → [`llms/components/dots-menu.md`](./llms/components/dots-menu.md)
-- **EmptyState** — The centered empty / error block: optional icon disc or error code, title, description and an action. → [`llms/components/empty-state.md`](./llms/components/empty-state.md)
+- **EmptyState** — The centered empty / error block: optional icon or error code, title, description and an action. → [`llms/components/empty-state.md`](./llms/components/empty-state.md)
 - **Entity** — A list-row record: leading visual + title/subtitle column + trailing action, with truncating text. → [`llms/components/entity.md`](./llms/components/entity.md)
 - **Feedback** — A compact feedback popover. → [`llms/components/feedback.md`](./llms/components/feedback.md)
 - **Fieldset** — Form section panel (Card-like bordered surface) over Base UI Fieldset, with Legend/Description/Content/Footer parts. *Parts:* FieldsetLegend, FieldsetDescription, FieldsetContent, FieldsetFooter. → [`llms/components/fieldset.md`](./llms/components/fieldset.md)

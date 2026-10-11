@@ -63,7 +63,7 @@ export const pillMeta: ComponentMeta = {
 			name: "size",
 			type: '"md" | "sm"',
 			default: '"md"',
-			description: "sm sits on the density ladder's xs control height, for chips under or inside other content.",
+			description: "md sits on the density ladder's xs control height (28px); sm is 24px, for chips under or inside other content.",
 		},
 		{
 			name: "icon",

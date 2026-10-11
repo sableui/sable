@@ -39,7 +39,7 @@ Use CheckboxCard when an option needs more visual weight, supporting text, or ic
 | onCheckedChange | (checked: boolean, eventDetails) => void | — | Fires with the next checked state (Base UI passes eventDetails second). Pair with `checked` for a controlled card; omit both to let it manage its own state. |
 | title | ReactNode | — | The card's primary label (text-title-sm). |
 | description | ReactNode | — | Optional supporting copy beneath the title (text-body-sm, muted). |
-| icon | ReactNode | — | Optional leading glyph (a solid <Icon>); takes the tone colour. |
+| icon | ReactNode | — | Optional glyph (a solid <Icon>) in the tone colour. Its presence switches to the two-dimensional card RadioCard uses — icon top-left, checkbox top-right, copy below — so the two cards match in one form. |
 | tone | "neutral" \| "standard" \| "collectible" \| "edition" \| "info" \| "warning" | "neutral" | Semantic colour the checked state carries across the border, checkbox box, and icon. |
 | value | string | — | Names the card inside a group-owned CheckboxGroup: the card is checked when the group's value array includes it. Also the value submitted with a form. Inside a CheckboxGroup, `name` stands in for `value` when `value` is omitted. |
 | checked / onCheckedChange / defaultChecked / disabled | Base UI Checkbox.Root props | — | Standard checkbox state. Without a group-owned value, each card is independent — drive checked/onCheckedChange per item for multi-select. |

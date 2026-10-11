@@ -3,6 +3,7 @@ import { cn } from "../../lib/cn"
 import { useTypeTier } from "../../lib/density"
 import { Pill } from "../pill/pill"
 import {
+	bubbleTailVariants,
 	bubbleReactionsVariants,
 	bubbleVariants,
 } from "./bubble.variants"
@@ -16,12 +17,12 @@ export interface BubbleProps extends ComponentPropsWithRef<"div"> {
 	 */
 	variant?: "muted" | "primary" | "outline" | "plain"
 	/**
-	 * Which side of the conversation the bubble is on — flattens the corner
-	 * nearest the speaker. Match it to the enclosing `<Message align>`.
+	 * Which side of the conversation the bubble is on — puts the tail on
+	 * the speaker's side. Match it to the enclosing `<Message align>`.
 	 * @default "start"
 	 */
 	align?: "start" | "end"
-	/** Flatten the speaker-side corner. Turn it off for a run of grouped messages. @default true */
+	/** Draw the speaker-side tail. Turn it off for a run of grouped messages. @default true */
 	tail?: boolean
 }
 
@@ -49,14 +50,15 @@ export interface BubbleProps extends ComponentPropsWithRef<"div"> {
  *
  * Two judgment calls worth inheriting: the bubble is capped at a readable
  * measure (~42rem) so a wide window does not produce 140-character lines, and
- * the "tail" is a flattened corner rather than a drawn arrow so it survives
- * every theme's radius language without per-theme geometry.
+ * the tail is a small ear off a squared top corner, the same 5px in every
+ * theme's radius language, so the speaker's side always reads.
  */
 export function Bubble({
 	variant = "muted",
 	align = "start",
 	tail = true,
 	className,
+	children,
 	...props
 }: BubbleProps) {
 	const tier = useTypeTier()
@@ -69,7 +71,52 @@ export function Bubble({
 			// the tool's register — see lib/density.tsx → Registers.
 			className={cn(bubbleVariants({ variant, align, tail }), tier.prose, className)}
 			{...props}
-		/>
+		>
+			{children}
+			{tail && variant !== "plain" ? <BubbleTail variant={variant ?? "muted"} align={align ?? "start"} /> : null}
+		</div>
+	)
+}
+
+/*
+ * The tail, in a 6×9.5px box whose x = 1 is the bubble's outer edge (x 0–1 tucks
+ * under the bubble, so no anti-aliased seam shows where they meet): it sticks out
+ * 5px and drops 7px down the bubble's side. Two shapes: rounded, a 1.6px-softened
+ * tip and a 2.5px fillet where the diagonal meets the
+ * bubble's side so the tail grows out of it rather than sitting on it; and sharp,
+ * a plain triangle for a square theme. `sign(--radius-sm)` picks one (1 when the
+ * theme rounds anything, 0 when it is square), so no preset needs its own rule.
+ * Outline strokes the same outline inset by half a pixel, so its 1px edge lands
+ * exactly on the bubble's border and continues it.
+ */
+const TAIL = {
+	roundFill: "M0 0H4.4Q6 0 5.07 1.3L2.45 4.97Q1 7 1 9.5H0Z",
+	sharpFill: "M0 0H6L1 7V9.5H0Z",
+	roundEdge: "M0 .5H3.43Q5.03 .5 4.1 1.8L1.95 4.81Q.5 6.84 .5 9.34V9.5",
+	sharpEdge: "M0 .5H5.03L.5 6.84V9.5",
+}
+const ROUND = "[opacity:sign(var(--radius-sm))]"
+const SHARP = "[opacity:calc(1-sign(var(--radius-sm)))]"
+const TAIL_FILL = { muted: "fill-muted", primary: "fill-primary", outline: "fill-card" } as const
+
+function BubbleTail({ variant, align }: { variant: "muted" | "primary" | "outline"; align: "start" | "end" }) {
+	const outline = variant === "outline"
+	return (
+		<svg
+			aria-hidden="true"
+			focusable="false"
+			viewBox="0 0 6 9.5"
+			className={bubbleTailVariants({ surface: outline ? "outline" : "solid", align })}
+		>
+			<path d={TAIL.roundFill} className={cn(TAIL_FILL[variant], ROUND)} />
+			<path d={TAIL.sharpFill} className={cn(TAIL_FILL[variant], SHARP)} />
+			{outline ? (
+				<>
+					<path d={TAIL.roundEdge} className={cn("fill-none stroke-border", ROUND)} strokeWidth={1} />
+					<path d={TAIL.sharpEdge} className={cn("fill-none stroke-border", SHARP)} strokeWidth={1} />
+				</>
+			) : null}
+		</svg>
 	)
 }
 Bubble.displayName = "Bubble"

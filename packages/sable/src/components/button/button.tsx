@@ -105,7 +105,7 @@ export function Button({
 		badge != null ? (
 			<span data-slot="button-badge-anchor" className="relative inline-flex items-center gap-(--control-gap)">
 				{inner}
-				<span className="pointer-events-none absolute -end-1 -top-1">{badge}</span>
+				<span className="pointer-events-none absolute -end-1 -top-1 flex">{badge}</span>
 			</span>
 		) : (
 			inner

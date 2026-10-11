@@ -1,79 +1,113 @@
 # BrandLandingPage
 
-High-fidelity brand/product landing page: pill navigation, editorial hero type, a dark product scene, calm status tones, CTA pair, feature cards, metrics, and a complete branded footer.
+High-fidelity brand/product landing page: pill navigation, editorial hero type, a dark product scene, a value section, a how-it-works sequence, a customer story with outcomes, a closing CTA band, and a complete branded footer.
 
 **Intent:** Use this for a polished product marketing route that still needs to show a credible app surface. It is warmer and more tactile than the canonical LandingPage, but avoids trend-driven neon and generic hype cues.
 
 ## Notes
 
-- One display headline owns the first viewport; supporting copy stays in body-lg at prose measure.
+- The story runs promise → product → value → process → proof → ask: hero, product scene, 'Why Cove' value cards, a three-step how-it-works list, a customer story with outcome figures, then one closing CTA. Each section adds new evidence; no number is repeated from the product scene.
+- One display headline owns the first viewport; supporting copy stays in body-lg at prose measure. Section headings are heading-1 under a `text-overline` eyebrow.
 - The nav spends one compact pill surface, with a clear brand signal and two primary paths: sign in and request access.
-- The product scene uses overlay tokens for a stable dark media surface, then semantic tones for status and chart signals.
-- The footer closes the page with brand reassurance, a three-column sitemap, a digest signup, operational mini-metrics, and legal links.
-- Every surface outside the product scene is a real Card (feature, metric and digest cards); status marks are StatusDot. The scene's nested panels take `rounded-concentric-xl/<inset>` from the shell's radius, so the corners stay parallel at any radius preset.
-- Radius and shadow are theme-controlled. In Cove the same rounded-lg/xl classes read larger and softer; in other themes the structure still holds.
-- Color is intentionally broad: porcelain/plum/lavender/blue/mint/saffron/coral through semantic roles, not a one-note purple gradient.
+- The product scene and the closing CTA band are dark islands: a `dark` class on the wrapper re-scopes every semantic token, so surfaces, muted ink, Badge tones and Buttons take the theme's own dark values in either page mode. Never fake a dark panel with overlay ink at reduced opacity — status tones tuned for a light page vanish on it.
+- The scene is a picture of the product: `aria-hidden` + `inert` keep its sample button and figures out of the tab order and the outline. On narrow screens it drops the side column and keeps the signal map, so it scales instead of stacking into a second page.
+- The chart keeps past weeks on the quiet `secondary` fill and gives the current week the one accent, so the signal reads at a glance.
+- Value cards are real Cards with a neutral `sable-well` icon tile; the customer story is a Card rendered as a figure, with outcome figures split by Separator. The scene's nested panels take `rounded-concentric-xl/<inset>` from the shell's radius, so the corners stay parallel at any radius preset.
+- The footer closes the page with brand reassurance, a plain status Badge, a three-column sitemap (three columns at every width), a digest signup, and legal links.
+- All figures, names and the testimonial are sample content; replace them with real, verifiable claims.
 
 ## Accessibility
 
 - The brand nav is a labeled nav landmark with real links and visible text.
+- Each content section is a labelled region (by its h2, or aria-label for the customer story); the decorative product scene is hidden from assistive tech and inert.
+- The how-it-works steps are an ordered list; the testimonial is a figure with a blockquote and a figcaption naming the speaker.
 - The footer is a real footer landmark with a labeled footer nav, visible link text, and a labeled email field.
-- TextReveal preserves the full headline as one accessible label and honors reduced-motion policy.
-- Status dots are paired with visible text labels so color is never the only signal.
+- TextReveal preserves the full headline as one accessible label and honors reduced-motion policy; Reveal shows the value cards immediately when motion is off.
+- Status dots and the status Badge are paired with visible text labels so color is never the only signal.
 
 ## Source
 
 ```tsx
-import { Badge, Button, Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle, Icon, Input, Region, Row, Stack, StatusDot, TextReveal } from "@sableui/react"
+import { Avatar, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Grid, Icon, Input, Region, Reveal, Row, Separator, Stack, StatusDot, TextReveal } from "@sableui/react"
 
-const navItems = ["Platform", "Signals", "Security", "Company"]
-
-const metrics = [
-	{ label: "Checks cleared", value: "1.8M", detail: "in the last 30 days" },
-	{ label: "Review time", value: "42s", detail: "median approval path" },
-	{ label: "Spaces online", value: "284", detail: "across active teams" },
+const navItems = [
+	{ label: "Platform", href: "#platform" },
+	{ label: "How it works", href: "#how-it-works" },
+	{ label: "Customers", href: "#customers" },
+	{ label: "Pricing", href: "/pricing" },
 ]
 
-const workflow = [
+const spaces = [
+	{ name: "Waypoint", value: "98.4%", label: "clear routes" },
+	{ name: "Fielddesk", value: "12", label: "open holds" },
+	{ name: "Archive", value: "4.8k", label: "sealed records" },
+]
+
+const routes = [
 	{ label: "Intake", state: "Open", tone: "info" as const },
 	{ label: "Review", state: "Live", tone: "edition" as const },
 	{ label: "Archive", state: "Safe", tone: "success" as const },
 ]
 
+// Weekly approvals: past weeks recede, the current week carries the signal.
 const bars = [
-	{ height: "38%", tone: "bg-tone-info" },
-	{ height: "56%", tone: "bg-tone-edition" },
-	{ height: "44%", tone: "bg-tone-standard" },
-	{ height: "68%", tone: "bg-success" },
-	{ height: "52%", tone: "bg-tone-info" },
-	{ height: "78%", tone: "bg-highlight" },
-	{ height: "60%", tone: "bg-tone-edition" },
-	{ height: "86%", tone: "bg-success" },
-	{ height: "64%", tone: "bg-tone-standard" },
+	{ week: "w1", height: "38%", current: false },
+	{ week: "w2", height: "56%", current: false },
+	{ week: "w3", height: "44%", current: false },
+	{ week: "w4", height: "68%", current: false },
+	{ week: "w5", height: "52%", current: false },
+	{ week: "w6", height: "78%", current: false },
+	{ week: "w7", height: "60%", current: false },
+	{ week: "w8", height: "72%", current: false },
+	{ week: "w9", height: "88%", current: true },
 ]
 
-const features = [
+const sceneMetrics = [
+	{ label: "Cleared", value: "1.8M", detail: "last 30 days" },
+	{ label: "Review", value: "42s", detail: "median path" },
+	{ label: "Spaces", value: "284", detail: "active teams" },
+]
+
+const values = [
 	{
 		icon: "lock" as const,
 		title: "Private by default",
-		body: "Workspace roles, approval trails, and handoff history stay clear without turning the interface into compliance fog.",
+		body: "Roles, approvals, and handoff history stay with the people who need them. No shared inboxes, no forwarded screenshots.",
 	},
 	{
-		icon: "layout" as const,
-		title: "Brand and product together",
-		body: "Editorial sections and dense console views share the same semantic tokens, radius, and motion contract.",
+		icon: "bell" as const,
+		title: "Signals before surprises",
+		body: "Cove watches every route and surfaces stalled reviews and expiring approvals while there is still time to act.",
 	},
 	{
-		icon: "circle-check" as const,
-		title: "Calm confidence",
-		body: "Large type, tactile controls, and focused status tones make complex work feel understandable on first pass.",
+		icon: "clock" as const,
+		title: "A trail for every decision",
+		body: "Each approval keeps its context, reviewer, and timestamp, so an audit takes an afternoon instead of a quarter.",
 	},
 ]
 
-const reviews = [
-	{ name: "Waypoint", value: "98.4%", label: "clear routes" },
-	{ name: "Fielddesk", value: "12", label: "open holds" },
-	{ name: "Archive", value: "4.8k", label: "sealed records" },
+const steps = [
+	{
+		number: "01",
+		title: "Connect your spaces",
+		body: "Bring teams, vendors, and record stores into one workspace, with roles that mirror how you already work.",
+	},
+	{
+		number: "02",
+		title: "Route every approval",
+		body: "Requests follow the path you define, with reviewers, deadlines, and escalation built in from the start.",
+	},
+	{
+		number: "03",
+		title: "Seal the record",
+		body: "Approved work is archived with its full context and is ready for review the moment it closes.",
+	},
+]
+
+const outcomes = [
+	{ value: "3.2×", label: "faster approvals in the first quarter" },
+	{ value: "68%", label: "fewer follow-ups on handoffs" },
+	{ value: "1 day", label: "to prepare a quarterly audit" },
 ]
 
 const footerGroups = [
@@ -81,9 +115,9 @@ const footerGroups = [
 		title: "Platform",
 		links: [
 			{ label: "Overview", href: "#platform" },
-			{ label: "Signals", href: "#signals" },
-			{ label: "Approvals", href: "#approvals" },
-			{ label: "Records", href: "#records" },
+			{ label: "Signals", href: "/signals" },
+			{ label: "Approvals", href: "/approvals" },
+			{ label: "Records", href: "/records" },
 		],
 	},
 	{
@@ -91,7 +125,7 @@ const footerGroups = [
 		links: [
 			{ label: "About", href: "/about" },
 			{ label: "Security", href: "/security" },
-			{ label: "Customers", href: "/customers" },
+			{ label: "Customers", href: "#customers" },
 			{ label: "Careers", href: "/careers" },
 		],
 	},
@@ -106,10 +140,10 @@ const footerGroups = [
 	},
 ]
 
-const footerSignals = [
-	{ label: "Uptime", value: "99.98%" },
-	{ label: "Regions", value: "12" },
-	{ label: "Response", value: "42s" },
+const legalLinks = [
+	{ label: "Privacy", href: "/privacy" },
+	{ label: "Terms", href: "/terms" },
+	{ label: "Contact", href: "/contact" },
 ]
 
 export function BrandLandingPage() {
@@ -130,8 +164,8 @@ export function BrandLandingPage() {
 						<div className="hidden lg:block">
 							<Row gap={1}>
 								{navItems.map((item) => (
-									<Button key={item} variant="ghost" size="sm" render={<a href={`#${item.toLowerCase()}`} />}>
-										{item}
+									<Button key={item.label} variant="ghost" size="sm" render={<a href={item.href} />}>
+										{item.label}
 									</Button>
 								))}
 							</Row>
@@ -149,16 +183,16 @@ export function BrandLandingPage() {
 			</header>
 
 			<main>
-				<Region as="section" max="wide" className="pb-16 pt-14 sm:pt-20 lg:pb-24">
-					<div className="grid items-center gap-10 lg:grid-cols-[0.92fr_1.08fr]">
-						<Stack gap={4} className="max-w-3xl">
+				<Region as="section" max="wide" className="pb-20 pt-14 sm:pt-20 lg:pb-28">
+					<div className="grid items-center gap-12 lg:grid-cols-[1fr_1.1fr] lg:gap-10">
+						<Stack gap={3} className="max-w-2xl">
 							<Badge appearance="outline" icon={<Icon name="lock" className="text-sm" />}>
 								Private operations, made legible
 							</Badge>
 							<TextReveal
 								as="h1"
-								text="A calmer command center for high-trust digital work"
-								className="max-w-4xl text-balance text-display-xl sm:text-display-3xl"
+								text="A calmer command center for high-trust work"
+								className="text-balance text-display-lg sm:text-display-2xl"
 								once
 							/>
 							<p className="max-w-(--measure-prose) text-body-lg text-muted-foreground">
@@ -166,89 +200,96 @@ export function BrandLandingPage() {
 								surface: approvals, signals, records, and handoffs in one
 								understandable flow.
 							</p>
-							<Row gap={2} wrap>
+							<Row gap={2} wrap className="pt-3">
 								<Button size="cta" render={<a href="/demo" />}>
 									Book a walkthrough
 								</Button>
 								<Button size="cta" variant="outline" render={<a href="#platform" />}>
-									Explore platform
+									Explore the platform
 								</Button>
 							</Row>
 						</Stack>
 
-						<div className="relative">
-							{/* Nested surfaces take concentric corners: each level's radius is
-							    the shell's xl minus every inset between it and the shell edge. */}
-							<div className="overflow-hidden rounded-xl border border-border-floating bg-overlay p-3 text-overlay-foreground shadow-xl">
-								<div className="rounded-concentric-xl/3 border border-overlay-foreground/10 bg-overlay-foreground/8">
-									<div className="flex items-center justify-between border-b border-overlay-foreground/10 px-4 py-3">
+						{/* The product scene is a dark island: `dark` re-scopes every
+						    semantic token, so its surfaces, muted ink and status tones
+						    are the theme's own dark values in either page mode. It is a
+						    picture of the product, so it stays out of the tab order and
+						    the accessibility tree; the hero copy carries its meaning. */}
+						<div className="dark" aria-hidden inert>
+							<div className="overflow-hidden rounded-xl border border-border-floating bg-popover p-3 text-popover-foreground shadow-xl">
+								{/* Nested surfaces take concentric corners: each level's radius is
+								    the shell's xl minus every inset between it and the shell edge. */}
+								<div className="rounded-concentric-xl/3 border border-border bg-card">
+									<div className="flex items-center justify-between border-b border-border px-4 py-3">
 										<Row gap={1}>
 											<StatusDot tone="warning" />
 											<StatusDot tone="edition" />
 											<StatusDot tone="success" />
 										</Row>
-										<span className="text-label-sm text-overlay-foreground/70">Live workspace</span>
+										<span className="text-label-sm text-muted-foreground">Live workspace</span>
 									</div>
 									<div className="grid gap-3 p-3 md:grid-cols-[0.7fr_1.3fr]">
-										<div className="space-y-3">
-											<div className="rounded-concentric-xl/6 border border-overlay-foreground/10 bg-overlay-foreground/8 p-4">
-												<p className="text-label-sm text-overlay-foreground/60">Spaces</p>
+										<div className="space-y-3 max-md:hidden">
+											<div className="rounded-concentric-xl/6 border border-border bg-background p-4">
+												<p className="text-label-sm text-muted-foreground">Spaces</p>
 												<div className="mt-4 space-y-2">
-													{reviews.map((review) => (
-														<div key={review.name} className="rounded-concentric-xl/10 bg-overlay p-3">
+													{spaces.map((space) => (
+														<div key={space.name} className="rounded-concentric-xl/10 bg-card p-3">
 															<Row justify="between">
-																<span className="text-title-sm">{review.name}</span>
-																<span className="text-mono-sm text-overlay-foreground">{review.value}</span>
+																<span className="text-title-sm">{space.name}</span>
+																<span className="text-mono-sm">{space.value}</span>
 															</Row>
-															<p className="mt-1 text-body-xs text-overlay-foreground/60">{review.label}</p>
+															<p className="mt-1 text-body-xs text-muted-foreground">{space.label}</p>
 														</div>
 													))}
 												</div>
 											</div>
-											<div className="rounded-concentric-xl/6 border border-overlay-foreground/10 bg-overlay-foreground/8 p-4">
+											<div className="rounded-concentric-xl/6 border border-border bg-background p-4">
 												<Row justify="between">
 													<span className="text-title-sm">Route status</span>
-													<Badge tone="success" size="sm">Healthy</Badge>
+													<Badge tone="success" size="sm" dot>
+														Healthy
+													</Badge>
 												</Row>
 												<div className="mt-4 space-y-2">
-													{workflow.map((item) => (
-														<Row key={item.label} justify="between" className="rounded-full bg-overlay px-3 py-2">
+													{routes.map((route) => (
+														<Row key={route.label} justify="between" className="rounded-full bg-card px-3 py-2">
 															<Row gap={1}>
-																<StatusDot tone={item.tone} />
-																<span className="text-body-sm">{item.label}</span>
+																<StatusDot tone={route.tone} />
+																<span className="text-body-sm">{route.label}</span>
 															</Row>
-															<span className="text-label-sm text-overlay-foreground/60">{item.state}</span>
+															<span className="text-label-sm text-muted-foreground">{route.state}</span>
 														</Row>
 													))}
 												</div>
 											</div>
 										</div>
 
-										<div className="rounded-concentric-xl/6 border border-overlay-foreground/10 bg-overlay-foreground/8 p-4">
-											<Row justify="between" className="border-b border-overlay-foreground/10 pb-4">
+										<div className="rounded-concentric-xl/6 border border-border bg-background p-4">
+											<Row justify="between" className="border-b border-border pb-4">
 												<div>
-													<p className="text-label-sm text-overlay-foreground/60">Signal map</p>
-													<h2 className="mt-1 text-heading-3">Every approval path in view</h2>
+													<p className="text-label-sm text-muted-foreground">Signal map</p>
+													<p className="mt-1 text-heading-4 sm:text-heading-3">Every approval path in view</p>
 												</div>
 												<Button variant="secondary" size="sm">Review</Button>
 											</Row>
-											<div className="mt-6 grid min-h-72 grid-rows-[1fr_auto] gap-5">
-												<div className="grid grid-cols-9 items-end gap-2 rounded-concentric-xl/10 bg-overlay p-4">
-													{bars.map((bar, index) => (
-														<div key={`${bar.tone}-${index}`} className="flex h-56 items-end">
+											<div className="mt-5 grid gap-4 sm:mt-6 sm:gap-5">
+												<div className="grid grid-cols-9 items-end gap-1.5 rounded-concentric-xl/10 bg-card p-4 sm:gap-2">
+													{bars.map((bar) => (
+														<div key={bar.week} className="flex h-36 items-end sm:h-56">
 															<div
-																className={`w-full rounded-full ${bar.tone}`}
+																className={`w-full rounded-full ${bar.current ? "bg-success" : "bg-secondary"}`}
 																style={{ height: bar.height }}
 															/>
 														</div>
 													))}
 												</div>
-												<div className="grid gap-2 sm:grid-cols-3">
-													{metrics.map((metric) => (
-														<div key={metric.label} className="rounded-concentric-xl/10 border border-overlay-foreground/10 bg-overlay p-3">
-															<p className="text-label-sm text-overlay-foreground/60">{metric.label}</p>
-															<p className="mt-2 text-heading-3">{metric.value}</p>
-															<p className="mt-1 text-body-xs text-overlay-foreground/60">{metric.detail}</p>
+												<div className="grid grid-cols-3 gap-2">
+													{sceneMetrics.map((metric) => (
+														<div key={metric.label} className="rounded-concentric-xl/10 border border-border bg-card p-3">
+															<p className="truncate text-label-sm text-muted-foreground">{metric.label}</p>
+															<p className="mt-2 text-heading-4 sm:text-heading-3">{metric.value}</p>
+															<p className="mt-1 text-body-xs text-muted-foreground max-sm:hidden">{metric.detail}</p>
 														</div>
 													))}
 												</div>
@@ -261,54 +302,136 @@ export function BrandLandingPage() {
 					</div>
 				</Region>
 
-				<section id="platform" className="border-y border-border bg-muted/40 py-14">
+				<section id="platform" aria-labelledby="brand-platform-title" className="border-y border-border bg-muted/40 py-20 lg:py-28">
 					<Region max="wide">
-						<div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr]">
-							<Stack gap={3}>
-								<Badge>Design mood</Badge>
-								<h2 className="text-heading-1">Marketing warmth, product discipline.</h2>
-								<p className="max-w-(--measure-prose) text-body-md text-muted-foreground">
-									The page uses a pill nav, tactile surfaces, soft status tones, and
-									slower ease-out movement. It stays broad in color so it does not
-									collapse into purple-brand sameness.
+						<Stack gap={6}>
+							<Stack gap={2} className="max-w-2xl">
+								<p className="text-overline text-muted-foreground">Why Cove</p>
+								<h2 id="brand-platform-title" className="text-balance text-heading-1">
+									One private workspace for the decisions that matter.
+								</h2>
+								<p className="max-w-(--measure-prose) text-body-lg text-muted-foreground">
+									Most operations work lives in threads, spreadsheets, and memory.
+									Cove gives it a home: every request routed, every signal visible,
+									every outcome on the record.
 								</p>
 							</Stack>
-							<div className="grid gap-3 md:grid-cols-3">
-								{features.map((feature) => (
-									<Card key={feature.title} render={<article />} className="h-full">
-										<CardContent>
-											<span className="grid size-10 place-items-center rounded-md bg-highlight text-highlight-foreground">
-												<Icon name={feature.icon} className="text-xl" />
-											</span>
-											<h3 className="mt-5 text-title-lg">{feature.title}</h3>
-											<p className="mt-2 text-body-sm text-muted-foreground">{feature.body}</p>
-										</CardContent>
-									</Card>
-								))}
-							</div>
-						</div>
+							<Reveal>
+								<Grid minItemWidth="calc(var(--spacing) * 64)" gap={2}>
+									{values.map((value) => (
+										<Card key={value.title} render={<article />} className="h-full">
+											<CardContent className="flex flex-col gap-2">
+												<span className="mb-4 grid size-11 place-items-center rounded-md border border-border sable-well">
+													<Icon name={value.icon} className="text-xl" />
+												</span>
+												<h3 className="text-title-lg">{value.title}</h3>
+												<p className="text-body-sm text-muted-foreground">{value.body}</p>
+											</CardContent>
+										</Card>
+									))}
+								</Grid>
+							</Reveal>
+						</Stack>
 					</Region>
 				</section>
 
-				<Region as="section" max="wide" className="py-14">
-					<div className="grid gap-3 md:grid-cols-3">
-						{metrics.map((metric) => (
-							<Card key={metric.label}>
-								<CardContent>
-									<p className="text-label-md text-muted-foreground">{metric.label}</p>
-									<p className="mt-3 text-display-lg">{metric.value}</p>
-									<p className="mt-1 text-body-sm text-muted-foreground">{metric.detail}</p>
+				<Region as="section" id="how-it-works" aria-labelledby="brand-steps-title" max="wide" className="py-20 lg:py-28">
+					<div className="grid gap-12 lg:grid-cols-[1fr_2fr] lg:gap-16">
+						<Stack gap={2} className="max-w-md">
+							<p className="text-overline text-muted-foreground">How it works</p>
+							<h2 id="brand-steps-title" className="text-balance text-heading-1">
+								From request to sealed record.
+							</h2>
+							<p className="text-body-md text-muted-foreground">
+								Teams are usually live within a week. Cove adapts to the routes
+								you already run instead of asking you to start over.
+							</p>
+							<div className="pt-3">
+								<Button variant="outline" iconEnd={<Icon name="arrow-right" />} render={<a href="/guides/rollout" />}>
+									Read the rollout guide
+								</Button>
+							</div>
+						</Stack>
+						<ol className="grid gap-10 sm:grid-cols-3 sm:gap-6">
+							{steps.map((step) => (
+								<li key={step.number} className="flex flex-col gap-2 border-t border-border-strong pt-6">
+									<span className="text-mono-sm text-muted-foreground">{step.number}</span>
+									<h3 className="mt-3 text-title-lg sm:mt-6">{step.title}</h3>
+									<p className="text-body-sm text-muted-foreground">{step.body}</p>
+								</li>
+							))}
+						</ol>
+					</div>
+				</Region>
+
+				<Region as="section" id="customers" aria-label="Customer story" max="wide" className="pb-20 lg:pb-28">
+					<Card render={<figure />}>
+						<div className="grid lg:grid-cols-[1.5fr_1fr]">
+							<CardContent className="flex flex-col justify-between gap-10 sm:p-10">
+								<Stack gap={3}>
+									<p className="text-overline text-muted-foreground">Customer story</p>
+									<blockquote className="text-balance text-heading-3 sm:text-heading-2">
+										“We used to chase approvals across four tools. Now every request
+										has an owner, a deadline, and a record, and our auditors stopped
+										asking for screenshots.”
+									</blockquote>
+								</Stack>
+								<figcaption className="flex items-center gap-3">
+									<Avatar size="lg" fallback="MO" />
+									<div>
+										<p className="text-title-sm">Maya Okafor</p>
+										<p className="text-body-sm text-muted-foreground">Head of operations, Fielddesk</p>
+									</div>
+								</figcaption>
+							</CardContent>
+							<div className="border-border max-lg:border-t lg:border-s">
+								<CardContent className="flex h-full flex-col justify-center gap-6 sm:p-10">
+									{outcomes.map((outcome, index) => (
+										<Stack key={outcome.label} gap={3}>
+											{index > 0 && <Separator />}
+											<div>
+												<p className="text-heading-1 sm:text-display-lg">{outcome.value}</p>
+												<p className="mt-1 text-body-sm text-muted-foreground">{outcome.label}</p>
+											</div>
+										</Stack>
+									))}
 								</CardContent>
-							</Card>
-						))}
+							</div>
+						</div>
+					</Card>
+				</Region>
+
+				<Region as="section" aria-labelledby="brand-cta-title" max="wide" className="pb-20 lg:pb-28">
+					<div className="dark">
+						<div className="rounded-xl border border-border bg-card px-6 py-12 text-card-foreground sm:px-12 sm:py-16">
+							<div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+								<Stack gap={3} className="max-w-2xl">
+									<h2 id="brand-cta-title" className="text-balance text-heading-1">
+										See your own approval paths in Cove.
+									</h2>
+									<p className="text-body-lg text-muted-foreground">
+										A 30-minute walkthrough with your routes, your roles, and your
+										records. No slides.
+									</p>
+								</Stack>
+								<Row gap={2} wrap>
+									<Button size="cta" render={<a href="/demo" />}>
+										Book a walkthrough
+									</Button>
+									<Button size="cta" variant="ghost" render={<a href="/pricing" />}>
+										View pricing
+									</Button>
+								</Row>
+							</div>
+						</div>
 					</div>
 				</Region>
 			</main>
 
 			<footer className="border-t border-border bg-muted/35">
-				<Region max="wide" className="py-10 sm:py-12">
-					<div className="grid gap-8 lg:grid-cols-[1fr_1.35fr_1fr]">
-						<Stack gap={3} className="max-w-md">
+				<Region max="wide" className="py-12 sm:py-16">
+					<div className="grid gap-10 lg:grid-cols-[1fr_1.35fr_1fr] lg:gap-8">
+						<Stack gap={4} className="max-w-sm">
 							<a href="/" className="flex w-fit items-center gap-2 rounded-full motion-interactive motion-press">
 								<span className="grid size-9 place-items-center rounded-full bg-primary text-primary-foreground">
 									<Icon name="sparkles" className="text-sm" />
@@ -319,20 +442,15 @@ export function BrandLandingPage() {
 								A calm operating surface for teams that need trust, speed, and
 								context without the noise.
 							</p>
-							<Row gap={1} wrap>
-								<Badge size="sm" icon={<Icon name="lock" />}>
-									Private
-								</Badge>
-								<Badge tone="success" size="sm" icon={<Icon name="circle-check" />}>
-									Live
-								</Badge>
-							</Row>
+							<Badge appearance="plain" tone="success" dot>
+								All systems normal
+							</Badge>
 						</Stack>
 
-						<nav aria-label="Footer" className="grid gap-6 sm:grid-cols-3">
+						<nav aria-label="Footer" className="grid grid-cols-3 gap-6">
 							{footerGroups.map((group) => (
 								<div key={group.title}>
-									<h2 className="text-label-md text-muted-foreground">{group.title}</h2>
+									<h2 className="text-label-md">{group.title}</h2>
 									<ul className="mt-3 space-y-1">
 										{group.links.map((link) => (
 											<li key={link.label}>
@@ -349,22 +467,17 @@ export function BrandLandingPage() {
 							))}
 						</nav>
 
-						<Card>
+						<Card className="h-fit">
 							<CardHeader>
 								{/* CardTitle carries the type; the h2 inside it keeps the outline. */}
 								<CardTitle>
-									<h2>Signal digest</h2>
+									<h2>The Cove digest</h2>
 								</CardTitle>
 								<CardDescription>
-									One weekly note on trusted workflows and product releases.
+									One note a month on trusted workflows and product releases.
 								</CardDescription>
-								<CardAction>
-									<span className="grid size-9 place-items-center rounded-full bg-highlight text-highlight-foreground">
-										<Icon name="sparkles" className="text-sm" />
-									</span>
-								</CardAction>
 							</CardHeader>
-							<CardContent className="flex flex-col gap-4">
+							<CardContent>
 								<form action="/newsletter" className="grid gap-2 sm:grid-cols-[1fr_auto]">
 									<label htmlFor="brand-footer-email" className="sr-only">
 										Work email
@@ -377,42 +490,25 @@ export function BrandLandingPage() {
 										placeholder="you@company.com"
 									/>
 									<Button type="submit" className="w-full sm:w-auto">
-										Join
+										Subscribe
 									</Button>
 								</form>
-								<div className="grid grid-cols-3 gap-2">
-									{footerSignals.map((signal) => (
-										<div key={signal.label} className="rounded-md bg-muted p-3">
-											<p className="text-mono-sm">{signal.value}</p>
-											<p className="mt-1 text-caption text-muted-foreground">{signal.label}</p>
-										</div>
-									))}
-								</div>
 							</CardContent>
 						</Card>
 					</div>
 
-					<div className="mt-10 flex flex-col gap-3 border-t border-border pt-5 text-caption text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+					<div className="mt-12 flex flex-col gap-3 border-t border-border pt-6 text-caption text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
 						<p>© 2026 Cove. All rights reserved.</p>
-						<Row gap={3} wrap>
-							<a
-								href="/privacy"
-								className="flex min-h-9 min-w-9 items-center motion-interactive hover:text-foreground"
-							>
-								Privacy
-							</a>
-							<a
-								href="/terms"
-								className="flex min-h-9 min-w-9 items-center motion-interactive hover:text-foreground"
-							>
-								Terms
-							</a>
-							<a
-								href="/contact"
-								className="flex min-h-9 min-w-9 items-center motion-interactive hover:text-foreground"
-							>
-								Contact
-							</a>
+						<Row gap={4} wrap>
+							{legalLinks.map((link) => (
+								<a
+									key={link.label}
+									href={link.href}
+									className="flex min-h-9 min-w-9 items-center motion-interactive hover:text-foreground"
+								>
+									{link.label}
+								</a>
+							))}
 						</Row>
 					</div>
 				</Region>

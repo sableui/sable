@@ -125,11 +125,9 @@ function LiveChat() {
 				</MessageScroller>
 			</CardContent>
 
-			{/* Inset by the compact card padding (p-4), so the composer's corner
-			    is the card's radius less that inset. */}
+			{/* Inside a Card the composer takes the card's inner radius on its own. */}
 			<CardFooter>
 				<ChatComposer
-					className="rounded-concentric-lg/4"
 					placeholder="Ask anything…"
 					onSend={send}
 					busy={busy}
@@ -197,7 +195,7 @@ function ControlledDemo() {
 /** One small chat, rendered twice — once per register. */
 function CompactSample() {
 	return (
-		<Card density="compact" className="flex h-64 flex-col">
+		<Card density="compact" className="flex h-96 flex-col">
 			<MessageScroller className="min-h-0 flex-1 p-(--card-p)">
 				<Marker variant="separator">Today</Marker>
 				<Message
@@ -215,7 +213,6 @@ function CompactSample() {
 			</MessageScroller>
 			<CardFooter>
 				<ChatComposer
-					className="rounded-concentric-lg/4"
 					placeholder="Refine it…"
 					onAttach={() => undefined}
 				/>

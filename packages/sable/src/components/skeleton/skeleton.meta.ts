@@ -70,7 +70,7 @@ export const skeletonMeta: ComponentMeta = {
 			slot: "activity",
 			recipe: "motion-shimmer",
 			part: "Root",
-			why: "The sweep is the entire point of the component: it is what separates 'still loading' from 'loaded, and empty'. A static grey block is indistinguishable from a broken layout, which is why users reload the page.",
+			why: "The sweep is the entire point of the component: it is what separates 'still loading' from 'loaded, and empty'. A static grey block is indistinguishable from a broken layout, which is why users reload the page. It is one band of light against the viewport, so every skeleton in a loading layout lights in sequence as a single wave rather than each block flashing at its own speed; each pass eases in, glides and settles, then rests off-screen before the next.",
 		},
 	],
 	a11y: [

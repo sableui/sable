@@ -74,6 +74,6 @@ describe("Dialog size=fullscreen", () => {
 		expect(dialog).toHaveAttribute("data-size", "default")
 		expect(screen.queryByRole("button", { name: "Close" })).toBeNull()
 		const scrim = document.querySelector('[data-size="default"]:not([role="dialog"])')
-		expect(scrim?.className).toContain("bg-overlay/50")
+		expect(scrim?.className).toContain("bg-overlay/(--scrim-alpha)")
 	})
 })

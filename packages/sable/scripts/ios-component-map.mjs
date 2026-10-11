@@ -22,7 +22,7 @@ const decisions = [
   ['contextual', 'PageHeader', 'Screen title', ['IosNavbar'], 'A screen title is the navigation bar (`large` for the top of a tab). An editorial heading or product introduction inside the screen stays PageHeader or Sable typography.'],
   ['contextual', 'Button', 'Navigation-bar action', ['IosIconButton', 'IosBackLink'], 'Only actions in the navigation bar are adapter controls. Every other button — product actions, form submits, sheet actions, empty-state actions — is a Sable Button.'],
   ['recompose', 'SideNav Sidebar Breadcrumbs Tree', ['Card', 'CardList', 'Entity'], 'Hierarchy becomes drill-down: a list of interactive Entity rows in a Card that push the next screen with useNavigation().push. Back is the navigation bar.'],
-  ['recompose', 'Table DataTable', ['Card', 'CardList', 'Entity', 'Description'], 'On a phone a table becomes rows: Entity per record in a CardList, with the detail on a pushed screen (Description for its fields). Keep sorting and filtering the task needs.'],
+  ['recompose', 'Table DataTable', ['Card', 'CardList', 'Entity'], 'On a phone a table becomes rows: Entity per record in a CardList, with the detail on a pushed screen (a `<dl className="sable-list-dl">` for its fields). Keep sorting and filtering the task needs.'],
   ['recompose', 'Tooltip', ['Popover', 'Label'], 'There is no hover on a phone. Essential help is visible text, or a Popover on tap.'],
   ['recompose', 'Pagination', ['Button', 'Spinner'], 'Phones scroll: load more at the end of the list with a Sable Button, or load on scroll with a Spinner.'],
   ['recompose', 'FileDropzone', ['Attachment', 'Button'], 'Drag and drop is not a phone interaction. Pick files with a Sable Button; show them as Attachments.'],

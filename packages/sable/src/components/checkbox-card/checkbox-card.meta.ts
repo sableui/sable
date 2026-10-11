@@ -78,7 +78,7 @@ export const checkboxCardMeta: ComponentMeta = {
 		{
 			name: "icon",
 			type: "ReactNode",
-			description: "Optional leading glyph (a solid <Icon>); takes the tone colour.",
+			description: "Optional glyph (a solid <Icon>) in the tone colour. Its presence switches to the two-dimensional card RadioCard uses — icon top-left, checkbox top-right, copy below — so the two cards match in one form.",
 		},
 		{
 			name: "tone",

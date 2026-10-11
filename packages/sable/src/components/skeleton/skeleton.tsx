@@ -2,8 +2,8 @@ import type { ComponentPropsWithRef } from "react"
 import { cn } from "../../lib/cn"
 
 /**
- * Skeleton — a loading placeholder. A muted block with a shimmer sweep that stands in for
- * content while it loads. Style the shape with utilities on the caller side:
+ * Skeleton — a loading placeholder. A muted block that stands in for content while it
+ * loads, with a sheen that passes through every skeleton on screen as one eased wave. Style the shape with utilities on the caller side:
  *
  *   <Skeleton className="h-4 w-40" />            // a text line
  *   <Skeleton className="size-10 rounded-full" /> // a circular avatar

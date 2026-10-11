@@ -5,8 +5,6 @@ import {
 	ContextCardContent,
 	contextCardMeta,
 	ContextCardTrigger,
-	Description,
-	DescriptionItem,
 	Entity,
 } from "@sableui/react"
 import {
@@ -90,10 +88,14 @@ export function ContextCardPage() {
 								<p className="mt-3 text-body-sm text-muted-foreground">
 									Sound artist. Edition drops every full moon.
 								</p>
-								<Description cols="2" className="mt-4 border-t border-border pt-3">
-									<DescriptionItem term="Posts" detail="128" />
-									<DescriptionItem term="Followers" detail="4.2k" />
-								</Description>
+								<div className="@container mt-4 border-t border-border pt-3">
+									<dl className="sable-list-dl sable-list-dl-2">
+										<dt>Posts</dt>
+										<dd>128</dd>
+										<dt>Followers</dt>
+										<dd>4.2k</dd>
+									</dl>
+								</div>
 							</ContextCardContent>
 						</ContextCard>
 						.

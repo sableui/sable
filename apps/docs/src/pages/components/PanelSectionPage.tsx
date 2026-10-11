@@ -25,7 +25,7 @@ function PanelSectionDemo() {
 	return (
 		<div
 			data-density="compact"
-			className="w-64 overflow-hidden rounded-lg border border-border bg-panel"
+			className="sable-frame sable-frame-tool overflow-hidden w-64 bg-panel"
 		>
 			{/* The frame's own border is the first section's top edge. */}
 			<PanelSection

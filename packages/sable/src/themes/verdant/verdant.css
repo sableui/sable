@@ -90,15 +90,19 @@
 	   ---------------------------------------------------------------------- */
 	--background: oklch(98.6% 0.004 106);
 	--foreground: oklch(24% 0.035 175);
-	--card: oklch(96.1% 0.005 106);
+	/* Cards, fields and popovers sit at or above the page, never recessed into it:
+	   a card darker than the page made every field read as a filled grey box. */
+	--card: oklch(99.7% 0.002 106);
 	--card-foreground: oklch(24% 0.035 175);
-	--popover: oklch(98.6% 0.004 106);
+	--popover: oklch(99.7% 0.002 106);
 	--popover-foreground: oklch(24% 0.035 175);
 	--muted: oklch(93% 0.007 106);
 	--muted-foreground: oklch(49% 0.018 175);
 	--border: oklch(88.5% 0.005 106);
 	--border-strong: oklch(81% 0.008 130);
 	--input: oklch(88.5% 0.005 106);
+	/* The resting edge of a control whose outline IS the control (checkbox, radio, an off switch track). Held to WCAG 1.4.11 3:1 on every surface, unlike the quieter --input field outline. */
+	--control-border: oklch(59.9% 0.0149 175);
 	--ring: oklch(24% 0.035 175);
 	--primary: oklch(24% 0.035 175);
 	--primary-foreground: oklch(98.6% 0.004 106);
@@ -174,6 +178,7 @@
 	--border: oklch(36% 0.03 175);
 	--border-strong: oklch(40% 0.028 175);
 	--input: oklch(36% 0.03 175);
+	--control-border: oklch(58.7% 0.0158 172);
 	--ring: oklch(85% 0.015 170);
 	--primary: oklch(98.6% 0.004 106);
 	--primary-foreground: oklch(24% 0.035 175);

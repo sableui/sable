@@ -2,7 +2,7 @@
 
 Which token to reach for, and what it is most often confused with. Generated from `src/themes/token-docs.ts`; the full data is `registry.json → tokens`.
 
-### semantic (44)
+### semantic (45)
 
 - **`background`** — The page. The furthest-back surface in the page register. *Use for:* The document body, and any surface meant to read as 'the page itself'. Never anything that floats: background is the BOTTOM of the surface stack (background < card < popover in every dark mode), so a floating panel painted with it reads as a hole beneath the cards it hovers over.
     - **Not** `popover` for anything floating, `card` for a bounded block on the page. `canvas`. `canvas` is the *work* surface in a tool — the artboard being edited — which is not the page behind the UI. Using `background` for an artboard makes the thing being edited indistinguishable from the chrome around it.
@@ -24,8 +24,10 @@ Which token to reach for, and what it is most often confused with. Generated fro
     - **Not** `border-strong`. Reach for `border-strong` when the line carries *structure* (a grid rule, a table divider, a section separator) and for `border` when it merely bounds a control.
 - **`border-strong`** — A structural divider. Visibly stronger than `border`. *Use for:* Grid lines, table rules, separators between major sections.
     - **Not** `border`. If removing the line would make the layout ambiguous, it is structural and belongs here.
-- **`input`** — The outline of a form control specifically. *Use for:* Text inputs, textareas, selects, and the resting edge of a checkbox or radio.
+- **`input`** — The outline of a form control specifically. *Use for:* Text inputs, textareas and selects. Not the edge of a checkbox, radio or switch — that is `control-border`.
     - **Not** `border`. They are often the same value, but a theme is entitled to make form controls read differently from other chrome, and only this token gives it the hook.
+- **`control-border`** — The resting edge of a control whose outline is the whole control. Held to 3:1 (WCAG 1.4.11) on every surface. *Use for:* An unchecked checkbox, an unselected radio, an off switch track, a selection card's check or radio mark — anywhere removing the edge would make the control disappear.
+    - **Not** `input`. A text field is also found by its fill, caret and placeholder, so its outline may stay quiet; a checkbox has nothing else, and at `input`'s strength it measures about 1.4:1.
 - **`ring`** — The focus indicator colour. *Use for:* Only for `focus-visible`. Nothing else.
     - **Not** `primary`. Focus must remain distinguishable from selection; if the ring is the same colour as a selected state, a keyboard user cannot tell where focus is.
 - **`primary`** — The one high-emphasis action colour. *Use for:* The single most important action on a surface — one per view. A submit button, the primary CTA.

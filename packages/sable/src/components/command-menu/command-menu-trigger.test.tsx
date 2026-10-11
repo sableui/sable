@@ -32,7 +32,9 @@ describe("CommandMenuTrigger", () => {
 		expect(button).toHaveAttribute("type", "button")
 		expect(button).toHaveAttribute("aria-haspopup", "dialog")
 		expect(button).toHaveAttribute("aria-keyshortcuts", "Control+K")
-		expect(button).toHaveTextContent("Ctrl K")
+		// One cap per key, inside a KbdGroup.
+		const caps = [...button.querySelectorAll('[data-slot="kbd"]')].map((k) => k.textContent)
+		expect(caps).toEqual(["Ctrl", "K"])
 		// The field's shell, not a chip.
 		expect(button.className).toContain("border-input")
 		expect(button.className).toContain("bg-card")

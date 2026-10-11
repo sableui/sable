@@ -14,7 +14,7 @@ import { useState } from "react"
 import { MetaFooter, PageHeader, Section, ledeFor } from "../../components/docs-ui"
 
 /** A bare panel to hold each tree: a bordered frame with no inset, on the panel surface. */
-const FRAME = "sable-frame sable-frame-p-0 w-full overflow-hidden bg-panel"
+const FRAME = "sable-frame sable-frame-tool overflow-hidden w-full bg-panel"
 
 type Layer = { id: string; name: string; effects: string[]; open: boolean; visible: boolean }
 
@@ -45,7 +45,7 @@ function TreeDemo() {
 				// Overriding --tree-indent alone is exactly the mistake: the step no
 				// longer matches the column, so children land left of their parents.
 				style={broken ? ({ "--tree-indent": "10px" } as React.CSSProperties) : undefined}
-				className="sable-frame sable-frame-p-0 w-(--panel-width) overflow-hidden bg-panel"
+				className="sable-frame sable-frame-tool overflow-hidden w-(--panel-width) bg-panel"
 			>
 				<Tree aria-label="Layers">
 					<TreeSection title="Document effects" hint="Applied to the flattened composite">

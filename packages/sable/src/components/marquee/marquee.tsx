@@ -158,7 +158,7 @@ export function Marquee({
 					size="icon-xs"
 					onClick={togglePlay}
 					aria-label={isPaused ? "Play" : "Pause"}
-					className="absolute right-1 top-1 z-10"
+					className="absolute end-2 top-2 z-10"
 				>
 					<PlayPauseGlyph playing={!isPaused} />
 				</Button>

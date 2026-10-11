@@ -94,7 +94,10 @@ type ItemProps = Omit<ComponentProps<typeof Base.Item>, "className"> & {
 
 /** Shared with ContextMenuItem so the two destructive rows cannot drift apart. */
 export const MENU_ITEM_DESTRUCTIVE =
-	"text-destructive data-[highlighted]:bg-destructive/10 data-[highlighted]:text-destructive"
+	// The ink is pulled a quarter toward --foreground (as Badge's soft tones
+	// are): raw dark-mode destructive on the popover's 10% red wash measured
+	// 3.5-4.0:1 across themes. It reads as the same red and clears 4.5:1.
+	"text-[color-mix(in_oklch,var(--destructive)_75%,var(--foreground))] data-[highlighted]:bg-destructive/10 data-[highlighted]:text-[color-mix(in_oklch,var(--destructive)_75%,var(--foreground))]"
 
 /** A single interactive row. Highlights via Base UI's data-[highlighted]. */
 export function MenuItem({ className, variant = "default", ...props }: ItemProps) {

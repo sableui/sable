@@ -74,7 +74,7 @@ export function AccordionTrigger({
 		<Base.Header>
 			<Base.Trigger
 				className={cn(
-					"flex w-full items-start justify-between gap-3 py-4 text-start text-title-sm text-foreground motion-interactive hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+					"flex w-full items-start justify-between gap-3 py-4 text-start text-title-sm text-foreground motion-interactive hover:text-muted-foreground rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50",
 					!indicator && "[&[data-panel-open]_[data-slot=accordion-chevron]]:rotate-180",
 					className,
 				)}

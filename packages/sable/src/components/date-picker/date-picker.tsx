@@ -11,7 +11,8 @@ import { type ComponentProps, useId, useState } from "react"
 import type { Matcher } from "react-day-picker"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
-import { FIELD_INVALID, FIELD_SHELL } from "../../lib/field-shell"
+import { useDensity, useTypeTier } from "../../lib/density"
+import { FIELD_INVALID, FIELD_SHELL, MOBILE_FIELD_TIER } from "../../lib/field-shell"
 import { Calendar } from "../calendar/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "../popover/popover"
 import {
@@ -142,6 +143,8 @@ export function DatePicker(props: DatePickerProps) {
 		"aria-required": ariaRequired,
 	} = props
 	const timeLabelId = useId()
+	const tier = useTypeTier()
+	const density = useDensity()
 	const [open, setOpen] = useState(false)
 	const [uncontrolled, setUncontrolled] = useState<Date | undefined>(defaultValue)
 	// Controlled whenever `value` is passed at all — `value={undefined}` from an
@@ -220,7 +223,11 @@ export function DatePicker(props: DatePickerProps) {
 						aria-required={ariaRequired}
 						disabled={disabled}
 						className={cn(
-							"inline-flex h-(--control-md) items-center gap-2 ps-3 pe-3 text-start text-body-md text-foreground",
+							"inline-flex h-(--control-md) items-center gap-2 ps-3 pe-3 text-start text-foreground",
+							// Select's type: the density tier, plus the 16px phone tier
+							// its form-row neighbours take (lib/field-shell).
+							tier.body,
+							density === "comfortable" && MOBILE_FIELD_TIER,
 							FIELD_SHELL,
 							FIELD_INVALID,
 							className,

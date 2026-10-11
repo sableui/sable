@@ -1,9 +1,10 @@
 import { Toast as Base } from "@base-ui/react/toast"
-import type { ComponentProps, ReactNode } from "react"
+import { type ComponentProps, createContext, type ReactNode, useContext } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
 import { Button } from "../button/button"
 import { hitTargetMin } from "../../lib/hit-target"
+import { withPortalThemeScope } from "../../lib/portal-theme-scope"
 import { Spinner } from "../spinner/spinner"
 
 /**
@@ -65,6 +66,24 @@ const POSITION: Record<ToastPosition, string> = {
 	"bottom-center": "bottom-4 left-1/2 -translate-x-1/2 items-center",
 	"bottom-right": "bottom-4 right-4 items-end",
 }
+
+/**
+ * Each toast enters from the edge its stack is anchored to — sliding in from
+ * the right on the right, from the left on the left, and down/up from the top
+ * or bottom edge for a centred stack. It used to slide left at every anchor, so
+ * a left-anchored toast arrived from inside the page.
+ */
+const ENTER_MOTION: Record<ToastPosition, string> = {
+	"top-left": "motion-slide-right",
+	"top-center": "motion-slide-down",
+	"top-right": "motion-slide-left",
+	"bottom-left": "motion-slide-right",
+	"bottom-center": "motion-slide-up",
+	"bottom-right": "motion-slide-left",
+}
+
+/** The viewport's anchor, read by the toasts inside it for their entrance. */
+const ToastPositionContext = createContext<ToastPosition>("top-right")
 
 type AddOptions = Parameters<typeof toastManager.add>[0]
 /** Options for `toast()` / the `toast.*` helpers (Base UI add-options minus the message). */
@@ -201,11 +220,18 @@ type ViewportProps = Omit<ComponentProps<typeof Base.Viewport>, "className"> & {
 	position?: ToastPosition
 }
 
+/** Moves the viewport to `<body>`, carrying any themed-subtree scope across. */
+const ToastPortal = withPortalThemeScope(Base.Portal)
+
 /**
  * The fixed region that hosts the toast stack. Top-right by default; collision
  * is irrelevant since it's screen-anchored. Pointer events pass through the gaps
  * so the page stays interactive around the toasts. `position` picks the anchor;
  * `className` merges last for safe-area or offset tweaks.
+ *
+ * Portaled to `<body>`: rendered in place, `fixed` resolved against any ancestor
+ * with a transform, translate, filter or contain (a route's enter animation is
+ * enough), so the stack landed in the content column instead of the screen corner.
  */
 export function ToastViewport({
 	className,
@@ -213,14 +239,18 @@ export function ToastViewport({
 	...props
 }: ViewportProps) {
 	return (
-		<Base.Viewport
-			className={cn(
-				"fixed z-(--z-toast) flex w-95 max-w-[90vw] flex-col gap-2 outline-none",
-				POSITION[position],
-				className,
-			)}
-			{...props}
-		/>
+		<ToastPositionContext.Provider value={position}>
+			<ToastPortal>
+				<Base.Viewport
+					className={cn(
+						"fixed z-(--z-toast) flex w-95 max-w-[90vw] flex-col gap-2 outline-none",
+						POSITION[position],
+						className,
+					)}
+					{...props}
+				/>
+			</ToastPortal>
+		</ToastPositionContext.Provider>
 	)
 }
 
@@ -234,11 +264,12 @@ type RootProps = Omit<ComponentProps<typeof Base.Root>, "className"> & {
  * is wired by Base UI.
  */
 export function ToastRoot({ className, ...props }: RootProps) {
+	const position = useContext(ToastPositionContext)
 	return (
 		<Base.Root
 			className={cn(
 				"flex w-full gap-3 rounded-md border border-border-floating bg-popover p-4 text-popover-foreground shadow-xl",
-				"motion-slide-left",
+				ENTER_MOTION[position],
 				className,
 			)}
 			{...props}
@@ -293,7 +324,7 @@ export function ToastClose({ className, children, ...props }: CloseProps) {
 	return (
 		<Base.Close
 			className={cn(
-				"-m-1 ms-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-concentric-md/3 text-muted-foreground outline-none motion-interactive",
+				"-m-1 ms-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-muted-foreground outline-none motion-interactive",
 				hitTargetMin,
 				"hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring",
 				className,

@@ -104,8 +104,9 @@ export function Calendar({
 				// ring, which is what keyboard focus draws and would be mistaken for it.
 				today:
 					"[&>button]:relative [&>button]:after:absolute [&>button]:after:bottom-1 [&>button]:after:size-1 [&>button]:after:rounded-full [&>button]:after:bg-current",
-				outside:
-					"[&>button]:text-muted-foreground [&>button]:opacity-50",
+				// Muted ink alone (4.5:1+): these are live, clickable days. At 50%
+				// opacity they measured 2.2:1 and looked exactly like `disabled`.
+				outside: "[&>button]:text-muted-foreground",
 				disabled:
 					"[&>button]:pointer-events-none [&>button]:text-muted-foreground [&>button]:opacity-50",
 				hidden: "invisible",

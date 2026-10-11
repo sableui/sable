@@ -15,9 +15,9 @@ import {
 import { Icon } from "../../icon"
 import { anchoredListScroll } from "../../lib/anchored-scroll"
 import { cn } from "../../lib/cn"
-import { FIELD_SHELL_XS } from "../../lib/field-shell"
+import { FIELD_SHELL_XS, MOBILE_FIELD_TIER } from "../../lib/field-shell"
 import { withPortalThemeScope } from "../../lib/portal-theme-scope"
-import { useAnchoredDensity, useTypeTier } from "../../lib/density"
+import { useAnchoredDensity, useDensity, useTypeTier } from "../../lib/density"
 import { useResizeObserver } from "../../lib/use-resize-observer"
 import { HighlightGlide } from "../../lib/highlight-glide"
 import { Badge } from "../badge"
@@ -203,7 +203,19 @@ type InputProps = Omit<ComponentProps<typeof Base.Input>, "className" | "size"> 
  */
 const FIELD_SHELL = {
 	xs: cn(FIELD_SHELL_XS, "pe-7 text-ui-md"),
-	md: "rounded-sm border border-input bg-card pe-9 text-body-md",
+	md: "rounded-sm border border-input bg-card pe-9",
+}
+
+/**
+ * The md field's type: the density tier like Input, plus the 16px iOS floor
+ * (lib/field-shell → MOBILE_FIELD_TIER) — this is a real <input>, so Safari
+ * zooms on it below 16px. The xs rung carries its own `text-ui-md`.
+ */
+function useFieldType(xs: boolean) {
+	const tier = useTypeTier()
+	const density = useDensity()
+	if (xs) return undefined
+	return cn(tier.body, density === "comfortable" && MOBILE_FIELD_TIER)
 }
 
 /** The chevron that opens the popup, at the field's trailing edge. */
@@ -235,6 +247,7 @@ function FieldToggle({ xs }: { xs: boolean }) {
  */
 export function ComboboxInput({ className, size = "md", ...props }: InputProps) {
 	const xs = size === "xs"
+	const type = useFieldType(xs)
 	return (
 		<Base.InputGroup className="relative inline-flex w-full items-center">
 			<Base.Input
@@ -243,6 +256,7 @@ export function ComboboxInput({ className, size = "md", ...props }: InputProps) 
 					xs
 						? cn("h-(--control-xs) ps-1.5", FIELD_SHELL.xs)
 						: cn("h-(--control-md) ps-3", FIELD_SHELL.md),
+					type,
 					"placeholder:text-muted-foreground",
 					"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
 					"disabled:cursor-not-allowed disabled:opacity-50",
@@ -298,6 +312,7 @@ export function ComboboxChips<Item = unknown>({
 	...props
 }: ChipsProps<Item>) {
 	const xs = size === "xs"
+	const type = useFieldType(xs)
 	return (
 		<Base.InputGroup
 			className={cn(
@@ -305,6 +320,7 @@ export function ComboboxChips<Item = unknown>({
 				xs
 					? cn("min-h-(--control-xs) gap-0.5 py-0.5 ps-0.5", FIELD_SHELL.xs)
 					: cn("min-h-(--control-md) gap-1 py-1 ps-1.5", FIELD_SHELL.md),
+				type,
 				"has-[input:focus-visible]:ring-2 has-[input:focus-visible]:ring-ring",
 				"has-[input[aria-invalid=true]]:border-destructive has-[input[aria-invalid=true]]:ring-destructive/30",
 				"has-[input:disabled]:cursor-not-allowed has-[input:disabled]:opacity-50",

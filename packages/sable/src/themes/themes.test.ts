@@ -26,6 +26,7 @@ import {
 	gamutExcursion,
 	isInSrgbGamut,
 	linearToSrgb,
+	luminance,
 	parseColorWithAlpha,
 } from "./contrast"
 import {
@@ -678,6 +679,33 @@ describe("theme contrast", () => {
 		},
 	)
 
+	it.each(themeIds)(
+		"%s keeps card at or above the page in light mode, so a field reads as a box to type in",
+		(themeId) => {
+			/*
+			 * The light half of the rule above. Fields (FIELD_SHELL), cards and
+			 * dialogs all fill with --card, and every component assumes it is the
+			 * raised surface. Verdant shipped a card DARKER than its page and
+			 * Meridian one level with a tinted page, so in those two presets every
+			 * input read as a filled grey well with a near-invisible edge. A white
+			 * page can only be matched; a tinted one needs a visible step up.
+			 */
+			const vars = resolveVars(cssFor(themeId), "light")
+			const page = resolve("--background", vars)
+			const card = resolve("--card", vars)
+			expect(page, "--background resolves").toBeTruthy()
+			expect(card, "--card resolves").toBeTruthy()
+			if (!page || !card) return
+			const pageY = luminance(page.rgb)
+			const cardY = luminance(card.rgb)
+			expect(cardY, "card is not darker than the page").toBeGreaterThanOrEqual(pageY - 1e-6)
+			if (pageY < 0.95) {
+				const step = contrastRatio(card.rgb, page.rgb)
+				expect(step, `card/page step ${step.toFixed(3)} on a tinted page`).toBeGreaterThanOrEqual(1.03)
+			}
+		},
+	)
+
 	it.each(themeIds)("%s lets a nested .dark element take the dark tokens", (themeId) => {
 		/*
 		 * Dark islands inside a light page (an inspector, a dark sidebar, a dark
@@ -846,7 +874,7 @@ describe("theme contrast", () => {
 						checked++
 						const v = evaluateNonTextContrast(painted(mark, bg), bg.rgb, tier)
 						const key = `${themeId}:${appearance}:${token}:${surface}`
-						if (tier === "focus" ? v.wcagRatioPasses : v.passes) {
+						if (tier === "hairline" ? v.passes : v.wcagRatioPasses) {
 							if (v.basis === "perceptual") {
 								perceptualPasses.push(
 									`${appearance}: ${token} on ${surface} — WCAG ${v.ratio.toFixed(2)}:1, APCA Lc ${v.lc.toFixed(1)}`,
@@ -859,9 +887,9 @@ describe("theme contrast", () => {
 							continue
 						}
 						const floor =
-							tier === "focus"
-								? `required ${NON_TEXT_FLOOR}:1 (APCA cannot waive focus contrast)`
-								: `floor ${HAIRLINE_VISIBILITY_FLOOR}:1`
+							tier === "hairline"
+								? `floor ${HAIRLINE_VISIBILITY_FLOOR}:1`
+								: `required ${NON_TEXT_FLOOR}:1 (APCA cannot waive this ratio)`
 						failures.push(
 							`${appearance}: ${token} on ${surface} = ${v.ratio.toFixed(2)}:1, ` +
 								`APCA Lc ${v.lc.toFixed(1)} (${tier} tier, ${floor}) — a structural ` +

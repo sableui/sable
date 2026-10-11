@@ -7,7 +7,7 @@ import { cn } from "../../lib/cn";
 import { useTypeTier } from "../../lib/density";
 import { FIELD_SHELL } from "../../lib/field-shell";
 import { useIsomorphicLayoutEffect } from "../../lib/use-isomorphic-layout-effect";
-import { Kbd } from "../kbd/kbd";
+import { Kbd, KbdGroup } from "../kbd/kbd";
 
 /**
  * The palette's own search input carries this attribute. It is the one
@@ -189,9 +189,12 @@ export function CommandMenuTrigger({
 			{keyLabel ? (
 				// aria-hidden: the shortcut is announced once, through
 				// aria-keyshortcuts, rather than read out as part of the name.
-				<Kbd aria-hidden className="shrink-0">
-					{apple ? `⌘${keyLabel}` : `Ctrl ${keyLabel}`}
-				</Kbd>
+				// One cap per key (Kbd's own guidance) — "Ctrl K" in a single cap
+				// read as one key.
+				<KbdGroup aria-hidden className="shrink-0">
+					<Kbd>{apple ? "⌘" : "Ctrl"}</Kbd>
+					<Kbd>{keyLabel}</Kbd>
+				</KbdGroup>
 			) : null}
 		</button>
 	);

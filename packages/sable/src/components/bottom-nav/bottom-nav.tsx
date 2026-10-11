@@ -81,7 +81,8 @@ export function BottomNavItem({
 					<span className="relative grid size-[1em] place-items-center text-2xl">
 						{icon}
 						{badge ? (
-							<span className="absolute -right-1 -top-1">{badge}</span>
+							// flex, not block: a block wrapper takes the icon's text-2xl line box and drops an inline dot to its baseline, off the corner.
+							<span className="absolute -right-1 -top-1 flex">{badge}</span>
 						) : null}
 					</span>
 					{showLabel ? <span className="text-label-sm">{label}</span> : null}

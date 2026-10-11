@@ -24,7 +24,7 @@ Use Pill for a row of filters or choices a person clicks to narrow or toggle wha
 | --- | --- | --- | --- |
 | selected | boolean | false | Marks the pill as chosen. Solid lifts onto the primary surface; outline takes a primary tint and soft primary edge. Sets aria-pressed. |
 | appearance | "solid" \| "outline" | "solid" | solid for a filter row; outline for quiet chips that annotate other content (a reaction under a message, a tag on a card), where a filled chip would compete with what it annotates. |
-| size | "md" \| "sm" | "md" | sm sits on the density ladder's xs control height, for chips under or inside other content. |
+| size | "md" \| "sm" | "md" | md sits on the density ladder's xs control height (28px); sm is 24px, for chips under or inside other content. |
 | icon | ReactNode | — | Optional leading glyph (e.g. <Icon name="lock" />), rendered before the children with the base gap. |
 
 ## Variants

@@ -98,7 +98,9 @@ export function Stepper({
 		<ol
 			data-orientation={orientation}
 			className={cn(
-				"flex w-full",
+				// isolate: the indicators' z-10 (above the connector) stays inside the
+				// stepper instead of rising over sticky headers and nav bars.
+				"isolate flex w-full",
 				orientation === "horizontal" ? "flex-row items-start gap-3" : "flex-col",
 				className,
 			)}

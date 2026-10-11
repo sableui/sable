@@ -23,9 +23,9 @@ function ScrubFieldDemo() {
 				width={260}
 				scroll={false}
 				data-density="compact"
-				className="overflow-hidden rounded-lg border border-border"
+				className="sable-frame sable-frame-tool overflow-hidden"
 			>
-				<PanelSection title="Block displacement">
+				<PanelSection title="Block displacement" className="border-t-0">
 					{/* No glyph fits "block size", so the property name is the handle. */}
 					<PropertyRow
 						label="Block size"

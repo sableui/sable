@@ -105,7 +105,9 @@ export function OtpField({
 							// The shell Input wears — lib/field-shell — so a slot reads as
 							// the same field; only the slot-specific states are added here.
 							FIELD_SHELL,
-							"focus-visible:border-ring data-[filled]:border-border-strong",
+							// Focus is FIELD_SHELL's ring alone, like every other field — a ring-
+							// coloured border under it made a 3px edge only here.
+							"data-[filled]:border-border-strong",
 							FIELD_INVALID,
 						)}
 					/>

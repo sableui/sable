@@ -59,8 +59,9 @@ try {
   const visible = '.ios-navigation-stack:not([hidden]) .ios-route:not([hidden])'
   const clickText = async (text, scope = '') => {
     if (scope === 'dialog') await page.waitForFunction(() => {
-      const box = document.querySelector('.ios-sheet').getBoundingClientRect()
-      return Math.abs(box.top - (innerHeight - box.height)) < 1
+      // Settled: attached at the large detent, floating 8px up at the medium one.
+      const gap = innerHeight - document.querySelector('.ios-sheet').getBoundingClientRect().bottom
+      return Math.abs(gap) < 1 || Math.abs(gap - 8) < 1
     })
     await page.waitForFunction((text, scope) => [...document.querySelectorAll(`${scope} :is(button, [role=button])`)].some(el => el.checkVisibility() && (el.textContent.trim().includes(text) || el.getAttribute('aria-label') === text)), {}, text, scope)
     const handle = await page.evaluateHandle((text, scope) => [...document.querySelectorAll(`${scope} :is(button, [role=button])`)].find(el => el.checkVisibility() && (el.textContent.trim().includes(text) || el.getAttribute('aria-label') === text)), text, scope)
@@ -109,7 +110,7 @@ try {
   await wait(() => !document.querySelector('dialog').open)
   await clickText('New fieldnote', visible)
   await wait(() => document.querySelector('dialog').open)
-  await clickText('Cancel', 'dialog')
+  await clickText('Close', 'dialog')
   await wait(() => !document.querySelector('dialog').open)
   await clickText('New fieldnote', visible)
   await wait(() => document.querySelector('dialog').open && document.querySelector('.ios-sheet').getBoundingClientRect().top < 500)
@@ -169,7 +170,7 @@ try {
   console.log('Verified detail/back, independent tabs, search recovery, modal focus, validation/save, Escape/cancel, detents/drag, edge swipe, dark/reduced motion, desktop/mobile framing; no app errors.')
   if (optionalFailures.length) console.log('Existing optional public GitHub star metadata unavailable (private repository, 404).')
   const hash = path => createHash('sha256').update(readFileSync(path)).digest('hex')
-  const sources = ['apps/docs/native/main.tsx', 'apps/docs/native/native.css', 'apps/docs/src/pages/IosPrototype.tsx', 'packages/sable/targets/ios.json', ...readdirSync('packages/sable/src/ios').filter(name => !name.includes('.test.')).map(name => `packages/sable/src/ios/${name}`)]
+  const sources = ['apps/docs/native/main.tsx', 'apps/docs/native/native.css', 'apps/docs/src/pages/IosPrototype.tsx', 'packages/sable/targets/ios.json', ...readdirSync('packages/sable/src/ios').filter(name => !name.includes('.test.') && !name.startsWith('.')).map(name => `packages/sable/src/ios/${name}`)]
   writeFileSync('.evidence/ios/interaction-report.json', JSON.stringify({
     executedOn: new Date().toISOString(), nativeViewport: [402, 874], catalogViewports: [[1280, 1100], [375, 900]],
     checks: ['screens built from Sable components', 'detail and back focus', 'independent tabs', 'search recovery', 'modal focus and inert background', 'validation then save', 'Escape during entry', 'cancel', 'large detent and drag dismiss', 'edge swipe back', 'keyboard dark toggle', 'glass tint endpoints', 'system reduced motion', 'frame bounds at mobile width'],

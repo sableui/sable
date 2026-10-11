@@ -80,7 +80,7 @@ export function CardPage() {
 				title="Density"
 				description="Compact tightens the padding for denser panels."
 			>
-				<Example>
+				<Example className="items-start">
 					<Card className="w-56">
 						<CardHeader>
 							<CardTitle>Comfortable</CardTitle>

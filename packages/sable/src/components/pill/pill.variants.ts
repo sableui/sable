@@ -12,9 +12,11 @@ import { cva } from "class-variance-authority"
  *   `selected` (the reader's own choice) takes a primary tint and a soft
  *   primary edge — distinct from rest without a heavy dark outline.
  *
- * `size="sm"` sits on the density ladder's xs control height and drops the
- * optical label nudge, which a fixed-height chip centred with `items-center`
- * does not need. Semantic tokens only — theme-safe in light and dark.
+ * Both sizes are fixed heights, md the larger: md sits on the density ladder's
+ * xs control height (28px), sm is 24px — the touch-target floor. md used to be
+ * padding-sized (~18px) while sm was 28px, so the "small" chip was the taller
+ * one. A fixed-height chip centred with `items-center` needs no optical nudge,
+ * so both drop it. Semantic tokens only — theme-safe in light and dark.
  */
 export const pillVariants = cva(
 	/*
@@ -41,8 +43,8 @@ export const pillVariants = cva(
 				outline: "border",
 			},
 			size: {
-				md: "",
-				sm: "h-(--control-xs) py-0 text-label-sm [--sable-optical-pad:0px]",
+				md: "h-(--control-xs) px-3 py-0 [--sable-optical-pad:0px]",
+				sm: "h-6 py-0 text-label-sm [--sable-optical-pad:0px]",
 			},
 			selected: {
 				true: "",

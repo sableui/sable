@@ -20,6 +20,15 @@
 export const FIELD_SHELL =
 	"rounded-sm border border-input bg-card motion-interactive placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
 
+/**
+ * The 16px iOS floor for a text-entry field in the page register: Safari zooms
+ * any focused field under 16px, so below `sm` a field takes the 17px lede tier.
+ * Comfortable density only — the reasoning is written down in
+ * components/input/input.tsx. Every field that holds typed text wears it, and so
+ * does a field-shaped trigger standing in the same form row.
+ */
+export const MOBILE_FIELD_TIER = "max-sm:text-body-lg"
+
 /** The field's error treatment, for the elements that can be invalid. */
 export const FIELD_INVALID =
 	"aria-[invalid=true]:border-destructive aria-[invalid=true]:ring-destructive/30"
@@ -34,7 +43,8 @@ export const FIELD_INVALID =
  * caller's own.
  *
  * The hover is a fixed panel step because this rung only lives in a workspace
- * panel, whose surface is known.
+ * panel, whose surface is known. Inside a `sable-frame-tool` the corner is the
+ * frame's `--panel-field-radius`, concentric with its curve; elsewhere `radius-xs`.
  */
 // design-lint-disable-next-line surface-hover -- the xs rung is only used inside workspace panels, a known surface
-export const FIELD_SHELL_XS = "rounded-xs border-transparent bg-canvas hover:bg-panel-raised"
+export const FIELD_SHELL_XS = "rounded-[var(--panel-field-radius,var(--radius-xs))] border-transparent bg-canvas hover:bg-panel-raised"

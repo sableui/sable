@@ -12,7 +12,7 @@ Use ThemeSelector wherever a person picks a theme. The default `cards` layout is
 
 ### Best practices
 
-- Do: Use layout="list" in a popover, a menu, or a docked panel. Rows sit on the --control-sm ladder and still show each theme's swatch strip, so the choice stays visible rather than described. Rows take `sable-frame-inner`, so host the list in a sable-frame (a Popover, or `sable-frame sable-surface sable-surface-popover sable-frame-popover`) and their corners nest concentrically.
+- Do: Use layout="list" in a popover, a menu, or a docked panel. Rows sit on the --control-sm ladder and still show each theme's swatch strip, so the choice stays visible rather than described. Rows take `sable-frame-inner`, so host the list in a sable-frame (`sable-frame sable-surface sable-surface-popover sable-frame-popover` — PopoverContent is not one; give it that class list, or its p-4 leaves the rows unnested) and their corners nest concentrically.
 - Do: Pass mode={useSableTheme().mode} so every preview renders in the colour mode actually in use, rather than in each theme's manifest default.
 - Do: Load each theme's fonts in the host app. Every card carries a type specimen in that theme's own face so people can compare typography as well as color. A theme whose fonts are not loaded falls back to system-ui, and its specimen stops telling the truth.
 - Don't: Add a viewport breakpoint to force a column count — `className="sm:grid-cols-1"` or similar. `sm:` keys off the VIEWPORT, not this component's container, so on a wide screen it does nothing for a narrow parent. The cards grid already reflows on its own width via auto-fit.

@@ -37,7 +37,7 @@ const shape: Foundation = {
 		},
 		{
 			rule: "A list of rows inside a rounded popup uses popup-inset on the popup, rounded-popup-item on the rows and popup-bleed on a separator.",
-			why: "All three derive from the popup's radius: the inset grows to a third of it (never below --spacing(1), so density moves it too), the rows take what is left, and a separator bleeds by exactly the inset. A rounder look gets more room instead of rows that round into pills, and the default ladder still lands on the familiar 4px inset and 8px rows.",
+			why: "All three derive from the popup's radius: the inset grows to a third of it (never below --spacing(1), so density moves it too), the rows take what is left after the inset and the 1px border, and a separator bleeds by exactly the inset. A rounder look gets more room instead of rows that round into pills; the default ladder lands on a 4px inset and 7px rows.",
 			enforcedBy: "sable-lint: popup-separator-bleed",
 		},
 		{

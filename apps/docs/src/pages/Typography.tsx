@@ -1,4 +1,4 @@
-import { PageHeader, Section } from "../components/docs-ui"
+import { Example, PageHeader, Section } from "../components/docs-ui"
 
 interface Spec {
 	name: string
@@ -114,6 +114,83 @@ export function TypographyPage() {
 				{mono.map((s) => (
 					<SpecRow key={s.name} spec={s} />
 				))}
+			</Section>
+			<Section
+				title="Lists"
+				description="Lists are type with structure, so they are styled here, on the native element. Put the class on a <ul>, <ol> or <dl> and keep its semantics."
+			>
+				<Example
+					code={`<ul className="sable-list">
+  <li>Drafts sync across devices</li>
+  <li>Offline edits merge when you reconnect</li>
+  <li>Version history keeps 30 days</li>
+</ul>`}
+				>
+					<ul className="sable-list max-w-md">
+						<li>Drafts sync across devices</li>
+						<li>Offline edits merge when you reconnect</li>
+						<li>Version history keeps 30 days</li>
+					</ul>
+				</Example>
+				<Example
+					code={`<ol className="sable-list-numbered">
+  <li>Install @sableui/react</li>
+  <li>Import the styles after Tailwind</li>
+  <li>Wrap the app in IconProvider</li>
+</ol>`}
+				>
+					<ol className="sable-list-numbered max-w-md">
+						<li>Install @sableui/react</li>
+						<li>Import the styles after Tailwind</li>
+						<li>Wrap the app in IconProvider</li>
+					</ol>
+				</Example>
+				<Example
+					code={`<dl className="sable-list-dl">
+  <dt>Order</dt>
+  <dd className="text-mono-md">SB-2048</dd>
+  <dt>Status</dt>
+  <dd className="text-success">Shipped</dd>
+  <dt>Ship to</dt>
+  <dd>Mara Okafor, 14 Rue des Lilas, 75011 Paris</dd>
+  <dt>Total</dt>
+  <dd>$184.00</dd>
+</dl>`}
+				>
+					<dl className="sable-list-dl w-full max-w-sm">
+						<dt>Order</dt>
+						<dd className="text-mono-md">SB-2048</dd>
+						<dt>Status</dt>
+						<dd className="text-success">Shipped</dd>
+						<dt>Ship to</dt>
+						<dd>Mara Okafor, 14 Rue des Lilas, 75011 Paris</dd>
+						<dt>Total</dt>
+						<dd>$184.00</dd>
+					</dl>
+				</Example>
+				<Example
+					code={`<div className="@container">
+  <dl className="sable-list-dl sable-list-dl-2">
+    <dt>Posts</dt><dd>128</dd>
+    <dt>Followers</dt><dd>4.2k</dd>
+    <dt>Editions</dt><dd>12</dd>
+    <dt>Joined</dt><dd>March 2024</dd>
+  </dl>
+</div>`}
+				>
+					<div className="@container w-full max-w-lg">
+						<dl className="sable-list-dl sable-list-dl-2">
+							<dt>Posts</dt>
+							<dd>128</dd>
+							<dt>Followers</dt>
+							<dd>4.2k</dd>
+							<dt>Editions</dt>
+							<dd>12</dd>
+							<dt>Joined</dt>
+							<dd>March 2024</dd>
+						</dl>
+					</div>
+				</Example>
 			</Section>
 		</>
 	)

@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const emptyStateMeta: ComponentMeta = {
 	name: "EmptyState",
 	summary:
-		"The centered empty / error block: optional icon disc or error code, title, description and an action. tone=\"destructive\" makes it an announced error, size=\"lg\" a page-level state, surface=\"card\" a self-contained card.",
+		"The centered empty / error block: optional icon or error code, title, description and an action. tone=\"destructive\" makes it an announced error, size=\"lg\" a page-level state, surface=\"card\" a self-contained card.",
 	keywords: [
 		"empty",
 		"zero state",
@@ -90,7 +90,7 @@ export const emptyStateMeta: ComponentMeta = {
 			name: "icon",
 			type: "ReactNode",
 			description:
-				"Optional leading glyph — pass an `<Icon />`. Rendered in a soft muted disc.",
+				"Optional glyph above the title — an `<Icon />` takes the muted ink at 3xl; an image or illustration renders as given.",
 		},
 		{
 			name: "title",
@@ -116,7 +116,7 @@ export const emptyStateMeta: ComponentMeta = {
 			name: "tone",
 			type: '"neutral" | "destructive"',
 			default: '"neutral"',
-			description: "destructive is an error state: a destructive icon disc (a warning by default) and role=\"alert\" so it is announced.",
+			description: "destructive is an error state: a destructive icon (a warning by default) and role=\"alert\" so it is announced.",
 		},
 		{
 			name: "size",
@@ -138,7 +138,7 @@ export const emptyStateMeta: ComponentMeta = {
 	},
 	tokensUsed: ["muted", "muted-foreground", "foreground", "destructive"],
 	a11y: [
-		"Decorative icon discs should not carry meaning the title doesn't already convey.",
+		"Decorative icons should not carry meaning the title doesn't already convey.",
 		"Pair with an actionable next step so the zero-state is a path forward, not a dead end.",
 	],
 	examples: [

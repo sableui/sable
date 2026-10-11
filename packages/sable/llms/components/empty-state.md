@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-The centered empty / error block: optional icon disc or error code, title, description and an action. tone="destructive" makes it an announced error, size="lg" a page-level state, surface="card" a self-contained card.
+The centered empty / error block: optional icon or error code, title, description and an action. tone="destructive" makes it an announced error, size="lg" a page-level state, surface="card" a self-contained card.
 
 **Keywords:** empty, zero state, blank slate, no results, placeholder, onboarding, no data
 
@@ -33,12 +33,12 @@ Use EmptyState when a content area has no items, no search results, or no first-
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| icon | ReactNode | — | Optional leading glyph — pass an `<Icon />`. Rendered in a soft muted disc. |
+| icon | ReactNode | — | Optional glyph above the title — an `<Icon />` takes the muted ink at 3xl; an image or illustration renders as given. |
 | title | ReactNode | — | The headline. Short and direct. |
 | description | ReactNode | — | Optional supporting line beneath the title. |
 | action | ReactNode | — | Optional action below the copy — typically a `<Button />`. |
 | code | ReactNode | — | A large figure above the title, such as an error code (404). |
-| tone | "neutral" \| "destructive" | "neutral" | destructive is an error state: a destructive icon disc (a warning by default) and role="alert" so it is announced. |
+| tone | "neutral" \| "destructive" | "neutral" | destructive is an error state: a destructive icon (a warning by default) and role="alert" so it is announced. |
 | size | "md" \| "lg" | "md" | lg is page-level: the title is an h2 and the block takes more room. md sits in a panel, list or card. |
 | surface | "none" \| "card" | "none" | card draws it as a Card, for an error or empty block standing on its own in a page. |
 
@@ -54,7 +54,7 @@ Use EmptyState when a content area has no items, no search results, or no first-
 
 ## Accessibility
 
-- Decorative icon discs should not carry meaning the title doesn't already convey.
+- Decorative icons should not carry meaning the title doesn't already convey.
 - Pair with an actionable next step so the zero-state is a path forward, not a dead end.
 
 ## Related

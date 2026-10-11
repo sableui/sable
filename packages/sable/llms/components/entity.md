@@ -46,7 +46,7 @@ Use Entity to show a compact identity block for a person, organization, file, pr
 
 ## Related
 
-- Components: Avatar, Badge, Description
+- Components: Avatar, Badge
 
 ## Examples
 

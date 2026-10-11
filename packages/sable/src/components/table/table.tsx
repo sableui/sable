@@ -69,12 +69,25 @@ export function TableRow({ className, ...props }: ComponentPropsWithRef<"tr">) {
 }
 TableRow.displayName = "TableRow"
 
+/**
+ * A numeric column: end-aligned so the place values line up, with tabular
+ * figures so every digit is the same width. Put it on the header and the cells
+ * of the column alike, so the label sits over the numbers' edge.
+ */
+const NUMERIC = "text-end tabular-nums"
+
+export interface TableHeadProps extends ComponentPropsWithRef<"th"> {
+	/** A numeric column — end-aligned, tabular figures. Set it on the column's cells too. */
+	numeric?: boolean
+}
+
 /** A column header cell. */
-export function TableHead({ className, ...props }: ComponentPropsWithRef<"th">) {
+export function TableHead({ className, numeric = false, ...props }: TableHeadProps) {
 	return (
 		<th
 			className={cn(
 				"h-10 px-3 text-start align-middle text-label-md text-muted-foreground first:ps-[var(--table-edge-px,--spacing(3))] last:pe-[var(--table-edge-px,--spacing(3))]",
+				numeric && NUMERIC,
 				className,
 			)}
 			{...props}
@@ -83,22 +96,44 @@ export function TableHead({ className, ...props }: ComponentPropsWithRef<"th">) 
 }
 TableHead.displayName = "TableHead"
 
+export interface TableCellProps extends ComponentPropsWithRef<"td"> {
+	/** A numeric cell — end-aligned, tabular figures. Match the column's header. */
+	numeric?: boolean
+}
+
 /** A body cell. */
-export function TableCell({ className, ...props }: ComponentPropsWithRef<"td">) {
+export function TableCell({ className, numeric = false, ...props }: TableCellProps) {
 	return (
-		<td className={cn("px-3 py-2.5 align-middle first:ps-[var(--table-edge-px,--spacing(3))] last:pe-[var(--table-edge-px,--spacing(3))]", className)} {...props} />
+		<td
+			className={cn(
+				"px-3 py-2.5 align-middle first:ps-[var(--table-edge-px,--spacing(3))] last:pe-[var(--table-edge-px,--spacing(3))]",
+				numeric && NUMERIC,
+				className,
+			)}
+			{...props}
+		/>
 	)
 }
 TableCell.displayName = "TableCell"
 
-/** A bottom caption describing the table. */
+/**
+ * A bottom caption describing the table. It is the table's last band, so it is
+ * built like one: a hairline above it closes off the last row (TableBody drops
+ * that row's own border), it sits on the cells' text edge (`--table-edge-px`,
+ * so it lines up inside a flush Card too), and it has room below it rather
+ * than touching whatever contains the table. Start-aligned, not the browser's
+ * centred default — it reads with the cells, not as a title under them.
+ */
 export function TableCaption({
 	className,
 	...props
 }: ComponentPropsWithRef<"caption">) {
 	return (
 		<caption
-			className={cn("mt-4 text-caption text-muted-foreground", className)}
+			className={cn(
+				"border-t border-border py-3 ps-[var(--table-edge-px,--spacing(3))] pe-[var(--table-edge-px,--spacing(3))] text-start text-caption text-muted-foreground",
+				className,
+			)}
 			{...props}
 		/>
 	)
