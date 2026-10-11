@@ -230,7 +230,9 @@ export function ChatComposer({
 						aria-label={stopLabel}
 						onClick={onStop}
 					>
-						<Icon name="xmark" />
+						{/* A filled square, the universal stop (xmark read as close or clear),
+						    drawn smaller than the box so it sits in the button as a mark. */}
+						<Icon name="stop" variant="solid" className="text-[0.75em]" />
 					</Button>
 				) : (
 					// Busy without a stop handler: Button's own `loading` swaps the glyph

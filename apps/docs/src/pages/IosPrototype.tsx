@@ -1,10 +1,6 @@
-import { useRef } from "react"
 import { CodeBlock } from "@sableui/react"
-import { PhoneFrame, useIosPreviewBridge } from "@sableui/react/ios/preview"
-import "@sableui/react/ios/frame.css"
 import { PageHeader, Section } from "../components/docs-ui"
-import { useCustomizer } from "../customizer/CustomizerProvider"
-import { useTheme } from "../theme"
+import { IosPhonePreview } from "../components/IosPhonePreview"
 
 const NATIVE_CSS = `@import "tailwindcss";
 @import "@sableui/react/styles.css";
@@ -14,10 +10,6 @@ const NATIVE_CSS = `@import "tailwindcss";
 
 export function IosPrototypePage() {
 	// The prototype takes this page's look: preset, Customize changes, mode, icons.
-	const frame = useRef<HTMLIFrameElement>(null)
-	const { css, look } = useCustomizer()
-	const { mode } = useTheme()
-	const sync = useIosPreviewBridge(frame, { mode, icons: look.icons, reducedMotion: look.motion === "off", revision: css })
 	return (
 		<>
 			<PageHeader
@@ -55,7 +47,11 @@ export function IosPrototypePage() {
 						<a className="underline" href="https://konstaui.com/react">Konsta UI</a> (MIT).
 					</p>
 				</div>
-				<PhoneFrame frameRef={frame} onLoad={sync} src="/native.html" title="Fieldnotes iOS prototype" />
+				<IosPhonePreview
+					src="/native.html"
+					title="Fieldnotes iOS prototype"
+					className="h-[min(56rem,max(28rem,calc(100dvh-var(--nav-height,56px)-6rem)))]"
+				/>
 			</div>
 		</>
 	)

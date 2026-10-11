@@ -99,7 +99,7 @@ export const buttonMeta: ComponentMeta = {
 		],
 	},
 	related: {
-		components: ["Menu", "DotsMenu", "Icon", "Banner"],
+		components: ["Menu", "OverflowMenu", "Icon", "Banner"],
 		patterns: ["SettingsPage", "AuthPage", "DashboardPage"],
 	},
 	status: "stable",

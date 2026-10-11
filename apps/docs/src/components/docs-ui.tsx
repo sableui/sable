@@ -174,6 +174,8 @@ export function ComponentPlayground({ meta }: { meta: ComponentMeta }) {
 				meta={entry.meta}
 				render={entry.render}
 				only={entry.only}
+				initial={entry.initial}
+				controls={entry.controls}
 				text={entry.text}
 				stageClassName={entry.stageClassName}
 				fixed={entry.fixed}

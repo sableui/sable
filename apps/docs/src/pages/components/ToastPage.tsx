@@ -1,11 +1,14 @@
-import { Button, ToastProvider, toastMeta, useToast } from "@sableui/react"
+import { Button, type ToastPosition, ToastProvider, toastMeta, useToast } from "@sableui/react"
+import { useState } from "react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
 	Section,
 	ledeFor,
 } from "../../components/docs-ui"
+import { TOAST_DEFAULT_POSITION, ToastPositionControl } from "../../lib/toast-playground"
 
 /** Pushes a simple title + description toast. Must render under <ToastProvider>. */
 function BasicTrigger() {
@@ -100,9 +103,15 @@ function StackTrigger() {
 export function ToastPage() {
 	// One provider for the page, as in an app: every provider subscribes to the
 	// same toast store, so several on one page would each render every toast.
+	// The playground's position control moves this provider rather than adding one.
+	const [position, setPosition] = useState<ToastPosition>(TOAST_DEFAULT_POSITION)
 	return (
-		<ToastProvider limit={3}>
+		<ToastProvider limit={3} position={position}>
 			<PageHeader eyebrow="Components" title="Toast" lede={ledeFor(toastMeta)} />
+
+			<ToastPositionControl.Provider value={setPosition}>
+				<ComponentPlayground meta={toastMeta} />
+			</ToastPositionControl.Provider>
 
 			<Section
 				title="Basic"

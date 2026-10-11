@@ -1,5 +1,6 @@
 import { Textarea, textareaMeta } from "@sableui/react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
@@ -15,6 +16,8 @@ export function TextareaPage() {
 				title="Textarea"
 				lede={ledeFor(textareaMeta)}
 			/>
+
+			<ComponentPlayground meta={textareaMeta} />
 
 			<Section title="Default">
 				<Example code='<Textarea placeholder="Write a caption…" />'>

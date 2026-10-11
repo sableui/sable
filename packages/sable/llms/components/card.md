@@ -34,9 +34,9 @@ Use Card for a discrete thing with its own boundary, such as one product, one no
 | Name | Type | Description |
 | --- | --- | --- |
 | CardHeader | ComponentPropsWithRef<"div"> | Top section holding CardTitle/CardDescription (and optionally CardAction). Padding follows the density knob. |
-| CardTitle | ComponentPropsWithRef<"div"> | The card's name (text-title-lg). |
+| CardTitle | ComponentPropsWithRef<"div"> & { render?: useRender.RenderProp } | The card's name (text-title-lg). A div by default; pass `render={<h2 />}` (or h3…) to make it a heading in the page outline, at the level the card's position calls for. |
 | CardDescription | ComponentPropsWithRef<"div"> | Muted supporting line under the title. |
-| CardAction | ComponentPropsWithRef<"div"> | Header-aligned top-right action slot (e.g. a dots menu, switch, or close button). Place inside CardHeader, which becomes a 2-column grid when present and collapses to a single column otherwise. |
+| CardAction | ComponentPropsWithRef<"div"> | Header-aligned top-right action slot (e.g. an overflow menu, switch, or close button). Place inside CardHeader, which becomes a 2-column grid when present and collapses to a single column otherwise. |
 | CardContent | ComponentPropsWithRef<"div"> & { flush?: boolean } | The body region. Padding follows the density knob on all sides — does not assume a preceding CardHeader, so it is safe to use standalone (e.g. no CardHeader in the card). When paired with CardHeader, the seam stays tight because CardHeader zeroes its own bottom padding. `flush` runs it edge to edge for a table: the Table insets its first and last columns by exactly the card padding, so it lines up with the header — never hand-set pl-6/pr-6 on columns. |
 | CardList | ComponentPropsWithRef<"div"> | Rows that run edge to edge in the card (Entity rows, most often), divided by hairlines. Insets each row to the card's own padding, so a list card lines up with every other card at any density — no hand-tuned px-* on the rows. Under a CardHeader it opens with a hairline and a gap; alone it fills the card. |
 | CardFooter | ComponentPropsWithRef<"div"> | Bottom row for actions/meta. Padding follows the density knob. |

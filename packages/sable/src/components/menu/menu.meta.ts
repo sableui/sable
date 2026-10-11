@@ -72,7 +72,7 @@ export const menuMeta: ComponentMeta = {
 	related: {
 		components: [
 			"ContextMenu",
-			"DotsMenu",
+			"OverflowMenu",
 		],
 	},
 	props: [

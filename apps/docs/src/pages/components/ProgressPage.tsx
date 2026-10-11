@@ -6,6 +6,7 @@ import {
 	ProgressValue,
 } from "@sableui/react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
@@ -21,6 +22,8 @@ export function ProgressPage() {
 				title="Progress"
 				lede={ledeFor(progressMeta)}
 			/>
+
+			<ComponentPlayground meta={progressMeta} />
 
 			<Section title="Determinate" description="When you know how far along it is.">
 				<Example code={'<Progress value={64} aria-label="Upload" />'}>

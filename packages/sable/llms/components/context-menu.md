@@ -58,7 +58,7 @@ Use ContextMenu for actions that are specific to the object or area the user inv
 
 ## Related
 
-- Components: Menu, DotsMenu
+- Components: Menu, OverflowMenu
 
 ## Examples
 

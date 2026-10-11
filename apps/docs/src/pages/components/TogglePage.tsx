@@ -1,5 +1,6 @@
 import { Icon, Toggle, ToggleGroup, toggleMeta } from "@sableui/react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
@@ -11,6 +12,8 @@ export function TogglePage() {
 	return (
 		<>
 			<PageHeader eyebrow="Components" title="Toggle" lede={ledeFor(toggleMeta)} />
+
+			<ComponentPlayground meta={toggleMeta} />
 
 			<Section
 				title="Standalone"

@@ -1,5 +1,6 @@
 import { InlineStatus, ThinkingOrb, thinkingOrbMeta } from "@sableui/react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
@@ -15,6 +16,8 @@ export function ThinkingOrbPage() {
 				title="Thinking Orb"
 				lede={ledeFor(thinkingOrbMeta)}
 			/>
+
+			<ComponentPlayground meta={thinkingOrbMeta} />
 
 			<Section
 				title="Basic"

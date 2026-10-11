@@ -4,6 +4,7 @@
  *
  *   npx sable pattern --list              # the eight page shells, one line each
  *   npx sable pattern DashboardPage --skeleton
+ *   npx sable block --list                # section-sized blocks: cards, forms, lists
  *   npx sable component Button --props
  *   npx sable search "date range"
  *   npx sable doctor
@@ -109,10 +110,10 @@ const COMMANDS = [
 	},
 	{
 		name: "search",
-		summary: "One ranked result set across components, patterns, layout primitives, utilities, tokens, and docs.",
+		summary: "One ranked result set across components, patterns, blocks, layout primitives, utilities, tokens, and docs.",
 		arg: { name: "query", required: true },
 		flags: [
-			{ name: "--type", value: "component|pattern|layout|utility|token|doc", describe: "Restrict to one kind." },
+			{ name: "--type", value: "component|pattern|block|layout|utility|token|doc", describe: "Restrict to one kind." },
 			{ name: "--limit", value: "n", describe: "Cap results. Default 20." },
 		],
 		returns: ["search"],
@@ -141,6 +142,18 @@ const COMMANDS = [
 			{ name: "--code", value: null, describe: "Full source with its import line." },
 		],
 		returns: ["pattern.list", "pattern.detail", "pattern.skeleton", "pattern.code"],
+	},
+	{
+		name: "block",
+		summary: "Section-sized compositions — a sign-in card, a pricing card. Smaller than a page shell; copy the code and edit its content.",
+		arg: { name: "Name", required: false },
+		flags: [
+			{ name: "--list", value: null, describe: "List the blocks instead." },
+			{ name: "--family", value: "family", describe: "With --list: one family only (e.g. \"Commerce\")." },
+			{ name: "--skeleton", value: null, describe: "Composition tree only — no fixtures, no copy." },
+			{ name: "--code", value: null, describe: "Full source with its import line." },
+		],
+		returns: ["block.list", "block.detail", "block.skeleton", "block.code"],
 	},
 	{
 		name: "layout",
@@ -175,7 +188,7 @@ const COMMANDS = [
 		arg: { name: "slug", required: false },
 		flags: [
 			{ name: "--list", value: null, describe: "List every doc slug." },
-			{ name: "--kind", value: "components|layout|patterns|reference|tasks|taste", describe: "With --list: one kind." },
+			{ name: "--kind", value: "components|layout|patterns|blocks|reference|tasks|taste", describe: "With --list: one kind." },
 		],
 		returns: ["docs.list", "docs.detail"],
 	},
@@ -271,6 +284,7 @@ const ERROR_CODES = [
 	{ code: "ERR_MISSING_ARGUMENT", when: "A command that requires an argument got none." },
 	{ code: "ERR_UNKNOWN_COMPONENT", when: "No component by that name. `suggestions` carries near matches." },
 	{ code: "ERR_UNKNOWN_PATTERN", when: "No pattern by that name." },
+	{ code: "ERR_UNKNOWN_BLOCK", when: "No block by that name." },
 	{ code: "ERR_UNKNOWN_LAYOUT", when: "No layout primitive by that name." },
 	{ code: "ERR_UNKNOWN_TOKEN_GROUP", when: "No token group by that name." },
 	{ code: "ERR_UNKNOWN_UTILITY", when: "No utility or variant by that name. `suggestions` carries near matches." },
@@ -413,6 +427,7 @@ const section = (title, lines) => (lines.length ? `\n${DENSE ? title : `${title}
 
 const COMPONENTS = R.components ?? []
 const PATTERNS = R.patterns?.items ?? []
+const BLOCKS = R.blocks?.items ?? []
 const PRIMITIVES = R.layoutPrimitives?.primitives ?? []
 const TOKEN_GROUPS = Object.keys(R.tokens ?? {})
 const UTILITIES = R.utilities?.items ?? []
@@ -440,7 +455,7 @@ function cmdManifest() {
 		name: "sable",
 		version: R.version,
 		package: R.name,
-		describes: { components: COMPONENTS.length, patterns: PATTERNS.length, layoutPrimitives: PRIMITIVES.length },
+		describes: { components: COMPONENTS.length, patterns: PATTERNS.length, blocks: BLOCKS.length, layoutPrimitives: PRIMITIVES.length },
 		envelope: { success: "{ type, data }", error: "{ type: 'error', code, message, suggestions }" },
 		globalFlags: GLOBAL_FLAGS,
 		commands: COMMANDS,
@@ -448,7 +463,7 @@ function cmdManifest() {
 	}
 	ok("manifest", data, () =>
 		[
-			`sable ${R.version} — ${COMPONENTS.length} components, ${PATTERNS.length} patterns, ${PRIMITIVES.length} layout primitives.`,
+			`sable ${R.version} — ${COMPONENTS.length} components, ${PATTERNS.length} patterns, ${BLOCKS.length} blocks, ${PRIMITIVES.length} layout primitives.`,
 			"",
 			"Commands:",
 			...COMMANDS.map((c) => `  ${(c.name + (c.arg ? ` <${c.arg.name}>` : "")).padEnd(22)}${c.summary}`),
@@ -502,6 +517,9 @@ function cmdSearch() {
 	if (!type || type === "pattern")
 		for (const p of PATTERNS)
 			pool.push({ kind: "pattern", name: p.name, summary: p.summary, _s: score({ name: p.name, text: `${p.summary} ${p.intent ?? ""}` }) })
+	if (!type || type === "block")
+		for (const b of BLOCKS)
+			pool.push({ kind: "block", name: b.name, summary: b.summary, family: b.family, _s: score({ name: b.name, keywords: [b.family.toLowerCase()], text: `${b.summary} ${b.intent ?? ""}` }) })
 	if (!type || type === "layout")
 		for (const m of PRIMITIVES)
 			pool.push({ kind: "layout", name: m.name, summary: m.summary, _s: score({ name: m.name, keywords: m.keywords, text: m.summary }) })
@@ -518,7 +536,7 @@ function cmdSearch() {
 	// Ties resolve in the order AGENTS.md tells an agent to resolve a need:
 	// a component first, then a pattern or primitive, then a utility, then a
 	// token. "segmented" should land on ToggleGroup before the well behind it.
-	const KIND_ORDER = ["component", "pattern", "layout", "utility", "token", "doc"]
+	const KIND_ORDER = ["component", "pattern", "block", "layout", "utility", "token", "doc"]
 	const hits = pool
 		.filter((h) => h._s > 0)
 		.sort((a, b) => b._s - a._s || KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind))
@@ -679,25 +697,38 @@ function docSlugFor(name) {
 	const entry =
 		COMPONENTS.find((c) => c.name.toLowerCase() === name.toLowerCase()) ??
 		PRIMITIVES.find((m) => m.name.toLowerCase() === name.toLowerCase()) ??
-		PATTERNS.find((p) => p.name.toLowerCase() === name.toLowerCase())
+		PATTERNS.find((p) => p.name.toLowerCase() === name.toLowerCase()) ??
+		BLOCKS.find((b) => b.name.toLowerCase() === name.toLowerCase())
 	if (!entry?.path) return slugify(name)
 	return entry.path.split("/").pop().replace(/\.tsx$/, "")
 }
 
-/* ── pattern ────────────────────────────────────────────────────────────────── */
+/* ── pattern / block ────────────────────────────────────────────────────────── */
 
-function cmdPattern() {
+/**
+ * The copy-in tiers share one retrieval shape: list, detail, skeleton, code.
+ * Patterns are page shells; blocks are section-sized (a card, a form) and add
+ * a family and a designed width.
+ */
+function cmdComposition({ kind, items, about, noun, errorCode }) {
 	if (flags.has("list") || !rest[0]) {
-		const data = PATTERNS.map((p) => ({ name: p.name, summary: p.summary, intent: p.intent }))
-		return ok("pattern.list", { count: data.length, about: R.patterns?.about, patterns: data }, () =>
+		const family = flags.get("family")
+		const list = family ? items.filter((x) => x.family?.toLowerCase() === String(family).toLowerCase()) : items
+		const data = list.map((x) => ({
+			name: x.name,
+			...(x.family ? { family: x.family } : {}),
+			summary: x.summary,
+			intent: x.intent,
+		}))
+		return ok(`${kind}.list`, { count: data.length, about, [`${kind}s`]: data }, () =>
 			[
-				DENSE ? "" : `${data.length} canonical page shells. Read a skeleton before composing anything:\n`,
-				...data.map((p) =>
+				DENSE ? "" : `${data.length} ${noun}${family ? ` in ${family}` : ""}. Read a skeleton before composing anything:\n`,
+				...data.map((x) =>
 					DENSE
-						? `${p.name} ${firstSentence(p.summary)}`
-						: `  ${p.name.padEnd(20)}${firstSentence(p.intent ?? p.summary)}`,
+						? `${x.name} ${firstSentence(x.summary)}`
+						: `  ${x.name.padEnd(kind === "block" ? 28 : 20)}${x.family ? x.family.padEnd(20) : ""}${firstSentence(x.intent ?? x.summary)}`,
 				),
-				DENSE ? "" : "\n  sable pattern <Name> --skeleton   the composition tree, ~25 lines",
+				DENSE ? "" : `\n  sable ${kind} <Name> --skeleton   the composition tree, ~25 lines`,
 			]
 				.filter(Boolean)
 				.join("\n"),
@@ -705,30 +736,31 @@ function cmdPattern() {
 	}
 
 	const name = rest[0]
-	const p = PATTERNS.find((x) => x.name.toLowerCase() === name.toLowerCase())
+	const p = items.find((x) => x.name.toLowerCase() === name.toLowerCase())
 	if (!p)
-		fail("ERR_UNKNOWN_PATTERN", `No pattern named "${name}".`, [
-			...nearest(name, PATTERNS.map((x) => x.name)).map((n) => `Did you mean ${n}?`),
-			"sable pattern --list",
+		fail(errorCode, `No ${kind} named "${name}".`, [
+			...nearest(name, items.map((x) => x.name)).map((n) => `Did you mean ${n}?`),
+			`sable ${kind} --list`,
 		])
 
 	if (flags.has("skeleton")) {
 		const { tree, elided } = skeletonize(p.code)
-		return ok("pattern.skeleton", { name: p.name, tree, elidedFixtures: elided }, () =>
+		return ok(`${kind}.skeleton`, { name: p.name, tree, elidedFixtures: elided }, () =>
 			[
 				DENSE ? "" : `${p.name} — composition tree${elided ? ` (${elided} demo fixtures elided)` : ""}\n`,
 				tree,
-				DENSE ? "" : `\nFull source: sable pattern ${p.name} --code`,
+				DENSE ? "" : `\nFull source: sable ${kind} ${p.name} --code`,
 			]
 				.filter(Boolean)
 				.join("\n"),
 		)
 	}
 	if (flags.has("code"))
-		return ok("pattern.code", { name: p.name, imports: p.imports, code: p.code }, () => `${p.imports}\n\n${p.code}`)
+		return ok(`${kind}.code`, { name: p.name, imports: p.imports, code: p.code }, () => `${p.imports}\n\n${p.code}`)
 
 	const level = detailLevel("compact")
 	const data = { name: p.name, path: p.path, summary: p.summary, intent: p.intent }
+	if (p.family) Object.assign(data, { family: p.family, kind: p.kind, ...(p.width ? { width: p.width } : {}) })
 	if (level !== "brief") {
 		data.notes = p.notes ?? []
 		data.a11y = p.a11y ?? []
@@ -738,19 +770,28 @@ function cmdPattern() {
 		data.imports = p.imports
 		data.code = p.code
 	}
-	ok("pattern.detail", data, () =>
+	const shape = p.family ? `  ${p.family} · ${p.kind}${p.width ? ` · ${p.width.min}–${p.width.max}` : ""}` : ""
+	ok(`${kind}.detail`, data, () =>
 		[
-			`${p.name}  (${p.path})`,
+			`${p.name}  (${p.path})${shape}`,
 			p.summary,
 			p.intent ? `\nReach for it when:\n  ${p.intent}` : "",
 			level === "brief" ? "" : section("notes", (p.notes ?? []).map(bullet)),
 			level === "brief" ? "" : section("a11y", (p.a11y ?? []).map(bullet)),
 			level === "brief" ? "" : `\nComposition:\n${data.skeleton}`,
-			level === "full" ? `\n${p.imports}\n\n${p.code}` : `\nFull source: sable pattern ${p.name} --code`,
+			level === "full" ? `\n${p.imports}\n\n${p.code}` : `\nFull source: sable ${kind} ${p.name} --code`,
 		]
 			.filter(Boolean)
 			.join("\n"),
 	)
+}
+
+function cmdPattern() {
+	cmdComposition({ kind: "pattern", items: PATTERNS, about: R.patterns?.about, noun: "canonical page shells", errorCode: "ERR_UNKNOWN_PATTERN" })
+}
+
+function cmdBlock() {
+	cmdComposition({ kind: "block", items: BLOCKS, about: R.blocks?.about, noun: "blocks", errorCode: "ERR_UNKNOWN_BLOCK" })
 }
 
 /* ── layout ─────────────────────────────────────────────────────────────────── */
@@ -1183,6 +1224,7 @@ const HANDLERS = {
 	search: cmdSearch,
 	component: cmdComponent,
 	pattern: cmdPattern,
+	block: cmdBlock,
 	layout: cmdLayout,
 	token: cmdToken,
 	utility: cmdUtility,

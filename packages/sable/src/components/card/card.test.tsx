@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react"
 import { createRef } from "react"
 import { describe, expect, it } from "vitest"
-import { Card, CardContent, CardList } from "./card"
+import { Card, CardContent, CardList, CardTitle } from "./card"
 
 describe("Card density", () => {
 	it("defaults to comfortable padding (p-6, on the spacing scale so density moves it)", () => {
@@ -89,5 +89,15 @@ describe("CardList", () => {
 		expect(card.className).toContain("has-data-[slot=card-list]:overflow-clip")
 		const list = card.querySelector("[data-slot=card-list]") as HTMLElement
 		expect(list.className).toContain("[--entity-radius:0px]")
+	})
+})
+
+describe("CardTitle", () => {
+	it("is a div by default and a real heading when rendered as one", () => {
+		const { rerender } = render(<CardTitle>Payouts</CardTitle>)
+		expect(screen.queryByRole("heading")).toBeNull()
+		rerender(<CardTitle render={<h2 />}>Payouts</CardTitle>)
+		const heading = screen.getByRole("heading", { level: 2, name: "Payouts" })
+		expect(heading.className).toContain("text-title-lg")
 	})
 })

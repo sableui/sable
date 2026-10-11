@@ -72,6 +72,16 @@ const SIDEBAR_VARIANT = {
  * Width is the `--sidebar-width` token (16rem), or `--sidebar-width-collapsed`
  * (4rem) when `collapsed`; colors are the `--sidebar-*` set.
  */
+/** Page tokens re-pointed at the rail's own, for the components inside it. */
+const SIDEBAR_INK = [
+	"[--background:var(--sidebar)] [--sable-surface-bg:var(--sidebar)]",
+	"[--foreground:var(--sidebar-foreground)]",
+	"[--muted:var(--sidebar-accent)]",
+	"[--muted-foreground:var(--sidebar-muted-foreground,color-mix(in_oklab,var(--sidebar-foreground)_62%,var(--sidebar)))]",
+	"[--accent:var(--sidebar-accent)] [--accent-foreground:var(--sidebar-accent-foreground)]",
+	"[--border:var(--sidebar-border)] [--ring:var(--sidebar-ring)]",
+].join(" ")
+
 export function Sidebar({
 	collapsed = false,
 	icons = true,
@@ -87,6 +97,13 @@ export function Sidebar({
 				data-variant={variant}
 				className={cn(
 					"shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground",
+					// The rail is its own surface. Anything placed in it that inks with
+					// page tokens — an Entity account row, an Avatar, a ghost Button,
+					// an OverflowMenu — reads the rail's set instead, so a theme can paint a
+					// dark rail on a light page (Meridian) and the footer row stays
+					// legible. Muted ink is the rail's ink at 62% over the rail, unless
+					// a theme names --sidebar-muted-foreground.
+					SIDEBAR_INK,
 					SIDEBAR_VARIANT[variant],
 					"w-[var(--sidebar-width,16rem)] data-[collapsed]:w-[var(--sidebar-width-collapsed,4rem)]",
 					className,

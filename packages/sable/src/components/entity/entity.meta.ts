@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const entityMeta: ComponentMeta = {
 	name: "Entity",
 	summary:
-		"A list-row record: leading visual + title/subtitle column + trailing action, with truncating text. Presentational by default (no hover); `interactive` rows gain the hover highlight, focus ring, and keyboard activation. Compact/comfortable density.",
+		"A list-row record: leading visual + title/subtitle column + trailing action, with truncating text. Presentational by default (no hover); `interactive` rows gain the hover highlight, focus ring, and keyboard activation, and `selected` marks the current one. Compact/comfortable density.",
 	status: "stable",
 	keywords: [
 		"entity",
@@ -74,6 +74,13 @@ export const entityMeta: ComponentMeta = {
 				"Activation handler for an interactive row (fired on click and Enter/Space). Required when interactive.",
 		},
 		{
+			name: "selected",
+			type: "boolean",
+			default: "false",
+			description:
+				"Interactive rows only: the current row of a selectable list (the record open in a list–detail view). Sets aria-current=\"true\" on the row's button and paints the selected fill, a step off the surface the row sits on, which holds on hover.",
+		},
+		{
 			name: "density",
 			type: '"compact" | "comfortable"',
 			default: '"compact"',
@@ -84,11 +91,12 @@ export const entityMeta: ComponentMeta = {
 	variants: {
 		density: ["compact", "comfortable"],
 	},
-	tokensUsed: ["muted", "foreground", "muted-foreground", "ring"],
+	tokensUsed: ["accent", "accent-foreground", "foreground", "muted-foreground", "ring"],
 	a11y: [
 		"Default rows are presentational layout; semantics come from the content you place in title/subtitle/action.",
 		"interactive rows render a real <button> around the leading visual and text, with its ::after stretched over the whole row — native focus, a focus-visible ring, and Enter/Space. The action slot sits outside that button and above the overlay, so a Button there stays valid HTML and keeps its own clicks.",
 		"Give any interactive action an accessible label (e.g. aria-label on a ghost icon Button).",
+		"A selected row announces aria-current=\"true\" on its button, so the current record is spoken, not only shown by its fill.",
 	],
 	examples: [
 		{

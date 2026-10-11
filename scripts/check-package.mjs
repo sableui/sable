@@ -120,7 +120,7 @@ export function Code() { return <OtpField length={6} groupSize={3} onValueComple
 	assert(existsSync(join(consumer, ".agents/skills/sable/agents/openai.yaml")), "Agent setup did not install the packaged metadata.")
 	assert(existsSync(join(consumer, ".claude/skills/sable/SKILL.md")), "Claude setup entry is missing.")
 	assert(readFileSync(join(consumer, ".agents/skills/sable/SKILL.md"), "utf8").includes("skills/sable/SKILL.md"), "The installed entry does not resolve the package workflow.")
-	for (const args of [["preset", "--template"], ["docs", "building-with-sable"], ["docs", "auditing-an-app"], ["manifest"], ["component", "Button"], ["pattern", "SettingsPage", "--skeleton"], ["grade", "--template"], ["learn", "--list"], ["atlas", "--check"], ["prefer", "--template"], ["explore", "--template"]]) {
+	for (const args of [["preset", "--template"], ["docs", "building-with-sable"], ["docs", "auditing-an-app"], ["manifest"], ["component", "Button"], ["pattern", "SettingsPage", "--skeleton"], ["block", "SignInBlock", "--skeleton"], ["grade", "--template"], ["learn", "--list"], ["atlas", "--check"], ["prefer", "--template"], ["explore", "--template"]]) {
 		const output = execFileSync(process.execPath, [cli, ...args, "--json"], { cwd: consumer, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] })
 		assert(JSON.parse(output).type, `Missing CLI envelope: ${args.join(" ")}`)
 	}
@@ -149,11 +149,12 @@ export default defineConfig({ plugins: [tailwindcss()], resolve: { dedupe: ["rea
 import { createRoot } from "react-dom/client";
 import { Button, SableThemeProvider } from "@sableui/react";
 import { SettingsPage } from "@sableui/react/patterns";
+import { PricingCardBlock } from "@sableui/react/blocks";
 import { parsePreset, presetManifest } from "@sableui/react/presets";
 import record from "../preset.json";
 import "./styles.css";
 const preset = parsePreset(record);
-createRoot(document.getElementById("root")).render(<SableThemeProvider customThemes={[presetManifest(preset)]} defaultThemeId={preset.id}><div className="antialiased"><Button>Save changes</Button><SettingsPage /></div></SableThemeProvider>);`)
+createRoot(document.getElementById("root")).render(<SableThemeProvider customThemes={[presetManifest(preset)]} defaultThemeId={preset.id}><div className="antialiased"><Button>Save changes</Button><PricingCardBlock /><SettingsPage /></div></SableThemeProvider>);`)
 	write("src/styles.css", `@import "tailwindcss";
 @import "@sableui/react/styles.css";
 @import "@sableui/react/theme/prism.css";

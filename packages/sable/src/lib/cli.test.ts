@@ -152,6 +152,35 @@ describe("pattern skeletons", () => {
 	})
 })
 
+describe("blocks", () => {
+	it("lists every block, filters by family, and serves a skeleton and the source", () => {
+		const list = json(["block", "--list"]).data
+		expect(list.count).toBe(registry.blocks.items.length)
+		const commerce = json(["block", "--list", "--family", "Commerce"]).data.blocks
+		expect(commerce.length).toBeGreaterThan(0)
+		expect(commerce.every((b: { family: string }) => b.family === "Commerce")).toBe(true)
+		expect(json(["block", "SignInBlock", "--skeleton"]).data.tree).toContain("<Card ")
+		const { data } = json(["block", "signinblock", "--code"])
+		expect(data.imports).toContain('from "@sableui/react"')
+		expect(data.code).toContain("export function SignInBlock(")
+	})
+
+	it("answers a misspelled block with its own error code and a near match", () => {
+		const { out, code } = run(["block", "SignInBlok", "--json"])
+		expect(code).toBe(1)
+		const err = JSON.parse(out)
+		expect(err.code).toBe("ERR_UNKNOWN_BLOCK")
+		expect(err.suggestions.join(" ")).toContain("SignInBlock")
+	})
+
+	it("ranks blocks in search and resolves their doc mirrors by name", () => {
+		const hits = json(["search", "pricing", "--type", "block"]).data.results
+		expect(hits[0].name).toBe("PricingCardBlock")
+		expect(hits[0].retrieve).toBe("sable block PricingCardBlock")
+		expect(json(["docs", "PricingCardBlock"]).type).toBe("docs.detail")
+	})
+})
+
 describe("docs mirrors", () => {
 	it("resolves a page for every component name, including the ones whose slug is not their name", () => {
 		// Mirror slugs come from the component's directory, which can differ from

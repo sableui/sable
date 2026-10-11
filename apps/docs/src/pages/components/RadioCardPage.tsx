@@ -1,6 +1,7 @@
 import { RadioCard, RadioGroup, radioCardMeta, Icon } from "@sableui/react"
 import { useState } from "react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
@@ -19,6 +20,8 @@ export function RadioCardPage() {
 				title="Radio Card"
 				lede={ledeFor(radioCardMeta)}
 			/>
+
+			<ComponentPlayground meta={radioCardMeta} />
 
 			<Section
 				title="With icons and tones"

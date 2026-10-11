@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-A list-row record: leading visual + title/subtitle column + trailing action, with truncating text. Presentational by default (no hover); `interactive` rows gain the hover highlight, focus ring, and keyboard activation. Compact/comfortable density.
+A list-row record: leading visual + title/subtitle column + trailing action, with truncating text. Presentational by default (no hover); `interactive` rows gain the hover highlight, focus ring, and keyboard activation, and `selected` marks the current one. Compact/comfortable density.
 
 **Keywords:** entity, identity, object, avatar row
 
@@ -28,6 +28,7 @@ Use Entity to show a compact identity block for a person, organization, file, pr
 | action | ReactNode | — | Trailing slot — typically a ghost icon Button or a StatusDot. |
 | interactive | boolean | false | Make the whole row a target: the leading visual and text become a native <button> whose hit area stretches over the row (focus ring, Enter/Space). The action stays outside it. Requires onSelect. |
 | onSelect | () => void | — | Activation handler for an interactive row (fired on click and Enter/Space). Required when interactive. |
+| selected | boolean | false | Interactive rows only: the current row of a selectable list (the record open in a list–detail view). Sets aria-current="true" on the row's button and paints the selected fill, a step off the surface the row sits on, which holds on hover. |
 | density | "compact" \| "comfortable" | "compact" | Row padding: compact (12px × 10px, the default) or comfortable (16px × 12px), on the spacing scale. The insets read --entity-px / --entity-py first, which CardList sets from the card's own padding so rows in a card line up with its header. |
 
 ## Variants
@@ -36,13 +37,14 @@ Use Entity to show a compact identity block for a person, organization, file, pr
 
 ## Tokens used
 
-`muted`, `foreground`, `muted-foreground`, `ring`
+`accent`, `accent-foreground`, `foreground`, `muted-foreground`, `ring`
 
 ## Accessibility
 
 - Default rows are presentational layout; semantics come from the content you place in title/subtitle/action.
 - interactive rows render a real <button> around the leading visual and text, with its ::after stretched over the whole row — native focus, a focus-visible ring, and Enter/Space. The action slot sits outside that button and above the overlay, so a Button there stays valid HTML and keeps its own clicks.
 - Give any interactive action an accessible label (e.g. aria-label on a ghost icon Button).
+- A selected row announces aria-current="true" on its button, so the current record is spoken, not only shown by its fill.
 
 ## Related
 

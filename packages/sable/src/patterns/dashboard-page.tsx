@@ -16,7 +16,7 @@ import {
 	CardTitle,
 } from "../components/card"
 import { DataTable } from "../components/data-table"
-import { DotsMenu } from "../components/dots-menu"
+import { OverflowMenu } from "../components/overflow-menu"
 import { Entity } from "../components/entity"
 import { MenuItem, MenuSeparator } from "../components/menu"
 import { Meter } from "../components/meter"
@@ -145,20 +145,19 @@ export function DashboardPage() {
 						/>
 						<SidebarItem icon={<Icon name="gear" />} label="Settings" render={<a href="/settings" />} />
 					</SidebarNav>
-					{/* Entity and DotsMenu ink with page tokens; a theme can paint the rail
-					    dark on a light page, so this subtree reads the rail's ink instead. */}
-					<SidebarFooter className="[--foreground:var(--sidebar-foreground)]">
+					<SidebarFooter>
 						<Entity
 							className="[--entity-py:0]"
 							leading={<Avatar size="sm" fallback="AL" alt="" />}
 							title="Ada Lovelace"
+							subtitle="@ada"
 							action={
-								<DotsMenu label="Account" size="icon-sm">
+								<OverflowMenu label="Account" size="icon-sm">
 									<MenuItem render={<a href="/@ada" />}>View profile</MenuItem>
 									<MenuItem render={<a href="/settings" />}>Settings</MenuItem>
 									<MenuSeparator />
 									<MenuItem>Sign out</MenuItem>
-								</DotsMenu>
+								</OverflowMenu>
 							}
 						/>
 					</SidebarFooter>

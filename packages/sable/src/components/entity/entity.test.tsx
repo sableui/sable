@@ -68,4 +68,17 @@ describe("Entity", () => {
 		expect((container.firstChild as HTMLElement).className).toContain(radius)
 		expect(screen.getByRole("button").className).toContain(`after:${radius}`)
 	})
+
+	it("marks the current row of a selectable list for sight and for screen readers", () => {
+		const { container, rerender } = renderWithProviders(
+			<Entity interactive selected onSelect={() => {}} title="Alex" />,
+		)
+		const row = container.firstChild as HTMLElement
+		expect(row).toHaveAttribute("data-selected")
+		expect(row.className).toContain("sable-surface-interactive")
+		expect(screen.getByRole("button")).toHaveAttribute("aria-current", "true")
+		rerender(<Entity interactive onSelect={() => {}} title="Alex" />)
+		expect(container.firstChild).not.toHaveAttribute("data-selected")
+		expect(screen.getByRole("button")).not.toHaveAttribute("aria-current")
+	})
 })

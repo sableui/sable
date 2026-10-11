@@ -21,7 +21,6 @@
 			"src/components/combobox/combobox.tsx": 1,
 			"src/components/command-menu/command-menu.tsx": 1,
 			"src/components/context-menu/context-menu.tsx": 1,
-			"src/components/entity/entity.tsx": 1,
 			"src/components/file-dropzone/file-dropzone.variants.ts": 2,
 			"src/components/menu/menu.tsx": 4,
 			"src/components/pill/pill.variants.ts": 1,
@@ -33,7 +32,7 @@
 			"src/components/tree/tree.tsx": 1,
 			"src/lib/selection-card.ts": 1
 		},
-		"total": 23
+		"total": 22
 	},
 	"raw-button": {
 		"files": {

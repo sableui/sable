@@ -7,7 +7,7 @@ Searchable list beside the selected record's detail: interactive Entity rows in 
 ## Notes
 
 - Region cap is `wide`; Columns 12 → Col 5 (list) + Col 7 (detail). Below lg the list and detail share one column as a drill-in: selecting a row shows the detail with an `All members` back button (lg:hidden), and the back button returns to the list. The panes swap with `max-lg:hidden`, so desktop always shows both.
-- Rows are interactive Entity inside one Card + CardList. Selection is `data-selected` on the row painted by `sable-surface-interactive`; `sable-surface` on the list card makes that step 12% ink off the card, so a selected row stays distinct from its muted avatar.
+- Rows are interactive Entity inside one Card + CardList. Selection is Entity `selected`; `sable-surface` on the list card makes its selected step 12% ink off the card, so a selected row stays distinct from its muted avatar.
 - Search filters the list in place (name, email, role). No matches swap the CardList for an EmptyState with a Clear search action; the selected detail stays open.
 - A pending invite lives in the same list: a mail glyph in the Avatar, an `Invited` Badge, and an invite-specific detail (role on joining, sent, expires, invited by; Resend and Revoke actions).
 - The role Select edits the record in place; its Field description states what the role can do. The owner's role is read-only and the owner has no remove action.
@@ -17,14 +17,14 @@ Searchable list beside the selected record's detail: interactive Entity rows in 
 
 ## Accessibility
 
-- Each row is a real button (Entity `interactive` + `onSelect`): Tab moves through rows, Enter/Space selects. The selected row carries visually hidden `(selected)` text in its name; list avatars are aria-hidden so initials are not read before the name.
+- Each row is a real button (Entity `interactive` + `onSelect`): Tab moves through rows, Enter/Space selects. The selected row is Entity `selected`, which paints the selected fill and sets aria-current; list avatars are aria-hidden so initials are not read before the name.
 - The detail pane is a labelled region (`Member details`) whose title is a level-2 heading.
 - On a phone, drilling in moves focus to the back button; going back returns focus to the row that was open. After a remove, focus lands on the newly selected row; after Clear search, on the search field.
 
 ## Source
 
 ```tsx
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Avatar, Badge, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, Col, Columns, DestructiveActionModal, EmptyState, Entity, Field, Icon, Page, PageHeader, Row, SearchInput, Select, SelectContent, SelectItem, SelectTrigger, Stack, StatusDot } from "@sableui/react"
 
 type Role = "owner" | "admin" | "editor" | "viewer"
@@ -208,11 +208,8 @@ export function ListDetailPage() {
 											<Entity
 												key={m.id}
 												data-member-id={m.id}
-												data-selected={isSelected ? "" : undefined}
-												// No selected variant on Entity yet: the relative-surface recipe paints
-												// data-selected one step off the card.
-												className="sable-surface-interactive"
 												interactive
+												selected={isSelected}
 												onSelect={() => select(m.id)}
 												leading={
 													<Avatar
@@ -222,12 +219,7 @@ export function ListDetailPage() {
 														aria-hidden
 													/>
 												}
-												title={
-													<>
-														{m.name}
-														{isSelected ? <span className="sr-only"> (selected)</span> : null}
-													</>
-												}
+												title={m.name}
 												subtitle={
 													m.pending
 														? `${roleLabel[m.role]} · invite sent ${m.sent?.toLowerCase()}`
@@ -289,7 +281,7 @@ export function ListDetailPage() {
 												alt={selected.pending ? "Pending invite" : selected.name}
 											/>
 											<Stack gap={0} className="min-w-0">
-												<CardTitle role="heading" aria-level={2} className="truncate">
+												<CardTitle render={<h2 />} className="truncate">
 													{selected.name}
 												</CardTitle>
 												<CardDescription className="truncate">
@@ -378,7 +370,7 @@ export function ListDetailPage() {
 								{selected.activity.length > 0 ? (
 									<Card>
 										<CardHeader>
-											<CardTitle role="heading" aria-level={3}>
+											<CardTitle render={<h3 />}>
 												Recent activity
 											</CardTitle>
 										</CardHeader>

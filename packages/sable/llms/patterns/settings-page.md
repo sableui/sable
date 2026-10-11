@@ -28,7 +28,7 @@ Account settings inside the app shell: a sticky SideNav section rail beside a co
 
 ```tsx
 import { useState } from "react"
-import { AppHeader, AppShell, Avatar, BottomNav, BottomNavItem, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, Col, Columns, DestructiveActionModal, DotsMenu, Entity, Field, Form, Grid, Icon, Input, MenuItem, MenuSeparator, NotificationBadge, Page, PageHeader, Row, Select, SelectContent, SelectItem, SelectTrigger, Sidebar, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav, SideNav, SideNavItem, Stack, Switch, Textarea } from "@sableui/react"
+import { AppHeader, AppShell, Avatar, BottomNav, BottomNavItem, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, Col, Columns, DestructiveActionModal, Entity, Field, Form, Grid, Icon, Input, MenuItem, MenuSeparator, NotificationBadge, OverflowMenu, Page, PageHeader, Row, Select, SelectContent, SelectItem, SelectTrigger, Sidebar, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav, SideNav, SideNavItem, Stack, Switch, Textarea } from "@sableui/react"
 
 const sections = [
 	{ id: "profile", label: "Profile" },
@@ -107,20 +107,19 @@ export function SettingsPage() {
 						/>
 						<SidebarItem icon={<Icon name="gear" />} label="Settings" active render={<a href="/settings" />} />
 					</SidebarNav>
-					{/* Entity and DotsMenu ink with page tokens; a theme can paint the rail
-					    dark on a light page, so this subtree reads the rail's ink instead. */}
-					<SidebarFooter className="[--foreground:var(--sidebar-foreground)]">
+					<SidebarFooter>
 						<Entity
 							className="[--entity-py:0]"
 							leading={<Avatar size="sm" fallback="AL" alt="" />}
 							title="Ada Lovelace"
+							subtitle="@ada"
 							action={
-								<DotsMenu label="Account" size="icon-sm">
+								<OverflowMenu label="Account" size="icon-sm">
 									<MenuItem render={<a href="/@ada" />}>View profile</MenuItem>
 									<MenuItem render={<a href="/settings" />}>Settings</MenuItem>
 									<MenuSeparator />
 									<MenuItem>Sign out</MenuItem>
-								</DotsMenu>
+								</OverflowMenu>
 							}
 						/>
 					</SidebarFooter>
@@ -152,9 +151,7 @@ export function SettingsPage() {
 						<Stack gap={3}>
 							<Card id="profile" className="scroll-mt-6">
 								<CardHeader>
-									<CardTitle>
-										<h2>Profile</h2>
-									</CardTitle>
+									<CardTitle render={<h2 />}>Profile</CardTitle>
 									<CardDescription>How collectors see you on Atelier.</CardDescription>
 								</CardHeader>
 								{/* The one explicit save on the page: profile text is drafted, then
@@ -216,9 +213,7 @@ export function SettingsPage() {
 
 							<Card id="notifications" className="scroll-mt-6">
 								<CardHeader>
-									<CardTitle>
-										<h2>Notifications</h2>
-									</CardTitle>
+									<CardTitle render={<h2 />}>Notifications</CardTitle>
 									<CardDescription>
 										Email updates about your editions. Changes save automatically.
 									</CardDescription>
@@ -243,9 +238,7 @@ export function SettingsPage() {
 
 							<Card id="payouts" className="scroll-mt-6">
 								<CardHeader>
-									<CardTitle>
-										<h2>Payouts</h2>
-									</CardTitle>
+									<CardTitle render={<h2 />}>Payouts</CardTitle>
 									<CardDescription>Paid in USD every Friday to Chase checking ••4821.</CardDescription>
 									<CardAction>
 										<Button variant="outline" size="sm" render={<a href="/settings/payouts" />}>
@@ -268,9 +261,7 @@ export function SettingsPage() {
 
 							<Card id="account" className="scroll-mt-6">
 								<CardHeader>
-									<CardTitle>
-										<h2>Account</h2>
-									</CardTitle>
+									<CardTitle render={<h2 />}>Account</CardTitle>
 									<CardDescription>Sign-in details and your data.</CardDescription>
 								</CardHeader>
 								<CardList>
@@ -299,9 +290,7 @@ export function SettingsPage() {
 
 							<Card>
 								<CardHeader>
-									<CardTitle>
-										<h2>Delete account</h2>
-									</CardTitle>
+									<CardTitle render={<h2 />}>Delete account</CardTitle>
 									<CardDescription>
 										Permanently remove your profile, editions, and sales history. Collectors keep
 										the editions they own.

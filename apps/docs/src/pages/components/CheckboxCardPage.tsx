@@ -6,6 +6,7 @@ import {
 } from "@sableui/react"
 import { useState } from "react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
@@ -46,6 +47,8 @@ export function CheckboxCardPage() {
 				title="Checkbox Card"
 				lede={ledeFor(checkboxCardMeta)}
 			/>
+
+			<ComponentPlayground meta={checkboxCardMeta} />
 
 			<Section
 				title="Group"

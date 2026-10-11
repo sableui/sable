@@ -2,7 +2,7 @@
 // Components, primitives, layout, and icon adapter are re-exported here as they land.
 // Keep this the single public entry; never deep-import internals from consumer apps.
 
-export const SABLE_UI_VERSION = "0.2.0" as const
+export const SABLE_UI_VERSION = "0.3.0" as const
 
 // Foundations
 export * from "./lib/cn"
@@ -110,6 +110,28 @@ export * from "./components/streaming-text"
 export * from "./components/gliding-highlight"
 export * from "./components/progress"
 export * from "./components/meter"
+export * from "./components/segmented-bar"
+export * from "./components/area-chart"
+export * from "./components/bar-chart"
+export * from "./components/line-chart"
+export * from "./components/pie-chart"
+export * from "./components/radar-chart"
+export * from "./components/radial-chart"
+export * from "./components/sparkline"
+export {
+	CHART_SERIES_COUNT,
+	chartColor,
+	toneColor as chartToneColor,
+	type ChartCategories,
+	type ChartCenterLabel,
+	type ChartDatum,
+	type ChartSeries,
+	type ChartTone,
+	type ChartTooltipIndicator,
+	type ChartTooltipOptions,
+	type ChartValueFormatter,
+} from "./lib/chart/types"
+export type { ChartCurve } from "./lib/chart/geometry"
 export * from "./components/stepper"
 export * from "./components/toggle"
 export * from "./components/toolbar"
@@ -124,6 +146,7 @@ export * from "./components/pill"
 export * from "./components/notification-badge"
 export * from "./components/status-dot"
 export * from "./components/calendar"
+export * from "./components/date-tile"
 export * from "./components/date-picker"
 export * from "./components/toast"
 export * from "./components/accordion"
@@ -167,7 +190,7 @@ export * from "./components/theme-selector"
 export * from "./components/theme-switcher"
 export * from "./components/show-more"
 export * from "./components/command-menu"
-export * from "./components/dots-menu"
+export * from "./components/overflow-menu"
 export * from "./components/context-card"
 export * from "./components/feedback"
 export * from "./components/middle-truncate"

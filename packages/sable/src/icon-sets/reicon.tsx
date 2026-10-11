@@ -1,5 +1,10 @@
 import type { IconComponent, IconWeight } from "reicon-react/createIcon"
 import { Pipette } from "reicon-react/icons/Pipette"
+import { Key } from "reicon-react/icons/Key"
+import { Stop } from "reicon-react/icons/Stop"
+import { ThumbsDown } from "reicon-react/icons/ThumbsDown"
+import { ThumbsUp } from "reicon-react/icons/ThumbsUp"
+import { Wallet } from "reicon-react/icons/Wallet"
 import { Bell } from "reicon-react/icons/Bell"
 import { Book } from "reicon-react/icons/Book"
 import { Calendar } from "reicon-react/icons/Calendar"
@@ -149,6 +154,14 @@ const ICONS: Record<string, IconComponent> = {
 	filter: Filter,
 	bold: Bold,
 	italic: Italic,
+	// Added when the page patterns needed them: a stop control for a streaming
+	// reply (ChatComposer used xmark, which reads as close), passkey and wallet
+	// sign-in, and a per-answer rating.
+	stop: Stop,
+	key: Key,
+	wallet: Wallet,
+	"thumbs-up": ThumbsUp,
+	"thumbs-down": ThumbsDown,
 }
 
 /** Sable's `variant` → Reicon's weight names. */

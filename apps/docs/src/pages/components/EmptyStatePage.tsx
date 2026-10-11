@@ -1,5 +1,6 @@
 import { Button, EmptyState, Icon, emptyStateMeta } from "@sableui/react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
@@ -15,6 +16,8 @@ export function EmptyStatePage() {
 				title="Empty State"
 				lede={ledeFor(emptyStateMeta)}
 			/>
+
+			<ComponentPlayground meta={emptyStateMeta} />
 
 			<Section
 				title="With icon and action"

@@ -67,7 +67,7 @@ export const contextMenuMeta: ComponentMeta = {
 	related: {
 		components: [
 			"Menu",
-			"DotsMenu",
+			"OverflowMenu",
 		],
 	},
 	props: [

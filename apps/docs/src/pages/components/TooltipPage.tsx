@@ -9,6 +9,7 @@ import {
 	TooltipTrigger,
 } from "@sableui/react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
@@ -24,6 +25,8 @@ export function TooltipPage() {
 				title="Tooltip"
 				lede={ledeFor(tooltipMeta)}
 			/>
+
+			<ComponentPlayground meta={tooltipMeta} />
 
 			<Section
 				title="Basic"

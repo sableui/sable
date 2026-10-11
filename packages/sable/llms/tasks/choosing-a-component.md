@@ -28,8 +28,8 @@ The question to ask is always **what the user is doing**, not what it looks like
 | The user is… | Use | Not |
 |---|---|---|
 | Choosing one action from a list under a button | `Menu` | `Select` (that picks a *value*) |
-| Reaching secondary actions for a row or card | `DotsMenu` | a bare `Menu` with a hand-made icon trigger |
-| Acting on the thing under the pointer (right-click or long press) | `ContextMenu`, always mirrored in a visible `DotsMenu` | `ContextMenu` alone: it is undiscoverable |
+| Reaching secondary actions for a row or card | `OverflowMenu` | a bare `Menu` with a hand-made icon trigger |
+| Acting on the thing under the pointer (right-click or long press) | `ContextMenu`, always mirrored in a visible `OverflowMenu` | `ContextMenu` alone: it is undiscoverable |
 | Changing a few settings that each show their current value | `SettingsMenu` | a `Menu` of toggles that hides each current state |
 | Running a main action that has close variations | a `Button` beside an icon `Button` that opens a `Menu` | a hand-fused split control |
 

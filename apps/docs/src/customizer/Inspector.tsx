@@ -129,7 +129,9 @@ export function Inspector({
 			</header>
 
 			{view === "export" ? (
-				<div className="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto p-4 scrollbar-quiet">
+				// Swipe-ignore: in the mobile sheet, a drag on the controls (the
+				// Character pad, the hue strip) or a scroll is never a swipe to close.
+				<div data-base-ui-swipe-ignore="" className="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto p-4 scrollbar-quiet">
 					<PresetExchange />
 					{!presets.some(preset => preset.id === themeId) && (
 					<div className="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2">
@@ -141,7 +143,7 @@ export function Inspector({
 					)}
 				</div>
 			) : (
-				<div className="grid min-h-0 flex-1 content-start gap-5 overflow-y-auto p-4 scrollbar-quiet">
+				<div data-base-ui-swipe-ignore="" className="grid min-h-0 flex-1 content-start gap-5 overflow-y-auto p-4 scrollbar-quiet">
 					<Group title="Preset" hint="Where you start">
 						<PresetCards themes={themes} value={themeId} mode={mode === "dark" ? "dark" : "light"} onChange={requestPreset} />
 					</Group>

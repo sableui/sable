@@ -151,6 +151,40 @@ export interface PatternMeta {
 	a11y?: string[]
 }
 
+/**
+ * A block: a section-sized composition of components with sample content —
+ * smaller than a page shell, with no behaviour of its own to upgrade. Ships
+ * the way patterns do (copy-in source + importable preview). Its props are
+ * the block contract only — `className`, `framed` on Card-built blocks, and
+ * the primary action's callback — never content; content is the constant at
+ * the top of the source, edited after copying.
+ */
+export interface BlockMeta {
+	/** Block name, e.g. "SignInBlock". Always ends in "Block". */
+	name: string
+	/** One-line summary. */
+	summary: string
+	/** When to reach for this block — and when a component or page shell fits better. */
+	intent: string
+	/**
+	 * "card" — one self-contained object that fills its container up to a
+	 * designed width. "section" — a full-width band of a page.
+	 */
+	kind: "card" | "section"
+	/**
+	 * The width range it is designed for, as CSS lengths. The block renders
+	 * `w-full` capped at `max`; `min` is the narrowest it still holds together
+	 * (a grid's `minItemWidth`). Section blocks omit it.
+	 */
+	width?: { min: string; max: string }
+	/** Groups related blocks in the catalog ("Auth", "Commerce", …). */
+	family: string
+	/** Canonical decisions the block encodes. */
+	notes?: string[]
+	/** Accessibility notes. */
+	a11y?: string[]
+}
+
 export interface ComponentMeta {
 	/** Public component name, e.g. "Button". Must be an actual export. */
 	name: string

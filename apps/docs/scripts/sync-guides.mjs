@@ -53,6 +53,7 @@ json("catalog-summary.json", {
 	})),
 })
 json("catalog-patterns.json", registry.patterns.items)
+json("catalog-blocks.json", registry.blocks.items)
 
 for (const [from, to] of GUIDES) {
 	const src = join(SABLE_ROOT, from)

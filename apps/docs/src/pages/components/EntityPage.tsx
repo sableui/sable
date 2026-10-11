@@ -1,5 +1,6 @@
 import { Avatar, Button, Entity, entityMeta, Icon, StatusDot } from "@sableui/react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
@@ -11,6 +12,8 @@ export function EntityPage() {
 	return (
 		<>
 			<PageHeader eyebrow="Components" title="Entity" lede={ledeFor(entityMeta)} />
+
+			<ComponentPlayground meta={entityMeta} />
 
 			<Section
 				title="Basic"

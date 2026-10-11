@@ -9,6 +9,7 @@ import {
 } from "@sableui/react"
 import { useState } from "react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
@@ -157,6 +158,8 @@ export function SettingsMenuPage() {
 				title="Settings Menu"
 				lede={ledeFor(settingsMenuMeta)}
 			/>
+
+			<ComponentPlayground meta={settingsMenuMeta} />
 
 			<Section
 				title="A model switcher"

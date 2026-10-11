@@ -45,10 +45,15 @@ export interface PlaygroundSlot {
 
 export interface PlaygroundControl {
 	prop: string
-	kind: "enum" | "boolean"
+	/** `text` is a free string field; meta never derives one, a preview supplies it. */
+	kind: "enum" | "boolean" | "text"
 	options: string[]
 	initial: PlaygroundValue
 	description?: string
+	/** Display names for options whose values are not words (`"3000"` → "3s"). */
+	labels?: Record<string, string>
+	/** Panel label, where the prop name alone would mislead. Defaults to the humanized prop. */
+	label?: string
 }
 
 /** `"primary"` → `primary`. Meta stores defaults as source text. */
@@ -188,7 +193,9 @@ const WORDS: Record<string, string> = {
 }
 
 function humanize(raw: string): string {
+	// `aria-invalid` is, to the reader, whether the field is invalid.
 	const words = raw
+		.replace(/^aria-/, "")
 		.replace(/([a-z0-9])([A-Z])/g, "$1 $2")
 		.split(/[-_\s]+/)
 		.filter(Boolean)
@@ -210,9 +217,11 @@ function ControlRow({
 	onChange: (next: PlaygroundValue) => void
 }) {
 	const id = `playground-${control.prop}`
+	const name = control.label ?? humanize(control.prop)
+	const optionLabel = (option: string) => control.labels?.[option] ?? humanize(option)
 	const label = (
 		<label htmlFor={id} className="text-body-sm text-muted-foreground" title={`${control.prop}${control.description ? ` — ${control.description}` : ""}`}>
-			{humanize(control.prop)}
+			{name}
 		</label>
 	)
 	return (
@@ -220,23 +229,25 @@ function ControlRow({
 			{label}
 			{control.kind === "boolean" ? (
 				<Switch id={id} checked={value === true} onCheckedChange={(checked: boolean) => onChange(checked)} />
+			) : control.kind === "text" ? (
+				<Input id={id} value={String(value)} onChange={(event) => onChange(event.target.value)} className="w-40" />
 			) : control.options.length <= SEGMENT_LIMIT ? (
 				// The same segmented control as the Customize panel: a Sable
 				// ToggleGroup on a muted track (arrow keys, pressed state).
 				<Segmented
 					id={id}
-					label={humanize(control.prop)}
+					label={name}
 					value={String(value)}
 					onChange={onChange}
 					track="muted"
 					fill={false}
-					options={control.options.map((option) => ({ value: option, label: humanize(option) }))}
+					options={control.options.map((option) => ({ value: option, label: optionLabel(option) }))}
 				/>
 			) : (
 				<Select
 					value={String(value)}
 					onValueChange={(next) => typeof next === "string" && onChange(next)}
-					items={control.options.map((option) => ({ value: option, label: humanize(option) }))}
+					items={control.options.map((option) => ({ value: option, label: optionLabel(option) }))}
 				>
 					{/* The form field, like the Text input above it — the xs rung is the
 					    tool-panel field (a fill with no edge), and on a tinted panel like
@@ -244,8 +255,8 @@ function ControlRow({
 					<SelectTrigger id={id} className="w-40" />
 					<SelectContent>
 						{control.options.map((option) => (
-							<SelectItem key={option} value={option} label={humanize(option)}>
-								{humanize(option)}
+							<SelectItem key={option} value={option} label={optionLabel(option)}>
+								{optionLabel(option)}
 							</SelectItem>
 						))}
 					</SelectContent>
@@ -266,6 +277,13 @@ export interface PlaygroundProps {
 	only?: string[]
 	/** Seed values that override the ones derived from meta defaults. */
 	initial?: Record<string, PlaygroundValue>
+	/**
+	 * Controls meta cannot describe — the options of an imperative call like
+	 * `toast.success(title, { description })`, or a field the preview owns.
+	 * Listed after the derived ones, and `only` can name and order them too;
+	 * pair with `snippet`, since the generic serializer writes them as JSX props.
+	 */
+	controls?: PlaygroundControl[]
 	/** Editable text child. Omit for components that take no children. */
 	text?: string
 	/** Slot props shown as on/off switches with a sample element. */
@@ -291,6 +309,7 @@ export function Playground({
 	render,
 	only,
 	initial,
+	controls: extra,
 	text: initialText,
 	stageClassName,
 	fixed,
@@ -298,13 +317,13 @@ export function Playground({
 	snippet: customSnippet,
 }: PlaygroundProps) {
 	const controls = useMemo(() => {
-		const derived = deriveControls(meta)
-		if (!only) return derived
-		const byName = new Map(derived.map((control) => [control.prop, control]))
+		const all = [...deriveControls(meta), ...(extra ?? [])]
+		if (!only) return all
+		const byName = new Map(all.map((control) => [control.prop, control]))
 		return only
 			.map((prop) => byName.get(prop))
 			.filter((control): control is PlaygroundControl => Boolean(control))
-	}, [meta, only])
+	}, [meta, only, extra])
 
 	const defaults = useMemo(() => {
 		const values: Record<string, PlaygroundValue> = {}

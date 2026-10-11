@@ -8,7 +8,7 @@ export const listDetailPageMeta: PatternMeta = {
 		"Reach for this when a route lists records AND works on one at a time (members + member, inbox + message, orders + order). For pure browsing with no selection, a single-column FeedPage or a DashboardPage table is simpler.",
 	notes: [
 		"Region cap is `wide`; Columns 12 → Col 5 (list) + Col 7 (detail). Below lg the list and detail share one column as a drill-in: selecting a row shows the detail with an `All members` back button (lg:hidden), and the back button returns to the list. The panes swap with `max-lg:hidden`, so desktop always shows both.",
-		"Rows are interactive Entity inside one Card + CardList. Selection is `data-selected` on the row painted by `sable-surface-interactive`; `sable-surface` on the list card makes that step 12% ink off the card, so a selected row stays distinct from its muted avatar.",
+		"Rows are interactive Entity inside one Card + CardList. Selection is Entity `selected`; `sable-surface` on the list card makes its selected step 12% ink off the card, so a selected row stays distinct from its muted avatar.",
 		"Search filters the list in place (name, email, role). No matches swap the CardList for an EmptyState with a Clear search action; the selected detail stays open.",
 		"A pending invite lives in the same list: a mail glyph in the Avatar, an `Invited` Badge, and an invite-specific detail (role on joining, sent, expires, invited by; Resend and Revoke actions).",
 		"The role Select edits the record in place; its Field description states what the role can do. The owner's role is read-only and the owner has no remove action.",
@@ -17,7 +17,7 @@ export const listDetailPageMeta: PatternMeta = {
 		"The detail pane is sticky (lg:top-6) so it stays in view while a long list scrolls.",
 	],
 	a11y: [
-		"Each row is a real button (Entity `interactive` + `onSelect`): Tab moves through rows, Enter/Space selects. The selected row carries visually hidden `(selected)` text in its name; list avatars are aria-hidden so initials are not read before the name.",
+		"Each row is a real button (Entity `interactive` + `onSelect`): Tab moves through rows, Enter/Space selects. The selected row is Entity `selected`, which paints the selected fill and sets aria-current; list avatars are aria-hidden so initials are not read before the name.",
 		"The detail pane is a labelled region (`Member details`) whose title is a level-2 heading.",
 		"On a phone, drilling in moves focus to the back button; going back returns focus to the row that was open. After a remove, focus lands on the newly selected row; after Clear search, on the search field.",
 	],

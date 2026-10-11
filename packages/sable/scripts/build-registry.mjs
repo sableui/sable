@@ -896,64 +896,104 @@ const REACT_IMPORTS = [
 	"useId",
 ]
 
-const patternItems = []
-for (const f of readdirSync(PATTERNS_DIR)) {
-	if (!/\.meta\.ts$/.test(f)) continue
-	const base = f.replace(/\.meta\.ts$/, "")
-	const mod = await import(pathToFileURL(join(PATTERNS_DIR, f)).href)
-	const meta = Object.values(mod).find(
-		(v) => v && typeof v === "object" && "name" in v && "intent" in v,
-	)
-	if (!meta) {
-		console.error(`[build-registry] ✗ no PatternMeta export in ${f}`)
-		process.exit(1)
-	}
-	const text = readFileSync(join(PATTERNS_DIR, `${base}.tsx`), "utf8")
-	const parts = text.split(/\/\/ ---pattern-code---\r?\n/)
-	if (parts.length !== 2) {
-		contractErrors.push(
-			`${meta.name}: pattern file needs exactly one \`// ---pattern-code---\` marker separating meta from source.`,
+/**
+ * Load a copy-in tier (patterns, blocks): each `<base>.meta.ts` + `<base>.tsx`
+ * pair, with the source after the `// ---<kind>-code---` marker emitted
+ * verbatim and its consumer imports derived. `extra` maps the meta to the
+ * tier's own catalog fields.
+ */
+async function loadCompositions(kind, dir, extra = () => ({})) {
+	const items = []
+	for (const f of readdirSync(dir)) {
+		if (!/\.meta\.ts$/.test(f)) continue
+		const base = f.replace(/\.meta\.ts$/, "")
+		const mod = await import(pathToFileURL(join(dir, f)).href)
+		const meta = Object.values(mod).find(
+			(v) => v && typeof v === "object" && "name" in v && "intent" in v,
 		)
-		continue
-	}
-	const code = parts[1].trim()
-	if (/>\s*…/.test(code) || /\{\s*…\s*\}/.test(code)) {
-		contractErrors.push(`${meta.name}: pattern source elides content (…).`)
-	}
-	const { imports, unknown } = deriveImports(code)
-	for (const tag of unknown) {
-		contractErrors.push(
-			`${meta.name}: <${tag}> is not exported by the package (phantom component in pattern).`,
-		)
-	}
-	for (const m of code.matchAll(/<Icon\s[^>]*name="([^"]+)"/g)) {
-		if (!ICON_CONTRACT.has(m[1])) {
+		if (!meta) {
+			console.error(`[build-registry] ✗ no ${kind} meta export in ${f}`)
+			process.exit(1)
+		}
+		const text = readFileSync(join(dir, `${base}.tsx`), "utf8")
+		const parts = text.split(new RegExp(`// ---${kind}-code---\\r?\\n`))
+		if (parts.length !== 2) {
 			contractErrors.push(
-				`${meta.name}: <Icon name="${m[1]}"> is not in the icon contract.`,
+				`${meta.name}: ${kind} file needs exactly one \`// ---${kind}-code---\` marker separating imports from source.`,
+			)
+			continue
+		}
+		const code = parts[1].trim()
+		if (/>\s*…/.test(code) || /\{\s*…\s*\}/.test(code)) {
+			contractErrors.push(`${meta.name}: ${kind} source elides content (…).`)
+		}
+		const { imports, unknown } = deriveImports(code)
+		for (const tag of unknown) {
+			contractErrors.push(
+				`${meta.name}: <${tag}> is not exported by the package (phantom component in ${kind}).`,
 			)
 		}
+		for (const m of code.matchAll(/<Icon\s[^>]*name="([^"]+)"/g)) {
+			if (!ICON_CONTRACT.has(m[1])) {
+				contractErrors.push(
+					`${meta.name}: <Icon name="${m[1]}"> is not in the icon contract.`,
+				)
+			}
+		}
+		// A type argument is allowed between name and call: `useState<boolean[]>(`.
+		const reactNames = REACT_IMPORTS.filter((h) =>
+			new RegExp(`\\b${h}\\s*(?:<[^>()]*>)?\\s*\\(`).test(code),
+		)
+		const importLines = [
+			...(reactNames.length
+				? [`import { ${reactNames.join(", ")} } from "react"`]
+				: []),
+			...(imports ? [imports] : []),
+		]
+		items.push({
+			name: meta.name,
+			path: `${kind}s/${base}.tsx`,
+			summary: meta.summary,
+			intent: meta.intent,
+			...extra(meta),
+			...(meta.notes ? { notes: meta.notes } : {}),
+			...(meta.a11y ? { a11y: meta.a11y } : {}),
+			imports: importLines.join("\n"),
+			code,
+		})
 	}
-	const reactNames = REACT_IMPORTS.filter((h) =>
-		new RegExp(`\\b${h}\\s*\\(`).test(code),
-	)
-	const importLines = [
-		...(reactNames.length
-			? [`import { ${reactNames.join(", ")} } from "react"`]
-			: []),
-		...(imports ? [imports] : []),
-	]
-	patternItems.push({
-		name: meta.name,
-		path: `patterns/${base}.tsx`,
-		summary: meta.summary,
-		intent: meta.intent,
-		...(meta.notes ? { notes: meta.notes } : {}),
-		...(meta.a11y ? { a11y: meta.a11y } : {}),
-		imports: importLines.join("\n"),
-		code,
-	})
+	return items.sort((a, b) => a.name.localeCompare(b.name))
 }
-patternItems.sort((a, b) => a.name.localeCompare(b.name))
+
+const patternItems = await loadCompositions("pattern", PATTERNS_DIR)
+
+/* ── Blocks: section-sized compositions, shipped the same way as patterns. The
+ * block contract is checked here because it is what keeps a block a block:
+ * its props are layout and the primary action only, never content, so the
+ * copied file stays one clean starting point. ──────────────────────────────── */
+const BLOCKS_DIR = join(PKG_ROOT, "src", "blocks")
+const blockItems = await loadCompositions("block", BLOCKS_DIR, (meta) => ({
+	family: meta.family,
+	kind: meta.kind,
+	...(meta.width ? { width: meta.width } : {}),
+}))
+for (const b of blockItems) {
+	if (!/Block$/.test(b.name)) contractErrors.push(`${b.name}: a block's name ends in "Block".`)
+	if (!b.family) contractErrors.push(`${b.name}: a block declares a \`family\` for the catalog.`)
+	if (b.kind === "card" && !b.width) {
+		contractErrors.push(`${b.name}: a card block declares its designed \`width\` ({ min, max }).`)
+	}
+	// Every block takes className, so a host can size and place it.
+	if (!new RegExp(`function ${b.name}\\(\\{[^}]*\\bclassName\\b`).test(b.code)) {
+		contractErrors.push(`${b.name}: a block accepts \`className\` on its root.`)
+	}
+	// A card block built on Card offers framed={false} for hosts that already
+	// frame it. Section blocks hold cards but are not one, so there is no frame
+	// to drop.
+	if (b.kind === "card" && /<Card\b/.test(b.code) && !/\bframed\b/.test(b.code)) {
+		contractErrors.push(`${b.name}: a block built on Card accepts \`framed\` (Card variant default / flat).`)
+	}
+}
 
 /* ── llms/ markdown mirrors: one self-contained .md per component/pattern/
  * layout primitive, so an agent can fetch a single file instead of grepping
@@ -973,6 +1013,9 @@ function componentSlug(c) {
 }
 function patternSlug(p) {
 	return p.path.replace(/^patterns\//, "").replace(/\.tsx$/, "")
+}
+function blockSlug(b) {
+	return b.path.replace(/^blocks\//, "").replace(/\.tsx$/, "")
 }
 function layoutSlug(m) {
 	return kebab(m.name)
@@ -1101,9 +1144,13 @@ function renderEntryMd(entry) {
 	return `${lines.join("\n").trimEnd()}\n`
 }
 
-/** Render a pattern's markdown mirror — the emitted page-shell source verbatim. */
+/** Render a pattern's or block's markdown mirror — the emitted source verbatim. */
 function renderPatternMd(p) {
 	const lines = [`# ${p.name}`, "", p.summary, "", `**Intent:** ${p.intent}`, ""]
+	if (p.family) {
+		const width = p.width ? ` · designed for ${p.width.min}–${p.width.max} wide (fills its container up to the max)` : ""
+		lines.push(`**Block:** ${p.family} · ${p.kind}${width}`, "")
+	}
 	if (p.notes?.length) {
 		lines.push("## Notes", "")
 		for (const n of p.notes) lines.push(`- ${n}`)
@@ -1423,6 +1470,11 @@ const mirrors = [
 		slug: patternSlug(p),
 		content: renderPatternMd(p),
 	})),
+	...blockItems.map((b) => ({
+		kind: "blocks",
+		slug: blockSlug(b),
+		content: renderPatternMd(b),
+	})),
 	...layoutPrimitives.primitives.map((m) => ({
 		kind: "layout",
 		slug: layoutSlug(m),
@@ -1447,6 +1499,13 @@ const patterns = {
 	about:
 		"Canonical full-page compositions. Copy the code as a route starting point (imports included), or import the same component from `@sableui/react/patterns` to preview it before diverging. Reuse when the information architecture fits; original compositions built from layout primitives are equally valid. Pattern resemblance does not establish design quality.",
 	items: patternItems,
+}
+
+const blocks = {
+	about:
+		"Section-sized compositions — a sign-in card, a pricing card, an order tracker — smaller than a page shell and with no behaviour of their own. Copy the code (imports included) and edit the content constants at the top, or import the same component from `@sableui/react/blocks` to see it in place first. Props are the block contract only: `className` (a card block fills its container up to its designed `width.max`; size it from the parent or with className), `framed` on Card-built blocks (false drops the surface for a Sheet, Dialog or section that already frames it), and the primary action's callback. Content is never a prop.",
+	retrieve: "sable block <Name>",
+	items: blockItems,
 }
 
 /* ── Variant drift: the meta must match the cva source. ──────────────────────
@@ -1597,6 +1656,7 @@ registry.consume.cssOptional = {
 }
 registry.layoutPrimitives = layoutPrimitives
 registry.patterns = patterns
+registry.blocks = blocks
 registry.components = components
 registry.tokens = documentedTokens
 registry.utilities = {
@@ -1663,7 +1723,14 @@ function normalizeNewlines(value) {
 	return value
 }
 
-const output = `${JSON.stringify(normalizeNewlines(registry), null, 2)}\n`
+// `blocks` sits beside `patterns`, not at the end where a new key would land.
+const orderedRegistry = {}
+for (const [key, value] of Object.entries(registry)) {
+	if (key === "blocks") continue
+	orderedRegistry[key] = value
+	if (key === "patterns") orderedRegistry.blocks = registry.blocks
+}
+const output = `${JSON.stringify(normalizeNewlines(orderedRegistry), null, 2)}\n`
 
 /* ── llms.txt: regenerate the marker-delimited catalog section so the index of
  * components / layout primitives / patterns can never drift from the metas. ── */
@@ -1752,6 +1819,17 @@ function llmsCatalog() {
 		const slug = patternSlug(p)
 		lines.push(
 			`- **${p.name}** — ${firstSentence(p.summary)} → [\`llms/patterns/${slug}.md\`](./llms/patterns/${slug}.md)`,
+		)
+	}
+	lines.push(
+		"",
+		`### Blocks (${blockItems.length}) — section-sized compositions (cards, forms, lists), copy as starting points (registry.json → blocks; importable from \`@sableui/react/blocks\`; \`sable block <Name>\`)`,
+		"",
+	)
+	for (const b of blockItems) {
+		const slug = blockSlug(b)
+		lines.push(
+			`- **${b.name}** (${b.family}) — ${firstSentence(b.summary)} → [\`llms/blocks/${slug}.md\`](./llms/blocks/${slug}.md)`,
 		)
 	}
 	lines.push(
@@ -1938,6 +2016,6 @@ if (check) {
 	writeFileSync(LLMS_FULL_PATH, llmsFullOutput)
 
 	console.log(
-		`[build-registry] ✓ wrote registry.json (${components.length} components, ${layoutPrimitives.primitives.length} layout primitives, ${patternItems.length} patterns) + llms.txt catalog + llms/ (${mirrors.length} mirrors) + llms-full.txt.`,
+		`[build-registry] ✓ wrote registry.json (${components.length} components, ${layoutPrimitives.primitives.length} layout primitives, ${patternItems.length} patterns, ${blockItems.length} blocks) + llms.txt catalog + llms/ (${mirrors.length} mirrors) + llms-full.txt.`,
 	)
 }

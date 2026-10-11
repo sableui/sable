@@ -10,5 +10,5 @@ export {
 	useToast,
 	useToastManager,
 } from "./toast"
-export type { ToastApi, ToastManagerApi, ToastOptions, ToastProviderProps, ToastType } from "./toast"
+export type { ToastApi, ToastManagerApi, ToastOptions, ToastPosition, ToastProviderProps, ToastType } from "./toast"
 export { toastMeta } from "./toast.meta"

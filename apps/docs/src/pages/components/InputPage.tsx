@@ -1,5 +1,6 @@
 import { Field, Input, inputMeta } from "@sableui/react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
@@ -11,6 +12,8 @@ export function InputPage() {
 	return (
 		<>
 			<PageHeader eyebrow="Components" title="Input" lede={ledeFor(inputMeta)} />
+
+			<ComponentPlayground meta={inputMeta} />
 
 			<Section title="Default">
 				<Example code='<Input placeholder="Search posts" />'>

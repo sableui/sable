@@ -195,6 +195,14 @@ not. The brief determines the result, not resemblance to an existing shell.
 
 The **source is the contract**: each pattern is real TSX (typechecked, design-linted, rendered live by the docs app), split as `<name>.meta.ts` (a `PatternMeta`: name/summary/intent/notes/a11y) + `<name>.tsx` whose code after the `// ---pattern-code---` marker is emitted verbatim into the registry by `build-registry.mjs` — so the shipped recipe can never drift from code that compiles. Keep patterns hook-free and self-contained (inline sample data, `<a href>` for links); the generator auto-derives the consumer import block. To add one: write the pair, export both from `src/patterns/index.ts`, regenerate the registry, and add it to the docs `PatternPreview` map.
 
+## Blocks (section-sized compositions)
+
+`src/blocks/` holds compositions smaller than a page — a sign-in card, a pricing card, an order tracker — built from components with sample content and no behaviour of their own. They ship exactly like patterns (`@sableui/react/blocks` previews + `registry.json → blocks` source, `sable block <Name>`), from the same `<name>.meta.ts` (a `BlockMeta`) + `<name>.tsx` pair split by a `// ---block-code---` marker. The docs canvas and the Blocks page render them, so the scenes a theme is judged on are the source a consumer copies.
+
+**Component or block?** If it owns behaviour, state or an a11y contract that should arrive on upgrade, it is a component. If it is an arrangement of components plus copy, it is a block. A block that needs something the library lacks is a library gap: add the component first (`DateTile` and `SegmentedBar` arrived this way), then compose it.
+
+**The block contract** (checked by `build-registry`): the name ends in `Block`; the meta declares a `family`, a `kind` (`card` | `section`) and, for cards, the designed `width` ({ min, max }); the root takes `className` and renders `w-full` capped at the designed max; a card block built on Card takes `framed` (Card `default` / `flat`); the only other props are the primary action's callbacks. Content is never a prop — it is the constant at the top of the file, edited after copying. Variants are separate blocks, not a `variant` prop. To add one: write the pair, export both from `src/blocks/index.ts`, and regenerate the registry; the Blocks docs page picks it up from the catalog.
+
 ## Promoting from an app (and the drift back down)
 
 The system grows **out of the apps**, not ahead of them. A component earns its way in by being built in a consuming app first, measured in place, and only then lifted here — which is how the workspace register (v0.31.1, out of Glitch's tool chrome) and `Tree` (v0.32.0, out of Glitch's layers list) landed. Both deleted more app code than they added: Glitch's `globals.css` went 229 → 49 lines and its local `components/workspace/` disappeared. That deletion is the signal you're promoting something real rather than relocating it.

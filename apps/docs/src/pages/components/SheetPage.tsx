@@ -11,6 +11,7 @@ import {
 	SheetTrigger,
 } from "@sableui/react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
@@ -22,6 +23,8 @@ export function SheetPage() {
 	return (
 		<>
 			<PageHeader eyebrow="Components" title="Sheet" lede={ledeFor(sheetMeta)} />
+
+			<ComponentPlayground meta={sheetMeta} />
 
 			<Section
 				title="Basic"

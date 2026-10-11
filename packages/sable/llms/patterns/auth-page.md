@@ -99,10 +99,10 @@ export function AuthPage() {
 						<Separator label="or" />
 
 						<Stack gap={1.5}>
-							<Button variant="outline" size="cta" className="w-full">
+							<Button variant="outline" size="cta" className="w-full" iconStart={<Icon name="key" />}>
 								Sign in with a passkey
 							</Button>
-							<Button variant="outline" size="cta" className="w-full">
+							<Button variant="outline" size="cta" className="w-full" iconStart={<Icon name="wallet" />}>
 								Connect a wallet
 							</Button>
 						</Stack>

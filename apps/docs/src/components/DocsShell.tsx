@@ -11,6 +11,7 @@ import {
 	Region,
 	Sheet,
 	SheetContent,
+	SheetTitle,
 	SheetTrigger,
 	Sidebar,
 	SidebarNav,
@@ -27,6 +28,7 @@ import { hrefFor, navigate } from "../lib/router"
 import { makeDocsFilter } from "../lib/search"
 import { Inspector } from "../customizer/Inspector"
 import { useCustomizer } from "../customizer/CustomizerProvider"
+import { WIDE, useMediaQuery } from "../lib/use-media-query"
 
 
 export interface NavItem {
@@ -271,6 +273,7 @@ export function DocsShell({
 }) {
 	const [mobileOpen, setMobileOpen] = useState(false)
 	const customizer = useCustomizer()
+	const wide = useMediaQuery(WIDE)
 	const [searchOpen, setSearchOpen] = useState(false)
 	const routeContent = useRef<HTMLDivElement>(null)
 	const previousRoute = useRef(current)
@@ -489,13 +492,27 @@ export function DocsShell({
 			</div>
 			{/* Floating, not docked: the inspector hovers over the page like a
 			    design tool's panel. On desktop the page makes room for it (above);
-			    on small screens it docks to the bottom edge. */}
-			{customizer.open ? (
-				<Inspector
-					onClose={() => customizer.setOpen(false)}
-					className="motion-pop fixed inset-x-2 bottom-2 z-(--z-overlay) max-h-[72vh] lg:inset-x-auto lg:top-[calc(var(--nav-height,56px)+12px)] lg:right-4 lg:bottom-4 lg:max-h-none lg:w-[340px]"
-				/>
-			) : null}
+			    on small screens there is no room beside the page, so it is a whole
+			    settings view instead: tune, close, see the result. */}
+			{wide ? (
+				customizer.open ? (
+					<Inspector
+						onClose={() => customizer.setOpen(false)}
+						className="motion-pop fixed top-[calc(var(--nav-height,56px)+12px)] right-4 bottom-4 z-(--z-overlay) w-[340px]"
+					/>
+				) : null
+			) : (
+				<Sheet open={customizer.open} onOpenChange={customizer.setOpen}>
+					<SheetContent side="bottom" className="h-dvh max-h-none gap-0 p-0">
+						<SheetTitle className="sr-only">Customize</SheetTitle>
+						<Inspector
+							floating={false}
+							onClose={() => customizer.setOpen(false)}
+							className="min-h-0 flex-1 ring-0"
+						/>
+					</SheetContent>
+				</Sheet>
+			)}
 		</AppShell>
 	)
 }

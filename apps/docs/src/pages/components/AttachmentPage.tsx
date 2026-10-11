@@ -10,6 +10,7 @@ import {
 	MessageScroller,
 } from "@sableui/react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
@@ -39,6 +40,8 @@ export function AttachmentPage() {
 				title="Attachment"
 				lede={ledeFor(attachmentMeta)}
 			/>
+
+			<ComponentPlayground meta={attachmentMeta} />
 
 			<Section
 				title="Two shapes"

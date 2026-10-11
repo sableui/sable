@@ -47,7 +47,7 @@ export const settingsMenuMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description:
-					"Do not put actions in it. Rows change state; a menu that mixes \"Effort ›\" with \"Delete conversation\" makes destructive commands look like preferences. That is `Menu` or `DotsMenu`.",
+					"Do not put actions in it. Rows change state; a menu that mixes \"Effort ›\" with \"Delete conversation\" makes destructive commands look like preferences. That is `Menu` or `OverflowMenu`.",
 			},
 			{
 				guidance: "dont",
@@ -82,7 +82,7 @@ export const settingsMenuMeta: ComponentMeta = {
 		],
 	},
 	related: {
-		components: ["Menu", "DotsMenu", "Select", "ChatComposer", "Popover"],
+		components: ["Menu", "OverflowMenu", "Select", "ChatComposer", "Popover"],
 		patterns: ["ChatPanel"],
 	},
 	props: [

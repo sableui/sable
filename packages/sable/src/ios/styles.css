@@ -24,6 +24,12 @@
   --ios-motion: 300ms; --ios-safe-top: 62px; --ios-header-height: 154px; --ios-tabbar-bottom: 28px; --ios-content-bottom: 110px;
   font-family: var(--font-sans, system-ui, sans-serif); color: var(--ios-ink); background: var(--ios-canvas); height: 100dvh; overflow: hidden;
 }
+/* On a real phone (NativeApp systemChrome={false}): the device's own insets, the
+   same chrome heights above and below them. */
+.ios-prototype.ios-bare {
+  --ios-safe-top: env(safe-area-inset-top, 0px); --ios-header-height: calc(92px + var(--ios-safe-top));
+  --ios-tabbar-bottom: max(12px, env(safe-area-inset-bottom, 0px)); --ios-content-bottom: calc(82px + var(--ios-tabbar-bottom));
+}
 .ios-prototype.dark {
   --ios-canvas: var(--background, #000); --ios-ink: var(--foreground, #f2f2f7); --ios-secondary: var(--muted-foreground, #aeaeb2);
   --ios-panel: var(--card, #1c1c1e); --ios-primary-ink: var(--primary-foreground, #fff);

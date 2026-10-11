@@ -12,6 +12,11 @@ import { type IosBrandTokens, iosThemeStyle } from "./theme"
  * the chrome and any Sable content then follow the preset together. `tokens`
  * overrides individual semantic values. `mode` also sets `dark` on <html>, so
  * Sable popups portaled to <body> follow the prototype's appearance.
+ *
+ * `systemChrome={false}` is for a prototype shown on a real phone, without
+ * PhoneFrame: the device already draws its own status bar and home indicator,
+ * so the fake ones go, and the safe areas come from the device
+ * (`env(safe-area-inset-*)`) instead of the standard phone's fixed geometry.
  */
 export function NativeApp({
 	children,
@@ -21,6 +26,7 @@ export function NativeApp({
 	className = "",
 	tokens = {},
 	style,
+	systemChrome = true,
 }: {
 	children: ReactNode
 	mode?: "light" | "dark"
@@ -29,6 +35,8 @@ export function NativeApp({
 	className?: string
 	tokens?: IosBrandTokens
 	style?: CSSProperties
+	/** Draw the status bar, island and home indicator. Turn off on a real phone. @default true */
+	systemChrome?: boolean
 }) {
 	const dark = mode === "dark"
 	useEffect(() => {
@@ -39,18 +47,20 @@ export function NativeApp({
 		<App
 			theme="ios"
 			dark={dark}
-			className={`ios-prototype ${dark ? "dark" : ""} ${className}`}
+			className={`ios-prototype ${dark ? "dark" : ""} ${systemChrome ? "" : "ios-bare"} ${className}`}
 			data-reduced-motion={reducedMotion || undefined}
 			style={{ ...iosThemeStyle(tokens), "--ios-glass-tint": tint, ...style } as CSSProperties}
 		>
 			<LiquidGlassMaterial />
-			<div className="ios-status-bar" aria-hidden="true">
-				<span>9:41</span>
-				<span className="ios-island" />
-				<StatusIcons className="ios-status-icons" />
-			</div>
+			{systemChrome ? (
+				<div className="ios-status-bar" aria-hidden="true">
+					<span>9:41</span>
+					<span className="ios-island" />
+					<StatusIcons className="ios-status-icons" />
+				</div>
+			) : null}
 			{children}
-			<div className="ios-home-indicator" aria-hidden="true" />
+			{systemChrome ? <div className="ios-home-indicator" aria-hidden="true" /> : null}
 		</App>
 	)
 }

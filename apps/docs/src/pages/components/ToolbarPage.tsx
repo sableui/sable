@@ -16,6 +16,7 @@ import {
 	toolbarMeta,
 } from "@sableui/react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
@@ -27,6 +28,8 @@ export function ToolbarPage() {
 	return (
 		<>
 			<PageHeader eyebrow="Components" title="Toolbar" lede={ledeFor(toolbarMeta)} />
+
+			<ComponentPlayground meta={toolbarMeta} />
 
 			<Section
 				title="Formatting bar"

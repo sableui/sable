@@ -9,6 +9,7 @@ import {
 } from "@sableui/react"
 import { useState } from "react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
@@ -68,6 +69,8 @@ export function FileDropzonePage() {
 				title="File Dropzone"
 				lede={ledeFor(fileDropzoneMeta)}
 			/>
+
+			<ComponentPlayground meta={fileDropzoneMeta} />
 
 			<Section
 				title="Drop or browse"

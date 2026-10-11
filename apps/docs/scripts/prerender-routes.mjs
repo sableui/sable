@@ -108,6 +108,7 @@ const extra = {
 	credits: { markdown: "/credits.md" },
 	"whats-new": { markdown: "/whats-new.md" },
 	patterns: { markdown: "/llms.txt" },
+	blocks: { markdown: "/llms.txt" },
 	themes: { markdown: "/llms/tasks/using-presets.md" },
 	colors: { markdown: "/llms/reference/token-intent.md" },
 	grid: { markdown: "/llms/layout/grid.md" },

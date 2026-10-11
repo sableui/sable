@@ -7,6 +7,7 @@ import {
 	type MeterTone,
 } from "@sableui/react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
@@ -31,6 +32,8 @@ export function MeterPage() {
 	return (
 		<>
 			<PageHeader eyebrow="Components" title="Meter" lede={ledeFor(meterMeta)} />
+
+			<ComponentPlayground meta={meterMeta} />
 
 			<Section
 				title="Bare"

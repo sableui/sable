@@ -127,6 +127,9 @@ function TryIt({ onFeedback, onActivity }: { onFeedback: () => void; onActivity:
 	)
 }
 
+/** `?bare`: shown edge to edge on a real phone, which draws its own status bar and home indicator. */
+const BARE = new URLSearchParams(location.search).has("bare")
+
 function CanvasApp() {
 	const look = useIosPreviewTheme()
 	const [tab, setTab] = useState<Destination>("explore")
@@ -145,7 +148,7 @@ function CanvasApp() {
 	return (
 		<IconProvider set={look?.icons === "fallback" ? fallbackIconSet : reiconIconSet}>
 			<MotionProvider>
-				<NativeApp mode={look?.mode ?? "light"} reducedMotion={look?.reducedMotion}>
+				<NativeApp mode={look?.mode ?? "light"} reducedMotion={look?.reducedMotion} systemChrome={!BARE}>
 					{/* Inside NativeApp, so the stack can sit under the status bar like an iOS notification. */}
 					<ToastProvider position="top-center" viewportClassName="top-(--ios-safe-top)">
 						<NavigationStack active={tab === "explore"} label="Explore">

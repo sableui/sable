@@ -12,6 +12,7 @@ import {
 	RelativeTime,
 } from "@sableui/react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
@@ -35,6 +36,8 @@ export function MessagePage() {
 	return (
 		<>
 			<PageHeader eyebrow="Components" title="Message" lede={ledeFor(messageMeta)} />
+
+			<ComponentPlayground meta={messageMeta} />
 
 			<Section
 				title="Two sides"

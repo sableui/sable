@@ -65,7 +65,7 @@ Use Menu for a compact list of actions opened from a visible trigger.
 
 ## Related
 
-- Components: ContextMenu, DotsMenu
+- Components: ContextMenu, OverflowMenu
 
 ## Examples
 

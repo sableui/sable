@@ -17,7 +17,7 @@ Use Table for structured data with consistent columns and rows. Use DataTable wh
 - Do: Use the built-in horizontal frame for overflow instead of squeezing columns until content becomes unreadable.
 - Do: Put a table in a card with `<CardContent flush>`. The first and last columns then take the card's own padding (`--table-edge-px`), so they line up with the CardHeader at any density. Never hand-set `pl-6`/`pr-6` on edge cells.
 - Don't: Use Table for heterogeneous items with no stable columns. Use Card, Entity, or a list composition instead.
-- Don't: Put every possible action in every row. Use one primary row action, a DotsMenu, or row detail navigation.
+- Don't: Put every possible action in every row. Use one primary row action, an OverflowMenu, or row detail navigation.
 
 ### Anatomy
 

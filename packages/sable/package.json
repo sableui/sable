@@ -1,6 +1,6 @@
 {
 	"name": "@sableui/react",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"description": "Sable: themeable React components, layout patterns, and tools for coding agents.",
 	"type": "module",
 	"sideEffects": [
@@ -14,6 +14,10 @@
 		"./patterns": {
 			"types": "./src/patterns/index.ts",
 			"default": "./src/patterns/index.ts"
+		},
+		"./blocks": {
+			"types": "./src/blocks/index.ts",
+			"default": "./src/blocks/index.ts"
 		},
 		"./styles.css": "./src/styles.css",
 		"./themes.css": "./src/themes.css",
@@ -146,6 +150,10 @@
 			"./patterns": {
 				"types": "./dist/patterns/index.d.ts",
 				"default": "./dist/patterns/index.js"
+			},
+			"./blocks": {
+				"types": "./dist/blocks/index.d.ts",
+				"default": "./dist/blocks/index.js"
 			},
 			"./styles.css": "./dist/styles.css",
 			"./themes.css": "./dist/themes.css",

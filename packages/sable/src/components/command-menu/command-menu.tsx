@@ -900,8 +900,11 @@ export function CommandMenuItem({
 		>
 			{icon && <Icon name={icon} className="text-base text-muted-foreground" />}
 			<span className="truncate">{children}</span>
+			{/* The detail starts from zero width and only grows into what the label
+			    leaves: shrinking in proportion to its own length, a long summary
+			    squeezed the label to a single letter. */}
 			{detail && (
-				<span className="truncate text-body-sm text-muted-foreground">
+				<span className="min-w-0 flex-1 truncate text-body-sm text-muted-foreground">
 					{detail}
 				</span>
 			)}

@@ -47,7 +47,7 @@ export const tableMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description:
-					"Put every possible action in every row. Use one primary row action, a DotsMenu, or row detail navigation.",
+					"Put every possible action in every row. Use one primary row action, an OverflowMenu, or row detail navigation.",
 			},
 		],
 		anatomy: [

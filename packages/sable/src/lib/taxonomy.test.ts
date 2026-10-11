@@ -65,9 +65,9 @@ describe("taxonomy", () => {
 		const groupOf = (n: string) => COMPONENT_TAXONOMY[n]?.[0]
 		// Switch and Toggle are documented as alternatives to each other.
 		expect(groupOf("Toggle")).toBe(groupOf("Switch"))
-		// DotsMenu is the "more actions" button, filed with the actions it sits
+		// OverflowMenu is the "more actions" button, filed with the actions it sits
 		// beside (Button's main-action-with-options pattern), not with menus.
-		expect(groupOf("DotsMenu")).toBe(groupOf("Button"))
+		expect(groupOf("OverflowMenu")).toBe(groupOf("Button"))
 		// Three ways to reveal more content, previously in three groups.
 		expect(groupOf("ShowMore")).toBe(groupOf("Pagination"))
 		expect(groupOf("ShowMore")).toBe(groupOf("Pagination"))

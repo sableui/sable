@@ -74,7 +74,10 @@ Entity rows in a Card) or `redesign` (desktop workspace tools).
    Keep the app's `IconProvider`.
 4. Frame it on a host page with `PhoneFrame` from `@sableui/react/ios/preview`
    and `@sableui/react/ios/frame.css` (Sable's Phone around an iframe at
-   402×874, scaled as a whole device). To follow a host's live look, call
+   402×874, scaled as a whole device). `fit="contain"` with a height in
+   `className` keeps the whole device on screen. Shown on a real phone with no
+   frame, pass `systemChrome={false}` to `NativeApp`: the device draws its own
+   status bar and home indicator, and the safe areas come from it. To follow a host's live look, call
    `useIosPreviewBridge(frameRef, { mode })` on the host and
    `useIosPreviewTheme()` in the prototype.
 5. Verify light and dark, keyboard focus, reduced motion, back and edge swipe,

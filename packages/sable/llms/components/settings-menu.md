@@ -17,7 +17,7 @@ For a cluster of related settings that a reader checks often and changes occasio
 - Do: Use `MenuRadioGroup` + `MenuRadioItem` inside a row for single-choice settings, so the current option is checked rather than merely remembered.
 - Do: Reach for `variant="subtle"` when the trigger sits on a surface where a ghost control would float unanchored — inside a ChatComposer, for instance.
 - Don't: Do not use it for a single setting. One choice is a `Select`; the nesting only earns its cost when there are several related settings to summarise.
-- Don't: Do not put actions in it. Rows change state; a menu that mixes "Effort ›" with "Delete conversation" makes destructive commands look like preferences. That is `Menu` or `DotsMenu`.
+- Don't: Do not put actions in it. Rows change state; a menu that mixes "Effort ›" with "Delete conversation" makes destructive commands look like preferences. That is `Menu` or `OverflowMenu`.
 - Don't: Do not nest more than one level deep. Past that the reader loses the path back, and the thing you have is a settings dialog wearing a menu.
 - Don't: Do not override the upward, end-aligned default without reason. Its home is the bottom of a composer or toolbar, where a downward menu opens off-screen.
 
@@ -69,7 +69,7 @@ For a cluster of related settings that a reader checks often and changes occasio
 
 ## Related
 
-- Components: Menu, DotsMenu, Select, ChatComposer, Popover
+- Components: Menu, OverflowMenu, Select, ChatComposer, Popover
 - Patterns: ChatPanel
 
 ## Examples

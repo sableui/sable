@@ -122,6 +122,7 @@ Two binaries ship with the package, both zero-dependency and both reading the co
 ```bash
 npx sable pattern --list                     # the eight canonical page shells
 npx sable pattern DashboardPage --skeleton   # its composition tree — 127 lines of source, 45 of structure
+npx sable block PricingCardBlock --code      # a section-sized block's source, imports included
 npx sable component Button --props
 npx sable search "date range"                # one ranked set across components, patterns, layout, tokens, docs
 npx sable doctor                             # is this project wired correctly? exits 1 if not

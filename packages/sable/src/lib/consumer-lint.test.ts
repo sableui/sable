@@ -78,6 +78,27 @@ describe("sable-lint bin", () => {
 		expect(full.code).toBe(0)
 	})
 
+	it("lints a single file path, not only a folder", () => {
+		// `sable lint src/app.tsx` threw ENOTDIR: the walker read every target as a
+		// directory. A named file is linted as given.
+		// Its own folder: the other tests lint the whole shared temp folder.
+		const own = mkdtempSync(join(tmpdir(), "sable-lint-file-"))
+		writeFileSync(join(own, "one.tsx"), `export const A = () => <div className="border-orange-500" />`)
+		let out = ""
+		let code = 0
+		try {
+			out = execFileSync(process.execPath, [BIN, join(own, "one.tsx")], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] })
+		} catch (e) {
+			const err = e as { status: number; stdout: string; stderr: string }
+			code = err.status
+			out = err.stdout + err.stderr
+		}
+		expect(out).not.toContain("ENOTDIR")
+		expect(code).toBe(1)
+		expect(out).toContain("palette-ref")
+		rmSync(own, { recursive: true, force: true })
+	})
+
 	it("catches the drift that actually shipped to a consumer", () => {
 		// `border-orange-500` shipped in a converted app for weeks. The package
 		// linter would never have seen it, and the consumer had no way to run one —

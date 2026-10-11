@@ -120,8 +120,8 @@ export function CardHeader({
 }
 
 /**
- * Header-aligned action slot — pins to the top-right of CardHeader (e.g. a
- * dots menu, close button, or switch). Place as a child of CardHeader.
+ * Header-aligned action slot — pins to the top-right of CardHeader (e.g. an
+ * overflow menu, close button, or switch). Place as a child of CardHeader.
  */
 export function CardAction({
 	className,
@@ -140,8 +140,25 @@ export function CardAction({
 }
 
 /** Title tier — a UI primitive title, not a document heading. */
-export function CardTitle({ className, ...props }: ComponentPropsWithRef<"div">) {
-	return <div className={cn("text-title-lg", className)} {...props} />
+export interface CardTitleProps extends ComponentPropsWithRef<"div"> {
+	/**
+	 * Render the title as another element — most often a heading, so a card's
+	 * name joins the page outline: `render={<h2 />}`. The type tier stays.
+	 */
+	render?: useRender.RenderProp
+}
+
+/**
+ * The card's name. A `<div>` by default, because a card's heading level depends
+ * on where the card sits; pass `render={<h2 />}` (or h3…) to make it a heading.
+ */
+export function CardTitle({ className, render, ref, ...props }: CardTitleProps) {
+	return useRender({
+		render: render ?? <div />,
+		ref,
+		props: { ...props, className: cn("text-title-lg", className) },
+		defaultTagName: "div",
+	})
 }
 
 export function CardDescription({

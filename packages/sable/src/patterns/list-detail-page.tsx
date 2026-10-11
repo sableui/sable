@@ -205,11 +205,8 @@ export function ListDetailPage() {
 											<Entity
 												key={m.id}
 												data-member-id={m.id}
-												data-selected={isSelected ? "" : undefined}
-												// No selected variant on Entity yet: the relative-surface recipe paints
-												// data-selected one step off the card.
-												className="sable-surface-interactive"
 												interactive
+												selected={isSelected}
 												onSelect={() => select(m.id)}
 												leading={
 													<Avatar
@@ -219,12 +216,7 @@ export function ListDetailPage() {
 														aria-hidden
 													/>
 												}
-												title={
-													<>
-														{m.name}
-														{isSelected ? <span className="sr-only"> (selected)</span> : null}
-													</>
-												}
+												title={m.name}
 												subtitle={
 													m.pending
 														? `${roleLabel[m.role]} · invite sent ${m.sent?.toLowerCase()}`
@@ -286,7 +278,7 @@ export function ListDetailPage() {
 												alt={selected.pending ? "Pending invite" : selected.name}
 											/>
 											<Stack gap={0} className="min-w-0">
-												<CardTitle role="heading" aria-level={2} className="truncate">
+												<CardTitle render={<h2 />} className="truncate">
 													{selected.name}
 												</CardTitle>
 												<CardDescription className="truncate">
@@ -375,7 +367,7 @@ export function ListDetailPage() {
 								{selected.activity.length > 0 ? (
 									<Card>
 										<CardHeader>
-											<CardTitle role="heading" aria-level={3}>
+											<CardTitle render={<h3 />}>
 												Recent activity
 											</CardTitle>
 										</CardHeader>

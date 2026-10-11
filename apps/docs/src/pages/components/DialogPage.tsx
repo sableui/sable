@@ -21,6 +21,7 @@ import {
 	Icon,
 } from "@sableui/react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
@@ -51,6 +52,8 @@ export function DialogPage() {
 	return (
 		<>
 			<PageHeader eyebrow="Components" title="Dialog" lede={ledeFor(dialogMeta)} />
+
+			<ComponentPlayground meta={dialogMeta} />
 
 			<Section title="Basic">
 				<Example>

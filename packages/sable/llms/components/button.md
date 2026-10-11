@@ -72,7 +72,7 @@ Use Button when the user commits an action, submits a form, opens UI, or confirm
 
 ## Related
 
-- Components: Menu, DotsMenu, Icon, Banner
+- Components: Menu, OverflowMenu, Icon, Banner
 - Patterns: SettingsPage, AuthPage, DashboardPage
 
 ## Examples

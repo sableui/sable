@@ -82,6 +82,16 @@ describe("docs playgrounds", () => {
 			components: { name: string; props?: { name: string }[]; variants?: Record<string, string[]> }[]
 		}
 		const previews = readFileSync(join(DOCS, "lib", "previews.tsx"), "utf8")
+		// A playground may declare its own controls (`controls: X`) for things
+		// that are not props — Toast's toast() options, Stepper's per-item error.
+		// Those names are defined right there, so they count as known.
+		const declared = new Map<string, Set<string>>()
+		for (const file of readdirSync(join(DOCS, "lib")).filter((f) => f.endsWith(".tsx"))) {
+			const text = readFileSync(join(DOCS, "lib", file), "utf8")
+			for (const m of text.matchAll(/const (\w+): PlaygroundControl\[\] = \[([\s\S]*?)\n\]/g)) {
+				declared.set(m[1], new Set([...m[2].matchAll(/\bprop: "([^"]+)"/g)].map((p) => p[1])))
+			}
+		}
 		// One entry per `meta: xMeta`, up to the next one.
 		const entries = previews.split(/(?=\bmeta: \w+Meta,)/).slice(1)
 		const wrong = entries.flatMap((entry) => {
@@ -91,7 +101,8 @@ describe("docs playgrounds", () => {
 			const name = meta[0].toUpperCase() + meta.slice(1)
 			const c = registry.components.find((x) => x.name === name)
 			if (!c) return [`${name}: no such component`]
-			const known = new Set([...(c.props ?? []).map((p) => p.name), ...Object.keys(c.variants ?? {})])
+			const custom = declared.get(/\bcontrols: (\w+)/.exec(entry)?.[1] ?? "") ?? []
+			const known = new Set([...(c.props ?? []).map((p) => p.name), ...Object.keys(c.variants ?? {}), ...custom])
 			return [...only.matchAll(/"([^"]+)"/g)]
 				.map((m) => m[1])
 				.filter((prop) => !known.has(prop))

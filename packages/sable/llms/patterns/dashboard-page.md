@@ -13,7 +13,7 @@ App-shell creator dashboard: a branded Sidebar with an account footer (AppHeader
 - The table runs flush to the card edges with `<CardContent flush>`, which hands the card's padding to the table (`--table-edge-px`), so the first and last columns line up with the CardHeader at any card density — never hand-set pl-6/pr-6. Numeric columns align end in mono; Table scrolls horizontally inside the card on narrow screens.
 - Sold / supply is a `Meter` (how full a known range is), not `Progress` (task progress). Status is `Badge appearance="plain" dot`, with the app's own states mapped to tones once at the top of the file.
 - Lists are Entity rows in CardList, inset to the card padding and divided by hairlines — never CardContent with hand-tuned px. A card that shares a grid row with a taller one becomes `flex flex-col` and pins its CardFooter with `mt-auto`.
-- Brand and account live in the Sidebar: SidebarHeader holds the mark + wordmark, SidebarFooter holds the signed-in Entity with a DotsMenu. The footer rebinds `--foreground` to `--sidebar-foreground`, because Entity's title and the ghost trigger ink with page tokens and a theme may paint the rail dark on a light page; it keeps to a title line, since there is no sidebar-muted ink for a subtitle.
+- Brand and account live in the Sidebar: SidebarHeader holds the mark + wordmark, SidebarFooter holds the signed-in Entity with an OverflowMenu. Sidebar rebinds the page ink tokens to its own, so the Entity and OverflowMenu read correctly even when a theme paints the rail dark on a light page.
 - The page has exactly one heading-1 (PageHeader); card titles are Title tier, not headings.
 - Chrome (Sidebar) is outside the content grid; the Page region caps only content.
 - Sidebar hides below lg, so the shell's header carries an AppHeader (brand + account) and its footer a BottomNav with the same destinations — never strand mobile users without navigation.
@@ -29,7 +29,7 @@ App-shell creator dashboard: a branded Sidebar with an account footer (AppHeader
 ## Source
 
 ```tsx
-import { AppHeader, AppShell, Avatar, Badge, BottomNav, BottomNavItem, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, DataTable, DotsMenu, Entity, Grid, Icon, MenuItem, MenuSeparator, Meter, NotificationBadge, Page, PageHeader, RelativeTime, Row, Sidebar, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav, Stack } from "@sableui/react"
+import { AppHeader, AppShell, Avatar, Badge, BottomNav, BottomNavItem, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, DataTable, Entity, Grid, Icon, MenuItem, MenuSeparator, Meter, NotificationBadge, OverflowMenu, Page, PageHeader, RelativeTime, Row, Sidebar, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav, Stack } from "@sableui/react"
 
 // Edition status → Badge tone. Sable has no status vocabulary of its own;
 // an app maps ITS states onto tones once, here, and every badge follows.
@@ -143,20 +143,19 @@ export function DashboardPage() {
 						/>
 						<SidebarItem icon={<Icon name="gear" />} label="Settings" render={<a href="/settings" />} />
 					</SidebarNav>
-					{/* Entity and DotsMenu ink with page tokens; a theme can paint the rail
-					    dark on a light page, so this subtree reads the rail's ink instead. */}
-					<SidebarFooter className="[--foreground:var(--sidebar-foreground)]">
+					<SidebarFooter>
 						<Entity
 							className="[--entity-py:0]"
 							leading={<Avatar size="sm" fallback="AL" alt="" />}
 							title="Ada Lovelace"
+							subtitle="@ada"
 							action={
-								<DotsMenu label="Account" size="icon-sm">
+								<OverflowMenu label="Account" size="icon-sm">
 									<MenuItem render={<a href="/@ada" />}>View profile</MenuItem>
 									<MenuItem render={<a href="/settings" />}>Settings</MenuItem>
 									<MenuSeparator />
 									<MenuItem>Sign out</MenuItem>
-								</DotsMenu>
+								</OverflowMenu>
 							}
 						/>
 					</SidebarFooter>

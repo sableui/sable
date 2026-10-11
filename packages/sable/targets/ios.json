@@ -93,6 +93,15 @@
       ],
       "guidance": "NativeApp is the app frame (status bar, safe areas, home indicator); each screen is an IosPage; each tab keeps one NavigationStack. Screen content is Sable."
     },
+    "AreaChart": {
+      "source": "AreaChart",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "AreaChart"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
     "Attachment": {
       "source": "Attachment",
       "strategy": "preserve",
@@ -126,6 +135,15 @@
       "importFrom": "@sableui/react",
       "components": [
         "Banner"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
+    "BarChart": {
+      "source": "BarChart",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "BarChart"
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
@@ -337,6 +355,15 @@
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
+    "DateTile": {
+      "source": "DateTile",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "DateTile"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
     "DestructiveActionModal": {
       "source": "DestructiveActionModal",
       "strategy": "preserve",
@@ -352,15 +379,6 @@
       "importFrom": "@sableui/react",
       "components": [
         "Dialog"
-      ],
-      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
-    },
-    "DotsMenu": {
-      "source": "DotsMenu",
-      "strategy": "preserve",
-      "importFrom": "@sableui/react",
-      "components": [
-        "DotsMenu"
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
@@ -464,6 +482,15 @@
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
+    "LineChart": {
+      "source": "LineChart",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "LineChart"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
     "Marker": {
       "source": "Marker",
       "strategy": "preserve",
@@ -563,6 +590,15 @@
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
+    "OverflowMenu": {
+      "source": "OverflowMenu",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "OverflowMenu"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
     "PageHeader": {
       "source": "PageHeader",
       "strategy": "contextual",
@@ -629,6 +665,15 @@
       "components": [],
       "guidance": "Frame a prototype with PhoneFrame from @sableui/react/ios/preview on a host page. Never draw device or browser chrome inside the app."
     },
+    "PieChart": {
+      "source": "PieChart",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "PieChart"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
     "Pill": {
       "source": "Pill",
       "strategy": "preserve",
@@ -653,6 +698,24 @@
       "importFrom": "@sableui/react",
       "components": [
         "Progress"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
+    "RadarChart": {
+      "source": "RadarChart",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "RadarChart"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
+    "RadialChart": {
+      "source": "RadialChart",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "RadialChart"
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
@@ -705,6 +768,15 @@
       "importFrom": "@sableui/react",
       "components": [
         "SearchInput"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
+    "SegmentedBar": {
+      "source": "SegmentedBar",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "SegmentedBar"
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
@@ -790,6 +862,15 @@
       "importFrom": "@sableui/react",
       "components": [
         "Slider"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
+    "Sparkline": {
+      "source": "Sparkline",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "Sparkline"
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },

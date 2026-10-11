@@ -121,8 +121,8 @@ export const cardMeta: ComponentMeta = {
 		},
 		{
 			name: "CardTitle",
-			type: 'ComponentPropsWithRef<"div">',
-			description: "The card's name (text-title-lg).",
+			type: 'ComponentPropsWithRef<"div"> & { render?: useRender.RenderProp }',
+			description: "The card's name (text-title-lg). A div by default; pass `render={<h2 />}` (or h3…) to make it a heading in the page outline, at the level the card's position calls for.",
 		},
 		{
 			name: "CardDescription",
@@ -133,7 +133,7 @@ export const cardMeta: ComponentMeta = {
 			name: "CardAction",
 			type: 'ComponentPropsWithRef<"div">',
 			description:
-				"Header-aligned top-right action slot (e.g. a dots menu, switch, or close button). Place inside CardHeader, which becomes a 2-column grid when present and collapses to a single column otherwise.",
+				"Header-aligned top-right action slot (e.g. an overflow menu, switch, or close button). Place inside CardHeader, which becomes a 2-column grid when present and collapses to a single column otherwise.",
 		},
 		{
 			name: "CardContent",

@@ -12,6 +12,7 @@ How to **build with** Sable. This is the whole consumer contract an agent needs;
 |---|---|
 | Which component, and its props/examples | `npx sable search "<need>"` → `npx sable component <Name> --detail full` |
 | A page composition to start from | `npx sable pattern --list` → `npx sable pattern <Name> --skeleton` |
+| A card, form or list to start from (a block) | `npx sable block --list` → `npx sable block <Name> --code` |
 | The rules for type, motion, spacing, shape, surfaces, a11y | `npx sable docs typography` (also `motion`, `spacing`, `shape`, `surfaces`, `accessibility`) |
 | Which token to reach for | `npx sable token <name>` · `npx sable docs token-intent` |
 | A task walkthrough | `npx sable docs --list --kind tasks` |
@@ -61,7 +62,7 @@ The machine-readable version of this section is the `consume` block in `registry
    `styles.css` carries **Base only** — the default theme, and the layout floor every other theme inherits (`--page-inset`, `--region-*`, `--rhythm-unit` on a bare `:root`). The bundled **alternates are opt-in**, because they are `[data-sable-theme]`-scoped and an app that never sets the attribute ships CSS that can never match: 5.5 KB gzip of permanently-dead weight, which is exactly how a real app's build audit found this. Using one? `@import "@sableui/react/theme/prism.css";`. Offering the whole set through a `<ThemeSelector>`? `@import "@sableui/react/themes.css";`. **Symptom of forgetting:** `data-sable-theme` is set, nothing matches, and the page silently renders as Base — no error, just the wrong theme.
 4. **Fonts:** load Figtree (sans) + DM Mono (mono) — the theme declares the stacks, the host provides the files. Apply `antialiased` (`-webkit-font-smoothing: antialiased` / `-moz-osx-font-smoothing: grayscale`) **once on the app root**: Sable's type scale was drawn against smoothed text, and without it macOS renders every weight heavier than designed. The package deliberately doesn't set it — a library has no business styling the host's whole page — so it has to happen here.
 5. **Providers (all optional):** components render with **Reicon** by default, so `<IconProvider set={…}>` is only needed to replace it with another icon package or extend it using `composeIconSets(appExtras, reiconIconSet)`; `<MotionProvider>` is optional too. Use `<SableThemeProvider>` + `useSableTheme()` when the app should expose user-selectable themes; pair `themeId` / `setThemeId` with `<ThemeSelector>` and `preference` / `setPreference` with `<ThemeSwitcher>`. The provider stores `light` / `dark` / `system`, toggles the `dark` class on `<html>`, stores the active design theme, and writes `data-sable-theme` for non-default themes. Apps with their own state layer can call `applySableColorMode()` / `applySableTheme()` instead. You only need a Tailwind `@custom-variant dark` if **your** app code uses `dark:` utilities (Sable ships none).
-6. Import from the root barrel: `import { Button } from "@sableui/react"`. Page shells live on the `patterns` subpath (`import { SettingsPage } from "@sableui/react/patterns"`) — preview one, then copy its source from `registry.json → patterns` when the route needs to diverge.
+6. Import from the root barrel: `import { Button } from "@sableui/react"`. Page shells live on the `patterns` subpath (`import { SettingsPage } from "@sableui/react/patterns"`) — preview one, then copy its source from `registry.json → patterns` when the route needs to diverge. Blocks — section-sized compositions such as a sign-in card or a pricing card — live on the `blocks` subpath (`import { SignInBlock } from "@sableui/react/blocks"`) and ship the same way (`registry.json → blocks`); copy one and edit its content constants. A block's props are only `className`, `framed` and its primary action's callback, never content.
 
 7. **Check the wiring:** `npx sable doctor`. Every check it runs corresponds to a way Sable fails *silently* — a second React (blank page, "invalid hook call"), a missing `@source` (Tailwind emits none of the package's classes, everything renders unstyled), or `data-sable-theme` set with no theme CSS imported (every theme renders as Base and the switcher looks broken). Exits 1 on any failure; `--json` for the structured report.
 
@@ -70,6 +71,7 @@ The machine-readable version of this section is the `consume` block in `registry
    ```bash
    npx sable pattern --list                      # the eight page shells
    npx sable pattern SettingsPage --skeleton     # composition tree, fixtures stripped
+   npx sable block --list                        # section-sized blocks: cards, forms, lists
    npx sable component DataTable --props
    npx sable search "empty state"                # across components, patterns, layout, tokens, docs
    npx sable docs converting-an-app              # the task walkthroughs

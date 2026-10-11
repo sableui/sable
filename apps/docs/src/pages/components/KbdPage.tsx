@@ -1,5 +1,6 @@
 import { Kbd, KbdGroup, kbdMeta } from "@sableui/react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
@@ -11,6 +12,8 @@ export function KbdPage() {
 	return (
 		<>
 			<PageHeader eyebrow="Components" title="Kbd" lede={ledeFor(kbdMeta)} />
+
+			<ComponentPlayground meta={kbdMeta} />
 
 			<Section title="Single keys">
 				<Example>

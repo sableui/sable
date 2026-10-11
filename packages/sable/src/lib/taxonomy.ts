@@ -47,6 +47,7 @@
 export const COMPONENT_GROUPS = [
 	"Actions",
 	"Badges & pills",
+	"Charts",
 	"Chat & AI",
 	"Containers",
 	"Data display",
@@ -71,13 +72,13 @@ export type ComponentRegister = "page" | "workspace" | "either"
  */
 export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegister]> = {
 	/* ── Actions ──────────────────────────────────────────────────────────────
-	   Things whose whole purpose is to DO something on activation. `DotsMenu`
+	   Things whose whole purpose is to DO something on activation. `OverflowMenu`
 	   is here, not in Overlays: it is the "more actions" button a reader reaches
 	   for as an action (and the options half of Button's "main action with
 	   options" pattern) — that its list opens in a layer is how it works, not
 	   what it is. Copying is `useCopy` on a Button, not a component. */
 	Button: ["Actions", "either"],
-	DotsMenu: ["Actions", "either"],
+	OverflowMenu: ["Actions", "either"],
 	Toolbar: ["Actions", "either"],
 
 	/* ── Forms ────────────────────────────────────────────────────────────────
@@ -166,15 +167,31 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 	Scroller: ["Containers", "either"],
 	Separator: ["Containers", "either"],
 
+	/* ── Charts ───────────────────────────────────────────────────────────────
+	   Plotted data for dashboards, landing pages and decks: SVG on the theme's
+	   tones, with arrival and data-change motion and a data table for assistive
+	   tech. Data-heavy apps (streaming, zoom, thousands of points) belong on a
+	   charting library. `SegmentedBar` and `Meter` stay in Data display: they
+	   are readings, not plots. */
+	AreaChart: ["Charts", "page"],
+	BarChart: ["Charts", "page"],
+	LineChart: ["Charts", "page"],
+	PieChart: ["Charts", "page"],
+	RadarChart: ["Charts", "page"],
+	RadialChart: ["Charts", "page"],
+	Sparkline: ["Charts", "either"],
+
 	/* ── Data display ─────────────────────────────────────────────────────────
 	   Showing records and readings. `Meter` (bar or ring) is here: it shows a
 	   value within a known range (a reading), which is not loading or progress. */
 	Avatar: ["Data display", "either"],
 	DataTable: ["Data display", "either"],
+	DateTile: ["Data display", "page"],
 	Entity: ["Data display", "either"],
 	GlidingHighlight: ["Data display", "either"],
 	Meter: ["Data display", "either"],
 	RelativeTime: ["Data display", "either"],
+	SegmentedBar: ["Data display", "either"],
 	Table: ["Data display", "either"],
 
 	/* ── Badges & pills ───────────────────────────────────────────────────────

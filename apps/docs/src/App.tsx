@@ -208,9 +208,15 @@ const areas: NavArea[] = [
 		sections: [
 			...componentSections,
 			{
-				// The shipped page shells: full layouts composed from these components.
-				title: "Pages",
+				// Compositions of these components, copied in rather than imported:
+				// blocks (a card, a form) and page shells (a whole route).
+				title: "Compositions",
 				items: [
+					{
+						slug: "blocks",
+						label: "Blocks",
+						keywords: ["block", "section", "card", "template", "starter", "example", "pricing", "sign in", "form", "recipe"],
+					},
 					{
 						slug: "patterns",
 						label: "Page shells",
@@ -248,6 +254,7 @@ const pages: Record<string, ComponentType> = {
 	credits: page(() => import("./pages/Credits"), "CreditsPage"),
 	"whats-new": page(() => import("./pages/WhatsNew"), "WhatsNewPage"),
 	patterns: page(() => import("./pages/Patterns"), "PatternsPage"),
+	blocks: page(() => import("./pages/Blocks"), "BlocksPage"),
 	themes: page(() => import("./pages/Themes"), "ThemesPage"),
 	colors: page(() => import("./pages/Colors"), "ColorsPage"),
 	typography: page(() => import("./pages/Typography"), "TypographyPage"),
@@ -343,6 +350,21 @@ const pages: Record<string, ComponentType> = {
 		() => import("./pages/components/StatusDotPage"),
 		"StatusDotPage",
 	),
+	"segmented-bar": page(
+		() => import("./pages/components/SegmentedBarPage"),
+		"SegmentedBarPage",
+	),
+	"area-chart": page(() => import("./pages/components/AreaChartPage"), "AreaChartPage"),
+	"bar-chart": page(() => import("./pages/components/BarChartPage"), "BarChartPage"),
+	"line-chart": page(() => import("./pages/components/LineChartPage"), "LineChartPage"),
+	"pie-chart": page(() => import("./pages/components/PieChartPage"), "PieChartPage"),
+	"radar-chart": page(() => import("./pages/components/RadarChartPage"), "RadarChartPage"),
+	"radial-chart": page(() => import("./pages/components/RadialChartPage"), "RadialChartPage"),
+	sparkline: page(() => import("./pages/components/SparklinePage"), "SparklinePage"),
+	"date-tile": page(
+		() => import("./pages/components/DateTilePage"),
+		"DateTilePage",
+	),
 	calendar: page(
 		() => import("./pages/components/CalendarPage"),
 		"CalendarPage",
@@ -422,9 +444,9 @@ const pages: Record<string, ComponentType> = {
 		() => import("./pages/components/CommandMenuPage"),
 		"CommandMenuPage",
 	),
-	"dots-menu": page(
-		() => import("./pages/components/DotsMenuPage"),
-		"DotsMenuPage",
+	"overflow-menu": page(
+		() => import("./pages/components/OverflowMenuPage"),
+		"OverflowMenuPage",
 	),
 	"context-card": page(
 		() => import("./pages/components/ContextCardPage"),

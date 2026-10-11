@@ -1,5 +1,64 @@
 # What's new
 
+## 0.3.0
+
+Blocks, charts, and the components they needed.
+
+### Breaking
+
+- **`DotsMenu` is now `OverflowMenu`** (`overflowMenuMeta`, same props). The
+  name says what it is for — the "more actions" menu — rather than how its
+  trigger is drawn.
+
+### New
+
+- **Blocks** — section-sized compositions on a new `@sableui/react/blocks`
+  subpath and in `registry.json → blocks`: 40 of them across Auth, Settings &
+  team, Commerce, Dashboard, Marketing, Social & messaging, Media & files,
+  Navigation and System (sign-in, pricing table, team members, invoice
+  history, FAQ, 404, chart cards…). Copy one and edit its content constants;
+  props are only `className`, `framed` and the primary action's callbacks.
+  `sable block --list`, `--family`, `--skeleton` and `--code` retrieve them,
+  and the docs have a Blocks page with live previews and copyable code.
+- **Charts** — `AreaChart`, `BarChart`, `LineChart`, `PieChart`,
+  `RadarChart`, `RadialChart` and `Sparkline`, in SVG with no dependency, for
+  dashboards, landing pages and decks. Stacked and 100% stacked, grouped,
+  horizontal and diverging bars, smooth/linear/step curves, gradients, dots and
+  labels, donuts with a centre value, gauges, legends with icons, and tooltips
+  with dot/line/dashed indicators, formatters and totals. Lines draw on, bars
+  rise and slices sweep in as a chart scrolls into view, and new data eases
+  from the old shape — all on the motion tokens. Every chart carries its data
+  as a table for assistive tech and steps through it from the keyboard.
+- **Chart palette** — `--chart-1` … `--chart-8`, eight series colours
+  validated for colour-blind separation, a normal-vision floor, a lightness
+  band and a chroma floor, in light and dark. Every theme inherits them; a
+  theme may override the set. `chartColor(i)` hands the same colours to a
+  charting library.
+- **`DateTile`** — a calendar-page date (month band over the day), with
+  lining figures so a display face never drops the day below centre.
+- **`SegmentedBar`** — one bar split into the parts of a whole, read aloud as a
+  single labelled image.
+- `CardTitle` takes `render`, so a card's name can be a heading
+  (`render={<h2 />}`).
+- `Entity` takes `selected` for the current row of a selectable list.
+- Icons: `stop`, `key`, `wallet`, `thumbs-up`, `thumbs-down`.
+- `sable-lint` lints a single file as well as a folder.
+
+### Components
+
+- **Sidebar:** components placed in the rail ink with the rail's own tokens, so
+  a dark rail on a light page keeps its account row legible.
+- **Entity:** hover and selected fills step off whatever surface the row sits
+  on.
+- **ChatComposer:** the stop control is a filled square, not an ✕.
+- **CommandMenu:** a long detail no longer squeezes the label.
+
+### Fixes
+
+- The registry's derived imports for patterns and blocks include hooks called
+  with a type argument (`useRef<…>(`) — `ListDetailPage`'s copied source was
+  missing its `useRef` import.
+
 ## 0.2.0
 
 A design and polish pass across the library, its page patterns, and the site.

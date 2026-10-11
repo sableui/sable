@@ -1,6 +1,7 @@
 import { Button, Stepper, StepperItem, stepperMeta } from "@sableui/react"
 import { useState } from "react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
@@ -51,6 +52,8 @@ export function StepperPage() {
 				title="Stepper"
 				lede={ledeFor(stepperMeta)}
 			/>
+
+			<ComponentPlayground meta={stepperMeta} />
 
 			<Section
 				title="Horizontal"

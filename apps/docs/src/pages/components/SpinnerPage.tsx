@@ -1,5 +1,6 @@
 import { Button, Spinner, spinnerMeta } from "@sableui/react"
 import {
+	ComponentPlayground,
 	Example,
 	MetaFooter,
 	PageHeader,
@@ -15,6 +16,8 @@ export function SpinnerPage() {
 				title="Spinner"
 				lede={ledeFor(spinnerMeta)}
 			/>
+
+			<ComponentPlayground meta={spinnerMeta} />
 
 			<Section title="Basic">
 				<Example code="<Spinner />">

@@ -3,7 +3,7 @@ import { Avatar } from "../components/avatar"
 import { Badge } from "../components/badge"
 import { Button } from "../components/button"
 import { Card, CardContent, CardHeader, CardList, CardTitle } from "../components/card"
-import { DotsMenu } from "../components/dots-menu"
+import { OverflowMenu } from "../components/overflow-menu"
 import { Entity } from "../components/entity"
 import { MenuItem, MenuSeparator } from "../components/menu"
 import { Meter, MeterLabel, MeterTrack, MeterValue } from "../components/meter"
@@ -86,12 +86,12 @@ const renderPost = (post: Post) => (
 					title={post.author}
 					subtitle={`${post.handle} · ${post.time}`}
 					action={
-						<DotsMenu label={`Post options for ${post.author}`} size="icon-sm">
+						<OverflowMenu label={`Post options for ${post.author}`} size="icon-sm">
 							<MenuItem>Copy link</MenuItem>
 							<MenuItem>Mute {post.handle}</MenuItem>
 							<MenuSeparator />
 							<MenuItem variant="destructive">Report post</MenuItem>
-						</DotsMenu>
+						</OverflowMenu>
 					}
 				/>
 			</CardList>
@@ -224,7 +224,7 @@ export function FeedPage() {
 					<Stack gap={3}>
 						<Card>
 							<CardHeader>
-								<CardTitle role="heading" aria-level={2}>Who to follow</CardTitle>
+								<CardTitle render={<h2 />}>Who to follow</CardTitle>
 							</CardHeader>
 							<CardList>
 								{suggestions.map((person) => (
@@ -244,7 +244,7 @@ export function FeedPage() {
 						</Card>
 						<Card>
 							<CardHeader>
-								<CardTitle role="heading" aria-level={2}>Upcoming drops</CardTitle>
+								<CardTitle render={<h2 />}>Upcoming drops</CardTitle>
 							</CardHeader>
 							<CardList>
 								{upcoming.map((drop) => (
