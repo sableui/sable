@@ -427,27 +427,48 @@ const RADIUS_CEILING: Record<(typeof RADIUS_STEPS)[number], string> = {
 	xl: "28px",
 }
 
+/** Sable's own radius ladder, for sizing a preset that ships square. */
+const SQUARE_LADDER: Record<(typeof RADIUS_STEPS)[number], number> = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20 }
+
 /** Mode-independent declarations: shape, scale, weight, type, motion. */
 function shapeDecls(look: Look, base: ThemeBase): string[] {
 	const out: string[] = []
 
 	if (look.radiusBase != null) {
 		const md = toPx(base.radius.md, base.rootPx)
-		const f = md ? look.radiusBase / md : 1
-		for (const step of RADIUS_STEPS) {
-			const value = base.radius[step]
-			if (value) out.push(`--theme-radius-${step}: min(${scaleLength(value, f)}, ${RADIUS_CEILING[step]});`)
+		if (md) {
+			const f = look.radiusBase / md
+			for (const step of RADIUS_STEPS) {
+				const value = base.radius[step]
+				if (value) out.push(`--theme-radius-${step}: min(${scaleLength(value, f)}, ${RADIUS_CEILING[step]});`)
+			}
+		} else {
+			// A square preset (Meridian) has no ladder to scale, so an exact medium
+			// radius sets Sable's own ladder in proportion to it.
+			const f = look.radiusBase / 12
+			for (const step of RADIUS_STEPS) out.push(`--theme-radius-${step}: min(${round(SQUARE_LADDER[step] * f, 0.5)}px, ${RADIUS_CEILING[step]});`)
 		}
 	} else if (look.corners != null) {
 		// The round end tops out where nesting still works. A row inside a
 		// container gets the container's radius minus the inset; past roughly
 		// `inset + row height / 2` every inner row turns into a pill and the
-		// container stops reading as a box. So the scale peaks at 1.6× and each
-		// step has a hard ceiling, whatever the preset starts from.
-		const f = around1(look.corners / 100, 0, 1.6)
+		// container stops reading as a box. So each step has a hard ceiling,
+		// whatever the preset starts from.
+		//
+		// Squarer scales the preset's radii toward 0. Rounder moves each one
+		// toward its ceiling rather than multiplying it: a multiplier left a
+		// square preset (Meridian, every radius 0) square at any setting.
+		const t = look.corners / 100
 		for (const step of RADIUS_STEPS) {
-			const value = base.radius[step]
-			if (value) out.push(`--theme-radius-${step}: min(${scaleLength(value, f)}, ${RADIUS_CEILING[step]});`)
+			const raw = base.radius[step]
+			if (!raw) continue
+			// calc() rejects a unitless 0 beside a length.
+			const value = raw.trim() === "0" ? "0px" : raw
+			if (t <= 0.5) out.push(`--theme-radius-${step}: ${scaleLength(value, t / 0.5)};`)
+			else {
+				const k = ((t - 0.5) / 0.5).toFixed(3)
+				out.push(`--theme-radius-${step}: min(calc(${value} + (${RADIUS_CEILING[step]} - ${value}) * ${k}), ${RADIUS_CEILING[step]});`)
+			}
 		}
 	}
 	if (look.buttons === "pill") out.push("--button-radius: 9999px;")
