@@ -1,4 +1,4 @@
-import { type CSSProperties, useRef } from "react"
+import { useRef } from "react"
 import { Button, Dialog, DialogContent, DialogTrigger, Icon, cn } from "@sableui/react"
 import { PhoneFrame, useIosPreviewBridge } from "@sableui/react/ios/preview"
 import "@sableui/react/ios/frame.css"
@@ -17,22 +17,6 @@ function useSyncedFrame() {
 function SyncedPhone({ src, title, className }: { src: string; title: string; className?: string }) {
 	const { frame, sync } = useSyncedFrame()
 	return <PhoneFrame fit="contain" className={className} frameRef={frame} onLoad={sync} src={src} title={title} />
-}
-
-/**
- * The prototype with no device around it, for a visitor already holding a
- * phone: a picture of an iPhone on an iPhone only spends their screen. `src`
- * must render without its own status bar and home indicator (NativeApp
- * systemChrome={false}); the real phone draws both.
- */
-export function IosBarePreview({
-	src,
-	title,
-	className,
-	style,
-}: { src: string; title: string; className?: string; style?: CSSProperties }) {
-	const { frame, sync } = useSyncedFrame()
-	return <iframe ref={frame} onLoad={sync} src={src} title={title} className={cn("block w-full border-0", className)} style={style} />
 }
 
 /**

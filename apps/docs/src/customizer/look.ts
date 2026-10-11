@@ -13,6 +13,7 @@
  */
 
 import { GAMUT_SAFETY, NEUTRAL_TOKENS, type Oklch, type ResolvedTheme, formatOklch as formatRaw, hexToOklch, hueDelta, isNeutral, maxChroma, mix, toGamut } from "./color"
+import { chartPalette } from "./chart-palette"
 import { type FontEntry, findFont, googleFontsUrl, stackFor } from "./fonts"
 
 export type ButtonShape = "theme" | "pill" | "match"
@@ -414,6 +415,18 @@ function colorDecls(look: Look, base: ThemeBase, mode: "light" | "dark"): string
 				}
 			}
 		}
+
+		// Chart series: generated from the brand and this palette scheme, and
+		// held to the validated palette's separation checks (chart-palette.ts).
+		// Status hues are the ones this look paints, so a generated series never
+		// lands on "error red" or "success green".
+		const chartStatus = (["success", "destructive", "tone-warning"] as const)
+			.map((token) => resolved[token])
+			.filter((value): value is Oklch => Boolean(value))
+			.map((value) => (look.palette === "preset" ? value.h : harmonize(value, brand.h).h))
+		chartPalette(brand, look.palette, mode, (hue) => clearOfStatus(hue, chartStatus)).forEach((color, i) => {
+			out.push(`--chart-${i + 1}: ${formatOklch(color)};`)
+		})
 	}
 	return out
 }

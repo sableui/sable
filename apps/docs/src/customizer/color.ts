@@ -23,7 +23,7 @@ function srgbToLinear(c: number) {
 	return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
 }
 
-function linearRgbToOklab(r: number, g: number, b: number): [number, number, number] {
+export function linearRgbToOklab(r: number, g: number, b: number): [number, number, number] {
 	const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b)
 	const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b)
 	const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b)
@@ -178,7 +178,7 @@ export function hexToOklch(hex: string): Oklch | null {
 }
 
 /** OKLCH → linear sRGB, unclamped: a channel outside 0–1 means out of gamut. */
-function oklchToLinearRgb(l: number, c: number, h: number): [number, number, number] {
+export function oklchToLinearRgb(l: number, c: number, h: number): [number, number, number] {
 	const rad = (h * Math.PI) / 180
 	const A = c * Math.cos(rad)
 	const B = c * Math.sin(rad)

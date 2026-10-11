@@ -30,6 +30,14 @@
   --ios-safe-top: env(safe-area-inset-top, 0px); --ios-header-height: calc(92px + var(--ios-safe-top));
   --ios-tabbar-bottom: max(12px, env(safe-area-inset-bottom, 0px)); --ios-content-bottom: calc(82px + var(--ios-tabbar-bottom));
 }
+/* Portalled layers — a toast stack, a menu — render at <body>, outside
+   .ios-prototype, so they could not see its geometry: a toast placed at
+   top: var(--ios-safe-top) fell back to top: auto and landed below the screen.
+   A prototype owns its whole document (the framed page, or a real phone's
+   screen), so the root carries the same values whenever one is present.
+   Keep these in step with the .ios-prototype rules above. */
+:root:has(.ios-prototype) { --ios-inset: 16px; --ios-safe-top: 62px; --ios-tabbar-bottom: 28px; }
+:root:has(.ios-prototype.ios-bare) { --ios-safe-top: env(safe-area-inset-top, 0px); --ios-tabbar-bottom: max(12px, env(safe-area-inset-bottom, 0px)); }
 .ios-prototype.dark {
   --ios-canvas: var(--background, #000); --ios-ink: var(--foreground, #f2f2f7); --ios-secondary: var(--muted-foreground, #aeaeb2);
   --ios-panel: var(--card, #1c1c1e); --ios-primary-ink: var(--primary-foreground, #fff);

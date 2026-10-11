@@ -7,7 +7,7 @@ import { ChartLegend } from "./chart-legend"
 import { ChartTooltipContent } from "./chart-tooltip"
 import { approxTextWidth, categoryText, chartFormatters } from "./format"
 import { areaPath, type ChartCurve, linePath, type Point, rectPath } from "./geometry"
-import { drawTransition, morphTransition, pathStyle, riseTransition, stagger } from "./motion"
+import { GLIDE, barTransition, drawTransition, morphTransition, pathStyle, riseTransition, stagger } from "./motion"
 import { bandScale, extent, linearScale, niceTicks, pointScale, stack } from "./scale"
 import {
 	type ChartDatum,
@@ -194,7 +194,7 @@ export function CartesianChart(props: CartesianChartProps) {
 
 	const describe = (i: number) => `${categories[i]}: ${series.map((s, k) => `${s.label} ${fullValue(k, i)}`).join(", ")}`
 
-	const tooltipFor = (i: number, size: ChartSize, pointer: { x: number; y: number } | null) => {
+	const tooltipFor = (i: number, size: ChartSize) => {
 		const L = layoutFor(size)
 		const total = values.reduce((sum, s) => sum + s[i], 0)
 		const content = (
@@ -211,8 +211,13 @@ export function CartesianChart(props: CartesianChartProps) {
 				total={tooltipOptions.showTotal ? fmt.full(total) : undefined}
 			/>
 		)
-		if (horizontal) return { content, x: pointer?.x ?? (L.x0 + L.x1) / 2, y: L.center(i) }
-		return { content, x: L.center(i), y: pointer?.y ?? (L.y0 + L.y1) / 2 }
+		// Anchored to the data: beside the row's longest bar, or level with the
+		// plot's middle — never chasing the pointer, which made the card wobble.
+		if (horizontal) {
+			const end = Math.max(0, ...series.map((_, k) => (stacks ? stacks[k][i][1] : values[k][i])))
+			return { content, x: Math.min(L.value(end), L.x1), y: L.center(i) }
+		}
+		return { content, x: L.center(i), y: (L.y0 + L.y1) / 2 }
 	}
 
 	const table = {
@@ -239,6 +244,9 @@ export function CartesianChart(props: CartesianChartProps) {
 			{({ size, activeIndex: active }) => {
 				const L = layoutFor(size)
 				const marks: ReactNode[] = []
+				// Hover dots sit above EVERY series: drawn with their own series, a
+				// stacked area painted after it covered the dot below.
+				const activeDots: ReactNode[] = []
 
 				/* Category labels: thinned from the LATEST row back, so the newest
 				   date always shows, and clamped inside the plot so the end labels
@@ -286,22 +294,31 @@ export function CartesianChart(props: CartesianChartProps) {
 					)
 				})
 
-				/* Cursor behind the marks, clamped to the plot. */
+				/* Cursor behind the marks. Drawn once at the origin and moved with a
+				   transform, so it glides from one position to the next instead of
+				   jumping; a band is the band's own width, so it never runs past the
+				   plot's edges. */
 				let cursor: ReactNode = null
 				if (active != null && active < n) {
+					const c = L.center(active)
+					const move = { transform: horizontal ? `translate(0px, ${c}px)` : `translate(${c}px, 0px)`, transition: GLIDE } as CSSProperties
 					if (L.band) {
-						const c = L.center(active)
-						const half = Math.min(L.band.step, Math.max(L.band.bandwidth, barWidth * 2)) / 2
-						const a = Math.max(horizontal ? L.y0 : L.x0, c - half)
-						const b = Math.min(horizontal ? L.y1 : L.x1, c + half)
-						cursor = horizontal ? (
-							<rect x={L.x0} y={a} width={L.x1 - L.x0} height={b - a} rx={6} className="fill-foreground/5" />
-						) : (
-							<rect x={a} y={L.y0} width={b - a} height={L.y1 - L.y0} rx={6} className="fill-foreground/5" />
+						const w = L.band.bandwidth
+						cursor = (
+							<g style={move}>
+								{horizontal ? (
+									<rect x={L.x0} y={-w / 2} width={L.x1 - L.x0} height={w} rx={6} className="fill-foreground/5" />
+								) : (
+									<rect x={-w / 2} y={L.y0} width={w} height={L.y1 - L.y0} rx={6} className="fill-foreground/5" />
+								)}
+							</g>
 						)
 					} else {
-						const p = L.center(active)
-						cursor = <line x1={p} x2={p} y1={L.y0} y2={L.y1} className="stroke-foreground/25" />
+						cursor = (
+							<g style={move}>
+								<line x1={0} x2={0} y1={L.y0} y2={L.y1} className="stroke-foreground/25" />
+							</g>
+						)
 					}
 				}
 
@@ -347,14 +364,13 @@ export function CartesianChart(props: CartesianChartProps) {
 									d={d}
 									className={cn(
 										horizontal ? "[[data-reveal=out]_&]:scale-x-0" : "[[data-reveal=out]_&]:scale-y-0",
-										"transition-opacity",
 										dim && "opacity-40",
 									)}
 									style={{
 										...pathStyle(d),
 										fill: colorAt(k, i),
 										transformOrigin: origin,
-										transition: riseTransition(stagger(i)),
+										transition: barTransition(stagger(i)),
 									} as CSSProperties}
 								/>,
 							)
@@ -461,7 +477,9 @@ export function CartesianChart(props: CartesianChartProps) {
 						}
 						if (active != null && active < n) {
 							const [x, y] = top[active]
-							marks.push(<circle key={`ap${k}`} cx={x} cy={y} r={5} strokeWidth={2} className={SURFACE} style={{ fill: s.colorValue }} />)
+							// One dot per series, kept mounted while hovering, so it glides from
+							// point to point instead of blinking out and in.
+							activeDots.push(<circle key={`ap${k}`} cx={x} cy={y} r={5} strokeWidth={2} className={SURFACE} style={{ fill: s.colorValue, cx: x, cy: y, transition: GLIDE } as CSSProperties} />)
 						}
 					}
 				}
@@ -472,6 +490,7 @@ export function CartesianChart(props: CartesianChartProps) {
 						{grid ? <g>{gridLines}</g> : null}
 						{cursor}
 						<g>{marks}</g>
+						<g>{activeDots}</g>
 						{zero ? (
 							horizontal ? (
 								<line x1={L.base} x2={L.base} y1={L.y0} y2={L.y1} className="stroke-foreground/20" />

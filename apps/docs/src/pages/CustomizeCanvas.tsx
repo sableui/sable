@@ -22,7 +22,7 @@ import {
 } from "@sableui/react/blocks"
 import { type ReactNode, createContext, useContext, useEffect, useState } from "react"
 import { useCustomizer } from "../customizer/CustomizerProvider"
-import { WIDE } from "../lib/use-media-query"
+import { PHONE, WIDE, useMediaQuery } from "../lib/use-media-query"
 import { IosCanvasPreview } from "./IosCanvasPreview"
 
 const CompactSceneFraming = createContext(false)
@@ -204,11 +204,17 @@ export function CustomizeCanvasPage() {
 	const { setOpen } = useCustomizer()
 	const [target, setTarget] = useState(() => new URLSearchParams(location.search).get('target') === 'ios' ? 'ios' : 'web')
 	const [showIos, setShowIos] = useState(target === 'ios')
+	// On a phone the web canvas IS the phone view, and an iPhone prototype
+	// inside an iPhone only spends the screen: there is no platform switch, and
+	// a shared ?target=ios link opens the web canvas (it still opens iOS on a
+	// larger screen).
+	const phone = useMediaQuery(PHONE)
+	const platform = phone ? 'web' : target
 	useEffect(() => { if (window.matchMedia(WIDE).matches) setOpen(true) }, [setOpen])
 	return (
 		<div>
 			<h1 className="sr-only">Customize Sable</h1>
-			<Tabs value={target} onValueChange={value => {
+			<Tabs value={platform} onValueChange={value => {
 				const next = String(value)
 				setTarget(next)
 				if (next === 'ios') setShowIos(true)
@@ -217,11 +223,12 @@ export function CustomizeCanvasPage() {
 				else url.searchParams.delete('target')
 				history.replaceState(history.state, '', url)
 			}}>
-				<div className="flex items-center justify-between gap-4 mb-6">
+				{/* Hidden by CSS too, so a phone never sees it flash before hydration. */}
+				<div className={cn("flex items-center justify-between gap-4 mb-6", "[@media(max-width:47.99rem)_and_(pointer:coarse)]:hidden", phone && "hidden")}>
 					<TabsList variant="pill" aria-label="Canvas platform"><TabsTrigger value="web">Web</TabsTrigger><TabsTrigger value="ios">iOS</TabsTrigger></TabsList>
 				</div>
 				<TabsPanel value="web" keepMounted><ThemeCanvas /></TabsPanel>
-				<TabsPanel value="ios" keepMounted>{showIos && <IosCanvasPreview />}</TabsPanel>
+				<TabsPanel value="ios" keepMounted>{showIos && !phone && <IosCanvasPreview />}</TabsPanel>
 			</Tabs>
 		</div>
 	)

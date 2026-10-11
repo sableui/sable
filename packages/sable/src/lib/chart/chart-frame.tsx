@@ -32,8 +32,8 @@ export interface ChartFrameProps {
 	onActiveIndexChange?: (index: number | null) => void
 	/** Plot coordinates → the data position under them, or null. */
 	hitTest?: (x: number, y: number, size: ChartSize) => number | null
-	/** The tooltip for a data position. */
-	tooltip?: (index: number, size: ChartSize, pointer: { x: number; y: number } | null) => ChartTooltipPlacement | null
+	/** The tooltip for a data position, anchored to the data (not the pointer), so it holds still while the pointer moves within a position. */
+	tooltip?: (index: number, size: ChartSize) => ChartTooltipPlacement | null
 	/** One sentence describing a data position, announced as the keyboard moves. */
 	describe: (index: number) => string
 	legend?: ReactNode
@@ -71,7 +71,6 @@ export function ChartFrame({
 	const [size, setSize] = useState<ChartSize | null>(null)
 	const [shown, setShown] = useState(!animate)
 	const [uncontrolled, setUncontrolled] = useState<number | null>(defaultActiveIndex)
-	const [pointer, setPointer] = useState<{ x: number; y: number } | null>(null)
 	const [viaKeyboard, setViaKeyboard] = useState(false)
 	const appeared = useRef(true)
 	const tableId = useId()
@@ -125,9 +124,9 @@ export function ChartFrame({
 
 	const onPointer = (event: PointerEvent<HTMLDivElement>) => {
 		if (!interactive || !size || !hitTest) return
+		// Only a change of data position re-renders: the pointer itself is not state.
 		const p = local(event)
-		setPointer(p)
-		setViaKeyboard(false)
+		if (viaKeyboard) setViaKeyboard(false)
 		setActive(hitTest(p.x, p.y, size))
 	}
 
@@ -141,12 +140,11 @@ export function ChartFrame({
 		else if (event.key === "Escape") next = null
 		if (next === undefined) return
 		event.preventDefault()
-		setPointer(null)
 		setViaKeyboard(true)
 		setActive(next)
 	}
 
-	const placement = size && active != null && tooltip ? tooltip(active, size, pointer) : null
+	const placement = size && active != null && tooltip ? tooltip(active, size) : null
 	// Flip to the left of the anchor past the plot's midline, so the card never runs off the edge.
 	const flip = placement && size ? placement.x > size.width / 2 : false
 
@@ -166,7 +164,6 @@ export function ChartFrame({
 				onPointerMove={onPointer}
 				onPointerDown={onPointer}
 				onPointerLeave={() => {
-					setPointer(null)
 					if (!viaKeyboard) setActive(null)
 				}}
 				onKeyDown={onKeyDown}
@@ -189,11 +186,12 @@ export function ChartFrame({
 						aria-hidden
 						className={cn(
 							"pointer-events-none absolute start-0 top-0 z-10",
+							// Glides between positions; appears in place the first time.
 							!appeared.current && "transition-transform duration-(--motion-duration-fast) ease-standard",
 						)}
 						style={{ transform: `translate(${Math.round(placement.x)}px, ${Math.round(placement.y)}px)` }}
 					>
-						<div className={cn("w-max -translate-y-1/2", flip ? "-translate-x-[calc(100%+0.75rem)]" : "translate-x-3")}>
+						<div className={cn("w-max -translate-y-1/2 transition-transform duration-(--motion-duration-fast) ease-standard", flip ? "-translate-x-[calc(100%+0.75rem)]" : "translate-x-3")}>
 							{placement.content}
 						</div>
 					</div>

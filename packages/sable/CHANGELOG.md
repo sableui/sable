@@ -1,5 +1,30 @@
 # What's new
 
+## 0.3.1
+
+### Charts
+
+- **Smoother hover.** The tooltip is anchored to the data instead of chasing
+  the pointer, and glides between positions; the cursor and the active dots
+  glide too. Moving within one data position no longer re-renders the chart.
+  Hover feedback has its own quick timing — dimming the other bars no longer
+  waits out the arrival stagger.
+- Active dots on stacked areas draw above every series, so a later fill no
+  longer covers the dot below it.
+
+### Presets
+
+- Presets may carry the chart palette (`chart-1` … `chart-8`). Optional — a
+  preset without them inherits Base's validated set. On sableui.com,
+  Customize now generates a chart palette from the brand and the Palette
+  setting, held to the same colour-blind and normal-vision separation checks.
+
+### iOS
+
+- Layers portalled out of an iOS prototype (a toast stack, a menu) read the
+  prototype's safe-area geometry, so a toast placed under the status bar shows
+  there instead of below the screen.
+
 ## 0.3.0
 
 Blocks, charts, and the components they needed.
