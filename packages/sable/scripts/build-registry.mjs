@@ -31,6 +31,7 @@ import { dirname, join } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 import { motionNamesFromRegistry, readContractArray } from "./read-contract.mjs"
 import { readLessons } from "./design-memory.mjs"
+import { collectPropSurface } from "./prop-surface.mjs"
 
 /**
  * Every read in this file goes through here, and the `\r` strip is the whole
@@ -1633,6 +1634,7 @@ registry.consume.install = `pnpm add ${PKG.name}`
 registry.consume.agentSetup = {
 	command: "pnpm exec sable setup --agent",
 	preview: "pnpm exec sable setup --agent --dry-run",
+	monorepo: "When Sable belongs to one workspace package, run setup in that package with --root at the repository root: pnpm --filter <package> exec sable setup --agent --root <path to root>. Entries go to the root and resolve Sable through the package.",
 	targets: { codex: ".agents/skills/sable", cursor: ".agents/skills/sable", claude: ".claude/skills/sable" },
 	canonical: "skills/sable/SKILL.md in the installed package; entries resolve it on every task",
 	upgrade: "pnpm update @sableui/react --latest; pnpm exec sable setup --agent --update",
@@ -1658,6 +1660,11 @@ registry.layoutPrimitives = layoutPrimitives
 registry.patterns = patterns
 registry.blocks = blocks
 registry.components = components
+registry.propSurface = {
+	about:
+		"Every prop each exported component accepts, read from its TypeScript type — including what it forwards to its Base UI root, which the component's own props table does not restate. React's DOM attributes are omitted. `sable grade` judges props against this. Generated from src/index.ts — do not hand-edit.",
+	items: collectPropSurface(PKG_ROOT),
+}
 registry.tokens = documentedTokens
 registry.utilities = {
 	about:

@@ -107,7 +107,7 @@ function ThemeControls() {
 </IconProvider>
 ```
 
-Components render Reicon icons out of the box. To replace Reicon, mount `<IconProvider set={yourIconSet}>`; to add domain icons, use `composeIconSets(appExtras, reiconIconSet)`. Both helpers and the `IconSet` type are exported from Sable. A set returns `null` for names it does not handle. `fallbackIconSet` remains a deprecated alias of Reicon for compatibility. `SableThemeProvider` is the preferred route for user-facing theme switching: it stores the user's color preference (`light` / `dark` / `system`), toggles the **`.dark` class**, stores the active design theme, and writes **`data-sable-theme`** for non-default themes. If your app already owns this state, use `applySableColorMode()` / `applySableTheme()` or the exported `SABLE_THEME_ATTRIBUTE` constant directly. You do **not** need a Tailwind `@custom-variant dark` for Sable itself — add one (`@custom-variant dark (&:where(.dark, .dark *));`) only if **your own** app code uses `dark:` utilities (Sable ships none).
+Components render Reicon icons out of the box. To replace Reicon, mount `<IconProvider set={yourIconSet}>`; to add domain icons, use `composeIconSets(appExtras, reiconIconSet)`. Both helpers and the `IconSet` type are exported from Sable. A set returns `null` for names it does not handle. List the names your extras add in `.sable/icons.json` (`{ "names": [...] }`) so `sable grade` counts them as icons the app supplies, not off-contract ones. `fallbackIconSet` remains a deprecated alias of Reicon for compatibility. `SableThemeProvider` is the preferred route for user-facing theme switching: it stores the user's color preference (`light` / `dark` / `system`), toggles the **`.dark` class**, stores the active design theme, and writes **`data-sable-theme`** for non-default themes. If your app already owns this state, use `applySableColorMode()` / `applySableTheme()` or the exported `SABLE_THEME_ATTRIBUTE` constant directly. You do **not** need a Tailwind `@custom-variant dark` for Sable itself — add one (`@custom-variant dark (&:where(.dark, .dark *));`) only if **your own** app code uses `dark:` utilities (Sable ships none).
 
 **6. Use it:**
 
@@ -181,6 +181,10 @@ pnpm --filter @sableui/react build   # regenerates registry.json from the metas 
 After installing Sable, run `pnpm exec sable setup --agent` in the target
 project. It installs discoverable entry files in `.agents/skills/sable` for
 Codex/Cursor and `.claude/skills/sable` for Claude Code; `--target` selects a host.
+In a monorepo where Sable belongs to one workspace package, run setup in that
+package with `--root` naming the repository root (for example
+`pnpm --filter web exec sable setup --agent --root ../..`); the entries go
+there and resolve Sable through the package.
 Each entry resolves `skills/sable/SKILL.md` from the installed package, so package
 upgrades also update the workflow. Other agents can read that file directly.
 Use `$sable build <idea>`, `inspire <references>`, `audit <target>`, or

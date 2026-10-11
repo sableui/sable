@@ -144,7 +144,7 @@ type TriggerProps = Omit<
 	 * The surface is the part a `h-(--control-xs)` override could never reach,
 	 * and it is what the eye actually catches. A property grid's fields are
 	 * inset, not raised: `ScrubField` — the control immediately beside this one
-	 * on the same rung — is `bg-canvas` with no border, and a bordered `bg-card`
+	 * on the same rung — is `bg-panel-field` with no border, and a bordered `bg-card`
 	 * select beside it reads as a different KIND of control rather than the same
 	 * control holding a word. Consumers that overrode the height got an
 	 * md-register 8px radius on a 24px box and a raised card among inset fields;

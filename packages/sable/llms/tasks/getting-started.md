@@ -48,6 +48,10 @@ pnpm exec sable doctor
 After installing Sable, run `pnpm exec sable setup --agent` in the target
 project. It installs discoverable entry files in `.agents/skills/sable` for
 Codex/Cursor and `.claude/skills/sable` for Claude Code; `--target` selects a host.
+In a monorepo where Sable belongs to one workspace package, run setup in that
+package with `--root` naming the repository root (for example
+`pnpm --filter web exec sable setup --agent --root ../..`); the entries go
+there and resolve Sable through the package.
 Each entry resolves `skills/sable/SKILL.md` from the installed package, so package
 upgrades also update the workflow. Other agents can read that file directly.
 Use `$sable build <idea>`, `inspire <references>`, `audit <target>`, or

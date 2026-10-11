@@ -306,7 +306,7 @@ Which token to reach for, and what it is most often confused with. Generated fro
 - **`type-mono-sm-tracking`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
     - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
 
-### derived (8)
+### derived (10)
 
 - **`canvas`** — The WORK surface — the artboard, the document being edited. *Use for:* Behind the thing the tool operates on. `WorkspaceCanvas` uses it.
     - **Not** `background`. The thing being edited is not the page behind the UI, and collapsing the two makes the document indistinguishable from its chrome.
@@ -318,6 +318,10 @@ Which token to reach for, and what it is most often confused with. Generated fro
     - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
 - **`panel-raised`** — One step up from `panel`: a selected row, a hover fill, a nested well. *Use for:* Tree row selection, hovered panel rows, and the light square of a checkerboard.
     - **Not** `accent`. In a workspace the tonal band is only a few units wide; `accent` is a page-register step and reads as a shout in chrome.
+- **`panel-field`** — The inset fill of a compact control docked in a panel. *Use for:* The `size="xs"` field rung (Input, SelectTrigger, ScrubField share it) and `<Button variant="field">`. A panel control of your own that should sit among those fields.
+    - **Not** `canvas`. It resolves to the canvas tone by default, but `canvas` names the work surface; a field that borrows it says the wrong thing and stops following a theme that tunes its fields.
+- **`panel-field-hover`** — The hover step of a `panel-field` control. *Use for:* `hover:bg-panel-field-hover` on anything filled with `panel-field`.
+    - **Not** `hover:bg-panel-raised`. A fixed surface token as a hover is what the surface-hover lint rejects; this one is defined against the panel field it steps from.
 - **`hairline`** — The 1px structural line that carries all separation in tool chrome. *Use for:* Between panel sections, under a toolbar, above a status bar.
     - **Not** a bigger tonal step. This is one of the two rules the workspace register deliberately reverses: on a page prefer space or tone over a line, in chrome the hairline *is* the structure.
 - **`hairline-strong`** — A hairline that must be seen — an input edge, a swatch ring. *Use for:* Bounding a control whose fill is arbitrary (a colour swatch) or user content.

@@ -250,6 +250,21 @@ const WORKSPACE_SURFACES: Record<string, TokenDoc> = {
 		insteadOf:
 			"`accent`. In a workspace the tonal band is only a few units wide; `accent` is a page-register step and reads as a shout in chrome.",
 	},
+	"panel-field": {
+		intent: "The inset fill of a compact control docked in a panel.",
+		whenToUse:
+			'The `size="xs"` field rung (Input, SelectTrigger, ScrubField share it) and `<Button variant="field">`. A panel control of your own that should sit among those fields.',
+		insteadOf:
+			"`canvas`. It resolves to the canvas tone by default, but `canvas` names the work surface; a field that borrows it says the wrong thing and stops following a theme that tunes its fields.",
+		pairsWith: ["panel-field-hover"],
+	},
+	"panel-field-hover": {
+		intent: "The hover step of a `panel-field` control.",
+		whenToUse: "`hover:bg-panel-field-hover` on anything filled with `panel-field`.",
+		insteadOf:
+			"`hover:bg-panel-raised`. A fixed surface token as a hover is what the surface-hover lint rejects; this one is defined against the panel field it steps from.",
+		pairsWith: ["panel-field"],
+	},
 	hairline: {
 		intent: "The 1px structural line that carries all separation in tool chrome.",
 		whenToUse: "Between panel sections, under a toolbar, above a status bar.",

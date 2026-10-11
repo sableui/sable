@@ -391,6 +391,11 @@ export type LayeringToken = (typeof LAYERING_TOKENS)[number]
  *   COMPRESSED tonal band — Paper's whole ladder spans 249→242→238, about 3-7
  *   RGB units, with a low-contrast hairline doing the structural work. `card` is
  *   tuned for the opposite job (lifting content off a page).
+ * - `panel-field` / `panel-field-hover` are the inset fill of a compact control
+ *   docked in a panel (the `size="xs"` field rung, a field-style button) and its
+ *   hover step. They default to `canvas` / `panel-raised`, but name the role so
+ *   a consumer's own panel control can wear it without borrowing the work
+ *   surface's token or a fixed hover the surface-hover rule rightly rejects.
  * - `hairline` / `hairline-strong` are that structural edge. In this register
  *   hairlines carry structure INSTEAD of tonal steps — a deliberate reversal of
  *   the page register's "prefer a tonal step or space over a divider line".
@@ -401,6 +406,8 @@ export const WORKSPACE_SURFACE_TOKENS = [
 	"panel",
 	"panel-foreground",
 	"panel-raised",
+	"panel-field",
+	"panel-field-hover",
 	"hairline",
 	"hairline-strong",
 ] as const

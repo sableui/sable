@@ -96,6 +96,7 @@ const COMMANDS = [
 		flags: [
 			{ name: "--agent", value: null, describe: "Install skill entry files. Required." },
 			{ name: "--target", value: "all|codex|claude|cursor", describe: "Host discovery directories. Default all; Codex and Cursor share .agents." },
+			{ name: "--root", value: "dir", describe: "Write the entries in this ancestor instead, e.g. the repository root when Sable belongs to one workspace package. Run setup in that package." },
 			{ name: "--update", value: null, describe: "Refresh unchanged managed entries after a package upgrade." },
 			{ name: "--dry-run", value: null, describe: "Check and report the destination without writing files." },
 		],
@@ -208,6 +209,7 @@ const COMMANDS = [
 			{ name: "--review", value: "review.json", describe: "Check captures, observations, iterations, and the source fingerprint." },
 			{ name: "--strict", value: null, describe: "Exit 1 for contract findings or missing/incomplete/unresolved review evidence." },
 			{ name: "--cli-log", value: "file.jsonl", describe: "Include retrieval usage from a SABLE_CLI_LOG file." },
+			{ name: "--icons", value: "icons.json", describe: 'Icon names the app adds with composeIconSets, as { "names": [...] }. Default: .sable/icons.json when present.' },
 		],
 		returns: ["grade.score", "grade.template"],
 	},
@@ -1215,9 +1217,11 @@ const HANDLERS = {
 	preset: () => cmdDesignTool("design-presets.mjs"),
 	setup: () => {
 		if (!flags.has("agent") || rest.length) fail("ERR_BAD_ARGUMENT", "Use sable setup --agent from your project root.", ["sable setup --agent --dry-run"])
+		const root = flags.get("root")
+		if (root === true) fail("ERR_BAD_ARGUMENT", "--root needs a directory.", ["pnpm --filter <package> exec sable setup --agent --root ../.."])
 		try {
-			const data = installAgentSkill({ root: CWD, packageRoot: PKG_ROOT, target: flags.get("target") ?? "all", update: flags.has("update"), dryRun: flags.has("dry-run") })
-			ok("setup.agent", data, `${data.dryRun ? "Would install" : "Installed"} Sable skill entries at ${data.destinations.join(", ")}.\nNext: ${data.next}`)
+			const data = installAgentSkill({ root: root ? resolve(CWD, root) : CWD, project: CWD, packageRoot: PKG_ROOT, target: flags.get("target") ?? "all", update: flags.has("update"), dryRun: flags.has("dry-run") })
+			ok("setup.agent", data, `${data.dryRun ? "Would install" : "Installed"} Sable skill entries at ${data.destinations.map((d) => relative(CWD, join(data.root, d)).replaceAll("\\", "/")).join(", ")}.\nNext: ${data.next}`)
 		} catch (error) { fail("ERR_AGENT_SETUP", error.message, ["sable setup --agent --dry-run"]) }
 	},
 	manifest: cmdManifest,

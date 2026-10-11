@@ -40,7 +40,7 @@ Use ScrubField for numeric properties in tool chrome — an inspector, a propert
 
 ## Tokens used
 
-`foreground`, `muted-foreground`, `ring`, `canvas`, `panel-raised`
+`foreground`, `muted-foreground`, `ring`, `panel-field`, `panel-field-hover`
 
 ## Accessibility
 

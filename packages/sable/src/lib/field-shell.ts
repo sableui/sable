@@ -42,9 +42,9 @@ export const FIELD_INVALID =
  * each caller, as for FIELD_SHELL; the focus ring is FIELD_SHELL's or the
  * caller's own.
  *
- * The hover is a fixed panel step because this rung only lives in a workspace
- * panel, whose surface is known. Inside a `sable-frame-tool` the corner is the
- * frame's `--panel-field-radius`, concentric with its curve; elsewhere `radius-xs`.
+ * The fill is the `panel-field` token pair because this rung only lives in a
+ * workspace panel; `<Button variant="field">` wears the same pair. Inside a
+ * `sable-frame-tool` the corner is the frame's `--panel-field-radius`, concentric
+ * with its curve; elsewhere `radius-xs`.
  */
-// design-lint-disable-next-line surface-hover -- the xs rung is only used inside workspace panels, a known surface
-export const FIELD_SHELL_XS = "rounded-[var(--panel-field-radius,var(--radius-xs))] border-transparent bg-canvas hover:bg-panel-raised"
+export const FIELD_SHELL_XS = "rounded-[var(--panel-field-radius,var(--radius-xs))] border-transparent bg-panel-field hover:bg-panel-field-hover"

@@ -265,3 +265,19 @@ describe("Button badge", () => {
 		expect(screen.getByRole("button").querySelector("[data-slot=button-badge-anchor]")).toBeNull()
 	})
 })
+
+describe("Button field variant", () => {
+	it("wears the xs field rung's shell, not the button pill", () => {
+		renderWithProviders(
+			<Button variant="field" size="xs">
+				Figtree
+			</Button>,
+		)
+		const cls = screen.getByRole("button").className
+		expect(cls).toContain("bg-panel-field")
+		expect(cls).toContain("hover:bg-panel-field-hover")
+		// The field's corner replaces the pill; cn() must drop the base radius.
+		expect(cls).toContain("rounded-[var(--panel-field-radius,var(--radius-xs))]")
+		expect(cls).not.toContain("rounded-[var(--button-radius,9999px)]")
+	})
+})

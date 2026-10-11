@@ -45,7 +45,7 @@ const argv = process.argv.slice(2)
 const flags = new Map()
 const targets = []
 const BOOLEAN_FLAGS = new Set(["json", "help", "template", "strict"])
-const VALUE_FLAGS = new Set(["cli-log", "review"])
+const VALUE_FLAGS = new Set(["cli-log", "review", "icons"])
 const JSON_OUT = argv.includes("--json")
 function abort(message) {
 	const error = { type: "error", code: "ERR_GRADE_INPUT", message, suggestions: ["sable grade --help", "sable grade --template"] }
@@ -72,12 +72,13 @@ if (flags.has("help") || !targets.length) {
 		[
 			"grade — check the static contract and recorded review evidence. No model calls.",
 			"",
-			"  sable grade <dir...> [--json] [--review <review.json>] [--strict]",
+			"  sable grade <dir...> [--json] [--review <review.json>] [--icons <icons.json>] [--strict]",
 			"",
 			"  --json           machine-readable scorecard",
 			"  --cli-log        a SABLE_CLI_LOG jsonl, to report whether the CLI was used at all",
 			"  --template       print a review JSON template; fill after inspecting the rendered build",
 			"  --review         validate evidence files and observations; paths are relative to this JSON",
+			'  --icons          icon names the app adds with composeIconSets: { "names": [...] }. Default: .sable/icons.json',
 			"  --strict         exit 1 for static findings or a missing/incomplete/unresolved review",
 			"",
 			"Checks: design-contract violations · hallucinated components and props ·",
@@ -102,7 +103,27 @@ const motionTokens = new Set(
 	].filter(Boolean),
 )
 const RULES = makeRules({ semanticTokens, motionTokens }).filter((r) => r.scope !== "package")
+const PROP_SURFACE = REGISTRY.propSurface?.items ?? {}
 const ICONS = new Set(REGISTRY.iconContract?.names ?? [])
+/**
+ * The names an app adds with `composeIconSets(appExtras, reiconIconSet)`. That is
+ * the sanctioned way to extend the set, and the grade cannot read a set's names
+ * out of a render function, so the app declares them once. Without this every
+ * domain icon read as off-contract.
+ */
+const APP_ICONS = (() => {
+	const explicit = flags.get("icons")
+	const path = resolve(CWD, explicit ?? ".sable/icons.json")
+	if (!existsSync(path)) {
+		if (explicit) abort(`Not found: ${explicit}`)
+		return null
+	}
+	let names
+	try { names = JSON.parse(readFileSync(path, "utf8")).names }
+	catch (error) { abort(`Cannot read ${relative(CWD, path)}: ${error.message}`) }
+	if (!Array.isArray(names) || !names.every((n) => typeof n === "string" && n)) abort(`${relative(CWD, path)} must be { "names": ["icon-name", …] }.`)
+	return { file: relative(CWD, path).replaceAll("\\", "/"), names: new Set(names) }
+})()
 const PATTERNS = REGISTRY.patterns?.items ?? []
 
 /**
@@ -275,11 +296,14 @@ for (const file of files) {
 		}
 	}
 
-	/* 3. Props set on a Sable component that its contract does not declare. */
+	/* 3. Props set on a Sable component that its contract does not declare.
+	      The contract is the component's real type (registry → propSurface),
+	      which includes what it forwards to Base UI — Toggle's `pressed`,
+	      Combobox's `filter` — plus its documented table. */
 	for (const m of text.matchAll(/<([A-Z][\w]*)[\s/>]/g)) {
 		const comp = REGISTRY.components?.find((c) => c.name === m[1])
 		if (!comp?.props?.length) continue
-		const declared = new Set(comp.props.map((p) => p.name))
+		const declared = new Set([...comp.props.map((p) => p.name), ...(PROP_SURFACE[m[1]] ?? [])])
 		for (const sub of comp.subcomponents ?? []) {
 			if (typeof sub !== "string") for (const p of sub.props ?? []) declared.add(p.name)
 		}
@@ -307,9 +331,10 @@ for (const file of files) {
 		if (px >= 20 && px <= 56) findings.hardcodedControl.push({ file: rel, match: m[0], line: lineOf(text, m.index) })
 	}
 
-	/* 6. Icon names outside the contract render nothing at all. */
+	/* 6. Icon names outside the contract render nothing at all — unless the app
+	      supplies them itself and has declared them (APP_ICONS). */
 	for (const m of text.matchAll(/<Icon\s+[^>]*name=["']([^"']+)["']/g)) {
-		if (!ICONS.has(m[1])) findings.offContractIcon.push({ file: rel, name: m[1], line: lineOf(text, m.index) })
+		if (!ICONS.has(m[1]) && !APP_ICONS?.names.has(m[1])) findings.offContractIcon.push({ file: rel, name: m[1], line: lineOf(text, m.index) })
 	}
 
 	/* 7. Composition. Anything exporting a component that returns a big tree is
@@ -447,6 +472,7 @@ const result = {
 	per100loc: Object.fromEntries(Object.entries(counts).map(([k, v]) => [k, per100(v)])),
 	conformance: { informationalOnly: true, mean: meanConformance, routes: conformance },
 	cliUsage,
+	appIcons: APP_ICONS ? { file: APP_ICONS.file, names: APP_ICONS.names.size } : null,
 	findings,
 }
 
@@ -468,7 +494,7 @@ row("hallucinated components", counts.hallucinatedComponent)
 row("hallucinated props", counts.hallucinatedProp)
 row("Radix idioms", counts.radixIdiom, counts.radixIdiom ? "asChild / direct primitive imports" : "")
 row("hardcoded control heights", counts.hardcodedControl)
-row("off-contract icon names", counts.offContractIcon)
+row("off-contract icon names", counts.offContractIcon, APP_ICONS ? `+${APP_ICONS.names.size} app icons from ${APP_ICONS.file}` : counts.offContractIcon ? "app-supplied? list them in .sable/icons.json" : "")
 L()
 if (conformance.length) {
 	L(`  pattern similarity (informational) — ${conformance.length} route-like file(s), mean ${meanConformance}`)

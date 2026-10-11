@@ -35,7 +35,7 @@ Use Button when the user commits an action, submits a form, opens UI, or confirm
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| variant | "primary" \| "secondary" \| "ghost" \| "outline" \| "destructive" \| "link" \| "floating" \| "on-color" \| "on-color-outline" \| "on-color-ghost" | "primary" | Visual emphasis tier. One primary per screen. The on-color tiers are for buttons ON a coloured fill: they paint with the inherited text colour (the fill's ink) — on-color is solid (ink background, fill-coloured label via the optional --on-color-fill var, else black/white), on-color-outline and on-color-ghost are transparent with an ink label. Never use them on page or card surfaces. floating is for a control that sits OVER content (carousel arrows, a marquee pause, a jump-to-latest over a conversation): its own edge, lift and translucent popover fill, so it reads on arbitrary content beneath. |
+| variant | "primary" \| "secondary" \| "ghost" \| "outline" \| "destructive" \| "link" \| "floating" \| "field" \| "on-color" \| "on-color-outline" \| "on-color-ghost" | "primary" | Visual emphasis tier. One primary per screen. The on-color tiers are for buttons ON a coloured fill: they paint with the inherited text colour (the fill's ink) — on-color is solid (ink background, fill-coloured label via the optional --on-color-fill var, else black/white), on-color-outline and on-color-ghost are transparent with an ink label. Never use them on page or card surfaces. floating is for a control that sits OVER content (carousel arrows, a marquee pause, a jump-to-latest over a conversation): its own edge, lift and translucent popover fill, so it reads on arbitrary content beneath. field is for a button docked in a workspace panel among xs fields: the inset panel-field fill and the field's corner, so a picker trigger or an add action reads as one of the row's controls; pair it with size xs or icon-xs. |
 | size | "xs" \| "sm" \| "md" \| "cta" \| "icon" \| "icon-sm" \| "icon-xs" | "md" | Reads the density ladder, so every value differs by register: page 28/32/40/44, workspace 24/28/32/36. xs and icon-xs were added in 0.31.0 for the workspace control floor and are the sizes tool chrome wants; md is the default everywhere. icon/icon-sm/icon-xs are square. |
 | render | ReactElement \| (props, state) => ReactElement | — | Compose with another element/component through the Base UI render prop. |
 | loading | boolean | false | Disable the button and show a leading Spinner while an action is in flight. Sets aria-busy; a native button is disabled, a render element (e.g. an <a>) gets aria-disabled. |
@@ -46,12 +46,12 @@ Use Button when the user commits an action, submits a form, opens UI, or confirm
 
 ## Variants
 
-- **variant**: primary, secondary, ghost, outline, destructive, link, floating, on-color, on-color-outline, on-color-ghost
+- **variant**: primary, secondary, ghost, outline, destructive, link, floating, field, on-color, on-color-outline, on-color-ghost
 - **size**: xs, sm, md, cta, icon, icon-sm, icon-xs
 
 ## Tokens used
 
-`primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `accent`, `accent-foreground`, `input`, `destructive`, `destructive-foreground`, `ring`
+`primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `accent`, `accent-foreground`, `input`, `destructive`, `destructive-foreground`, `ring`, `panel-field`, `panel-field-hover`, `panel-foreground`
 
 ## Motion
 
@@ -180,6 +180,18 @@ import { Button, Icon } from "@sableui/react"
 import { Button, Icon, NotificationBadge } from "@sableui/react"
 
 <Button size="icon" variant="ghost" aria-label="Notifications" badge={<NotificationBadge dot />}><Icon name="bell" /></Button>
+```
+
+### Field button in a panel row
+
+```tsx
+import { Button, Icon, PanelSection, PropertyRow } from "@sableui/react"
+
+<PanelSection title="Text">
+  <PropertyRow label="Font">
+    <Button variant="field" size="xs" className="w-full justify-between" iconEnd={<Icon name="chevron-down" />}>Figtree</Button>
+  </PropertyRow>
+</PanelSection>
 ```
 
 ### On a coloured band

@@ -1,7 +1,7 @@
 {
   "$schema": "https://sable.design/registry.schema.json",
   "name": "@sableui/react",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Themeable React components, semantic tokens, layout patterns, presets, and package-owned agent skills. Default theme: Base.",
   "engine": {
     "behavior": "@base-ui/react",
@@ -68,6 +68,7 @@
     "agentSetup": {
       "command": "pnpm exec sable setup --agent",
       "preview": "pnpm exec sable setup --agent --dry-run",
+      "monorepo": "When Sable belongs to one workspace package, run setup in that package with --root at the repository root: pnpm --filter <package> exec sable setup --agent --root <path to root>. Entries go to the root and resolve Sable through the package.",
       "targets": {
         "codex": ".agents/skills/sable",
         "cursor": ".agents/skills/sable",
@@ -1307,6 +1308,24 @@
         "intent": "One step up from `panel`: a selected row, a hover fill, a nested well.",
         "whenToUse": "Tree row selection, hovered panel rows, and the light square of a checkerboard.",
         "insteadOf": "`accent`. In a workspace the tonal band is only a few units wide; `accent` is a page-register step and reads as a shout in chrome."
+      },
+      {
+        "name": "panel-field",
+        "intent": "The inset fill of a compact control docked in a panel.",
+        "whenToUse": "The `size=\"xs\"` field rung (Input, SelectTrigger, ScrubField share it) and `<Button variant=\"field\">`. A panel control of your own that should sit among those fields.",
+        "insteadOf": "`canvas`. It resolves to the canvas tone by default, but `canvas` names the work surface; a field that borrows it says the wrong thing and stops following a theme that tunes its fields.",
+        "pairsWith": [
+          "panel-field-hover"
+        ]
+      },
+      {
+        "name": "panel-field-hover",
+        "intent": "The hover step of a `panel-field` control.",
+        "whenToUse": "`hover:bg-panel-field-hover` on anything filled with `panel-field`.",
+        "insteadOf": "`hover:bg-panel-raised`. A fixed surface token as a hover is what the surface-hover lint rejects; this one is defined against the panel field it steps from.",
+        "pairsWith": [
+          "panel-field"
+        ]
       },
       {
         "name": "hairline",
@@ -4644,9 +4663,9 @@
       "props": [
         {
           "name": "variant",
-          "type": "\"primary\" | \"secondary\" | \"ghost\" | \"outline\" | \"destructive\" | \"link\" | \"floating\" | \"on-color\" | \"on-color-outline\" | \"on-color-ghost\"",
+          "type": "\"primary\" | \"secondary\" | \"ghost\" | \"outline\" | \"destructive\" | \"link\" | \"floating\" | \"field\" | \"on-color\" | \"on-color-outline\" | \"on-color-ghost\"",
           "default": "\"primary\"",
-          "description": "Visual emphasis tier. One primary per screen. The on-color tiers are for buttons ON a coloured fill: they paint with the inherited text colour (the fill's ink) — on-color is solid (ink background, fill-coloured label via the optional --on-color-fill var, else black/white), on-color-outline and on-color-ghost are transparent with an ink label. Never use them on page or card surfaces. floating is for a control that sits OVER content (carousel arrows, a marquee pause, a jump-to-latest over a conversation): its own edge, lift and translucent popover fill, so it reads on arbitrary content beneath."
+          "description": "Visual emphasis tier. One primary per screen. The on-color tiers are for buttons ON a coloured fill: they paint with the inherited text colour (the fill's ink) — on-color is solid (ink background, fill-coloured label via the optional --on-color-fill var, else black/white), on-color-outline and on-color-ghost are transparent with an ink label. Never use them on page or card surfaces. floating is for a control that sits OVER content (carousel arrows, a marquee pause, a jump-to-latest over a conversation): its own edge, lift and translucent popover fill, so it reads on arbitrary content beneath. field is for a button docked in a workspace panel among xs fields: the inset panel-field fill and the field's corner, so a picker trigger or an add action reads as one of the row's controls; pair it with size xs or icon-xs."
         },
         {
           "name": "size",
@@ -4695,6 +4714,7 @@
           "destructive",
           "link",
           "floating",
+          "field",
           "on-color",
           "on-color-outline",
           "on-color-ghost"
@@ -4719,7 +4739,10 @@
         "input",
         "destructive",
         "destructive-foreground",
-        "ring"
+        "ring",
+        "panel-field",
+        "panel-field-hover",
+        "panel-foreground"
       ],
       "motion": [
         {
@@ -4826,6 +4849,11 @@
           "label": "Icon button with an unread badge",
           "code": "<Button size=\"icon\" variant=\"ghost\" aria-label=\"Notifications\" badge={<NotificationBadge dot />}><Icon name=\"bell\" /></Button>",
           "imports": "import { Button, Icon, NotificationBadge } from \"@sableui/react\""
+        },
+        {
+          "label": "Field button in a panel row",
+          "code": "<PanelSection title=\"Text\">\n  <PropertyRow label=\"Font\">\n    <Button variant=\"field\" size=\"xs\" className=\"w-full justify-between\" iconEnd={<Icon name=\"chevron-down\" />}>Figtree</Button>\n  </PropertyRow>\n</PanelSection>",
+          "imports": "import { Button, Icon, PanelSection, PropertyRow } from \"@sableui/react\""
         },
         {
           "label": "On a coloured band",
@@ -9257,7 +9285,7 @@
           "name": "size",
           "type": "\"md\" | \"xs\"",
           "default": "\"md\"",
-          "description": "md is the form field. xs is the dense inset field of a tool panel (an inset canvas fill, no outline, tight padding) — the same ladder as Select and Combobox. Use it instead of overriding the height with className."
+          "description": "md is the form field. xs is the dense inset field of a tool panel (an inset panel-field fill, no outline, tight padding) — the same ladder as Select and Combobox. Use it instead of overriding the height with className."
         },
         {
           "name": "type",
@@ -13900,8 +13928,8 @@
         "foreground",
         "muted-foreground",
         "ring",
-        "canvas",
-        "panel-raised"
+        "panel-field",
+        "panel-field-hover"
       ],
       "a11y": [
         "The input carries the accessible name via `label`; the glyph is aria-hidden because it is decorative.",
@@ -14321,7 +14349,7 @@
         {
           "name": "SelectTrigger",
           "type": "Base UI Trigger props + placeholder?: ReactNode + size?: \"md\" | \"xs\" + className",
-          "description": "The button. Composes Trigger + Value + a chevron Icon that flips on open (data-[popup-open]). `size=\"xs\"` is the property-grid rung — height, padding, radius AND surface move together, which is why it is a prop and not a className: the xs trigger is an inset `bg-canvas` field with no border, matching ScrubField on the same row. A consumer overriding only the height gets an md-register 8px radius on a 24px box and a raised card sitting among inset fields; one inspector panel had eleven of those, and both tells are visible at a glance."
+          "description": "The button. Composes Trigger + Value + a chevron Icon that flips on open (data-[popup-open]). `size=\"xs\"` is the property-grid rung — height, padding, radius AND surface move together, which is why it is a prop and not a className: the xs trigger is an inset `bg-panel-field` field with no border, matching ScrubField on the same row. A consumer overriding only the height gets an md-register 8px radius on a 24px box and a raised card sitting among inset fields; one inspector panel had eleven of those, and both tells are visible at a glance."
         },
         {
           "name": "SelectContent",
@@ -21473,5 +21501,2415 @@
         ]
       }
     ]
+  },
+  "propSurface": {
+    "about": "Every prop each exported component accepts, read from its TypeScript type — including what it forwards to its Base UI root, which the component's own props table does not restate. React's DOM attributes are omitted. `sable grade` judges props against this. Generated from src/index.ts — do not hand-edit.",
+    "items": {
+      "Accordion": [
+        "className",
+        "defaultValue",
+        "disabled",
+        "hiddenUntilFound",
+        "keepMounted",
+        "loopFocus",
+        "multiple",
+        "onValueChange",
+        "orientation",
+        "render",
+        "style",
+        "value"
+      ],
+      "AccordionItem": [
+        "className",
+        "disabled",
+        "onOpenChange",
+        "render",
+        "style",
+        "value"
+      ],
+      "AccordionPanel": [
+        "className",
+        "hiddenUntilFound",
+        "keepMounted",
+        "render",
+        "style"
+      ],
+      "AccordionTrigger": [
+        "className",
+        "indicator",
+        "nativeButton",
+        "render",
+        "style"
+      ],
+      "AlertDialog": [
+        "actionsRef",
+        "children",
+        "defaultOpen",
+        "defaultTriggerId",
+        "handle",
+        "onOpenChange",
+        "onOpenChangeComplete",
+        "open",
+        "triggerId"
+      ],
+      "AlertDialogClose": [
+        "className",
+        "nativeButton",
+        "render",
+        "style"
+      ],
+      "AlertDialogContent": [
+        "className",
+        "finalFocus",
+        "initialFocus",
+        "render",
+        "scroll",
+        "showCloseButton",
+        "size",
+        "style"
+      ],
+      "AlertDialogDescription": [
+        "className",
+        "render",
+        "style"
+      ],
+      "AlertDialogOverlay": [
+        "className",
+        "forceRender",
+        "render",
+        "size",
+        "style"
+      ],
+      "AlertDialogTitle": [
+        "className",
+        "render",
+        "style"
+      ],
+      "AlertDialogTrigger": [
+        "className",
+        "handle",
+        "id",
+        "nativeButton",
+        "payload",
+        "render",
+        "style"
+      ],
+      "AppHeader": [
+        "actions",
+        "leading",
+        "title"
+      ],
+      "AppShell": [
+        "banners",
+        "bottomNav",
+        "children",
+        "header",
+        "overlays",
+        "sidebar"
+      ],
+      "AreaChart": [
+        "activeIndex",
+        "animate",
+        "className",
+        "curve",
+        "data",
+        "defaultActiveIndex",
+        "gradient",
+        "grid",
+        "index",
+        "indexFormatter",
+        "label",
+        "legend",
+        "locale",
+        "onActiveIndexChange",
+        "series",
+        "stacked",
+        "tooltip",
+        "valueFormatter",
+        "xAxis",
+        "yAxis"
+      ],
+      "AspectBox": [
+        "ratio"
+      ],
+      "Attachment": [
+        "actions",
+        "icon",
+        "meta",
+        "name",
+        "onOpen",
+        "openLabel",
+        "progress",
+        "status",
+        "thumbnail",
+        "variant"
+      ],
+      "Avatar": [
+        "alt",
+        "className",
+        "fallback",
+        "fallbackDelay",
+        "render",
+        "size",
+        "src",
+        "status",
+        "style"
+      ],
+      "AvatarFallback": [
+        "className",
+        "delay",
+        "render",
+        "style"
+      ],
+      "AvatarGroup": [
+        "className",
+        "countLabel",
+        "fit",
+        "max",
+        "size",
+        "surface",
+        "total"
+      ],
+      "AvatarGroupCount": [
+        "className",
+        "count",
+        "label",
+        "render",
+        "size",
+        "style"
+      ],
+      "AvatarImage": [
+        "className",
+        "onLoadingStatusChange",
+        "render",
+        "style"
+      ],
+      "AvatarRoot": [
+        "className",
+        "render",
+        "size",
+        "style"
+      ],
+      "Badge": [
+        "appearance",
+        "dot",
+        "icon",
+        "pulse",
+        "size",
+        "tone"
+      ],
+      "Banner": [
+        "action",
+        "appearance",
+        "dismissible",
+        "label",
+        "live",
+        "onDismiss",
+        "sticky",
+        "tone"
+      ],
+      "BarChart": [
+        "activeIndex",
+        "animate",
+        "barWidth",
+        "className",
+        "colorBy",
+        "data",
+        "defaultActiveIndex",
+        "grid",
+        "index",
+        "indexFormatter",
+        "label",
+        "labels",
+        "legend",
+        "locale",
+        "negativeTone",
+        "onActiveIndexChange",
+        "orientation",
+        "radius",
+        "series",
+        "stacked",
+        "tooltip",
+        "valueFormatter",
+        "xAxis",
+        "yAxis"
+      ],
+      "BottomNavItem": [
+        "active",
+        "badge",
+        "icon",
+        "label",
+        "render",
+        "showLabel"
+      ],
+      "BreadcrumbSeparator": [
+        "children"
+      ],
+      "Browser": [
+        "url"
+      ],
+      "Bubble": [
+        "align",
+        "tail",
+        "variant"
+      ],
+      "BubbleReaction": [
+        "active",
+        "count",
+        "emoji"
+      ],
+      "BubbleReactions": [
+        "align"
+      ],
+      "Button": [
+        "badge",
+        "iconEnd",
+        "iconStart",
+        "loading",
+        "loadingLabel",
+        "render",
+        "size",
+        "variant"
+      ],
+      "Calendar": [
+        "ISOWeek",
+        "animate",
+        "aria-label",
+        "aria-labelledby",
+        "autoFocus",
+        "bare",
+        "broadcastCalendar",
+        "captionLayout",
+        "className",
+        "classNames",
+        "components",
+        "dateLib",
+        "defaultMonth",
+        "dir",
+        "disableNavigation",
+        "disabled",
+        "endMonth",
+        "excludeDisabled",
+        "firstWeekContainsDate",
+        "fixedWeeks",
+        "footer",
+        "formatters",
+        "fromDate",
+        "fromMonth",
+        "fromYear",
+        "hidden",
+        "hideNavigation",
+        "hideWeekdays",
+        "id",
+        "initialFocus",
+        "labels",
+        "lang",
+        "locale",
+        "max",
+        "min",
+        "mode",
+        "modifiers",
+        "modifiersClassNames",
+        "modifiersStyles",
+        "month",
+        "navLayout",
+        "nonce",
+        "noonSafe",
+        "numberOfMonths",
+        "numerals",
+        "onDayBlur",
+        "onDayClick",
+        "onDayFocus",
+        "onDayKeyDown",
+        "onDayKeyPress",
+        "onDayKeyUp",
+        "onDayMouseEnter",
+        "onDayMouseLeave",
+        "onDayPointerEnter",
+        "onDayPointerLeave",
+        "onDayTouchCancel",
+        "onDayTouchEnd",
+        "onDayTouchMove",
+        "onDayTouchStart",
+        "onMonthChange",
+        "onNextClick",
+        "onPrevClick",
+        "onSelect",
+        "onWeekNumberClick",
+        "pagedNavigation",
+        "required",
+        "resetOnSelect",
+        "reverseMonths",
+        "reverseYears",
+        "role",
+        "selected",
+        "showOutsideDays",
+        "showWeekNumber",
+        "startMonth",
+        "style",
+        "styles",
+        "timeZone",
+        "title",
+        "toDate",
+        "toMonth",
+        "toYear",
+        "today",
+        "useAdditionalDayOfYearTokens",
+        "useAdditionalWeekYearTokens",
+        "weekStartsOn"
+      ],
+      "Card": [
+        "density",
+        "render",
+        "variant"
+      ],
+      "CardContent": [
+        "flush"
+      ],
+      "CardTitle": [
+        "render"
+      ],
+      "Carousel": [
+        "arrowClassName",
+        "arrows",
+        "autoplay",
+        "children",
+        "className",
+        "counter",
+        "defaultIndex",
+        "dots",
+        "draggable",
+        "gap",
+        "index",
+        "label",
+        "loop",
+        "onIndexChange",
+        "slideClassName",
+        "slidesToShow"
+      ],
+      "Center": [
+        "max"
+      ],
+      "ChatComposer": [
+        "actions",
+        "attachments",
+        "busy",
+        "defaultValue",
+        "disabled",
+        "fieldRef",
+        "footer",
+        "invalid",
+        "label",
+        "leading",
+        "onAttach",
+        "onSend",
+        "onStop",
+        "onValueChange",
+        "placeholder",
+        "sendLabel",
+        "stopLabel",
+        "value"
+      ],
+      "Checkbox": [
+        "checked",
+        "className",
+        "defaultChecked",
+        "disabled",
+        "form",
+        "id",
+        "indeterminate",
+        "inputRef",
+        "name",
+        "nativeButton",
+        "onCheckedChange",
+        "parent",
+        "readOnly",
+        "render",
+        "required",
+        "style",
+        "uncheckedValue",
+        "value"
+      ],
+      "CheckboxCard": [
+        "checked",
+        "className",
+        "defaultChecked",
+        "description",
+        "disabled",
+        "form",
+        "icon",
+        "id",
+        "indeterminate",
+        "inputRef",
+        "name",
+        "nativeButton",
+        "onCheckedChange",
+        "parent",
+        "readOnly",
+        "render",
+        "required",
+        "style",
+        "title",
+        "tone",
+        "uncheckedValue",
+        "value"
+      ],
+      "CheckboxGroup": [
+        "allValues",
+        "children",
+        "className",
+        "defaultValue",
+        "disabled",
+        "onValueChange",
+        "render",
+        "style",
+        "value"
+      ],
+      "CodeBlock": [
+        "code",
+        "filename",
+        "highlight",
+        "prompt",
+        "showCopy"
+      ],
+      "CodeHighlightProvider": [
+        "children",
+        "highlight"
+      ],
+      "Col": [
+        "span",
+        "start"
+      ],
+      "Collapsible": [
+        "className",
+        "defaultOpen",
+        "disabled",
+        "onOpenChange",
+        "open",
+        "render",
+        "style"
+      ],
+      "CollapsibleIndicator": [
+        "className"
+      ],
+      "CollapsiblePanel": [
+        "className",
+        "hiddenUntilFound",
+        "keepMounted",
+        "render",
+        "style"
+      ],
+      "CollapsibleTrigger": [
+        "className",
+        "nativeButton",
+        "render",
+        "style"
+      ],
+      "ColorField": [
+        "allowAlpha",
+        "allowTransparent",
+        "label",
+        "onValueChange",
+        "swatches",
+        "value"
+      ],
+      "Columns": [
+        "count",
+        "gap"
+      ],
+      "Combobox": [
+        "actionsRef",
+        "autoComplete",
+        "autoHighlight",
+        "children",
+        "defaultInputValue",
+        "defaultOpen",
+        "defaultValue",
+        "disabled",
+        "filter",
+        "filteredItems",
+        "form",
+        "grid",
+        "highlightItemOnHover",
+        "id",
+        "inline",
+        "inputRef",
+        "inputValue",
+        "isItemEqualToValue",
+        "itemToStringLabel",
+        "itemToStringValue",
+        "items",
+        "limit",
+        "locale",
+        "loopFocus",
+        "modal",
+        "multiple",
+        "name",
+        "onInputValueChange",
+        "onItemHighlighted",
+        "onOpenChange",
+        "onOpenChangeComplete",
+        "onValueChange",
+        "open",
+        "openOnInputClick",
+        "readOnly",
+        "required",
+        "value",
+        "virtualized"
+      ],
+      "ComboboxChips": [
+        "chipLabel",
+        "className",
+        "disabled",
+        "render",
+        "size",
+        "style"
+      ],
+      "ComboboxClear": [
+        "className",
+        "disabled",
+        "keepMounted",
+        "nativeButton",
+        "render",
+        "style"
+      ],
+      "ComboboxContent": [
+        "align",
+        "className",
+        "finalFocus",
+        "initialFocus",
+        "render",
+        "scroll",
+        "side",
+        "sideOffset",
+        "style"
+      ],
+      "ComboboxEmpty": [
+        "className",
+        "render",
+        "style"
+      ],
+      "ComboboxGroup": [
+        "className",
+        "items",
+        "render",
+        "style"
+      ],
+      "ComboboxGroupLabel": [
+        "className",
+        "render",
+        "style"
+      ],
+      "ComboboxInput": [
+        "className",
+        "disabled",
+        "render",
+        "size",
+        "style"
+      ],
+      "ComboboxItem": [
+        "children",
+        "className",
+        "disabled",
+        "index",
+        "nativeButton",
+        "onClick",
+        "render",
+        "style",
+        "value"
+      ],
+      "ComboboxItemIndicator": [
+        "children",
+        "className",
+        "keepMounted",
+        "render",
+        "style"
+      ],
+      "ComboboxList": [
+        "children",
+        "className",
+        "render",
+        "style"
+      ],
+      "ComboboxPortal": [
+        "className",
+        "container",
+        "keepMounted",
+        "render",
+        "style"
+      ],
+      "ComboboxValue": [
+        "children",
+        "placeholder"
+      ],
+      "ComboboxVirtualList": [
+        "children",
+        "className",
+        "groupLabelHeight",
+        "itemClassName",
+        "itemHeight",
+        "overscan",
+        "renderGroupLabel"
+      ],
+      "CommandMenu": [
+        "children",
+        "description",
+        "emptyMessage",
+        "filter",
+        "finalFocus",
+        "inputProps",
+        "items",
+        "listClassName",
+        "onOpenChange",
+        "onQueryChange",
+        "open",
+        "placeholder",
+        "query",
+        "scope",
+        "title"
+      ],
+      "CommandMenuGroup": [
+        "children",
+        "label"
+      ],
+      "CommandMenuItem": [
+        "children",
+        "detail",
+        "disabled",
+        "hint",
+        "icon",
+        "onSelect"
+      ],
+      "CommandMenuPanel": [
+        "children",
+        "emptyMessage",
+        "filter",
+        "inputProps",
+        "items",
+        "listClassName",
+        "onQueryChange",
+        "placeholder",
+        "query",
+        "scope",
+        "title"
+      ],
+      "CommandMenuTrigger": [
+        "onOpen",
+        "placeholder",
+        "shortcut",
+        "size"
+      ],
+      "ContextCard": [
+        "actionsRef",
+        "children",
+        "defaultOpen",
+        "defaultTriggerId",
+        "handle",
+        "onOpenChange",
+        "onOpenChangeComplete",
+        "open",
+        "triggerId"
+      ],
+      "ContextCardArrow": [
+        "className",
+        "render",
+        "style"
+      ],
+      "ContextCardContent": [
+        "align",
+        "className",
+        "render",
+        "side",
+        "sideOffset",
+        "style"
+      ],
+      "ContextCardPortal": [
+        "className",
+        "container",
+        "keepMounted",
+        "render",
+        "style"
+      ],
+      "ContextCardTrigger": [
+        "className",
+        "closeDelay",
+        "delay",
+        "handle",
+        "payload",
+        "render",
+        "style"
+      ],
+      "ContextMenu": [
+        "actionsRef",
+        "children",
+        "closeParentOnEsc",
+        "defaultOpen",
+        "defaultTriggerId",
+        "disabled",
+        "handle",
+        "highlightItemOnHover",
+        "loopFocus",
+        "onOpenChange",
+        "onOpenChangeComplete",
+        "open",
+        "orientation",
+        "triggerId"
+      ],
+      "ContextMenuContent": [
+        "align",
+        "children",
+        "className",
+        "finalFocus",
+        "id",
+        "render",
+        "side",
+        "sideOffset",
+        "style"
+      ],
+      "ContextMenuGroup": [
+        "children",
+        "className",
+        "render",
+        "style"
+      ],
+      "ContextMenuGroupLabel": [
+        "className",
+        "render",
+        "style"
+      ],
+      "ContextMenuItem": [
+        "className",
+        "closeOnClick",
+        "disabled",
+        "id",
+        "label",
+        "nativeButton",
+        "onClick",
+        "render",
+        "style",
+        "variant"
+      ],
+      "ContextMenuPortal": [
+        "className",
+        "container",
+        "keepMounted",
+        "render",
+        "style"
+      ],
+      "ContextMenuSeparator": [
+        "className",
+        "orientation",
+        "render",
+        "style"
+      ],
+      "ContextMenuTrigger": [
+        "className",
+        "render",
+        "style"
+      ],
+      "DataTable": [
+        "caption",
+        "className",
+        "columns",
+        "data",
+        "defaultSort",
+        "empty",
+        "isRowSelected",
+        "onRowClick",
+        "rowKey"
+      ],
+      "DatePicker": [
+        "className",
+        "defaultTime",
+        "defaultValue",
+        "disabled",
+        "granularity",
+        "maxDate",
+        "minDate",
+        "minuteStep",
+        "onChange",
+        "onValueChange",
+        "placeholder",
+        "value"
+      ],
+      "DateTile": [
+        "date",
+        "locale"
+      ],
+      "Density": [
+        "children",
+        "value"
+      ],
+      "DensityValue": [
+        "children",
+        "value"
+      ],
+      "DestructiveActionModal": [
+        "cancelLabel",
+        "children",
+        "confirmLabel",
+        "confirmText",
+        "confirmingLabel",
+        "description",
+        "onConfirm",
+        "onOpenChange",
+        "open",
+        "pending",
+        "title"
+      ],
+      "Dialog": [
+        "actionsRef",
+        "children",
+        "defaultOpen",
+        "defaultTriggerId",
+        "disablePointerDismissal",
+        "handle",
+        "modal",
+        "onOpenChange",
+        "onOpenChangeComplete",
+        "open",
+        "triggerId"
+      ],
+      "DialogClose": [
+        "className",
+        "nativeButton",
+        "render",
+        "style"
+      ],
+      "DialogContent": [
+        "className",
+        "finalFocus",
+        "initialFocus",
+        "render",
+        "scroll",
+        "showCloseButton",
+        "size",
+        "style"
+      ],
+      "DialogDescription": [
+        "className",
+        "render",
+        "style"
+      ],
+      "DialogOverlay": [
+        "className",
+        "forceRender",
+        "render",
+        "size",
+        "style"
+      ],
+      "DialogPortal": [
+        "className",
+        "container",
+        "keepMounted",
+        "render",
+        "style"
+      ],
+      "DialogTitle": [
+        "className",
+        "render",
+        "style"
+      ],
+      "DialogTrigger": [
+        "className",
+        "handle",
+        "id",
+        "nativeButton",
+        "payload",
+        "render",
+        "style"
+      ],
+      "EmptyState": [
+        "action",
+        "code",
+        "description",
+        "icon",
+        "size",
+        "surface",
+        "title",
+        "tone"
+      ],
+      "Entity": [
+        "action",
+        "density",
+        "interactive",
+        "leading",
+        "onSelect",
+        "selected",
+        "subtitle",
+        "title"
+      ],
+      "Feedback": [
+        "heading",
+        "label",
+        "onSubmit",
+        "placeholder",
+        "ratings",
+        "submitLabel"
+      ],
+      "Field": [
+        "children",
+        "className",
+        "description",
+        "disabled",
+        "error",
+        "label",
+        "name",
+        "orientation",
+        "required",
+        "validate",
+        "validationDebounceTime",
+        "validationMode"
+      ],
+      "Fieldset": [
+        "className",
+        "render",
+        "style"
+      ],
+      "FieldsetLegend": [
+        "className",
+        "render",
+        "style"
+      ],
+      "FileDropzone": [
+        "accept",
+        "acceptLabel",
+        "aria-invalid",
+        "description",
+        "disabled",
+        "formatError",
+        "icon",
+        "label",
+        "maxFiles",
+        "maxSize",
+        "multiple",
+        "onFilesAccepted",
+        "onFilesRejected",
+        "required",
+        "size"
+      ],
+      "Form": [
+        "actionsRef",
+        "errors",
+        "onFormSubmit",
+        "validationMode"
+      ],
+      "GlidingHighlight": [
+        "active",
+        "children",
+        "highlightClassName",
+        "orientation"
+      ],
+      "Grid": [
+        "cols",
+        "gap",
+        "minItemWidth"
+      ],
+      "GridOverlay": [
+        "className",
+        "columns",
+        "gap",
+        "inset",
+        "show"
+      ],
+      "Icon": [
+        "className",
+        "name",
+        "spin",
+        "title",
+        "variant"
+      ],
+      "IconProvider": [
+        "children",
+        "defaultVariant",
+        "set"
+      ],
+      "InlineStatus": [
+        "icon",
+        "size",
+        "tone"
+      ],
+      "Input": [
+        "size"
+      ],
+      "Kbd": [
+        "mod",
+        "variant"
+      ],
+      "Label": [
+        "eyebrow",
+        "hint",
+        "size"
+      ],
+      "LineChart": [
+        "activeIndex",
+        "animate",
+        "className",
+        "colorBy",
+        "curve",
+        "data",
+        "defaultActiveIndex",
+        "dots",
+        "grid",
+        "index",
+        "indexFormatter",
+        "label",
+        "labels",
+        "legend",
+        "locale",
+        "onActiveIndexChange",
+        "series",
+        "tooltip",
+        "valueFormatter",
+        "xAxis",
+        "yAxis"
+      ],
+      "Marker": [
+        "icon",
+        "live",
+        "shimmer",
+        "spin",
+        "variant"
+      ],
+      "Marquee": [
+        "children",
+        "controls",
+        "direction",
+        "fade",
+        "gap",
+        "label",
+        "onPlayChange",
+        "pauseOnHover",
+        "play",
+        "speed"
+      ],
+      "Menu": [
+        "actionsRef",
+        "children",
+        "closeParentOnEsc",
+        "defaultOpen",
+        "defaultTriggerId",
+        "disabled",
+        "handle",
+        "highlightItemOnHover",
+        "loopFocus",
+        "modal",
+        "onOpenChange",
+        "onOpenChangeComplete",
+        "open",
+        "orientation",
+        "triggerId"
+      ],
+      "MenuCheckboxItem": [
+        "checked",
+        "className",
+        "closeOnClick",
+        "defaultChecked",
+        "disabled",
+        "id",
+        "label",
+        "nativeButton",
+        "onCheckedChange",
+        "onClick",
+        "render",
+        "style"
+      ],
+      "MenuContent": [
+        "align",
+        "children",
+        "className",
+        "finalFocus",
+        "id",
+        "render",
+        "side",
+        "sideOffset",
+        "style"
+      ],
+      "MenuGroup": [
+        "children",
+        "className",
+        "render",
+        "style"
+      ],
+      "MenuGroupLabel": [
+        "className",
+        "render",
+        "style"
+      ],
+      "MenuItem": [
+        "className",
+        "closeOnClick",
+        "disabled",
+        "id",
+        "label",
+        "nativeButton",
+        "onClick",
+        "render",
+        "style",
+        "variant"
+      ],
+      "MenuPortal": [
+        "className",
+        "container",
+        "keepMounted",
+        "render",
+        "style"
+      ],
+      "MenuRadioGroup": [
+        "children",
+        "className",
+        "defaultValue",
+        "disabled",
+        "onValueChange",
+        "render",
+        "style",
+        "value"
+      ],
+      "MenuRadioItem": [
+        "className",
+        "closeOnClick",
+        "disabled",
+        "id",
+        "label",
+        "nativeButton",
+        "onClick",
+        "render",
+        "style",
+        "value"
+      ],
+      "MenuSeparator": [
+        "className",
+        "orientation",
+        "render",
+        "style"
+      ],
+      "MenuSubmenu": [
+        "actionsRef",
+        "children",
+        "closeParentOnEsc",
+        "defaultOpen",
+        "defaultTriggerId",
+        "disabled",
+        "handle",
+        "highlightItemOnHover",
+        "loopFocus",
+        "onOpenChange",
+        "onOpenChangeComplete",
+        "open",
+        "orientation",
+        "triggerId"
+      ],
+      "MenuSubmenuTrigger": [
+        "className",
+        "closeDelay",
+        "delay",
+        "disabled",
+        "id",
+        "label",
+        "nativeButton",
+        "onClick",
+        "openOnHover",
+        "render",
+        "style",
+        "value"
+      ],
+      "MenuTrigger": [
+        "children",
+        "className",
+        "closeDelay",
+        "delay",
+        "disabled",
+        "handle",
+        "nativeButton",
+        "openOnHover",
+        "payload",
+        "render",
+        "style"
+      ],
+      "Message": [
+        "align",
+        "avatar",
+        "avatarSize",
+        "footer",
+        "grouped",
+        "header",
+        "messageId"
+      ],
+      "MessageScroller": [
+        "autoFollow",
+        "followThreshold",
+        "gap",
+        "initialScroll",
+        "jumpToLatest",
+        "jumpToLatestLabel",
+        "onFollowChange",
+        "onVisibleMessagesChange",
+        "ref"
+      ],
+      "Meter": [
+        "aria-valuetext",
+        "className",
+        "format",
+        "getAriaValueText",
+        "locale",
+        "max",
+        "min",
+        "render",
+        "shape",
+        "showValue",
+        "size",
+        "strokeWidth",
+        "style",
+        "tone",
+        "value"
+      ],
+      "MeterIndicator": [
+        "className",
+        "render",
+        "style",
+        "tone"
+      ],
+      "MeterLabel": [
+        "className",
+        "render",
+        "style"
+      ],
+      "MeterTrack": [
+        "className",
+        "render",
+        "size",
+        "style"
+      ],
+      "MeterValue": [
+        "children",
+        "className",
+        "render",
+        "style"
+      ],
+      "MiddleTruncate": [
+        "endChars",
+        "startChars",
+        "text"
+      ],
+      "MotionProvider": [
+        "children",
+        "defaultPolicy",
+        "onPolicyChange",
+        "policy",
+        "target"
+      ],
+      "Note": [
+        "action",
+        "icon",
+        "title",
+        "tone"
+      ],
+      "NotificationBadge": [
+        "count",
+        "dot",
+        "max",
+        "overlay",
+        "size",
+        "tone"
+      ],
+      "NumberField": [
+        "allowOutOfRange",
+        "allowWheelScrub",
+        "className",
+        "defaultValue",
+        "disabled",
+        "form",
+        "format",
+        "id",
+        "inputRef",
+        "largeStep",
+        "locale",
+        "max",
+        "min",
+        "name",
+        "onValueChange",
+        "onValueCommitted",
+        "readOnly",
+        "required",
+        "smallStep",
+        "snapOnStep",
+        "step",
+        "steppers",
+        "style",
+        "value"
+      ],
+      "OtpField": [
+        "aria-invalid",
+        "autoComplete",
+        "autoSubmit",
+        "className",
+        "defaultValue",
+        "disabled",
+        "form",
+        "getSlotLabel",
+        "groupSize",
+        "id",
+        "inputMode",
+        "length",
+        "mask",
+        "name",
+        "normalizeValue",
+        "onValueChange",
+        "onValueComplete",
+        "onValueInvalid",
+        "readOnly",
+        "required",
+        "style",
+        "validationType",
+        "value"
+      ],
+      "OverflowMenu": [
+        "align",
+        "children",
+        "icon",
+        "label",
+        "size"
+      ],
+      "Page": [
+        "align",
+        "as",
+        "bleed",
+        "gap",
+        "inset",
+        "max",
+        "safeArea"
+      ],
+      "PageHeader": [
+        "actions",
+        "back",
+        "description",
+        "title",
+        "titleAs"
+      ],
+      "PageLoader": [
+        "children",
+        "fullscreen",
+        "hideBar",
+        "label"
+      ],
+      "Pagination": [
+        "label",
+        "onPageChange",
+        "page",
+        "siblingCount",
+        "total"
+      ],
+      "Panel": [
+        "children",
+        "label",
+        "scroll",
+        "width"
+      ],
+      "PanelResizer": [
+        "className",
+        "label",
+        "max",
+        "min",
+        "onWidthChange",
+        "side",
+        "step",
+        "width"
+      ],
+      "PanelSection": [
+        "action",
+        "title"
+      ],
+      "Phone": [
+        "statusBar",
+        "systemChrome"
+      ],
+      "PieChart": [
+        "activeIndex",
+        "animate",
+        "categories",
+        "centerLabel",
+        "className",
+        "data",
+        "defaultActiveIndex",
+        "donut",
+        "index",
+        "label",
+        "labelContent",
+        "labels",
+        "legend",
+        "locale",
+        "onActiveIndexChange",
+        "separator",
+        "tooltip",
+        "valueFormatter",
+        "valueKey"
+      ],
+      "Pill": [
+        "appearance",
+        "icon",
+        "selected",
+        "size"
+      ],
+      "Popover": [
+        "actionsRef",
+        "children",
+        "defaultOpen",
+        "defaultTriggerId",
+        "handle",
+        "modal",
+        "onOpenChange",
+        "onOpenChangeComplete",
+        "open",
+        "triggerId"
+      ],
+      "PopoverArrow": [
+        "className",
+        "render",
+        "style"
+      ],
+      "PopoverClose": [
+        "className",
+        "nativeButton",
+        "render",
+        "style"
+      ],
+      "PopoverContent": [
+        "align",
+        "anchor",
+        "className",
+        "finalFocus",
+        "initialFocus",
+        "render",
+        "side",
+        "sideOffset",
+        "style"
+      ],
+      "PopoverDescription": [
+        "className",
+        "render",
+        "style"
+      ],
+      "PopoverPortal": [
+        "className",
+        "container",
+        "keepMounted",
+        "render",
+        "style"
+      ],
+      "PopoverTitle": [
+        "className",
+        "render",
+        "style"
+      ],
+      "PopoverTrigger": [
+        "className",
+        "closeDelay",
+        "delay",
+        "handle",
+        "id",
+        "nativeButton",
+        "openOnHover",
+        "payload",
+        "render",
+        "style"
+      ],
+      "Presence": [
+        "children",
+        "duration",
+        "easing",
+        "offset",
+        "onExitComplete",
+        "show"
+      ],
+      "Progress": [
+        "aria-valuetext",
+        "className",
+        "format",
+        "getAriaValueText",
+        "locale",
+        "max",
+        "min",
+        "render",
+        "size",
+        "style",
+        "value"
+      ],
+      "ProgressIndicator": [
+        "className",
+        "render",
+        "style"
+      ],
+      "ProgressLabel": [
+        "className",
+        "render",
+        "style"
+      ],
+      "ProgressTrack": [
+        "className",
+        "render",
+        "size",
+        "style"
+      ],
+      "ProgressValue": [
+        "children",
+        "className",
+        "render",
+        "style"
+      ],
+      "PropertyPair": [
+        "labels"
+      ],
+      "PropertyRow": [
+        "children",
+        "hint",
+        "htmlFor",
+        "label",
+        "scrub",
+        "stacked"
+      ],
+      "RadarChart": [
+        "activeIndex",
+        "animate",
+        "className",
+        "data",
+        "defaultActiveIndex",
+        "dots",
+        "filled",
+        "grid",
+        "gridFill",
+        "index",
+        "label",
+        "legend",
+        "locale",
+        "onActiveIndexChange",
+        "radiusAxis",
+        "series",
+        "tooltip",
+        "valueFormatter"
+      ],
+      "RadialChart": [
+        "activeIndex",
+        "animate",
+        "categories",
+        "centerLabel",
+        "className",
+        "data",
+        "defaultActiveIndex",
+        "index",
+        "label",
+        "labels",
+        "legend",
+        "locale",
+        "max",
+        "onActiveIndexChange",
+        "stacked",
+        "sweep",
+        "tooltip",
+        "track",
+        "valueFormatter",
+        "valueKey"
+      ],
+      "Radio": [
+        "className",
+        "disabled",
+        "inputRef",
+        "nativeButton",
+        "readOnly",
+        "render",
+        "required",
+        "style",
+        "value"
+      ],
+      "RadioCard": [
+        "className",
+        "description",
+        "descriptionClassName",
+        "disabled",
+        "icon",
+        "inputRef",
+        "nativeButton",
+        "readOnly",
+        "render",
+        "required",
+        "style",
+        "title",
+        "titleClassName",
+        "tone",
+        "value"
+      ],
+      "RadioGroup": [
+        "className",
+        "defaultValue",
+        "disabled",
+        "form",
+        "inputRef",
+        "name",
+        "onValueChange",
+        "readOnly",
+        "render",
+        "required",
+        "style",
+        "value"
+      ],
+      "Region": [
+        "as",
+        "bleed",
+        "inset",
+        "max",
+        "safeArea"
+      ],
+      "RelativeTime": [
+        "date"
+      ],
+      "Reveal": [
+        "amount",
+        "as",
+        "delay",
+        "once",
+        "rootMargin",
+        "when"
+      ],
+      "Row": [
+        "align",
+        "gap",
+        "justify",
+        "wrap"
+      ],
+      "SableThemeProvider": [
+        "children",
+        "colorStorageKey",
+        "customThemes",
+        "defaultPreference",
+        "defaultThemeId",
+        "onPreferenceChange",
+        "onThemeIdChange",
+        "preference",
+        "target",
+        "themeId",
+        "themeStorageKey"
+      ],
+      "SafeArea": [
+        "edges"
+      ],
+      "Scroller": [
+        "label",
+        "orientation",
+        "viewportClassName",
+        "wheelScroll"
+      ],
+      "ScrubField": [
+        "className",
+        "disabled",
+        "icon",
+        "id",
+        "label",
+        "max",
+        "min",
+        "onGestureEnd",
+        "onGestureStart",
+        "onValueChange",
+        "prefix",
+        "step",
+        "suffix",
+        "value"
+      ],
+      "SearchInput": [
+        "className",
+        "defaultValue",
+        "inputClassName",
+        "onClear",
+        "onValueChange",
+        "value"
+      ],
+      "SegmentedBar": [
+        "label",
+        "locale",
+        "segments",
+        "size"
+      ],
+      "Select": [
+        "actionsRef",
+        "autoComplete",
+        "children",
+        "defaultOpen",
+        "defaultValue",
+        "disabled",
+        "form",
+        "highlightItemOnHover",
+        "id",
+        "inputRef",
+        "isItemEqualToValue",
+        "itemToStringLabel",
+        "itemToStringValue",
+        "items",
+        "modal",
+        "multiple",
+        "name",
+        "onOpenChange",
+        "onOpenChangeComplete",
+        "onValueChange",
+        "open",
+        "readOnly",
+        "required",
+        "value"
+      ],
+      "SelectContent": [
+        "align",
+        "children",
+        "className",
+        "finalFocus",
+        "render",
+        "side",
+        "sideOffset",
+        "style"
+      ],
+      "SelectGroup": [
+        "className",
+        "render",
+        "style"
+      ],
+      "SelectGroupLabel": [
+        "className",
+        "render",
+        "style"
+      ],
+      "SelectItem": [
+        "children",
+        "className",
+        "disabled",
+        "label",
+        "nativeButton",
+        "render",
+        "style",
+        "value"
+      ],
+      "SelectPortal": [
+        "className",
+        "container",
+        "render",
+        "style"
+      ],
+      "SelectSeparator": [
+        "className",
+        "orientation",
+        "render",
+        "style"
+      ],
+      "SelectTrigger": [
+        "children",
+        "className",
+        "disabled",
+        "nativeButton",
+        "placeholder",
+        "render",
+        "size",
+        "style"
+      ],
+      "SelectValue": [
+        "children",
+        "className",
+        "placeholder",
+        "render",
+        "style"
+      ],
+      "Separator": [
+        "className",
+        "label",
+        "orientation",
+        "render",
+        "style"
+      ],
+      "SettingsMenu": [
+        "actionsRef",
+        "align",
+        "children",
+        "className",
+        "closeParentOnEsc",
+        "defaultOpen",
+        "defaultTriggerId",
+        "disabled",
+        "handle",
+        "highlightItemOnHover",
+        "label",
+        "loopFocus",
+        "modal",
+        "onOpenChange",
+        "onOpenChangeComplete",
+        "open",
+        "orientation",
+        "side",
+        "size",
+        "summary",
+        "triggerId",
+        "variant"
+      ],
+      "SettingsRow": [
+        "children",
+        "className",
+        "disabled",
+        "label",
+        "value"
+      ],
+      "Sheet": [
+        "actionsRef",
+        "children",
+        "defaultOpen",
+        "defaultTriggerId",
+        "disablePointerDismissal",
+        "handle",
+        "modal",
+        "onOpenChange",
+        "onOpenChangeComplete",
+        "open",
+        "triggerId"
+      ],
+      "SheetClose": [
+        "className",
+        "nativeButton",
+        "render",
+        "style"
+      ],
+      "SheetContent": [
+        "className",
+        "finalFocus",
+        "initialFocus",
+        "render",
+        "side",
+        "style"
+      ],
+      "SheetDescription": [
+        "className",
+        "render",
+        "style"
+      ],
+      "SheetPortal": [
+        "className",
+        "container",
+        "keepMounted",
+        "render",
+        "style"
+      ],
+      "SheetTitle": [
+        "className",
+        "render",
+        "style"
+      ],
+      "SheetTrigger": [
+        "className",
+        "handle",
+        "id",
+        "nativeButton",
+        "payload",
+        "render",
+        "style"
+      ],
+      "ShowMore": [
+        "collapsedHeight",
+        "collapsedLines"
+      ],
+      "Sidebar": [
+        "collapsed",
+        "icons",
+        "variant"
+      ],
+      "SidebarItem": [
+        "active",
+        "badge",
+        "icon",
+        "label",
+        "render"
+      ],
+      "SideNav": [
+        "activeVariant",
+        "size"
+      ],
+      "SideNavGroup": [
+        "label"
+      ],
+      "SideNavItem": [
+        "active",
+        "activeVariant",
+        "badge",
+        "icon",
+        "label",
+        "render",
+        "size"
+      ],
+      "SimpleTooltip": [
+        "actionsRef",
+        "align",
+        "children",
+        "content",
+        "defaultOpen",
+        "defaultTriggerId",
+        "disableHoverablePopup",
+        "disabled",
+        "handle",
+        "onOpenChange",
+        "onOpenChangeComplete",
+        "open",
+        "side",
+        "sideOffset",
+        "trackCursorAxis",
+        "triggerId"
+      ],
+      "Slider": [
+        "className",
+        "defaultValue",
+        "disabled",
+        "form",
+        "format",
+        "largeStep",
+        "locale",
+        "max",
+        "min",
+        "minStepsBetweenValues",
+        "name",
+        "onValueChange",
+        "onValueCommitted",
+        "orientation",
+        "ref",
+        "step",
+        "style",
+        "thumbAlignment",
+        "thumbCollisionBehavior",
+        "value"
+      ],
+      "SliderControl": [
+        "className",
+        "render",
+        "style"
+      ],
+      "SliderIndicator": [
+        "className",
+        "render",
+        "style"
+      ],
+      "SliderRoot": [
+        "className",
+        "defaultValue",
+        "disabled",
+        "form",
+        "format",
+        "largeStep",
+        "locale",
+        "max",
+        "min",
+        "minStepsBetweenValues",
+        "name",
+        "onValueChange",
+        "onValueCommitted",
+        "orientation",
+        "ref",
+        "render",
+        "step",
+        "style",
+        "thumbAlignment",
+        "thumbCollisionBehavior",
+        "value"
+      ],
+      "SliderThumb": [
+        "className",
+        "disabled",
+        "getAriaLabel",
+        "getAriaValueText",
+        "index",
+        "inputRef",
+        "onBlur",
+        "onFocus",
+        "render",
+        "style",
+        "tabIndex"
+      ],
+      "SliderTrack": [
+        "className",
+        "render",
+        "style"
+      ],
+      "SliderValue": [
+        "children",
+        "className",
+        "render",
+        "style"
+      ],
+      "Spacer": [
+        "axis",
+        "className",
+        "grow",
+        "size"
+      ],
+      "Sparkline": [
+        "animate",
+        "data",
+        "label",
+        "locale",
+        "tone",
+        "variant"
+      ],
+      "Spinner": [
+        "appearance",
+        "label",
+        "size",
+        "thickness"
+      ],
+      "SplitPane": [
+        "collapseBelow",
+        "gap",
+        "primary",
+        "ratio",
+        "secondary"
+      ],
+      "Stack": [
+        "align",
+        "gap",
+        "justify"
+      ],
+      "StatusBarGroup": [
+        "align"
+      ],
+      "StatusDot": [
+        "pulse",
+        "size",
+        "tone"
+      ],
+      "Stepper": [
+        "current",
+        "indicator",
+        "orientation",
+        "statusLabels"
+      ],
+      "StepperItem": [
+        "description",
+        "onSelect",
+        "status",
+        "title"
+      ],
+      "StreamingText": [
+        "as",
+        "caret",
+        "split",
+        "streaming",
+        "text"
+      ],
+      "Switch": [
+        "checked",
+        "className",
+        "defaultChecked",
+        "disabled",
+        "form",
+        "id",
+        "inputRef",
+        "name",
+        "nativeButton",
+        "onCheckedChange",
+        "readOnly",
+        "render",
+        "required",
+        "style",
+        "uncheckedValue",
+        "value"
+      ],
+      "TableCell": [
+        "numeric"
+      ],
+      "TableHead": [
+        "numeric"
+      ],
+      "Tabs": [
+        "className",
+        "defaultValue",
+        "onValueChange",
+        "orientation",
+        "render",
+        "style",
+        "value"
+      ],
+      "TabsContent": [
+        "className",
+        "keepMounted",
+        "render",
+        "style",
+        "value"
+      ],
+      "TabsList": [
+        "activateOnFocus",
+        "className",
+        "loopFocus",
+        "render",
+        "style",
+        "variant"
+      ],
+      "TabsPanel": [
+        "className",
+        "keepMounted",
+        "render",
+        "style",
+        "value"
+      ],
+      "TabsTrigger": [
+        "className",
+        "disabled",
+        "nativeButton",
+        "render",
+        "style",
+        "value"
+      ],
+      "Textarea": [
+        "autoResize"
+      ],
+      "TextReveal": [
+        "amount",
+        "as",
+        "once",
+        "rootMargin",
+        "split",
+        "stagger",
+        "text",
+        "when"
+      ],
+      "ThemeSelector": [
+        "label",
+        "layout",
+        "mode",
+        "onValueChange",
+        "themes",
+        "value"
+      ],
+      "ThemeSwitcher": [
+        "label",
+        "onValueChange",
+        "value"
+      ],
+      "ThinkingOrb": [
+        "label",
+        "mode",
+        "paused",
+        "size",
+        "speed"
+      ],
+      "ToastAction": [
+        "className",
+        "nativeButton",
+        "render",
+        "style"
+      ],
+      "ToastClose": [
+        "className",
+        "nativeButton",
+        "render",
+        "style"
+      ],
+      "ToastDescription": [
+        "className",
+        "render",
+        "style"
+      ],
+      "ToastProvider": [
+        "children",
+        "closeIcon",
+        "limit",
+        "position",
+        "timeout",
+        "viewportClassName"
+      ],
+      "ToastRoot": [
+        "className",
+        "render",
+        "style",
+        "swipeDirection",
+        "toast"
+      ],
+      "ToastTitle": [
+        "className",
+        "render",
+        "style"
+      ],
+      "ToastViewport": [
+        "className",
+        "position",
+        "render",
+        "style"
+      ],
+      "Toggle": [
+        "className",
+        "defaultPressed",
+        "disabled",
+        "nativeButton",
+        "onPressedChange",
+        "pressed",
+        "render",
+        "style",
+        "value"
+      ],
+      "ToggleGroup": [
+        "appearance",
+        "className",
+        "defaultValue",
+        "disabled",
+        "loopFocus",
+        "multiple",
+        "onValueChange",
+        "orientation",
+        "render",
+        "style",
+        "value"
+      ],
+      "ToggleGroupItem": [
+        "className",
+        "defaultPressed",
+        "disabled",
+        "nativeButton",
+        "onPressedChange",
+        "pressed",
+        "render",
+        "style",
+        "value"
+      ],
+      "Toolbar": [
+        "className",
+        "disabled",
+        "loopFocus",
+        "orientation",
+        "render",
+        "style"
+      ],
+      "ToolbarButton": [
+        "className",
+        "disabled",
+        "focusableWhenDisabled",
+        "nativeButton",
+        "render",
+        "size",
+        "style",
+        "variant"
+      ],
+      "ToolbarGroup": [
+        "className",
+        "disabled",
+        "render",
+        "style"
+      ],
+      "ToolbarInput": [
+        "className",
+        "defaultValue",
+        "disabled",
+        "focusableWhenDisabled",
+        "render",
+        "style"
+      ],
+      "ToolbarLink": [
+        "className",
+        "render",
+        "size",
+        "style",
+        "variant"
+      ],
+      "ToolbarSeparator": [
+        "className",
+        "orientation",
+        "render",
+        "style"
+      ],
+      "Tooltip": [
+        "actionsRef",
+        "children",
+        "defaultOpen",
+        "defaultTriggerId",
+        "disableHoverablePopup",
+        "disabled",
+        "handle",
+        "onOpenChange",
+        "onOpenChangeComplete",
+        "open",
+        "trackCursorAxis",
+        "triggerId"
+      ],
+      "TooltipArrow": [
+        "className",
+        "render",
+        "style"
+      ],
+      "TooltipContent": [
+        "align",
+        "className",
+        "render",
+        "side",
+        "sideOffset",
+        "style"
+      ],
+      "TooltipPortal": [
+        "className",
+        "container",
+        "keepMounted",
+        "render",
+        "style"
+      ],
+      "TooltipProvider": [
+        "children",
+        "closeDelay",
+        "delay",
+        "timeout"
+      ],
+      "TooltipTrigger": [
+        "className",
+        "closeDelay",
+        "closeOnClick",
+        "delay",
+        "disabled",
+        "handle",
+        "payload",
+        "render",
+        "style"
+      ],
+      "TreeAddRow": [
+        "depth",
+        "icon",
+        "label"
+      ],
+      "TreeEmpty": [
+        "action",
+        "depth",
+        "dropTarget",
+        "message"
+      ],
+      "TreeRow": [
+        "accent",
+        "actions",
+        "children",
+        "defaultExpanded",
+        "depth",
+        "dimmed",
+        "disclosureIcon",
+        "expandable",
+        "expanded",
+        "icon",
+        "onExpandedChange",
+        "selected",
+        "subtree",
+        "toggleLabel"
+      ],
+      "TreeSection": [
+        "action",
+        "hint",
+        "title"
+      ],
+      "Video": [
+        "controls",
+        "onRequestPlay",
+        "poster",
+        "src"
+      ],
+      "ViewTransitionName": [
+        "as",
+        "name"
+      ],
+      "Workspace": [
+        "children",
+        "density",
+        "skipLinkLabel",
+        "statusBar",
+        "toolbar"
+      ]
+    }
   }
 }

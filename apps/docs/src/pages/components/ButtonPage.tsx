@@ -1,4 +1,17 @@
-import { Button, buttonMeta, Icon, Menu, MenuContent, MenuItem, MenuTrigger, useCopy } from "@sableui/react"
+import {
+	Button,
+	buttonMeta,
+	Icon,
+	Menu,
+	MenuContent,
+	MenuItem,
+	MenuTrigger,
+	PanelSection,
+	PropertyRow,
+	ScrubField,
+	useCopy,
+} from "@sableui/react"
+import { useState } from "react"
 import {
 	ComponentPlayground,
 	Example,
@@ -17,6 +30,24 @@ function CopyDemo() {
 			<Button variant="ghost" size="icon-sm" aria-label="Copy address" onClick={copy}>
 				<Icon name={copied ? "check" : "copy"} />
 			</Button>
+		</div>
+	)
+}
+
+function FieldButtonDemo() {
+	const [size, setSize] = useState(14)
+	return (
+		<div data-density="compact" className="sable-frame sable-frame-tool overflow-hidden w-64 bg-panel">
+			<PanelSection title="Text" className="border-t-0">
+				<PropertyRow label="Font">
+					<Button variant="field" size="xs" className="w-28 justify-between" iconEnd={<Icon name="chevron-down" />}>
+						Figtree
+					</Button>
+				</PropertyRow>
+				<PropertyRow label="Size">
+					<ScrubField label="Size" value={size} onValueChange={setSize} min={1} suffix="px" className="w-28" />
+				</PropertyRow>
+			</PanelSection>
 		</div>
 	)
 }
@@ -74,6 +105,26 @@ export function ButtonPage() {
 						<Button variant="on-color">Start free trial</Button>
 						<Button variant="on-color-outline">Book a demo</Button>
 					</div>
+				</Example>
+			</Section>
+
+			<Section
+				title="In a panel"
+				description="Among compact fields in a tool panel, a field button wears the field's inset fill and corner, so a picker or an add action reads as one of the row's controls."
+			>
+				<Example
+					code={`<div data-density="compact" className="sable-frame sable-frame-tool overflow-hidden w-64 bg-panel">
+  <PanelSection title="Text" className="border-t-0">
+    <PropertyRow label="Font">
+      <Button variant="field" size="xs" className="w-28 justify-between" iconEnd={<Icon name="chevron-down" />}>Figtree</Button>
+    </PropertyRow>
+    <PropertyRow label="Size">
+      <ScrubField label="Size" value={size} onValueChange={setSize} min={1} suffix="px" className="w-28" />
+    </PropertyRow>
+  </PanelSection>
+</div>`}
+				>
+					<FieldButtonDemo />
 				</Example>
 			</Section>
 

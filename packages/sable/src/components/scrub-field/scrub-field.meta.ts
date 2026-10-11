@@ -116,7 +116,7 @@ export const scrubFieldMeta: ComponentMeta = {
 		"Every scrub gesture is reachable from the keyboard: ArrowUp/ArrowDown step by `step`, Shift+Arrow by ten steps.",
 		"Enter commits, Escape reverts to the last committed value, and blur commits — so a partial edit is never silently kept.",
 	],
-	tokensUsed: ["foreground", "muted-foreground", "ring", "canvas", "panel-raised"],
+	tokensUsed: ["foreground", "muted-foreground", "ring", "panel-field", "panel-field-hover"],
 	examples: [
 		{
 			label: "Opacity with a glyph handle",

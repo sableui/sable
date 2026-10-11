@@ -1,5 +1,32 @@
 # What's new
 
+## 0.3.2
+
+### Workspace panels
+
+- **`panel-field` and `panel-field-hover` tokens.** The fill of a compact
+  control docked in a panel, and its hover step. They default to the canvas
+  tone and the raised panel step, so nothing changes visually. The `xs` field
+  rung (Input, SelectTrigger, Combobox, ScrubField) now wears them, and a panel
+  control of your own can too, without a lint exception.
+- **`<Button variant="field">`.** A button that sits among `xs` fields in a
+  panel row, such as a font picker or an add action: the inset field fill and
+  the field's corner instead of a pill. Use it with `size="xs"` or `"icon-xs"`.
+
+### Agent tools
+
+- `sable grade` checks props against each component's real type, so props a
+  component forwards to Base UI (`Toggle`'s `pressed`, `Combobox`'s `filter`)
+  are no longer reported as hallucinated. `registry.json` carries the result as
+  `propSurface`.
+- `sable grade` reads the icon names your app adds with `composeIconSets` from
+  `.sable/icons.json` (`{ "names": [...] }`), or from `--icons <file>`, and stops
+  counting them as off-contract.
+- `sable setup --agent --root <dir>` writes the skill entries in an ancestor
+  directory. In a monorepo, run it in the workspace package that depends on
+  Sable with `--root` at the repository root. The entries resolve Sable through
+  that package.
+
 ## 0.3.1
 
 ### Charts

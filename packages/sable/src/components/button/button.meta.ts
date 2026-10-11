@@ -106,10 +106,10 @@ export const buttonMeta: ComponentMeta = {
 	props: [
 		{
 			name: "variant",
-			type: '"primary" | "secondary" | "ghost" | "outline" | "destructive" | "link" | "floating" | "on-color" | "on-color-outline" | "on-color-ghost"',
+			type: '"primary" | "secondary" | "ghost" | "outline" | "destructive" | "link" | "floating" | "field" | "on-color" | "on-color-outline" | "on-color-ghost"',
 			default: '"primary"',
 			description:
-				"Visual emphasis tier. One primary per screen. The on-color tiers are for buttons ON a coloured fill: they paint with the inherited text colour (the fill's ink) — on-color is solid (ink background, fill-coloured label via the optional --on-color-fill var, else black/white), on-color-outline and on-color-ghost are transparent with an ink label. Never use them on page or card surfaces. floating is for a control that sits OVER content (carousel arrows, a marquee pause, a jump-to-latest over a conversation): its own edge, lift and translucent popover fill, so it reads on arbitrary content beneath.",
+				"Visual emphasis tier. One primary per screen. The on-color tiers are for buttons ON a coloured fill: they paint with the inherited text colour (the fill's ink) — on-color is solid (ink background, fill-coloured label via the optional --on-color-fill var, else black/white), on-color-outline and on-color-ghost are transparent with an ink label. Never use them on page or card surfaces. floating is for a control that sits OVER content (carousel arrows, a marquee pause, a jump-to-latest over a conversation): its own edge, lift and translucent popover fill, so it reads on arbitrary content beneath. field is for a button docked in a workspace panel among xs fields: the inset panel-field fill and the field's corner, so a picker trigger or an add action reads as one of the row's controls; pair it with size xs or icon-xs.",
 		},
 		{
 			name: "size",
@@ -162,6 +162,7 @@ export const buttonMeta: ComponentMeta = {
 			"destructive",
 			"link",
 			"floating",
+			"field",
 			"on-color",
 			"on-color-outline",
 			"on-color-ghost",
@@ -179,6 +180,9 @@ export const buttonMeta: ComponentMeta = {
 		"destructive",
 		"destructive-foreground",
 		"ring",
+		"panel-field",
+		"panel-field-hover",
+		"panel-foreground",
 	],
 	motion: [
 		{
@@ -269,6 +273,10 @@ export const buttonMeta: ComponentMeta = {
 		{
 			label: "Icon button with an unread badge",
 			code: '<Button size="icon" variant="ghost" aria-label="Notifications" badge={<NotificationBadge dot />}><Icon name="bell" /></Button>',
+		},
+		{
+			label: "Field button in a panel row",
+			code: '<PanelSection title="Text">\n  <PropertyRow label="Font">\n    <Button variant="field" size="xs" className="w-full justify-between" iconEnd={<Icon name="chevron-down" />}>Figtree</Button>\n  </PropertyRow>\n</PanelSection>',
 		},
 		{
 			label: "On a coloured band",

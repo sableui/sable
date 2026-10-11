@@ -66,6 +66,16 @@ export const buttonVariants = cva(
 				floating:
 					"border border-border-floating bg-popover/90 text-popover-foreground shadow-md backdrop-blur hover:bg-popover",
 				/*
+				 * A button docked in a panel among compact fields — a picker that
+				 * opens a popover, "Add fill", a swatch's trigger. It wears the xs
+				 * field rung's shell (lib/field-shell → FIELD_SHELL_XS): the inset
+				 * `panel-field` fill, no border, the field's corner rather than the
+				 * button's pill, so it reads as one of the row's controls. Secondary
+				 * or ghost there read as page buttons dropped into tool chrome.
+				 */
+				field:
+					"rounded-[var(--panel-field-radius,var(--radius-xs))] bg-panel-field text-panel-foreground hover:bg-panel-field-hover",
+				/*
 				 * On-colour tiers — for a button sitting ON a coloured fill (a tone
 				 * band, a solid Banner, a brand panel, a dark section in a light
 				 * page). Every tier above paints fixed page tokens, so on a fill

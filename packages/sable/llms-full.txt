@@ -1759,6 +1759,10 @@ pnpm exec sable doctor
 After installing Sable, run `pnpm exec sable setup --agent` in the target
 project. It installs discoverable entry files in `.agents/skills/sable` for
 Codex/Cursor and `.claude/skills/sable` for Claude Code; `--target` selects a host.
+In a monorepo where Sable belongs to one workspace package, run setup in that
+package with `--root` naming the repository root (for example
+`pnpm --filter web exec sable setup --agent --root ../..`); the entries go
+there and resolve Sable through the package.
 Each entry resolves `skills/sable/SKILL.md` from the installed package, so package
 upgrades also update the workflow. Other agents can read that file directly.
 Use `$sable build <idea>`, `inspire <references>`, `audit <target>`, or
@@ -10885,7 +10889,7 @@ Use Button when the user commits an action, submits a form, opens UI, or confirm
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| variant | "primary" \| "secondary" \| "ghost" \| "outline" \| "destructive" \| "link" \| "floating" \| "on-color" \| "on-color-outline" \| "on-color-ghost" | "primary" | Visual emphasis tier. One primary per screen. The on-color tiers are for buttons ON a coloured fill: they paint with the inherited text colour (the fill's ink) — on-color is solid (ink background, fill-coloured label via the optional --on-color-fill var, else black/white), on-color-outline and on-color-ghost are transparent with an ink label. Never use them on page or card surfaces. floating is for a control that sits OVER content (carousel arrows, a marquee pause, a jump-to-latest over a conversation): its own edge, lift and translucent popover fill, so it reads on arbitrary content beneath. |
+| variant | "primary" \| "secondary" \| "ghost" \| "outline" \| "destructive" \| "link" \| "floating" \| "field" \| "on-color" \| "on-color-outline" \| "on-color-ghost" | "primary" | Visual emphasis tier. One primary per screen. The on-color tiers are for buttons ON a coloured fill: they paint with the inherited text colour (the fill's ink) — on-color is solid (ink background, fill-coloured label via the optional --on-color-fill var, else black/white), on-color-outline and on-color-ghost are transparent with an ink label. Never use them on page or card surfaces. floating is for a control that sits OVER content (carousel arrows, a marquee pause, a jump-to-latest over a conversation): its own edge, lift and translucent popover fill, so it reads on arbitrary content beneath. field is for a button docked in a workspace panel among xs fields: the inset panel-field fill and the field's corner, so a picker trigger or an add action reads as one of the row's controls; pair it with size xs or icon-xs. |
 | size | "xs" \| "sm" \| "md" \| "cta" \| "icon" \| "icon-sm" \| "icon-xs" | "md" | Reads the density ladder, so every value differs by register: page 28/32/40/44, workspace 24/28/32/36. xs and icon-xs were added in 0.31.0 for the workspace control floor and are the sizes tool chrome wants; md is the default everywhere. icon/icon-sm/icon-xs are square. |
 | render | ReactElement \| (props, state) => ReactElement | — | Compose with another element/component through the Base UI render prop. |
 | loading | boolean | false | Disable the button and show a leading Spinner while an action is in flight. Sets aria-busy; a native button is disabled, a render element (e.g. an <a>) gets aria-disabled. |
@@ -10896,12 +10900,12 @@ Use Button when the user commits an action, submits a form, opens UI, or confirm
 
 ## Variants
 
-- **variant**: primary, secondary, ghost, outline, destructive, link, floating, on-color, on-color-outline, on-color-ghost
+- **variant**: primary, secondary, ghost, outline, destructive, link, floating, field, on-color, on-color-outline, on-color-ghost
 - **size**: xs, sm, md, cta, icon, icon-sm, icon-xs
 
 ## Tokens used
 
-`primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `accent`, `accent-foreground`, `input`, `destructive`, `destructive-foreground`, `ring`
+`primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `accent`, `accent-foreground`, `input`, `destructive`, `destructive-foreground`, `ring`, `panel-field`, `panel-field-hover`, `panel-foreground`
 
 ## Motion
 
@@ -11030,6 +11034,18 @@ import { Button, Icon } from "@sableui/react"
 import { Button, Icon, NotificationBadge } from "@sableui/react"
 
 <Button size="icon" variant="ghost" aria-label="Notifications" badge={<NotificationBadge dot />}><Icon name="bell" /></Button>
+```
+
+### Field button in a panel row
+
+```tsx
+import { Button, Icon, PanelSection, PropertyRow } from "@sableui/react"
+
+<PanelSection title="Text">
+  <PropertyRow label="Font">
+    <Button variant="field" size="xs" className="w-full justify-between" iconEnd={<Icon name="chevron-down" />}>Figtree</Button>
+  </PropertyRow>
+</PanelSection>
 ```
 
 ### On a coloured band
@@ -13721,7 +13737,7 @@ Use Input for short freeform text, search, email, password, file, and native inp
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| size | "md" \| "xs" | "md" | md is the form field. xs is the dense inset field of a tool panel (an inset canvas fill, no outline, tight padding) — the same ladder as Select and Combobox. Use it instead of overriding the height with className. |
+| size | "md" \| "xs" | "md" | md is the form field. xs is the dense inset field of a tool panel (an inset panel-field fill, no outline, tight padding) — the same ladder as Select and Combobox. Use it instead of overriding the height with className. |
 | type | string | "text" | Native input type (text, email, password, search, number, file, …). type="file" themes the native selector button via file: token utilities. |
 | disabled | boolean | false | Dims the control and blocks pointer interaction. |
 | aria-invalid | boolean | — | Surfaces the destructive border + ring. Base UI form fields set this automatically. |
@@ -16706,7 +16722,7 @@ Use ScrubField for numeric properties in tool chrome — an inspector, a propert
 
 ## Tokens used
 
-`foreground`, `muted-foreground`, `ring`, `canvas`, `panel-raised`
+`foreground`, `muted-foreground`, `ring`, `panel-field`, `panel-field-hover`
 
 ## Accessibility
 
@@ -16991,7 +17007,7 @@ Use Select when users choose one value from a known, finite set. Use Combobox fo
 
 | Name | Type | Description |
 | --- | --- | --- |
-| SelectTrigger | Base UI Trigger props + placeholder?: ReactNode + size?: "md" \| "xs" + className | The button. Composes Trigger + Value + a chevron Icon that flips on open (data-[popup-open]). `size="xs"` is the property-grid rung — height, padding, radius AND surface move together, which is why it is a prop and not a className: the xs trigger is an inset `bg-canvas` field with no border, matching ScrubField on the same row. A consumer overriding only the height gets an md-register 8px radius on a 24px box and a raised card sitting among inset fields; one inspector panel had eleven of those, and both tells are visible at a glance. |
+| SelectTrigger | Base UI Trigger props + placeholder?: ReactNode + size?: "md" \| "xs" + className | The button. Composes Trigger + Value + a chevron Icon that flips on open (data-[popup-open]). `size="xs"` is the property-grid rung — height, padding, radius AND surface move together, which is why it is a prop and not a className: the xs trigger is an inset `bg-panel-field` field with no border, matching ScrubField on the same row. A consumer overriding only the height gets an md-register 8px radius on a 24px box and a raised card sitting among inset fields; one inspector panel had eleven of those, and both tells are visible at a glance. |
 | SelectContent | Base UI Popup props + side, align, sideOffset + className | Portal + Positioner + Popup + List. side="bottom", align="start", sideOffset=6 by default; matches trigger width. |
 | SelectItem | { value: string; disabled?: boolean; label?: string } + className | An option. Composes Item + ItemText + a check ItemIndicator for the selected row. String children double as the item's `label`, so the closed trigger shows the display text — pass `label` explicitly only when children are richer than a string. |
 | SelectGroup | Base UI Group props + className | Optional grouping of related options. |
@@ -20275,7 +20291,7 @@ Which token to reach for, and what it is most often confused with. Generated fro
 - **`type-mono-sm-tracking`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
     - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
 
-### derived (8)
+### derived (10)
 
 - **`canvas`** — The WORK surface — the artboard, the document being edited. *Use for:* Behind the thing the tool operates on. `WorkspaceCanvas` uses it.
     - **Not** `background`. The thing being edited is not the page behind the UI, and collapsing the two makes the document indistinguishable from its chrome.
@@ -20287,6 +20303,10 @@ Which token to reach for, and what it is most often confused with. Generated fro
     - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
 - **`panel-raised`** — One step up from `panel`: a selected row, a hover fill, a nested well. *Use for:* Tree row selection, hovered panel rows, and the light square of a checkerboard.
     - **Not** `accent`. In a workspace the tonal band is only a few units wide; `accent` is a page-register step and reads as a shout in chrome.
+- **`panel-field`** — The inset fill of a compact control docked in a panel. *Use for:* The `size="xs"` field rung (Input, SelectTrigger, ScrubField share it) and `<Button variant="field">`. A panel control of your own that should sit among those fields.
+    - **Not** `canvas`. It resolves to the canvas tone by default, but `canvas` names the work surface; a field that borrows it says the wrong thing and stops following a theme that tunes its fields.
+- **`panel-field-hover`** — The hover step of a `panel-field` control. *Use for:* `hover:bg-panel-field-hover` on anything filled with `panel-field`.
+    - **Not** `hover:bg-panel-raised`. A fixed surface token as a hover is what the surface-hover lint rejects; this one is defined against the panel field it steps from.
 - **`hairline`** — The 1px structural line that carries all separation in tool chrome. *Use for:* Between panel sections, under a toolbar, above a status bar.
     - **Not** a bigger tonal step. This is one of the two rules the workspace register deliberately reverses: on a page prefer space or tone over a line, in chrome the hairline *is* the structure.
 - **`hairline-strong`** — A hairline that must be seen — an input edge, a swatch ring. *Use for:* Bounding a control whose fill is arbitrary (a colour swatch) or user content.

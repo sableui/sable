@@ -92,7 +92,7 @@ export const inputMeta: ComponentMeta = {
 			name: "size",
 			type: '"md" | "xs"',
 			default: '"md"',
-			description: "md is the form field. xs is the dense inset field of a tool panel (an inset canvas fill, no outline, tight padding) — the same ladder as Select and Combobox. Use it instead of overriding the height with className.",
+			description: "md is the form field. xs is the dense inset field of a tool panel (an inset panel-field fill, no outline, tight padding) — the same ladder as Select and Combobox. Use it instead of overriding the height with className.",
 		},
 		{
 			name: "type",

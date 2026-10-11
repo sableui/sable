@@ -33,7 +33,7 @@ Use Input for short freeform text, search, email, password, file, and native inp
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| size | "md" \| "xs" | "md" | md is the form field. xs is the dense inset field of a tool panel (an inset canvas fill, no outline, tight padding) — the same ladder as Select and Combobox. Use it instead of overriding the height with className. |
+| size | "md" \| "xs" | "md" | md is the form field. xs is the dense inset field of a tool panel (an inset panel-field fill, no outline, tight padding) — the same ladder as Select and Combobox. Use it instead of overriding the height with className. |
 | type | string | "text" | Native input type (text, email, password, search, number, file, …). type="file" themes the native selector button via file: token utilities. |
 | disabled | boolean | false | Dims the control and blocks pointer interaction. |
 | aria-invalid | boolean | — | Surfaces the destructive border + ring. Base UI form fields set this automatically. |

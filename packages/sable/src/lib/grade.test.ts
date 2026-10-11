@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process"
 import { createHash } from "node:crypto"
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, relative, resolve, sep } from "node:path"
 import { afterEach, describe, expect, it } from "vitest"
@@ -187,6 +187,29 @@ describe("static contract and design review remain separate", () => {
 		// Issues first: if this ever flakes, the message names the cause instead of just the status.
 		expect(result.data.review.issues).toEqual([])
 		expect(result.data.review.status).toBe("revision-needed")
+	})
+
+	it("accepts props a component forwards to its Base UI root", () => {
+		const dir = makeFixture()
+		writeFileSync(join(dir, "Surface.tsx"), `import { Combobox, Toggle } from "@sableui/react"
+export const a = <Toggle pressed onPressedChange={() => {}} aria-label="Bold" />
+export const b = <Combobox items={[]} filter={null} />
+export const c = <Toggle invented />`)
+		const props = run(dir, ["Surface.tsx"]).data.findings.hallucinatedProp.map((f: { prop: string }) => f.prop)
+		expect(props).toEqual(["invented"])
+	})
+
+	it("accepts icon names the app declares in .sable/icons.json", () => {
+		const dir = makeFixture()
+		writeFileSync(join(dir, "Surface.tsx"), 'export const a = <><Icon name="glitch-wave" /><Icon name="nope" /><Icon name="heart" /></>')
+		expect(run(dir, ["Surface.tsx"]).data.counts.offContractIcon).toBe(2)
+		mkdirSync(join(dir, ".sable"))
+		writeFileSync(join(dir, ".sable", "icons.json"), JSON.stringify({ names: ["glitch-wave"] }))
+		const report = run(dir, ["Surface.tsx"]).data
+		expect(report.findings.offContractIcon.map((f: { name: string }) => f.name)).toEqual(["nope"])
+		expect(report.appIcons).toEqual({ file: ".sable/icons.json", names: 1 })
+		writeFileSync(join(dir, "extra.json"), JSON.stringify({ names: "glitch-wave" }))
+		expect(run(dir, ["Surface.tsx", "--icons", "extra.json"]).code).toBe("ERR_GRADE_INPUT")
 	})
 
 	it("returns recoverable input errors for broken review JSON", () => {

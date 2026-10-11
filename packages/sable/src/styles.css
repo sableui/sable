@@ -133,6 +133,8 @@
 	--color-panel: var(--panel);
 	--color-panel-foreground: var(--panel-foreground);
 	--color-panel-raised: var(--panel-raised);
+	--color-panel-field: var(--panel-field);
+	--color-panel-field-hover: var(--panel-field-hover);
 	--color-hairline: var(--hairline);
 	--color-hairline-strong: var(--hairline-strong);
 }
@@ -318,6 +320,13 @@
 	--panel: var(--theme-panel, var(--background));
 	--panel-foreground: var(--theme-panel-foreground, var(--foreground));
 	--panel-raised: var(--theme-panel-raised, color-mix(in oklch, var(--background) 94%, var(--foreground)));
+
+	/* A compact control docked in a panel: the xs field rung and a field-style
+	   button. Inset to the canvas tone at rest, a panel step under the pointer.
+	   Named so a panel control states its role instead of borrowing the work
+	   surface's token and a fixed hover. */
+	--panel-field: var(--theme-panel-field, var(--canvas));
+	--panel-field-hover: var(--theme-panel-field-hover, var(--panel-raised));
 
 	/* The structural edge. Alpha-based so it holds over any surface beneath it. */
 	--hairline: var(--theme-hairline, color-mix(in oklch, transparent 93%, var(--foreground)));
