@@ -155,13 +155,53 @@ export interface SableMarkHandle {
 	element: () => SVGSVGElement | null
 }
 
-/** Construction geometry for the drawing: the mark's 24-unit frame, its
- *  centre lines run past the frame, and a centred circle. */
+/** Construction geometry for the drawing, measured from the S rather than laid
+ *  over it: circles fitted to each arc of LOGO.starts[0] (all within 0.03
+ *  units), and turned 180° about the centre for the second form, which is the
+ *  first one turned. Arcs run a little past where the outline leaves them. */
+const ARCS = {
+	/** The long top sweep (segments 0–2). */
+	top: { c: [13.15, 14.37], r: 11.55, from: -127, to: -50 },
+	/** The concave sweep into the end cap (segments 9–10). */
+	inner: { c: [18.62, 16.05], r: 8.44, from: -140, to: -75 },
+	/** The round lobe (segment 5) and the tight end cap (segment 11). */
+	lobe: { c: [6.8, 9.35], r: 3.45 },
+	cap: { c: [18.99, 6.39], r: 1.31 },
+} as const
+/** The extents: top and bottom of the mark, and its two lobes' outer edges. */
+const EXTENT = { top: 2.83, side: 3.375 }
+const fix = (n: number) => Math.round(n * 100) / 100
+const turned = ([x, y]: readonly number[], half: 0 | 1) => (half ? [24 - x, 24 - y] : [x, y])
+const arcPath = ({ c, r, from, to }: { c: readonly number[]; r: number; from: number; to: number }, half: 0 | 1) => {
+	const [cx, cy] = turned(c, half)
+	const at = (deg: number) => {
+		const a = ((deg + half * 180) * Math.PI) / 180
+		return `${fix(cx + r * Math.cos(a))} ${fix(cy + r * Math.sin(a))}`
+	}
+	return `M${at(from)} A${r} ${r} 0 0 1 ${at(to)}`
+}
+/** A line through the centre of symmetry and `[x, y]`, run past the mark. */
+const axis = ([x, y]: readonly number[]) => {
+	const len = Math.hypot(x - 12, y - 12)
+	const [dx, dy] = [((x - 12) / len) * 14, ((y - 12) / len) * 14]
+	return { x1: fix(12 - dx), y1: fix(12 - dy), x2: fix(12 + dx), y2: fix(12 + dy) }
+}
+const HALVES = [0, 1] as const
 const GUIDES = [
-	<rect key="frame" x="0" y="0" width="24" height="24" />,
-	<line key="h" x1="-6" y1="12" x2="30" y2="12" />,
-	<line key="v" x1="12" y1="-6" x2="12" y2="30" />,
-	<circle key="circle" cx="12" cy="12" r="9" />,
+	<line key="top" x1="-3" y1={EXTENT.top} x2="27" y2={EXTENT.top} />,
+	<line key="bottom" x1="-3" y1={24 - EXTENT.top} x2="27" y2={24 - EXTENT.top} />,
+	<line key="left" x1={EXTENT.side} y1="-3" x2={EXTENT.side} y2="27" />,
+	<line key="right" x1={24 - EXTENT.side} y1="-3" x2={24 - EXTENT.side} y2="27" />,
+	// Both forms' lobes, and both caps, sit on lines through the centre.
+	<line key="lobe-axis" {...axis(ARCS.lobe.c)} />,
+	<line key="cap-axis" {...axis(ARCS.cap.c)} />,
+	...HALVES.flatMap((half) =>
+		(["lobe", "cap"] as const).map((name) => {
+			const [cx, cy] = turned(ARCS[name].c, half)
+			return <circle key={`${name}-${half}`} cx={cx} cy={cy} r={ARCS[name].r} />
+		}),
+	),
+	...HALVES.flatMap((half) => (["top", "inner"] as const).map((name) => <path key={`${name}-${half}`} d={arcPath(ARCS[name], half)} />)),
 ]
 
 /**
@@ -194,7 +234,7 @@ export function SableMark({ className, outlined = false, ref }: { className?: st
 				el.animate(frames, { delay: delay * k, duration: Math.max(1, duration * k), easing, fill: "forwards" }).finished
 			const draw = [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }]
 			const steps: Promise<unknown>[] = []
-			Array.from(guides.children).forEach((line, i) => steps.push(run(line, draw, i * 70, 420)))
+			Array.from(guides.children).forEach((line, i) => steps.push(run(line, draw, i * 35, 420)))
 			Array.from(outline.children).forEach((line, i) => steps.push(run(line, draw, 160 + i * 140, 760, "cubic-bezier(0.65, 0, 0.35, 1)")))
 			// The fill floods in as the outline closes; the drawing then recedes.
 			steps.push(run(fill, [{ opacity: 0 }, { opacity: 1 }], 920, 260))
