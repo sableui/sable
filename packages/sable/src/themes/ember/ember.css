@@ -5,7 +5,7 @@
    --tone-edition, …), never any palette ramp directly. See themes/_contract.ts.
    ========================================================================== */
 
-/* Scoped only — never a bare `:root`. Base alone owns `:root` as the
+/* Scoped only — never a bare `:root`. The Sable theme alone owns `:root` as the
    package default; a second theme claiming it leaks its tokens into every other
    theme, and `themes.test.ts` fails the build on it. */
 [data-sable-theme="ember"] {
@@ -238,8 +238,11 @@
 	--input: oklch(33% 0.012 65);
 	--control-border: oklch(55.6% 0.0084 67.7);
 	--ring: oklch(65.2% 0.235 32.9);
-	--primary: oklch(65.2% 0.235 32.9);
-	--primary-foreground: oklch(14.1% 0.018 70.5);
+	/* The light-mode fill, not a brighter one: on the brighter fill WCAG preferred
+	   dark ink (5.6:1), but it reads at APCA Lc 42 — muddy — against Lc 67 for
+	   white. At 58% white clears both (4.8:1, Lc 76). */
+	--primary: oklch(58% 0.245 32.9);
+	--primary-foreground: oklch(100% 0 0);
 	--secondary: oklch(26% 0.012 67.2); /* a step ABOVE the card, so a secondary Button reads on a card and on the page */
 	--secondary-foreground: oklch(100% 0 0);
 	--accent: oklch(29% 0.014 60);
@@ -264,8 +267,8 @@
 	--overlay-foreground: oklch(100% 0 0);
 	--sidebar: oklch(15.9% 0.016 65);
 	--sidebar-foreground: oklch(100% 0 0);
-	--sidebar-primary: oklch(65.2% 0.235 32.9);
-	--sidebar-primary-foreground: oklch(14.1% 0.018 70.5);
+	--sidebar-primary: oklch(58% 0.245 32.9);
+	--sidebar-primary-foreground: oklch(100% 0 0);
 	--sidebar-accent: oklch(22% 0.010 60);
 	--sidebar-accent-foreground: oklch(100% 0 0);
 	--sidebar-border: oklch(25.2% 0.012 67.2);

@@ -33,7 +33,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs"
 import { createHash } from "node:crypto"
 import { dirname, extname, join, relative, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
-import { lintText, makeRules } from "./lint-rules.mjs"
+import { ignoreGlob, lintText, makeRules } from "./lint-rules.mjs"
 import { skeletonize } from "./skeleton.mjs"
 import { assessReview, reviewTemplate } from "./review-evidence.mjs"
 
@@ -44,6 +44,7 @@ const CWD = process.cwd()
 const argv = process.argv.slice(2)
 const flags = new Map()
 const targets = []
+const ignores = []
 const BOOLEAN_FLAGS = new Set(["json", "help", "template", "strict"])
 const VALUE_FLAGS = new Set(["cli-log", "review", "icons"])
 const JSON_OUT = argv.includes("--json")
@@ -55,7 +56,11 @@ function abort(message) {
 for (let i = 0; i < argv.length; i++) {
 	const a = argv[i]
 	if (!a.startsWith("--")) targets.push(a)
-	else if (BOOLEAN_FLAGS.has(a.slice(2))) flags.set(a.slice(2), true)
+	else if (a === "--ignore" || a.startsWith("--ignore=")) {
+		const glob = a === "--ignore" ? argv[++i] : a.slice(9)
+		if (!glob || glob.startsWith("--")) abort("--ignore requires a glob.")
+		ignores.push(glob)
+	} else if (BOOLEAN_FLAGS.has(a.slice(2))) flags.set(a.slice(2), true)
 	else if (VALUE_FLAGS.has(a.slice(2))) {
 		if (!argv[i + 1] || argv[i + 1].startsWith("--")) abort(`${a} requires a file path.`)
 		flags.set(a.slice(2), argv[++i])
@@ -72,13 +77,14 @@ if (flags.has("help") || !targets.length) {
 		[
 			"grade — check the static contract and recorded review evidence. No model calls.",
 			"",
-			"  sable grade <dir...> [--json] [--review <review.json>] [--icons <icons.json>] [--strict]",
+			"  sable grade <dir...> [--json] [--review <review.json>] [--icons <icons.json>] [--ignore <glob>] [--strict]",
 			"",
 			"  --json           machine-readable scorecard",
 			"  --cli-log        a SABLE_CLI_LOG jsonl, to report whether the CLI was used at all",
 			"  --template       print a review JSON template; fill after inspecting the rendered build",
 			"  --review         validate evidence files and observations; paths are relative to this JSON",
 			'  --icons          icon names the app adds with composeIconSets: { "names": [...] }. Default: .sable/icons.json',
+			"  --ignore         skip matching paths in the checks, as sable-lint --ignore (repeatable)",
 			"  --strict         exit 1 for static findings or a missing/incomplete/unresolved review",
 			"",
 			"Checks: design-contract violations · hallucinated components and props ·",
@@ -194,7 +200,13 @@ for (const t of targets) {
 	else snapshotFiles.push(abs)
 }
 snapshotFiles.splice(0, snapshotFiles.length, ...new Set(snapshotFiles.sort()))
-const files = snapshotFiles.filter((file) => CODE.test(file))
+/* --ignore takes the same globs sable-lint does, so the grade judges the same
+   files the lint does. A data layer (palette fixtures, document colours) is
+   skipped by the checks but still fingerprinted: it is part of the build. */
+const ignoreRes = ignores.map(ignoreGlob)
+const isIgnored = (file) => ignoreRes.some((re) => re.test(relative(CWD, file).replaceAll("\\", "/")))
+const ignoredFiles = snapshotFiles.filter((file) => CODE.test(file) && isIgnored(file))
+const files = snapshotFiles.filter((file) => CODE.test(file) && !isIgnored(file))
 if (!files.length) abort("No source files found.")
 if (!files.some((file) => readFileSync(file, "utf8").trim().length > 0)) abort("No non-empty source content found.")
 // Git checkouts may use CRLF on Windows and LF in CI. Normalize only known text
@@ -463,6 +475,7 @@ const result = {
 	sourceHash,
 	fingerprint: { algorithm: "sha256", files: snapshotFiles.length, packageHash, coverage: "All non-test files in supplied targets, plus Sable runtime sources, registry, and lint contract. Known text formats normalize CRLF to LF; binary assets retain their bytes. Pass public/ for external asset directories; remote resources are not covered." },
 	files: files.length,
+	ignored: { globs: ignores, files: ignoredFiles.length },
 	loc,
 	score,
 	scoreMeaning: "Static contract only. Pattern similarity does not affect this score; visual quality is not scored.",
@@ -485,7 +498,7 @@ if (JSON_OUT) {
 
 const L = (s = "") => process.stdout.write(`${s}\n`)
 L()
-L(`  grade — ${files.length} files, ${loc} lines, against @sableui/react ${REGISTRY.version}`)
+L(`  grade — ${files.length} files, ${loc} lines, against @sableui/react ${REGISTRY.version}${ignoredFiles.length ? ` (${ignoredFiles.length} ignored)` : ""}`)
 L(`  ${"─".repeat(66)}`)
 const row = (label, n, note = "") =>
 	L(`  ${label.padEnd(26)}${String(n).padStart(4)}${note ? `   ${note}` : ""}`)

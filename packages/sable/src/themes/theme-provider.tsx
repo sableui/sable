@@ -62,7 +62,7 @@ export interface SableThemeProviderProps {
 	preference?: SableThemePreference
 	/** Notified whenever setPreference/setColorPreference is called. */
 	onPreferenceChange?: (preference: SableThemePreference) => void
-	/** Initial design theme when uncontrolled and no stored value exists. @default "base" */
+	/** Initial design theme when uncontrolled and no stored value exists. @default "sable" */
 	defaultThemeId?: AnyThemeId
 	/** Controlled design theme id. */
 	themeId?: AnyThemeId
@@ -394,7 +394,7 @@ export function SableThemeProvider({
 
 /**
  * Reads Sable's active color preference and design theme. Safe without a
- * provider; mutators become no-ops and the default (Base, dark) is reported.
+ * provider; mutators become no-ops and the default (Sable, dark) is reported.
  */
 export function useSableTheme(): SableThemeContextValue {
 	const ctx = useContext(SableThemeContext)

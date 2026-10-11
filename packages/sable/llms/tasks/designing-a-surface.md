@@ -2,7 +2,7 @@
 
 Tokens make decisions consistent; they do not decide what deserves attention.
 Start with the user's task and content, then choose a visual direction. Sable's
-default Base identity is a starting point. A consumer can be light-first,
+default Sable identity is a starting point. A consumer can be light-first,
 photographic, editorial, playful, or quiet while retaining semantic tokens,
 accessible behavior, and a coherent interaction policy.
 

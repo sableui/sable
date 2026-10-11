@@ -1,6 +1,6 @@
 # Sable — Design System Spec
 
-The system-level design spec for **Sable**, an owned, themeable component system. This document is **theme-agnostic**: it describes the structure, tokens, and rules that every theme inherits. The **default theme is "Base"** (a dark-by-default, content-first, fluid product aesthetic); its concrete values live in `src/themes/base/`. Other themes supply their own values for the same token contract.
+The system-level design spec for **Sable**, an owned, themeable component system. This document is **theme-agnostic**: it describes the structure, tokens, and rules that every theme inherits. The **default theme is "Sable"** (a dark-by-default, content-first, fluid product aesthetic); its concrete values live in `src/themes/sable/`. Other themes supply their own values for the same token contract.
 
 For building with Sable see `AGENTS.md`; for changing the package see `CONTRIBUTING.md`. For the machine-readable catalog see `registry.json` / `llms.txt`.
 
@@ -9,7 +9,7 @@ For building with Sable see `AGENTS.md`; for changing the package see `CONTRIBUT
 1. **Own the surface, theme the values.** Components reference semantic roles, not colors. Swapping a theme re-skins everything without touching a component.
 2. **Content over chrome.** The UI recedes so content advances. Restraint over decoration.
 3. **Constraint is generative.** A small set of tokens, tiers, and primitives yields a large space of good UIs. Reach for what exists before inventing.
-4. **A deliberate visual world.** Base starts dark. A consuming product chooses its modes, typography, shape, and art direction from its brief; the token contract travels across those choices.
+4. **A deliberate visual world.** The Sable theme starts dark. A consuming product chooses its modes, typography, shape, and art direction from its brief; the token contract travels across those choices.
 5. **Accessible by construction.** Base UI carries behavior/ARIA; semantic token pairs are pre-checked to WCAG AA.
 6. **AI-native.** The system is documented for machines as well as people (`registry.json`, per-component `*.meta.ts`).
 
@@ -26,7 +26,7 @@ evidence contract. A reviewer still has to see and operate the result. Read
 
 The semantic contract protects meaning, behavior, and consistency. It does not
 choose the story, visual hierarchy, imagery, or composition for every product.
-Statements about Base's accent, shape, and dark-first identity describe the
+Statements about the Sable theme's accent, shape, and dark-first identity describe the
 default theme; consumers can choose a different art direction while preserving
 semantic roles and accessibility. A palette change alone is not a new design.
 
@@ -57,7 +57,7 @@ Three layers, outermost is what components use:
 | **Semantic** (the contract) | `--primary`, `--card`, `--muted-foreground`, `--tone-edition`, `--ring` | **Components** (via `bg-*`/`text-*` utilities). |
 | **Component** (local) | a cva variant string | Inside one component. |
 
-`themes/_contract.ts` enumerates the semantic tokens every theme must define. The default (Base) palette is authored in **OKLCH** for perceptually-uniform ramps, locked hue, gamut-safe chroma, and dark-mode vibrancy.
+`themes/_contract.ts` enumerates the semantic tokens every theme must define. The default (Sable) palette is authored in **OKLCH** for perceptually-uniform ramps, locked hue, gamut-safe chroma, and dark-mode vibrancy.
 
 ### Semantic tokens (the contract)
 
@@ -68,7 +68,7 @@ Tone ink (legible text/icon on a tone fill, theme-adaptive): `tone-standard-fore
 Overlay (fixed dark surface over content — scrims, media letterbox, pills on imagery): `overlay`, `overlay-foreground`.
 Sidebar set: `sidebar`, `sidebar-foreground`, `sidebar-primary(-foreground)`, `sidebar-accent(-foreground)`, `sidebar-border`, `sidebar-ring`.
 
-**Base inversion rule:** in dark mode `primary` is light (a near-white pill); in light mode it is near-black. Other themes may use a different action palette. Never call `primary` "black" or `primary-foreground` "white" — use the semantic pair, whose values belong to the theme.
+**Sable theme inversion rule:** in dark mode `primary` is light (a near-white pill); in light mode it is near-black. Other themes may use a different action palette. Never call `primary` "black" or `primary-foreground` "white" — use the semantic pair, whose values belong to the theme.
 
 ### Tone system
 
@@ -442,7 +442,7 @@ Motion is a first-class token layer, not an afterthought. **Subtle by default, w
 
 **Three parts:**
 
-1. **Tokens** (`themes/base/base.css` → Motion tokens; contract in `themes/_contract.ts` → `MOTION_TOKENS`).
+1. **Tokens** (`themes/sable/sable.css` → Motion tokens; contract in `themes/_contract.ts` → `MOTION_TOKENS`).
    - **Durations:** `instant` 75 · `fast` 150 · `base` 200 · `slow` 300 · `slower` 500, plus semantic `enter`/`exit`. Every duration is multiplied by `--motion-scale`.
    - **Easings:** `standard` (≈ease-in-out, default) · `decelerate` (≈ease-out, entrances) · `emphasized` (large surfaces) · `linear` (indeterminate loaders) · **`spring`** (gentle ~+4% single overshoot — the default for delightful pops) · **`bounce`** (~+10%, opt-in playful accents). Springs apply on **enter only**; exits stay overshoot-free.
    - Consume easings via the `ease-*` utilities; durations via `duration-(--motion-duration-*)` (so the kill-switch always applies).
@@ -526,7 +526,7 @@ Not every removal is a regression; check for an **equivalent replacement** befor
 - Inline `oklch()`/hex or raw palette steps in components. *(CI-enforced: `inline-color`, `palette-ref`.)*
 - Decomposing paired typography utilities. *(CI-enforced: `decomposed-type`.)*
 - Pure `#000`/`#fff` (use `zinc-950`/`zinc-50`, or `overlay`/`overlay-foreground` for scrims). *(CI-enforced: `raw-black-white`.)*
-- In Base, purple/brand for primary CTAs (brand = editions + selection only). A different theme chooses its action palette through the semantic pair.
+- In the Sable theme, purple/brand for primary CTAs (brand = editions + selection only). A different theme chooses its action palette through the semantic pair.
 - Gradient text, side-stripe borders, nested cards, mixed radii.
 - Concrete icon-package imports scattered through components. Reicon supplies the default through the shared adapter; IconProvider allows replacement.
 - A global page max-width (use opt-in region caps).

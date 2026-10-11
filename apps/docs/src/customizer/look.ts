@@ -589,7 +589,7 @@ export function toCss(look: Look, base: ThemeBase, themeId: string): string {
 
 	const header = [
 		"/* Sable look — paste AFTER your Sable imports:",
-		`   @import "@sableui/react/styles.css";${themeId === "base" ? "" : `\n   @import "@sableui/react/theme/${themeId}.css";  and set data-sable-theme="${themeId}" on <html>`}`,
+		`   @import "@sableui/react/styles.css";${themeId === "sable" ? "" : `\n   @import "@sableui/react/theme/${themeId}.css";  and set data-sable-theme="${themeId}" on <html>`}`,
 		(() => {
 			const url = googleFontsUrl(fontsInUse(look))
 			return url ? `   Fonts: add to <head>

@@ -1,5 +1,38 @@
 # What's new
 
+## 0.4.0
+
+### The default theme is now called Sable
+
+The default theme was called Base, which read too close to Base UI, the
+library Sable's components are built on. It is now **Sable**. It looks the same.
+
+- Theme id `base` → `sable` (`data-sable-theme="sable"`, `setThemeId("sable")`).
+- `@sableui/react/theme/base` and `theme/base.css` → `theme/sable` and
+  `theme/sable.css`. `styles.css` still includes it, so most apps import nothing new.
+- `baseTheme` → `sableTheme`.
+- A stored `base` choice is no longer a known id, so `SableThemeProvider`
+  falls back to the default, which is Sable.
+
+### Themes
+
+- **Panel fields read in dark mode.** `panel-field` was the canvas tone, 3% ink
+  off the panel, which measured 1.04:1 on a dark panel. It is now mixed from the
+  panel at 9% ink (1.15:1 dark, 1.25:1 light), with hover a step further at 12%.
+- **Ember's dark-mode primary button has white text.** The fill is now Ember's
+  light-mode orange-red. On the old, brighter fill the dark label passed WCAG
+  but read muddy (APCA Lc 42); white now clears both (4.8:1, Lc 76). The
+  sidebar's active item follows.
+
+### Agent tools
+
+- `sable-lint` no longer reports `hand-derived-surface` on the value of a
+  `--theme-*` hook, such as `--theme-panel-field: color-mix(…)`. Tuning a
+  derived token is what the hooks are for.
+- `sable grade --ignore <glob>` skips the same paths `sable-lint --ignore`
+  does, so a data layer of document colours is not counted as contract
+  violations. Ignored files are still fingerprinted.
+
 ## 0.3.2
 
 ### Workspace panels

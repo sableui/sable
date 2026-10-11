@@ -62,7 +62,7 @@ chosen by what the surface *does*:
 - `secondary` — a control fill (something you can press)
 - `accent` — a transient state (hover, selected, current)
 
-Pick by appearance and it works in Base and breaks in Meridian. Every token's
+Pick by appearance and it works in the Sable theme and breaks in Meridian. Every token's
 intent, and what it gets confused with, is in
 `llms/reference/token-intent.md`.
 

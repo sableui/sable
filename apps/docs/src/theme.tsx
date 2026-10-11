@@ -32,7 +32,7 @@ function initialPreference(): ThemePreference {
 function initialTheme(presets: SablePreset[]): string {
 	let id = new URLSearchParams(window.location.search).get("theme")
 	try { id ??= localStorage.getItem("sable-docs-theme-id") } catch { /* storage disabled */ }
-	return id && (isThemeId(id) || presets.some(preset => preset.id === id)) ? id : "base"
+	return id && (isThemeId(id) || presets.some(preset => preset.id === id)) ? id : "sable"
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {

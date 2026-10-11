@@ -16,7 +16,7 @@ export const PRESET_TOKEN_NAMES: readonly string[] = [...new Set([
 	...LAYERING_TOKENS, ...TYPE_UI_TOKENS,
 	"font-sans", "font-mono", "font-display", "spacing",
 	"theme-shadow-sm", "theme-shadow", "theme-shadow-md", "theme-shadow-lg", "theme-shadow-xl",
-	// Chart series colours: optional — a preset without them inherits Base's validated set.
+	// Chart series colours: optional — a preset without them inherits the Sable theme's validated set.
 	"chart-1", "chart-2", "chart-3", "chart-4", "chart-5", "chart-6", "chart-7", "chart-8",
 ])]
 

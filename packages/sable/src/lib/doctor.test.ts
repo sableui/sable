@@ -33,7 +33,7 @@ describe('doctor first-use consumer wiring', () => {
   it('accepts single-quoted imports and a portable scoped preset', () => {
     expect(inspect(`${imports}\n[data-sable-theme="personal"] { --background: white; --primary: green; }`).failed).toBe(0)
   })
-  it('does not demand alternate CSS for a Base color-mode provider', () => {
+  it('does not demand alternate CSS for a color-mode provider on the Sable theme', () => {
     expect(inspect(imports, '<SableThemeProvider defaultPreference="light" />').failed).toBe(0)
   })
   it('still rejects a selected design theme without CSS', () => {

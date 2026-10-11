@@ -5,7 +5,7 @@ import { GAMUT_SAFETY, type Oklch, hueDelta, linearRgbToOklab, maxChroma, oklchT
  * checks the shipped palette passes, so no look can produce series a reader
  * cannot tell apart.
  *
- * The default (Base's --chart-1 … --chart-8) is a validated categorical set.
+ * The default (the Sable theme's --chart-1 … --chart-8) is a validated categorical set.
  * A generated set starts from the brand: slot 1 IS the brand, and the rest
  * follow the Palette control — leaning toward it (Brand only, Harmonize) or
  * spaced from it on the wheel (Analogous, Triadic). Every slot keeps its
@@ -20,7 +20,7 @@ import { GAMUT_SAFETY, type Oklch, hueDelta, linearRgbToOklab, maxChroma, oklchT
 type Mode = "light" | "dark"
 type Scheme = "preset" | "harmonize" | "analogous" | "triadic"
 
-/** Base's validated palette, as OKLCH [L, C, H] — keep in step with base.css. */
+/** The Sable theme's validated palette, as OKLCH [L, C, H] — keep in step with sable.css. */
 const DEFAULTS: Record<Mode, [number, number, number][]> = {
 	light: [
 		[0.5753, 0.1626, 255.53],

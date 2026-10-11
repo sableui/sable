@@ -6,7 +6,7 @@ import { PresetPreview } from "../components/PresetPreview"
 
 /** One line on each preset's character — what you are choosing, in words. */
 const CHARACTER: Record<string, string> = {
-	base: "Cool neutrals, soft corners and vivid status tones. The neutral default.",
+	sable: "Cool neutrals, soft corners and vivid status tones. The neutral default.",
 	meridian: "Warm cream and ink, square edges, one ember-orange accent, no shadows.",
 	prism: "Outfit interface text, Playfair Display headings, crisp corners and blue actions.",
 	verdant: "Forest ink on warm paper, a serif display face and mono eyebrows.",

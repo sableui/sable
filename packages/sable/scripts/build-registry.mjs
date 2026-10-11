@@ -113,7 +113,7 @@ for (const dir of readdirSync(THEMES_DIR, { withFileTypes: true })) {
 		themeErrors.push(`theme "${manifest.id}" has no "./theme/${manifest.id}" + ".css" entries in package.json exports.`)
 	if (!PKG.publishConfig?.exports?.[`./theme/${manifest.id}`] || !PKG.publishConfig?.exports?.[`./theme/${manifest.id}.css`])
 		themeErrors.push(`theme "${manifest.id}" has no "./theme/${manifest.id}" + ".css" entries in package.json publishConfig.exports.`)
-	if (manifest.id !== "base" && !THEMES_CSS_SRC.includes(`./themes/${dir.name}/${dir.name}.css`))
+	if (manifest.id !== "sable" && !THEMES_CSS_SRC.includes(`./themes/${dir.name}/${dir.name}.css`))
 		themeErrors.push(`theme "${manifest.id}" is not imported by src/themes.css.`)
 	themeEntries.push({ order, dir: dir.name, manifest })
 }
@@ -127,7 +127,7 @@ const themesAvailable = themeEntries.map(({ dir, manifest }) => ({
 	featured: !manifest.deprecated,
 	css: `./src/themes/${dir}/${dir}.css`,
 	manifest: `./src/themes/${dir}/index.ts`,
-	import: manifest.id === "base" ? "@sableui/react/styles.css" : `@sableui/react/theme/${manifest.id}.css`,
+	import: manifest.id === "sable" ? "@sableui/react/styles.css" : `@sableui/react/theme/${manifest.id}.css`,
 	modes: manifest.modes,
 	defaultMode: manifest.defaultMode,
 	fonts: Object.fromEntries(Object.entries(manifest.fonts).map(([role, stack]) => [role, firstFamily(stack)])),
@@ -1621,7 +1621,7 @@ if (contractErrors.length) {
 /* ── Preserve the hand-authored static blocks; regenerate version + components. */
 const registry = JSON.parse(readFileSync(REGISTRY_PATH, "utf8"))
 registry.version = PKG.version
-registry.description = "Themeable React components, semantic tokens, layout patterns, presets, and package-owned agent skills. Default theme: Base."
+registry.description = "Themeable React components, semantic tokens, layout patterns, presets, and package-owned agent skills. Default theme: Sable."
 // Where and how to install comes from package.json, so the recipe agents read
 // can never disagree with where the package is actually published.
 registry.name = PKG.name
@@ -1652,9 +1652,9 @@ registry.consume.ios = {
 	updates: "Consume the shipped adapter instead of copying demo helpers. Package upgrades update the brand bridge, material, safe areas, navigation, sheets and input bindings.",
 }
 registry.consume.cssOptional = {
-	"themes.css": "@import \"@sableui/react/themes.css\"; — all bundled alternatives. styles.css already includes Base. Alternate CSS is scoped by data-sable-theme.",
+	"themes.css": "@import \"@sableui/react/themes.css\"; — all bundled alternatives. styles.css already includes the Sable theme. Alternate CSS is scoped by data-sable-theme.",
 	"theme/<id>.css": "@import \"@sableui/react/theme/prism.css\"; — one bundled alternative. Prefer this when the app uses exactly one.",
-	symptom: "The active theme renders as Base when its stylesheet has not been imported. Load the selected theme CSS before applying its ID.",
+	symptom: "The active theme renders as the Sable theme when its stylesheet has not been imported. Load the selected theme CSS before applying its ID.",
 }
 registry.layoutPrimitives = layoutPrimitives
 registry.patterns = patterns
@@ -1685,7 +1685,7 @@ registry.foundations = foundations.map((f) => ({
 	noGos: f.noGos,
 }))
 registry.themes = {
-	default: "base",
+	default: "sable",
 	available: themesAvailable,
 	fontsNote:
 		"fonts is the first family of each role's stack; fontStacks is the full stack the theme CSS declares. The host app loads the files (Google Fonts for every built-in primary). Generated from src/themes/*/index.ts — do not hand-edit.",

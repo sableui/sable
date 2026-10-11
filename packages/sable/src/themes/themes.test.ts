@@ -59,11 +59,11 @@ function blockWith(css: string, ...needles: string[]) {
 
 describe("theme registry", () => {
 	it("exports all theme manifests and the public theme helpers", () => {
-		expect(DEFAULT_THEME_ID).toBe("base")
+		expect(DEFAULT_THEME_ID).toBe("sable")
 		expect(SABLE_THEME_ATTRIBUTE).toBe("data-sable-theme")
-		expect(themeIds).toEqual(["base", "meridian", "prism", "verdant", "ember", "poppy", "atelier"])
+		expect(themeIds).toEqual(["sable", "meridian", "prism", "verdant", "ember", "poppy", "atelier"])
 		expect(themeManifests.map((theme) => theme.id)).toEqual(themeIds)
-		expect(isThemeId("base")).toBe(true)
+		expect(isThemeId("sable")).toBe(true)
 		expect(isThemeId("meridian")).toBe(true)
 		expect(isThemeId("verdant")).toBe(true)
 		expect(isThemeId("unknown")).toBe(false)
@@ -122,7 +122,7 @@ describe("theme css contract", () => {
 
 	it("keeps the default theme's semantic layer fully palette-referencing", () => {
 		// The real invariant is about the SEMANTIC layer, not about hex per se.
-		// Base's palette holds the values; its semantic tokens reference them.
+		// Sable's palette holds the values; its semantic tokens reference them.
 		// Five of them (background, card, popover, destructive-foreground, sidebar)
 		// were raw `#ffffff` — white has no ramp step, since zinc tops out at 97.2% L
 		// with a faint blue cast — so `--white` was added to the palette and those
@@ -134,7 +134,7 @@ describe("theme css contract", () => {
 		const css = cssFor(DEFAULT_THEME_ID).replace(/\/\*[\s\S]*?\*\//g, "")
 		// "References the palette" means the value mentions a `var(--…)` — including
 		// relative colour syntax, `oklch(from var(--zinc-700) l c h / 0.4)`, which is
-		// how three of Base's tokens add alpha to a ramp step. An earlier version
+		// how three of Sable's tokens add alpha to a ramp step. An earlier version
 		// of this test flagged any `oklch(` and failed on those three, which was the
 		// test being wrong about correct code rather than the reverse.
 		const literalSemantics = [...css.matchAll(/--([a-z0-9-]+)\s*:\s*([^;]+);/g)]
@@ -466,7 +466,7 @@ describe("theme contrast", () => {
 	 * 1. **Keeps alpha.** Every dark theme draws its hairlines translucent
 	 *    (`oklch(32% 0.02 270 / 0.45)`), so a check that read the opaque triplet
 	 *    would measure a border three times lighter than the one that renders.
-	 * 2. **Resolves the identity form of relative-colour syntax.** Base writes
+	 * 2. **Resolves the identity form of relative-colour syntax.** The Sable theme writes
 	 *    `oklch(from var(--zinc-700) l c h / 0.4)`, which is not a guess: `l c h`
 	 *    is the base colour verbatim, and the only new information is the alpha.
 	 *    Skipping it meant the theme with the most translucent chrome was the one
@@ -663,7 +663,7 @@ describe("theme contrast", () => {
 			 * playground, anatomy frame and app dashboard puts cards straight on
 			 * the page. Meridian (1.08), Atelier (1.09), Prism (1.06) and Ember
 			 * (1.07) shipped a dark card a hair off the page, so cards read as
-			 * outlines on one flat plane; Base (1.17) and Verdant (1.19) read
+			 * outlines on one flat plane; Sable (1.17) and Verdant (1.19) read
 			 * as layers. 1.12 is the floor where a card is a surface, not a frame.
 			 */
 			const vars = resolveVars(cssFor(themeId), "dark")
@@ -847,7 +847,7 @@ describe("theme contrast", () => {
 			 * Two things had to be right before the numbers meant anything:
 			 *
 			 * - **Alpha.** Prism's dark border is `oklch(32% 0.02 270 / 0.45)` and
-			 *   Base's is `oklch(from var(--zinc-700) l c h / 0.4)`. Read as
+			 *   Sable's is `oklch(from var(--zinc-700) l c h / 0.4)`. Read as
 			 *   opaque triplets they measure far lighter than they render, so every
 			 *   mark is composited onto the surface it sits on before measurement.
 			 * - **The right floor for the right token.** See the split below; it is
@@ -920,7 +920,7 @@ describe("theme contrast", () => {
 	 * WORST value instead — a new theme starts at `GAMUT_EPSILON` (strict), and an
 	 * existing one can only improve.
 	 *
-	 * Base and Prism are not in the same league as the rest. Their
+	 * Sable and Prism are not in the same league as the rest. Their
 	 * `--tone-collectible` (`oklch(72% 0.225 285)`) misses the blue primary by 0.41
 	 * in linear light — a 41% overshoot, not a rounding artefact — so what renders
 	 * is a materially different colour from the one authored, and the token's whole
@@ -928,7 +928,7 @@ describe("theme contrast", () => {
 	 * under 0.09, which clips to a barely-perceptible chroma shift.
 	 */
 	const GAMUT_BASELINE: Record<string, number> = {
-		base: 0.4121, // Same palette as the existing neutral default; no new exemption.
+		sable: 0.4121, // Same palette as the existing neutral default; no new exemption.
 		prism: 0.4121, // --tone-collectible: oklch(72% 0.225 285)
 		ember: 0.082, // --ember-100: oklch(94% 0.045 32.9)
 		meridian: 0.032, // --meridian-ember-50: oklch(97% 0.02 30)

@@ -122,7 +122,7 @@
 	--theme-button-radius: 12px;
 	--button-radius: var(--theme-button-radius);
 	/* Hard offsets the whole way up. Only sm and md were declared, so the
-	   default, lg and xl steps fell through to Base's soft blurs and one ladder
+	   default, lg and xl steps fell through to the Sable theme's soft blurs and one ladder
 	   spoke two shadow languages. Offset doubles roughly per step. */
 	--theme-shadow-sm: 3px 3px 0 oklch(32% 0.05 320 / 0.12);
 	--theme-shadow: 4px 4px 0 oklch(32% 0.05 320 / 0.13);

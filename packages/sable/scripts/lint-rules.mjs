@@ -537,10 +537,14 @@ export function makeRules({ semanticTokens, motionTokens }) {
 			since: "0.1.0",
 			code: true,
 			why:
-				"A colour hand-mixed from the foreground ink — `color-mix(… var(--foreground) …)`. Sable already derives these from the surface underneath, in every theme and mode: `sable-well` (a recessed track, pad or well), `sable-surface` + `sable-surface-interactive` (hover and selected fills on any surface), `bg-hairline` / `border-hairline` (a faint ink edge or fill). `npx sable search` finds them; `registry.json → utilities` explains each. If none fits, it is a gap — report it, then take the escape hatch with the reason.",
+				"A colour hand-mixed from the foreground ink — `color-mix(… var(--foreground) …)`. Sable already derives these from the surface underneath, in every theme and mode: `sable-well` (a recessed track, pad or well), `sable-surface` + `sable-surface-interactive` (hover and selected fills on any surface), `bg-hairline` / `border-hairline` (a faint ink edge or fill). `npx sable search` finds them; `registry.json → utilities` explains each. If none fits, it is a gap — report it, then take the escape hatch with the reason. " +
+				"Exempt: the value of a `--theme-*` hook (`--theme-panel-field: color-mix(…)`), which is how a theme tunes a derived token.",
 			find(line) {
 				const out = []
 				for (const m of line.matchAll(/color-mix\([^;"'`]*?var\(--foreground\)/g)) {
+					// A theme hook is the sanctioned place to retune a derived surface,
+					// in CSS or as an arbitrary property ([--theme-x:color-mix(…)]).
+					if (/--theme-[\w-]+\s*:\s*$/.test(line.slice(0, m.index))) continue
 					out.push({ match: m[0].length > 60 ? `${m[0].slice(0, 57)}…` : m[0] })
 				}
 				return out
@@ -962,6 +966,21 @@ function stripComments(src) {
 	return src
 		.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, " "))
 		.replace(/(^|[^:])\/\/[^\n]*/gm, (m, p) => p + " ".repeat(m.length - p.length))
+}
+
+/**
+ * An `--ignore` glob as a RegExp over a CWD-relative, forward-slash path:
+ * `**` crosses directories, `*` stays within one. Shared by sable-lint and
+ * sable grade so the same flag skips the same files in both.
+ */
+export function ignoreGlob(glob) {
+	return new RegExp(
+		`^${glob
+			.replace(/[.+^${}()|[\]\\]/g, "\\$&")
+			.replace(/\*\*/g, "\0")
+			.replace(/\*/g, "[^/]*")
+			.replace(/\0/g, ".*")}$`,
+	)
 }
 
 export function lintText(text, rules, ctx) {

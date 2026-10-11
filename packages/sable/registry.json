@@ -1,8 +1,8 @@
 {
   "$schema": "https://sable.design/registry.schema.json",
   "name": "@sableui/react",
-  "version": "0.3.2",
-  "description": "Themeable React components, semantic tokens, layout patterns, presets, and package-owned agent skills. Default theme: Base.",
+  "version": "0.4.0",
+  "description": "Themeable React components, semantic tokens, layout patterns, presets, and package-owned agent skills. Default theme: Sable.",
   "engine": {
     "behavior": "@base-ui/react",
     "styling": "tailwindcss@4",
@@ -42,9 +42,9 @@
     "designTheme": "Set data-sable-theme for alternate or app-owned themes; omit the attribute or use base for the default. Register portable presets with presetManifest() through SableThemeProvider customThemes, and load their scoped CSS and fonts.",
     "import": "import { Button, Card } from \"@sableui/react\"",
     "cssOptional": {
-      "themes.css": "@import \"@sableui/react/themes.css\"; — all bundled alternatives. styles.css already includes Base. Alternate CSS is scoped by data-sable-theme.",
+      "themes.css": "@import \"@sableui/react/themes.css\"; — all bundled alternatives. styles.css already includes the Sable theme. Alternate CSS is scoped by data-sable-theme.",
       "theme/<id>.css": "@import \"@sableui/react/theme/prism.css\"; — one bundled alternative. Prefer this when the app uses exactly one.",
-      "symptom": "The active theme renders as Base when its stylesheet has not been imported. Load the selected theme CSS before applying its ID."
+      "symptom": "The active theme renders as the Sable theme when its stylesheet has not been imported. Load the selected theme CSS before applying its ID."
     },
     "designWorkflow": {
       "brief": "sable docs designing-a-surface",
@@ -91,14 +91,14 @@
     }
   },
   "themes": {
-    "default": "base",
+    "default": "sable",
     "available": [
       {
-        "id": "base",
-        "label": "Base",
+        "id": "sable",
+        "label": "Sable",
         "featured": true,
-        "css": "./src/themes/base/base.css",
-        "manifest": "./src/themes/base/index.ts",
+        "css": "./src/themes/sable/sable.css",
+        "manifest": "./src/themes/sable/index.ts",
         "import": "@sableui/react/styles.css",
         "modes": [
           "dark",
@@ -233,7 +233,7 @@
         "id": "atelier",
         "label": "Atelier",
         "deprecated": {
-          "replacement": "base"
+          "replacement": "sable"
         },
         "featured": false,
         "css": "./src/themes/atelier/atelier.css",
@@ -1313,7 +1313,7 @@
         "name": "panel-field",
         "intent": "The inset fill of a compact control docked in a panel.",
         "whenToUse": "The `size=\"xs\"` field rung (Input, SelectTrigger, ScrubField share it) and `<Button variant=\"field\">`. A panel control of your own that should sit among those fields.",
-        "insteadOf": "`canvas`. It resolves to the canvas tone by default, but `canvas` names the work surface; a field that borrows it says the wrong thing and stops following a theme that tunes its fields.",
+        "insteadOf": "`canvas`. `canvas` names the work surface, and its step off the panel is too faint to read as a field in dark mode. This one is mixed from the panel itself, so it follows a theme that retunes the panel. Tune it with `--theme-panel-field`.",
         "pairsWith": [
           "panel-field-hover"
         ]
@@ -17085,7 +17085,7 @@
         },
         {
           "label": "Controlled",
-          "code": "const [themeId, setThemeId] = useState<ThemeId>(\"base\")\n<ThemeSelector value={themeId} onValueChange={setThemeId} />",
+          "code": "const [themeId, setThemeId] = useState<ThemeId>(\"sable\")\n<ThemeSelector value={themeId} onValueChange={setThemeId} />",
           "imports": "import { ThemeSelector, type ThemeId } from \"@sableui/react\""
         },
         {

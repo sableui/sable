@@ -62,7 +62,7 @@ const { themeId, setThemeId, themes, mode } = useSableTheme()
 ```tsx
 import { ThemeSelector, type ThemeId } from "@sableui/react"
 
-const [themeId, setThemeId] = useState<ThemeId>("base")
+const [themeId, setThemeId] = useState<ThemeId>("sable")
 <ThemeSelector value={themeId} onValueChange={setThemeId} />
 ```
 

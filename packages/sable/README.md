@@ -1,6 +1,6 @@
 # Sable
 
-**Sable** — a themeable React component system with layout patterns, semantic tokens and tools for coding agents. Default theme: **Base**. On npm as `@sableui/react`; docs and the live catalog at [sableui.com](https://www.sableui.com).
+**Sable** — a themeable React component system with layout patterns, semantic tokens and tools for coding agents. Default theme: **Sable**. On npm as `@sableui/react`; docs and the live catalog at [sableui.com](https://www.sableui.com).
 
 For a clickable iOS prototype (demos and presentations, not production), ask the
 Sable skill to build with the iOS target. Every screen is Sable components in your
@@ -13,7 +13,7 @@ Frame it with `PhoneFrame` from `@sableui/react/ios/preview`. See
 
 Original Sable code is [MIT licensed](./LICENSE).
 
-The featured presets are Base (neutral), Meridian (square), Prism (compact technical),
+The featured presets are Sable (neutral), Meridian (square), Prism (compact technical),
 Verdant (serif), Ember (warm), and Poppy (playful). Every preset supports light and
 dark modes. Load its declared fonts and use `ThemeSelector` to offer preset choices.
 [Third-party notices](./THIRD_PARTY_NOTICES.md) list the software and fonts used

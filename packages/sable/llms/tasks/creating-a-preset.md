@@ -21,7 +21,7 @@ pnpm exec sable preset --check .sable/presets/clay.json --json
 pnpm exec sable preset --css .sable/presets/clay.json
 ```
 
-The template starts from a complete Base theme snapshot. Give it a unique ID and
+The template starts from a complete Sable theme snapshot. Give it a unique ID and
 label; author its tokens, direction, and reference observations. Avoid IDs of
 bundled themes. Save the record at `.sable/presets/<id>.json`. Advance `revision`
 when changing a shared record; keep earlier revisions when reproducibility matters.

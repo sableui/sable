@@ -263,7 +263,7 @@ export function DocsShell({
 	 * ("width capped BY ROLE, never globally"), and the docs published that
 	 * sentence while doing the opposite one component away. A raw value also
 	 * opts the whole site out of theming: `--region-content` is 56rem in
-	 * Base and 960px in Ember, and a hardcoded 64rem ignores both.
+	 * Sable and 960px in Ember, and a hardcoded 64rem ignores both.
 	 *
 	 * Prose routes take `content`; the catalog and playground take `wide`
 	 * because a three-column grid of tiles is a different kind of surface.

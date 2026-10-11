@@ -38,7 +38,7 @@ const PARAM = "look"
  * - `data-canvas-chrome` — the inspector itself.
  *   It must not change while you tune the system it edits, or every drag moves
  *   the control under your pointer and every color change repaints the panel
- *   you are using. Chrome also carries `data-sable-theme="base"`, so it is
+ *   you are using. Chrome also carries `data-sable-theme="sable"`, so it is
  *   always the house look, in the page's mode.
  * - `data-preset-preview` — a preset rendered as shipped (the Presets page).
  *

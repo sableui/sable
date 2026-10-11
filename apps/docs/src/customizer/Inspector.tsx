@@ -26,7 +26,7 @@ function Group({ title, hint, children, action }: { title: string; hint?: string
 /**
  * The inspector — a floating tool panel, not a settings sidebar. It follows the
  * page's light/dark mode (so the preset tiles it paints sit on matching chrome)
- * but is always the house look — Base, at the tool scale
+ * but is always the house look — the Sable theme, at the tool scale
  * (`data-canvas-chrome`, see CustomizerProvider) — so neither a preset nor
  * the look you are tuning repaints or resizes the controls you are using. That separation is what makes it feel like a design tool: the tool
  * is not part of the artboard.
@@ -85,7 +85,7 @@ export function Inspector({
 		<aside
 			aria-label="Customize"
 			data-canvas-chrome=""
-			data-sable-theme="base"
+			data-sable-theme="sable"
 			className={cn(
 				"relative flex flex-col overflow-hidden sable-surface-popover bg-popover text-popover-foreground ring-1 ring-border-floating",
 				mode === "dark" && "dark",

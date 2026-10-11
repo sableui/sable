@@ -166,7 +166,7 @@ describe("evaluateNonTextContrast — the structural gate", () => {
 	})
 
 	it("carries a focus ring on perception when the ratio just misses", () => {
-		// Base's light ring on its page background: 2.88:1, Lc 55.1. The ratio
+		// Sable's light ring on its page background: 2.88:1, Lc 55.1. The ratio
 		// says no by a hair; perception says comfortably yes, and the hard floor
 		// keeps that from being a bypass.
 		const v = evaluateNonTextContrast(c("oklch(70.9% 0.0064 286)"), WHITE, "focus")
@@ -183,7 +183,7 @@ describe("evaluateNonTextContrast — the structural gate", () => {
 	})
 
 	it("holds hairlines to visibility rather than to conformance", () => {
-		// A quiet hairline is the house style — 1.4:1 is a real Base border and
+		// A quiet hairline is the house style — 1.4:1 is a real Sable border and
 		// must not be a build failure. What must fail is a line that isn't there.
 		const quiet = evaluateNonTextContrast(c("oklch(92% 0 0)"), WHITE, "hairline")
 		expect(quiet.ratio).toBeLessThan(NON_TEXT_FLOOR)
@@ -224,7 +224,7 @@ describe("sRGB gamut", () => {
 	})
 
 	it("detects a colour OKLCH can name and sRGB cannot show", () => {
-		// A real shipped value: Base's `--tone-collectible`. Blue overshoots by
+		// A real shipped value: Sable's `--tone-collectible`. Blue overshoots by
 		// 0.41 in linear light, so the browser clips it and renders a colour the
 		// theme never authored.
 		const outside = oklchToLinearRgb(0.72, 0.225, 285)

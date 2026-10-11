@@ -11,7 +11,7 @@ Install it from npm as `@sableui/react`. Docs and the live catalog are at
 
 This repo is a small pnpm workspace:
 
-- **`packages/sable`** → the published library (`@sableui/react`). Tailwind v4 + semantic CSS-variable tokens, behaviour from Base UI, a pluggable icon adapter, and a token-driven motion layer. Default theme: **Base**.
+- **`packages/sable`** → the published library (`@sableui/react`). Tailwind v4 + semantic CSS-variable tokens, behaviour from Base UI, a pluggable icon adapter, and a token-driven motion layer. Default theme: **Sable**.
 - **`apps/docs`** → the living catalog (`@sableui/docs`), a Vite SPA that renders every component, token, and pattern. Not published.
 
 ## Local development

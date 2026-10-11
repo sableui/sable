@@ -319,7 +319,7 @@ Which token to reach for, and what it is most often confused with. Generated fro
 - **`panel-raised`** — One step up from `panel`: a selected row, a hover fill, a nested well. *Use for:* Tree row selection, hovered panel rows, and the light square of a checkerboard.
     - **Not** `accent`. In a workspace the tonal band is only a few units wide; `accent` is a page-register step and reads as a shout in chrome.
 - **`panel-field`** — The inset fill of a compact control docked in a panel. *Use for:* The `size="xs"` field rung (Input, SelectTrigger, ScrubField share it) and `<Button variant="field">`. A panel control of your own that should sit among those fields.
-    - **Not** `canvas`. It resolves to the canvas tone by default, but `canvas` names the work surface; a field that borrows it says the wrong thing and stops following a theme that tunes its fields.
+    - **Not** `canvas`. `canvas` names the work surface, and its step off the panel is too faint to read as a field in dark mode. This one is mixed from the panel itself, so it follows a theme that retunes the panel. Tune it with `--theme-panel-field`.
 - **`panel-field-hover`** — The hover step of a `panel-field` control. *Use for:* `hover:bg-panel-field-hover` on anything filled with `panel-field`.
     - **Not** `hover:bg-panel-raised`. A fixed surface token as a hover is what the surface-hover lint rejects; this one is defined against the panel field it steps from.
 - **`hairline`** — The 1px structural line that carries all separation in tool chrome. *Use for:* Between panel sections, under a toolbar, above a status bar.

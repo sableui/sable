@@ -119,7 +119,7 @@ export const themeSelectorMeta: ComponentMeta = {
 		},
 		{
 			label: "Controlled",
-			code: 'const [themeId, setThemeId] = useState<ThemeId>("base")\n<ThemeSelector value={themeId} onValueChange={setThemeId} />',
+			code: 'const [themeId, setThemeId] = useState<ThemeId>("sable")\n<ThemeSelector value={themeId} onValueChange={setThemeId} />',
 		},
 		{
 			label: "In chrome — a popover or a docked panel",

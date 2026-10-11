@@ -255,7 +255,7 @@ const WORKSPACE_SURFACES: Record<string, TokenDoc> = {
 		whenToUse:
 			'The `size="xs"` field rung (Input, SelectTrigger, ScrubField share it) and `<Button variant="field">`. A panel control of your own that should sit among those fields.',
 		insteadOf:
-			"`canvas`. It resolves to the canvas tone by default, but `canvas` names the work surface; a field that borrows it says the wrong thing and stops following a theme that tunes its fields.",
+			"`canvas`. `canvas` names the work surface, and its step off the panel is too faint to read as a field in dark mode. This one is mixed from the panel itself, so it follows a theme that retunes the panel. Tune it with `--theme-panel-field`.",
 		pairsWith: ["panel-field-hover"],
 	},
 	"panel-field-hover": {

@@ -243,7 +243,7 @@ On npm as `@sableui/react`. The structured recipe is the `consume` block in `reg
 @source "<path-to>/@sableui/react/dist/**/*.{js,mjs}"; /* workspace: packages/sable/src; published: node_modules/@sableui/react/dist */
 ```
 
-4. **Fonts:** the theme declares the stacks; the host loads the files (every featured primary is available through Google Fonts). Per theme — base: Figtree + DM Mono · meridian: Instrument Sans + Geist Mono · prism: Outfit + Roboto Mono + Playfair Display (display) · verdant: Inter + IBM Plex Mono + Instrument Serif (display) · ember: Work Sans + DM Mono · poppy: Albert Sans + Red Hat Mono + Unbounded (display). The machine-readable list is `registry.json → themes.available[].fonts`.
+4. **Fonts:** the theme declares the stacks; the host loads the files (every featured primary is available through Google Fonts). Per theme — sable: Figtree + DM Mono · meridian: Instrument Sans + Geist Mono · prism: Outfit + Roboto Mono + Playfair Display (display) · verdant: Inter + IBM Plex Mono + Instrument Serif (display) · ember: Work Sans + DM Mono · poppy: Albert Sans + Red Hat Mono + Unbounded (display). The machine-readable list is `registry.json → themes.available[].fonts`.
 5. **Providers + theme switching:**
 
 ```tsx
@@ -653,7 +653,7 @@ chosen by what the surface *does*:
 - `secondary` — a control fill (something you can press)
 - `accent` — a transient state (hover, selected, current)
 
-Pick by appearance and it works in Base and breaks in Meridian. Every token's
+Pick by appearance and it works in the Sable theme and breaks in Meridian. Every token's
 intent, and what it gets confused with, is in
 `llms/reference/token-intent.md`.
 
@@ -1309,7 +1309,7 @@ pnpm exec sable preset --check .sable/presets/clay.json --json
 pnpm exec sable preset --css .sable/presets/clay.json
 ```
 
-The template starts from a complete Base theme snapshot. Give it a unique ID and
+The template starts from a complete Sable theme snapshot. Give it a unique ID and
 label; author its tokens, direction, and reference observations. Avoid IDs of
 bundled themes. Save the record at `.sable/presets/<id>.json`. Advance `revision`
 when changing a shared record; keep earlier revisions when reproducibility matters.
@@ -1435,7 +1435,7 @@ requirement that every future brand use the same illustration or font pairing.
 
 Tokens make decisions consistent; they do not decide what deserves attention.
 Start with the user's task and content, then choose a visual direction. Sable's
-default Base identity is a starting point. A consumer can be light-first,
+default Sable identity is a starting point. A consumer can be light-first,
 photographic, editorial, playful, or quiet while retaining semantic tokens,
 accessible behavior, and a coherent interaction policy.
 
@@ -18843,7 +18843,7 @@ const { themeId, setThemeId, themes, mode } = useSableTheme()
 ```tsx
 import { ThemeSelector, type ThemeId } from "@sableui/react"
 
-const [themeId, setThemeId] = useState<ThemeId>("base")
+const [themeId, setThemeId] = useState<ThemeId>("sable")
 <ThemeSelector value={themeId} onValueChange={setThemeId} />
 ```
 
@@ -20304,7 +20304,7 @@ Which token to reach for, and what it is most often confused with. Generated fro
 - **`panel-raised`** — One step up from `panel`: a selected row, a hover fill, a nested well. *Use for:* Tree row selection, hovered panel rows, and the light square of a checkerboard.
     - **Not** `accent`. In a workspace the tonal band is only a few units wide; `accent` is a page-register step and reads as a shout in chrome.
 - **`panel-field`** — The inset fill of a compact control docked in a panel. *Use for:* The `size="xs"` field rung (Input, SelectTrigger, ScrubField share it) and `<Button variant="field">`. A panel control of your own that should sit among those fields.
-    - **Not** `canvas`. It resolves to the canvas tone by default, but `canvas` names the work surface; a field that borrows it says the wrong thing and stops following a theme that tunes its fields.
+    - **Not** `canvas`. `canvas` names the work surface, and its step off the panel is too faint to read as a field in dark mode. This one is mixed from the panel itself, so it follows a theme that retunes the panel. Tune it with `--theme-panel-field`.
 - **`panel-field-hover`** — The hover step of a `panel-field` control. *Use for:* `hover:bg-panel-field-hover` on anything filled with `panel-field`.
     - **Not** `hover:bg-panel-raised`. A fixed surface token as a hover is what the surface-hover lint rejects; this one is defined against the panel field it steps from.
 - **`hairline`** — The 1px structural line that carries all separation in tool chrome. *Use for:* Between panel sections, under a toolbar, above a status bar.

@@ -1,6 +1,6 @@
 {
 	"name": "@sableui/react",
-	"version": "0.3.2",
+	"version": "0.4.0",
 	"description": "Sable: themeable React components, layout patterns, and tools for coding agents.",
 	"type": "module",
 	"sideEffects": [
@@ -71,11 +71,11 @@
 			"default": "./src/themes/ember/index.ts"
 		},
 		"./theme/ember.css": "./src/themes/ember/ember.css",
-		"./theme/base": {
-			"types": "./src/themes/base/index.ts",
-			"default": "./src/themes/base/index.ts"
+		"./theme/sable": {
+			"types": "./src/themes/sable/index.ts",
+			"default": "./src/themes/sable/index.ts"
 		},
-		"./theme/base.css": "./src/themes/base/base.css",
+		"./theme/sable.css": "./src/themes/sable/sable.css",
 		"./theme/poppy": {
 			"types": "./src/themes/poppy/index.ts",
 			"default": "./src/themes/poppy/index.ts"
@@ -207,11 +207,11 @@
 				"default": "./dist/themes/ember/index.js"
 			},
 			"./theme/ember.css": "./dist/themes/ember/ember.css",
-			"./theme/base": {
-				"types": "./dist/themes/base/index.d.ts",
-				"default": "./dist/themes/base/index.js"
+			"./theme/sable": {
+				"types": "./dist/themes/sable/index.d.ts",
+				"default": "./dist/themes/sable/index.js"
 			},
-			"./theme/base.css": "./dist/themes/base/base.css",
+			"./theme/sable.css": "./dist/themes/sable/sable.css",
 			"./theme/poppy": {
 				"types": "./dist/themes/poppy/index.d.ts",
 				"default": "./dist/themes/poppy/index.js"

@@ -212,6 +212,19 @@ export const c = <Toggle invented />`)
 		expect(run(dir, ["Surface.tsx", "--icons", "extra.json"]).code).toBe("ERR_GRADE_INPUT")
 	})
 
+	it("skips --ignore paths in the checks, as sable-lint does, but still fingerprints them", () => {
+		const dir = makeFixture()
+		mkdirSync(join(dir, "lib", "docs"), { recursive: true })
+		writeFileSync(join(dir, "lib", "docs", "palette.ts"), 'export const swatches = ["#8C9B82", "#E4D6C3"]')
+		const all = run(dir, ["."]).data
+		expect(all.counts.contract).toBe(2)
+		const skipped = run(dir, [".", "--ignore", "lib/**"]).data
+		expect(skipped.counts.contract).toBe(0)
+		expect(skipped.ignored).toEqual({ globs: ["lib/**"], files: 1 })
+		expect(skipped.sourceHash).toBe(all.sourceHash)
+		expect(run(dir, [".", "--ignore=lib/**"]).data.counts.contract).toBe(0)
+	})
+
 	it("returns recoverable input errors for broken review JSON", () => {
 		const dir = makeFixture()
 		writeFileSync(join(dir, "review.json"), "{")

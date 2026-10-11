@@ -99,7 +99,7 @@ try {
 	await capture("home-verdant-desktop", "/", { width: 1440, height: 1000 }, "dark")
 	await clickButton("Atelier")
 	await capture("home-atelier-mobile", "/", { width: 390, height: 844 }, "light")
-	await clickButton("Base")
+	await clickButton("Sable")
 	await page.click('main a[href="/customize"]')
 	await page.waitForFunction(() => document.title === "Canvas — Sable")
 	assert(await page.$('header a[href="/introduction"]'), "Canvas has no return-home link")

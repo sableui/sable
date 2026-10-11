@@ -7,7 +7,7 @@ import type { ThemeManifest } from "../_contract"
 export const atelierTheme: ThemeManifest = {
 	id: "atelier",
 	label: "Atelier",
-	deprecated: { replacement: "base" },
+	deprecated: { replacement: "sable" },
 	modes: ["light","dark"],
 	defaultMode: "light",
 	fonts: {

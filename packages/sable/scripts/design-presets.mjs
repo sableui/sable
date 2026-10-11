@@ -15,7 +15,7 @@ try {
 	const action = modes[0]
 	if (action === "--template") {
 		const manifest = JSON.parse(readFileSync(resolve(packageRoot, "package.json"), "utf8"))
-		const css = readFileSync(resolve(packageRoot, "dist/themes/base/base.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")
+		const css = readFileSync(resolve(packageRoot, "dist/themes/sable/sable.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")
 		const groups = { light: {}, dark: {} }
 		for (const match of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
 			const target = match[1].includes(".dark") ? groups.dark : groups.light

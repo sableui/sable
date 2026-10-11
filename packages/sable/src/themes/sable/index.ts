@@ -1,12 +1,12 @@
 import type { ThemeManifest } from "../_contract"
 
 /**
- * Base — the default Sable theme. Concrete token values live in
- * `base.css`; this manifest is the typed, machine-readable description.
+ * Sable — the default theme. Concrete token values live in
+ * `sable.css`; this manifest is the typed, machine-readable description.
  */
-export const baseTheme: ThemeManifest = {
-	id: "base",
-	label: "Base",
+export const sableTheme: ThemeManifest = {
+	id: "sable",
+	label: "Sable",
 	modes: ["dark", "light"],
 	defaultMode: "dark",
 	fonts: {
@@ -15,4 +15,4 @@ export const baseTheme: ThemeManifest = {
 	},
 }
 
-export default baseTheme
+export default sableTheme

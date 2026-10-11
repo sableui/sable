@@ -6,8 +6,8 @@
      @import "@sableui/react/themes.css";   ← this file
 
    For an app that offers the bundled set as user-selectable themes (a
-   `<ThemeSelector>` over Base / Meridian / Prism / Verdant / Ember / Poppy). `styles.css`
-   carries Base alone, since the alternates are `[data-sable-theme]`-scoped
+   `<ThemeSelector>` over Sable / Meridian / Prism / Verdant / Ember / Poppy). `styles.css`
+   carries the Sable theme alone, since the alternates are `[data-sable-theme]`-scoped
    and dead weight in the overwhelmingly common single-theme app.
 
    Needing exactly one alternate? Import just that one instead — this file is a
@@ -15,7 +15,7 @@
 
      @import "@sableui/react/theme/prism.css";
 
-   Base is NOT here: it ships in `styles.css` and must, since it declares
+   The Sable theme is NOT here: it ships in `styles.css` and must, since it declares
    the layout floor (`--page-inset`, `--region-*`, `--rhythm-unit`) on a bare
    `:root` that every other theme inherits.
    ========================================================================== */

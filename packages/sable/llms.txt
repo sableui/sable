@@ -243,7 +243,7 @@ On npm as `@sableui/react`. The structured recipe is the `consume` block in `reg
 @source "<path-to>/@sableui/react/dist/**/*.{js,mjs}"; /* workspace: packages/sable/src; published: node_modules/@sableui/react/dist */
 ```
 
-4. **Fonts:** the theme declares the stacks; the host loads the files (every featured primary is available through Google Fonts). Per theme — base: Figtree + DM Mono · meridian: Instrument Sans + Geist Mono · prism: Outfit + Roboto Mono + Playfair Display (display) · verdant: Inter + IBM Plex Mono + Instrument Serif (display) · ember: Work Sans + DM Mono · poppy: Albert Sans + Red Hat Mono + Unbounded (display). The machine-readable list is `registry.json → themes.available[].fonts`.
+4. **Fonts:** the theme declares the stacks; the host loads the files (every featured primary is available through Google Fonts). Per theme — sable: Figtree + DM Mono · meridian: Instrument Sans + Geist Mono · prism: Outfit + Roboto Mono + Playfair Display (display) · verdant: Inter + IBM Plex Mono + Instrument Serif (display) · ember: Work Sans + DM Mono · poppy: Albert Sans + Red Hat Mono + Unbounded (display). The machine-readable list is `registry.json → themes.available[].fonts`.
 5. **Providers + theme switching:**
 
 ```tsx

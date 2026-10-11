@@ -4,7 +4,7 @@
  * never a theme's internal palette steps — which is what makes the system
  * re-themeable without touching component code.
  *
- * To author a new theme: copy `themes/base/`, keep these token names, and
+ * To author a new theme: copy `themes/sable/`, keep these token names, and
  * supply your own palette + values. See CONTRIBUTING.md → "Theme contract".
  */
 
@@ -84,7 +84,7 @@ export type SemanticToken = (typeof SEMANTIC_TOKENS)[number]
 
 /**
  * Motion tokens (mode-independent). A theme MAY override these to retune its
- * motion feel; if omitted, the Base defaults apply. Components reference
+ * motion feel; if omitted, the Sable theme's defaults apply. Components reference
  * them via `duration-(--motion-duration-*)` + the `ease-*` utilities, or — far
  * more often — via the named motion recipes (`motion-pop`, `motion-press`, …)
  * defined in styles.css. Every duration is multiplied by `--motion-scale`, the
@@ -116,7 +116,7 @@ export type MotionToken = (typeof MOTION_TOKENS)[number]
 /**
  * Radius tokens (mode-independent). A theme MAY override these to retune its
  * shape language (soft-square, rectilinear, full-pill, …); if omitted, the
- * Base defaults apply (see styles.css → `@theme inline`, which bridges
+ * Sable defaults apply (see styles.css → `@theme inline`, which bridges
  * each `--theme-radius-*` var to the `radius-*` Tailwind scale). Components
  * never reference these directly — they use the derived `rounded-*`
  * utilities.
@@ -136,7 +136,7 @@ export type RadiusToken = (typeof RADIUS_TOKENS)[number]
 /**
  * Type-scale tokens (mode-independent). A theme MAY override these to retune
  * its typographic voice (weight, leading, tracking, and — for heading/display
- * tiers — size); if omitted, the Base defaults baked into styles.css's
+ * tiers — size); if omitted, the Sable theme's defaults baked into styles.css's
  * paired `text-*` utilities apply. Additional body/label/caption/mono and size
  * hooks are advertised separately in TYPE_REFINEMENT_TOKENS: they are optional,
  * so a theme can retune its reading voice without duplicating every default.
@@ -393,9 +393,9 @@ export type LayeringToken = (typeof LAYERING_TOKENS)[number]
  *   tuned for the opposite job (lifting content off a page).
  * - `panel-field` / `panel-field-hover` are the inset fill of a compact control
  *   docked in a panel (the `size="xs"` field rung, a field-style button) and its
- *   hover step. They default to `canvas` / `panel-raised`, but name the role so
- *   a consumer's own panel control can wear it without borrowing the work
- *   surface's token or a fixed hover the surface-hover rule rightly rejects.
+ *   hover step, mixed from the panel they sit in. Named so a consumer's own panel
+ *   control can wear them without borrowing the work surface's token or a fixed
+ *   hover the surface-hover rule rightly rejects.
  * - `hairline` / `hairline-strong` are that structural edge. In this register
  *   hairlines carry structure INSTEAD of tonal steps — a deliberate reversal of
  *   the page register's "prefer a tonal step or space over a divider line".

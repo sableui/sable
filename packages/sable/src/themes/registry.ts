@@ -4,15 +4,15 @@ import { meridianTheme } from "./meridian"
 import { prismTheme } from "./prism"
 import { verdantTheme } from "./verdant"
 import { emberTheme } from "./ember"
-import { baseTheme } from "./base"
+import { sableTheme } from "./sable"
 import { poppyTheme } from "./poppy"
 
 export const SABLE_THEME_ATTRIBUTE = "data-sable-theme" as const
-export const DEFAULT_THEME_ID = baseTheme.id
+export const DEFAULT_THEME_ID = sableTheme.id
 export const defaultThemeId = DEFAULT_THEME_ID
 
 export const themeManifests = [
-	baseTheme,
+	sableTheme,
 	meridianTheme,
 	prismTheme,
 	verdantTheme,
@@ -65,7 +65,7 @@ export function isKnownThemeId(
 }
 
 export {
-	baseTheme,
+	sableTheme,
 	poppyTheme,
 	atelierTheme,
 	emberTheme,

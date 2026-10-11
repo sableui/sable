@@ -12,7 +12,7 @@
    @utility set, and an @source directive so Tailwind scans the package.
    ========================================================================== */
 
-/* Base ONLY. It is the default theme, and it is also the layout floor:
+/* The Sable theme ONLY. It is the default theme, and it is also the layout floor:
    `--page-inset`, the `--region-*` caps, `--rhythm-unit`, `--grid-*` and
    `--z-*` are declared here on a bare `:root`, so every other theme — bundled
    or app-owned — inherits them. Removing it does not save 18 KB, it silently
@@ -30,10 +30,10 @@
      @import "@sableui/react/themes.css";
 
    The failure mode if you forget: `data-sable-theme` is set, nothing matches,
-   and the page renders as Base — no error, just the wrong theme. If a
+   and the page renders as the Sable theme — no error, just the wrong theme. If a
    theme selector looks like it does nothing, this import is the first thing
    to check. */
-@import "./themes/base/base.css";
+@import "./themes/sable/sable.css";
 
 /* Scan the package for utility classes (path is relative to THIS file). Covers
    both workspace source (.ts/.tsx next to this file in src/) and the compiled
@@ -119,7 +119,7 @@
 	/* Motion easings → ease-* utilities (ease-standard/decelerate/emphasized;
 	   `linear` is built-in). Durations stay raw CSS vars and are consumed via
 	   `duration-(--motion-duration-*)` so the --motion-scale kill-switch applies.
-	   See themes/base/base.css → Motion tokens, and DESIGN.md → Motion. */
+	   See themes/sable/sable.css → Motion tokens, and DESIGN.md → Motion. */
 	--ease-standard: var(--motion-ease-standard);
 	--ease-decelerate: var(--motion-ease-decelerate);
 	--ease-emphasized: var(--motion-ease-emphasized);
@@ -168,7 +168,7 @@
    dims what is behind it, per mode.
 
    `--overlay` is near-black in every theme and mode, which is right for a
-   scrim. But a dark page is near-black too: Base's dark `--background` IS its
+   scrim. But a dark page is near-black too: the Sable theme's dark `--background` IS its
    `--overlay`, so a 50% scrim over it changed nothing, and with a dialog open
    the page's text stayed at nearly full strength — while foundations/surfaces
    calls the scrim "the primary depth cue" for a modal. Dark mode needs more of
@@ -322,11 +322,12 @@
 	--panel-raised: var(--theme-panel-raised, color-mix(in oklch, var(--background) 94%, var(--foreground)));
 
 	/* A compact control docked in a panel: the xs field rung and a field-style
-	   button. Inset to the canvas tone at rest, a panel step under the pointer.
-	   Named so a panel control states its role instead of borrowing the work
-	   surface's token and a fixed hover. */
-	--panel-field: var(--theme-panel-field, var(--canvas));
-	--panel-field-hover: var(--theme-panel-field-hover, var(--panel-raised));
+	   button. Mixed from the panel it sits in, a further step under the pointer.
+	   It used to borrow the canvas tone (3% ink), which measured 1.04:1 against
+	   a dark panel: the field all but vanished. 9% is what a shipped inspector
+	   settled on (1.15:1 dark, 1.25:1 light). */
+	--panel-field: var(--theme-panel-field, color-mix(in oklch, var(--panel) 91%, var(--panel-foreground)));
+	--panel-field-hover: var(--theme-panel-field-hover, color-mix(in oklch, var(--panel) 88%, var(--panel-foreground)));
 
 	/* The structural edge. Alpha-based so it holds over any surface beneath it. */
 	--hairline: var(--theme-hairline, color-mix(in oklch, transparent 93%, var(--foreground)));
@@ -1477,7 +1478,7 @@
 
    Motion is a first-class layer of Sable. Three ideas:
 
-   1. TOKENS (themes/base/base.css): a duration ladder + semantic
+   1. TOKENS (themes/sable/sable.css): a duration ladder + semantic
       easings, every duration scaled by --motion-scale.
    2. RECIPES (below): named, reusable motion behaviours a component opts into
       with ONE class (e.g. `motion-pop`, `motion-press`) instead of hand-rolling

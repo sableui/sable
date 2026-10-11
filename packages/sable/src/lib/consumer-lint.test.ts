@@ -438,6 +438,19 @@ export const A = () => <div role="slider" />`,
 		expect(style.out).toContain("hand-derived-surface")
 	})
 
+	it("leaves a theme hook's derived value alone, in a stylesheet or an arbitrary property", () => {
+		const css = join(tmp, "theme.css")
+		writeFileSync(css, ":root {\n\t--theme-panel-field: color-mix(in oklch, var(--background) 91%, var(--foreground));\n\t--my-fill: color-mix(in oklch, var(--background) 91%, var(--foreground));\n}\n")
+		try {
+			const r = lint(`export const A = () => <div className="[--theme-panel-field-hover:color-mix(in_oklch,var(--background)_88%,var(--foreground))]" />`)
+			// Only the non-hook declaration is reported.
+			expect(r.out.match(/hand-derived-surface/g)?.length).toBe(1)
+			expect(r.out).toContain("theme.css:3")
+		} finally {
+			rmSync(css)
+		}
+	})
+
 	it("leaves the utilities and other colour mixes alone", () => {
 		const r = lint(
 			`export const A = () => <div className="sable-well bg-hairline" style={{ color: "color-mix(in oklab, var(--primary) 50%, transparent)" }} />`,

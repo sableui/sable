@@ -17,7 +17,7 @@ const semantic = [
 ]
 
 const palettesByTheme = {
-	base: [
+	sable: [
 		"zinc",
 		"purple-heart",
 		"blue-gem",
@@ -26,7 +26,7 @@ const palettesByTheme = {
 		"flush-orange",
 		"torch-red",
 	],
-	// Base and Meridian expose palette ramps; other featured presets use semantic tokens.
+	// Sable and Meridian expose palette ramps; other featured presets use semantic tokens.
 	meridian: ["meridian-ember"],
 } as const
 const ramp = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950]
@@ -84,7 +84,7 @@ const tones = [
 
 function palettesForTheme(themeId: string) {
 	if (themeId === "meridian") return palettesByTheme.meridian
-	if (themeId === "base") return palettesByTheme.base
+	if (themeId === "sable") return palettesByTheme.sable
 	// Other featured presets declare semantic tokens without named palette ramps.
 	return []
 }

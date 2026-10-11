@@ -63,8 +63,8 @@ function Probe() {
 			<button type="button" onClick={() => setThemeId("meridian")}>
 				Cove
 			</button>
-			<button type="button" onClick={() => setThemeId("base")}>
-				Base
+			<button type="button" onClick={() => setThemeId("sable")}>
+				Sable
 			</button>
 			<button type="button" onClick={toggle}>
 				Toggle
@@ -76,14 +76,14 @@ function Probe() {
 afterEach(resetRootTheme)
 
 describe("SableThemeProvider", () => {
-	it.each(["retired-theme", "atelier"])("migrates stored %s to Base and features six presets", (legacyId) => {
+	it.each(["retired-theme", "atelier", "base"])("migrates stored %s to Sable and features six presets", (legacyId) => {
 		window.localStorage.setItem(SABLE_THEME_STORAGE_KEY, legacyId)
 		function PresetProbe() {
 			const { themeId, themes } = useSableTheme()
 			return <p data-testid="presets">{`${themeId}:${themes.map(theme => theme.id).join(",")}`}</p>
 		}
 		render(<SableThemeProvider><PresetProbe /></SableThemeProvider>)
-		expect(screen.getByTestId("presets")).toHaveTextContent("base:base,meridian,prism,verdant,ember,poppy")
+		expect(screen.getByTestId("presets")).toHaveTextContent("sable:sable,meridian,prism,verdant,ember,poppy")
 		expect(document.documentElement).not.toHaveAttribute(SABLE_THEME_ATTRIBUTE)
 	})
 	it("hydrates stored choices and applies updates to the root element", () => {
@@ -105,12 +105,12 @@ describe("SableThemeProvider", () => {
 		expect(document.documentElement).toHaveClass("dark")
 		expect(window.localStorage.getItem(SABLE_COLOR_STORAGE_KEY)).toBe("dark")
 
-		fireEvent.click(screen.getByRole("button", { name: "Base" }))
+		fireEvent.click(screen.getByRole("button", { name: "Sable" }))
 		expect(screen.getByTestId("state")).toHaveTextContent(
-			"base:dark:dark",
+			"sable:dark:dark",
 		)
 		expect(document.documentElement).not.toHaveAttribute(SABLE_THEME_ATTRIBUTE)
-		expect(window.localStorage.getItem(SABLE_THEME_STORAGE_KEY)).toBe("base")
+		expect(window.localStorage.getItem(SABLE_THEME_STORAGE_KEY)).toBe("sable")
 	})
 
 	it("exposes standalone apply helpers for manual app-level control", () => {
@@ -125,7 +125,7 @@ describe("SableThemeProvider", () => {
 		applySableTheme("meridian", element)
 		expect(element).toHaveAttribute(SABLE_THEME_ATTRIBUTE, "meridian")
 
-		applySableTheme("base", element)
+		applySableTheme("sable", element)
 		expect(element).not.toHaveAttribute(SABLE_THEME_ATTRIBUTE)
 	})
 })
@@ -166,7 +166,7 @@ describe("theme-switch transition suppression", () => {
 		expect(suppressorSheets()).toHaveLength(0)
 
 		// Removing the attribute (back to the default theme) is a color change too.
-		applySableTheme("base", element)
+		applySableTheme("sable", element)
 		expect(element).not.toHaveAttribute(SABLE_THEME_ATTRIBUTE)
 		expect(suppressorSheets()).toHaveLength(1)
 

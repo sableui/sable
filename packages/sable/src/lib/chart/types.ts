@@ -22,7 +22,7 @@ export const CHART_SERIES_COUNT = 8
 
 /**
  * The colour of series `index` when it names none: the theme's chart palette,
- * in order. The palette (`--chart-1` … `--chart-8`, defined by the Base theme
+ * in order. The palette (`--chart-1` … `--chart-8`, defined by the Sable theme
  * and inherited by every other) is validated for colour-blind separation of
  * neighbours, a normal-vision floor, a lightness band and a chroma floor, in
  * light and dark. Past eight series, fold the rest into "Other".
