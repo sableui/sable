@@ -2,7 +2,7 @@
 // Components, primitives, layout, and icon adapter are re-exported here as they land.
 // Keep this the single public entry; never deep-import internals from consumer apps.
 
-export const SABLE_UI_VERSION = "0.1.1" as const
+export const SABLE_UI_VERSION = "0.2.0" as const
 
 // Foundations
 export * from "./lib/cn"
@@ -156,7 +156,6 @@ export * from "./components/side-nav"
 export * from "./components/bottom-nav"
 export * from "./components/app-header"
 export * from "./components/page-header"
-export * from "./components/description"
 export * from "./components/search-input"
 export * from "./components/fieldset"
 export * from "./components/form"
