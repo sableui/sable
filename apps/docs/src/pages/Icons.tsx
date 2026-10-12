@@ -1,4 +1,5 @@
-import { CodeBlock, Icon, reiconIconNames } from "@sableui/react"
+import { CodeBlock, Grid, Icon } from "@sableui/react"
+import { reiconIconNames } from "@sableui/react/icons/reicon"
 import { brandIconNames, brandIconSet } from "@sableui/react/icons/brands"
 import { PageHeader, Section } from "../components/docs-ui"
 
@@ -10,14 +11,14 @@ export function IconsPage() {
 			<PageHeader
 				eyebrow="Foundations"
 				title="Icons"
-				lede="Reicon supplies the default icons. Replace or extend the set through IconProvider and every component follows it."
+				lede="Icons come from the set your app mounts once through IconProvider. Reicon ships with Sable as an opt-in set; replace or extend it and every component follows."
 			/>
 
 			<Section
 				title="The set"
 				description="Each icon is named for what it means, not what it looks like."
 			>
-				<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+				<Grid cols={{ base: 2, sm: 3, md: 4, lg: 5 }} gap={1.5}>
 					{names.map((name) => (
 						<div
 							key={name}
@@ -27,14 +28,14 @@ export function IconsPage() {
 							<code className="text-mono-sm text-muted-foreground">{name}</code>
 						</div>
 					))}
-				</div>
+				</Grid>
 			</Section>
 
 			<Section
 				title="Brand marks"
 				description="Logos for social links, sign-in providers and integrations. They take the text color, not their brand color."
 			>
-				<div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7">
+				<Grid cols={{ base: 3, sm: 4, md: 6, lg: 7 }} gap={1.5}>
 					{brandIconNames.map((name) => (
 						<div
 							key={name}
@@ -48,7 +49,7 @@ export function IconsPage() {
 							<code className="text-mono-sm text-muted-foreground">{name}</code>
 						</div>
 					))}
-				</div>
+				</Grid>
 				<p className="mt-4 text-body-sm text-muted-foreground">LinkedIn, Slack, Microsoft, and OpenAI marks are excluded pending artwork permission. The remaining marks retain Reicon's MIT notice; follow each brand's usage guidelines.</p>
 			</Section>
 

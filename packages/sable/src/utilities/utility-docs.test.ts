@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs"
 import { resolve } from "node:path"
 import { describe, expect, it } from "vitest"
-import { UTILITY_DOCS, UTILITY_FAMILIES } from "./utility-docs"
+import { INTERNAL_UTILITIES, UTILITY_DOCS, UTILITY_FAMILIES } from "./utility-docs"
 
 const PKG_ROOT = resolve(__dirname, "..", "..")
 const registry = JSON.parse(readFileSync(resolve(PKG_ROOT, "registry.json"), "utf8"))
@@ -30,13 +30,19 @@ describe("utility docs", () => {
 		const typography = new Set(
 			registry.tokens.typography.map((t: { name: string }) => `text-${t.name}`),
 		)
-		const recipes = new Set(registry.tokens.motion.recipes)
+		const internal = new Set<string>(INTERNAL_UTILITIES)
 		const utilities = new Set(registry.utilities.items.map((u: { name: string }) => u.name))
 		expect(declared.length).toBeGreaterThan(70)
 		const wrong = declared.filter(
-			(name) => [typography.has(name), recipes.has(name), utilities.has(name)].filter(Boolean).length !== 1,
+			(name) => [typography.has(name), internal.has(name), utilities.has(name)].filter(Boolean).length !== 1,
 		)
-		expect(wrong, "documented in none, or more than one, of utilities / tokens.typography / tokens.motion.recipes").toEqual([])
+		expect(wrong, "documented in none, or more than one, of utilities / tokens.typography / INTERNAL_UTILITIES").toEqual([])
+	})
+
+	it("documents every motion recipe sable-lint knows, with intent", () => {
+		// tokens.motion.recipes is a name list; the explanation lives here.
+		const motion = UTILITY_DOCS.filter((u) => u.family === "motion").map((u) => u.name).sort()
+		expect(motion).toEqual([...registry.tokens.motion.recipes].sort())
 	})
 
 	it("documents nothing styles.css does not declare", () => {

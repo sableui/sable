@@ -31,16 +31,16 @@
  *      hand-written capability list is a capability list that lies.
  */
 
-import { execFileSync } from "node:child_process"
+import { spawnSync } from "node:child_process"
 import { appendFileSync, existsSync, readdirSync, readFileSync, statSync } from "node:fs"
 import { dirname, join, relative, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { skeletonize } from "../scripts/skeleton.mjs"
-import { installAgentSkill } from "../scripts/agent-setup.mjs"
+import { claudeStopHook, installAgentSkill, installClaudeStopHook } from "../scripts/agent-setup.mjs"
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const PKG_ROOT = join(HERE, "..")
-const CWD = process.cwd()
+let CWD = process.cwd()
 
 /* ── The catalog. ───────────────────────────────────────────────────────────── */
 
@@ -99,6 +99,7 @@ const COMMANDS = [
 			{ name: "--root", value: "dir", describe: "Write the entries in this ancestor instead, e.g. the repository root when Sable belongs to one workspace package. Run setup in that package." },
 			{ name: "--update", value: null, describe: "Refresh unchanged managed entries after a package upgrade." },
 			{ name: "--dry-run", value: null, describe: "Check and report the destination without writing files." },
+			{ name: "--hook", value: null, describe: "Also add a Claude Code Stop hook that runs `sable check` to .claude/settings.json (Claude targets only). Without it, setup prints the hook and writes nothing there." },
 		],
 		returns: ["setup.agent"],
 	},
@@ -111,17 +112,30 @@ const COMMANDS = [
 	},
 	{
 		name: "search",
-		summary: "One ranked result set across components, patterns, blocks, layout primitives, utilities, tokens, and docs.",
+		summary: "One ranked result set across components, providers, patterns, blocks, layout primitives, utilities, tokens, and docs.",
 		arg: { name: "query", required: true },
 		flags: [
-			{ name: "--type", value: "component|pattern|block|layout|utility|token|doc", describe: "Restrict to one kind." },
+			{ name: "--type", value: "component|provider|pattern|block|layout|utility|token|doc", describe: "Restrict to one kind." },
 			{ name: "--limit", value: "n", describe: "Cap results. Default 20." },
 		],
 		returns: ["search"],
 	},
 	{
+		name: "check",
+		summary: "Run before declaring a build done: doctor, lint and grade in one pass, then the review steps no tool can verify. Exits 1 if any check fails.",
+		arg: { name: "path...", required: false },
+		flags: [
+			{ name: "--ignore", value: "glob", repeatable: true, describe: "Skip matching paths in lint and grade. Repeatable." },
+			{ name: "--review", value: "review.json", describe: "Also require recorded review evidence (as sable grade --review)." },
+			{ name: "--icons", value: "icons.json", describe: "Icon names the app adds, as for sable grade --icons." },
+			{ name: "--root", value: "dir", describe: "Check this project directory instead of the current one. Under --stop-hook it is relative to $CLAUDE_PROJECT_DIR." },
+			{ name: "--stop-hook", value: null, describe: "Agent Stop-hook mode: checks the project at $CLAUDE_PROJECT_DIR (plus --root); on failure prints the summary to stderr and exits 2, so the agent keeps working instead of ending its turn." },
+		],
+		returns: ["check"],
+	},
+	{
 		name: "component",
-		summary: "A component's contract: props, subcomponents, a11y, tokens, examples.",
+		summary: "A component's contract: props, subcomponents, a11y, tokens, examples. A provider name resolves to its provider entry.",
 		arg: { name: "Name", required: false },
 		flags: [
 			{ name: "--list", value: null, describe: "List the catalog instead." },
@@ -167,6 +181,17 @@ const COMMANDS = [
 		returns: ["layout.list", "layout.detail", "layout.doctrine"],
 	},
 	{
+		name: "provider",
+		summary: "App-level providers (SableThemeProvider, IconProvider, MotionProvider, ToastProvider, …): where to mount each, props, and examples.",
+		arg: { name: "Name", required: false },
+		flags: [
+			{ name: "--list", value: null, describe: "List the providers instead." },
+			{ name: "--props", value: null, describe: "Props table only." },
+			{ name: "--examples", value: null, describe: "Examples only, imports included." },
+		],
+		returns: ["provider.list", "provider.detail", "provider.props", "provider.examples"],
+	},
+	{
 		name: "token",
 		summary: "The token contract, with intent — what each token means and what it is NOT.",
 		arg: { name: "group", required: false },
@@ -175,7 +200,7 @@ const COMMANDS = [
 	},
 	{
 		name: "utility",
-		summary: "The CSS utility layer, with intent — relative surfaces, frames, state variants, scroll policies — and what each replaces.",
+		summary: "The CSS utility layer, with intent — relative surfaces, frames, state variants, scroll policies, motion recipes, type tiers — and what each replaces.",
 		arg: { name: "name", required: false },
 		flags: [
 			{ name: "--list", value: null, describe: "List the utilities, grouped by family." },
@@ -185,11 +210,11 @@ const COMMANDS = [
 	},
 	{
 		name: "docs",
-		summary: "The llms/ markdown mirrors: per-component pages, task walkthroughs, token intent.",
+		summary: "The package's own guides (AGENTS, README, CONTRIBUTING, DESIGN, CHANGELOG) and the llms/ markdown mirrors: per-component pages, task walkthroughs, token intent.",
 		arg: { name: "slug", required: false },
 		flags: [
 			{ name: "--list", value: null, describe: "List every doc slug." },
-			{ name: "--kind", value: "components|layout|patterns|blocks|reference|tasks|taste", describe: "With --list: one kind." },
+			{ name: "--kind", value: "package|components|layout|patterns|blocks|foundations|reference|tasks|taste", describe: "With --list: one kind." },
 		],
 		returns: ["docs.list", "docs.detail"],
 	},
@@ -210,7 +235,7 @@ const COMMANDS = [
 			{ name: "--strict", value: null, describe: "Exit 1 for contract findings or missing/incomplete/unresolved review evidence." },
 			{ name: "--cli-log", value: "file.jsonl", describe: "Include retrieval usage from a SABLE_CLI_LOG file." },
 			{ name: "--icons", value: "icons.json", describe: 'Icon names the app adds with composeIconSets, as { "names": [...] }. Default: .sable/icons.json when present.' },
-			{ name: "--ignore", value: "glob", describe: "Skip matching paths in the checks, with the same globs as sable-lint --ignore. Repeatable." },
+			{ name: "--ignore", value: "glob", repeatable: true, describe: "Skip matching paths in the checks, with the same globs as sable-lint --ignore. Repeatable." },
 		],
 		returns: ["grade.score", "grade.template"],
 	},
@@ -232,8 +257,12 @@ const COMMANDS = [
 		name: "lint",
 		summary: "Run the design contract against this project (delegates to sable-lint).",
 		arg: { name: "dir...", required: false },
-		flags: [{ name: "--rules", value: null, describe: "List the rules." }],
-		returns: ["(passthrough)"],
+		flags: [
+			{ name: "--rules", value: null, describe: "List the rules." },
+			{ name: "--ignore", value: "glob", repeatable: true, describe: "Skip matching paths. Repeatable." },
+			{ name: "--since", value: "version", describe: "What the contract added since that version." },
+		],
+		returns: ["lint"],
 	},
 	{
 		name: "atlas",
@@ -292,7 +321,10 @@ const ERROR_CODES = [
 	{ code: "ERR_UNKNOWN_LAYOUT", when: "No layout primitive by that name." },
 	{ code: "ERR_UNKNOWN_TOKEN_GROUP", when: "No token group by that name." },
 	{ code: "ERR_UNKNOWN_UTILITY", when: "No utility or variant by that name. `suggestions` carries near matches." },
-	{ code: "ERR_UNKNOWN_DOC", when: "No doc mirror by that slug." },
+	{ code: "ERR_UNKNOWN_DOC", when: "No package guide or doc mirror by that slug. `suggestions` carries near matches and the package guides." },
+	{ code: "ERR_UNKNOWN_PROVIDER", when: "No provider by that name. `suggestions` carries near matches." },
+	{ code: "ERR_LINT_INPUT", when: "sable lint --json: a path to lint does not exist." },
+	{ code: "ERR_CHECK_FAILED", when: "sable check: doctor, lint, or grade failed. `data.checks` names which." },
 	{ code: "ERR_BAD_FLAG", when: "A flag value is outside its allowed set." },
 	{ code: "ERR_NO_RESULTS", when: "A search matched nothing." },
 	{ code: "ERR_REGISTRY_MISSING", when: "The installed package has no registry.json." },
@@ -312,24 +344,56 @@ const ERROR_CODES = [
 
 /* ── Args. ──────────────────────────────────────────────────────────────────── */
 
+/**
+ * Global flags belong to `sable`, not to the command, so every command accepts
+ * them. The parser reads the command's own flag table to know which flags are
+ * switches: a switch never takes the next word as its value, so
+ * `sable component --dense Button` names Button rather than setting
+ * `--dense=Button`. A command that delegates to a script gets argv with the
+ * flags only `sable` understands (`--dense`, `--detail`) taken out, because the
+ * scripts reject flags they do not know — which is how `sable learn --search
+ * "…" --dense` used to fail with "Unknown flag: --dense" while `--help` listed
+ * `--dense` as global.
+ */
 const argv = process.argv.slice(2)
+const GLOBAL_VALUE_FLAGS = new Set(GLOBAL_FLAGS.filter((f) => f.value).map((f) => f.name.slice(2)))
+const SABLE_ONLY_FLAGS = new Set(["dense", "detail"])
+const command = (() => {
+	for (let i = 0; i < argv.length; i++) {
+		const a = argv[i]
+		if (!a.startsWith("--")) return a
+		if (!a.includes("=") && GLOBAL_VALUE_FLAGS.has(a.slice(2))) i++
+	}
+	return undefined
+})()
+const SPEC = new Map(
+	[...GLOBAL_FLAGS, ...(COMMANDS.find((c) => c.name === command)?.flags ?? [])].map((f) => [f.name.slice(2), f]),
+)
 const flags = new Map()
 const positional = []
+/** argv for a delegating command: everything after the command word, minus sable-only flags. */
+const forwarded = []
 for (let i = 0; i < argv.length; i++) {
 	const a = argv[i]
 	if (!a.startsWith("--")) {
 		positional.push(a)
+		if (positional.length > 1) forwarded.push(a)
 		continue
 	}
 	const eq = a.indexOf("=")
-	if (eq !== -1) flags.set(a.slice(2, eq), a.slice(eq + 1))
-	else if (argv[i + 1] && !argv[i + 1].startsWith("--")) flags.set(a.slice(2), argv[++i])
-	else flags.set(a.slice(2), true)
+	const name = eq === -1 ? a.slice(2) : a.slice(2, eq)
+	const spec = SPEC.get(name)
+	const takesValue = eq === -1 && argv[i + 1] !== undefined && !argv[i + 1].startsWith("--") && (spec ? spec.value !== null : true)
+	const value = eq !== -1 ? a.slice(eq + 1) : takesValue ? argv[++i] : true
+	// Repeatable flags (`--ignore`) keep every value; everything else keeps the last.
+	if (flags.has(name) && spec?.repeatable) flags.set(name, [flags.get(name)].flat().concat(value))
+	else flags.set(name, spec?.repeatable ? [value] : value)
+	if (!SABLE_ONLY_FLAGS.has(name)) forwarded.push(...(eq !== -1 || value === true ? [a] : [a, value]))
 }
 
 const JSON_OUT = flags.has("json")
 const DENSE = flags.has("dense")
-const [command, ...rest] = positional
+const rest = positional.slice(1)
 
 /* ── Usage log. Opt-in, off unless SABLE_CLI_LOG names a file. ──────────────────
  *
@@ -438,6 +502,9 @@ const UTILITIES = R.utilities?.items ?? []
 
 const importLine = (name) => `import { ${name} } from "@sableui/react"`
 
+const PROVIDERS = R.providers?.items ?? []
+const findProvider = (name) => PROVIDERS.find((p) => p.name.toLowerCase() === String(name).toLowerCase())
+
 function findComponent(name) {
 	const hit = COMPONENTS.find((c) => c.name.toLowerCase() === name.toLowerCase())
 	if (hit) return hit
@@ -445,7 +512,7 @@ function findComponent(name) {
 		"ERR_UNKNOWN_COMPONENT",
 		`No component named "${name}".`,
 		[
-			...nearest(name, COMPONENTS.map((c) => c.name)).map((n) => `Did you mean ${n}?`),
+			...nearest(name, [...COMPONENTS, ...PROVIDERS].map((c) => c.name)).map((n) => `Did you mean ${n}?`),
 			`sable search "${name}" — searches summaries and keywords too`,
 			"sable component --list",
 		],
@@ -518,6 +585,9 @@ function cmdSearch() {
 	if (!type || type === "component")
 		for (const c of COMPONENTS)
 			pool.push({ kind: "component", name: c.name, summary: c.summary, status: c.status, group: c.group, _s: score({ name: c.name, keywords: c.keywords, text: `${c.summary} ${c.usage?.description ?? ""}` }) })
+	if (!type || type === "provider")
+		for (const p of PROVIDERS)
+			pool.push({ kind: "provider", name: p.name, summary: p.summary, _s: score({ name: p.name, keywords: ["provider", ...(p.companions ?? [])], text: `${p.summary} ${p.placement ?? ""}` }) })
 	if (!type || type === "pattern")
 		for (const p of PATTERNS)
 			pool.push({ kind: "pattern", name: p.name, summary: p.summary, _s: score({ name: p.name, text: `${p.summary} ${p.intent ?? ""}` }) })
@@ -540,7 +610,7 @@ function cmdSearch() {
 	// Ties resolve in the order AGENTS.md tells an agent to resolve a need:
 	// a component first, then a pattern or primitive, then a utility, then a
 	// token. "segmented" should land on ToggleGroup before the well behind it.
-	const KIND_ORDER = ["component", "pattern", "block", "layout", "utility", "token", "doc"]
+	const KIND_ORDER = ["component", "provider", "pattern", "block", "layout", "utility", "token", "doc"]
 	const hits = pool
 		.filter((h) => h._s > 0)
 		.sort((a, b) => b._s - a._s || KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind))
@@ -610,6 +680,10 @@ function cmdComponent() {
 		)
 	}
 
+	// A provider is asked for the way a component is. Answer with its entry rather
+	// than ERR_UNKNOWN_COMPONENT, which is what `sable component SableThemeProvider`
+	// used to say.
+	if (!COMPONENTS.some((c) => c.name.toLowerCase() === rest[0].toLowerCase()) && findProvider(rest[0])) return cmdProvider()
 	const c = findComponent(rest[0])
 
 	if (flags.has("props"))
@@ -705,6 +779,74 @@ function docSlugFor(name) {
 		BLOCKS.find((b) => b.name.toLowerCase() === name.toLowerCase())
 	if (!entry?.path) return slugify(name)
 	return entry.path.split("/").pop().replace(/\.tsx$/, "")
+}
+
+/* ── provider ───────────────────────────────────────────────────────────────── */
+
+/**
+ * App-level providers. Two kinds share one shape: app-wide ones documented in
+ * src/providers/providers.meta.ts (props, placement, examples), and ones owned
+ * by a component (`partOf`), whose full contract stays with that component.
+ */
+function cmdProvider() {
+	if (flags.has("list") || !rest[0]) {
+		const data = PROVIDERS.map((p) => ({
+			name: p.name,
+			...(p.partOf ? { partOf: p.partOf } : { required: p.required.startsWith("Required") }),
+			summary: p.summary,
+		}))
+		return ok("provider.list", { count: data.length, about: R.providers?.about, providers: data }, () =>
+			data
+				.map((p) =>
+					DENSE
+						? `${p.name}${p.partOf ? ` partOf:${p.partOf}` : p.required ? " required" : ""}`
+						: `  ${p.name.padEnd(24)}${(p.partOf ? `part of ${p.partOf}` : p.required ? "required" : "optional").padEnd(18)}${firstSentence(p.summary)}`,
+				)
+				.join("\n"),
+		)
+	}
+	const p = findProvider(rest[0])
+	if (!p)
+		fail("ERR_UNKNOWN_PROVIDER", `No provider named "${rest[0]}".`, [
+			...nearest(rest[0], PROVIDERS.map((x) => x.name)).map((n) => `Did you mean ${n}?`),
+			"sable provider --list",
+		])
+	const owner = p.partOf ? COMPONENTS.find((c) => c.name === p.partOf) : null
+	const props = p.props ?? []
+	const contract = owner ? `sable component ${owner.name} --props` : null
+	if (flags.has("props"))
+		return ok("provider.props", { name: p.name, props, ...(p.signature ? { signature: p.signature } : {}), ...(contract ? { contract } : {}) }, () =>
+			p.partOf ? `  ${p.name}  ${p.signature}\n\nFull contract: ${contract}` : renderProps(p),
+		)
+	if (flags.has("examples")) return ok("provider.examples", { name: p.name, examples: p.examples ?? [] }, () => renderExamples(p))
+
+	const level = detailLevel("compact")
+	const data = { name: p.name, kind: "provider", import: p.import, summary: p.summary }
+	if (p.partOf) Object.assign(data, { partOf: p.partOf, signature: p.signature, contract })
+	else Object.assign(data, { required: p.required, placement: p.placement })
+	if (level !== "brief") {
+		if (!p.partOf) data.props = props
+		data.companions = p.companions ?? []
+		data.related = p.related ?? []
+		data.examples = p.examples ?? []
+	}
+	if (level === "full") data.notes = p.notes ?? []
+	ok("provider.detail", data, () =>
+		[
+			`${p.name}  [provider${p.partOf ? `, part of ${p.partOf}` : ""}]`,
+			p.summary,
+			`\n${p.import}`,
+			p.partOf ? `\n  ${p.name}  ${p.signature}\n\nFull contract: ${contract}` : "",
+			p.required ? `\n${p.required}` : "",
+			p.placement ? `${DENSE ? "" : "Where: "}${p.placement}` : "",
+			level === "brief" || p.partOf ? "" : renderProps(p),
+			level === "brief" || !(p.companions ?? []).length ? "" : `\nWith: ${p.companions.join(", ")}`,
+			level === "brief" ? "" : renderExamples(p),
+			level === "full" ? section("notes", (p.notes ?? []).map(bullet)) : "",
+		]
+			.filter(Boolean)
+			.join("\n"),
+	)
 }
 
 /* ── pattern / block ────────────────────────────────────────────────────────── */
@@ -895,8 +1037,29 @@ function findUtility(input) {
 	const name = input.replace(/^\./, "").replace(/:$/, "")
 	const exact = UTILITIES.find((u) => u.name === name)
 	if (exact) return exact
-	return UTILITIES.filter((u) => u.name.endsWith("-*")).find((u) => name.startsWith(u.name.slice(0, -1)))
+	const functional = UTILITIES.filter((u) => u.name.endsWith("-*")).find((u) => name.startsWith(u.name.slice(0, -1)))
+	if (functional) return functional
+	return TYPE_TIERS.find((u) => u.name === name)
 }
+
+/**
+ * The paired `text-*` page tiers are `@utility` declarations too, documented in
+ * `tokens.typography` (one home, so the two descriptions cannot disagree). An
+ * agent types the class it wants to write, so `sable utility text-heading-1`
+ * resolves there instead of answering ERR_UNKNOWN_UTILITY.
+ */
+const TYPE_TIERS = (R.tokens?.typography ?? [])
+	.filter((t) => typeof t === "object" && t.name)
+	.map((t) => ({
+		name: `text-${t.name}`,
+		kind: "utility",
+		family: "typography",
+		intent: t.intent,
+		whenToUse: t.whenToUse,
+		insteadOf: t.insteadOf,
+		example: `<p className="text-${t.name}">…</p>`,
+		documentedIn: "registry.json → tokens.typography",
+	}))
 
 function cmdUtility() {
 	const name = rest[0]
@@ -930,7 +1093,7 @@ function cmdUtility() {
 	const u = findUtility(name)
 	if (!u)
 		fail("ERR_UNKNOWN_UTILITY", `No utility "${name}".`, [
-			...nearest(name, UTILITIES.map((x) => x.name)).map((n) => `sable utility ${n}`),
+			...nearest(name, [...UTILITIES, ...TYPE_TIERS].map((x) => x.name)).map((n) => `sable utility ${n}`),
 			`sable search "${name}"`,
 			"sable utility --list",
 		])
@@ -952,9 +1115,29 @@ function cmdUtility() {
 
 /* ── docs ───────────────────────────────────────────────────────────────────── */
 
+/**
+ * The package's own guides, served by name. llms.txt tells an agent to read
+ * AGENTS.md first, and `sable docs AGENTS` answered ERR_UNKNOWN_DOC — the one
+ * document the CLI was pointing at was the one it could not serve. These ship
+ * in the package's `files`, so they are always next to this CLI.
+ */
+const PACKAGE_DOCS = [
+	{ slug: "AGENTS", file: "AGENTS.md", aliases: ["agents.md", "agent"] },
+	{ slug: "README", file: "README.md", aliases: ["readme.md", "install"] },
+	{ slug: "CONTRIBUTING", file: "CONTRIBUTING.md", aliases: ["contributing.md"] },
+	{ slug: "DESIGN", file: "DESIGN.md", aliases: ["design.md"] },
+	{ slug: "CHANGELOG", file: "CHANGELOG.md", aliases: ["changelog.md", "changes"] },
+	{ slug: "llms", file: "llms.txt", aliases: ["llms.txt"] },
+]
+
+function packageDoc(name) {
+	const q = String(name).toLowerCase()
+	return PACKAGE_DOCS.find((d) => d.slug.toLowerCase() === q || d.aliases.includes(q))
+}
+
 function docSlugs() {
-	if (!existsSync(LLMS_DIR)) return []
-	const out = []
+	const out = PACKAGE_DOCS.filter((d) => existsSync(join(PKG_ROOT, d.file))).map((d) => ({ kind: "package", slug: d.slug, path: join(PKG_ROOT, d.file) }))
+	if (!existsSync(LLMS_DIR)) return out
 	for (const kind of readdirSync(LLMS_DIR)) {
 		const dir = join(LLMS_DIR, kind)
 		if (!statSync(dir).isDirectory()) continue
@@ -968,6 +1151,9 @@ function docSlugs() {
 function cmdDocs() {
 	const all = docSlugs()
 	const kind = flags.get("kind")
+	const kinds = [...new Set(all.map((d) => d.kind))]
+	if (kind !== undefined && !kinds.includes(kind))
+		fail("ERR_BAD_FLAG", `No doc kind "${kind}".`, kinds.map((k) => `sable docs --list --kind ${k}`))
 	if (flags.has("list") || !rest[0]) {
 		const list = kind ? all.filter((d) => d.kind === kind) : all
 		return ok("docs.list", { count: list.length, docs: list.map(({ kind, slug }) => ({ kind, slug })) }, () => {
@@ -980,14 +1166,18 @@ function cmdDocs() {
 	}
 
 	const want = docSlugFor(rest[0])
+	const pkg = packageDoc(rest[0])
 	const hit =
+		(pkg && all.find((d) => d.kind === "package" && d.slug === pkg.slug)) ??
 		all.find((d) => d.slug === rest[0]) ??
 		all.find((d) => d.slug === want) ??
 		all.find((d) => d.slug === slugify(rest[0]))
 	if (!hit)
-		fail("ERR_UNKNOWN_DOC", `No doc mirror for "${rest[0]}".`, [
-			...nearest(want, all.map((d) => d.slug)).map((s) => `Did you mean ${s}?`),
-			"sable docs --list",
+		fail("ERR_UNKNOWN_DOC", `No package guide or doc mirror for "${rest[0]}".`, [
+			...nearest(want, all.map((d) => d.slug), 5).map((s) => `Did you mean sable docs ${s}?`),
+			`Package guides: ${all.filter((d) => d.kind === "package").map((d) => d.slug).join(", ")}`,
+			`Task guides: ${all.filter((d) => d.kind === "tasks").map((d) => d.slug).join(", ")}`,
+			"sable docs --list — every slug, by kind",
 		])
 	const content = readFileSync(hit.path, "utf8")
 	ok("docs.detail", { kind: hit.kind, slug: hit.slug, content }, content)
@@ -1002,7 +1192,7 @@ function cmdDocs() {
  * package's classes, or `data-sable-theme` set with no theme CSS imported, which
  * renders the default theme and looks like the switcher is broken.
  */
-function cmdDoctor() {
+function doctorReport() {
 	const checks = []
 	const add = (status, name, detail, fix) => checks.push({ status, name, detail, ...(fix ? { fix } : {}) })
 
@@ -1095,26 +1285,49 @@ function cmdDoctor() {
 			)
 	}
 
+	/* The icon trap: icons are opt-in, so an app that renders Sable components with
+	 * no IconProvider gets every icon — its own and the ones inside Sable's
+	 * components — as nothing, with no error. */
+	const usesSable = /from\s+["']@sableui\/react(?:\/(?:patterns|blocks|layout))?["']/.test(srcText)
+	if (usesSable) {
+		if (/<IconProvider\b/.test(srcText)) add("pass", "icons", "<IconProvider> is mounted.")
+		else
+			add(
+				"fail",
+				"icons",
+				"No <IconProvider> — every <Icon> renders nothing.",
+				'Wrap your app in <IconProvider set={reiconIconSet}> from "@sableui/react/icons/reicon".',
+			)
+	}
+
 	if (pkg && !/resolve\s*:\s*\{[^}]*dedupe|dedupe/.test(readConfigs()))
 		add("info", "dedupe", "Could not confirm React dedupe in a bundler config.", 'resolve.dedupe: ["react","react-dom"] — a second React is an invalid-hook blank page.')
 
-	const failed = checks.filter((c) => c.status === "fail").length
-	const data = { version: R.version, checks, failed }
+	return { version: R.version, checks, failed: checks.filter((c) => c.status === "fail").length }
+}
+
+function cmdDoctor() {
+	const data = doctorReport()
+	const { checks, failed } = data
 	if (JSON_OUT) {
-		process.stdout.write(`${JSON.stringify({ type: "doctor", data }, null, 1)}\n`)
+		process.stdout.write(`${JSON.stringify({ type: "doctor", data }, null, DENSE ? 0 : 1)}\n`)
 	} else {
-		const mark = { pass: "✓", warn: "!", fail: "✗", info: "·" }
-		for (const c of checks) {
-			process.stdout.write(`  ${mark[c.status]} ${c.name.padEnd(14)}${c.detail}\n`)
-			if (c.fix) process.stdout.write(`      → ${c.fix}\n`)
-		}
+		process.stdout.write(doctorLines(checks))
 		process.stdout.write(
 			failed
 				? `\n[sable doctor] ✗ ${failed} failure(s). Each one renders wrong without erroring.\n`
 				: "\n[sable doctor] ✓ wiring holds.\n",
 		)
 	}
+	logInvocation(failed ? 1 : 0)
 	process.exit(failed ? 1 : 0)
+}
+
+function doctorLines(checks, indent = "  ") {
+	const mark = { pass: "✓", warn: "!", fail: "✗", info: "·" }
+	return checks
+		.map((c) => `${indent}${mark[c.status]} ${c.name.padEnd(14)}${c.detail}\n${c.fix ? `${indent}    → ${c.fix}\n` : ""}`)
+		.join("")
 }
 
 const SKIP_DIRS = new Set(["node_modules", ".next", ".nuxt", "dist", "build", "out", "coverage", ".git", ".turbo"])
@@ -1154,26 +1367,201 @@ function readConfigs() {
 
 /* ── lint (passthrough) ─────────────────────────────────────────────────────── */
 
-function cmdLint() {
-	try {
-		execFileSync(process.execPath, [join(HERE, "sable-lint.mjs"), ...argv.slice(1)], { stdio: "inherit" })
-		process.exit(0)
-	} catch (e) {
-		process.exit(e.status ?? 1)
+/**
+ * Run one of the package's scripts with the argv a delegating command was given,
+ * minus the flags only `sable` understands. With `--json --dense`, a JSON
+ * document on stdout is re-emitted on one line, so `--dense` means the same
+ * thing here as on the commands `sable` answers itself.
+ */
+function runScript(file, args = forwarded) {
+	const r = spawnSync(process.execPath, [file, ...args], { encoding: "utf8", cwd: CWD, maxBuffer: 256 * 1024 * 1024 })
+	return { code: r.status ?? 1, stdout: r.stdout ?? "", stderr: r.stderr ?? "" }
+}
+
+function passThrough({ code, stdout, stderr }) {
+	let out = stdout
+	if (JSON_OUT && DENSE && out.trim()) {
+		try {
+			out = `${JSON.stringify(JSON.parse(out))}\n`
+		} catch {
+			/* Not one JSON document; print it as it came. */
+		}
 	}
+	process.stdout.write(out)
+	process.stderr.write(stderr)
+	logInvocation(code)
+	process.exit(code)
+}
+
+function cmdLint() {
+	passThrough(runScript(join(HERE, "sable-lint.mjs")))
+}
+
+/* ── check ──────────────────────────────────────────────────────────────────── */
+
+/**
+ * The review steps from the skill's finish checklist that no tool can verify.
+ * They are printed, numbered, after the automated checks pass or fail, because a
+ * green `sable check` is a contract result, not a design approval — and an agent
+ * that reads "✓" as "done" skips exactly these.
+ */
+const MANUAL_REVIEW = [
+	{ step: "Review the rendered design", how: "sable docs reviewing-a-design — capture desktop (≥1024px) and mobile (≤480px), every promised colour mode; judge brief fit, hierarchy, rhythm, imagery." },
+	{ step: "Walk the journey", how: "sable docs reviewing-a-journey — operate the primary task and its recovery path end to end; loading, empty, error and success states; keyboard and touch." },
+	{ step: "Review the motion", how: "sable docs reviewing-motion — observe playback and interruption for anything that moves." },
+	{ step: "Check reduced motion", how: "Turn on prefers-reduced-motion (or MotionProvider \"reduced\"): state still changes, nothing essential depends on animation, nothing keeps moving." },
+	{ step: "Write the reuse inventory", how: "List the Sable components, parts, utilities and token groups used, and every app-owned UI or CSS addition with the catalog search that justified it. Start from the app-owned surfaces sable check lists (sable grade --json → inventory): each composes the component named beside it, or the inventory says why the app owns it." },
+	{ step: "Record what you learned", how: "sable docs learning-from-builds — keep conditional lessons with evidence (sable learn --record); never record human approval you did not get." },
+]
+
+function cmdCheck() {
+	/* Where to check. A Stop hook's command must carry no shell syntax — Claude
+	 * Code runs it under Git Bash, or PowerShell 5.1 where neither `&&` nor
+	 * "${VAR}" works — so it cannot `cd` first. Instead the hook runs from
+	 * anywhere and `check` finds the project itself: Claude Code's
+	 * CLAUDE_PROJECT_DIR, plus `--root` for a workspace package inside it. */
+	const rootFlag = flags.get("root")
+	if (rootFlag === true) fail("ERR_BAD_ARGUMENT", "--root needs a directory.", ["sable check --root apps/web"])
+	const base = flags.has("stop-hook") && process.env.CLAUDE_PROJECT_DIR ? process.env.CLAUDE_PROJECT_DIR : CWD
+	const target = rootFlag ? resolve(base, rootFlag) : base
+	if (!existsSync(target) || !statSync(target).isDirectory()) fail("ERR_BAD_ARGUMENT", `Not a directory: ${target}`, ["sable check --root <project dir>"])
+	if (target !== CWD) {
+		process.chdir(target)
+		CWD = target
+	}
+	const paths = rest.length ? rest : ["src"]
+	const ignore = [flags.get("ignore") ?? []].flat().filter((g) => typeof g === "string").flatMap((g) => ["--ignore", g])
+	const checks = []
+
+	const doctor = doctorReport()
+	const doctorFailures = doctor.checks.filter((c) => c.status === "fail")
+	checks.push({
+		name: "doctor",
+		status: doctorFailures.length ? "fail" : "pass",
+		summary: doctorFailures.length ? `${doctorFailures.length} wiring failure(s): ${doctorFailures.map((c) => c.name).join(", ")}` : "wiring holds",
+		details: doctorFailures.map((c) => `${c.name}: ${c.detail}${c.fix ? ` → ${c.fix}` : ""}`),
+		data: doctor,
+	})
+
+	const parse = (r) => {
+		try {
+			return JSON.parse(r.stdout)
+		} catch {
+			return null
+		}
+	}
+	const firstLine = (r) => (r.stderr || r.stdout).trim().split("\n")[0] ?? "no output"
+
+	const lintRun = runScript(join(HERE, "sable-lint.mjs"), [...paths, ...ignore, "--json"])
+	const lint = parse(lintRun)
+	if (!lint || lint.type === "error") checks.push({ name: "lint", status: "error", summary: lint?.message ?? firstLine(lintRun), details: [] })
+	else {
+		const v = lint.data.violations
+		checks.push({
+			name: "lint",
+			status: v.length ? "fail" : "pass",
+			summary: v.length ? `${v.length} violation(s) in ${lint.data.filesScanned} files` : `${lint.data.filesScanned} files clean`,
+			details: v.map((x) => `${x.ruleId} — ${x.file}:${x.line} → ${x.match}`),
+			data: lint.data,
+		})
+	}
+
+	const review = typeof flags.get("review") === "string" ? ["--review", flags.get("review")] : []
+	const icons = typeof flags.get("icons") === "string" ? ["--icons", flags.get("icons")] : []
+	const gradeRun = runScript(join(PKG_ROOT, "scripts", "grade.mjs"), [...paths, ...ignore, ...review, ...icons, "--json"])
+	const grade = parse(gradeRun)
+	if (!grade || grade.type === "error") checks.push({ name: "grade", status: "error", summary: grade?.message ?? firstLine(gradeRun), details: [] })
+	else {
+		// Contract violations are lint's to report; grade adds what lint cannot see.
+		const LABELS = { hallucinatedComponent: "hallucinated components", hallucinatedProp: "hallucinated props", radixIdiom: "Radix idioms", hardcodedControl: "hardcoded control heights", offContractIcon: "off-contract icons" }
+		const found = Object.entries(LABELS).filter(([k]) => grade.counts[k])
+		const reviewMissing = review.length > 0 && grade.review?.status !== "review-recorded"
+		const details = found.flatMap(([k]) => grade.findings[k].map((f) => `${LABELS[k]} — ${f.file}:${f.line} → ${f.name ?? f.prop ?? f.what ?? f.match}${f.component ? ` on ${f.component}` : ""}${f.from ? ` from ${f.from}${f.reason ? ` (${f.reason})` : ""}` : ""}`))
+		if (reviewMissing) details.push(`review: ${grade.review?.status ?? "missing"}${grade.review?.problems?.length ? ` — ${grade.review.problems.join("; ")}` : ""}`)
+		checks.push({
+			name: "grade",
+			status: found.length || reviewMissing ? "fail" : "pass",
+			summary: [
+				`score ${grade.score}`,
+				found.length ? found.map(([k]) => `${grade.counts[k]} ${LABELS[k]}`).join(", ") : "no hallucinated components or props, Radix idioms, hardcoded heights or off-contract icons",
+				reviewMissing ? `review ${grade.review?.status ?? "missing"}` : "",
+			]
+				.filter(Boolean)
+				.join("; "),
+			details,
+			data: { score: grade.score, contract: grade.contract, counts: grade.counts, review: grade.review, findings: grade.findings },
+		})
+	}
+	/* App-owned surfaces, from grade. Never a failure: the input to the reuse
+	 * inventory (finish step 6), which otherwise gets written from memory. */
+	const inventory = grade && grade.type !== "error" ? (grade.inventory ?? null) : null
+
+	const failed = checks.filter((c) => c.status !== "pass").map((c) => c.name)
+	const data = { paths, passed: !failed.length, failed, checks, inventory, manualReview: MANUAL_REVIEW }
+	const MARK = { pass: "✓", fail: "✗", error: "✗" }
+	const MAX_DETAILS = 12
+	const summaryText = () =>
+		[
+			`sable check — ${paths.join(" ")}`,
+			...checks.flatMap((c) => [
+				`  ${MARK[c.status]} ${c.name.padEnd(7)}${c.summary}`,
+				...c.details.slice(0, MAX_DETAILS).map((d) => `      ${d}`),
+				...(c.details.length > MAX_DETAILS ? [`      … ${c.details.length - MAX_DETAILS} more: sable ${c.name}${c.name === "doctor" ? "" : ` ${paths.join(" ")}`}`] : []),
+			]),
+			"",
+			failed.length ? `[sable check] ✗ ${failed.join(", ")} failed. Fix these and run sable check again.` : "[sable check] ✓ doctor, lint and grade pass.",
+		].join("\n")
+	const inventoryText = () => {
+		const list = inventory?.surfaces ?? []
+		if (!list.length) return ""
+		return [
+			"",
+			`App-owned surfaces for the reuse inventory (review, not failures) — ${list.length}:`,
+			...list.slice(0, MAX_DETAILS).map((s) => `      ${s.file}:${s.line}  <${s.tag}> ${s.kind} (${s.classes}) → ${s.consider}`),
+			...(list.length > MAX_DETAILS ? [`      … ${list.length - MAX_DETAILS} more: sable grade ${paths.join(" ")} --json → inventory.surfaces`] : []),
+			"",
+		].join("\n")
+	}
+	const manualText = () =>
+		[
+			"",
+			"Automated checks cannot judge the design. Before calling it done:",
+			...MANUAL_REVIEW.map((m, i) => `  ${i + 1}. ${m.step}: ${m.how}`),
+		].join("\n")
+
+	/* Stop-hook mode (Claude Code): exit 2 blocks the agent from ending its turn
+	 * and feeds stderr back to it. A Stop hook that always blocks can loop, so
+	 * when the agent is already continuing because of a stop hook
+	 * (`stop_hook_active`), report and let it stop rather than block again. */
+	if (flags.has("stop-hook")) {
+		let input = {}
+		try {
+			input = JSON.parse(readFileSync(0, "utf8") || "{}")
+		} catch {
+			/* No or malformed hook input: treat it as a first stop. */
+		}
+		logInvocation(failed.length ? 2 : 0)
+		if (!failed.length) process.exit(0)
+		if (input.stop_hook_active) {
+			process.stdout.write(`${summaryText()}\n(sable check still fails; not blocking a second time.)\n`)
+			process.exit(0)
+		}
+		process.stderr.write(`${summaryText()}\n${manualText()}\n`)
+		process.exit(2)
+	}
+
+	if (JSON_OUT) process.stdout.write(`${JSON.stringify({ type: "check", data }, null, DENSE ? 0 : 1)}\n`)
+	else process.stdout.write(`${summaryText()}\n${inventoryText()}${manualText()}\n`)
+	logInvocation(failed.length ? 1 : 0, failed.length ? "ERR_CHECK_FAILED" : undefined)
+	process.exit(failed.length ? 1 : 0)
 }
 
 /* ── Dispatch. ──────────────────────────────────────────────────────────────── */
 
 function cmdGrade() {
-	let output
-	let code = 0
-	try {
-		output = execFileSync(process.execPath, [join(PKG_ROOT, "scripts/grade.mjs"), ...argv.slice(1)], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] })
-	} catch (error) {
-		output = `${error.stdout ?? ""}${error.stderr ?? ""}`
-		code = error.status ?? 1
-	}
+	const run = runScript(join(PKG_ROOT, "scripts/grade.mjs"))
+	let output = run.code === 0 ? run.stdout : `${run.stdout}${run.stderr}`
+	const code = run.code
 	if (JSON_OUT) {
 		try {
 			const data = JSON.parse(output)
@@ -1190,13 +1578,35 @@ function cmdLearn() {
 }
 
 function cmdDesignTool(script) {
+	passThrough(runScript(join(PKG_ROOT, "scripts", script)))
+}
+
+function cmdSetup() {
+	if (!flags.has("agent") || rest.length) fail("ERR_BAD_ARGUMENT", "Use sable setup --agent from your project root.", ["sable setup --agent --dry-run"])
+	const root = flags.get("root")
+	if (root === true) fail("ERR_BAD_ARGUMENT", "--root needs a directory.", ["pnpm --filter <package> exec sable setup --agent --root ../.."])
+	const target = flags.get("target") ?? "all"
+	const forClaude = target === "all" || target === "claude"
+	if (flags.has("hook") && !forClaude)
+		fail("ERR_BAD_ARGUMENT", "--hook installs a Claude Code Stop hook; use it with --target claude or all.", ["sable setup --agent --target claude --hook"])
 	try {
-		execFileSync(process.execPath, [join(PKG_ROOT, "scripts", script), ...argv.slice(1)], { stdio: "inherit" })
-		logInvocation(0)
-		process.exit(0)
+		const options = { root: root ? resolve(CWD, root) : CWD, project: CWD, packageRoot: PKG_ROOT, target, update: flags.has("update"), dryRun: flags.has("dry-run") }
+		// Preflight the settings file too, so a refusal there writes nothing anywhere.
+		if (flags.has("hook")) installClaudeStopHook({ ...options, dryRun: true })
+		const data = installAgentSkill(options)
+		/* The Stop hook changes how the user's agent behaves, so setup never adds it
+		 * on its own: it prints the exact entry, and writes it only behind --hook —
+		 * the same rule setup keeps for local edits. */
+		if (forClaude) data.stopHook = flags.has("hook") ? installClaudeStopHook(options) : claudeStopHook(options)
+		const hook = data.stopHook
+		const hookText = !hook
+			? ""
+			: hook.installed
+				? `\n${data.dryRun ? "Would add" : hook.alreadyPresent ? "Already present:" : "Added"} a Claude Code Stop hook to ${hook.settingsFile}: Claude cannot end a task while \`sable check\` fails.`
+				: `\nOptional: block Claude Code from ending a task while \`sable check\` fails. Add this to ${hook.settingsFile} (merge into an existing "hooks" key), or rerun with --hook to add it:\n\n${JSON.stringify(hook.settings, null, 2)}\n\nThe hook runs: ${hook.command}`
+		ok("setup.agent", data, `${data.dryRun ? "Would install" : "Installed"} Sable skill entries at ${data.destinations.map((d) => relative(CWD, join(data.root, d)).replaceAll("\\", "/")).join(", ")}.\nNext: ${data.next}${hookText}`)
 	} catch (error) {
-		logInvocation(error.status ?? 1)
-		process.exit(error.status ?? 1)
+		fail("ERR_AGENT_SETUP", error.message, ["sable setup --agent --dry-run"])
 	}
 }
 
@@ -1217,15 +1627,9 @@ const HANDLERS = {
 		ok("target", target, `iOS ${target.platformVersion}${target.status ? ` (${target.status})` : ""}: ${target.designPolicy.principle}\n${target.statusNote ? `${target.statusNote}\n` : ""}${target.designPolicy.rule}\n${(target.designPolicy.layout ?? []).map((l) => `Layout: ${l}\n`).join("")}` + Object.values(target.components).map(c => `${c.source}: ${c.strategy} → ${c.strategy === "contextual" ? "choose by role" : c.components.join(" + ") || "redesign for phone"}`).join("\n"))
 	},
 	preset: () => cmdDesignTool("design-presets.mjs"),
-	setup: () => {
-		if (!flags.has("agent") || rest.length) fail("ERR_BAD_ARGUMENT", "Use sable setup --agent from your project root.", ["sable setup --agent --dry-run"])
-		const root = flags.get("root")
-		if (root === true) fail("ERR_BAD_ARGUMENT", "--root needs a directory.", ["pnpm --filter <package> exec sable setup --agent --root ../.."])
-		try {
-			const data = installAgentSkill({ root: root ? resolve(CWD, root) : CWD, project: CWD, packageRoot: PKG_ROOT, target: flags.get("target") ?? "all", update: flags.has("update"), dryRun: flags.has("dry-run") })
-			ok("setup.agent", data, `${data.dryRun ? "Would install" : "Installed"} Sable skill entries at ${data.destinations.map((d) => relative(CWD, join(data.root, d)).replaceAll("\\", "/")).join(", ")}.\nNext: ${data.next}`)
-		} catch (error) { fail("ERR_AGENT_SETUP", error.message, ["sable setup --agent --dry-run"]) }
-	},
+	setup: cmdSetup,
+	check: cmdCheck,
+	provider: cmdProvider,
 	manifest: cmdManifest,
 	search: cmdSearch,
 	component: cmdComponent,
@@ -1260,6 +1664,10 @@ if (!command || flags.has("help") || command === "help") {
 	}
 	cmdManifest()
 }
+
+// Global flags are validated once, here, so a bad value is an error on every
+// command — not only on the ones that happen to read it.
+if (flags.has("detail")) detailLevel()
 
 const handler = HANDLERS[command]
 if (!handler)

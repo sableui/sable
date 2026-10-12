@@ -23,6 +23,31 @@ describe("preset CLI", () => {
 			expect(css).not.toMatch(/var\(--(?:zinc|white|torch-red)/)
 		} finally { rmSync(root, { recursive: true, force: true }) }
 	})
+	it("warns, without failing, when the preset was authored with a newer Sable than is installed", () => {
+		const root = mkdtempSync(join(tmpdir(), "sable-preset-cli-"))
+		try {
+			writeFileSync(join(root, "pnpm-lock.yaml"), "")
+			const preset = template()
+			const installed = preset.sableVersion
+			const [major, minor] = installed.split(".").map(Number)
+			const file = join(root, "newer.json")
+			writeFileSync(file, JSON.stringify({ ...preset, sableVersion: `${major}.${minor + 1}.0` }))
+			const checked = spawnSync(process.execPath, [cli, "preset", "--check", file, "--json"], { cwd: root, encoding: "utf8" })
+			expect(checked.status).toBe(0)
+			const { data } = JSON.parse(checked.stdout)
+			expect(data.valid).toBe(true)
+			expect(data.warnings).toEqual([
+				expect.objectContaining({ code: "WARN_PRESET_NEWER_SABLE", authoredWith: `${major}.${minor + 1}.0`, installed, suggestion: "pnpm add @sableui/react@latest" }),
+			])
+			const text = execFileSync(process.execPath, [cli, "preset", "--check", file], { cwd: root, encoding: "utf8" })
+			expect(text).toContain(`authored with @sableui/react ${major}.${minor + 1}.0, newer than the installed ${installed}`)
+			// Authored with this version or an older one: no warning.
+			writeFileSync(file, JSON.stringify(preset))
+			expect(JSON.parse(execFileSync(process.execPath, [cli, "preset", "--check", file, "--json"], { cwd: root, encoding: "utf8" })).data.warnings).toEqual([])
+			writeFileSync(file, JSON.stringify({ ...preset, sableVersion: "0.1.0" }))
+			expect(JSON.parse(execFileSync(process.execPath, [cli, "preset", "--check", file, "--json"], { cwd: root, encoding: "utf8" })).data.warnings).toEqual([])
+		} finally { rmSync(root, { recursive: true, force: true }) }
+	})
 	it.each([["--template", "--unknown"], ["--check"], ["--template", "--css", "x.json"]])("reports invalid flags and missing input: %j", (...args) => {
 		const result = spawnSync(process.execPath, [cli, "preset", ...args, "--json"], { encoding: "utf8" })
 		expect(result.status).toBe(1)

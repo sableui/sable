@@ -58,6 +58,10 @@ const rules = makeRules({ semanticTokens, motionTokens, labelContrast: await lab
 
 /* ── Args. ─────────────────────────────────────────────────────────────────── */
 const args = process.argv.slice(2)
+/* --json: agents and `sable check` read the result instead of scraping the
+   report. The skill told agents to run `sable lint <paths> --json` while this
+   printed the text report regardless. */
+const JSON_OUT = args.includes("--json")
 if (args.includes("--help") || args.includes("-h")) {
 	console.log(
 		[
@@ -67,6 +71,7 @@ if (args.includes("--help") || args.includes("-h")) {
 			"  sable-lint --ignore <glob> skip matching paths (repeatable)",
 			"  sable-lint --rules         list the rules",
 			"  sable-lint --since <ver>   what the contract added since that version",
+			'  sable-lint --json          print { type: "lint", data } instead of the report',
 			"",
 			`Contract: @sableui/react ${REGISTRY.version} (${semanticTokens.size} semantic tokens)`,
 			"",
@@ -131,6 +136,13 @@ const targets = args.filter((a, i) => !a.startsWith("-") && args[i - 1] !== "--i
 const dirs = (targets.length ? targets : ["src"]).map((d) => resolve(CWD, d))
 const missing = dirs.filter((d) => !existsSync(d))
 if (missing.length) {
+	if (JSON_OUT) {
+		const message = `Not found: ${missing.map((d) => relative(CWD, d)).join(", ")}`
+		process.stdout.write(
+			`${JSON.stringify({ type: "error", code: "ERR_LINT_INPUT", message, suggestions: ["Pass the directories to lint, e.g. sable lint app components"] })}\n`,
+		)
+		process.exit(1)
+	}
 	console.error(
 		`[sable-lint] Not found: ${missing.map((d) => relative(CWD, d)).join(", ")}\n` +
 			"Pass the directories to lint, e.g. `sable-lint app components`.",
@@ -189,6 +201,12 @@ for (const dir of dirs) {
 			violations.push({ ...v, file: rel })
 		}
 	}
+}
+
+if (JSON_OUT) {
+	const data = { version: REGISTRY.version, filesScanned, failed: violations.length > 0, violations }
+	process.stdout.write(`${JSON.stringify({ type: "lint", data }, null, 1)}\n`)
+	process.exit(violations.length ? 1 : 0)
 }
 
 process.exit(

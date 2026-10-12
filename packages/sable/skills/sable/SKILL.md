@@ -9,6 +9,33 @@ Build the user's idea with the installed Sable library. The product brief determ
 content, structure, and behavior; a preset supplies theme values and design guidance.
 References inform an original direction. A reference or preset is optional.
 
+## Finish checklist — before you call any build, repair, or polish done
+
+1. Run `sable check <source paths>` (default `src`). It runs `sable doctor`,
+   `sable lint`, and `sable grade` and exits 1 if any fails. Repair the findings
+   instead of suppressing them, then run it again until it passes. Also run the
+   project's own build and type checks.
+2. Review the rendered design: `sable docs reviewing-a-design`. Capture desktop and
+   mobile in every promised colour mode, and judge brief fit, composition,
+   hierarchy, rhythm, and imagery.
+3. Walk the journey: `sable docs reviewing-a-journey`. Operate the primary task and
+   its recovery path with keyboard and touch through loading, empty, error, and
+   success states.
+4. Review the motion: `sable docs reviewing-motion`. Observe playback and
+   interruption for anything that moves.
+5. Check reduced motion: with `prefers-reduced-motion` (or MotionProvider
+   `"reduced"`), state still changes and nothing keeps moving.
+6. Write the reuse inventory: the Sable components, parts, utilities, and token
+   groups used, and every app-owned UI or CSS addition with the catalog search
+   that justified it. Start from the app-owned surfaces `sable check` lists:
+   each one composes the component named beside it, or the inventory says why
+   the app owns it.
+7. Record what you learned: `sable docs learning-from-builds`. Keep conditional
+   lessons with evidence; never fabricate human approval or preference records.
+
+Steps 2–7 are what no tool can verify; `sable check` prints them after its
+results. A passing check is a contract result, not design approval.
+
 ## Route the request
 
 These are agent skill modes, not shell commands. Use `$sable` in Codex and
@@ -53,7 +80,7 @@ Start in the target app, not this skill's folder. Read project instructions. Res
 node -p "require.resolve('@sableui/react/registry.json')"
 ```
 
-The registry's parent is the package root; read its `AGENTS.md` and use its
+The registry's parent is the package root; read its `AGENTS.md` (`sable docs AGENTS`) and use its
 `bin/sable.mjs`. In the Sable repository use `packages/sable/bin/sable.mjs` and
 `packages/sable/registry.json`. Below, `sable` means this resolved CLI invoked with
 the target project as its working directory. Never fetch an unrelated public
@@ -70,13 +97,24 @@ Complete setup before implementing UI:
 - Dedupe React in the bundler. Import Tailwind, then Sable's stylesheet; add the
   package `dist` glob to Tailwind `@source`, relative to the consumer stylesheet.
 - Load the selected fonts through the project's font setup. Presets declare stacks;
-  they do not load files. Reicon works by default; IconProvider can replace or extend the set.
+  they do not load files.
+- Icons are opt-in: wrap the app once in `<IconProvider set={reiconIconSet}>` with
+  `reiconIconSet` from `@sableui/react/icons/reicon`, or pass another set. Without a
+  provider every `<Icon>`, including those inside Sable components, renders nothing.
+  `sable provider IconProvider` has the props and examples; `sable provider --list`
+  covers the other providers (SableThemeProvider, MotionProvider, ToastProvider).
 - Run `sable doctor`, repair wiring issues, and verify the app renders a real
   Sable component. Reuse an existing app server; never start duplicate instances.
 
 Run `sable setup --agent` once from the project root to install discoverable entry
 files for Codex/Cursor and Claude Code. `--target codex|claude|cursor|all` selects
-hosts. The entry files read this installed package's instructions on each task;
+hosts. For Claude Code, setup also prints a Stop hook that runs `sable check`
+before a task can end; it writes that hook to `.claude/settings.json` only with
+`--hook`, so add it only when the user wants it. The hook is one plain command
+(for example `pnpm exec sable check --stop-hook`) with no `cd` or `&&`, so it runs
+under Git Bash and PowerShell alike; `sable check --stop-hook` finds the project
+through Claude Code's `CLAUDE_PROJECT_DIR`, plus `--root` for a workspace package.
+The entry files read this installed package's instructions on each task;
 upgrading the package updates the workflow. After an upgrade, use
 `sable setup --agent --update` to refresh managed entry metadata when needed.
 Keep project-specific preferences in project instructions rather than editing
@@ -166,24 +204,20 @@ contract violations, design judgments, intentional choices, and verified library
 gaps. A visual-only review leaves code and unobserved behavior untested. For
 `polish`, reuse the existing direction and inspect the affected product or preset.
 
-Every build includes `sable docs reviewing-a-design`, `sable doctor`,
-`sable lint <source paths> --json`, and the project's build/type checks. Repair
-findings instead of suppressing them to finish. `label-contrast` is Sable's opinion
-on a user's colour: offer its suggested pair, and when the user chose the pair
-deliberately, keep it with a reasoned disable or preset `exceptions` entry. Inspect real desktop/mobile
-layouts, operate the primary task and recovery path, check keyboard/touch and
-loading/empty/error/success states, font loading, focus, and reduced motion.
-Audit source ownership as well as lint: identify the Sable components and composed
-parts actually imported, the utilities/token groups used, and every app-owned UI
-or CSS addition. Ordinary semantic content and domain logic are app-owned; a
-recognizable control or surface must use its library implementation. Explain any
-uncovered capability with the catalog search and the smallest necessary addition.
-Include this reuse inventory with the build's evidence so conformance is reviewable.
-For connected flows read `reviewing-a-journey`; for meaningful temporal behavior
-read `reviewing-motion` and observe interruption as well as playback.
+Every build ends with the finish checklist at the top of this skill. Notes on it:
+
+- `sable check` gives one combined result; while iterating, `sable lint <paths> --json`,
+  `sable doctor`, and `sable grade <paths>` run the parts separately.
+- `label-contrast` is Sable's opinion on a user's colour: offer its suggested pair,
+  and when the user chose the pair deliberately, keep it with a reasoned disable or
+  preset `exceptions` entry.
+- Besides the review guides, check font loading and focus in the rendered app.
+- In the reuse inventory, ordinary semantic content and domain logic are
+  app-owned; a recognizable control or surface must use its library
+  implementation. Explain any uncovered capability with the catalog search and
+  the smallest necessary addition, and include the inventory with the build's
+  evidence so conformance is reviewable.
 
 Iterate on observed defects and recapture changed states. Contract checks cannot
-judge beauty: assess brief fit, composition, hierarchy, rhythm, imagery, and
-interaction in the rendered product. Deliver the result, preset/revision used,
-checks performed, and material limitations. Preserve useful conditional lessons
-through `learning-from-builds`; never fabricate human approval or preference records.
+judge beauty. Deliver the result, the preset/revision used, the checks performed,
+and material limitations.

@@ -65,7 +65,7 @@ function* openingTags(text, tagPattern) {
 			else if (ch === ">" && depth === 0) break
 		}
 		if (i >= text.length) continue // unterminated — malformed source, not our problem
-		yield { tag: m[1], attrs: text.slice(m.index + m[0].length, i), index: m.index }
+		yield { tag: m[1], attrs: text.slice(m.index + m[0].length, i), index: m.index, end: i }
 	}
 }
 
@@ -95,7 +95,12 @@ function classNameOf(attrs) {
 	return ""
 }
 
-/** Every class token in a className expression, with its variant prefixes (`hover:`, `md:`) split off. */
+/**
+ * Every class token in a className expression, with its variant prefixes (`hover:`, `md:`) split off.
+ * `variants` are the top-level prefixes only: `[@media(hover:none)]:opacity-100`
+ * has the ONE variant `[@media(hover:none)]` — the `hover:` inside the brackets
+ * is a media feature, not a variant.
+ */
 function classTokens(expr) {
 	const out = []
 	for (const s of expr.matchAll(/(["'`])((?:(?!\1).)*)\1/gs)) {
@@ -103,14 +108,285 @@ function classTokens(expr) {
 			if (!raw || raw.includes("${")) continue
 			// The base utility is what follows the last `:` outside brackets.
 			let depth = 0
-			let cut = 0
+			let from = 0
+			const variants = []
 			for (let k = 0; k < raw.length; k++) {
 				if (raw[k] === "[" || raw[k] === "(") depth++
 				else if (raw[k] === "]" || raw[k] === ")") depth--
-				else if (raw[k] === ":" && depth === 0) cut = k + 1
+				else if (raw[k] === ":" && depth === 0) {
+					variants.push(raw.slice(from, k))
+					from = k + 1
+				}
 			}
-			out.push({ raw, base: raw.slice(cut).replace(/^!/, "") })
+			out.push({ raw, base: raw.slice(from).replace(/^!/, ""), variants })
 		}
+	}
+	return out
+}
+
+/** A variant that styles a pointer state: hover, active, focus-visible — and their group-/peer- (optionally /named) forms. */
+const POINTER_STATE_VARIANT = /^(?:(?:group|peer)-)?(?:hover|active|focus-visible)(?:\/[\w-]+)?$/
+
+/** Utilities that set a property no transition can interpolate: display, visibility, text-decoration-line. */
+const DISCRETE_UTILITY = /^(?:hidden|block|inline|inline-block|flex|inline-flex|grid|inline-grid|contents|table|invisible|visible|collapse|underline|overline|line-through|no-underline)$/
+
+/* ── Assembly lookalikes: the shared reading of an element and its content. ────
+ * lookalike-control sees a control by its clothes. The four lookalike-* rules
+ * below see the bigger pieces an app assembles from Sable's utilities and tokens
+ * — a card grid, a link tile, an avatar chip, a cover frame — which every token
+ * rule passes, because every class on them is legal. An e2e build shipped all
+ * four through lint, a 100/100 grade and a visual review; a source audit found
+ * them. The helpers here are what those rules and grade's surface inventory read. */
+
+/** Breakpoint variants that Grid's `cols` map takes (Tailwind's defaults). */
+const BREAKPOINT_VARIANT = /^(?:sm|md|lg|xl|2xl)$/
+
+/** Children that make a grid a form layout, not a collection: fields and their parts. */
+const FORM_PART = /^(?:input|select|textarea|label|fieldset|legend|button|option)$|Field|Input|Label|Select|Textarea|Checkbox|Switch|Radio|Combobox|Slider|Button|Fieldset|Form/
+
+/** A corner radius that makes a box a surface: any step but none or full. */
+const SURFACE_RADIUS = /^rounded(?:-(?:xs|sm|md|lg|xl|[2-4]xl|\[[^\]]+\]|\([^)]+\)|concentric[\w-]*))?$/
+
+/** A fixed square-ish measure: `size-12`, `size-[52px]`, `size-(--x)`. Percentages and keywords are not fixed. */
+const FIXED_MEASURE = /^(?:\d+(?:\.\d+)?|\[[^\]%]+\]|\([^)%]+\))$/
+
+/** Media an avatar or a cover frame holds. */
+const MEDIA_CHILD = /<(?:img|picture|video|GradientArt|Image)\b/
+
+/**
+ * The text with the literal part of every template literal that holds MARKUP
+ * blanked (length and newlines kept, so offsets and line numbers hold). A docs
+ * page carries JSX as data — a code sample in a backtick string — and a lookalike
+ * rule must not report the sample. A className template (`grid ${cols}`) carries
+ * no `<tag`, so it is kept and its classes still count.
+ */
+function maskMarkupTemplates(text) {
+	const out = text.split("")
+	const stack = [] // { from, segs } = inside a template literal; number = brace depth of a ${ } inside one
+	let quote = null
+	const close = (t) => {
+		if (!t.segs.some(([a, b]) => /<[A-Za-z]/.test(text.slice(a, b)))) return
+		for (const [a, b] of t.segs) for (let k = a; k < b; k++) if (out[k] !== "\n") out[k] = " "
+	}
+	for (let i = 0; i < text.length; i++) {
+		const c = text[i]
+		const top = stack[stack.length - 1]
+		if (top && typeof top === "object") {
+			if (c === "\\") i++
+			else if (c === "`") {
+				top.segs.push([top.from, i])
+				stack.pop()
+				close(top)
+			} else if (c === "$" && text[i + 1] === "{") {
+				top.segs.push([top.from, i])
+				stack.push(0)
+				i++
+			}
+			continue
+		}
+		if (quote) {
+			// JSX text is full of apostrophes; a quote never spans a line in code.
+			if (c === "\\") i++
+			else if (c === quote || c === "\n") quote = null
+			continue
+		}
+		if (c === "'" || c === '"') quote = c
+		else if (c === "`") stack.push({ from: i + 1, segs: [] })
+		else if (typeof top === "number") {
+			if (c === "{") stack[stack.length - 1]++
+			else if (c === "}") {
+				if (top === 0) {
+					stack.pop()
+					stack[stack.length - 1].from = i + 1
+				} else stack[stack.length - 1]--
+			}
+		}
+	}
+	return out.join("")
+}
+
+/** Index of the `}` closing the `{` at `i`. Strings are skipped; a quote ends at a line break (JSX text). */
+function skipBraces(text, i) {
+	let depth = 0
+	let quote = null
+	for (; i < text.length; i++) {
+		const c = text[i]
+		if (quote) {
+			if (c === "\\") i++
+			else if (c === quote || (c === "\n" && quote !== "`")) quote = null
+			continue
+		}
+		if (c === '"' || c === "'" || c === "`") quote = c
+		else if (c === "{") depth++
+		else if (c === "}" && --depth === 0) return i
+	}
+	return text.length
+}
+
+/** Index of the `>` ending the tag that opens at `i`, as openingTags finds it. */
+function tagEnd(text, i) {
+	let depth = 0
+	let quote = null
+	for (i++; i < text.length; i++) {
+		const c = text[i]
+		if (quote) {
+			if (c === "\\") i++
+			else if (c === quote) quote = null
+			continue
+		}
+		if (c === '"' || c === "'" || c === "`") quote = c
+		else if (c === "{") depth++
+		else if (c === "}") depth--
+		else if (c === ">" && depth === 0) return i
+	}
+	return text.length
+}
+
+/**
+ * What an element directly holds: the tag names of its child elements, its
+ * child `{…}` expressions, its loose text, and its whole inner source. Lexical,
+ * like everything here: it pairs `<x>` with `</x>` by depth and skips `{…}`
+ * whole, so a comparison inside an expression cannot open a tag.
+ */
+function elementContent(text, open) {
+	const out = { tags: [], exprs: [], text: "", inner: "" }
+	if (/\/\s*$/.test(open.attrs)) return out // self-closing
+	const start = open.end + 1
+	const limit = Math.min(text.length, start + 40000)
+	let depth = 0
+	let i = start
+	while (i < limit) {
+		const c = text[i]
+		if (c === "{") {
+			const j = skipBraces(text, i)
+			if (depth === 0) out.exprs.push(text.slice(i + 1, j))
+			i = j + 1
+			continue
+		}
+		if (c === "<" && text[i + 1] === "/") {
+			if (depth === 0) break
+			depth--
+			const j = text.indexOf(">", i)
+			i = j === -1 ? limit : j + 1
+			continue
+		}
+		if (c === "<" && /[A-Za-z>]/.test(text[i + 1] ?? "")) {
+			const name = /^<([A-Za-z][\w.]*)?/.exec(text.slice(i, i + 80))?.[1]
+			const j = tagEnd(text, i)
+			if (depth === 0 && name) out.tags.push(name)
+			if (text[j - 1] !== "/") depth++
+			i = j + 1
+			continue
+		}
+		if (depth === 0) out.text += c
+		i++
+	}
+	out.inner = text.slice(start, i)
+	return out
+}
+
+/**
+ * Is the tag at `index` the element handed to a component's `render` prop?
+ * `<Card render={<a href="/x" className="…" />}>` already renders the Sable
+ * component; its element's classes are not an app-built surface.
+ */
+function insideRender(text, index) {
+	// The nearest `render={` before the tag whose brace is still open at it —
+	// which also covers a render function, `render={({ className, ...props }) => <a …`.
+	const before = text.slice(Math.max(0, index - 600), index)
+	const opens = [...before.matchAll(/\brender\s*=\s*\{/g)]
+	const last = opens[opens.length - 1]
+	if (!last) return false
+	let depth = 0
+	for (let k = last.index + last[0].length - 1; k < before.length; k++) {
+		if (before[k] === "{") depth++
+		else if (before[k] === "}") depth--
+	}
+	return depth > 0
+}
+
+/** Unprefixed class bases (no `md:`, `hover:`…) of an element, plus every token. */
+function classesOf(attrs) {
+	const tokens = classTokens(classNameOf(attrs))
+	const plain = tokens.filter((t) => !t.variants.length).map((t) => t.base)
+	return { tokens, plain, has: (re) => plain.some((b) => re.test(b)), find: (re) => plain.find((b) => re.test(b)) }
+}
+
+/** A fixed size on a round box: `size-12`, or equal `h-*` and `w-*`. Returns the measure or null. */
+function fixedSize(c) {
+	const size = c.find(/^size-/)?.slice(5)
+	if (size && FIXED_MEASURE.test(size)) return size
+	const h = c.find(/^h-/)?.slice(2)
+	const w = c.find(/^w-/)?.slice(2)
+	return h && h === w && FIXED_MEASURE.test(h) ? h : null
+}
+
+/** Padding big enough for a card: p-3 and up (or py-3 and up), or an arbitrary/var padding. */
+function cardPadding(c) {
+	return c.plain.some((b) => {
+		const m = /^p[y]?-(?:(\d+(?:\.\d+)?)|\[[^\]]+\]|\([^)]+\))$/.exec(b)
+		return m && (m[1] == null || Number(m[1]) >= 3)
+	})
+}
+
+/** Grid's `gap` prop for a Tailwind `gap-N` (rhythm units are 2 spacing steps). */
+function gridGap(c) {
+	const n = /^gap-(\d+(?:\.\d+)?)$/.exec(c.find(/^gap-\d/) ?? "")?.[1]
+	return n == null ? "" : ` gap={${Number(n) / 2}}`
+}
+
+/** `aspect-*` → AspectBox's ratio, as source. */
+function aspectRatio(base) {
+	if (base === "aspect-square") return "1"
+	if (base === "aspect-video") return "16 / 9"
+	const m = /^aspect-(?:\[(\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)\]|(\d+)\/(\d+))$/.exec(base)
+	return m ? `${m[1] ?? m[3]} / ${m[2] ?? m[4]}` : "…"
+}
+
+/**
+ * The app-owned surfaces in one file: intrinsic elements wearing a surface's
+ * or a shape's classes. Not failures — a review list, so an agent's reuse
+ * inventory starts from what the source actually holds rather than from memory.
+ * `sable grade` collects it and `sable check` prints it.
+ *
+ *   surface      bg-card / bg-popover, or border + radius + padding   → Card (or the component that owns it)
+ *   media frame  aspect-* + overflow-hidden                           → AspectBox
+ *   round        rounded-full at a fixed size                         → Avatar, or StatusDot for a dot
+ */
+export function surfaceInventory(text) {
+	const src = maskMarkupTemplates(stripComments(text))
+	const out = []
+	for (const m of openingTags(src, /^[a-z][a-z0-9]*$/)) {
+		if (insideRender(src, m.index)) continue
+		const c = classesOf(m.attrs)
+		if (!c.plain.length) continue
+		let kind = null
+		let consider = null
+		const size = c.has(/^rounded-full$/) ? fixedSize(c) : null
+		if (size) {
+			kind = "round"
+			const holds = m.tag === "img" || (() => {
+				const content = elementContent(src, m)
+				return MEDIA_CHILD.test(content.inner) || /^[A-Z]{1,3}$/.test(content.text.trim())
+			})()
+			consider = holds
+				? "Avatar"
+				: /^(?:0?\.5|1|1\.5|2|2\.5|3|px)$/.test(size)
+					? "StatusDot, if it reports a status"
+					: "Avatar if it shows a person; otherwise app-owned (a handle, a swatch)"
+		} else if (c.has(/^aspect-(?!auto$)/) && c.has(/^overflow-(?:hidden|clip)$/)) {
+			kind = "media frame"
+			consider = "AspectBox"
+		} else if (
+			c.has(/^bg-(?:card|popover)(?:\/|$)/) ||
+			(c.has(/^border(?:-\d+)?$/) && c.has(SURFACE_RADIUS) && c.has(/^p[xy]?-/))
+		) {
+			kind = "surface"
+			consider = m.tag === "a" || m.tag === "button" ? `Card render={<${m.tag} />}` : "Card, or the component that owns this surface"
+		}
+		if (!kind) continue
+		const classes = c.plain.join(" ")
+		out.push({ index: m.index, tag: m.tag, kind, classes: classes.length > 70 ? `${classes.slice(0, 67)}…` : classes, consider })
 	}
 	return out
 }
@@ -370,15 +646,41 @@ export function makeRules({ semanticTokens, motionTokens, labelContrast = null, 
 				// up with two transitions fighting over the same property.
 				for (const m of openingTags(text, /^[a-z][a-z0-9]*$/)) {
 					const attrs = m.attrs
-					if (!/\bclassName\s*=/.test(attrs)) continue
-					if (!/\b(?:hover|active|focus-visible):/.test(attrs)) continue
+					// Judged on the parsed variants, not a regex over the text: a
+					// capability query like `[@media(hover:none)]:opacity-100` has
+					// "hover:" in it and no pointer state at all.
+					const states = classTokens(classNameOf(attrs)).filter(({ variants }) =>
+						variants.some((v) => POINTER_STATE_VARIANT.test(v)),
+					)
+					const pointer = states[0]
+					if (!pointer) continue
 					if (/\bmotion-[a-z-]+/.test(attrs)) continue
+					// `reveal-on-hover` declares motion-interactive's own transition
+					// list, so for this rule it is a recipe.
+					if (/\breveal-on-hover\b/.test(attrs)) continue
 					// `transition-colors` is already caught by its own rule and its fix is
 					// the same recipe; reporting both on one element is noise.
 					if (/\btransition-colors\b/.test(attrs)) continue
 					out.push({
 						index: m.index,
-						match: `<${m.tag} …${/\b(?:hover|active|focus-visible):[\w[\]/.-]+/.exec(attrs)?.[0] ?? ""}`,
+						match: `<${m.tag} …${pointer.raw}`,
+						// `motion-interactive` cannot help a state that only flips display
+						// or an underline: there is nothing to interpolate. Point at the
+						// fix that can.
+						...(states.every(({ base }) => DISCRETE_UTILITY.test(base)) && {
+							why:
+								"An element whose pointer state only flips a discrete property (display, visibility, an underline), which no transition can animate, so `motion-interactive` alone will not help. " +
+								"To reveal an action on hover, keep it rendered and put `reveal-on-hover` on it with `group` on its row or tile: it fades with opacity, shows on focus, and stays visible on touch, where a hand-written `opacity-0 group-hover:opacity-100` hides it for good. To cross-fade two icons, `motion-icon-swap`. " +
+								"If an instant flip is the intent, disable the rule on that line with the reason.",
+						}),
+						// A group-hover opacity swap is a hover REVEAL, and adding
+						// motion-interactive to it would still leave the action invisible on
+						// every touch device. Point at the utility that is right on both.
+						...(states.some(({ base, variants }) => /^opacity-/.test(base) && variants.some((v) => /^group-hover\b/.test(v))) && {
+							why:
+								"A hover reveal (`group-hover:opacity-*`) with no motion — and, as written, an action no touch device can ever see, because touch has no hover. " +
+								"Use `reveal-on-hover` on the action with `group` on its row or tile: it is hidden only where `(hover: hover)`, shows on focus-within, keeps an open menu's trigger visible, and fades on the motion tokens.",
+						}),
 					})
 				}
 				return out
@@ -524,6 +826,180 @@ export function makeRules({ semanticTokens, motionTokens, labelContrast = null, 
 					if (/(?:^|\s)h-\(--control-[a-z]+\)/.test(cls)) {
 						out.push({ index: m.index, match: `<${m.tag}> sized as a control (h-(--control-*)) → use Button` })
 					}
+				}
+				return out
+			},
+		},
+		/* ── Assembly lookalikes. The siblings of lookalike-control for the pieces
+		 * bigger than a control: a card grid, a link tile, an avatar, a cover frame.
+		 * One id each, so an exception is disabled for the one shape it covers.
+		 * CONSUMER-scoped: the package's own components are where these are built.
+		 * Each one demands a signal beyond the classes that a single legitimate use
+		 * would not carry — mapped items, a fill AND padding, content in the circle,
+		 * media in the frame — because a lookalike rule that fires on a form layout
+		 * or a text link is a rule people learn to disable. */
+		{
+			id: "lookalike-grid",
+			scope: "consumer",
+			since: "0.7.0",
+			file: true,
+			code: true,
+			why:
+				"A raw CSS grid laid over a collection — `grid` with an auto-fill/auto-fit `minmax()` track, or uniform `grid-cols-N` columns over mapped or repeated items. That is Sable's `Grid`: `cols` takes the same counts per breakpoint (`{ base: 2, md: 4 }`), `minItemWidth` is the auto-fit track with a `min(…, 100%)` guard so a cell never overflows a narrow container (a bare `minmax(12rem,1fr)` does), every track is `minmax(0, 1fr)` so one long string cannot blow a column out, and the gap defaults to the theme's `--grid-gutter` or takes rhythm units (`gap={2}` = `gap-4`). " +
+				"Not flagged: a grid with no columns, a form layout (field children, no mapping), a non-uniform track (`grid-cols-[auto_1fr]`), a `ul`/`ol`/`dl` (Grid renders a div), or an element with a widget role.",
+			scan(text) {
+				const src = maskMarkupTemplates(text)
+				const out = []
+				for (const m of openingTags(src, /^div$/)) {
+					if (insideRender(src, m.index)) continue
+					// A widget or a graphic (role="img", "grid", "radiogroup") owns its own
+					// semantics; a list role is still a collection.
+					if (/\brole\s*=/.test(m.attrs) && !/\brole\s*=\s*\{?\s*["'`]list["'`]/.test(m.attrs)) continue
+					const c = classesOf(m.attrs)
+					if (!c.has(/^grid$/)) continue
+					const tracks = c.tokens.filter((t) => /^grid-cols-/.test(t.base))
+					if (!tracks.length) continue
+					const auto = tracks
+						.map((t) => /^grid-cols-\[repeat\(auto-(?:fill|fit),\s*minmax\((min\([^)]*\)|[^,]+),/.exec(t.base))
+						.find(Boolean)
+					if (auto) {
+						const min = auto[1].replace(/_/g, " ").replace(/^min\(\s*([^,]+),.*$/, "$1").trim()
+						out.push({ index: m.index, match: `raw auto-fill grid → <Grid minItemWidth="${min}"${gridGap(c)}>` })
+						continue
+					}
+					// Uniform column counts per breakpoint, or nothing: a track Grid cannot
+					// express (`[auto_1fr]`, `subgrid`, a container-query variant) is
+					// a layout, not a collection grid.
+					const cols = {}
+					let uniform = true
+					for (const t of tracks) {
+						const bp = t.variants.length === 0 ? "base" : t.variants.length === 1 && BREAKPOINT_VARIANT.test(t.variants[0]) ? t.variants[0] : null
+						const n = /^grid-cols-(?:(\d+)|\[repeat\((\d+),\s*minmax\(0,\s*1fr\)\)\])$/.exec(t.base)
+						if (!bp || !n) {
+							uniform = false
+							break
+						}
+						cols[bp] = Number(n[1] ?? n[2])
+					}
+					if (!uniform) continue
+					if (Math.max(...Object.values(cols)) < 2) continue
+					const content = elementContent(src, m)
+					// Children placed by span are an explicit layout (Columns + Col), not
+					// a collection of equal cells.
+					if (/\b(?:col|row)-(?:span|start|end)-/.test(content.inner)) continue
+					// The child expression itself maps (`{items.map(…)}`); a map nested in
+					// one child's markup (`{cond ? <Panel>{a.map(…)}</Panel> : null}`) is
+					// that child's list, not this grid's cells.
+					const mapped = content.exprs.some((e) => /\.(?:flat)?[mM]ap\s*\(|Array\.from\s*\(/.test(e.split("<")[0]))
+					// Three or more of the same component or item element. Bare wrappers
+					// (div, span, p) say nothing about a collection, and fields make a form.
+					const counts = new Map()
+					for (const tag of content.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1)
+					const repeated = [...counts].some(([tag, n]) => n >= 3 && !/^(?:div|span|p)$/.test(tag) && !FORM_PART.test(tag))
+					if (!mapped && !repeated) continue
+					// `grid md:grid-cols-2` is one column until md, as Tailwind's implicit track is.
+					if (!("base" in cols)) cols.base = 1
+					const order = ["base", "sm", "md", "lg", "xl", "2xl"].filter((b) => b in cols)
+					const prop = order.length === 1 ? `{${cols.base}}` : `{{ ${order.map((b) => `${b === "2xl" ? '"2xl"' : b}: ${cols[b]}`).join(", ")} }}`
+					out.push({ index: m.index, match: `raw grid over ${mapped ? "mapped" : "repeated"} items → <Grid cols=${prop}${gridGap(c)}>` })
+				}
+				return out
+			},
+		},
+		{
+			id: "lookalike-card",
+			scope: "consumer",
+			since: "0.7.0",
+			file: true,
+			code: true,
+			why:
+				"A link or button dressed as a card — a radius, a surface (`bg-card` / `bg-popover`, or a border) and card padding on an <a>, <button> or router <Link>. That is `<Card render={<Link to=… />}>` (or `<a href>` / `<button>`): rendered as a link or button, Card adds the hover (a stronger edge and shadow), a full-card focus-visible ring and motion-interactive easing; its padding follows the density control (`--card-p`) and its corner follows the theme radius; children answer the hover with `group-hover/card:`. Hand-built, a tile keeps none of that when the theme or density moves. " +
+				"Not flagged: a text link, a nav row (no surface), a pill (`rounded-full`), a button fill (lookalike-control's), or an element inside a `render` prop.",
+			scan(text) {
+				const src = maskMarkupTemplates(text)
+				// A `Link` the file takes from Sable is Sable's.
+				const sableLinks = new Set(
+					[...src.matchAll(/import\s*\{([^}]*)\}\s*from\s*["']@sableui\/react[^"']*["']/g)].flatMap((m) =>
+						m[1].split(",").map((s) => s.trim().split(/\s+as\s+/).pop()),
+					),
+				)
+				const out = []
+				for (const m of openingTags(src, /^(?:a|button|Link|NavLink)$/)) {
+					if (sableLinks.has(m.tag) || insideRender(src, m.index)) continue
+					const c = classesOf(m.attrs)
+					if (!c.has(SURFACE_RADIUS)) continue
+					const fill = c.find(/^bg-(?:card|popover)(?:\/|$)/) ?? c.find(/^sable-surface$/)
+					const edge = c.find(/^border(?:-\d+)?$/)
+					if (!fill && !edge) continue
+					if (!cardPadding(c)) continue
+					if (c.has(/^bg-(?:primary|secondary|destructive)$/)) continue
+					const el = m.tag === "a" ? "<a href=… />" : m.tag === "button" ? "<button />" : `<${m.tag} to=… />`
+					const radius = c.find(SURFACE_RADIUS)
+					out.push({ index: m.index, match: `<${m.tag}> dressed as a card (${[radius, edge, fill].filter(Boolean).join(" ")}) → <Card render={${el}}>` })
+				}
+				return out
+			},
+		},
+		{
+			id: "lookalike-avatar",
+			scope: "consumer",
+			since: "0.7.0",
+			file: true,
+			code: true,
+			why:
+				"A round, fixed-size box holding a person's or artist's picture — `rounded-full` + `size-*` (or equal `h-*`/`w-*`) around an <img>, GradientArt or initials, or a round fixed-size <img> itself. That is `Avatar`: `src`/`alt` with a fallback that shows while the image loads or when it fails, `variant=\"art\"` for initials over GradientArt seeded by the person (a stable colour each, from the theme), a `size` ladder, an accessible name (role=img), a `status` slot that clears the circle, and AvatarGroup for an overlapping stack. " +
+				"Not flagged: a dot or an icon in a circle (no picture or initials), a round box without a fixed size, or AvatarRoot and its parts.",
+			scan(text) {
+				const src = maskMarkupTemplates(text)
+				const out = []
+				for (const m of openingTags(src, /^(?:div|span|figure|img)$/)) {
+					if (insideRender(src, m.index)) continue
+					const c = classesOf(m.attrs)
+					if (!c.has(/^rounded-full$/)) continue
+					const size = fixedSize(c)
+					if (!size) continue
+					let holds = null
+					if (m.tag === "img") holds = "an image"
+					else {
+						const content = elementContent(src, m)
+						if (/<GradientArt\b/.test(content.inner)) holds = "GradientArt"
+						else if (MEDIA_CHILD.test(content.inner)) holds = "an image"
+						else if (
+							/^[A-Z]{1,3}$/.test(content.text.trim()) ||
+							content.exprs.some((e) => /initial|\[0\]|charAt\(0\)|\.(?:slice|substring)\(0,\s*[12]\)/i.test(e))
+						)
+							holds = "initials"
+					}
+					if (!holds) continue
+					const use = holds === "an image" ? "<Avatar src alt fallback>" : '<Avatar variant="art" fallback="…">'
+					out.push({ index: m.index, match: `<${m.tag}> rounded-full size-${size} holding ${holds} → ${use}` })
+				}
+				return out
+			},
+		},
+		{
+			id: "lookalike-media-frame",
+			scope: "consumer",
+			since: "0.7.0",
+			file: true,
+			code: true,
+			why:
+				"A cover or media frame built by hand — an `aspect-*` ratio + `overflow-hidden` wrapped around an <img>, <video>, <picture> or GradientArt. That is `AspectBox`: `ratio` as a number reserves the box before the media arrives (no layout shift while a cover loads or a shader starts), it clips and positions what it holds (`relative w-full overflow-hidden`), and it is the one frame the media components share, so a change to how frames behave reaches every cover. Put the radius on it as a className. For a cover with its title beneath (an album, an episode, a product), `MediaTile` composes this frame with fallback art for a missing or broken image and an action revealed on hover. " +
+				"Not flagged: a ratio box with no media in it (a pad, a canvas well), a frame without overflow clipping, an <img> sized by its own aspect class, or a round fixed-size frame (lookalike-avatar's).",
+			scan(text) {
+				const src = maskMarkupTemplates(text)
+				const out = []
+				for (const m of openingTags(src, /^(?:div|span|figure|a|li)$/)) {
+					if (insideRender(src, m.index)) continue
+					const c = classesOf(m.attrs)
+					const aspect = c.find(/^aspect-(?!auto$)/)
+					if (!aspect || !c.has(/^overflow-(?:hidden|clip)$/)) continue
+					// A round, fixed-size frame is an avatar, reported by lookalike-avatar.
+					if (c.has(/^rounded-full$/) && fixedSize(c)) continue
+					const inner = elementContent(src, m).inner
+					const media = /<GradientArt\b/.test(inner) ? "GradientArt" : MEDIA_CHILD.exec(inner)?.[0].slice(1)
+					if (!media) continue
+					out.push({ index: m.index, match: `<${m.tag}> ${aspect} overflow-hidden around <${media}> → <AspectBox ratio={${aspectRatio(aspect)}}>` })
 				}
 				return out
 			},
@@ -1060,7 +1536,7 @@ export function lintText(text, rules, ctx) {
 				? rule.find(subject, ctx)
 				: [...subject.matchAll(rule.regex)].map((m) => ({ match: m[0] }))
 			for (const h of hits) {
-				out.push({ line: i + 1, ruleId: rule.id, match: h.match, why: rule.why })
+				out.push({ line: i + 1, ruleId: rule.id, match: h.match, why: h.why ?? rule.why })
 			}
 		}
 	})
@@ -1091,7 +1567,7 @@ export function lintText(text, rules, ctx) {
 			for (const h of rule.scan(rule.code ? strippedText : text, ctx)) {
 				const i = h.line != null ? h.line - 1 : lineOf(h.index ?? 0)
 				if (suppress[i]?.has(rule.id)) continue
-				out.push({ line: i + 1, ruleId: rule.id, match: h.match, why: rule.why })
+				out.push({ line: i + 1, ruleId: rule.id, match: h.match, why: h.why ?? rule.why })
 			}
 		}
 	}

@@ -3,7 +3,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 // @ts-expect-error Plain JS tool shipped with the CLI.
-import { installAgentSkill } from "../../scripts/agent-setup.mjs"
+import { claudeStopHook, installAgentSkill, installClaudeStopHook } from "../../scripts/agent-setup.mjs"
 
 let scratch: string
 let root: string
@@ -101,5 +101,63 @@ describe("agent setup", () => {
 		mkdirSync(elsewhere)
 		expect(() => installAgentSkill({ root: elsewhere, project: root, packageRoot })).toThrow("ancestors")
 		expect(existsSync(join(elsewhere, ".claude"))).toBe(false)
+	})
+	it("prints a Claude Code Stop hook without touching settings, and writes it only when asked", () => {
+		writeFileSync(join(root, "pnpm-lock.yaml"), "")
+		const hook = claudeStopHook({ root })
+		expect(hook.command).toBe("pnpm exec sable check --stop-hook")
+		// Stop takes no matcher: hooks.Stop[] → { hooks: [{ type: "command", command }] }.
+		expect(hook.settings).toEqual({ hooks: { Stop: [{ hooks: [{ type: "command", command: hook.command, timeout: 300 }] }] } })
+		expect(existsSync(join(root, ".claude"))).toBe(false)
+		installClaudeStopHook({ root, dryRun: true })
+		expect(existsSync(join(root, ".claude"))).toBe(false)
+		installClaudeStopHook({ root })
+		expect(JSON.parse(readFileSync(join(root, ".claude/settings.json"), "utf8"))).toEqual(hook.settings)
+	})
+	it("merges the Stop hook into existing settings once, keeping every other key and hook", () => {
+		mkdirSync(join(root, ".claude"))
+		const existing = { permissions: { allow: ["Bash(ls)"] }, hooks: { Stop: [{ hooks: [{ type: "command", command: "echo done" }] }], PreToolUse: [] } }
+		writeFileSync(join(root, ".claude/settings.json"), JSON.stringify(existing))
+		installClaudeStopHook({ root })
+		const second = installClaudeStopHook({ root })
+		expect(second.alreadyPresent).toBe(true)
+		const settings = JSON.parse(readFileSync(join(root, ".claude/settings.json"), "utf8"))
+		expect(settings.permissions).toEqual(existing.permissions)
+		expect(settings.hooks.PreToolUse).toEqual([])
+		expect(settings.hooks.Stop).toHaveLength(2)
+		expect(settings.hooks.Stop[0]).toEqual(existing.hooks.Stop[0])
+	})
+	it("refuses settings it cannot parse rather than overwrite them", () => {
+		mkdirSync(join(root, ".claude"))
+		writeFileSync(join(root, ".claude/settings.json"), "{ not json")
+		expect(() => installClaudeStopHook({ root })).toThrow("not valid JSON")
+		expect(readFileSync(join(root, ".claude/settings.json"), "utf8")).toBe("{ not json")
+	})
+	it("runs the hook in the Sable package when the entries live at a repository root", () => {
+		const app = join(root, "apps", "web")
+		mkdirSync(app, { recursive: true })
+		writeFileSync(join(app, "package.json"), JSON.stringify({ name: "@acme/web" }))
+		expect(claudeStopHook({ root, project: app }).command).toBe('npm exec --workspace "@acme/web" --no -- sable check --stop-hook --root apps/web')
+		writeFileSync(join(root, "pnpm-lock.yaml"), "")
+		expect(claudeStopHook({ root, project: app }).command).toBe('pnpm --filter "@acme/web" exec sable check --stop-hook --root apps/web')
+		writeFileSync(join(app, "package.json"), "{}")
+		expect(claudeStopHook({ root, project: app }).command).toBe("pnpm exec sable check --stop-hook --root apps/web")
+	})
+	it("keeps the hook command free of shell syntax, so Git Bash and PowerShell 5.1 both run it", () => {
+		for (const lock of ["pnpm-lock.yaml", "yarn.lock", "package-lock.json"]) {
+			writeFileSync(join(root, lock), "")
+			const app = join(root, "packages", "my app")
+			mkdirSync(app, { recursive: true })
+			writeFileSync(join(app, "package.json"), JSON.stringify({ name: "@acme/app" }))
+			for (const { command } of [claudeStopHook({ root }), claudeStopHook({ root, project: app })]) {
+				expect(command, command).not.toMatch(/&&|\|\||;|\$|`|\bcd\b/)
+				expect(command).toContain("sable check --stop-hook")
+			}
+			rmSync(join(root, lock))
+		}
+		const odd = join(root, "apps", "a&b")
+		mkdirSync(odd, { recursive: true })
+		writeFileSync(join(odd, "package.json"), "{}")
+		expect(() => claudeStopHook({ root, project: odd })).toThrow("Add the hook by hand")
 	})
 })

@@ -201,7 +201,7 @@ export const c = <Toggle invented />`)
 
 	it("accepts icon names the app declares in .sable/icons.json", () => {
 		const dir = makeFixture()
-		writeFileSync(join(dir, "Surface.tsx"), 'export const a = <><Icon name="glitch-wave" /><Icon name="nope" /><Icon name="heart" /></>')
+		writeFileSync(join(dir, "Surface.tsx"), 'import { Icon } from "@sableui/react"\nexport const a = <><Icon name="glitch-wave" /><Icon name="nope" /><Icon name="heart" /></>')
 		expect(run(dir, ["Surface.tsx"]).data.counts.offContractIcon).toBe(2)
 		mkdirSync(join(dir, ".sable"))
 		writeFileSync(join(dir, ".sable", "icons.json"), JSON.stringify({ names: ["glitch-wave"] }))
@@ -229,5 +229,127 @@ export const c = <Toggle invented />`)
 		const dir = makeFixture()
 		writeFileSync(join(dir, "review.json"), "{")
 		expect(run(dir, ["Surface.tsx", "--review", "review.json"]).code).toBe("ERR_GRADE_INPUT")
+	})
+
+	it("ships example artifacts in the template that the evidence validator accepts once their files exist", () => {
+		const dir = makeFixture()
+		const template = run(dir, ["--template"]).data
+		const kinds = template.artifacts.map((a: { kind: string }) => a.kind)
+		expect(kinds).toEqual(["screenshot", "report"])
+		for (const a of template.artifacts) expect(`${a.id} ${a.path}`).toMatch(/example/)
+		// As shipped, the examples point at no file and carry a placeholder hash, so
+		// an unedited template can never pass on them.
+		writeFileSync(join(dir, "review.json"), JSON.stringify(template))
+		const unedited = run(dir, ["Surface.tsx", "--review", "review.json"]).data.review.issues.join("\n")
+		expect(unedited).toContain("Artifact example-wide: missing or empty file")
+		// With the files in place and their real hashes, every example field is
+		// valid: the template cannot drift from the schema the validator enforces.
+		mkdirSync(join(dir, "captures"))
+		writeFileSync(join(dir, "captures", "example-wide.png"), Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII=", "base64"))
+		writeFileSync(join(dir, "captures", "example-keyboard.md"), "Tab order follows the visual order; Enter submits.\n")
+		for (const a of template.artifacts) a.sha256 = createHash("sha256").update(readFileSync(join(dir, a.path))).digest("hex")
+		writeFileSync(join(dir, "review.json"), JSON.stringify(template))
+		const issues: string[] = run(dir, ["Surface.tsx", "--review", "review.json"]).data.review.issues
+		expect(issues.filter((issue) => issue.startsWith("Artifact "))).toEqual([])
+	})
+
+	/* Each import is judged against the subpath it came from. Judging every
+	 * `@sableui/react/*` import against the root barrel reported 25 correct
+	 * imports in Sable's own docs app as hallucinations. */
+	it("judges a /blocks import against the blocks subpath", () => {
+		const dir = makeFixture()
+		writeFileSync(join(dir, "Surface.tsx"), `import { SignInBlock, PricingCardBlock } from "@sableui/react/blocks"
+import { NotABlock } from "@sableui/react/blocks"
+export const a = <><SignInBlock /><PricingCardBlock /><NotABlock /></>`)
+		const found = run(dir, ["Surface.tsx"]).data.findings.hallucinatedComponent
+		expect(found.map((f: { name: string }) => f.name)).toEqual(["NotABlock"])
+		expect(found[0].from).toBe("@sableui/react/blocks")
+	})
+
+	it("judges /presets and /icons/reicon imports, including lowercase helpers, against their own subpaths", () => {
+		const dir = makeFixture()
+		writeFileSync(join(dir, "Surface.tsx"), `import { parsePreset, presetManifest, type SablePreset } from "@sableui/react/presets"
+import { reiconIconSet } from "@sableui/react/icons/reicon"
+import { IconProvider } from "@sableui/react"
+export const preset: SablePreset = parsePreset({})
+export const themes = [presetManifest(preset)]
+export const a = <IconProvider set={reiconIconSet}>x</IconProvider>`)
+		expect(run(dir, ["Surface.tsx"]).data.findings.hallucinatedComponent).toEqual([])
+		// The same helper from the root barrel is a real mistake: Reicon left it.
+		writeFileSync(join(dir, "Surface.tsx"), 'import { reiconIconSet } from "@sableui/react"\nexport const s = reiconIconSet')
+		expect(run(dir, ["Surface.tsx"]).data.findings.hallucinatedComponent.map((f: { name: string }) => f.name)).toEqual(["reiconIconSet"])
+	})
+
+	it("reports a subpath the package does not publish", () => {
+		const dir = makeFixture()
+		writeFileSync(join(dir, "Surface.tsx"), 'import { Button } from "@sableui/react/components"\nexport const a = <Button />')
+		const [finding] = run(dir, ["Surface.tsx"]).data.findings.hallucinatedComponent
+		expect(finding).toMatchObject({ name: "Button", from: "@sableui/react/components", reason: "not a published subpath" })
+	})
+
+	it("does not judge an app's own component that shares a Sable name", () => {
+		const dir = makeFixture()
+		writeFileSync(join(dir, "Surface.tsx"), `import { Button } from "@sableui/react"
+function PageHeader({ eyebrow, lede }: { eyebrow: string; lede: string }) { return <header>{eyebrow}{lede}</header> }
+function Icon({ name }: { name: string }) { return <i>{name}</i> }
+export const a = <><PageHeader eyebrow="Docs" lede="Read me" /><Icon name="local-only" /><Button invented /></>`)
+		const report = run(dir, ["Surface.tsx"]).data
+		expect(report.findings.hallucinatedProp.map((f: { component: string; prop: string }) => `${f.component}.${f.prop}`)).toEqual(["Button.invented"])
+		expect(report.counts.offContractIcon).toBe(0)
+	})
+
+	it("follows an aliased import back to the Sable component", () => {
+		const dir = makeFixture()
+		writeFileSync(join(dir, "Surface.tsx"), 'import { Button as SableButton } from "@sableui/react"\nexport const a = <SableButton invented />')
+		expect(run(dir, ["Surface.tsx"]).data.findings.hallucinatedProp).toMatchObject([{ component: "Button", prop: "invented" }])
+	})
+
+	it("does not judge JSX that is a string, such as a code sample", () => {
+		const dir = makeFixture()
+		writeFileSync(join(dir, "Surface.tsx"), `import { Icon, RadioCard } from "@sableui/react"
+const glyph = "plus"
+export const sample = \`<RadioCard value="post"\\n  title="Standard" />\\n<Icon name="\${glyph}" />\`
+export const a = <RadioCard value="post" title="Standard" invented />`)
+		const report = run(dir, ["Surface.tsx"]).data
+		expect(report.findings.hallucinatedProp.map((f: { prop: string }) => f.prop)).toEqual(["invented"])
+		expect(report.counts.offContractIcon).toBe(0)
+	})
+})
+
+describe("app-owned surface inventory", () => {
+	/* The reuse inventory (finish step 6) used to be written from memory. These
+	 * pin the list grade hands it: what counts as an app-owned surface, what
+	 * does not, and that the list never moves the score. */
+	it("lists hand-built surfaces, media frames and round boxes without scoring them", () => {
+		const dir = makeFixture()
+		writeFileSync(join(dir, "Surface.tsx"), `import { Card } from "@sableui/react"
+export function Surface({ a }) {
+	return <main>
+		<div className="rounded-lg border border-border p-4">Notes</div>
+		<section className="bg-popover p-2">Menu-ish</section>
+		<div className="aspect-video overflow-hidden"><canvas /></div>
+		<span className="size-2 rounded-full bg-success" />
+		<div className="size-10 rounded-full"><img src={a.src} alt="" /></div>
+		<p className="text-body-md text-muted-foreground">Plain copy is not a surface.</p>
+		<div className="rounded-md px-2">No edge, no fill.</div>
+		<Card render={<a href="/x" className="rounded-lg border bg-card p-4" />}>Composed</Card>
+		{/* <div className="rounded-lg border p-4"> in a comment */}
+	</main>
+}`)
+		const report = run(dir, ["Surface.tsx"]).data
+		// The inventory is never scored: the one finding is the avatar lookalike
+		// lint already fails; the surfaces beside it cost nothing.
+		expect(report.findings.contract.map((f: { ruleId: string }) => f.ruleId)).toEqual(["lookalike-avatar"])
+		expect(report.score).toBe(99)
+		expect(report.inventory.informationalOnly).toBe(true)
+		const rows = report.inventory.surfaces.map((s: { line: number; tag: string; kind: string; consider: string }) => [s.line, s.tag, s.kind, s.consider])
+		expect(rows).toEqual([
+			[4, "div", "surface", "Card, or the component that owns this surface"],
+			[5, "section", "surface", "Card, or the component that owns this surface"],
+			[6, "div", "media frame", "AspectBox"],
+			[7, "span", "round", "StatusDot, if it reports a status"],
+			[8, "div", "round", "Avatar"],
+		])
+		expect(report.inventory.byKind).toEqual({ surface: 2, "media frame": 1, round: 2 })
 	})
 })

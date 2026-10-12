@@ -1,4 +1,4 @@
-import { Button, Icon, Scroller, useScrollActivity } from "@sableui/react"
+import { Button, Grid, Icon, Scroller, useScrollActivity } from "@sableui/react"
 import { FOUNDATIONS_BY_SLUG } from "@sableui/react/foundations"
 import { type ReactNode, useLayoutEffect, useRef, useState } from "react"
 import { PageHeader, Section } from "../components/docs-ui"
@@ -43,27 +43,27 @@ export function ShapePage() {
 			lede="Corners say what something is: tight on containers, round on actions. Nested corners share a center."
 		>
 			<Section title="Radius" description="Seven steps. The Customize panel retunes them together.">
-				<div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-7">
+				<Grid cols={{ base: 2, sm: 4, lg: 7 }} gap={2}>
 					{RADII.map(([r, cls]) => (
 						<div key={r} className="grid gap-2">
 							<div className={`aspect-square border border-border-strong bg-muted ${cls}`} />
 							<code className="text-mono-caption text-muted-foreground">{cls}</code>
 						</div>
 					))}
-				</div>
+				</Grid>
 			</Section>
 			<Section title="Concentric nesting" description="The inner corner is the outer corner minus the padding, so the curves stay parallel.">
 				<ConcentricDemo />
 			</Section>
 			<Section title="Edges" description="One edge per boundary: a line, a ring or a shadow, never all three.">
-				<div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+				<Grid cols={{ base: 2, lg: 4 }} gap={2}>
 					{EDGES.map(([label, cls]) => (
 						<div key={label} className="grid gap-2">
 							<div className={`h-20 rounded-lg bg-card ${cls}`} />
 							<p className="text-label-md">{label}</p>
 						</div>
 					))}
-				</div>
+				</Grid>
 			</Section>
 		</FoundationPage>
 	)
@@ -158,7 +158,7 @@ export function AccessibilityPage() {
 			lede="Components handle keyboard and screen readers for you. These are the floors every screen still has to meet."
 		>
 			<Section title="Floors">
-				<div className="grid gap-6 sm:grid-cols-2">
+				<Grid cols={{ base: 1, sm: 2 }} gap={3}>
 					<Floor title="Contrast" caption="4.5:1 for text, 3:1 for icons, controls and large text.">
 						<div className="flex items-baseline gap-6">
 							<span className="text-display-lg">Aa</span>
@@ -185,7 +185,7 @@ export function AccessibilityPage() {
 							</p>
 						</div>
 					</Floor>
-				</div>
+				</Grid>
 			</Section>
 		</FoundationPage>
 	)

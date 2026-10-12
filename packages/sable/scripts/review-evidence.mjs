@@ -9,12 +9,39 @@ export const DIMENSIONS = [
 ]
 export const CHECKS = ["primary-flow", "keyboard", "overflow", "reduced-motion"]
 
+/**
+ * One filled example of each artifact shape, so the required fields are in the
+ * template rather than discoverable only by submitting a review and reading the
+ * errors. Ids and paths say `example`, the hash is a placeholder that matches no
+ * file, and the validator rejects them until they are replaced with real
+ * captures — a copied template cannot pass on its examples.
+ */
+export const EXAMPLE_ARTIFACTS = [
+	{
+		id: "example-wide",
+		kind: "screenshot",
+		path: "captures/example-wide.png",
+		sha256: "replace-with-review.artifactHashes-after-inspecting-the-file",
+		viewport: { width: 1440, height: 900 },
+		state: "dashboard, loaded",
+		colorMode: "light",
+		motion: "full",
+	},
+	{
+		id: "example-keyboard",
+		kind: "report",
+		path: "captures/example-keyboard.md",
+		sha256: "replace-with-review.artifactHashes-after-inspecting-the-file",
+		state: "checkout flow, keyboard only",
+	},
+]
+
 export function reviewTemplate() {
 	return {
 		schemaVersion: 1,
 		build: { name: "", brief: "", revision: "", sourceHash: "" },
 		reviewer: { name: "", method: "agent" },
-		artifacts: [],
+		artifacts: EXAMPLE_ARTIFACTS.map((artifact) => structuredClone(artifact)),
 		dimensions: DIMENSIONS.map((id) => ({ id, status: "untested", observation: "", evidence: [] })),
 		checks: CHECKS.map((id) => ({ id, status: "untested", observation: "", evidence: [] })),
 		iterations: [],

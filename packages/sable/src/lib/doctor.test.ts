@@ -48,6 +48,20 @@ describe('doctor first-use consumer wiring', () => {
     const report = inspect("@import '@sableui/react/styles.css';\n@import 'tailwindcss';")
     expect(report.checks.find((check: { name: string }) => check.name === 'css:order').status).toBe('fail')
   })
+  // Icons are opt-in: an app that renders Sable with no IconProvider gets every
+  // icon — its own and those inside Sable's components — as nothing, silently.
+  it('fails an app that imports Sable but mounts no IconProvider', () => {
+    const icons = inspect(imports, 'import { Button } from "@sableui/react"\nexport const App = () => <Button>Go</Button>').checks.find((check: { name: string }) => check.name === 'icons')
+    expect(icons.status).toBe('fail')
+    expect(icons.detail).toBe('No <IconProvider> — every <Icon> renders nothing.')
+    expect(icons.fix).toContain('@sableui/react/icons/reicon')
+  })
+  it('passes an app that mounts an IconProvider', () => {
+    const source = 'import { Button, IconProvider } from "@sableui/react"\nimport { reiconIconSet } from "@sableui/react/icons/reicon"\nexport const App = () => <IconProvider set={reiconIconSet}><Button>Go</Button></IconProvider>'
+    const report = inspect(imports, source)
+    expect(report.checks.find((check: { name: string }) => check.name === 'icons').status).toBe('pass')
+    expect(report.failed).toBe(0)
+  })
   it('accepts a bundled alternate stylesheet', () => {
     expect(inspect(`${imports}\n@import '@sableui/react/theme/prism.css';`).failed).toBe(0)
   })

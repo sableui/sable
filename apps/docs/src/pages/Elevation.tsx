@@ -1,4 +1,4 @@
-import { cn } from "@sableui/react"
+import { cn, Grid } from "@sableui/react"
 import { PageHeader, Section } from "../components/docs-ui"
 
 const SURFACES: [string, string, string][] = [
@@ -37,7 +37,7 @@ export function ElevationPage() {
 			/>
 
 			<Section title="Surfaces" description="A raised surface is one step lighter.">
-				<div className="grid gap-4 sm:grid-cols-3">
+				<Grid cols={{ base: 1, sm: 3 }} gap={2}>
 					{SURFACES.map(([name, surface, note]) => (
 						<div
 							key={name}
@@ -47,7 +47,7 @@ export function ElevationPage() {
 							<p className="text-body-sm text-muted-foreground mt-1">{note}</p>
 						</div>
 					))}
-				</div>
+				</Grid>
 			</Section>
 
 			<Section
@@ -108,7 +108,7 @@ export function ElevationPage() {
 				title="Shadows"
 				description="The more something floats over the page, the higher it sits. Shadows read strongest in light mode."
 			>
-				<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+				<Grid cols={{ base: 1, sm: 2, lg: 3 }} gap={3}>
 					{LEVELS.map(([name, shadow, note]) => (
 						<div key={name} className="rounded-xl bg-background p-2">
 							<div
@@ -125,7 +125,7 @@ export function ElevationPage() {
 							<p className="text-body-sm text-muted-foreground mt-1">{note}</p>
 						</div>
 					))}
-				</div>
+				</Grid>
 			</Section>
 
 			<Section title="Layers" description="What sits on top of what, from top to bottom.">

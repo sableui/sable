@@ -1,3 +1,4 @@
+import { Grid } from "@sableui/react"
 import { GradientArt, gradientArtMeta } from "@sableui/react"
 import { ComponentPlayground, Example, MetaFooter, PageHeader, Section, ledeFor } from "../../components/docs-ui"
 import { useTheme } from "../../theme"
@@ -23,14 +24,14 @@ export function GradientArtPage() {
 
 			<Section title="Mesh and grain" description="The same seed and tones in both variants. Mesh, the default, is soft and glassy; grain glows over deep corners with a printed texture.">
 				<Example>
-					<div className="grid w-full max-w-lg grid-cols-2 gap-4">
+					<Grid cols={2} gap={2} className="w-full max-w-lg">
 						{(["mesh", "grain"] as const).map((variant) => (
 							<figure key={variant} className="grid gap-2">
 								<GradientArt variant={variant} seed="Untitled (gold rush)" className="aspect-[4/3] rounded-lg" />
 								<figcaption className="text-caption text-muted-foreground">{variant}</figcaption>
 							</figure>
 						))}
-					</div>
+					</Grid>
 				</Example>
 			</Section>
 
@@ -39,7 +40,7 @@ export function GradientArtPage() {
 				description="Each preset sets its own art direction through the --art-* tokens: its colours, how far the field bends, how soft the blend is, and whether it carries grain. The same seed in every preset, each shown as shipped."
 			>
 				<Example>
-					<div className="grid w-full max-w-2xl grid-cols-2 gap-4 sm:grid-cols-3">
+					<Grid cols={{ base: 2, sm: 3 }} gap={2} className="w-full max-w-2xl">
 						{themes.map((theme) => (
 							<figure key={theme.id} className="grid gap-2">
 								{/* Scoped to the preset as shipped, like the Presets page: the art reads that preset's tokens. */}
@@ -49,17 +50,17 @@ export function GradientArtPage() {
 								<figcaption className="text-caption text-muted-foreground">{theme.label}</figcaption>
 							</figure>
 						))}
-					</div>
+					</Grid>
 				</Example>
 			</Section>
 
 			<Section title="Seeds" description="A seed fixes each item's composition, so a grid of covers stays individually recognisable in every theme.">
 				<Example>
-					<div className="grid w-full max-w-lg grid-cols-4 gap-3">
+					<Grid cols={4} gap={1.5} className="w-full max-w-lg">
 						{COVERS.map((title) => (
 							<GradientArt key={title} seed={title} className="aspect-square rounded-md" />
 						))}
-					</div>
+					</Grid>
 				</Example>
 			</Section>
 

@@ -1,4 +1,4 @@
-import { BarChart, Toggle, ToggleGroup, barChartMeta } from "@sableui/react"
+import { BarChart, barChartMeta, Grid, Toggle, ToggleGroup } from "@sableui/react"
 import { useState } from "react"
 import { ComponentPlayground, Example, MetaFooter, PageHeader, Section, ledeFor } from "../../components/docs-ui"
 import { BROWSERS, DAILY, DEVICES, NET, VISITORS, shortDate, shortMonth } from "../../content/chart-data"
@@ -78,12 +78,12 @@ export function BarChartPage() {
 
 			<Section title="Tooltip" description="Row markers (dot, line, dashed, none), no heading, a formatted heading, values in units, and a total.">
 				<Example>
-					<div className="grid w-full gap-6 md:grid-cols-2">
+					<Grid cols={{ base: 1, md: 2 }} gap={3} className="w-full">
 						<BarChart label="Visitors by device, line indicator" data={VISITORS} index="month" series={DEVICES} indexFormatter={shortMonth} stacked tooltip={{ indicator: "line" }} defaultActiveIndex={2} legend={false} />
 						<BarChart label="Visitors by device, dashed indicator" data={VISITORS} index="month" series={DEVICES} indexFormatter={shortMonth} stacked tooltip={{ indicator: "dashed", labelFormatter: (m) => `${m} 2026` }} defaultActiveIndex={2} legend={false} />
 						<BarChart label="Visitors by device, no indicator" data={VISITORS} index="month" series={DEVICES} indexFormatter={shortMonth} stacked tooltip={{ indicator: "none", hideLabel: true }} defaultActiveIndex={2} legend={false} />
 						<BarChart label="Revenue by device" data={VISITORS} index="month" series={DEVICES} indexFormatter={shortMonth} stacked valueFormatter={(v) => `$${v.toLocaleString("en-US")}`} tooltip={{ showTotal: true }} defaultActiveIndex={2} legend={false} />
-					</div>
+					</Grid>
 				</Example>
 			</Section>
 

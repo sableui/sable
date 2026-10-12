@@ -793,6 +793,7 @@ function checkExampleProps() {
 	}
 	for (const c of components) fromMeta(c)
 	for (const p of layoutPrimitives.primitives) fromMeta(p)
+	for (const p of providerItems) if (!p.partOf) addTag(p.name, p.props.map((x) => x.name))
 
 	/* Props inherit. `PageProps extends RegionProps`, so `<Page max="feed">` is
 	 * correct even though `max` is documented on Region — and the first version of
@@ -853,6 +854,90 @@ function checkExampleProps() {
 		}
 	}
 }
+
+/* ── Providers: every exported `*Provider` is retrievable. ───────────────────
+ * `sable component SableThemeProvider` answered ERR_UNKNOWN_COMPONENT: the app
+ * providers had no meta, so nothing reading the registry could say what they
+ * take or where they go. A provider is documented in exactly one place —
+ * src/providers/providers.meta.ts for the app-level ones, or the owning
+ * component's meta (ToastProvider is a prop row of Toast; TooltipProvider and
+ * CodeHighlightProvider are subcomponents) — and this derives the second kind
+ * rather than restating it. */
+const PROVIDER_METAS = (
+	await import(pathToFileURL(join(PKG_ROOT, "src", "providers", "providers.meta.ts")).href)
+).PROVIDER_METAS
+const providerItems = []
+{
+	const documented = new Set()
+	for (const meta of PROVIDER_METAS) {
+		if (documented.has(meta.name)) contractErrors.push(`providers: "${meta.name}" is documented twice in providers.meta.ts.`)
+		documented.add(meta.name)
+		if (!SURFACE.values.has(meta.name)) {
+			contractErrors.push(`providers: "${meta.name}" is not exported by the package barrel. Use the exported name.`)
+		}
+		for (const field of ["summary", "required", "placement"]) {
+			if (!meta[field]?.trim()) contractErrors.push(`providers: "${meta.name}" has no ${field}.`)
+		}
+		if (!/^(Required|Optional)\b/.test(meta.required ?? "")) {
+			contractErrors.push(`providers: "${meta.name}".required must start with "Required" or "Optional".`)
+		}
+		if (!meta.examples?.length) contractErrors.push(`providers: "${meta.name}" has no example.`)
+		// Props against the source interface, both directions: a prop added to the
+		// provider cannot go undocumented, and a removed one cannot linger.
+		if (meta.source) {
+			const src = readFileSync(join(PKG_ROOT, "src", meta.source), "utf8")
+			const body = src.match(new RegExp(`export interface ${meta.name}Props\\s*\\{([\\s\\S]*?)\\n\\}`))?.[1]
+			if (!body) contractErrors.push(`providers: ${meta.source} declares no \`export interface ${meta.name}Props\`.`)
+			else {
+				const declared = new Set(
+					[...body.matchAll(/^\t(\w+)\??\s*:/gm)].map((m) => m[1]).filter((n) => n !== "children"),
+				)
+				const listed = new Set(meta.props.map((x) => x.name))
+				for (const n of declared) {
+					if (!listed.has(n)) contractErrors.push(`providers: ${meta.name}Props declares \`${n}\`, which providers.meta.ts does not document.`)
+				}
+				for (const n of listed) {
+					if (!declared.has(n)) contractErrors.push(`providers: providers.meta.ts documents ${meta.name} \`${n}\`, which ${meta.name}Props does not declare.`)
+				}
+			}
+		}
+		const examples = meta.examples.map((ex) => {
+			EXAMPLE_TAGS.push({ owner: meta.name, label: ex.label, code: ex.code })
+			const { imports, unknown } = deriveImports(ex.code)
+			for (const tag of unknown) {
+				contractErrors.push(`${meta.name} — "${ex.label}": <${tag}> is not exported by the package (phantom component).`)
+			}
+			const lines = [...(ex.extraImports ?? []), ...(imports ? [imports] : [])]
+			return { label: ex.label, code: ex.code, ...(lines.length ? { imports: lines.join("\n") } : {}) }
+		})
+		const { source: _source, examples: _examples, ...rest } = meta
+		providerItems.push({ ...rest, import: `import { ${meta.name} } from "@sableui/react"`, examples })
+	}
+	// Component-owned providers: a prop row or subcomponent of the component that owns them.
+	for (const name of [...SURFACE.values].filter((v) => /^[A-Z]\w*Provider$/.test(v)).sort()) {
+		if (documented.has(name)) continue
+		const owner = components.find(
+			(c) => (c.subcomponents ?? []).some((x) => x.name === name) || (c.props ?? []).some((x) => x.name === name),
+		)
+		if (!owner) {
+			contractErrors.push(
+				`providers: the package exports ${name}, but neither src/providers/providers.meta.ts nor any component meta documents it, so \`sable provider ${name}\` cannot find it. Document it in one of the two.`,
+			)
+			continue
+		}
+		const row = [...(owner.subcomponents ?? []), ...(owner.props ?? [])].find((x) => x.name === name)
+		providerItems.push({
+			name,
+			partOf: owner.name,
+			summary: row.description,
+			signature: row.type,
+			import: `import { ${name} } from "@sableui/react"`,
+			examples: (owner.examples ?? []).filter((ex) => ex.code.includes(`<${name}`)),
+		})
+	}
+	providerItems.sort((a, b) => a.name.localeCompare(b.name))
+}
+
 checkExampleProps()
 
 /* ── Example code must carry a scrollbar policy. ───────────────────────────────
@@ -1265,17 +1350,25 @@ const SHIPPED_RECIPES = new Set(
  * frames, state variants, scroll policies — and none of it was in the registry.
  * `sable search "well"` returned the `muted` token, so agents hand-mixed the
  * colour `sable-well` already computes. Each name in styles.css must now be
- * documented in exactly ONE of: `UTILITY_DOCS` (src/utilities/utility-docs.ts),
- * `tokens.typography` (the paired `text-*` tiers, named without `text-`), or
- * `tokens.motion.recipes` (`motion-*` / `animate-*`). None is a utility nobody
- * can find; two is two descriptions waiting to disagree. Reverse direction too:
- * a doc for a utility styles.css no longer defines is a recipe that no-ops. */
+ * documented in exactly ONE of: `UTILITY_DOCS` (src/utilities/utility-docs.ts)
+ * or `tokens.typography` (the paired `text-*` tiers, named without `text-`),
+ * unless `INTERNAL_UTILITIES` lists it as deliberately private. None is a
+ * utility nobody can find; two is two descriptions waiting to disagree. Reverse
+ * direction too: a doc for a utility styles.css no longer defines is a recipe
+ * that no-ops.
+ *
+ * `tokens.motion.recipes` used to count as a third home. It is a list of names
+ * with no intent, so `sable utility motion-icon-swap` had nothing to serve and
+ * answered ERR_UNKNOWN_UTILITY for a recipe that ships. The motion recipes are
+ * now documented in UTILITY_DOCS (family "motion"); the recipe list stays as
+ * the vocabulary sable-lint and grade read, and must name the same set. */
 const UTILITY_DOCS_MOD = await import(
 	pathToFileURL(join(PKG_ROOT, "src", "utilities", "utility-docs.ts")).href
 )
 const UTILITY_DOCS = UTILITY_DOCS_MOD.UTILITY_DOCS
 const UTILITY_FAMILIES = UTILITY_DOCS_MOD.UTILITY_FAMILIES
 const UTILITIES_ELSEWHERE = UTILITY_DOCS_MOD.UTILITIES_ELSEWHERE
+const INTERNAL_UTILITIES = new Set(UTILITY_DOCS_MOD.INTERNAL_UTILITIES ?? [])
 {
 	// Line-anchored, so the header comment's prose ("the paired typography
 	// @utility set") is not read as a utility named `set`.
@@ -1288,23 +1381,39 @@ const UTILITIES_ELSEWHERE = UTILITY_DOCS_MOD.UTILITIES_ELSEWHERE
 		(REGISTRY_TOKENS.typography ?? []).map((e) => `text-${typeof e === "string" ? e : e.name}`),
 	)
 	const recipeNames = new Set(REGISTRY_TOKENS.motion?.recipes ?? [])
+	const motionDocs = new Set(UTILITY_DOCS.filter((d) => d.family === "motion").map((d) => d.name))
+	for (const name of recipeNames) {
+		if (!motionDocs.has(name)) {
+			contractErrors.push(`utilities: tokens.motion.recipes lists "${name}" but utility-docs.ts has no "motion" family entry for it, so \`sable utility ${name}\` cannot explain it.`)
+		}
+	}
+	for (const name of motionDocs) {
+		if (!recipeNames.has(name)) {
+			contractErrors.push(`utilities: utility-docs.ts documents motion recipe "${name}", which tokens.motion.recipes does not list.`)
+		}
+	}
 	const docNames = new Map()
 	for (const doc of UTILITY_DOCS) {
 		if (docNames.has(doc.name)) contractErrors.push(`utilities: "${doc.name}" is documented twice in src/utilities/utility-docs.ts.`)
 		docNames.set(doc.name, doc)
 	}
 	const shippedNames = new Map(shipped.map((s) => [s.name, s]))
+	for (const name of INTERNAL_UTILITIES) {
+		if (!shipped.some((s) => s.name === name)) {
+			contractErrors.push(`utilities: INTERNAL_UTILITIES lists "${name}", which styles.css does not declare.`)
+		}
+	}
 	for (const { name, kind } of shipped) {
 		const homes = [
 			docNames.has(name) && "utilities (src/utilities/utility-docs.ts)",
 			typographyNames.has(name) && "tokens.typography",
-			recipeNames.has(name) && "tokens.motion.recipes",
+			INTERNAL_UTILITIES.has(name) && "INTERNAL_UTILITIES",
 		].filter(Boolean)
 		const decl = kind === "variant" ? "@custom-variant" : "@utility"
 		if (homes.length === 0) {
 			contractErrors.push(
 				`utilities: styles.css declares \`${decl} ${name}\` but nothing documents it, so no agent can find it. ` +
-					`Add an entry to src/utilities/utility-docs.ts${name.startsWith("text-") ? " (or a tokens.typography entry for a paired page tier)" : ""}${/^(motion|animate)-/.test(name) ? " (or list it in registry.json → tokens.motion.recipes)" : ""}.`,
+					`Add an entry to src/utilities/utility-docs.ts${name.startsWith("text-") ? " (or a tokens.typography entry for a paired page tier)" : ""}${/^(motion|animate)-/.test(name) ? ' (family "motion", and list it in registry.json → tokens.motion.recipes)' : ""}, or list it in INTERNAL_UTILITIES if it is deliberately private.`,
 			)
 		} else if (homes.length > 1) {
 			contractErrors.push(`utilities: \`${decl} ${name}\` is documented in ${homes.join(" AND ")}. Keep exactly one.`)
@@ -1666,9 +1775,15 @@ registry.propSurface = {
 	items: collectPropSurface(PKG_ROOT),
 }
 registry.tokens = documentedTokens
+registry.providers = {
+	about:
+		"App-level context providers: what each one does, whether an app needs it, where it goes, its props and a copyable example. App-wide providers are documented in src/providers/providers.meta.ts; a provider owned by one component (`partOf`) is documented in that component's meta and summarised here. Generated — do not hand-edit.",
+	retrieve: "sable provider <Name>",
+	items: providerItems,
+}
 registry.utilities = {
 	about:
-		"The CSS layer between tokens and components: relative surfaces that derive hover and well fills from the surface they sit in, frames that compute concentric inner radii, state variants that match Base UI data attributes and ARIA alike, scroll policies, and chrome type tiers. Reach for these before hand-writing CSS or mixing colours. Generated from src/utilities/utility-docs.ts — do not hand-edit.",
+		"The CSS layer between tokens and components: relative surfaces that derive hover and well fills from the surface they sit in, frames that compute concentric inner radii, state variants that match Base UI data attributes and ARIA alike, scroll policies, chrome type tiers, and the motion recipes. Reach for these before hand-writing CSS, mixing colours or writing a transition. Generated from src/utilities/utility-docs.ts — do not hand-edit.",
 	retrieve: "sable utility <name>",
 	elsewhere: UTILITIES_ELSEWHERE,
 	families: UTILITY_FAMILIES,
@@ -1705,6 +1820,7 @@ registry.consume.designWorkflow = {
 	precedents: "sable learn --search \"<context>\" --json",
 	composition: "Inspect a relevant pattern skeleton. Reuse when its information architecture fits; original compositions from layout primitives are equally valid.",
 	review: "sable docs reviewing-a-design",
+	finish: "sable check <source paths> runs doctor, lint and grade in one pass and exits 1 on any failure, then lists the review steps no tool can verify. Optional Claude Code Stop hook: sable setup --agent --target claude --hook",
 	evidenceTemplate: "sable grade --template",
 	learning: "sable docs learning-from-builds",
 	localMemory: ".sable/lessons/ for causal observations; .sable/preferences/ for scoped judgments; both project-owned and preserved across package upgrades",
@@ -1790,7 +1906,6 @@ function llmsUtilities() {
 		"The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, when to reach for it, and what you would hand-write without it. Generated from `src/utilities/utility-docs.ts`; the full data is `registry.json → utilities`; one entry at a time with `sable utility <name>`.",
 		"",
 		`- **Typography:** ${UTILITIES_ELSEWHERE.typography}`,
-		`- **Motion:** ${UTILITIES_ELSEWHERE.motion}`,
 		"",
 	]
 	for (const family of UTILITY_FAMILIES) {
@@ -1852,14 +1967,22 @@ function llmsCatalog() {
 	}
 	lines.push(
 		"",
-		`### Utilities (${UTILITY_DOCS.length}) — relative surfaces, frames, state variants, scroll policies, chrome type; reach for these before hand-written CSS (registry.json → utilities; \`sable utility <name>\`) → [\`llms/reference/utilities.md\`](./llms/reference/utilities.md)`,
+		`### Utilities (${UTILITY_DOCS.length}) — relative surfaces, frames, state variants, scroll policies, chrome type, motion recipes; reach for these before hand-written CSS (registry.json → utilities; \`sable utility <name>\`) → [\`llms/reference/utilities.md\`](./llms/reference/utilities.md)`,
 		"",
 	)
 	for (const family of UTILITY_FAMILIES) {
 		const names = UTILITY_DOCS.filter((u) => u.family === family).map((u) => `\`${u.kind === "variant" ? `${u.name}:` : u.name}\``)
 		if (names.length) lines.push(`- **${family}** — ${names.join(", ")}`)
 	}
-	lines.push(`- **elsewhere** — paired \`text-*\` page tiers: registry.json → tokens.typography; \`motion-*\` / \`animate-*\` recipes: registry.json → tokens.motion.recipes.`)
+	lines.push(`- **elsewhere** — paired \`text-*\` page tiers: registry.json → tokens.typography (also \`sable utility text-heading-1\`).`)
+	lines.push(
+		"",
+		`### Providers (${providerItems.length}) — app-level context: where each goes, whether it is required, props, examples (registry.json → providers; \`sable provider <Name>\`)`,
+		"",
+	)
+	for (const p of providerItems) {
+		lines.push(`- **${p.name}**${p.partOf ? ` (part of ${p.partOf})` : ""} — ${firstSentence(p.summary)}`)
+	}
 	lines.push(
 		"",
 		`### Components (${components.length}) — full props/subcomponents/variants/guidance/a11y/examples in registry.json → components`,

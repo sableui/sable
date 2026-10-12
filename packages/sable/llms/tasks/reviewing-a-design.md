@@ -47,6 +47,21 @@ those values into artifact records only after inspecting the corresponding files
 replacing a capture at the same path then makes the review incomplete. Neither
 the source fingerprint nor an artifact hash proves someone inspected the screen.
 
+The template starts with one example screenshot and one example report artifact.
+Replace them with your own captures; as shipped they point at no file and fail
+validation. Each artifact record has these fields:
+
+| Field | Meaning |
+| --- | --- |
+| `id` | A unique name that dimensions, checks and iterations cite in `evidence`. |
+| `kind` | `screenshot`, `recording`, or `report` (a written observation, such as a keyboard walkthrough). |
+| `path` | The capture file, relative to the review JSON. It must exist and be non-empty. |
+| `sha256` | The file's hash, copied from `review.artifactHashes` after you inspect the file. |
+| `state` | The route and state captured, such as "checkout, payment error". |
+| `viewport` | `{ width, height }` in pixels. Screenshots and recordings only. You need one at 1024 wide or more and one at 480 wide or less. |
+| `colorMode` | `light` or `dark`. Screenshots and recordings only. |
+| `motion` | `full` or `reduced`. Screenshots and recordings only. At least one artifact must be captured with reduced motion. |
+
 ## Review these eight dimensions
 
 | Dimension id | Look for concrete evidence |

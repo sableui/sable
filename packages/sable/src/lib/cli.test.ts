@@ -1,6 +1,7 @@
-import { execFileSync } from "node:child_process"
-import { readFileSync } from "node:fs"
-import { join, resolve } from "node:path"
+import { execFileSync, spawnSync } from "node:child_process"
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join, relative, resolve } from "node:path"
 import { describe, expect, it } from "vitest"
 import { skeletonize } from "../../scripts/skeleton.mjs"
 
@@ -257,4 +258,354 @@ describe("utilities", () => {
 		const names = json(["manifest"]).data.commands.map((c: { name: string }) => c.name)
 		expect(names).toContain("utility")
 	})
+})
+
+/* ── Fixtures for commands that read the project they run in. ───────────────── */
+
+const SABLE_CSS = '@import "tailwindcss";\n@import "@sableui/react/styles.css";\n@source "../node_modules/@sableui/react/dist/**/*.js";\n'
+const CLEAN_APP = `import { Button, IconProvider } from "@sableui/react"
+import { reiconIconSet } from "@sableui/react/icons/reicon"
+
+export function App() {
+	return (
+		<IconProvider set={reiconIconSet}>
+			<Button>Save</Button>
+		</IconProvider>
+	)
+}
+`
+
+function project(app = CLEAN_APP): string {
+	const root = mkdtempSync(join(tmpdir(), "sable-cli-"))
+	mkdirSync(join(root, "src"))
+	writeFileSync(
+		join(root, "package.json"),
+		JSON.stringify({ dependencies: { "@sableui/react": "*", react: "^19", "react-dom": "^19", tailwindcss: "^4" } }),
+	)
+	writeFileSync(join(root, "vite.config.ts"), 'export default { resolve: { dedupe: ["react", "react-dom"] } }\n')
+	writeFileSync(join(root, "src", "styles.css"), SABLE_CSS)
+	writeFileSync(join(root, "src", "App.tsx"), app)
+	return root
+}
+
+function runIn(cwd: string, args: string[], input?: string): { out: string; err: string; code: number } {
+	const r = spawnSync(process.execPath, [BIN, ...args], { cwd, encoding: "utf8", input })
+	return { out: r.stdout ?? "", err: r.stderr ?? "", code: r.status ?? 1 }
+}
+
+describe("global flags", () => {
+	/**
+	 * One realistic invocation per command. The test fails when a command is added
+	 * without one, so the next command cannot ship rejecting `--dense` the way
+	 * `learn` did ("Unknown flag: --dense" while --help listed it as global).
+	 */
+	const INVOCATIONS: Record<string, string[]> = {
+		target: ["target", "ios"],
+		preset: ["preset", "--check", "missing.json"],
+		setup: ["setup", "--agent", "--dry-run"],
+		manifest: ["manifest"],
+		search: ["search", "button"],
+		check: ["check", "src"],
+		component: ["component", "Button"],
+		pattern: ["pattern", "--list"],
+		block: ["block", "--list"],
+		layout: ["layout", "--list"],
+		provider: ["provider", "--list"],
+		token: ["token", "--list"],
+		utility: ["utility", "--list"],
+		docs: ["docs", "--list"],
+		doctor: ["doctor"],
+		grade: ["grade", "src"],
+		learn: ["learn", "--search", "motion"],
+		lint: ["lint", "src"],
+		atlas: ["atlas", "--list"],
+		prefer: ["prefer", "--list"],
+		explore: ["explore", "--template"],
+	}
+
+	it("has an invocation for every command in the manifest", () => {
+		const names = json(["manifest"]).data.commands.map((c: { name: string }) => c.name).sort()
+		expect(Object.keys(INVOCATIONS).sort()).toEqual(names)
+	})
+
+	it("accepts every global flag on every command without changing its outcome", () => {
+		const root = project()
+		try {
+			const extras = [["--dense"], ["--detail", "brief"], ["--json"], ["--json", "--dense"]]
+			for (const args of Object.values(INVOCATIONS)) {
+				const plain = runIn(root, args)
+				for (const extra of extras) {
+					const flagged = runIn(root, [...args, ...extra])
+					const label = `sable ${[...args, ...extra].join(" ")}`
+					expect(`${flagged.out}${flagged.err}`, label).not.toMatch(/Unknown flag|"type":"error","code":"ERR_BAD_FLAG"|ERR_BAD_FLAG:/)
+					expect(flagged.code, `${label}\n${flagged.out}${flagged.err}`).toBe(plain.code)
+				}
+			}
+		} finally {
+			rmSync(root, { recursive: true, force: true })
+		}
+	}, 180_000)
+
+	it("never takes the next word as the value of a switch", () => {
+		// `--dense Button` used to parse as --dense=Button, leaving no component name.
+		expect(run(["component", "--dense", "Button"]).out).toContain("Button")
+		expect(json(["component", "--dense", "Button"]).data.name).toBe("Button")
+	})
+
+	it("still rejects a bad --detail value on a command that does not read it", () => {
+		const err = JSON.parse(run(["manifest", "--detail", "everything", "--json"]).out)
+		expect(err.code).toBe("ERR_BAD_FLAG")
+	})
+
+	it("re-emits a delegated command's JSON on one line under --dense", () => {
+		const out = run(["learn", "--search", "motion", "--json", "--dense"]).out.trim()
+		expect(out.split("\n")).toHaveLength(1)
+		expect(JSON.parse(out).type).toBe("learn.list")
+	})
+})
+
+describe("every public utility is retrievable", () => {
+	/**
+	 * The utility catalog is hand-written (src/utilities/utility-docs.ts) while the
+	 * utilities live in styles.css, and `sable utility motion-icon-swap` once
+	 * answered ERR_UNKNOWN_UTILITY for a recipe that ships. This asks the CLI for
+	 * every `@utility` and `@custom-variant` styles.css declares, so a utility
+	 * added without a doc fails here, not in an agent's session.
+	 */
+	const css = readFileSync(join(PKG_ROOT, "src", "styles.css"), "utf8")
+	const declared = [
+		...[...css.matchAll(/^[ \t]*@utility\s+([a-z][a-z0-9-]*(?:-\*)?)\s*\{/gm)].map((m) => m[1]),
+		...[...css.matchAll(/^[ \t]*@custom-variant\s+([a-z][a-z0-9-]*)\s*[({]/gm)].map((m) => m[1]),
+	]
+
+	it("answers `sable utility <name>` for each, unless it is listed as internal", async () => {
+		const { INTERNAL_UTILITIES } = await import("../utilities/utility-docs")
+		const internal = new Set<string>(INTERNAL_UTILITIES)
+		expect(declared.length).toBeGreaterThan(80)
+		const missing = declared
+			.filter((name) => !internal.has(name))
+			.filter((name) => run(["utility", name.replace(/\*$/, "md"), "--json"]).code !== 0)
+		expect(missing, "add a src/utilities/utility-docs.ts entry (or INTERNAL_UTILITIES with a reason)").toEqual([])
+	}, 120_000)
+
+	it("explains the motion recipes and the type tiers, not just their names", () => {
+		const swap = json(["utility", "motion-icon-swap"]).data
+		expect(swap.family).toBe("motion")
+		expect(swap.intent).toMatch(/icon/i)
+		expect(swap.example).toContain('className="motion-icon-swap"')
+		const tier = json(["utility", "text-heading-1"]).data
+		expect(tier.documentedIn).toBe("registry.json → tokens.typography")
+		expect(tier.intent.length).toBeGreaterThan(0)
+	})
+})
+
+describe("providers", () => {
+	const NAMES = [
+		"SableThemeProvider",
+		"IconProvider",
+		"MotionProvider",
+		"ToastProvider",
+		"TooltipProvider",
+		"CodeHighlightProvider",
+		"DensityProvider",
+		"PresentationProvider",
+	]
+
+	it("lists every exported provider", () => {
+		const listed = json(["provider", "--list"]).data.providers.map((p: { name: string }) => p.name)
+		for (const name of NAMES) expect(listed, name).toContain(name)
+	})
+
+	it("answers `sable component <Provider>` with the provider instead of ERR_UNKNOWN_COMPONENT", () => {
+		const { type, data } = json(["component", "SableThemeProvider"])
+		expect(type).toBe("provider.detail")
+		expect(data.import).toBe('import { SableThemeProvider } from "@sableui/react"')
+		expect(data.props.map((p: { name: string }) => p.name)).toContain("defaultPreference")
+		expect(data.examples[0].imports).toContain("SableThemeProvider")
+	})
+
+	it("serves props and examples for app-wide providers, and points owned ones at their component", () => {
+		for (const name of ["SableThemeProvider", "IconProvider", "MotionProvider"]) {
+			const { data } = json(["provider", name, "--detail", "full"])
+			expect(data.required, name).toMatch(/^(Required|Optional)/)
+			expect(data.placement, name).toBeTruthy()
+			expect(data.props.length, name).toBeGreaterThan(0)
+			expect(data.examples.length, name).toBeGreaterThan(0)
+		}
+		const toast = json(["provider", "ToastProvider"]).data
+		expect(toast.partOf).toBe("Toast")
+		expect(toast.contract).toBe("sable component Toast --props")
+		expect(toast.examples.some((e: { code: string }) => e.code.includes("<ToastProvider"))).toBe(true)
+	})
+
+	it("is found by search and suggests a near match on a typo", () => {
+		expect(json(["search", "MotionProvider"]).data.results[0].retrieve).toBe("sable provider MotionProvider")
+		const err = JSON.parse(run(["provider", "IconProvidr", "--json"]).out)
+		expect(err.code).toBe("ERR_UNKNOWN_PROVIDER")
+		expect(err.suggestions.join(" ")).toContain("IconProvider")
+	})
+})
+
+describe("package guides", () => {
+	it("serves AGENTS.md, the file llms.txt sends agents to first, and the other package guides", () => {
+		const cases = [
+			["AGENTS", "AGENTS.md"],
+			["agents", "AGENTS.md"],
+			["AGENTS.md", "AGENTS.md"],
+			["README", "README.md"],
+			["CONTRIBUTING", "CONTRIBUTING.md"],
+			["DESIGN", "DESIGN.md"],
+		]
+		for (const [slug, file] of cases) {
+			const { type, data } = json(["docs", slug])
+			expect(type, slug).toBe("docs.detail")
+			expect(data.kind, slug).toBe("package")
+			expect(data.content, slug).toBe(readFileSync(join(PKG_ROOT, file), "utf8"))
+		}
+		const slugs = json(["docs", "--list", "--kind", "package"]).data.docs.map((d: { slug: string }) => d.slug)
+		expect(slugs).toContain("AGENTS")
+	})
+
+	it("lists the valid names when a doc is unknown", () => {
+		const err = JSON.parse(run(["docs", "agentz", "--json"]).out)
+		expect(err.code).toBe("ERR_UNKNOWN_DOC")
+		const text = err.suggestions.join("\n")
+		expect(text).toContain("sable docs AGENTS")
+		expect(text).toContain("Package guides: AGENTS, README, CONTRIBUTING, DESIGN")
+		expect(text).toContain("reviewing-a-design")
+	})
+
+	it("rejects an unknown --kind with the real kinds", () => {
+		const err = JSON.parse(run(["docs", "--list", "--kind", "nope", "--json"]).out)
+		expect(err.code).toBe("ERR_BAD_FLAG")
+		expect(err.suggestions.join(" ")).toContain("--kind tasks")
+	})
+})
+
+describe("sable check", () => {
+	it("passes a wired, clean project and still lists the manual review", () => {
+		const root = project()
+		try {
+			const r = runIn(root, ["check", "--json"])
+			const { type, data } = JSON.parse(r.out)
+			expect(type).toBe("check")
+			expect(data.checks.map((c: { name: string }) => c.name)).toEqual(["doctor", "lint", "grade"])
+			const summaries = JSON.stringify(data.checks.map((c: { name: string; summary: string }) => [c.name, c.summary]))
+			expect(data.failed, summaries).toEqual([])
+			expect(r.code).toBe(0)
+			const steps = data.manualReview.map((m: { step: string }) => m.step).join(" ")
+			expect(steps).toMatch(/design.*journey.*motion.*reduced motion.*reuse inventory.*learned/i)
+			const text = runIn(root, ["check"]).out
+			expect(text).toContain("✓ doctor, lint and grade pass")
+			expect(text).toMatch(/1\. Review the rendered design/)
+			expect(text).toMatch(/6\. Record what you learned/)
+		} finally {
+			rmSync(root, { recursive: true, force: true })
+		}
+	}, 60_000)
+
+	it("fails with a non-zero exit and names each failing check", () => {
+		const root = project('import { Button } from "@sableui/react"\nexport const App = () => <div className="bg-zinc-900"><Button>Go</Button></div>\n')
+		try {
+			const r = runIn(root, ["check", "src", "--json"])
+			expect(r.code).toBe(1)
+			const { data } = JSON.parse(r.out)
+			expect(data.failed).toEqual(["doctor", "lint"])
+			expect(data.checks[0].details.join(" ")).toContain("IconProvider")
+			expect(data.checks[1].details.join(" ")).toContain("bg-zinc-900")
+		} finally {
+			rmSync(root, { recursive: true, force: true })
+		}
+	}, 60_000)
+
+	it("lists app-owned surfaces for the reuse inventory without failing on them", () => {
+		const app = CLEAN_APP.replace(/\n?$/, '\nexport const Note = () => <div className="rounded-lg border border-border p-4">Saved</div>\n')
+		const root = project(app)
+		try {
+			const r = runIn(root, ["check", "--json"])
+			const { data } = JSON.parse(r.out)
+			expect(data.failed).toEqual([])
+			expect(data.inventory.surfaces).toMatchObject([{ file: "src/App.tsx", tag: "div", kind: "surface" }])
+			const text = runIn(root, ["check"]).out
+			expect(text).toMatch(/App-owned surfaces for the reuse inventory \(review, not failures\) — 1:\n\s+src\/App\.tsx:\d+ {2}<div> surface \(rounded-lg border border-border p-4\) → Card/)
+			// After the result, before the manual steps that consume it.
+			expect(text.indexOf("App-owned surfaces")).toBeGreaterThan(text.indexOf("[sable check] ✓"))
+			expect(text.indexOf("App-owned surfaces")).toBeLessThan(text.indexOf("Write the reuse inventory"))
+		} finally {
+			rmSync(root, { recursive: true, force: true })
+		}
+	}, 60_000)
+
+	it("reports a missing path as a failed check rather than crashing", () => {
+		const root = project()
+		try {
+			const r = runIn(root, ["check", "app", "--json"])
+			expect(r.code).toBe(1)
+			expect(JSON.parse(r.out).data.failed).toEqual(["lint", "grade"])
+		} finally {
+			rmSync(root, { recursive: true, force: true })
+		}
+	}, 60_000)
+
+	it("in Stop-hook mode, blocks with exit 2 and the failures on stderr, once", () => {
+		const root = project('export const App = () => <div className="bg-zinc-900" />\n')
+		try {
+			const first = runIn(root, ["check", "--stop-hook"], JSON.stringify({ hook_event_name: "Stop", stop_hook_active: false }))
+			expect(first.code).toBe(2)
+			expect(first.err).toContain("bg-zinc-900")
+			// Already continuing because of this hook: report, but let the agent stop.
+			const again = runIn(root, ["check", "--stop-hook"], JSON.stringify({ hook_event_name: "Stop", stop_hook_active: true }))
+			expect(again.code).toBe(0)
+		} finally {
+			rmSync(root, { recursive: true, force: true })
+		}
+		const clean = project()
+		try {
+			expect(runIn(clean, ["check", "--stop-hook"], "{}").code).toBe(0)
+		} finally {
+			rmSync(clean, { recursive: true, force: true })
+		}
+	}, 60_000)
+
+	it("in Stop-hook mode, finds the project from CLAUDE_PROJECT_DIR and --root, not the shell's directory", () => {
+		// The hook command carries no `cd` (PowerShell 5.1 has no `&&`), so it can
+		// start anywhere; check must still judge the right project.
+		const repo = mkdtempSync(join(tmpdir(), "sable-cli-repo-"))
+		const app = project('export const App = () => <div className="bg-zinc-900" />\n')
+		const elsewhere = mkdtempSync(join(tmpdir(), "sable-cli-elsewhere-"))
+		try {
+			const env = { ...process.env, CLAUDE_PROJECT_DIR: repo }
+			const rootArg = relative(repo, app)
+			const r = spawnSync(process.execPath, [BIN, "check", "--stop-hook", "--root", rootArg], { cwd: elsewhere, env, encoding: "utf8", input: "{}" })
+			expect(r.status).toBe(2)
+			expect(r.stderr).toContain("bg-zinc-900")
+			const direct = spawnSync(process.execPath, [BIN, "check", "--stop-hook"], { cwd: elsewhere, env: { ...process.env, CLAUDE_PROJECT_DIR: app }, encoding: "utf8", input: "{}" })
+			expect(direct.status).toBe(2)
+		} finally {
+			for (const dir of [repo, app, elsewhere]) rmSync(dir, { recursive: true, force: true })
+		}
+	}, 60_000)
+
+	it("is in the manifest and --help", () => {
+		expect(json(["manifest"]).data.commands.map((c: { name: string }) => c.name)).toContain("check")
+		expect(run(["check", "--help"]).out).toContain("--stop-hook")
+	})
+})
+
+describe("sable setup", () => {
+	it("prints the Claude Code Stop hook without writing settings, and writes it with --hook", () => {
+		const root = project()
+		try {
+			const printed = JSON.parse(runIn(root, ["setup", "--agent", "--target", "claude", "--json"]).out).data
+			expect(printed.stopHook.installed).toBe(false)
+			expect(printed.stopHook.settings.hooks.Stop[0].hooks[0].command).toContain("sable check --stop-hook")
+			expect(existsSync(join(root, ".claude", "settings.json"))).toBe(false)
+			expect(runIn(root, ["setup", "--agent", "--target", "claude", "--update", "--hook"]).code).toBe(0)
+			const settings = JSON.parse(readFileSync(join(root, ".claude", "settings.json"), "utf8"))
+			expect(settings.hooks.Stop[0].hooks[0].command).toContain("sable check --stop-hook")
+			expect(runIn(root, ["setup", "--agent", "--target", "codex", "--hook"]).code).toBe(1)
+		} finally {
+			rmSync(root, { recursive: true, force: true })
+		}
+	}, 60_000)
 })

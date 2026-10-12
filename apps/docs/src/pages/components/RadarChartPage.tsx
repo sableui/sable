@@ -1,4 +1,4 @@
-import { RadarChart, radarChartMeta } from "@sableui/react"
+import { Grid, RadarChart, radarChartMeta } from "@sableui/react"
 import { ComponentPlayground, Example, MetaFooter, PageHeader, Section, ledeFor } from "../../components/docs-ui"
 import { SCORES } from "../../content/chart-data"
 
@@ -40,12 +40,12 @@ export function RadarChartPage() {
 
 			<Section title="Grid" description="Circular, filled, or none — and a radius scale.">
 				<Example>
-					<div className="grid w-full gap-6 md:grid-cols-2">
+					<Grid cols={{ base: 1, md: 2 }} gap={3} className="w-full">
 						<RadarChart label="Atlas scores, circular grid" data={SCORES} index="skill" series={ATLAS} grid="circle" />
 						<RadarChart label="Atlas scores, filled grid" data={SCORES} index="skill" series={ATLAS} gridFill filled={false} dots />
 						<RadarChart label="Atlas scores, no grid" data={SCORES} index="skill" series={ATLAS} grid="none" dots />
 						<RadarChart label="Atlas scores with a radius scale" data={SCORES} index="skill" series={ATLAS} radiusAxis />
-					</div>
+					</Grid>
 				</Example>
 			</Section>
 

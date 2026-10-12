@@ -1,3 +1,4 @@
+import { Grid } from "@sableui/react"
 import patterns from "../generated/catalog-patterns.json"
 import { PageHeader } from "../components/docs-ui"
 import { PreviewCard } from "../components/PreviewCard"
@@ -40,7 +41,7 @@ export function PatternsPage() {
 				lede="Ready-made layouts for common pages. Open one to see it full size."
 			/>
 
-			<div className="grid gap-x-6 gap-y-10 sm:grid-cols-2">
+			<Grid cols={{ base: 1, sm: 2 }} gap={[5, 3]}>
 				{items.map((item) => (
 					<PreviewCard
 						key={item.name}
@@ -49,7 +50,7 @@ export function PatternsPage() {
 						caption={captionOf(item)}
 					/>
 				))}
-			</div>
+			</Grid>
 		</>
 	)
 }

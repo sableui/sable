@@ -1,4 +1,4 @@
-import { Button, cn, Icon, Region, Reveal, TextReveal, Toggle, ToggleGroup, useMotion } from "@sableui/react"
+import { Button, cn, Grid, Icon, Region, Reveal, TextReveal, Toggle, ToggleGroup, useMotion } from "@sableui/react"
 import { useEffect, useRef, useState } from "react"
 import { GitHubLink } from "../components/GitHubLink"
 import { IntroCurtain, introPending, markIntroPlayed } from "../components/IntroCurtain"
@@ -145,13 +145,13 @@ export function IntroductionPage() {
 				    on a desktop: the grid fades out where the page invites you
 				    into the full set rather than ending on a hard edge. */}
 				<div className="relative">
-					<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+					<Grid cols={{ base: 1, sm: 2, xl: 3 }} gap={2}>
 						{SCENES.map((Scene, index) => (
 							<Reveal key={index} delay={520 + (index % 3) * 90 + Math.floor(index / 3) * 60} when={revealed} amount={0.05} className={cn("grid", index >= 4 && "max-sm:hidden", index >= 6 && "sm:max-xl:hidden")}>
 								<Scene />
 							</Reveal>
 						))}
-					</div>
+					</Grid>
 					<div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-linear-to-t from-background to-transparent" />
 					<div className="absolute inset-x-0 bottom-8 flex justify-center">
 						<Button variant="outline" render={<a href={hrefFor("customize")} />} iconEnd={<Icon name="chevron-right" />}>Customize all examples</Button>

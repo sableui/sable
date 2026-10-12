@@ -1,4 +1,4 @@
-import { cn } from "@sableui/react"
+import { cn, Grid } from "@sableui/react"
 import { InlineCode, PageHeader, Section } from "../components/docs-ui"
 import { useTheme } from "../theme"
 
@@ -148,8 +148,10 @@ export function ColorsPage() {
 				title="Tones"
 				description="Color that carries meaning: status, feedback and highlight."
 			>
-				<div
-					className={cn("grid gap-3 sm:grid-cols-2 lg:grid-cols-4", scoped)}
+				<Grid
+					cols={{ base: 1, sm: 2, lg: 4 }}
+					gap={1.5}
+					className={scoped}
 					data-sable-theme={themeId}
 				>
 					{tones.map((t) => (
@@ -168,7 +170,7 @@ export function ColorsPage() {
 							<p className="text-display-lg">Aa</p>
 						</div>
 					))}
-				</div>
+				</Grid>
 			</Section>
 
 			{palettes.length ? (
@@ -180,7 +182,7 @@ export function ColorsPage() {
 						{palettes.map((p) => (
 							<div key={p}>
 								<p className="text-title-sm mb-2">{p}</p>
-								<div className="grid grid-cols-6 gap-1.5 sm:grid-cols-11">
+								<Grid cols={{ base: 6, sm: 11 }} gap={0.75}>
 									{ramp.map((step) => (
 										<div key={step} className="flex flex-col gap-1.5">
 											<div
@@ -192,7 +194,7 @@ export function ColorsPage() {
 											</span>
 										</div>
 									))}
-								</div>
+								</Grid>
 							</div>
 						))}
 					</div>

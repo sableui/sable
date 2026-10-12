@@ -1,4 +1,4 @@
-import { Badge, Button } from "@sableui/react"
+import { Badge, Button, Grid } from "@sableui/react"
 import { PageHeader, Section } from "../components/docs-ui"
 import { useCustomizer } from "../customizer/CustomizerProvider"
 import { useTheme } from "../theme"
@@ -31,7 +31,7 @@ export function ThemesPage() {
 				title={presets.length ? "Starting points and your presets" : "Six starting points"}
 				description={`The same card in each preset, shown in ${dark ? "dark" : "light"} mode.${isCustomized ? " Choosing one clears your Customize changes; you will be asked first." : ""}`}
 			>
-				<div className="grid gap-x-4 gap-y-8 sm:grid-cols-2">
+				<Grid cols={{ base: 1, sm: 2 }} gap={[4, 2]}>
 					{themes.map((theme) => {
 						const active = theme.id === themeId
 						return (
@@ -58,7 +58,7 @@ export function ThemesPage() {
 							</article>
 						)
 					})}
-				</div>
+				</Grid>
 			</Section>
 
 		</>

@@ -33,7 +33,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs"
 import { createHash } from "node:crypto"
 import { dirname, extname, join, relative, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
-import { ignoreGlob, lintText, makeRules } from "./lint-rules.mjs"
+import { ignoreGlob, lintText, makeRules, surfaceInventory } from "./lint-rules.mjs"
 import { labelContrastScanner, statusTextDrift } from "./label-contrast.mjs"
 import { skeletonize } from "./skeleton.mjs"
 import { assessReview, reviewTemplate } from "./review-evidence.mjs"
@@ -150,22 +150,149 @@ function exportSurface() {
 	for (const n of REGISTRY.motionLayer?.policy ?? []) names.add(n)
 	for (const n of REGISTRY.motionLayer?.primitives ?? []) names.add(n)
 
-	for (const rel of ["dist/index.d.ts", "src/index.ts"]) {
-		const p = join(PKG_ROOT, rel)
-		if (!existsSync(p)) continue
-		const src = readFileSync(p, "utf8")
-		for (const m of src.matchAll(/export\s+(?:type\s+)?\{([^}]+)\}/g)) {
-			for (const raw of m[1].split(",")) {
-				const name = raw.trim().split(/\s+as\s+/).pop()?.trim()
-				if (name && /^[A-Za-z_$][\w$]*$/.test(name)) names.add(name)
-			}
-		}
-		for (const m of src.matchAll(/export\s+(?:declare\s+)?(?:const|function|class)\s+([\w$]+)/g)) names.add(m[1])
-		break
-	}
+	const root = SUBPATHS.get("")
+	if (root) for (const n of root.names) names.add(n)
 	return names
 }
+
+/**
+ * The export surface of every published subpath, read from the package's own
+ * `exports` map (src in the workspace, dist .d.ts once published) by following
+ * each entry's `export … from` / `export *` chain.
+ *
+ * It has to be per subpath. Judging every `@sableui/react/<anything>` import
+ * against the root barrel reported `SignInBlock` from `/blocks`,
+ * `presetManifest` from `/presets` and `reiconIconSet` from `/icons/reicon` as
+ * hallucinations — 25 of them in Sable's own docs app — and a check that cries
+ * wolf on correct code is a check people learn to skip.
+ *
+ * A surface is `complete: false` when a chain leaves the package (`export * from
+ * "some-dep"`); names imported from it are then not judged rather than guessed.
+ */
+function subpathSurfaces() {
+	const pkg = JSON.parse(readFileSync(join(PKG_ROOT, "package.json"), "utf8"))
+	const exportsMap = pkg.exports ?? {}
+	const out = new Map()
+	const typesFile = (entry) => {
+		const v = typeof entry === "string" ? entry : (entry?.types ?? entry?.import?.types ?? entry?.default ?? entry?.import)
+		if (typeof v !== "string" || !/\.(?:d\.)?[cm]?[jt]sx?$/.test(v)) return null
+		return join(PKG_ROOT, v)
+	}
+	const candidates = (base) => {
+		const stem = base.replace(/\.(?:d\.)?[cm]?[jt]sx?$/, "")
+		return [base, `${stem}.d.ts`, `${stem}.ts`, `${stem}.tsx`, `${stem}.d.mts`, join(base, "index.d.ts"), join(base, "index.ts"), join(base, "index.tsx")]
+	}
+	const collect = (file, names, seen, state) => {
+		if (seen.has(file)) return
+		seen.add(file)
+		const src = readFileSync(file, "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1")
+		for (const m of src.matchAll(/export\s+(?:type\s+)?\{([^}]*)\}/g)) {
+			for (const raw of m[1].split(",")) {
+				const name = raw.trim().replace(/^type\s+/, "").split(/\s+as\s+/).pop()?.trim()
+				if (name && name !== "default" && /^[A-Za-z_$][\w$]*$/.test(name)) names.add(name)
+			}
+		}
+		for (const m of src.matchAll(/export\s+(?:declare\s+)?(?:default\s+)?(?:abstract\s+)?(?:const|let|var|function\*?|class|type|interface|enum|namespace)\s+([\w$]+)/g)) names.add(m[1])
+		for (const m of src.matchAll(/export\s+\*\s+as\s+([\w$]+)\s+from/g)) names.add(m[1])
+		for (const m of src.matchAll(/export\s+\*\s+from\s+["']([^"']+)["']/g)) {
+			if (!m[1].startsWith(".")) { state.complete = false; continue }
+			const next = candidates(resolve(dirname(file), m[1])).find((c) => existsSync(c) && statSync(c).isFile())
+			if (next) collect(next, names, seen, state)
+			else state.complete = false
+		}
+	}
+	for (const [key, entry] of Object.entries(exportsMap)) {
+		const sub = key === "." ? "" : key.replace(/^\.\//, "")
+		const file = typesFile(entry)
+		if (!file) {
+			out.set(sub, { names: new Set(), complete: true, asset: true })
+			continue
+		}
+		const names = new Set()
+		const state = { complete: true }
+		const start = candidates(file).find((c) => existsSync(c) && statSync(c).isFile())
+		if (start) collect(start, names, new Set(), state)
+		else state.complete = false
+		out.set(sub, { names, complete: state.complete })
+	}
+	return out
+}
+const SUBPATHS = subpathSurfaces()
 const EXPORTS = exportSurface()
+
+/**
+ * What one file imports from Sable: local name → { name, from }. Aliases
+ * (`Button as SableButton`) map back to the Sable name, and a component the app
+ * defines itself under a Sable name (its own `PageHeader`) is simply absent, so
+ * the prop and icon checks below never judge it against Sable's contract.
+ */
+/**
+ * The text with every template literal's literal part blanked (newlines kept,
+ * so line numbers hold). A docs page or a code-preview builder carries JSX as
+ * DATA — `<RadioCard value="post" …>` inside a backtick string, `<Icon
+ * name="${glyph}" />` assembled for display — and judging that as rendered JSX
+ * reported attributes like `n` (from a `\n` escape) and an icon named
+ * `${glyph}`. `${…}` expressions are kept, since they are code.
+ */
+function maskTemplates(text) {
+	let out = ""
+	const stack = [] // "t" = inside a template literal, number = brace depth of a ${ } expression
+	let quote = null
+	for (let i = 0; i < text.length; i++) {
+		const c = text[i]
+		const top = stack[stack.length - 1]
+		if (top === "t") {
+			if (c === "\\") { out += text[i + 1] === "\n" ? " \n" : "  "; i++; continue }
+			if (c === "`") { stack.pop(); out += c; continue }
+			if (c === "$" && text[i + 1] === "{") { stack.push(0); out += "${"; i++; continue }
+			out += c === "\n" ? "\n" : " "
+			continue
+		}
+		if (quote) {
+			if (c === "\\") { out += c + (text[i + 1] ?? ""); i++; continue }
+			if (c === quote || c === "\n") quote = null
+			out += c
+			continue
+		}
+		if (c === "/" && text[i + 1] === "/") {
+			const nl = text.indexOf("\n", i)
+			const end = nl === -1 ? text.length : nl
+			out += text.slice(i, end)
+			i = end - 1
+			continue
+		}
+		if (c === "/" && text[i + 1] === "*") {
+			const end = text.indexOf("*/", i + 2)
+			const stop = end === -1 ? text.length : end + 2
+			out += text.slice(i, stop)
+			i = stop - 1
+			continue
+		}
+		if (c === "'" || c === '"') { quote = c; out += c; continue }
+		if (c === "`") { stack.push("t"); out += c; continue }
+		if (typeof top === "number") {
+			if (c === "{") stack[stack.length - 1]++
+			else if (c === "}") {
+				if (top === 0) { stack.pop(); out += c; continue }
+				stack[stack.length - 1]--
+			}
+		}
+		out += c
+	}
+	return out
+}
+
+const SABLE_IMPORT =/import\s+(?:type\s+)?(?:[\w$]+\s*,\s*)?\{([^}]*)\}\s*from\s*["'](@sableui\/react(?:\/[^"']*)?)["']/g
+function sableImports(text) {
+	const out = new Map()
+	for (const m of text.matchAll(SABLE_IMPORT)) {
+		for (const raw of m[1].split(",")) {
+			const [name, local] = raw.trim().replace(/^type\s+/, "").split(/\s+as\s+/).map((s) => s?.trim())
+			if (name) out.set(local || name, { name, from: m[2], index: m.index })
+		}
+	}
+	return out
+}
 
 /** Props any element legitimately takes, so they never read as hallucinated. */
 const UNIVERSAL_PROPS = new Set([
@@ -175,6 +302,8 @@ const UNIVERSAL_PROPS = new Set([
 	"disabled", "required", "readOnly", "placeholder", "type", "href", "target", "rel", "src", "alt",
 	"width", "height", "colSpan", "rowSpan", "htmlFor", "autoFocus", "autoComplete", "maxLength",
 	"minLength", "min", "max", "step", "rows", "cols", "open", "selected", "multiple", "loading",
+	// Media attributes, for components that spread onto <video>/<audio>/<img> (Video, Image).
+	"autoPlay", "muted", "loop", "playsInline", "preload", "crossOrigin", "decoding", "fetchPriority", "srcSet", "sizes",
 ])
 const isEventProp = (p) => /^on[A-Z]/.test(p)
 const isPassthrough = (p) => p.startsWith("data-") || p.startsWith("aria-") || p.startsWith("--")
@@ -237,6 +366,12 @@ const sourceHash = fingerprint.digest("hex")
 const findings = { contract: [], hallucinatedComponent: [], hallucinatedProp: [], radixIdiom: [], hardcodedControl: [], offContractIcon: [] }
 let loc = 0
 const routeSkeletons = []
+/* App-owned surfaces: intrinsic elements wearing a surface's or a shape's
+   classes. Never scored — a review list for the reuse inventory, so the agent
+   accounts for each one (compose the named component, or say why not) instead
+   of listing from memory. The lookalike-* lint rules fail the unambiguous
+   cases; this lists the rest. */
+const inventory = []
 
 /**
  * Attribute names on one JSX open tag, stopping at the tag's own `>`.
@@ -298,31 +433,39 @@ for (const file of files) {
 
 	if (!/\.(tsx|jsx|ts|js)$/.test(extname(file) ? file : "")) continue
 
-	/* 2. Imports that name something the package does not export. */
-	for (const m of text.matchAll(/import\s*(?:type\s*)?\{([^}]+)\}\s*from\s*["']@sableui\/react[^"']*["']/g)) {
-		for (const raw of m[1].split(",")) {
-			const name = raw.trim().split(/\s+as\s+/)[0]?.trim()
-			if (!name || !/^[A-Z]/.test(name)) continue
-			if (!EXPORTS.has(name)) {
-				findings.hallucinatedComponent.push({ file: rel, name, line: lineOf(text, m.index) })
-			}
+	/* 2. Imports that name something the subpath they come from does not export.
+	      Each import is judged against ITS subpath's surface; an unpublished
+	      subpath is itself the finding. */
+	const imported = sableImports(text)
+	for (const { name, from, index } of imported.values()) {
+		const sub = from === "@sableui/react" ? "" : from.slice("@sableui/react/".length)
+		const surface = SUBPATHS.get(sub)
+		if (!surface) {
+			findings.hallucinatedComponent.push({ file: rel, name, from, reason: "not a published subpath", line: lineOf(text, index) })
+			continue
 		}
+		const known = surface.names.has(name) || (sub === "" && EXPORTS.has(name))
+		if (!known && surface.complete) findings.hallucinatedComponent.push({ file: rel, name, from, line: lineOf(text, index) })
 	}
 
 	/* 3. Props set on a Sable component that its contract does not declare.
 	      The contract is the component's real type (registry → propSurface),
 	      which includes what it forwards to Base UI — Toggle's `pressed`,
-	      Combobox's `filter` — plus its documented table. */
-	for (const m of text.matchAll(/<([A-Z][\w]*)[\s/>]/g)) {
-		const comp = REGISTRY.components?.find((c) => c.name === m[1])
+	      Combobox's `filter` — plus its documented table. Only tags the file
+	      imports from Sable are judged: an app's own `PageHeader` is not ours. */
+	const code = maskTemplates(text)
+	for (const m of code.matchAll(/<([A-Z][\w]*)[\s/>]/g)) {
+		const sableName = imported.get(m[1])?.name
+		if (!sableName) continue
+		const comp = REGISTRY.components?.find((c) => c.name === sableName)
 		if (!comp?.props?.length) continue
-		const declared = new Set([...comp.props.map((p) => p.name), ...(PROP_SURFACE[m[1]] ?? [])])
+		const declared = new Set([...comp.props.map((p) => p.name), ...(PROP_SURFACE[sableName] ?? [])])
 		for (const sub of comp.subcomponents ?? []) {
 			if (typeof sub !== "string") for (const p of sub.props ?? []) declared.add(p.name)
 		}
-		for (const attr of attrsOf(text, m.index + m[0].length - 1)) {
+		for (const attr of attrsOf(code, m.index + m[0].length - 1)) {
 			if (declared.has(attr) || UNIVERSAL_PROPS.has(attr) || isEventProp(attr) || isPassthrough(attr)) continue
-			findings.hallucinatedProp.push({ file: rel, component: m[1], prop: attr, line: lineOf(text, m.index) })
+			findings.hallucinatedProp.push({ file: rel, component: sableName, prop: attr, line: lineOf(text, m.index) })
 		}
 	}
 
@@ -345,12 +488,21 @@ for (const file of files) {
 	}
 
 	/* 6. Icon names outside the contract render nothing at all — unless the app
-	      supplies them itself and has declared them (APP_ICONS). */
-	for (const m of text.matchAll(/<Icon\s+[^>]*name=["']([^"']+)["']/g)) {
-		if (!ICONS.has(m[1]) && !APP_ICONS?.names.has(m[1])) findings.offContractIcon.push({ file: rel, name: m[1], line: lineOf(text, m.index) })
+	      supplies them itself and has declared them (APP_ICONS). Only Sable's
+	      <Icon> (under whatever local name it was imported as) is judged. */
+	for (const [local, { name }] of imported) {
+		if (name !== "Icon") continue
+		for (const m of code.matchAll(new RegExp(`<${local}\\s+[^>]*name=["']([^"']+)["']`, "g"))) {
+			if (!ICONS.has(m[1]) && !APP_ICONS?.names.has(m[1])) findings.offContractIcon.push({ file: rel, name: m[1], line: lineOf(text, m.index) })
+		}
 	}
 
-	/* 7. Composition. Anything exporting a component that returns a big tree is
+	/* 7. Surfaces the app built itself (informational). */
+	if (/\.(tsx|jsx)$/.test(file)) {
+		for (const { index, ...s } of surfaceInventory(text)) inventory.push({ file: rel, line: lineOf(text, index), ...s })
+	}
+
+	/* 8. Composition. Anything exporting a component that returns a big tree is
 	      treated as a route worth comparing against the canonical shells. */
 	if (/\.(tsx|jsx)$/.test(file) && /export\s+(default\s+)?function\s+[A-Z]/.test(text)) {
 		const { tree } = skeletonize(text)
@@ -485,6 +637,13 @@ const result = {
 	counts,
 	per100loc: Object.fromEntries(Object.entries(counts).map(([k, v]) => [k, per100(v)])),
 	conformance: { informationalOnly: true, mean: meanConformance, routes: conformance },
+	inventory: {
+		informationalOnly: true,
+		meaning: "App-owned surfaces to account for in the reuse inventory: compose the named Sable component, or record why the app owns it. Not scored.",
+		total: inventory.length,
+		byKind: Object.fromEntries(["surface", "media frame", "round"].map((k) => [k, inventory.filter((s) => s.kind === k).length])),
+		surfaces: inventory,
+	},
 	cliUsage,
 	appIcons: APP_ICONS ? { file: APP_ICONS.file, names: APP_ICONS.names.size } : null,
 	findings,
@@ -518,6 +677,13 @@ if (conformance.length) {
 	}
 } else {
 	L("  composition                 no route-like files found")
+}
+if (inventory.length) {
+	const kinds = ["surface", "media frame", "round"].map((k) => [k, inventory.filter((s) => s.kind === k).length]).filter(([, n]) => n)
+	L()
+	L(`  app-owned surfaces (review, not scored) — ${inventory.length}: ${kinds.map(([k, n]) => `${n} ${k}`).join(" · ")}`)
+	for (const s of inventory.slice(0, 12)) L(`    ${s.file}:${s.line}  <${s.tag}> ${s.kind} (${s.classes}) → ${s.consider}`)
+	if (inventory.length > 12) L(`    … ${inventory.length - 12} more (--json lists every one)`)
 }
 if (cliUsage) {
 	L()

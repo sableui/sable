@@ -21,6 +21,96 @@ function entryContent(source, projectPath) {
 }
 
 /**
+ * How the project runs its own installed `sable`, read from its lockfile. Never a
+ * bare `npx sable`, which would fetch an unrelated public package when this one
+ * is missing.
+ */
+export function packageManager(root, project) {
+	for (let dir = resolve(project); ; dir = dirname(dir)) {
+		if (existsSync(join(dir, "pnpm-lock.yaml"))) return "pnpm"
+		if (existsSync(join(dir, "yarn.lock"))) return "yarn"
+		if (existsSync(join(dir, "package-lock.json"))) return "npm"
+		if (dir === resolve(root) || dirname(dir) === dir) break
+	}
+	return "npm"
+}
+
+const STOP_HOOK_MARKER = "sable check --stop-hook"
+// Words both Git Bash and PowerShell 5.1 pass through literally once double-quoted.
+const PORTABLE = /^[\w@./ -]+$/
+const quoted = (s) => (/^[\w./-]+$/.test(s) ? s : `"${s}"`)
+
+/**
+ * The Claude Code Stop hook that runs `sable check` before a task can end:
+ * settings.json → hooks.Stop[] → { hooks: [{ type: "command", command }] }.
+ * Stop takes no matcher. The command exits 2 with the failures on stderr, which
+ * keeps Claude working and shows it what to fix (code.claude.com/docs/en/hooks).
+ *
+ * The command is one plain invocation with no shell syntax — no `cd`, no `&&`,
+ * no "${CLAUDE_PROJECT_DIR}" — because Claude Code runs hooks under Git Bash or,
+ * without it on Windows, PowerShell 5.1, which supports neither. `sable check
+ * --stop-hook` reads CLAUDE_PROJECT_DIR from its environment instead, and
+ * `--root` names the Sable package when the entries live at a repository root.
+ * A workspace package is reached through the package manager's own workspace
+ * flag, since its `sable` bin is not on the root's path.
+ */
+export function claudeStopHook({ root, project = root }) {
+	const projectPath = relative(resolve(root), resolve(project)).replaceAll("\\", "/")
+	if (projectPath.startsWith("..") || isAbsolute(projectPath)) throw new Error("--root must be the project directory or one of its ancestors, such as the repository root.")
+	if (projectPath && !PORTABLE.test(projectPath)) throw new Error(`Unsupported characters for a portable hook in the project path: ${projectPath}. Add the hook by hand.`)
+	const pm = packageManager(root, project)
+	let runner = { pnpm: "pnpm exec sable", yarn: "yarn sable", npm: "npm exec --no -- sable" }[pm]
+	if (projectPath) {
+		let name
+		try { name = JSON.parse(readFileSync(join(project, "package.json"), "utf8")).name } catch { /* unnamed */ }
+		if (typeof name === "string" && PORTABLE.test(name)) {
+			runner = {
+				pnpm: `pnpm --filter ${quoted(name)} exec sable`,
+				yarn: `yarn workspace ${quoted(name)} sable`,
+				npm: `npm exec --workspace ${quoted(name)} --no -- sable`,
+			}[pm]
+		}
+	}
+	const command = `${runner} check --stop-hook${projectPath ? ` --root ${quoted(projectPath)}` : ""}`
+	const entry = { hooks: [{ type: "command", command, timeout: 300 }] }
+	return { settingsFile: ".claude/settings.json", command, entry, settings: { hooks: { Stop: [entry] } }, installed: false }
+}
+
+/**
+ * Write the Stop hook into `.claude/settings.json`, only when asked (`--hook`).
+ * Merges into existing settings, keeps every other key and hook, refuses
+ * settings it cannot parse rather than overwrite them, and adds nothing when a
+ * Sable check hook is already there.
+ */
+export function installClaudeStopHook({ root, project = root, dryRun = false }) {
+	const hook = claudeStopHook({ root, project })
+	const path = join(root, hook.settingsFile)
+	let current = root
+	for (const part of hook.settingsFile.split("/")) {
+		current = join(current, part)
+		try { if (lstatSync(current).isSymbolicLink()) throw new Error(`Refusing a linked destination: ${hook.settingsFile}`) }
+		catch (error) { if (error.code !== "ENOENT") throw error }
+	}
+	let settings = {}
+	if (existsSync(path)) {
+		try { settings = JSON.parse(readFileSync(path, "utf8")) }
+		catch { throw new Error(`${hook.settingsFile} is not valid JSON; fix it or add the hook by hand.`) }
+		if (!settings || typeof settings !== "object" || Array.isArray(settings)) throw new Error(`${hook.settingsFile} is not a JSON object.`)
+	}
+	const hooks = settings.hooks ?? {}
+	if (typeof hooks !== "object" || Array.isArray(hooks)) throw new Error(`${hook.settingsFile} has a "hooks" value that is not an object.`)
+	const stop = hooks.Stop ?? []
+	if (!Array.isArray(stop)) throw new Error(`${hook.settingsFile} has a "hooks.Stop" value that is not an array.`)
+	const alreadyPresent = stop.some((group) => (group?.hooks ?? []).some((h) => String(h?.command ?? "").includes(STOP_HOOK_MARKER)))
+	if (!alreadyPresent && !dryRun) {
+		const next = { ...settings, hooks: { ...hooks, Stop: [...stop, hook.entry] } }
+		mkdirSync(dirname(path), { recursive: true })
+		writeFileSync(path, `${JSON.stringify(next, null, 2)}\n`)
+	}
+	return { ...hook, installed: true, alreadyPresent }
+}
+
+/**
  * Install discoverable loaders; the installed package owns the actual workflow.
  *
  * `project` is where Sable is a dependency (the directory setup runs in); `root`

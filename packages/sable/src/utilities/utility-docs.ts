@@ -16,11 +16,16 @@
  * `@custom-variant` in `styles.css` is documented in none — or more than one —
  * of these places:
  *
- * - here (`UTILITY_DOCS`);
+ * - here (`UTILITY_DOCS`), including the `motion-*` / `animate-*` recipes
+ *   (family "motion"; `registry.json → tokens.motion.recipes` must list the
+ *   same names, because sable-lint reads that list);
  * - `registry.json → tokens.typography` for the paired `text-*` tiers
- *   (`text-heading-1` is documented as `heading-1`);
- * - `registry.json → tokens.motion.recipes` for the `motion-*` / `animate-*`
- *   recipes (rationale: `sable docs motion`).
+ *   (`text-heading-1` is documented as `heading-1`; `sable utility` resolves
+ *   them there).
+ *
+ * A utility that is deliberately private goes in `INTERNAL_UTILITIES` instead,
+ * with a reason. `src/lib/cli.test.ts` asks the CLI for every public name, so a
+ * utility added to styles.css without a doc fails a test as well as the build.
  *
  * ── Rules for writing an entry ───────────────────────────────────────────────
  *
@@ -39,6 +44,7 @@ export type UtilityFamily =
 	| "state variant"
 	| "scroll"
 	| "text"
+	| "motion"
 	| "helper"
 
 export interface UtilityDoc {
@@ -69,16 +75,22 @@ export const UTILITY_FAMILIES: readonly UtilityFamily[] = [
 	"state variant",
 	"scroll",
 	"text",
+	"motion",
 	"helper",
 ]
 
 /** Where the utilities this file deliberately does NOT document live. */
 export const UTILITIES_ELSEWHERE = {
 	typography:
-		"The paired `text-*` page tiers (`text-heading-1`, `text-body-md`, `text-label-sm`, `text-mono-md`, …) are documented as `registry.json → tokens.typography` (named without the `text-` prefix). `sable token typography`.",
-	motion:
-		"The `motion-*` and `animate-*` recipes are listed in `registry.json → tokens.motion.recipes`, with the slot model in `registry.json → motionLayer`. `sable docs motion`.",
+		"The paired `text-*` page tiers (`text-heading-1`, `text-body-md`, `text-label-sm`, `text-mono-md`, …) are documented as `registry.json → tokens.typography` (named without the `text-` prefix). Retrieve one with `sable utility text-heading-1`, all with `sable token typography`.",
 } as const
+
+/**
+ * `@utility` / `@custom-variant` names in styles.css that are deliberately NOT
+ * public, so neither the build nor the CLI test asks for a doc. Each needs a
+ * reason in a comment. Empty today: every utility styles.css declares is public.
+ */
+export const INTERNAL_UTILITIES: readonly string[] = []
 
 export const UTILITY_DOCS: UtilityDoc[] = [
 	/* ── Relative surfaces ─────────────────────────────────────────────────── */
@@ -579,6 +591,288 @@ export const UTILITY_DOCS: UtilityDoc[] = [
 		pairsWith: ["motion-stream-in", "motion-caret"],
 	},
 
+	/* ── Motion recipes ──────────────────────────────────────────────────────
+	 * Every recipe reads the duration and easing tokens, and every loop is
+	 * multiplied by --motion-scale, so prefers-reduced-motion and MotionProvider
+	 * "reduced"/"off" stop all of them at once. That is the whole reason to reach
+	 * for a recipe before writing a transition. The four-slot model (arrival,
+	 * response, transition, activity) is `sable docs motion`. */
+	{
+		name: "motion-interactive",
+		kind: "utility",
+		family: "motion",
+		intent:
+			"The transition for interactive chrome: colour, background, border, shadow, opacity, fill, stroke, scale and translate at the fast duration and standard easing. Also removes the mobile tap delay and the platform's grey tap flash.",
+		whenToUse:
+			"On anything clickable that changes on hover, focus, press or selection: a custom row, a tile, a link, an app-owned button. It is the `response` slot, and the only transition declarer such an element needs.",
+		insteadOf:
+			"Tailwind's colour-only or all-property transition utilities with a hand-picked duration. Those ignore --motion-scale, skip the transform properties `motion-press` needs, and leave the 300ms tap delay on touch screens. sable-lint's `static-interactive` fires on a hover style with no recipe.",
+		example: `<a href="/inbox" className="motion-interactive link-underline text-primary">Inbox</a>`,
+		keywords: ["transition", "hover transition", "hover animation", "focus transition", "interactive", "tap delay", "response"],
+		pairsWith: ["motion-press", "sable-surface-interactive"],
+	},
+	{
+		name: "motion-press",
+		kind: "utility",
+		family: "motion",
+		intent:
+			"A small tactile settle (scale 0.97) while the element is pressed. Skips disabled elements. Declares only the pressed state, not a transition.",
+		whenToUse: "A pressable surface that is not a Sable Button (Button already has it): a tile, a card that acts as a button, an icon control.",
+		insteadOf:
+			"An `active:` scale utility with its own transition, which fights `motion-interactive` for the transition property and keeps animating with motion off.",
+		example: `<button type="button" className="motion-interactive motion-press sable-surface sable-frame sable-frame-r-lg sable-frame-p-4">Open</button>`,
+		keywords: ["press", "pressed state", "tap feedback", "active scale", "tactile", "click feedback"],
+		pairsWith: ["motion-interactive"],
+	},
+	{
+		name: "motion-fade",
+		kind: "utility",
+		family: "motion",
+		intent:
+			"Opacity-only enter and exit, keyed to Base UI's `data-starting-style` / `data-ending-style`: fades in at the enter duration, out at the exit duration.",
+		whenToUse: "Scrims, backdrops and overlays that should appear without moving. The element rests visible; the data attributes supply the from and to.",
+		insteadOf: "A keyframe fade or a conditional opacity class, which cannot animate the exit of an element Base UI is unmounting.",
+		example: `<div className="motion-fade fixed inset-0 bg-overlay" />`,
+		keywords: ["fade", "backdrop", "scrim", "overlay fade", "enter exit", "opacity transition"],
+	},
+	{
+		name: "motion-pop",
+		kind: "utility",
+		family: "motion",
+		intent:
+			"Enter with a slight scale from the anchor edge (spring easing) and exit faster without overshoot, keyed to `data-starting-style` / `data-ending-style`. Scales from Base UI's `--transform-origin`.",
+		whenToUse: "Anchored or centred floating surfaces: popovers, menus, selects, tooltips, dialogs, command menus. Sable's own overlays already carry it.",
+		insteadOf: "A custom zoom keyframe, or a spring on exit, which draws the eye to what the user just dismissed.",
+		example: `<div className="motion-pop sable-surface-popover bg-popover text-popover-foreground rounded-lg shadow-lg">…</div>`,
+		keywords: ["pop", "popover animation", "menu animation", "dialog animation", "scale in", "zoom", "arrival"],
+		pairsWith: ["motion-fade"],
+	},
+	{
+		name: "motion-slide-up",
+		kind: "utility",
+		family: "motion",
+		intent: "Fade plus a 0.5rem rise on enter, reversed faster on exit, keyed to `data-starting-style` / `data-ending-style`. The suffix is the travel direction on enter.",
+		whenToUse: "A surface arriving from below: a toast at the bottom of the screen, a bottom bar, a banner under its trigger.",
+		insteadOf: "A translate keyframe with a literal duration, which keeps moving under reduced motion.",
+		example: `<div className="motion-slide-up sable-surface rounded-lg">Saved</div>`,
+		keywords: ["slide up", "rise", "toast animation", "enter from bottom", "directional"],
+		pairsWith: ["motion-slide-down", "motion-slide-left", "motion-slide-right"],
+	},
+	{
+		name: "motion-slide-down",
+		kind: "utility",
+		family: "motion",
+		intent: "Fade plus a 0.5rem drop on enter, reversed faster on exit, keyed to `data-starting-style` / `data-ending-style`.",
+		whenToUse: "A surface arriving from above: a top toast, a dropdown panel that reads better sliding than scaling.",
+		insteadOf: "A translate keyframe with a literal duration.",
+		example: `<div className="motion-slide-down sable-surface rounded-lg">Connected</div>`,
+		keywords: ["slide down", "drop in", "enter from top", "dropdown animation", "directional"],
+		pairsWith: ["motion-slide-up"],
+	},
+	{
+		name: "motion-slide-left",
+		kind: "utility",
+		family: "motion",
+		intent: "Fade plus a 0.5rem travel leftward on enter (it starts offset to the right), reversed faster on exit.",
+		whenToUse: "A surface arriving from the right edge: a side panel, a right-anchored toast.",
+		insteadOf: "A translate keyframe with a literal duration.",
+		example: `<aside className="motion-slide-left sable-surface">…</aside>`,
+		keywords: ["slide left", "enter from right", "side panel animation", "directional"],
+		pairsWith: ["motion-slide-right"],
+	},
+	{
+		name: "motion-slide-right",
+		kind: "utility",
+		family: "motion",
+		intent: "Fade plus a 0.5rem travel rightward on enter (it starts offset to the left), reversed faster on exit.",
+		whenToUse: "A surface arriving from the left edge: a navigation drawer, a left-anchored toast.",
+		insteadOf: "A translate keyframe with a literal duration.",
+		example: `<nav className="motion-slide-right sable-surface">…</nav>`,
+		keywords: ["slide right", "enter from left", "drawer animation", "directional"],
+		pairsWith: ["motion-slide-left"],
+	},
+	{
+		name: "motion-disclosure",
+		kind: "utility",
+		family: "motion",
+		intent:
+			"Height plus fade for a panel that opens and closes: carries the overflow, the transition and the content fade. The component sets the target height and zeroes it on the starting/ending style.",
+		whenToUse: "A hand-built expanding region. Accordion and Collapsible already use it; reach for them first.",
+		insteadOf: "Animating max-height to a guessed number, or a show/hide with no transition. Height is the one sanctioned non-compositor property.",
+		example: `<div className="motion-disclosure h-[var(--collapsible-panel-height)]">…</div>`,
+		keywords: ["expand", "collapse", "accordion animation", "height transition", "disclosure", "reveal panel"],
+	},
+	{
+		name: "motion-icon-swap",
+		kind: "utility",
+		family: "motion",
+		intent:
+			"Cross-fades two glyphs stacked in one cell when a control's icon changes with its state: the outgoing one shrinks and blurs out, the incoming one resolves in. The inactive glyph is the one marked `aria-hidden=\"true\"` (or `data-active=\"false\"`).",
+		whenToUse: "Play/pause, mute/unmute, outline/fill, copy/check, menu/close: one control whose icon changes. Keep both icons mounted; the correct accessibility markup is also the animation hook.",
+		insteadOf:
+			"Rendering one icon or the other (it snaps between two frames), or absolutely positioning the second icon, which collapses the wrapper. Under reduced motion the swap is instant and the glyph still changes.",
+		example: `<span className="motion-icon-swap"><Icon name="play" aria-hidden={playing} /><Icon name="pause" aria-hidden={!playing} /></span>`,
+		keywords: ["icon swap", "icon transition", "play pause", "toggle icon", "morph icon", "copy check", "icon animation"],
+		pairsWith: ["motion-interactive"],
+	},
+	{
+		name: "motion-spin",
+		kind: "utility",
+		family: "motion",
+		intent: "A continuous rotation for a spinner glyph, scaled by --motion-scale so reduced motion freezes it.",
+		whenToUse: "A loading glyph that is not the Spinner component (use Spinner first), such as an icon inside a busy button.",
+		insteadOf: "Tailwind's built-in spin animation, which ignores --motion-scale. sable-lint's `builtin-animate` flags it.",
+		example: `<Icon name="spinner" className="motion-spin" />`,
+		keywords: ["spinner", "spin", "loading", "rotate", "busy", "activity"],
+		pairsWith: ["motion-pulse"],
+	},
+	{
+		name: "motion-orbit",
+		kind: "utility",
+		family: "motion",
+		intent:
+			"A slow continuous rotation (24s by default) for ambient line art. `--motion-orbit-duration` sets the speed and `--motion-orbit-direction` the direction; it rotates about the centre of any viewBox.",
+		whenToUse: "The idle loop of an illustration or schematic after it draws on, usually with `motion-draw` on the same figure.",
+		insteadOf: "`motion-spin`, which is a loader's speed, or a hand-written keyframe that keeps turning under reduced motion.",
+		example: `<svg className="motion-orbit [--motion-orbit-duration:40s]" viewBox="0 0 200 200">…</svg>`,
+		keywords: ["orbit", "slow rotation", "ambient", "rotate illustration", "decorative loop"],
+		pairsWith: ["motion-draw"],
+	},
+	{
+		name: "motion-pulse",
+		kind: "utility",
+		family: "motion",
+		intent: "A soft looping opacity pulse, scaled by --motion-scale.",
+		whenToUse: "A live or pending indicator: a recording dot, an unsaved marker, a pending status.",
+		insteadOf: "Tailwind's built-in pulse animation, which ignores --motion-scale. For a loading placeholder use Skeleton or `motion-shimmer`.",
+		example: `<span className="motion-pulse size-2 rounded-full bg-destructive" />`,
+		keywords: ["pulse", "breathing", "live indicator", "recording", "pending", "activity"],
+		pairsWith: ["motion-ping"],
+	},
+	{
+		name: "motion-shimmer",
+		kind: "utility",
+		family: "motion",
+		intent:
+			"The skeleton sweep: one band of light that passes across every skeleton on screen in sequence, because the gradient is fixed to the viewport. Rests off-screen, so with motion off a skeleton is a calm block.",
+		whenToUse: "A hand-built loading placeholder. The Skeleton component already uses it.",
+		insteadOf: "A pulse on each block, or a per-box gradient, where a short line and a tall card sweep at different speeds.",
+		example: `<div className="motion-shimmer h-4 w-48 rounded-md bg-muted" />`,
+		keywords: ["shimmer", "skeleton", "loading placeholder", "sweep", "shine"],
+		pairsWith: ["motion-text-shimmer"],
+	},
+	{
+		name: "motion-text-shimmer",
+		kind: "utility",
+		family: "motion",
+		intent:
+			"The sweep run through the glyphs instead of behind them, for a live status line. The gradient goes muted to foreground and back, so the text stays readable on every frame.",
+		whenToUse: "Status text while work is happening: \"Thinking…\", \"Searching\", \"Generating response\".",
+		insteadOf: "`motion-shimmer` on text, which paints a band behind real words and reads as a skeleton. Named `motion-*`, not `text-*`, so tailwind-merge does not drop the colour class beside it.",
+		example: `<span className="motion-text-shimmer text-body-sm">Thinking…</span>`,
+		keywords: ["text shimmer", "thinking", "generating", "status text", "loading text", "ai status"],
+		pairsWith: ["motion-shimmer"],
+	},
+	{
+		name: "motion-dot-bounce",
+		kind: "utility",
+		family: "motion",
+		intent: "A looping vertical bounce for one dot of a typing or waiting indicator. Offset each dot with an animation delay.",
+		whenToUse: "A three-dot typing indicator in a chat or assistant surface.",
+		insteadOf: "Tailwind's built-in bounce animation, which ignores --motion-scale.",
+		example: `<span className="motion-dot-bounce size-1.5 rounded-full bg-muted-foreground" />`,
+		keywords: ["typing indicator", "dots", "bounce", "waiting", "chat loading"],
+	},
+	{
+		name: "motion-ping",
+		kind: "utility",
+		family: "motion",
+		intent: "A looping ring that expands and fades from a point, scaled by --motion-scale.",
+		whenToUse: "Drawing attention to a live point: a new-activity dot, a location marker, a beacon behind a status dot.",
+		insteadOf: "Tailwind's built-in ping animation, which ignores --motion-scale.",
+		example: `<span className="motion-ping absolute inset-0 rounded-full bg-success" />`,
+		keywords: ["ping", "beacon", "ripple", "attention", "live dot"],
+		pairsWith: ["motion-pulse"],
+	},
+	{
+		name: "animate-fade-in",
+		kind: "utility",
+		family: "motion",
+		intent: "A one-shot fade in on mount at the base duration, decelerating, with `both` fill so there is no flash before it starts.",
+		whenToUse: "Content that appears once when a route or panel mounts.",
+		insteadOf: "A keyframe with a literal duration. For content entering on scroll use Reveal (`motion-reveal`).",
+		example: `<section className="animate-fade-in">…</section>`,
+		keywords: ["fade in", "mount animation", "entrance", "page transition", "appear"],
+		pairsWith: ["animate-fade-up", "animate-fade-down"],
+	},
+	{
+		name: "animate-fade-up",
+		kind: "utility",
+		family: "motion",
+		intent: "A one-shot fade plus rise on mount at the slow duration, decelerating, with `both` fill.",
+		whenToUse: "A page section or list arriving from below on mount.",
+		insteadOf: "A translate keyframe with a literal duration. For scroll-triggered entrances use Reveal.",
+		example: `<div className="animate-fade-up">…</div>`,
+		keywords: ["fade up", "rise in", "entrance", "mount animation", "slide in"],
+		pairsWith: ["animate-fade-in"],
+	},
+	{
+		name: "animate-fade-down",
+		kind: "utility",
+		family: "motion",
+		intent: "A one-shot fade plus drop on mount at the slow duration, decelerating, with `both` fill.",
+		whenToUse: "Content arriving from above on mount, such as a notice under a header.",
+		insteadOf: "A translate keyframe with a literal duration.",
+		example: `<div className="animate-fade-down">…</div>`,
+		keywords: ["fade down", "drop in", "entrance", "mount animation"],
+		pairsWith: ["animate-fade-in"],
+	},
+	{
+		name: "motion-stream-in",
+		kind: "utility",
+		family: "motion",
+		intent: "Each token of a live stream resolves in from a slight blur once, on mount. Knows nothing of the final length, so there is no stagger.",
+		whenToUse: "Wrapping each arriving chunk of a streamed response. StreamingText already does it.",
+		insteadOf: "The reveal recipes, which stage text that is already there, or a typewriter effect.",
+		example: `<span key={chunk.id} className="motion-stream-in">{chunk.text}</span>`,
+		keywords: ["streaming", "token animation", "llm output", "typewriter", "generating"],
+		pairsWith: ["stream-tail", "motion-caret"],
+	},
+	{
+		name: "motion-caret",
+		kind: "utility",
+		family: "motion",
+		intent: "A caret that blinks only when idle and holds steady while `data-streaming=\"true\"`, so the blink returning signals the stream has finished.",
+		whenToUse: "The cursor at the end of streamed or typed text.",
+		insteadOf: "A caret that blinks while text is arriving, which sets two competing rhythms.",
+		example: `<span className="motion-caret" data-streaming={streaming} aria-hidden="true">▍</span>`,
+		keywords: ["caret", "cursor", "blink", "typing cursor", "streaming"],
+		pairsWith: ["motion-stream-in"],
+	},
+	{
+		name: "motion-reveal",
+		kind: "utility",
+		family: "motion",
+		intent: "Fade plus a 0.75rem rise when `data-reveal` flips from \"out\" to \"in\". Out of view it rests hidden and nudged down; with motion off the content stays visible.",
+		whenToUse: "Through the Reveal and TextReveal components, which set `data-reveal` when the element scrolls into view. Use the class directly only on an element whose `data-reveal` you set yourself.",
+		insteadOf: "An IntersectionObserver plus hand-written opacity classes.",
+		example: `<Reveal><Card>…</Card></Reveal>`,
+		keywords: ["scroll reveal", "reveal on scroll", "in view", "entrance", "scroll animation"],
+		pairsWith: ["motion-draw"],
+	},
+	{
+		name: "motion-draw",
+		kind: "utility",
+		family: "motion",
+		intent:
+			"Draws an SVG path on when an ancestor's `data-reveal` flips to \"in\". The path needs `pathLength=\"1\"`. `--motion-draw-duration` and `--motion-draw-delay` (both scaled by --motion-scale) set its pace and stagger.",
+		whenToUse: "Line art and schematics inside a Reveal. Stagger sibling paths with `--motion-draw-delay`.",
+		insteadOf: "A hand-written dash-offset animation with literal timing, which keeps animating, or keeps its delay, under reduced motion.",
+		example: `<Reveal><svg viewBox="0 0 100 100"><path className="motion-draw" pathLength="1" d="M10 50 L90 50" /></svg></Reveal>`,
+		keywords: ["draw on", "line art", "svg animation", "stroke animation", "illustration", "path draw"],
+		pairsWith: ["motion-reveal", "motion-orbit"],
+	},
+
 	/* ── Helpers ───────────────────────────────────────────────────────────── */
 	{
 		name: "hit-target",
@@ -594,12 +888,40 @@ export const UTILITY_DOCS: UtilityDoc[] = [
 		keywords: ["touch target", "tap target", "hit area", "hit slop", "44px", "wcag target size", "small button"],
 	},
 	{
+		name: "reveal-on-hover",
+		kind: "utility",
+		family: "helper",
+		intent:
+			"Hides a row or tile action until its item is hovered or holds focus — on hover-capable devices only. Touch and no-hover devices always show it, and it fades with opacity, so it never leaves the tab order or the accessibility tree. The item is the nearest ancestor with `group` (or `data-reveal-scope`); an open popup keeps its trigger visible. `--reveal-offset` adds a short rise.",
+		whenToUse:
+			"Secondary per-item actions in a dense list or grid — a tile's play button, a row's overflow menu or visibility toggle — where showing every action at rest would turn the list into a wall of controls. Put `group` on the item (the row, the tile), not on the list, and the class on the action or its wrapper.",
+		insteadOf:
+			"`opacity-0 group-hover:opacity-100` (hidden forever on a phone), `hidden group-hover:flex` (drops it from the tab order and the accessibility tree), or a hand-written `[@media(hover:hover)]:opacity-0` pair (snaps, and misses focus and open menus). Not for a primary action — that stays visible.",
+		example: `<li className="group flex items-center gap-2"><span className="flex-1">Track</span><Button variant="ghost" size="icon-sm" aria-label="Like Track" className="reveal-on-hover"><Icon name="heart" /></Button></li>`,
+		keywords: ["show on hover", "hover reveal", "hover actions", "row actions", "hidden until hover", "group-hover opacity", "hover:hover", "touch visible", "focus-within"],
+		pairsWith: ["motion-interactive"],
+	},
+	{
+		name: "stretched-link",
+		kind: "utility",
+		family: "helper",
+		intent:
+			"Makes one link cover its whole item with a transparent `::after`, so a tile or card is clickable everywhere while its other links and buttons stay separate controls. Focus draws the ring on the overlay, rounded by `--stretched-link-radius`.",
+		whenToUse:
+			"A card, tile or row that IS a link but also holds a second control — a subtitle link to the artist, a play button, a menu. Put it on the primary link (usually the title), `relative` on the item, and `relative z-10` on every other control.",
+		insteadOf:
+			"Wrapping the item in an `<a>` or `Card render={<a />}` — invalid as soon as it nests another link or button, which browsers re-parent and screen readers read as one long link. Not with `hit-target` on the same element (both own `::after`).",
+		example: `<article className="relative [--stretched-link-radius:var(--radius-lg)]"><a href="/albums/1" className="stretched-link">Low tide</a><a href="/artists/2" className="relative z-10">Juno Avery</a></article>`,
+		keywords: ["stretched link", "card link", "clickable card", "whole card clickable", "block link", "nested link", "link overlay"],
+		pairsWith: ["reveal-on-hover"],
+	},
+	{
 		name: "link-underline",
 		kind: "utility",
 		family: "helper",
 		intent:
-			"An underline drawn from the font's own metrics (position and thickness `from-font`) with ink skipping descenders, so it retunes when a theme swaps typeface.",
-		whenToUse: "Inline links in running text. Pair with `motion-interactive` for a colour change on hover.",
+			"An underline drawn from the font's own metrics (position and thickness `from-font`) with ink skipping descenders, so it retunes when a theme swaps typeface. Also carries the link's focus-visible outline in `--ring`, so a plain `<a>` meets the focus floor without app CSS.",
+		whenToUse: "Every plain text link — inline in running text or standalone (\"Forgot password?\"). Pair with `motion-interactive` for a colour change on hover.",
 		insteadOf:
 			"`underline underline-offset-4 decoration-2` — tuned to one face and wrong for the next theme's. Animating thickness or offset is not supported; a growing underline is a separate pseudo-element.",
 		example: `<a href="/terms" className="link-underline motion-interactive text-primary">terms</a>`,

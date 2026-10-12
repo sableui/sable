@@ -1,13 +1,47 @@
 import { readFileSync } from "node:fs"
-import { resolve } from "node:path"
+import { parse, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { LABEL_CONTRAST_RULE, parsePreset, presetCss, presetLabelContrast } from "../dist/presets/index.js"
 import { parseFlags } from "./design-preferences.mjs"
+import { packageManager } from "./agent-setup.mjs"
 
 const packageRoot = fileURLToPath(new URL("../", import.meta.url))
 const args = process.argv.slice(2)
 const json = args.includes("--json")
 function emit(type, data, output) { process.stdout.write(json ? JSON.stringify({ type, data }) + "\n" : output + "\n") }
+
+/** -1, 0 or 1 for two semver strings; a prerelease sorts before its release. */
+function compareVersions(a, b) {
+	const parse = (v) => {
+		const [core, pre] = String(v).split("-", 2)
+		return { nums: core.split(".").map((n) => Number(n) || 0), pre: pre ?? null }
+	}
+	const x = parse(a), y = parse(b)
+	for (let i = 0; i < 3; i++) if ((x.nums[i] ?? 0) !== (y.nums[i] ?? 0)) return (x.nums[i] ?? 0) < (y.nums[i] ?? 0) ? -1 : 1
+	if (x.pre === y.pre) return 0
+	if (x.pre === null) return 1
+	if (y.pre === null) return -1
+	return x.pre < y.pre ? -1 : 1
+}
+
+/**
+ * A preset records the Sable it was authored with. Authored with a NEWER one
+ * than is installed, it can name tokens and defaults this package does not have
+ * yet; it still validates against the installed contract, so this warns rather
+ * than fails — and says how to upgrade, with the project's own package manager.
+ */
+function versionWarnings(preset, installed) {
+	if (compareVersions(preset.sableVersion, installed) <= 0) return []
+	const pm = packageManager(parse(process.cwd()).root, process.cwd())
+	const upgrade = { pnpm: "pnpm add @sableui/react@latest", yarn: "yarn add @sableui/react@latest", npm: "npm install @sableui/react@latest" }[pm]
+	return [{
+		code: "WARN_PRESET_NEWER_SABLE",
+		message: `Preset ${preset.id} was authored with @sableui/react ${preset.sableVersion}, newer than the installed ${installed}. It validated against ${installed}; tokens or behaviour added after ${installed} will not apply until you upgrade.`,
+		authoredWith: preset.sableVersion,
+		installed,
+		suggestion: upgrade,
+	}]
+}
 try {
 	const flags = parseFlags(args, ["--check", "--css"], ["--template", "--json"])
 	const modes = ["--template", "--check", "--css"].filter(arg => flags.has(arg))
@@ -39,6 +73,9 @@ try {
 		const file = flags.get(action)
 		if (!file || file.startsWith("--")) throw new Error(`${action} requires a preset JSON path.`)
 		const preset = parsePreset(JSON.parse(readFileSync(resolve(file), "utf8")))
+		const installed = JSON.parse(readFileSync(resolve(packageRoot, "package.json"), "utf8")).version
+		const warnings = versionWarnings(preset, installed)
+		const warningText = warnings.map((w) => `\nWarning: ${w.message}\n  → ${w.suggestion}`).join("")
 		if (action === "--check") {
 			// Labels on brand and status fills: Sable's opinion, enforced unless the preset
 			// records that it declines it (`exceptions`), which is then reported.
@@ -60,10 +97,15 @@ try {
 			const unmeasured = labels.unmeasured.length ? `, ${labels.unmeasured.length} unmeasured (${labels.unmeasured.join(", ")})` : ""
 			emit(
 				"preset.check",
-				{ valid: true, id: preset.id, revision: preset.revision, authoredWith: preset.sableVersion, labelContrast: { measured: labels.measured, accepted: labels.accepted, unmeasured: labels.unmeasured } },
-				`Valid preset ${preset.id}, revision ${preset.revision}. Labels on filled roles: ${labels.measured} pairs measured${unmeasured}.${accepted}\nReview rendered contrast and brief fit separately.`,
+				{ valid: true, id: preset.id, revision: preset.revision, authoredWith: preset.sableVersion, installed, warnings, labelContrast: { measured: labels.measured, accepted: labels.accepted, unmeasured: labels.unmeasured } },
+				`Valid preset ${preset.id}, revision ${preset.revision}. Labels on filled roles: ${labels.measured} pairs measured${unmeasured}.${accepted}${warningText}\nReview rendered contrast and brief fit separately.`,
 			)
-		} else { const css = presetCss(preset); emit("preset.css", { id: preset.id, revision: preset.revision, css }, css) }
+		} else {
+			const css = presetCss(preset)
+			// The CSS is the output, so in text mode the warning goes to stderr.
+			if (!json && warningText) process.stderr.write(`${warningText.trim()}\n`)
+			emit("preset.css", { id: preset.id, revision: preset.revision, css, warnings }, css)
+		}
 	}
 } catch (error) {
 	process.stderr.write(JSON.stringify({ type: "error", code: error.code ?? "ERR_PRESET_INVALID", message: error.message, ...(error.data ? { data: error.data } : {}), suggestions: error.suggestions ?? ["sable docs using-presets", "sable preset --template"] }) + "\n")

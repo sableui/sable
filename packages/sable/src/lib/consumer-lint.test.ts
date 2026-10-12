@@ -245,6 +245,42 @@ describe("sable-lint bin", () => {
 		expect(r.out).toContain("static-interactive")
 	})
 
+	it("reads a media-query variant as a media query, not a hover state", () => {
+		// `hover:none` inside the brackets is a device capability; nothing here
+		// reacts to a pointer, so there is no state change for motion to carry.
+		expect(lint(`export const A = () => <div className="opacity-0 [@media(hover:none)]:opacity-100" />`).code).toBe(0)
+		expect(lint(`export const A = () => <div className="[@media(hover:hover)]:underline" />`).code).toBe(0)
+		// …while the group/peer forms of a real pointer state still count.
+		const r = lint(`export const A = () => <span className="opacity-0 group-hover/row:opacity-100" />`)
+		expect(r.code).toBe(1)
+		expect(r.out).toContain("static-interactive")
+	})
+
+	it("points a display-only hover at an opacity swap, not motion-interactive", () => {
+		// The e2e case: a row's play icon hidden on hover-capable devices. Fair to
+		// flag, but the generic fix (motion-interactive) cannot animate display.
+		const r = lint(
+			`export const A = () => <span className="[@media(hover:hover)]:group-hover/row:hidden" />`,
+		)
+		expect(r.code).toBe(1)
+		expect(r.out).toContain("static-interactive")
+		expect(r.out).toContain("opacity-0 group-hover:opacity-100")
+		// A colour change still gets the ordinary recipe advice.
+		expect(lint(`export const A = () => <div className="hover:text-foreground" />`).out).not.toContain("opacity-0 group-hover")
+	})
+
+	it("points a hand-rolled hover reveal at reveal-on-hover, and accepts the utility", () => {
+		// The Undertow e2e build wrote `[@media(hover:hover)]:opacity-0
+		// group-hover:opacity-100` twice. motion-interactive would have smoothed it
+		// and left the action invisible on every phone; the utility is right on both.
+		const r = lint(`export const A = () => <span className="opacity-0 group-hover:opacity-100" />`)
+		expect(r.code).toBe(1)
+		expect(r.out).toContain("reveal-on-hover")
+		// It carries motion-interactive's transition list, so it counts as a recipe.
+		expect(lint(`export const A = () => <span className="reveal-on-hover hover:text-foreground" />`).code).toBe(0)
+		expect(lint(`export const A = () => <div className="group"><span className="reveal-on-hover" /></div>`).code).toBe(0)
+	})
+
 	it("leaves Sable components alone — they bring their own motion", () => {
 		// Flagging <Button className="hover:…"> would teach people to bolt a second
 		// recipe onto a component that already has one, and two transitions fighting
@@ -422,6 +458,146 @@ export const A = () => <div role="slider" />`,
 			`export const A = () => <><Button className="bg-secondary">Ok</Button><a href="/x" className="text-foreground underline">Read</a><Input className="border-input" /></>`,
 		)
 		expect(r.out).not.toContain("lookalike-control")
+	})
+
+	/* ── Assembly lookalikes: grid, card, avatar, media frame. ─────────────
+	 * An e2e build assembled all four from utilities and tokens; they passed
+	 * lint, a 100/100 grade and the visual review, and only a source audit
+	 * found them. Each rule is pinned on the true positive AND on every
+	 * near-miss it must leave alone, because a lookalike rule that fires on a
+	 * form layout or a text link teaches people to disable it. */
+	describe("lookalike-grid", () => {
+		it("catches an auto-fill track and names minItemWidth", () => {
+			const r = lint(
+				`export const A = ({ items }) => <div className="grid grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-4">{items.map((i) => <Card key={i} />)}</div>`,
+			)
+			expect(r.code).toBe(1)
+			expect(r.out).toContain('lookalike-grid')
+			expect(r.out).toContain('<Grid minItemWidth="10rem" gap={2}>')
+		})
+
+		it("catches responsive columns over mapped items and spells the cols map", () => {
+			const r = lint(
+				`export const A = ({ artists }) => (\n\t<div className="grid grid-cols-2 md:grid-cols-4 gap-3">\n\t\t{artists.map((a) => (\n\t\t\t<a key={a.id} href={a.href}>{a.name}</a>\n\t\t))}\n\t</div>\n)`,
+			)
+			expect(r.out).toContain("raw grid over mapped items → <Grid cols={{ base: 2, md: 4 }} gap={1.5}>")
+		})
+
+		it("catches three or more repeated components, one column below the breakpoint", () => {
+			const r = lint(
+				`export const A = () => <div className="grid gap-6 md:grid-cols-2"><Chart a /><Chart b /><Chart c /></div>`,
+			)
+			expect(r.out).toContain("raw grid over repeated items → <Grid cols={{ base: 1, md: 2 }} gap={3}>")
+		})
+
+		it.each([
+			["a form layout (fields, no mapping)", `<div className="grid grid-cols-2 gap-4"><Field /><Field /><Field /><Field /></div>`],
+			["a grid with no columns", `<div className="grid gap-4">{items.map((i) => <Card key={i} />)}</div>`],
+			["a non-uniform track", `<div className="grid grid-cols-[auto_1fr] gap-2">{rows.map((r) => <Row key={r} />)}</div>`],
+			["a single column", `<div className="grid grid-cols-1 gap-2">{rows.map((r) => <Row key={r} />)}</div>`],
+			["a container-query column change", `<div className="grid grid-cols-2 @md:grid-cols-4">{rows.map((r) => <Row key={r} />)}</div>`],
+			["a list element (Grid renders a div)", `<ul className="grid grid-cols-3 gap-4">{items.map((i) => <li key={i} />)}</ul>`],
+			["a definition list on an auto-fill track", `<dl className="grid grid-cols-[repeat(auto-fill,minmax(3rem,1fr))]">{x}</dl>`],
+			["a widget role", `<div role="img" className="grid grid-cols-5 gap-2">{steps.map((s) => <span key={s} />)}</div>`],
+			["children placed by span", `<div className="grid grid-cols-1 md:grid-cols-12"><Cell className="md:col-span-3" /><Cell className="md:col-span-6" /><Cell className="md:col-span-3" /></div>`],
+			["a map nested in one child", `<div className="grid gap-4 md:grid-cols-2"><Panel />{meta.a11y ? <Panel>{meta.a11y.map((a) => <li key={a} />)}</Panel> : null}</div>`],
+			["repeated bare wrappers", `<div className="grid gap-4 md:grid-cols-3"><div /><div /><div /></div>`],
+			["Sable's Grid", `<Grid cols={{ base: 2, md: 4 }}>{items.map((i) => <Card key={i} />)}</Grid>`],
+			["a code sample in a template literal", "<CodeBlock code={`<div className=\"grid grid-cols-2 md:grid-cols-4\">{items.map((i) => <Card />)}</div>`} />"],
+		])("leaves %s alone", (_, jsx) => {
+			expect(lint(`export const A = ({ items, rows, steps, meta, x }) => ${jsx}`).out).not.toContain("lookalike-grid")
+		})
+
+		it("honours a reasoned disable", () => {
+			const r = lint(
+				`export const A = ({ items }) => (\n\t// design-lint-disable-next-line lookalike-grid -- a 7-day calendar grid with its own keyboard model\n\t<div className="grid grid-cols-7">{items.map((i) => <Day key={i} />)}</div>\n)`,
+			)
+			expect(r.out).not.toContain("lookalike-grid")
+		})
+	})
+
+	describe("lookalike-card", () => {
+		it("catches a link, a router Link and a button dressed as a card", () => {
+			const a = lint(`export const A = () => <a href="/x" className="block rounded-lg border bg-card p-4 hover:border-border-strong motion-interactive">Album</a>`)
+			expect(a.out).toContain("lookalike-card")
+			expect(a.out).toContain("<a> dressed as a card (rounded-lg border bg-card) → <Card render={<a href=… />}>")
+			const link = lint(`import { Link } from "react-router"\nexport const A = () => <Link to="/x" className="rounded-xl border p-5">Album</Link>`)
+			expect(link.out).toContain("<Card render={<Link to=… />}>")
+			const button = lint(`export const A = () => <button type="button" className="rounded-md bg-popover p-3 text-start">Pick</button>`)
+			expect(button.out).toContain("<Card render={<button />}>")
+		})
+
+		it.each([
+			["a text link", `<a href="/x" className="text-foreground underline">Read</a>`],
+			["a nav row (radius and padding, no surface)", `<a href="/x" className="flex items-center rounded-md px-2 py-1.5 sable-surface-interactive motion-interactive">Home</a>`],
+			["a pill", `<a href="/x" className="rounded-full border px-3 py-1">Tag</a>`],
+			["a chip-sized link (padding under a card's)", `<a href="/x" className="rounded-md border px-2 py-1">file.pdf</a>`],
+			["a button fill (lookalike-control's)", `<a href="/x" className="rounded-md border bg-primary p-3">Go</a>`],
+			["the element given to Card's render prop", `<Card render={<a href="/x" className="rounded-lg border bg-card p-4" />}>Album</Card>`],
+			["a render function's element", `<Radio render={({ className, ...props }) => <button {...props} className="rounded-md border p-4" />} />`],
+		])("leaves %s alone", (_, jsx) => {
+			expect(lint(`export const A = () => ${jsx}`).out).not.toContain("lookalike-card")
+		})
+
+		it("leaves a Link the file takes from Sable", () => {
+			const r = lint(`import { Link } from "@sableui/react"\nexport const A = () => <Link href="/x" className="rounded-lg border p-4">x</Link>`)
+			expect(r.out).not.toContain("lookalike-card")
+		})
+	})
+
+	describe("lookalike-avatar", () => {
+		it("catches a round fixed-size box holding art, an image or initials, and a round image", () => {
+			const art = lint(`export const A = ({ a }) => <div className="size-16 shrink-0 overflow-hidden rounded-full"><GradientArt seed={a.name} /></div>`)
+			expect(art.out).toContain('<div> rounded-full size-16 holding GradientArt → <Avatar variant="art" fallback="…">')
+			const img = lint(`export const A = ({ a }) => <span className="h-10 w-10 overflow-hidden rounded-full"><img src={a.src} alt="" /></span>`)
+			expect(img.out).toContain("holding an image → <Avatar src alt fallback>")
+			const initials = lint(`export const A = () => <div className="grid size-12 place-items-center rounded-full bg-muted">AM</div>`)
+			expect(initials.out).toContain("holding initials")
+			const computed = lint(`export const A = ({ a }) => <div className="size-[52px] rounded-full bg-muted">{a.name.charAt(0)}</div>`)
+			expect(computed.out).toContain("lookalike-avatar")
+			const self = lint(`export const A = ({ a }) => <img src={a.src} alt={a.name} className="size-8 rounded-full object-cover" />`)
+			expect(self.out).toContain("<img> rounded-full size-8 holding an image")
+		})
+
+		it.each([
+			["a status dot", `<span className="size-2 rounded-full bg-success" />`],
+			["an icon in a circle", `<div className="grid size-8 place-items-center rounded-full bg-muted"><Icon name="music" /></div>`],
+			["a round box with no fixed size", `<span className="rounded-full bg-muted px-3"><img src="/a.png" alt="" /></span>`],
+			["a full-size circle", `<div className="size-full overflow-hidden rounded-full"><img src="/a.png" alt="" /></div>`],
+			["AvatarRoot", `<AvatarRoot className="size-16"><AvatarImage src="/a.png" /></AvatarRoot>`],
+			["a word in a circle", `<div className="size-12 rounded-full">Online</div>`],
+		])("leaves %s alone", (_, jsx) => {
+			expect(lint(`export const A = () => ${jsx}`).out).not.toContain("lookalike-avatar")
+		})
+	})
+
+	describe("lookalike-media-frame", () => {
+		it("catches a ratio frame around art or an image and names the ratio", () => {
+			const art = lint(`export const A = ({ a }) => <div className="aspect-square overflow-hidden rounded-md"><GradientArt seed={a.title} /></div>`)
+			expect(art.out).toContain("<div> aspect-square overflow-hidden around <GradientArt> → <AspectBox ratio={1}>")
+			const img = lint(`export const A = ({ a }) => <figure className="aspect-[4/5] overflow-hidden rounded-xl"><img src={a.cover} alt="" className="size-full object-cover" /></figure>`)
+			expect(img.out).toContain("<AspectBox ratio={4 / 5}>")
+		})
+
+		it.each([
+			["a ratio box with no media (a pad)", `<div className="relative aspect-[2/1] overflow-hidden rounded-md sable-well"><span className="absolute size-4" /></div>`],
+			["a frame without clipping", `<div className="aspect-video rounded-lg"><img src="/a.png" alt="" /></div>`],
+			["an image sized by its own aspect class", `<img src="/a.png" alt="" className="aspect-square w-full overflow-hidden rounded-md object-cover" />`],
+			["AspectBox", `<AspectBox ratio={1} className="rounded-md"><GradientArt seed="x" /></AspectBox>`],
+		])("leaves %s alone", (_, jsx) => {
+			expect(lint(`export const A = () => ${jsx}`).out).not.toContain("lookalike-media-frame")
+		})
+
+		it("reports a round fixed-size frame once, as an avatar", () => {
+			const r = lint(`export const A = () => <div className="aspect-square size-12 overflow-hidden rounded-full"><img src="/a.png" alt="" /></div>`)
+			expect(r.out).toContain("lookalike-avatar")
+			expect(r.out).not.toContain("lookalike-media-frame")
+		})
+	})
+
+	it("lists the lookalike rules as new in 0.7.0 for an upgrading app", () => {
+		const r = lint("", ["--since", "0.6.2"])
+		for (const id of ["lookalike-grid", "lookalike-card", "lookalike-avatar", "lookalike-media-frame"]) expect(r.out).toContain(`● ${id}  (new in 0.7.0)`)
 	})
 
 	/* ── hand-derived-surface: mixing ink into a surface by hand. ───────────
