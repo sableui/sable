@@ -275,6 +275,8 @@ const pages: Record<string, ComponentType> = {
 	),
 	marquee: page(() => import("./pages/components/MarqueePage"), "MarqueePage"),
 	"gradient-art": page(() => import("./pages/components/GradientArtPage"), "GradientArtPage"),
+	"media-image": page(() => import("./pages/components/MediaImagePage"), "MediaImagePage"),
+	"media-tile": page(() => import("./pages/components/MediaTilePage"), "MediaTilePage"),
 	"message-scroller": page(
 		() => import("./pages/components/MessageScrollerPage"),
 		"MessageScrollerPage",
@@ -382,6 +384,14 @@ const pages: Record<string, ComponentType> = {
 	collapsible: page(
 		() => import("./pages/components/CollapsiblePage"),
 		"CollapsiblePage",
+	),
+	"disclosure-picker": page(
+		() => import("./pages/components/DisclosurePickerPage"),
+		"DisclosurePickerPage",
+	),
+	"font-picker": page(
+		() => import("./pages/components/FontPickerPage"),
+		"FontPickerPage",
 	),
 	slider: page(() => import("./pages/components/SliderPage"), "SliderPage"),
 	combobox: page(
@@ -521,6 +531,10 @@ const pages: Record<string, ComponentType> = {
 	"page-header": page(
 		() => import("./pages/components/PageHeaderPage"),
 		"PageHeaderPage",
+	),
+	"section-header": page(
+		() => import("./pages/components/SectionHeaderPage"),
+		"SectionHeaderPage",
 	),
 	form: page(() => import("./pages/components/FormPage"), "FormPage"),
 	"number-field": page(

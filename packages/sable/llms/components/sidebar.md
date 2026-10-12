@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-Desktop side-navigation rail (in-flow sticky, hidden below lg) with SidebarHeader / SidebarNav / SidebarItem / SidebarFooter parts. Items are router-agnostic via the `render` prop; an optional collapsed icon-rail mode reveals labels in tooltips.
+Desktop side-navigation rail (in-flow sticky, hidden below lg) with SidebarHeader / SidebarBrand / SidebarNav / SidebarItem / SidebarFooter parts. Items are router-agnostic via the `render` prop; an optional collapsed icon-rail mode reveals labels in tooltips.
 
 **Keywords:** sidebar, navigation, app chrome, rail
 
@@ -28,6 +28,7 @@ Use Sidebar for persistent desktop navigation or application chrome outside the 
 
 | Name | Type | Description |
 | --- | --- | --- |
+| SidebarBrand | { mark: ReactNode; label: ReactNode; render?: useRender.RenderProp } + div props | The brand row, inside SidebarHeader, on the same grid as SidebarItem: mark in the icons' 24px slot, label on the labels' column, so a logo lines up with the nav below it without copying the rail's inset numbers. Collapsed, it shows the mark alone (named by a string label). render={<Link to="/" />} makes it the home link. |
 | SidebarItem | { label: ReactNode; icon?: ReactNode; active?: boolean; badge?: ReactNode; render?: useRender.RenderProp } + button props | A single nav row. label is the row text (inline when expanded, in a hover tooltip when collapsed); icon is the leading icon node (the consumer swaps fill weight for the active state); active marks the current route (accent fill + aria-current="page"); badge is a trailing node (e.g. a count) pushed to the row end and hidden when collapsed; render composes another element, e.g. render={<Link to="/x" />}. |
 
 ## Props
@@ -62,10 +63,10 @@ Use Sidebar for persistent desktop navigation or application chrome outside the 
 ### Rail with nav
 
 ```tsx
-import { Icon, NotificationBadge, Sidebar, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav } from "@sableui/react"
+import { Icon, NotificationBadge, Sidebar, SidebarBrand, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav } from "@sableui/react"
 // <Link> = your router's link (react-router, next/link, @tanstack/router, …)
 
-<Sidebar><SidebarHeader>{brand}</SidebarHeader><SidebarNav><SidebarItem icon={<Icon name="bell" />} label="Notifications" badge={<NotificationBadge count={3} />} render={<Link to="/notifications" />} /></SidebarNav><SidebarFooter>{wallet}</SidebarFooter></Sidebar>
+<Sidebar><SidebarHeader><SidebarBrand mark={<Icon name="music" variant="solid" />} label="Undertow" render={<Link to="/" />} /></SidebarHeader><SidebarNav><SidebarItem icon={<Icon name="bell" />} label="Notifications" badge={<NotificationBadge count={3} />} render={<Link to="/notifications" />} /></SidebarNav><SidebarFooter>{wallet}</SidebarFooter></Sidebar>
 ```
 
 ### Collapsible (icon rail)

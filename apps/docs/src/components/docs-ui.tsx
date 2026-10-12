@@ -7,6 +7,7 @@ import {
 	CollapsibleTrigger,
 	Icon,
 	PageHeader as SablePageHeader,
+	SectionHeader,
 	Tabs,
 	TabsList,
 	TabsPanel,
@@ -59,14 +60,14 @@ export function Section({
 }) {
 	return (
 		<section className="mt-14 first:mt-0">
-			<header className="mb-5 max-w-(--measure-prose) text-body-md">
-				<h2 className="text-heading-4 text-balance">{title}</h2>
-				{description ? (
-					<p className="text-body-md text-muted-foreground mt-1.5 text-pretty">
-						{description}
-					</p>
-				) : null}
-			</header>
+			{/* Sable's own SectionHeader, dogfooded; the docs set the measure, the
+			    space below, and a reading-size description. */}
+			<SectionHeader
+				size="sm"
+				title={title}
+				description={description ? <span className="text-body-md">{description}</span> : undefined}
+				className="mb-5 max-w-(--measure-prose)"
+			/>
 			{/* Stacked with one gap, so consecutive examples never touch. Example
 			    applies its className to the stage INSIDE its frame, so a margin
 			    passed to it spaced the content, not the boxes. */}

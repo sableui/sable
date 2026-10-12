@@ -27,6 +27,7 @@ Use Sheet for secondary workflows that slide in while preserving context from th
 | SheetHeader | no | The title and description region. |
 | SheetTitle | no | The sheet heading. |
 | SheetDescription | no | Supporting context for the sheet. |
+| SheetList | no | Edge-to-edge rows (Entity) aligned with the header — a queue, notifications, a picker. |
 | SheetFooter | no | Footer actions for the workflow. |
 
 ## Subcomponents
@@ -39,6 +40,7 @@ Use Sheet for secondary workflows that slide in while preserving context from th
 | SheetHeader | ComponentProps<"div"> | Top section holding SheetTitle/SheetDescription. |
 | SheetTitle | Base UI Drawer.Title props + className | The sheet's accessible name — wires aria-labelledby on the popup. |
 | SheetDescription | Base UI Drawer.Description props + className | Muted supporting line; wires aria-describedby. |
+| SheetList | ComponentProps<"div"> | Rows that run edge to edge in the sheet, Entity most often. It bleeds through the sheet's padding (--sheet-p) and hands it back to each row as --entity-px, so row content lines up with SheetHeader and a row's hover fill reaches the panel's edges. Without it a list of Entity rows sits 12px in from the header. The Sheet equivalent of CardList. |
 | SheetFooter | ComponentProps<"div"> | Bottom row for actions, pinned after the scrollable body. In a bottom sheet it stacks: full width, the primary on top, every button at the cta height. |
 
 ## Props
@@ -71,6 +73,14 @@ Use Sheet for secondary workflows that slide in while preserving context from th
 - Components: Dialog, Popover, Sidebar
 
 ## Examples
+
+### List of rows (a queue)
+
+```tsx
+import { Button, Entity, GradientArt, Sheet, SheetContent, SheetHeader, SheetList, SheetTitle, SheetTrigger } from "@sableui/react"
+
+<Sheet><SheetTrigger render={<Button variant="secondary">Queue</Button>} /><SheetContent><SheetHeader><SheetTitle>Up next</SheetTitle></SheetHeader><SheetList>{queue.map((track) => <Entity key={track.id} leading={<GradientArt aria-hidden seed={track.title} className="size-10 rounded-sm" />} title={track.title} subtitle={track.artist} />)}</SheetList></SheetContent></Sheet>
+```
 
 ### Basic (right)
 

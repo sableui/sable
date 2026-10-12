@@ -329,7 +329,7 @@ The same 4px scale governs **sizes**, so controls, icons, and avatars all land o
 
 - **Controls** — `sm` h-8 (32, compact / chips) · **`md` h-10 (40) — the default** (Input, Button, Select, the field row) · `lg` h-12 (48, prominent / touch-first) · `xl` h-14 (56, hero / mobile CTA).
 - **Icons** — `xs` 14 · `sm` 16 · **`md` 20 — default UI glyph** · `lg` 24 · `xl` 32. Icons are em-sized with `text-{size}` (never type utilities) and inherit text color.
-- **Avatars / media** — `sm` 24 · `md` 32 · `lg` 40 · `xl` 48, then up the scale (`size-16`, `size-24`).
+- **Avatars** — `sm` 32 · **`md` 40 — default** · `lg` 48 (rows with a title and subtitle) · `xl` 96 (a profile header beside a name) · `2xl` 160 (an artist or profile hero, a roster portrait). `xl` doubles `lg` and `2xl` is ×1.67 again — steps far enough apart that two neighbours never read as the same size. Media beyond that is an `AspectBox`, not an avatar.
 - **Touch targets** — interactive elements clear **44×44px** (`size-11`, WCAG 2.5.5). A visually smaller control (a 32px icon button) keeps the 44px *hit* area via padding or hit-slop, not a bigger glyph. The `hit-target` utility is the sanctioned implementation: a centered 44px `::after`, so the hit area grows without the layout moving. Never on an `<input>` — replaced elements don't render pseudo-elements reliably; wrap it in a label instead.
 
 **Borderless controls need roughly twice the clearance of bordered ones.** A bordered control declares where it ends; a borderless one has nothing but the gap to say so, and two ghost buttons 12px apart read as one wide target. Budget around 24px between adjacent borderless controls where 12px would be right for bordered ones.
@@ -369,7 +369,7 @@ Sable's layout foundation is deliberately fluid: **edge-to-edge, with a fluid pa
 
 (`--region-ultrawide` 1800 is legacy; prefer `full`.)
 
-**Primitives** (in `src/layout/`): `Region` (fluid page region: `inset`, opt-in `max` as a named region *or any CSS length*, per-edge `safeArea`) · `Page` (route shell — `Region` + a vertically-rhythmic `Stack`) · `Grid` (CSS Grid; explicit `cols` or `auto-fit minmax` so cells breathe) · `Columns`/`Col` (track + spans) · `Bleed` (escapes a capped/inset ancestor to the **content-area** edge, via container-query units, so it stops at a fixed sidebar) · `SplitPane` (responsive two-pane, side-by-side above a breakpoint, stacked below) · `Stack` (vertical rhythm) · `Row` (horizontal flex) · `Spacer` · `Center` (optional prose cap) · `AspectBox` (reserves space, no layout shift) · `SafeArea` · `GridOverlay` (structure visualizer for docs/dev).
+**Primitives** (in `src/layout/`): `Region` (fluid page region: `inset`, opt-in `max` as a named region *or any CSS length*, per-edge `safeArea`) · `Page` (route shell — `Region` + a vertically-rhythmic `Stack`) · `Grid` (CSS Grid; explicit `cols` or `minItemWidth` cells that breathe — `auto-fill` by default, so a sparse row keeps its empty columns and one result stays one cell wide; `track="fit"` stretches a fixed set across the row) · `Columns`/`Col` (track + spans) · `Bleed` (escapes a capped/inset ancestor to the **content-area** edge, via container-query units, so it stops at a fixed sidebar) · `SplitPane` (responsive two-pane, side-by-side above a breakpoint, stacked below) · `Stack` (vertical rhythm) · `Row` (horizontal flex) · `Spacer` · `Center` (optional prose cap) · `AspectBox` (reserves space, no layout shift) · `SafeArea` · `GridOverlay` (structure visualizer for docs/dev).
 
 `Columns count`, `Col span`/`start`, and `Grid cols` accept either a number **or a responsive breakpoint map** (`{ base, sm, md, lg, xl, "2xl" }`) — resolved mobile-first by the stylesheet, so a grid can thin to fewer columns on small screens without the consumer's Tailwind scanning a class.
 
@@ -528,7 +528,7 @@ Not every removal is a regression; check for an **equivalent replacement** befor
 - Pure `#000`/`#fff` (use `zinc-950`/`zinc-50`, or `overlay`/`overlay-foreground` for scrims). *(CI-enforced: `raw-black-white`.)*
 - In the Sable theme, purple/brand for primary CTAs (brand = editions + selection only). A different theme chooses its action palette through the semantic pair.
 - Gradient text, side-stripe borders, nested cards, mixed radii.
-- Concrete icon-package imports scattered through components. Reicon supplies the default through the shared adapter; IconProvider allows replacement.
+- Concrete icon-package imports scattered through components. Reicon is an opt-in set behind the shared adapter; the app's IconProvider supplies it or a replacement.
 - A global page max-width (use opt-in region caps).
 - Off-scale spacing or sizing (`p-[15px]`, `h-[37px]`) — snap to the 4px scale. In a component, a fixed `rem`/`px` padding or gap also escapes the density control. *(CI-enforced in the package: `fixed-spacing`.)*
 - Restyling a library component with override classes to get a look it lacks (`<Button className="rounded-full bg-…">`, `<MenuItem className="text-destructive">`, `pl-6` on a table cell). Use or add a real variant. *(CI-enforced: `component-restyle`, `destructive-item-ink`, `table-edge-padding`.)*

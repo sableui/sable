@@ -1,6 +1,6 @@
 # Sable (@sableui/react)
 
-> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 106 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
+> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 111 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
 
 ## Start here — brief, composition, evidence
 
@@ -335,7 +335,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **SafeArea** — Pads for device safe-areas (notch, home indicator) on fixed or native-shell surfaces. → [`llms/layout/safe-area.md`](./llms/layout/safe-area.md)
 - **GridOverlay** — Dev/docs structure visualizer — overlays the column grid so the layout skeleton is legible. → [`llms/layout/grid-overlay.md`](./llms/layout/grid-overlay.md)
 
-### Utilities (39) — relative surfaces, frames, state variants, scroll policies, chrome type; reach for these before hand-written CSS (registry.json → utilities; `sable utility <name>`) → [`llms/reference/utilities.md`](./llms/reference/utilities.md)
+### Utilities (65) — relative surfaces, frames, state variants, scroll policies, chrome type, motion recipes; reach for these before hand-written CSS (registry.json → utilities; `sable utility <name>`) → [`llms/reference/utilities.md`](./llms/reference/utilities.md)
 
 - **relative surface** — `sable-surface`, `sable-surface-muted`, `sable-surface-popover`, `sable-surface-accent`, `sable-surface-interactive`, `sable-well`
 - **frame** — `sable-frame`, `sable-frame-popover`, `sable-frame-tool`, `sable-frame-borderless`, `sable-frame-r-*`, `sable-frame-p-*`, `sable-frame-inner`
@@ -343,14 +343,26 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **state variant** — `sable-highlighted:`, `sable-selected:`, `sable-open:`, `sable-disabled:`, `sable-invalid:`
 - **scroll** — `scrollbar-quiet`, `scrollbar-hidden`
 - **text** — `sable-list`, `sable-list-numbered`, `sable-list-dl`, `sable-list-dl-2`, `text-overline`, `text-ui-md`, `text-ui-sm`, `text-ui-body`, `text-ui-section`, `text-ui-micro`, `text-ui-num`, `stream-tail`
-- **helper** — `hit-target`, `link-underline`, `checkerboard`
-- **elsewhere** — paired `text-*` page tiers: registry.json → tokens.typography; `motion-*` / `animate-*` recipes: registry.json → tokens.motion.recipes.
+- **motion** — `motion-interactive`, `motion-press`, `motion-fade`, `motion-pop`, `motion-slide-up`, `motion-slide-down`, `motion-slide-left`, `motion-slide-right`, `motion-disclosure`, `motion-icon-swap`, `motion-spin`, `motion-orbit`, `motion-pulse`, `motion-shimmer`, `motion-text-shimmer`, `motion-dot-bounce`, `motion-ping`, `animate-fade-in`, `animate-fade-up`, `animate-fade-down`, `motion-stream-in`, `motion-caret`, `motion-reveal`, `motion-draw`
+- **helper** — `hit-target`, `reveal-on-hover`, `stretched-link`, `link-underline`, `checkerboard`
+- **elsewhere** — paired `text-*` page tiers: registry.json → tokens.typography (also `sable utility text-heading-1`).
 
-### Components (106) — full props/subcomponents/variants/guidance/a11y/examples in registry.json → components
+### Providers (8) — app-level context: where each goes, whether it is required, props, examples (registry.json → providers; `sable provider <Name>`)
+
+- **CodeHighlightProvider** (part of CodeBlock) — Supplies one highlighter to every CodeBlock beneath it, so an app wires highlighting once.
+- **DensityProvider** — The bare React context behind density.
+- **IconProvider** — Supplies the icon set every <Icon> renders with, including the icons inside Sable's own components.
+- **MotionProvider** — Holds the app's motion policy and writes it as `data-motion` on <html>, which drives the `--motion-scale` switch every Sable motion recipe reads.
+- **PresentationProvider** — Declares what its subtree is presented in, a page or a sheet.
+- **SableThemeProvider** — Applies and persists Sable's two theme axes on <html>: the colour preference (light, dark or system, written as the `.dark` class) and the design theme (written as `data-sable-theme`).
+- **ToastProvider** (part of Toast) — Wraps Base UI Toast.Provider and renders the themed Viewport + toast list.
+- **TooltipProvider** (part of Tooltip) — Wraps an app or group of Tooltips to share open/close delays.
+
+### Components (111) — full props/subcomponents/variants/guidance/a11y/examples in registry.json → components
 
 - **Accordion** — Stacked, collapsible disclosure sections over Base UI Accordion — roving focus, arrow-key navigation, ARIA region/heading/button wiring, and an animated height transition. *Parts:* AccordionItem, AccordionTrigger, AccordionPanel. → [`llms/components/accordion.md`](./llms/components/accordion.md)
 - **AppHeader** — Mobile top bar (sticky, hidden at lg) with leading / title / actions slots on a 3-column grid that keeps the title optically centered. → [`llms/components/app-header.md`](./llms/components/app-header.md)
-- **AppShell** — The application frame: slots for status banners, a mobile header, a desktop sidebar, main content, a mobile bottom nav, and floating overlays — plus a built-in skip link and #main-content target. → [`llms/components/app-shell.md`](./llms/components/app-shell.md)
+- **AppShell** — The application frame: slots for status banners, a mobile header, a desktop sidebar, main content, a mobile bottom nav, a persistent dock (a now-playing or call bar), and floating overlays — plus a built-in skip link and #main-content target. → [`llms/components/app-shell.md`](./llms/components/app-shell.md)
 - **AreaChart** — **BETA.** A trend over a sequence, filled to the baseline: overlapping translucent series, stacked, or stacked to 100%, with smooth, linear or step curves and optional gradient fills. → [`llms/components/area-chart.md`](./llms/components/area-chart.md)
 - **Attachment** — A file or image attached to a message: media or icon lead, name and metadata, upload and error states, an actions slot, and a full-card trigger that keeps those actions separately clickable. → [`llms/components/attachment.md`](./llms/components/attachment.md)
 - **Avatar** — Circular profile image over Base UI Avatar — automatic image-load tracking with an initials/glyph fallback. *Parts:* AvatarRoot, AvatarImage, AvatarFallback, AvatarGroup, AvatarGroupCount. → [`llms/components/avatar.md`](./llms/components/avatar.md)
@@ -381,11 +393,13 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **DateTile** — A calendar-page date: the short month on a primary band over the day number, in a <time> element. → [`llms/components/date-tile.md`](./llms/components/date-tile.md)
 - **DestructiveActionModal** — Confirmation modal for irreversible actions, built on AlertDialog (role=alertdialog; a backdrop click does not dismiss). → [`llms/components/destructive-action-modal.md`](./llms/components/destructive-action-modal.md)
 - **Dialog** — Modal surface over Base UI Dialog (focus trap, scroll lock, Esc/outside dismissal). *Parts:* DialogContent, DialogOverlay, DialogTrigger, DialogClose, DialogHeader, DialogTitle, DialogDescription, DialogFooter, AlertDialog (Root), AlertDialogTrigger, AlertDialogContent / AlertDialogOverlay / AlertDialogTitle / AlertDialogDescription / AlertDialogHeader / AlertDialogFooter / AlertDialogClose. → [`llms/components/dialog.md`](./llms/components/dialog.md)
+- **DisclosurePicker** — A property row that names the current value and opens its list in place, beneath the row, instead of in a popup — for a tool panel or settings column where the choice is made while looking at what it changes. *Parts:* DisclosurePickerTrigger, DisclosurePickerPanel, DisclosurePickerList, DisclosurePickerOption, DisclosurePickerEmpty, useDisclosurePicker. → [`llms/components/disclosure-picker.md`](./llms/components/disclosure-picker.md)
 - **EmptyState** — The centered empty / error block: optional icon or error code, title, description and an action. → [`llms/components/empty-state.md`](./llms/components/empty-state.md)
 - **Entity** — A list-row record: leading visual + title/subtitle column + trailing action, with truncating text. → [`llms/components/entity.md`](./llms/components/entity.md)
 - **Feedback** — A compact feedback popover. → [`llms/components/feedback.md`](./llms/components/feedback.md)
 - **Fieldset** — Form section panel (Card-like bordered surface) over Base UI Fieldset, with Legend/Description/Content/Footer parts. *Parts:* FieldsetLegend, FieldsetDescription, FieldsetContent, FieldsetFooter. → [`llms/components/fieldset.md`](./llms/components/fieldset.md)
 - **FileDropzone** — Drag-and-drop target and file picker in one keyboard-operable button. → [`llms/components/file-dropzone.md`](./llms/components/file-dropzone.md)
+- **FontPicker** — A DisclosurePicker for a typeface: the row names the chosen family in its own face and opens in place into a searchable list of families, each drawn in itself. → [`llms/components/font-picker.md`](./llms/components/font-picker.md)
 - **Form** — A styled <form> plus Field — the form orchestration layer, built on Base UI Form and Field. *Parts:* Field. → [`llms/components/form.md`](./llms/components/form.md)
 - **GlidingHighlight** — One highlight that travels to the active item, instead of each item toggling its own background. → [`llms/components/gliding-highlight.md`](./llms/components/gliding-highlight.md)
 - **GradientArt** — **BETA.** Placeholder artwork painted by a static WebGL shader from the preset's own art direction (the --art-* tokens: palette, ground, warp, softness, grain) — Ember burns, Prism airbrushes, Meridian is grainy monochrome — with a CSS gradient underneath for prerendered pages and browsers without WebGL2. → [`llms/components/gradient-art.md`](./llms/components/gradient-art.md)
@@ -396,6 +410,8 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **LineChart** — **BETA.** Lines over a sequence — for comparing how measures move. → [`llms/components/line-chart.md`](./llms/components/line-chart.md)
 - **Marker** — A non-message row in a conversation: streaming status, system note, bordered notice, or a labelled rule for date breaks. → [`llms/components/marker.md`](./llms/components/marker.md)
 - **Marquee** — Seamless, constant-speed infinite loop (logos, tags, testimonials). → [`llms/components/marquee.md`](./llms/components/marquee.md)
+- **MediaImage** — **BETA.** An image that fills its box and falls back to GradientArt seeded by the item when it has no source or the source fails — Avatar's image-load tracking, for covers, thumbnails and product shots instead of faces. → [`llms/components/media-image.md`](./llms/components/media-image.md)
+- **MediaTile** — **BETA.** A cover-first tile — square, 16:9 or poster artwork with an optional play-style action over it, then a title and a subtitle that can each be links — that is one link as a whole without nesting its other controls inside one. → [`llms/components/media-tile.md`](./llms/components/media-tile.md)
 - **Menu** — Dropdown menu over Base UI Menu — roving focus, typeahead, ARIA menu/menuitem wiring, collision-aware positioning, Esc/outside dismissal. *Parts:* MenuTrigger, MenuContent, MenuItem, MenuSeparator, MenuSubmenu, MenuSubmenuTrigger, MenuRadioGroup, MenuRadioItem, MenuCheckboxItem, MenuGroup, MenuGroupLabel. → [`llms/components/menu.md`](./llms/components/menu.md)
 - **Message** — One row in a conversation: avatar gutter, side, and stacked header / content / footer. → [`llms/components/message.md`](./llms/components/message.md)
 - **MessageScroller** — Scroll container for a conversation. → [`llms/components/message-scroller.md`](./llms/components/message-scroller.md)
@@ -424,13 +440,14 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **Scroller** — Scroll container that fades its leading/trailing edges when content overflows. → [`llms/components/scroller.md`](./llms/components/scroller.md)
 - **ScrubField** — The compact numeric field a property grid is built from: a leading glyph inside the field that doubles as a drag-to-scrub handle, the value, and an optional unit. → [`llms/components/scrub-field.md`](./llms/components/scrub-field.md)
 - **SearchInput** — Styled search field with a leading magnifier and a clearable X. → [`llms/components/search-input.md`](./llms/components/search-input.md)
+- **SectionHeader** — The heading block for one section of a page: a title (h2 by default), an optional line of description, and actions on the title row — a "View all" link or a couple of buttons — that drop beneath the title only when the row runs out of room. → [`llms/components/section-header.md`](./llms/components/section-header.md)
 - **SegmentedBar** — One bar split into the parts of a whole — revenue by type, storage by kind, results by outcome. → [`llms/components/segmented-bar.md`](./llms/components/segmented-bar.md)
 - **Select** — Listbox over Base UI Select — typeahead, roving focus, collision-aware popup, ARIA option wiring, and form integration. *Parts:* SelectTrigger, SelectContent, SelectItem, SelectGroup, SelectGroupLabel, SelectValue, SelectSeparator. → [`llms/components/select.md`](./llms/components/select.md)
 - **Separator** — A hairline divider. → [`llms/components/separator.md`](./llms/components/separator.md)
 - **SettingsMenu** — A compact trigger that states the current settings, over a menu of rows that change them. *Parts:* SettingsRow, MenuRadioGroup, MenuRadioItem. → [`llms/components/settings-menu.md`](./llms/components/settings-menu.md)
-- **Sheet** — Edge-anchored drawer over Base UI Drawer — focus trap, scroll lock, Esc/outside dismissal, portal backdrop, plus swipe-to-dismiss on touch. *Parts:* SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription, SheetFooter. → [`llms/components/sheet.md`](./llms/components/sheet.md)
+- **Sheet** — Edge-anchored drawer over Base UI Drawer — focus trap, scroll lock, Esc/outside dismissal, portal backdrop, plus swipe-to-dismiss on touch. *Parts:* SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription, SheetList, SheetFooter. → [`llms/components/sheet.md`](./llms/components/sheet.md)
 - **ShowMore** — Collapsible content region that clips children to a collapsed height, fades the cut edge, and reveals the rest with a toggle. → [`llms/components/show-more.md`](./llms/components/show-more.md)
-- **Sidebar** — Desktop side-navigation rail (in-flow sticky, hidden below lg) with SidebarHeader / SidebarNav / SidebarItem / SidebarFooter parts. *Parts:* SidebarItem. → [`llms/components/sidebar.md`](./llms/components/sidebar.md)
+- **Sidebar** — Desktop side-navigation rail (in-flow sticky, hidden below lg) with SidebarHeader / SidebarBrand / SidebarNav / SidebarItem / SidebarFooter parts. *Parts:* SidebarBrand, SidebarItem. → [`llms/components/sidebar.md`](./llms/components/sidebar.md)
 - **SideNav** — A lightweight in-content vertical navigation list - the settings / docs sub-nav, distinct from the app-chrome Sidebar. *Parts:* SideNavItem, SideNavGroup. → [`llms/components/side-nav.md`](./llms/components/side-nav.md)
 - **Skeleton** — Loading placeholder — a muted, shimmering block (rounded-md bg-muted motion-shimmer). → [`llms/components/skeleton.md`](./llms/components/skeleton.md)
 - **Slider** — Slider over Base UI Slider — pointer + keyboard control, ARIA slider wiring, and range support via multiple thumbs. *Parts:* SliderRoot, SliderControl, SliderTrack, SliderIndicator, SliderThumb, SliderValue. → [`llms/components/slider.md`](./llms/components/slider.md)
@@ -444,7 +461,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **Table** — Styled native table subcomponents (Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption). *Parts:* TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption. → [`llms/components/table.md`](./llms/components/table.md)
 - **Tabs** — Tabs over Base UI Tabs (roving focus, arrow-key nav, ARIA tablist wiring) in two styles: underline (page sections) or pill (compact switchers). *Parts:* TabsList, TabsTrigger, TabsPanel, TabsContent. → [`llms/components/tabs.md`](./llms/components/tabs.md)
 - **Textarea** — Styled native multi-line text control. → [`llms/components/textarea.md`](./llms/components/textarea.md)
-- **ThemeSelector** — A presentational radiogroup for choosing a Sable design theme from theme manifests — swatch-strip cards for a settings page, or compact rows for tool chrome. → [`llms/components/theme-selector.md`](./llms/components/theme-selector.md)
+- **ThemeSelector** — A presentational radiogroup for choosing a Sable design theme from theme manifests — tiles that draw each theme as a miniature of its own interface (its colours, type and corner shape) for a settings page, or compact rows for tool chrome. *Parts:* ThemePreview. → [`llms/components/theme-selector.md`](./llms/components/theme-selector.md)
 - **ThemeSwitcher** — A segmented light / dark / system switch. → [`llms/components/theme-switcher.md`](./llms/components/theme-switcher.md)
 - **ThinkingOrb** — Canvas dot-cloud 'agent is thinking' indicator. → [`llms/components/thinking-orb.md`](./llms/components/thinking-orb.md)
 - **Toast** — Imperative notification system over Base UI Toast — auto-dismiss timers, swipe-to-dismiss, focus management, ARIA live-region announcements, and a limit-aware stack. *Parts:* ToastRoot, ToastContent, ToastTitle, ToastDescription, ToastClose, ToastAction. → [`llms/components/toast.md`](./llms/components/toast.md)

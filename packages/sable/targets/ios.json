@@ -389,6 +389,15 @@
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
+    "DisclosurePicker": {
+      "source": "DisclosurePicker",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "DisclosurePicker"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
     "EmptyState": {
       "source": "EmptyState",
       "strategy": "preserve",
@@ -434,6 +443,15 @@
         "Button"
       ],
       "guidance": "Drag and drop is not a phone interaction. Pick files with a Sable Button; show them as Attachments."
+    },
+    "FontPicker": {
+      "source": "FontPicker",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "FontPicker"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
     "Form": {
       "source": "Form",
@@ -522,6 +540,24 @@
       "importFrom": "@sableui/react",
       "components": [
         "Marquee"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
+    "MediaImage": {
+      "source": "MediaImage",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "MediaImage"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
+    "MediaTile": {
+      "source": "MediaTile",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "MediaTile"
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
@@ -784,6 +820,15 @@
       "importFrom": "@sableui/react",
       "components": [
         "SearchInput"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
+    "SectionHeader": {
+      "source": "SectionHeader",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "SectionHeader"
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },

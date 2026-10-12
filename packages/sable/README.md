@@ -21,7 +21,7 @@ in Sable.
 
 - **Behavior:** [Base UI](https://base-ui.com) (`@base-ui/react`) — accessible primitives, isolated behind our own component APIs.
 - **Styling:** Tailwind CSS v4 + semantic CSS-variable tokens; variants via `class-variance-authority`.
-- **Icons:** Reicon by default, with a pluggable adapter for any icon package.
+- **Icons:** opt-in through `IconProvider` — Reicon's set ships ready to mount, or plug in any icon package. Apps pay only for the set they choose.
 - **Motion:** a token-driven, zero-dependency motion layer (recipes, policy, browser-native primitives).
 - **Themeable:** components reference semantic tokens only; a theme is a CSS variable set.
 
@@ -98,7 +98,7 @@ function ThemeControls() {
   )
 }
 
-<IconProvider set={reiconIconSet}>       {/* optional — omit for Reicon, or pass another icon set */}
+<IconProvider set={reiconIconSet}>       {/* required — Reicon, or pass another icon set */}
   <MotionProvider>                    {/* optional — enables the motion on/off toggle */}
     <SableThemeProvider>              {/* optional, recommended when users can switch themes */}
       <App />
@@ -107,7 +107,7 @@ function ThemeControls() {
 </IconProvider>
 ```
 
-Components render Reicon icons out of the box. To replace Reicon, mount `<IconProvider set={yourIconSet}>`; to add domain icons, use `composeIconSets(appExtras, reiconIconSet)`. Both helpers and the `IconSet` type are exported from Sable. A set returns `null` for names it does not handle. List the names your extras add in `.sable/icons.json` (`{ "names": [...] }`) so `sable grade` counts them as icons the app supplies, not off-contract ones. `fallbackIconSet` remains a deprecated alias of Reicon for compatibility. `SableThemeProvider` is the preferred route for user-facing theme switching: it stores the user's color preference (`light` / `dark` / `system`), toggles the **`.dark` class**, stores the active design theme, and writes **`data-sable-theme`** for non-default themes. If your app already owns this state, use `applySableColorMode()` / `applySableTheme()` or the exported `SABLE_THEME_ATTRIBUTE` constant directly. You do **not** need a Tailwind `@custom-variant dark` for Sable itself — add one (`@custom-variant dark (&:where(.dark, .dark *));`) only if **your own** app code uses `dark:` utilities (Sable ships none).
+Icons are opt-in: mount `<IconProvider set={reiconIconSet}>` once at the app root, with `reiconIconSet` from `@sableui/react/icons/reicon` (its only import path). Without a provider every `<Icon>` renders nothing, and a development build warns once. An app that passes its own set ships none of Reicon's artwork. To add domain icons, use `composeIconSets(appExtras, reiconIconSet)`; `composeIconSets` and the `IconSet` type are exported from the root. A set returns `null` for names it does not handle. List the names your extras add in `.sable/icons.json` (`{ "names": [...] }`) so `sable grade` counts them as icons the app supplies, not off-contract ones. `fallbackIconSet` remains a deprecated alias of Reicon, exported from `@sableui/react/icons/reicon`. `SableThemeProvider` is the preferred route for user-facing theme switching: it stores the user's color preference (`light` / `dark` / `system`), toggles the **`.dark` class**, stores the active design theme, and writes **`data-sable-theme`** for non-default themes. If your app already owns this state, use `applySableColorMode()` / `applySableTheme()` or the exported `SABLE_THEME_ATTRIBUTE` constant directly. You do **not** need a Tailwind `@custom-variant dark` for Sable itself — add one (`@custom-variant dark (&:where(.dark, .dark *));`) only if **your own** app code uses `dark:` utilities (Sable ships none).
 
 **6. Use it:**
 

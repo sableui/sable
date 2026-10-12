@@ -52,6 +52,9 @@ Use Slider for bounded numeric choices where approximate adjustment is faster th
 | step | number | 1 | Granularity the slider steps through. Snaps to multiples. |
 | disabled | boolean | false | Ignore user interaction and dim the control. |
 | orientation | 'horizontal' \| 'vertical' | horizontal | Axis the slider tracks along. A vertical slider has no intrinsic length — give it a height (h-40, or flex-1 in a column). |
+| aria-label | string | — | Accessible name, applied to each thumb's input (the element with role=slider). A range also names its group with it. |
+| getAriaLabel | (index) => string | — | Per-thumb name for a range ("Minimum price" / "Maximum price"). Wins over aria-label on the thumbs. |
+| getAriaValueText | (formattedValue, value, index) => string | — | What a screen reader announces for the value when the number alone is wrong — a seek bar's "1:23 of 3:45". For units or percent, `format` (Intl.NumberFormatOptions) is enough. |
 
 ## Tokens used
 
@@ -64,7 +67,8 @@ Use Slider for bounded numeric choices where approximate adjustment is faster th
 - The thumb's hit area is a fixed 16px box at every state. Only the decorative inner dot resizes — rest 12px, full 16px on hover, keyboard focus, and drag — so the target a pointer or finger must land on never moves or changes size. Keyboard users, who never hover, get the enlarged dot from focus-visible.
 - The rest-to-full transition uses the motion duration/easing tokens, so it collapses to an instant state change under prefers-reduced-motion or MotionProvider off. The size change itself still happens: it reports interaction state, it is not decoration.
 - Range sliders get one thumb per value with minStepsBetweenValues honored.
-- Pass an aria-label (or getAriaLabel on a thumb) so each handle has an accessible name.
+- Pass aria-label (or getAriaLabel for a range) so each handle has an accessible name. On Slider it reaches the thumb inputs; on a bare SliderRoot it only names the role=group — when composing, put aria-label / getAriaLabel on each SliderThumb, or label the Root with aria-labelledby or a Field, which Base UI does carry to the thumbs.
+- getAriaValueText sets aria-valuetext for values a number misreads (time, named steps).
 
 ## Related
 
@@ -86,7 +90,15 @@ import { Slider } from "@sableui/react"
 import { Slider } from "@sableui/react"
 
 const [range, setRange] = useState([20, 60])
-<Slider value={range} onValueChange={setRange} aria-label="Price range" />
+<Slider value={range} onValueChange={setRange} aria-label="Price range" getAriaLabel={(i) => (i ? "Maximum price" : "Minimum price")} />
+```
+
+### Seek bar with spoken time
+
+```tsx
+import { Slider } from "@sableui/react"
+
+<Slider value={position} max={duration} onValueChange={seek} aria-label="Seek" getAriaValueText={(_, v) => `${formatTime(v)} of ${formatTime(duration)}`} />
 ```
 
 ### Stepped

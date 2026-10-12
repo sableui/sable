@@ -49,7 +49,7 @@ export function VerifyCodeBlock({ className, framed = true, onVerify, onResend }
 			</CardContent>
 			<CardFooter className="justify-between gap-3">
 				<span className="text-caption text-muted-foreground">Didn’t get it?</span>
-				<Button variant="ghost" size="sm" onClick={onResend}>
+				<Button variant="ghost" size="sm" bleed="end" onClick={onResend}>
 					Resend code
 				</Button>
 			</CardFooter>

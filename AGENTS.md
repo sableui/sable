@@ -21,7 +21,7 @@ The structured, machine-readable install recipe is the **`consume` block in [`pa
 Quick version:
 
 1. **Install:** `pnpm add @sableui/react`.
-2. **Wire it up:** dedupe React in the bundler; `@import "tailwindcss";` then `@import "@sableui/react/styles.css";` then an `@source` glob over the package's `dist`; load Figtree + DM Mono; optionally wrap in `<IconProvider set={…}>` (components render with the built-in fallback icon set without it) and `<MotionProvider>`; toggle the `dark` class on `<html>` for dark-by-default.
+2. **Wire it up:** dedupe React in the bundler; `@import "tailwindcss";` then `@import "@sableui/react/styles.css";` then an `@source` glob over the package's `dist`; load Figtree + DM Mono; wrap the app once in `<IconProvider set={reiconIconSet}>` (`reiconIconSet` from `@sableui/react/icons/reicon`, or your own set — required: without a provider icons render nothing), optionally in `<MotionProvider>`; toggle the `dark` class on `<html>` for dark-by-default.
 
 Full walkthrough: [`packages/sable/README.md`](./packages/sable/README.md). The post-install steps (3) are also self-describing from the installed package's own `AGENTS.md` / `registry.json`.
 

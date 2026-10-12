@@ -11,7 +11,7 @@ The checks are the specification. Every rule below names the gate that enforces 
 1. **Components reference semantic tokens only.** Use `bg-card`, `text-muted-foreground`, `bg-tone-edition`, `text-primary`, etc. — never raw palette steps (`--purple-heart-700`) and never inline `oklch()`/hex. For text/icons on a tone fill use the theme-adaptive `text-tone-*-foreground` ink (no `dark:` variant); for scrims, media letterbox, and pills on imagery use `bg-overlay`/`text-overlay-foreground`. Palette names are theme-internal; a component that names a palette breaks themeability — and `design-lint`'s `palette-ref` rule now has **zero** sanctioned exceptions.
 2. **Paired typography utilities, never decomposed.** Use `text-heading-1`, `text-body-md`, `text-label-lg`, … Each bundles size + weight + line-height + tracking. Do **not** combine `text-{size}` + `font-{weight}` + `tracking-{x}` by hand. (Icons are the exception — size them with `text-{size}` scales, never type utilities.)
 3. **Base UI is behavior; `components/` is the public API.** Each component wraps `@base-ui/react` directly inside its own folder (use the **`render` prop** for composition; read state from `data-[state=…]` attributes) and owns 100% of the styling. There is no separate primitives tier. Consumers import only from the package root barrel.
-4. **Semantic icons in components.** Use `<Icon name="…">`; Reicon is the default. Concrete icon-package imports belong only in `src/icon-sets/`. Apps may override or extend the set through `<IconProvider>`.
+4. **Semantic icons in components.** Use `<Icon name="…">`. Concrete icon-package imports belong only in `src/icon-sets/`, which nothing in the core graph imports. Apps supply the set through `<IconProvider>` (Reicon from `@sableui/react/icons/reicon`, or their own).
 5. **Every scroll container declares a scrollbar policy.** An `overflow-*-auto|scroll` utility must be paired with `scrollbar-quiet` (a 4px thumb, invisible at rest, fading in while the region scrolls) or `scrollbar-hidden` (no bar — only when something else carries the affordance, and you should be able to name it). Left bare, the platform draws its own: on Windows that means stepper arrows hard against the padding edge, poking out of any rounded corner. Vertical scrolling takes a bar; **horizontal takes none** — an edge fade says "there is more this way" better than a rail does, which is why `Scroller` splits by axis. New scroll container? Reach for `useScrollActivity` so the bar appears on touch drags and programmatic scrolls, which hover cannot see. Enforced by `design-lint`'s `unmanaged-overflow` **and** by `build-registry` over every registry example. Full rationale: `DESIGN.md → Scrolling`.
 6. **Tailwind v4 packaging discipline.** `src/styles.css` must **not** `@import "tailwindcss"` (the consumer owns that). It carries only token blocks, `@theme inline` mappings, `@utility` typography, layout vars, and `@source`. `@source` points at `src` (never the gitignored `dist`).
 
@@ -139,19 +139,25 @@ The manifest's `fonts` field is `{ sans: string; mono: string; display?: string 
 ## Icon contract
 
 Components reference semantic names through `<Icon name="…" />`. Reicon (MIT)
-is the default, installed as a runtime dependency and kept external to the build.
-Concrete icon imports belong only in `src/icon-sets/`; components never import
-an icon package or duplicate its SVG artwork.
+is the bundled set, installed as a runtime dependency and kept external to the
+build. It is opt-in: `<Icon>` has no fallback, so an app that brings its own set
+ships none of Reicon's artwork. Concrete icon imports belong only in
+`src/icon-sets/`; components never import an icon package or duplicate its SVG
+artwork, and nothing in the core graph imports `src/icon-sets/`.
 
-- **Use the default:** render components without an icon provider.
+- **Use Reicon:** `import { reiconIconSet } from "@sableui/react/icons/reicon"` and
+  mount `<IconProvider set={reiconIconSet}>` once at the app root. Without a
+  provider, icons render nothing and a development build warns once.
 - **Replace the package:** pass your own `IconSet` to `<IconProvider set={mySet}>`.
   Map semantic names to that package's components; preserve className, variant,
   spin and accessible labels. Return `null` for unknown names.
-- **Extend Reicon:** import `composeIconSets` and `reiconIconSet` from Sable and
-  use `<IconProvider set={composeIconSets(appExtras, reiconIconSet)}>`.
+- **Extend Reicon:** import `composeIconSets` from Sable and `reiconIconSet` from
+  `@sableui/react/icons/reicon`, then use
+  `<IconProvider set={composeIconSets(appExtras, reiconIconSet)}>`.
   The first set returning a non-null node wins.
-- `@sableui/react/icons/reicon` remains an alternative import for the same adapter.
-  `fallbackIconSet` is a deprecated alias of Reicon, with no separate artwork.
+- `@sableui/react/icons/reicon` is the only import path for the adapter; the root
+  barrel does not re-export it. `fallbackIconSet` is a deprecated alias of Reicon
+  on the same subpath, with no separate artwork.
 - Brand marks are a separate additive set at `@sableui/react/icons/brands`.
   The 23 marks are generated from licensed `reicon-brands` npm artwork by
   `pnpm icons:brands`, normalized to the 24-unit grid, and inherit currentColor.

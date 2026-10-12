@@ -257,6 +257,7 @@ export function ListDetailPage() {
 							ref={backRef}
 							variant="ghost"
 							size="sm"
+							bleed="start"
 							iconStart={<Icon name="chevron-left" />}
 							onClick={backToList}
 							className="self-start lg:hidden"

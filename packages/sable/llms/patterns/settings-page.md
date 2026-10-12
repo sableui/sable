@@ -28,7 +28,7 @@ Account settings inside the app shell: a sticky SideNav section rail beside a co
 
 ```tsx
 import { useState } from "react"
-import { AppHeader, AppShell, Avatar, BottomNav, BottomNavItem, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, Col, Columns, DestructiveActionModal, Entity, Field, Form, Grid, Icon, Input, MenuItem, MenuSeparator, NotificationBadge, OverflowMenu, Page, PageHeader, Row, Select, SelectContent, SelectItem, SelectTrigger, Sidebar, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav, SideNav, SideNavItem, Stack, Switch, Textarea } from "@sableui/react"
+import { AppHeader, AppShell, Avatar, BottomNav, BottomNavItem, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, Col, Columns, DestructiveActionModal, Entity, Field, Form, Grid, Icon, Input, MenuItem, MenuSeparator, NotificationBadge, OverflowMenu, Page, PageHeader, Row, Select, SelectContent, SelectItem, SelectTrigger, Sidebar, SidebarBrand, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav, SideNav, SideNavItem, Stack, Switch, Textarea } from "@sableui/react"
 
 const sections = [
 	{ id: "profile", label: "Profile" },
@@ -90,10 +90,7 @@ export function SettingsPage() {
 			sidebar={
 				<Sidebar>
 					<SidebarHeader>
-						<Row gap={1} align="center" className="px-3">
-							<Icon name="gem" variant="solid" className="text-xl" />
-							<span className="text-title-sm">Atelier</span>
-						</Row>
+						<SidebarBrand mark={<Icon name="gem" variant="solid" />} label="Atelier" render={<a href="/" />} />
 					</SidebarHeader>
 					<SidebarNav>
 						<SidebarItem icon={<Icon name="grid" />} label="Overview" render={<a href="/" />} />

@@ -29,7 +29,7 @@ App-shell creator dashboard: a branded Sidebar with an account footer (AppHeader
 ## Source
 
 ```tsx
-import { AppHeader, AppShell, Avatar, Badge, BottomNav, BottomNavItem, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, DataTable, Entity, Grid, Icon, MenuItem, MenuSeparator, Meter, NotificationBadge, OverflowMenu, Page, PageHeader, RelativeTime, Row, Sidebar, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav, Stack } from "@sableui/react"
+import { AppHeader, AppShell, Avatar, Badge, BottomNav, BottomNavItem, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, DataTable, Entity, Grid, Icon, MenuItem, MenuSeparator, Meter, NotificationBadge, OverflowMenu, Page, PageHeader, RelativeTime, Row, Sidebar, SidebarBrand, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav, Stack } from "@sableui/react"
 
 // Edition status → Badge tone. Sable has no status vocabulary of its own;
 // an app maps ITS states onto tones once, here, and every badge follows.
@@ -126,10 +126,7 @@ export function DashboardPage() {
 			sidebar={
 				<Sidebar>
 					<SidebarHeader>
-						<Row gap={1} align="center" className="px-3">
-							<Icon name="gem" variant="solid" className="text-xl" />
-							<span className="text-title-sm">Atelier</span>
-						</Row>
+						<SidebarBrand mark={<Icon name="gem" variant="solid" />} label="Atelier" render={<a href="/" />} />
 					</SidebarHeader>
 					<SidebarNav>
 						<SidebarItem icon={<Icon name="grid" />} label="Overview" active render={<a href="/" />} />
@@ -274,7 +271,7 @@ export function DashboardPage() {
 							<span className="text-caption text-muted-foreground">
 								Showing {editions.length} of {editionCount} editions
 							</span>
-							<Button variant="ghost" size="sm" render={<a href="/editions" />}>
+							<Button variant="ghost" size="sm" bleed="end" render={<a href="/editions" />}>
 								View all editions
 								<Icon name="arrow-right" />
 							</Button>

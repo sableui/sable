@@ -109,6 +109,8 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 	CheckboxCard: ["Selection", "page"],
 	RadioCard: ["Selection", "page"],
 	Combobox: ["Selection", "either"],
+	DisclosurePicker: ["Selection", "either"],
+	FontPicker: ["Selection", "either"],
 	Radio: ["Selection", "either"],
 	Select: ["Selection", "either"],
 	Slider: ["Selection", "either"],
@@ -154,6 +156,7 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 	PageHeader: ["Layout", "page"],
 	PanelGroup: ["Layout", "workspace"],
 	PanelSection: ["Layout", "workspace"],
+	SectionHeader: ["Layout", "page"],
 	StatusBar: ["Layout", "workspace"],
 	Workspace: ["Layout", "workspace"],
 
@@ -252,6 +255,8 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 	Carousel: ["Media & mockups", "page"],
 	GradientArt: ["Media & mockups", "either"],
 	Marquee: ["Media & mockups", "page"],
+	MediaImage: ["Media & mockups", "either"],
+	MediaTile: ["Media & mockups", "page"],
 	Phone: ["Media & mockups", "page"],
 	Video: ["Media & mockups", "page"],
 }

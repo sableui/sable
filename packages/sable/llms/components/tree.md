@@ -15,7 +15,7 @@ Use Tree for the hierarchy panel in a workspace: layers, objects, an inspector o
 - Do: Give Tree an aria-label naming the hierarchy ("Layers", "Files"). It is a role="tree", and an unnamed tree is announced as just "tree".
 - Do: For a file tree, nest with `subtree` and use the icon convention: `icon={<Icon name="folder" />}` on a row with a subtree, `icon={<Icon name="file" />}` on a leaf. There are no folder/file presets — they would only bind those two props.
 - Do: Give TreeAddRow the same depth as the rows it adds to, so its mark lands in their type column: one deeper than the parent for a child list, the parent's own depth for a sibling list.
-- Do: Put mutable per-row state (visibility, solo, a row menu) in `actions`, on the right rail. Show it on hover, and at rest only when its value is the non-default one.
+- Do: Put mutable per-row state (visibility, solo, a row menu) in `actions`, on the right rail. Show it on hover with `reveal-on-hover` (the row is its `group`), and at rest only when its value is the non-default one.
 - Do: Let section headers sit on the rail at the same height as a depth-0 row. Space and a hairline separate sections; TreeSection handles both, including dropping the divider on the first.
 - Don't: Hardcode a left inset anywhere in the panel. Use treeIndent(depth) or var(--tree-rail); a hand-written px value is how a tree ends up with four different left edges.
 - Don't: Redefine --tree-indent to anything other than --tree-column. A step smaller than the column puts a child's content left of its parent's and the nesting reads inverted.
@@ -58,7 +58,7 @@ Use Tree for the hierarchy panel in a workspace: layers, objects, an inspector o
 | selected | boolean | false | Selection fill and accent bar on a TreeRow. Inside a Tree it is exposed as aria-selected on the treeitem; a row rendered outside a Tree is a plain div and exposes aria-current instead. |
 | toggleLabel | string | — | Names the thing being disclosed, for the toggle's accessible label — "Expand Background" rather than "Expand group". Every example passes it; a screen-reader user hearing twenty identical "Expand group" buttons has no way to tell them apart. |
 | icon | ReactNode | — | The kind marker for a TreeRow, rendered in the type column at 1em. Use a semantic Icon so it follows the app icon set. |
-| disclosureIcon | ReactNode | — | Replaces TreeRow's semantic chevron-down icon. Omit to use the current IconProvider set or Reicon by default. |
+| disclosureIcon | ReactNode | — | Replaces TreeRow's semantic chevron-down icon. Omit to use the chevron-down from the app's IconProvider set. |
 | actions | ReactNode | — | Right-rail controls for a TreeRow: visibility, solo, a row menu. |
 | label | ReactNode | — | TreeAddRow's visible label. Name what gets added — 'Add effect', not 'Add'. |
 
@@ -74,7 +74,7 @@ Use Tree for the hierarchy panel in a workspace: layers, objects, an inspector o
 - Each treeitem is named by its own label (aria-labelledby the name), never by the text of its icon or action buttons.
 - The disclosure is a real button with aria-expanded and a label naming what it discloses, and it stops propagation so collapsing a group never changes the selection. Inside a Tree the treeitem carries aria-expanded and the arrow keys, so the button becomes a pointer target only: aria-hidden, out of the tab order, and it leaves focus where it was when clicked.
 - The disclosure's POINTER TARGET is bigger than the mark it draws. `--tree-column` is 20px comfortable and 18px compact, both under WCAG 2.5.8's 24x24 floor, so a centred pseudo-element takes the hit at `--control-xs` (28/24) instead. The drawn box stays on the column, because that column is also the indent step — growing the button would push every name in the tree one column right.
-- Right-rail actions stay in the tab order, so a row with actions costs extra Tab stops. Keep actions few and show them on hover and focus-visible.
+- Right-rail actions stay in the tab order, so a row with actions costs extra Tab stops. Keep actions few and reveal them with `reveal-on-hover`, which also shows them on focus and always on touch.
 - `dimmed` is presentation only. A row switched off must also say so in its actions' aria-pressed or its accessible name; opacity alone is invisible to a screen reader and fails contrast.
 - Right-rail controls that appear on hover must also appear on focus-visible, or they are unreachable by keyboard.
 

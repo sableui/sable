@@ -15,11 +15,12 @@ Use Avatar to represent a person, team, or account with a compact visual identit
 - Do: Use `variant="art"` where people without photos sit side by side — a member list, an activity feed, a chat. Seeded by the person, each gets their own colour, so faces stay tellable apart at a glance; the neutral fallback makes everyone the same grey circle.
 - Do: Provide meaningful alt text for profile images, or an empty alt when the adjacent text already names the person.
 - Do: Use initials or a simple glyph fallback so missing images still communicate identity.
-- Do: Use consistent sizes within a group; reserve lg for profile headers or major identity moments.
+- Do: Pick the size by the job: sm in dense rows and tables, md (the default) beside one line of text, lg in a row with a title and subtitle, xl (96px) for a profile header beside the person's name, 2xl (160px) for an artist or profile hero and roster portraits. Keep one size within a list or group.
 - Do: Use AvatarGroup for a stack of people, and give it an aria-label with the real count ("12 collaborators"). Set `surface` (or `--avatar-group-ring`) to whatever the group sits on, so the separating ring matches a card or popover, not the page. When it shares a row with actions, set `fit` so it gives up avatars to the "+N" count before the row has to wrap.
 - Don't: Hand-build a stack with negative margins and per-avatar ring classes, or fake the overflow as an Avatar with "+4" initials — screen readers hear "plus 4" with no context. Use AvatarGroup's `max`/`total`, or AvatarGroupCount.
 - Don't: Use avatars as decoration without nearby identity context. They should help users recognize a person or account.
 - Don't: Overload a dense table with large avatars; use sm or omit images when scanning data is more important.
+- Don't: Build a portrait by stretching an Avatar with size classes (`className="size-40"`) — the initials, the status indicator and the image fade stay at row scale. Use size="xl" or "2xl", which scale all three. Past 160px, or for a non-circular cover, it is media: an AspectBox, not an avatar.
 
 ### Anatomy
 
@@ -50,18 +51,25 @@ Use Avatar to represent a person, team, or account with a compact visual identit
 | fallback | ReactNode | — | Initials or a glyph rendered when no image is displayed. |
 | fallbackDelay | number | — | Delay before showing the fallback, in ms — avoids a flash on fast loads. |
 | status | ReactNode | — | A presence indicator pinned to the bottom-end edge, usually <StatusDot tone="success" />. It sits outside the clipped circle and wears a ring in the surface colour (--avatar-group-ring, else the page background). Use this instead of absolutely positioning a dot over an Avatar. |
-| size | "sm" \| "md" \| "lg" | "md" | Square footprint: 32px / 40px / 48px. |
+| size | "sm" \| "md" \| "lg" \| "xl" \| "2xl" | "md" | Square footprint: 32px / 40px / 48px for rows; 96px / 160px for portraits (a profile header, an artist hero, a roster tile). The initials, a status indicator and its cut-out ring scale with it, and at the portrait sizes the photo fades in over the resting surface. |
 | variant | "neutral" \| "art" | "neutral" | What the fallback looks like. neutral: initials on the muted surface. art: initials over GradientArt seeded by the person, so each person without a photo gets their own stable colour from the theme. |
 | seed | string \| number | — | The art variant's seed. Defaults to the fallback text, then `alt`, so a person keeps one colour wherever they appear; pass a user id to tell apart two people who share initials. |
 
 ## Variants
 
-- **size**: sm, md, lg
+- **size**: sm, md, lg, xl, 2xl
 - **variant**: neutral, art
 
 ## Tokens used
 
 `muted`, `muted-foreground`, `background`, `card`, `popover`, `overlay`, `overlay-foreground`
+
+## Motion
+
+- **arrival** · Image · `motion-fade` — At the portrait sizes (xl, 2xl) the photo replacing the initials is a visible pop across one of the page's largest elements; fading it in reads as the picture arriving, not the layout glitching. Row sizes swap instantly — too small to register, and a list of fading faces would shimmer.
+- **response** · Root · _no motion_ — An avatar is not interactive itself; a link or button wrapping it owns the response.
+- **transition** · Root · _no motion_ — It has no states of its own to move between beyond the image arriving.
+- **activity** · Root · _no motion_ — Loading shows the fallback, which is already a finished resting state rather than a spinner.
 
 ## Accessibility
 
@@ -110,6 +118,20 @@ import { Avatar } from "@sableui/react"
 <Avatar src="/pfp.png" alt="Alex Morgan" fallback="AM" size="sm" />
 <Avatar src="/pfp.png" alt="Alex Morgan" fallback="AM" size="md" />
 <Avatar src="/pfp.png" alt="Alex Morgan" fallback="AM" size="lg" />
+```
+
+### Profile portrait
+
+```tsx
+import { Avatar, StatusDot } from "@sableui/react"
+
+<div className="flex flex-col items-center gap-3 text-center">
+	<Avatar variant="art" size="2xl" fallback="LV" alt="Lena Vale" status={<StatusDot tone="success" />} />
+	<div className="flex flex-col gap-1">
+		<h1 className="text-heading-1">Lena Vale</h1>
+		<p className="text-body-sm text-muted-foreground">1.2M monthly listeners</p>
+	</div>
+</div>
 ```
 
 ### Low-level parts

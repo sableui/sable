@@ -1,6 +1,6 @@
 # Sable (@sableui/react)
 
-> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 106 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
+> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 111 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
 
 ## Start here — brief, composition, evidence
 
@@ -1207,12 +1207,22 @@ probably keeping a layout that Sable would have given you.
 
 ## 4. Icons
 
-**Reicon works by default.** No icon provider is needed. To use another icon
-package, map Sable's semantic names in an app-owned IconSet and mount it through
-IconProvider. To add domain-specific names while retaining Reicon:
+**Mount an icon set once at the root.** `<Icon>` has no built-in fallback:
+without an `IconProvider`, icons render nothing (a development build warns once).
 
 ```tsx
-import { IconProvider, composeIconSets, reiconIconSet } from "@sableui/react"
+import { IconProvider } from "@sableui/react"
+import { reiconIconSet } from "@sableui/react/icons/reicon"
+<IconProvider set={reiconIconSet}>{app}</IconProvider>
+```
+
+To use another icon package, map Sable's semantic names in an app-owned IconSet
+and pass it instead; the app then ships none of Reicon. To add domain-specific
+names while retaining Reicon:
+
+```tsx
+import { IconProvider, composeIconSets } from "@sableui/react"
+import { reiconIconSet } from "@sableui/react/icons/reicon"
 <IconProvider set={composeIconSets(appExtras, reiconIconSet)} />
 ```
 
@@ -1936,6 +1946,21 @@ grader with `--review` reports `review.artifactHashes` for the current files. Co
 those values into artifact records only after inspecting the corresponding files;
 replacing a capture at the same path then makes the review incomplete. Neither
 the source fingerprint nor an artifact hash proves someone inspected the screen.
+
+The template starts with one example screenshot and one example report artifact.
+Replace them with your own captures; as shipped they point at no file and fail
+validation. Each artifact record has these fields:
+
+| Field | Meaning |
+| --- | --- |
+| `id` | A unique name that dimensions, checks and iterations cite in `evidence`. |
+| `kind` | `screenshot`, `recording`, or `report` (a written observation, such as a keyboard walkthrough). |
+| `path` | The capture file, relative to the review JSON. It must exist and be non-empty. |
+| `sha256` | The file's hash, copied from `review.artifactHashes` after you inspect the file. |
+| `state` | The route and state captured, such as "checkout, payment error". |
+| `viewport` | `{ width, height }` in pixels. Screenshots and recordings only. You need one at 1024 wide or more and one at 480 wide or less. |
+| `colorMode` | `light` or `dark`. Screenshots and recordings only. |
+| `motion` | `full` or `reduced`. Screenshots and recordings only. At least one artifact must be captured with reduced motion. |
 
 ## Review these eight dimensions
 
@@ -3943,7 +3968,7 @@ App-shell creator dashboard: a branded Sidebar with an account footer (AppHeader
 ## Source
 
 ```tsx
-import { AppHeader, AppShell, Avatar, Badge, BottomNav, BottomNavItem, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, DataTable, Entity, Grid, Icon, MenuItem, MenuSeparator, Meter, NotificationBadge, OverflowMenu, Page, PageHeader, RelativeTime, Row, Sidebar, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav, Stack } from "@sableui/react"
+import { AppHeader, AppShell, Avatar, Badge, BottomNav, BottomNavItem, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, DataTable, Entity, Grid, Icon, MenuItem, MenuSeparator, Meter, NotificationBadge, OverflowMenu, Page, PageHeader, RelativeTime, Row, Sidebar, SidebarBrand, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav, Stack } from "@sableui/react"
 
 // Edition status → Badge tone. Sable has no status vocabulary of its own;
 // an app maps ITS states onto tones once, here, and every badge follows.
@@ -4040,10 +4065,7 @@ export function DashboardPage() {
 			sidebar={
 				<Sidebar>
 					<SidebarHeader>
-						<Row gap={1} align="center" className="px-3">
-							<Icon name="gem" variant="solid" className="text-xl" />
-							<span className="text-title-sm">Atelier</span>
-						</Row>
+						<SidebarBrand mark={<Icon name="gem" variant="solid" />} label="Atelier" render={<a href="/" />} />
 					</SidebarHeader>
 					<SidebarNav>
 						<SidebarItem icon={<Icon name="grid" />} label="Overview" active render={<a href="/" />} />
@@ -4188,7 +4210,7 @@ export function DashboardPage() {
 							<span className="text-caption text-muted-foreground">
 								Showing {editions.length} of {editionCount} editions
 							</span>
-							<Button variant="ghost" size="sm" render={<a href="/editions" />}>
+							<Button variant="ghost" size="sm" bleed="end" render={<a href="/editions" />}>
 								View all editions
 								<Icon name="arrow-right" />
 							</Button>
@@ -4445,10 +4467,10 @@ const renderPost = (post: Post) => (
 						</Meter>
 					</Stack>
 				) : null}
-				{/* Pulled out by exactly a sm Button's own padding (px-3), so the
-				    first icon lands on the text edge above it. */}
-				<Row gap={0.5} className="-ms-3">
-					<Button variant="ghost" size="sm" aria-label={`Like, ${post.likes} likes`}>
+				{/* bleed="start" pulls the first button out by exactly its own
+				    padding, so its icon lands on the text edge above it. */}
+				<Row gap={0.5}>
+					<Button variant="ghost" size="sm" bleed="start" aria-label={`Like, ${post.likes} likes`}>
 						<Icon name="heart" />
 						{post.likes}
 					</Button>
@@ -5365,6 +5387,7 @@ export function ListDetailPage() {
 							ref={backRef}
 							variant="ghost"
 							size="sm"
+							bleed="start"
 							iconStart={<Icon name="chevron-left" />}
 							onClick={backToList}
 							className="self-start lg:hidden"
@@ -5549,7 +5572,7 @@ Account settings inside the app shell: a sticky SideNav section rail beside a co
 
 ```tsx
 import { useState } from "react"
-import { AppHeader, AppShell, Avatar, BottomNav, BottomNavItem, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, Col, Columns, DestructiveActionModal, Entity, Field, Form, Grid, Icon, Input, MenuItem, MenuSeparator, NotificationBadge, OverflowMenu, Page, PageHeader, Row, Select, SelectContent, SelectItem, SelectTrigger, Sidebar, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav, SideNav, SideNavItem, Stack, Switch, Textarea } from "@sableui/react"
+import { AppHeader, AppShell, Avatar, BottomNav, BottomNavItem, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, Col, Columns, DestructiveActionModal, Entity, Field, Form, Grid, Icon, Input, MenuItem, MenuSeparator, NotificationBadge, OverflowMenu, Page, PageHeader, Row, Select, SelectContent, SelectItem, SelectTrigger, Sidebar, SidebarBrand, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav, SideNav, SideNavItem, Stack, Switch, Textarea } from "@sableui/react"
 
 const sections = [
 	{ id: "profile", label: "Profile" },
@@ -5611,10 +5634,7 @@ export function SettingsPage() {
 			sidebar={
 				<Sidebar>
 					<SidebarHeader>
-						<Row gap={1} align="center" className="px-3">
-							<Icon name="gem" variant="solid" className="text-xl" />
-							<span className="text-title-sm">Atelier</span>
-						</Row>
+						<SidebarBrand mark={<Icon name="gem" variant="solid" />} label="Atelier" render={<a href="/" />} />
 					</SidebarHeader>
 					<SidebarNav>
 						<SidebarItem icon={<Icon name="grid" />} label="Overview" render={<a href="/" />} />
@@ -6930,9 +6950,15 @@ A now-playing card: cover, title and artist as an Entity with a Like action, a p
 
 ```tsx
 import { useState } from "react"
-import { Button, Card, CardContent, cn, Entity, GradientArt, Icon, Slider } from "@sableui/react"
+import { Button, Card, CardContent, cn, Entity, Icon, MediaImage, Slider } from "@sableui/react"
 
-const track = { title: "Low tide, high noon", artist: "Juno Avery", position: 38, elapsed: "1:24", remaining: "-2:16" }
+// `cover` is the artwork URL; left empty, the cover paints art seeded by the title.
+const track = { title: "Low tide, high noon", artist: "Juno Avery", cover: "", duration: 220, position: 84 }
+
+/** Seconds → m:ss, the way the readout and the screen reader both say it. */
+function formatTime(seconds: number) {
+	return `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`
+}
 
 
 export interface MediaPlayerBlockProps {
@@ -6947,6 +6973,7 @@ export interface MediaPlayerBlockProps {
 
 export function MediaPlayerBlock({ className, framed = true, onPlayingChange, onPrevious, onNext }: MediaPlayerBlockProps) {
 	const [playing, setPlaying] = useState(true)
+	const [position, setPosition] = useState(track.position)
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs", className)}>
 			<CardContent className="flex flex-col gap-4">
@@ -6954,8 +6981,7 @@ export function MediaPlayerBlock({ className, framed = true, onPlayingChange, on
 				    card already pads it. */}
 				<Entity
 					className="p-0"
-					// Placeholder cover painted from the theme. Replace with the cover image.
-					leading={<GradientArt aria-hidden seed={track.title} className="size-14 rounded-md" />}
+					leading={<MediaImage src={track.cover} seed={track.title} className="size-14 shrink-0 rounded-md" />}
 					title={track.title}
 					subtitle={track.artist}
 					action={
@@ -6965,10 +6991,17 @@ export function MediaPlayerBlock({ className, framed = true, onPlayingChange, on
 					}
 				/>
 				<div className="flex flex-col gap-1.5">
-					<Slider defaultValue={track.position} aria-label="Position" />
+					<Slider
+						value={position}
+						max={track.duration}
+						onValueChange={setPosition}
+						aria-label="Position"
+						// Spoken as a time, not "38": the number alone means nothing.
+						getAriaValueText={(_, value) => `${formatTime(value)} of ${formatTime(track.duration)}`}
+					/>
 					<div className="flex justify-between text-mono-caption text-muted-foreground">
-						<span>{track.elapsed}</span>
-						<span>{track.remaining}</span>
+						<span>{formatTime(position)}</span>
+						<span>-{formatTime(track.duration - position)}</span>
 					</div>
 				</div>
 				<div className="flex items-center justify-center gap-3">
@@ -7550,9 +7583,10 @@ A product card: edge-to-edge artwork, title and maker, an edition Badge, and the
 ## Source
 
 ```tsx
-import { Badge, Button, Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle, cn, GradientArt } from "@sableui/react"
+import { AspectBox, Badge, Button, Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle, cn, MediaImage } from "@sableui/react"
 
-const product = { title: "Untitled (gold rush)", maker: "Mara Okafor", edition: "12 of 50", price: "0.42 SOL" }
+// `image` is the product shot URL; left empty, it paints art seeded by the title.
+const product = { title: "Untitled (gold rush)", maker: "Mara Okafor", image: "", edition: "12 of 50", price: "0.42 SOL" }
 
 
 export interface ProductCardBlockProps {
@@ -7566,8 +7600,9 @@ export interface ProductCardBlockProps {
 export function ProductCardBlock({ className, framed = true, onCollect }: ProductCardBlockProps) {
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs overflow-hidden", className)}>
-			{/* Placeholder art painted from the theme, so it follows every look. Replace with the product image. */}
-			<GradientArt aria-hidden seed={product.title} className="aspect-[4/3]" />
+			<AspectBox ratio={4 / 3}>
+				<MediaImage src={product.image} seed={product.title} />
+			</AspectBox>
 			<CardHeader>
 				<CardTitle>{product.title}</CardTitle>
 				<CardDescription>{product.maker}</CardDescription>
@@ -8327,7 +8362,7 @@ export function TaskListBlock({ className, framed = true, onAddTask }: TaskListB
 				</ul>
 			</CardContent>
 			<CardFooter>
-				<Button variant="ghost" size="sm" iconStart={<Icon name="plus" />} onClick={onAddTask}>
+				<Button variant="ghost" size="sm" bleed="start" iconStart={<Icon name="plus" />} onClick={onAddTask}>
 					Add task
 				</Button>
 			</CardFooter>
@@ -8797,7 +8832,7 @@ export function VerifyCodeBlock({ className, framed = true, onVerify, onResend }
 			</CardContent>
 			<CardFooter className="justify-between gap-3">
 				<span className="text-caption text-muted-foreground">Didn’t get it?</span>
-				<Button variant="ghost" size="sm" onClick={onResend}>
+				<Button variant="ghost" size="sm" bleed="end" onClick={onResend}>
 					Resend code
 				</Button>
 			</CardFooter>
@@ -8993,7 +9028,7 @@ import { Card, CardContent, Page, PageHeader } from "@sableui/react"
 
 **Status:** stable
 
-CSS Grid within a region. Two modes: fixed/responsive cols count, or minItemWidth auto-fit so cells breathe with NO breakpoints (the default choice for card grids).
+CSS Grid within a region. Two modes: fixed/responsive cols count, or minItemWidth so cells breathe with NO breakpoints (the default choice for card grids). A minItemWidth grid keeps its empty columns (track="fill"), so one result stays one cell wide; track="fit" stretches a fixed set across the row.
 
 **Keywords:** grid, card grid, auto fit, layout
 
@@ -9004,16 +9039,20 @@ Use Grid for uniform grid layouts inside a Region, especially card grids that ca
 ### Best practices
 
 - Do: Prefer minItemWidth for responsive card grids that do not need breakpoint-specific spans.
+- Do: Keep the default track="fill" for collections whose count is data (search results, shelves, galleries): sparse rows keep their empty columns, so one result stays one cell wide.
+- Do: Use track="fit" only for a fixed set designed to span the row, such as three KPI cards.
 - Do: Use explicit columns only when the design truly needs a fixed track count.
 - Don't: Do not use Grid to set a page's reading width; use Region or Center.
+- Don't: Do not use track="fit" for results or other data-driven collections: with one or two items the empty columns collapse and each item stretches across the row (a single result rendered as a full-width cover).
 
 ## Props
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
 | cols | number \| { base?, sm?, md?, lg?, xl?, "2xl"? } | 12 | Fixed column count or a mobile-first breakpoint map ({ base: 2, md: 4 }). Ignored when minItemWidth is set. |
-| minItemWidth | string | — | Auto-fit mode: repeat(auto-fit, minmax(minItemWidth, 1fr)) — the grid grows/wraps responsively without breakpoints. e.g. "16rem". |
-| gap | number \| string | var(--grid-gutter) | Gap between cells. Number = rhythm units (×8px); string = raw CSS. |
+| minItemWidth | string | — | Breathing mode: repeat(auto-fill, minmax(minItemWidth, 1fr)) — as many columns of at least minItemWidth as fit, wrapping without breakpoints. e.g. "16rem". |
+| track | "fill" \| "fit" | "fill" | What a minItemWidth grid does with columns it has no items for (only visible when fewer items than fit one row). "fill" (auto-fill) keeps them, so items keep their size whatever their count — one search result is one cover wide, not a banner. Use it for collections whose count is data: results, shelves, galleries. "fit" (auto-fit) collapses them and stretches the items to share the row — only for a fixed set designed to span it (three KPI cards, plan tiers). |
+| gap | number \| [row, column] \| string | var(--grid-gutter) | Gap between cells. Number = rhythm units (×8px); [row, column] = two rhythm counts, for a gallery whose rows want more air than its columns; string = raw CSS. |
 
 ## Related
 
@@ -9027,6 +9066,23 @@ Use Grid for uniform grid layouts inside a Region, especially card grids that ca
 import { Card, CardHeader, CardTitle, Grid } from "@sableui/react"
 
 <Grid minItemWidth="16rem" gap={3}><Card><CardHeader><CardTitle>Alpha</CardTitle></CardHeader></Card><Card><CardHeader><CardTitle>Beta</CardTitle></CardHeader></Card><Card><CardHeader><CardTitle>Gamma</CardTitle></CardHeader></Card></Grid>
+```
+
+### Sparse results keep their size
+
+```tsx
+import { Card, CardDescription, CardHeader, CardTitle, Grid } from "@sableui/react"
+
+// One match still renders one cover wide: the empty columns are kept (track="fill", the default).
+<Grid minItemWidth="10rem" gap={2}><Card><CardHeader><CardTitle>Night Swim</CardTitle><CardDescription>Album · Undertow</CardDescription></CardHeader></Card></Grid>
+```
+
+### A fixed set that spans the row
+
+```tsx
+import { Card, CardDescription, CardHeader, Grid } from "@sableui/react"
+
+<Grid minItemWidth="12rem" track="fit" gap={2}><Card><CardHeader><CardDescription>Listeners</CardDescription><span className="text-mono-xl">48.2k</span></CardHeader></Card><Card><CardHeader><CardDescription>Streams</CardDescription><span className="text-mono-xl">1.3M</span></CardHeader></Card><Card><CardHeader><CardDescription>Saves</CardDescription><span className="text-mono-xl">9,410</span></CardHeader></Card></Grid>
 ```
 
 ### Responsive fixed columns
@@ -9634,9 +9690,9 @@ import { AppHeader, AppShell, PageHeader, Region } from "@sableui/react"
 
 **Status:** stable
 
-The application frame: slots for status banners, a mobile header, a desktop sidebar, main content, a mobile bottom nav, and floating overlays — plus a built-in skip link and #main-content target.
+The application frame: slots for status banners, a mobile header, a desktop sidebar, main content, a mobile bottom nav, a persistent dock (a now-playing or call bar), and floating overlays — plus a built-in skip link and #main-content target.
 
-**Keywords:** app shell, layout, frame, sidebar, header, bottom nav, mobile, banners, main
+**Keywords:** app shell, layout, frame, sidebar, header, bottom nav, mobile, banners, main, dock, player bar, now playing, persistent
 
 ## Usage
 
@@ -9660,6 +9716,7 @@ Use AppShell as the outer product frame for authenticated or app-like experience
 | Sidebar | no | Desktop navigation chrome, usually Sidebar. |
 | Main | yes | The route content landmark with id main-content. |
 | Bottom nav | no | Mobile fixed navigation with reserved bottom space. |
+| Dock | no | Persistent bottom chrome that outlives routes — a now-playing bar, a call bar. Sticky above the bottom nav; the desktop Sidebar shortens to clear it. |
 
 ## Props
 
@@ -9669,6 +9726,7 @@ Use AppShell as the outer product frame for authenticated or app-like experience
 | header | ReactNode | — | Mobile top header (e.g. AppHeader); expected to hide itself at lg. |
 | sidebar | ReactNode | — | Desktop side navigation (e.g. Sidebar); expected to hide itself below lg. Leading column of the body row. |
 | bottomNav | ReactNode | — | Mobile bottom navigation (e.g. BottomNav); fixed to the bottom edge. main reserves space for it. |
+| dock | ReactNode | — | Persistent chrome kept on screen across routes (a now-playing bar, an active-call bar, an upload tray). Full width, sticky to the bottom edge and above bottomNav on mobile; its height is published as --dock-height and the app Sidebar subtracts it. In flow, so main needs no reserved space. The contents paint their own surface and top border, and name themselves (e.g. <section aria-label="Player">). Mount AppShell in a layout that survives navigation, or the playback restarts. |
 | overlays | ReactNode | — | Floating overlays — a message launcher, FAB, or modal mount points. |
 
 ## Tokens used
@@ -9680,6 +9738,7 @@ Use AppShell as the outer product frame for authenticated or app-like experience
 - Renders a skip link to #main-content as the first focusable element.
 - Wraps content in a <main id="main-content"> landmark.
 - Slot components own their own ARIA (nav landmarks, labels).
+- The dock follows <main> in DOM order, so keyboard and screen-reader users reach the player after the page content, not before it.
 
 ## Related
 
@@ -9990,11 +10049,12 @@ Use Avatar to represent a person, team, or account with a compact visual identit
 - Do: Use `variant="art"` where people without photos sit side by side — a member list, an activity feed, a chat. Seeded by the person, each gets their own colour, so faces stay tellable apart at a glance; the neutral fallback makes everyone the same grey circle.
 - Do: Provide meaningful alt text for profile images, or an empty alt when the adjacent text already names the person.
 - Do: Use initials or a simple glyph fallback so missing images still communicate identity.
-- Do: Use consistent sizes within a group; reserve lg for profile headers or major identity moments.
+- Do: Pick the size by the job: sm in dense rows and tables, md (the default) beside one line of text, lg in a row with a title and subtitle, xl (96px) for a profile header beside the person's name, 2xl (160px) for an artist or profile hero and roster portraits. Keep one size within a list or group.
 - Do: Use AvatarGroup for a stack of people, and give it an aria-label with the real count ("12 collaborators"). Set `surface` (or `--avatar-group-ring`) to whatever the group sits on, so the separating ring matches a card or popover, not the page. When it shares a row with actions, set `fit` so it gives up avatars to the "+N" count before the row has to wrap.
 - Don't: Hand-build a stack with negative margins and per-avatar ring classes, or fake the overflow as an Avatar with "+4" initials — screen readers hear "plus 4" with no context. Use AvatarGroup's `max`/`total`, or AvatarGroupCount.
 - Don't: Use avatars as decoration without nearby identity context. They should help users recognize a person or account.
 - Don't: Overload a dense table with large avatars; use sm or omit images when scanning data is more important.
+- Don't: Build a portrait by stretching an Avatar with size classes (`className="size-40"`) — the initials, the status indicator and the image fade stay at row scale. Use size="xl" or "2xl", which scale all three. Past 160px, or for a non-circular cover, it is media: an AspectBox, not an avatar.
 
 ### Anatomy
 
@@ -10025,18 +10085,25 @@ Use Avatar to represent a person, team, or account with a compact visual identit
 | fallback | ReactNode | — | Initials or a glyph rendered when no image is displayed. |
 | fallbackDelay | number | — | Delay before showing the fallback, in ms — avoids a flash on fast loads. |
 | status | ReactNode | — | A presence indicator pinned to the bottom-end edge, usually <StatusDot tone="success" />. It sits outside the clipped circle and wears a ring in the surface colour (--avatar-group-ring, else the page background). Use this instead of absolutely positioning a dot over an Avatar. |
-| size | "sm" \| "md" \| "lg" | "md" | Square footprint: 32px / 40px / 48px. |
+| size | "sm" \| "md" \| "lg" \| "xl" \| "2xl" | "md" | Square footprint: 32px / 40px / 48px for rows; 96px / 160px for portraits (a profile header, an artist hero, a roster tile). The initials, a status indicator and its cut-out ring scale with it, and at the portrait sizes the photo fades in over the resting surface. |
 | variant | "neutral" \| "art" | "neutral" | What the fallback looks like. neutral: initials on the muted surface. art: initials over GradientArt seeded by the person, so each person without a photo gets their own stable colour from the theme. |
 | seed | string \| number | — | The art variant's seed. Defaults to the fallback text, then `alt`, so a person keeps one colour wherever they appear; pass a user id to tell apart two people who share initials. |
 
 ## Variants
 
-- **size**: sm, md, lg
+- **size**: sm, md, lg, xl, 2xl
 - **variant**: neutral, art
 
 ## Tokens used
 
 `muted`, `muted-foreground`, `background`, `card`, `popover`, `overlay`, `overlay-foreground`
+
+## Motion
+
+- **arrival** · Image · `motion-fade` — At the portrait sizes (xl, 2xl) the photo replacing the initials is a visible pop across one of the page's largest elements; fading it in reads as the picture arriving, not the layout glitching. Row sizes swap instantly — too small to register, and a list of fading faces would shimmer.
+- **response** · Root · _no motion_ — An avatar is not interactive itself; a link or button wrapping it owns the response.
+- **transition** · Root · _no motion_ — It has no states of its own to move between beyond the image arriving.
+- **activity** · Root · _no motion_ — Loading shows the fallback, which is already a finished resting state rather than a spinner.
 
 ## Accessibility
 
@@ -10085,6 +10152,20 @@ import { Avatar } from "@sableui/react"
 <Avatar src="/pfp.png" alt="Alex Morgan" fallback="AM" size="sm" />
 <Avatar src="/pfp.png" alt="Alex Morgan" fallback="AM" size="md" />
 <Avatar src="/pfp.png" alt="Alex Morgan" fallback="AM" size="lg" />
+```
+
+### Profile portrait
+
+```tsx
+import { Avatar, StatusDot } from "@sableui/react"
+
+<div className="flex flex-col items-center gap-3 text-center">
+	<Avatar variant="art" size="2xl" fallback="LV" alt="Lena Vale" status={<StatusDot tone="success" />} />
+	<div className="flex flex-col gap-1">
+		<h1 className="text-heading-1">Lena Vale</h1>
+		<p className="text-body-sm text-muted-foreground">1.2M monthly listeners</p>
+	</div>
+</div>
 ```
 
 ### Low-level parts
@@ -10864,7 +10945,7 @@ import { Bubble, Message } from "@sableui/react"
 
 Pill-shaped action primitive (theme-driven radius via --button-radius, defaults to full). Neutral tiers (primary/secondary/ghost/outline), plus destructive and link, and three on-color tiers (on-color/on-color-outline/on-color-ghost) that paint with the surrounding ink so a button reads on any tone or brand fill. Optional loading state shows a spinner and disables the button.
 
-**Keywords:** button, action, cta, submit, save, cancel, destructive, loading, link, icon button, on color, inverse, band, brand fill, tone fill
+**Keywords:** button, action, cta, submit, save, cancel, destructive, loading, link, icon button, on color, inverse, band, brand fill, tone fill, bleed, optical alignment, align label to edge, negative margin, view all
 
 ## Usage
 
@@ -10876,7 +10957,9 @@ Use Button when the user commits an action, submits a form, opens UI, or confirm
 - Do: Write labels as actions, such as "Save changes" or "Delete draft", instead of vague labels like "OK".
 - Do: Use loading with loadingLabel for async work so the action cannot double-fire and the state is announced.
 - Do: Put icons in iconStart / iconEnd rather than as children, so the button applies its optical padding. Start icons say what the action is (plus, share); end icons say where it goes (chevron-right, external).
+- Do: Set bleed on a ghost or link button that sits at the start or end of a row, so its LABEL lines up with the content edge the row shares ("View all" over a grid, "Add task" under a list, "Resend code" at a card footer's end). The box moves out by exactly its own padding; the hit area and hover fill stay full size and run past the edge. SectionHeader, PageHeader (back and actions) and CardAction already do this for their outermost ghost/link child — don't add it there, and use bleed="none" to opt one out.
 - Do: On a coloured fill — a solid Banner, a bg-tone-* or bg-primary band, an inverse (bg-foreground) section, a brand panel — use variant="on-color" for the main action and on-color-outline / on-color-ghost for the rest. They paint with the band's inherited ink (currentColor), so the surface must set its paired ink (text-tone-info-foreground, text-primary-foreground, text-background…), which it already should. Name the fill once on the surface, e.g. [--on-color-fill:var(--tone-info)], and the solid button's label takes the fill colour; unnamed, it falls back to black or white against the ink. Both clear 4.5:1 in every shipped theme and mode.
+- Don't: Pull a ghost button onto an edge with -ms-3 / -me-3 classNames. That number is one size's padding: it is wrong at xs, md and cta, wrong on a side carrying an icon, and wrong once a preset retunes the spacing. bleed reads the button's own padding var. And don't bleed a filled or outlined button — its visible edge is what aligns, so bleed is a no-op there.
 - Don't: Use destructive for reversible or low-risk actions; reserve it for operations with real loss or danger.
 - Don't: Use a button for plain navigation. Compose with render={<a />} when the element should behave like a link.
 - Don't: Use secondary on a tinted surface — inside a Note, a soft Banner, or any tone fill. `secondary` is a near-background surface token (in some themes within 2% of the page), so on a tint it reads as a hole punched in the fill rather than as a control sitting on it. On a soft tint use outline or ghost; on a full-strength fill use the on-color tiers.
@@ -10903,6 +10986,7 @@ Use Button when the user commits an action, submits a form, opens UI, or confirm
 | loadingLabel | ReactNode | — | Optional text shown in place of children while loading. |
 | iconStart | ReactNode | — | Icon before the label. The button takes one 2px step off its start padding so icon + label read as centred. Replaced by the spinner while loading. |
 | iconEnd | ReactNode | — | Icon after the label (disclosure, external link, next). Same optical correction on the end side. |
+| bleed | "start" \| "end" \| "both" \| "none" | — | Optical alignment for a borderless button (ghost, link, on-color-ghost): a negative inline margin of exactly its own padding on that side — --button-px, or the icon side's optical padding when an icon sits there; an icon-only size bleeds by its inset to the glyph — so the label (or glyph) lands on the content edge. Hit area and hover/focus fill keep their full size. Logical sides, so it mirrors in RTL. A no-op on variants with a visible edge (primary, secondary, outline, destructive, floating, field, on-color, on-color-outline): a filled button aligns its edge, not its label. Unset, a borderless button renders data-bleed="auto" and SectionHeader, PageHeader and CardAction bleed it when it is their outermost child; none opts out. |
 
 ## Variants
 
@@ -10928,6 +11012,7 @@ Use Button when the user commits an action, submits a form, opens UI, or confirm
 - Use render={<a/>} for link semantics rather than onClick navigation.
 - On-color tiers replace the --ring focus ring with one drawn in the band's ink past a transparent 2px gap, so focus stays visible on any fill (ink-on-fill is the theme's own tested pair).
 - On-color contrast is measured in button.test.tsx for every shipped theme and mode on each tone, primary, destructive, success, highlight and inverse fill: solid label at rest and hover, and outline/ghost label on the hover wash, all at least 4.5:1.
+- bleed moves only the box, never the hit target: the full padded area stays clickable and the focus ring still draws around the whole button, past the content edge.
 - loading sets aria-busy and disables activation (disabled on a native button, aria-disabled on a render element) so the action can't double-fire.
 
 ## Related
@@ -11032,6 +11117,21 @@ import { Button, Icon } from "@sableui/react"
 import { Button, Icon } from "@sableui/react"
 
 <Button size="icon" variant="ghost" aria-label="Share"><Icon name="share" /></Button>
+```
+
+### Optically aligned to the row's edges
+
+```tsx
+import { Button, Icon, Row, Stack } from "@sableui/react"
+
+<Stack gap={1.5}>
+  <Row justify="between">
+    <span className="text-title-md">Tasks</span>
+    <Button variant="ghost" size="sm" bleed="end">View all</Button>
+  </Row>
+  <span className="text-body-sm text-muted-foreground">Ship the release notes</span>
+  <Button variant="ghost" size="sm" bleed="start" iconStart={<Icon name="plus" />} className="self-start">Add task</Button>
+</Stack>
 ```
 
 ### Icon button with an unread badge
@@ -11188,7 +11288,7 @@ Use Card for a discrete thing with its own boundary, such as one product, one no
 | CardHeader | ComponentPropsWithRef<"div"> | Top section holding CardTitle/CardDescription (and optionally CardAction). Padding follows the density knob. |
 | CardTitle | ComponentPropsWithRef<"div"> & { render?: useRender.RenderProp } | The card's name (text-title-lg). A div by default; pass `render={<h2 />}` (or h3…) to make it a heading in the page outline, at the level the card's position calls for. |
 | CardDescription | ComponentPropsWithRef<"div"> | Muted supporting line under the title. |
-| CardAction | ComponentPropsWithRef<"div"> | Header-aligned top-right action slot (e.g. an overflow menu, switch, or close button). Place inside CardHeader, which becomes a 2-column grid when present and collapses to a single column otherwise. |
+| CardAction | ComponentPropsWithRef<"div"> | Header-aligned top-right action slot (e.g. an overflow menu, switch, or close button). Place inside CardHeader, which becomes a 2-column grid when present and collapses to a single column otherwise. A ghost or link Button that ends the slot bleeds by its own padding at the end, so a "View all" label or a "⋯" glyph sits on the card's content edge; filled buttons keep their edge there. |
 | CardContent | ComponentPropsWithRef<"div"> & { flush?: boolean } | The body region. Padding follows the density knob on all sides — does not assume a preceding CardHeader, so it is safe to use standalone (e.g. no CardHeader in the card). When paired with CardHeader, the seam stays tight because CardHeader zeroes its own bottom padding. `flush` runs it edge to edge for a table: the Table insets its first and last columns by exactly the card padding, so it lines up with the header — never hand-set pl-6/pr-6 on columns. |
 | CardList | ComponentPropsWithRef<"div"> | Rows that run edge to edge in the card (Entity rows, most often), divided by hairlines. Insets each row to the card's own padding, so a list card lines up with every other card at any density — no hand-tuned px-* on the rows. Under a CardHeader it opens with a hairline and a gap; alone it fills the card. |
 | CardFooter | ComponentPropsWithRef<"div"> & { actions?: boolean } | Bottom row for actions/meta. Padding follows the density knob. `actions` marks it as the card's action row (buttons only): in a sheet (IosSheet, a bottom SheetContent) it becomes a full-width stack pinned to the bottom, primary on top; on a page nothing changes. |
@@ -12973,6 +13073,177 @@ import { AlertDialog, AlertDialogClose, AlertDialogContent, AlertDialogDescripti
 
 ---
 
+# DisclosurePicker
+
+**Status:** stable
+
+A property row that names the current value and opens its list in place, beneath the row, instead of in a popup — for a tool panel or settings column where the choice is made while looking at what it changes. Built on Collapsible; the list is a listbox — arrow keys move, Enter or a click picks, applies and closes — and an optional search field filters long lists.
+
+**Keywords:** disclosure picker, inline picker, in-place select, expanding list, property row, font picker, preset picker, inspector, picker row
+
+## Usage
+
+Use DisclosurePicker for one-of-many choices in a docked panel or inspector where a popup would cover the preview the choice is about: the row shows the current value (in its own face, with a tile, as the content warrants), and the list opens beneath it, pushing the panel down. Use Select for a form field or anywhere a popup is fine; use Combobox when people type to find an option among hundreds; use RadioGroup or RadioCard when every option should stay visible. Nothing applies while arrowing through the list — only Enter, Space or a click picks — so it suits choices with a cost (a confirm, a font load, a reset); where each option should apply as focus lands on it, that is a radio group (ThemeSelector, RadioGroup).
+
+### Best practices
+
+- Do: Enable search (`search` on DisclosurePickerPanel) only for long lists — roughly a dozen options or more, i.e. once the list scrolls. A short list (a handful of presets) reads faster with no field to skip past; the panel then has no search row and no gap.
+- Do: Show the value as the thing it is: a font row renders the family in its own face, a theme row leads with a ThemePreview tile in `media`. The row is a preview of the choice, not a label for it.
+- Do: Use `size="xs"` in a property grid (a compact Density / PanelSection), where it sits on the inset panel-field fill beside ScrubField and an xs SelectTrigger. Keep `md` in a settings column or a simple panel.
+- Do: When several rows share a panel, control `open` from the parent so only one list is open at a time — two open lists push each other and the preview out of view.
+- Do: Use it for a choice with a cost — one that opens a confirm, loads something, or resets other settings. Arrow keys only move focus; onValueChange fires once, on Enter, Space or a click, and only when the pick differs from `value`.
+- Do: Give options a leading visual with `media` (a ThemePreview tile, a swatch) instead of nesting another component's list: ThemeSelector's radio list applies each theme as the arrow keys land on it, which defeats commit-on-Enter. A list the picker cannot express (a Tree) can still close the row with `useDisclosurePicker().close()`.
+- Do: Render DisclosurePickerEmpty in place of the list when a search matches nothing, not inside it — a listbox holds only options.
+- Don't: Use it in a page-register form. A form field that pushes the form down on open reads as a layout jump; that is Select's job.
+- Don't: Rebuild the row from a Collapsible with hand-copied classes. The disclosure, the well, the hover step, the xs field shell, focus return and scroll-into-view all live here; two hand copies of this row in one panel is how it came to exist.
+- Don't: Turn search on for a short list just because the other rows have it. A search field over six options is a control with nothing to do.
+
+### Anatomy
+
+| Part | Required | Description |
+| --- | --- | --- |
+| DisclosurePicker | yes | Root. Owns open state, size, focus return and scroll-into-view. |
+| DisclosurePickerTrigger | yes | The row: optional `label` caption, optional `media`, the value, and a chevron that flips when open. |
+| DisclosurePickerPanel | yes | What opens beneath the row: the opt-in search field, then the list. |
+| DisclosurePickerList | no | A listbox of options that scrolls past 16rem. Arrow keys move; Enter, Space or a click picks. |
+| DisclosurePickerOption | no | One option row, with optional leading media and trailing note. Chosen, it lifts out of the well; focused, it takes the ring. |
+| DisclosurePickerEmpty | no | The no-match line, rendered in place of the list when a search filters everything out. |
+
+## Subcomponents
+
+| Name | Type | Description |
+| --- | --- | --- |
+| DisclosurePickerTrigger | { label?: ReactNode; media?: ReactNode; children?: ReactNode } + Base UI Collapsible.Trigger props | The row. `label` is a muted leading caption on a fixed column so stacked rows align; `media` a leading visual (a ThemePreview tile); children the value, truncated on one line. ArrowDown opens it, and steps into the list once open. |
+| DisclosurePickerPanel | { search?: { value: string; onValueChange(value: string): void; placeholder?: string; label?: string } } + Collapsible.Panel props | Opens beneath the row. `search` opts in to a SearchInput above the list (off by default); it is controlled because the consumer filters, and it is cleared when the row closes. Escape clears a query first, then closes; ArrowDown in the field steps into the list. |
+| DisclosurePickerList | { value: string; onValueChange(value: string): void; aria-label?: string } + div props | A listbox. ArrowUp/ArrowDown, Home/End and type-ahead move focus without applying anything (ArrowUp from the first option returns to the search field); Enter, Space or a click picks the focused option — onValueChange fires once, only when it differs from `value` — and closes the row. Escape closes without a pick. |
+| DisclosurePickerOption | { value: string; children?: ReactNode; media?: ReactNode; note?: ReactNode; disabled?: boolean; textValue?: string } | One option row. `media` is a leading visual (a ThemePreview tile); `note` a muted trailing annotation — options without one show a check when chosen. `disabled` skips it for the keyboard and refuses the pick; `textValue` is what type-ahead matches when the name is not plain text. |
+| DisclosurePickerEmpty | { children?: ReactNode } | The no-match line, rendered in place of the list. |
+| useDisclosurePicker | () => { open: boolean; close(): void; size: "md" \| "xs" } | For a list the picker does not own (a Tree) that should close the row when something is picked. |
+
+## Props
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| open | boolean | — | Controlled open state. Pair with onOpenChange. |
+| defaultOpen | boolean | false | Uncontrolled initial open state. |
+| onOpenChange | (open: boolean) => void | — | Called with the next open state — from the trigger, a pick, or Escape. |
+| size | "md" \| "xs" | "md" | md is a --control-md row (40px comfortable) in a settings column, its own well when closed. xs is the property-grid rung: a --control-xs row on the inset panel-field fill with ui-tier type. Height, padding, radius, type and surface move together. |
+| className | string | — | Merged onto the root (layout only — the look comes from size). |
+
+## Tokens used
+
+`foreground`, `muted-foreground`, `popover`, `hairline`, `panel-field`, `panel-field-hover`, `ring`, `accent`
+
+## Motion
+
+- **arrival** · root · _no motion_ — A property row is present from first paint; animating it in would stage chrome the user is already scanning.
+- **response** · DisclosurePickerTrigger · `motion-interactive` — The row reads as a value, not a button; the hover step is what says it opens before it is clicked.
+- **transition** · DisclosurePickerPanel · `motion-disclosure` — The list pushes the panel down; growing its height ties the movement below to this row rather than to a layout jump.
+- **activity** · root · _no motion_ — Nothing is indeterminate: the options are resident. A list that loads should show its own loader inside the panel.
+
+## Accessibility
+
+- The trigger is a real <button>; Base UI wires aria-expanded and aria-controls to the panel. Its accessible name is its text (caption + value) unless an aria-label is given.
+- The list is role="listbox" with role="option" rows; aria-selected marks the committed value, not the focused row, so a screen reader hears both where focus is and what is chosen. Selection does not follow focus: ArrowUp/ArrowDown, Home/End and type-ahead move focus (roving tabindex — one tab stop, so Tab leaves the list in one step) and apply nothing; Enter, Space or a click picks, applies and closes. Disabled options carry aria-disabled and are skipped.
+- Why a listbox and not a radio group: a radio group's checked state follows focus, so every arrow press would be a pick — wrong for a choice that opens a confirm, loads a font or resets settings. Base UI ships no standalone listbox (Select is popup-only, Combobox's inline list is focus-in-the-input, Composite is internal), so the keyboard model lives here.
+- Opening from the keyboard (Enter, Space, ArrowDown) moves focus into the panel: the search field when there is one, otherwise the chosen option (or the first). A pointer open focuses the search field on a fine pointer only, so touch does not raise the on-screen keyboard.
+- Escape closes the row without changing the value (clearing a query first) and returns focus to the trigger; a pick does the same. Focus is not pulled back when it has already moved on, e.g. to a confirm dialog the pick opened.
+- The panel animates with motion-disclosure, which is static under prefers-reduced-motion or MotionProvider off; the scroll that keeps the row in view is instant, never smooth.
+
+## Related
+
+- Components: Collapsible, Select, Combobox, SearchInput, RadioGroup, ThemeSelector, FontPicker, PropertyRow
+
+## Examples
+
+### A short list — no search
+
+```tsx
+import { DisclosurePicker, DisclosurePickerList, DisclosurePickerOption, DisclosurePickerPanel, DisclosurePickerTrigger } from "@sableui/react"
+
+const [preset, setPreset] = useState("comfortable")
+const [open, setOpen] = useState(false)
+<DisclosurePicker open={open} onOpenChange={setOpen} className="w-72">
+  <DisclosurePickerTrigger label="Density">{preset === "compact" ? "Compact" : "Comfortable"}</DisclosurePickerTrigger>
+  <DisclosurePickerPanel>
+    <DisclosurePickerList aria-label="Density" value={preset} onValueChange={setPreset}>
+      <DisclosurePickerOption value="comfortable">Comfortable</DisclosurePickerOption>
+      <DisclosurePickerOption value="compact">Compact</DisclosurePickerOption>
+    </DisclosurePickerList>
+  </DisclosurePickerPanel>
+</DisclosurePicker>
+```
+
+### A long list — search opted in
+
+```tsx
+import { DisclosurePicker, DisclosurePickerEmpty, DisclosurePickerList, DisclosurePickerOption, DisclosurePickerPanel, DisclosurePickerTrigger } from "@sableui/react"
+
+const COUNTRIES = ["Argentina", "Australia", "Austria", "Belgium", "Brazil", "Canada", "Chile", "Denmark", "Finland", "France", "Germany", "Ireland", "Italy", "Japan", "Mexico", "Norway", "Portugal", "Spain", "Sweden"]
+const [country, setCountry] = useState("Canada")
+const [query, setQuery] = useState("")
+const shown = COUNTRIES.filter((name) => name.toLowerCase().includes(query.trim().toLowerCase()))
+<DisclosurePicker className="w-72">
+  <DisclosurePickerTrigger label="Country">{country}</DisclosurePickerTrigger>
+  <DisclosurePickerPanel search={{ value: query, onValueChange: setQuery, placeholder: `Search ${COUNTRIES.length} countries` }}>
+    {shown.length > 0 ? (
+      <DisclosurePickerList aria-label="Country" value={country} onValueChange={setCountry}>
+        {shown.map((name) => (
+          <DisclosurePickerOption key={name} value={name}>{name}</DisclosurePickerOption>
+        ))}
+      </DisclosurePickerList>
+    ) : (
+      <DisclosurePickerEmpty>No countries match “{query}”.</DisclosurePickerEmpty>
+    )}
+  </DisclosurePickerPanel>
+</DisclosurePicker>
+```
+
+### A theme picker — media tiles, commit on Enter
+
+```tsx
+import { DisclosurePicker, DisclosurePickerList, DisclosurePickerOption, DisclosurePickerPanel, DisclosurePickerTrigger, ThemePreview, useSableTheme } from "@sableui/react"
+
+const { themeId, setThemeId, themes, mode } = useSableTheme()
+const current = themes.find((theme) => theme.id === themeId)
+<DisclosurePicker>
+  <DisclosurePickerTrigger aria-label={`Theme: ${current?.label}`} media={current ? <ThemePreview theme={current} mode={mode} size="sm" /> : null}>
+    {current?.label}
+  </DisclosurePickerTrigger>
+  <DisclosurePickerPanel>
+    <DisclosurePickerList aria-label="Theme" value={themeId} onValueChange={setThemeId}>
+      {themes.map((theme) => (
+        <DisclosurePickerOption key={theme.id} value={theme.id} media={<ThemePreview theme={theme} mode={mode} size="sm" />}>
+          {theme.label}
+        </DisclosurePickerOption>
+      ))}
+    </DisclosurePickerList>
+  </DisclosurePickerPanel>
+</DisclosurePicker>
+```
+
+### Property-grid rung
+
+```tsx
+import { Density, DisclosurePicker, DisclosurePickerList, DisclosurePickerOption, DisclosurePickerPanel, DisclosurePickerTrigger } from "@sableui/react"
+
+const [blend, setBlend] = useState("normal")
+<Density value="compact" className="w-64">
+  <DisclosurePicker size="xs">
+    <DisclosurePickerTrigger label="Blend">{blend}</DisclosurePickerTrigger>
+    <DisclosurePickerPanel>
+      <DisclosurePickerList aria-label="Blend mode" value={blend} onValueChange={setBlend}>
+        <DisclosurePickerOption value="normal">normal</DisclosurePickerOption>
+        <DisclosurePickerOption value="multiply">multiply</DisclosurePickerOption>
+        <DisclosurePickerOption value="screen">screen</DisclosurePickerOption>
+      </DisclosurePickerList>
+    </DisclosurePickerPanel>
+  </DisclosurePicker>
+</Density>
+```
+
+---
+
 # EmptyState
 
 **Status:** stable
@@ -13438,6 +13709,113 @@ import { Attachment, FileDropzone } from "@sableui/react"
 import { Field, FileDropzone } from "@sableui/react"
 
 <Field label="Proof of address" description="A bill or statement from the last 3 months."><FileDropzone accept=".pdf" acceptLabel="a PDF" maxSize={5 * 1024 * 1024} description="PDF, up to 5 MB" /></Field>
+```
+
+---
+
+# FontPicker
+
+**Status:** stable
+
+A DisclosurePicker for a typeface: the row names the chosen family in its own face and opens in place into a searchable list of families, each drawn in itself. The app supplies the families and loads the faces; Sable bundles no catalog.
+
+**Keywords:** font picker, typeface, font family, font selector, typography, google fonts, inspector, customizer
+
+## Usage
+
+Use FontPicker wherever someone chooses a typeface for a role (body, headings, code) in a panel that shows the result: a theme editor, a document inspector, a brand customizer. It is a DisclosurePicker, so the list opens beneath the row rather than over the preview; arrow keys walk the families (each drawn in its own face) without applying or loading anything, and Enter, Space or a click picks one, loads it and closes the row.
+
+### Best practices
+
+- Do: Pass `loadFont` and load faces lazily: `"preview"` fires for every family when the list opens (load just the glyphs of its name — Google Fonts' `text=` parameter makes a 20-font list cost a few KB), `"use"` for the chosen one (load its real weights). Make it idempotent and define it once, outside render.
+- Do: Put non-font choices — "Preset (Figtree)", "Same as body" — in `options`, with a short `valueLabel` for the row. They list first and render in the app's face, so they never read as a family.
+- Do: Give each row a role `label` ("Body", "Headings", "Mono") and stack them; the caption column aligns. Control `open` from the parent so only one list is open at a time.
+- Don't: Leave search on for a short curated list — under a dozen families, pass `searchable={false}`. Search is on by default because font lists are usually long.
+- Don't: Use a Select of family names for this. A popup covers the text it changes, and a family name set in the app's face says nothing about the face.
+
+## Props
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| value | string | — | The chosen family, or the value of one of `options`. |
+| onValueChange | (value: string) => void | — | Called once a family (or option) is picked — Enter, Space or a click — and only when it differs from `value`; the row then closes. Arrow keys and type-ahead only move focus; Escape closes without a pick. |
+| fonts | readonly { family: string; note?: string; stack?: string }[] | — | The families to offer, in order. `note` is a muted annotation (searched too); `stack` the CSS font-family to draw it in (default `"<family>"`). |
+| options | readonly { value: string; label: string; valueLabel?: string }[] | [] | Non-font choices listed above the fonts, in the app's face. `valueLabel` is what the row shows while it is chosen. |
+| label | ReactNode | — | The row's leading caption — the role the font plays. |
+| listLabel | string | "Font" | Accessible name of the list. |
+| searchable | boolean | true | A search field above the list, filtering by family and note. Pass false for a short curated list (under a dozen). |
+| searchLabel | string | "Search fonts" | Accessible name of the search field. |
+| loadFont | (font, purpose: "preview" \| "use") => void | — | Loads a face on demand: "preview" for every family when the list opens, "use" for the chosen one once it is picked (never while the list is only being walked). Receives your own font objects. Idempotent. |
+| open | boolean | — | Controlled open state, as DisclosurePicker. Control it to keep one of several rows open at a time. |
+| defaultOpen | boolean | false | Uncontrolled initial open state. |
+| onOpenChange | (open: boolean) => void | — | Called with the next open state. |
+| size | "md" \| "xs" | "md" | md for a settings column; xs for the property-grid rung (see DisclosurePicker). |
+
+## Tokens used
+
+`foreground`, `muted-foreground`, `popover`, `hairline`, `panel-field`, `ring`
+
+## Motion
+
+- **arrival** · root · _no motion_ — A property row is present from first paint.
+- **response** · Trigger · `motion-interactive` — Inherited from DisclosurePicker: the hover step says the value row opens.
+- **transition** · Panel · `motion-disclosure` — Inherited from DisclosurePicker: the list grows in place, tying the panel's movement to this row.
+- **activity** · root · _no motion_ — Faces load in the background and swap in when ready; the names are legible in the fallback meanwhile, so there is nothing to wait on.
+
+## Accessibility
+
+- Inherits DisclosurePicker: a button trigger with aria-expanded/controls whose name is the caption plus the family; a listbox named by `listLabel`, aria-selected on the chosen family.
+- Keyboard open focuses the search field; ArrowDown steps from it into the list (ArrowUp from the first option steps back); arrows, Home/End and type-ahead move without applying; Enter or Space picks and closes; Escape clears the query, then closes without a pick and returns focus to the row.
+- Each family is set in its own face, but its name is still plain text, so a screen reader reads the name, not the glyphs.
+
+## Related
+
+- Components: DisclosurePicker, ThemeSelector, Select, Combobox
+
+## Examples
+
+### Body font with lazy loading
+
+```tsx
+import { FontPicker } from "@sableui/react"
+
+const FONTS = [
+  { family: "Inter", note: "Neutral, dense UI" },
+  { family: "Figtree", note: "Friendly geometric" },
+  { family: "Fraunces", note: "Soft, wonky serif", stack: '"Fraunces", serif' },
+]
+// Your loader; Sable never fetches fonts itself.
+const loadFont = (font: { family: string }, purpose: "preview" | "use") => {
+  const id = `font-${purpose}-${font.family}`
+  if (document.getElementById(id)) return
+  const link = Object.assign(document.createElement("link"), { id, rel: "stylesheet" })
+  const family = font.family.replace(/ /g, "+")
+  link.href = purpose === "preview"
+    ? `https://fonts.googleapis.com/css2?family=${family}&text=${encodeURIComponent(font.family)}`
+    : `https://fonts.googleapis.com/css2?family=${family}:wght@400..700&display=swap`
+  document.head.appendChild(link)
+}
+const [family, setFamily] = useState("Inter")
+<FontPicker label="Body" listLabel="Body font" value={family} onValueChange={setFamily} fonts={FONTS} loadFont={loadFont} searchable={false} />
+```
+
+### With a preset option, one row of several
+
+```tsx
+import { FontPicker } from "@sableui/react"
+
+const [open, setOpen] = useState<string | null>(null)
+const [body, setBody] = useState("theme")
+<FontPicker
+  label="Body"
+  listLabel="Body font"
+  value={body}
+  onValueChange={setBody}
+  options={[{ value: "theme", label: "Preset (Figtree)", valueLabel: "Figtree" }]}
+  fonts={[{ family: "Inter" }, { family: "Figtree" }, { family: "Geist" }]}
+  open={open === "body"}
+  onOpenChange={(next) => setOpen(next ? "body" : null)}
+/>
 ```
 
 ---
@@ -14340,6 +14718,253 @@ import { Badge, Marquee } from "@sableui/react"
 import { Marquee } from "@sableui/react"
 
 <Marquee direction="up" className="h-64">{items}</Marquee>
+```
+
+---
+
+# MediaImage
+
+**Status:** beta
+
+An image that fills its box and falls back to GradientArt seeded by the item when it has no source or the source fails — Avatar's image-load tracking, for covers, thumbnails and product shots instead of faces.
+
+**Keywords:** image, img, image fallback, broken image, cover art, album art, thumbnail, placeholder image, onError, missing image
+
+## Usage
+
+Use MediaImage wherever content imagery may be missing or broken: a cover in a grid, a thumbnail in a row, a product shot. It fills the box it is given — an AspectBox for a cover, a sized and rounded box for a thumbnail — shows a quiet muted surface while the image loads, fades the image in once decoded, and paints GradientArt seeded by the item when there is no image to show, so a grid of missing covers still reads as distinct things. For a person use Avatar; for a whole tile with title and actions use MediaTile, which composes this.
+
+### Best practices
+
+- Do: Give the box the shape: `<AspectBox ratio={1} className="rounded-md"><MediaImage … /></AspectBox>`, or `size-14 rounded-md` on MediaImage itself for a thumbnail. It clips to whatever radius the box has.
+- Do: Pass `seed` (the title or an id) when `alt` is empty, so the fallback art is the item's own and stays the same in every list it appears in.
+- Do: Leave `alt` empty when a visible title sits next to the image — a tile, a row — and describe it when the image stands alone. A set `alt` also names the fallback, so the description survives a broken URL.
+- Don't: Do not hand-write `<img onError={() => setBroken(true)}>`. An image that fails before hydration never fires the handler on a prerendered page; MediaImage preloads off the DOM and catches it.
+- Don't: Do not use it for profile pictures. A person is a circle with initials — Avatar, whose `variant="art"` is the same fallback with the person's initials over it.
+
+## Props
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| src | string | — | Image URL. Omitted, empty or failing to load ⇒ the fallback shows. |
+| alt | string | "" | Alt text. Empty is decorative — right beside a visible title. When set and no image shows, it names the fallback instead. |
+| seed | string \| number | — | Seeds the fallback art. Defaults to `alt`; pass the title or an id when `alt` is empty. |
+| fallback | ReactNode | — | Replaces the GradientArt fallback — a glyph or monogram. Fills the frame under the same clipping. |
+| fit | "cover" \| "contain" | "cover" | `cover` crops to fill (artwork, photos); `contain` letterboxes on the muted surface (a logo, a product that must not be cropped). |
+| srcSet | string | — | Responsive sources, passed to the `<img>`. |
+| sizes | string | — | The `sizes` attribute for `srcSet`. |
+| loading | "lazy" \| "eager" | "lazy" | Native lazy loading. Use `eager` for the first row of a grid above the fold. |
+| className | string | — | Sizing and rounding when MediaImage is the box itself (`size-14 rounded-md`). Inside an AspectBox it already fills. |
+
+## Variants
+
+- **fit**: cover, contain
+
+## Tokens used
+
+`muted`, `art-1`, `art-2`, `art-3`, `art-4`, `art-5`, `art-6`, `art-ground`
+
+## Motion
+
+- **arrival** · image · `motion-fade` — The image fades in over the muted surface once it has decoded, so a slow cover settles in instead of popping row by row as the grid loads.
+- **response** · root · _no motion_ — Imagery, not a control. The tile or row around it answers the pointer.
+- **transition** · root · _no motion_ — Its only state change is loading → loaded or failed, which the arrival covers.
+- **activity** · root · _no motion_ — A loading image rests on a static muted surface; a shimmer per cover across a long grid would be noise.
+
+## Accessibility
+
+- `alt` defaults to empty (decorative), because the usual neighbour is a visible title that already names the item; describe the image when it stands alone.
+- When no image is on screen and `alt` is set, the frame takes `role="img"` with that label, so a broken URL does not erase the description. The fallback art itself is always aria-hidden.
+- The `<img>` mounts only once it has loaded, so assistive technology never meets a broken-image icon.
+
+## Related
+
+- Components: MediaTile, Avatar, GradientArt, AspectBox
+
+## Examples
+
+### Cover with fallback
+
+```tsx
+import { AspectBox, MediaImage } from "@sableui/react"
+
+<AspectBox ratio={1} className="rounded-md">
+	<MediaImage src={album.cover} seed={album.title} />
+</AspectBox>
+```
+
+### No image yet
+
+```tsx
+import { AspectBox, MediaImage } from "@sableui/react"
+
+<AspectBox ratio={1} className="rounded-md">
+	<MediaImage seed="Low tide, high noon" />
+</AspectBox>
+```
+
+### Row thumbnail
+
+```tsx
+import { MediaImage } from "@sableui/react"
+
+<MediaImage src={track.art} seed={track.title} className="size-12 shrink-0 rounded-sm" />
+```
+
+### Logo, never cropped
+
+```tsx
+import { AspectBox, MediaImage } from "@sableui/react"
+
+<AspectBox ratio={16 / 9} className="rounded-lg">
+	<MediaImage src={brand.logo} alt={brand.name} fit="contain" />
+</AspectBox>
+```
+
+---
+
+# MediaTile
+
+**Status:** beta
+
+A cover-first tile — square, 16:9 or poster artwork with an optional play-style action over it, then a title and a subtitle that can each be links — that is one link as a whole without nesting its other controls inside one.
+
+**Keywords:** album, album art, cover, tile, media card, video thumbnail, podcast, playlist, gallery, product tile, poster, grid item, play button, music
+
+## Usage
+
+The item in a media grid or shelf: an album, a playlist, a video, a podcast, a film, a photo, a product. The cover leads and carries the weight; the title and subtitle sit underneath without a card around them. The whole tile follows the title's link, the subtitle can link somewhere else (the artist, the channel), and an action — usually play — floats over the cover's corner, revealed on hover and focus and always shown on touch. A missing or broken cover becomes GradientArt seeded by the title, so a grid of items without artwork still reads as distinct things.
+
+### Best practices
+
+- Do: Lay tiles out with `Grid` (`<Grid minItemWidth="10rem">`) or a horizontal `Scroller` for a shelf. The tile fills its cell; the grid decides the width.
+- Do: Pass `render={<Link to="…" />}` (or `href`) for where the tile goes, and `subtitleRender` / `subtitleHref` for a second destination. Each stays a separate control; never wrap the tile in your own link.
+- Do: Name the action for its item — `aria-label="Play Low tide, high noon"`, not "Play". A grid of twenty identical "Play" buttons is unusable from a screen reader's list of controls.
+- Do: Use `titleAs="h3"` when the tiles sit under a section heading, so screen-reader users can move tile to tile by heading.
+- Don't: Do not build this from `Card render={<Link />}`. A card that is a link cannot hold a second link or a button — interactive content cannot nest — which is exactly what a media tile needs.
+- Don't: Do not put more than one action on the cover. A second control over the art is a toolbar on a thumbnail; move secondary actions (add to queue, share) into an OverflowMenu in the action slot or onto the item's page.
+- Don't: Do not use it for a framed commerce card with a price and a buy button — that is ProductCardBlock — or for a person, which is an Avatar.
+
+### Anatomy
+
+| Part | Required | Description |
+| --- | --- | --- |
+| Cover | yes | An AspectBox holding MediaImage: the image, or GradientArt seeded by the title. Drawn first, read last. |
+| Title | yes | The item's name. When the tile links, this is the link, stretched over the whole tile. |
+| Subtitle | no | The second line. Optionally its own link, raised above the stretched one. |
+| Action | no | One control over the cover's bottom-end corner — usually play. Revealed on hover and focus; always visible on touch. |
+| Badge | no | A static label over the cover's top-start corner — a duration, "New". Click-through. |
+
+## Props
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| title | ReactNode | — | The item's name. Seeds the fallback art when it is a string. |
+| subtitle | ReactNode | — | The second line — an artist, a channel, a year. |
+| src | string | — | Cover image URL. Without one, or when it fails, the cover is GradientArt seeded by the item. |
+| alt | string | "" | Cover alt text. Empty by default: the title below already names the item. |
+| seed | string \| number | — | Seeds the fallback art. Defaults to `title` when it is a string. |
+| aspect | "square" \| "video" \| "poster" \| number | "square" | The cover's shape: square (albums, podcasts), video (16:9), poster (2:3 — films, books), or any width / height ratio. |
+| size | "sm" \| "md" \| "lg" | "md" | Moves the type tier, the cover-to-text gap, the corner and the overlay inset together. |
+| href | string | — | Where the tile goes. The title becomes the link, stretched over the whole tile. |
+| render | useRender.RenderProp | — | The title link's element, for a router: `render={<Link to="/albums/1" />}`. Takes precedence over `href`. |
+| subtitleHref | string | — | Makes the subtitle its own link — a separate tab stop above the tile's. |
+| subtitleRender | useRender.RenderProp | — | The subtitle link's element, for a router. |
+| action | ReactNode | — | One control over the cover's bottom-end corner, usually a play Button. Hidden until hover or focus on hover-capable devices; always shown on touch. |
+| badge | ReactNode | — | A static label on the cover's top-start corner — `<Badge appearance="overlay">`. |
+| titleAs | "h2" \| "h3" \| "h4" \| "h5" \| "p" | "p" | The title's element. A heading one level below the section's lets screen-reader users move tile to tile. |
+| loading | "lazy" \| "eager" | "lazy" | Native image loading. `eager` for the first row above the fold. |
+| ...div props | Omit<ComponentPropsWithRef<"div">, "title"> | — | Spread onto the root. |
+
+## Variants
+
+- **size**: sm, md, lg
+- **aspect**: square, video, poster
+
+## Tokens used
+
+`foreground`, `muted-foreground`, `muted`, `overlay`, `ring`
+
+## Motion
+
+- **arrival** · Cover · `motion-fade` — The cover image fades in over a quiet surface once it decodes, so a grid loading on a slow connection settles tile by tile instead of popping.
+- **response** · Cover · `motion-interactive` — Hovering the tile deepens the cover with a light scrim and lifts the action in (`reveal-on-hover`), so it is clear the whole tile is one target and where its action is.
+- **transition** · root · _no motion_ — A tile has no states of its own to move between; the action carries any (play / pause).
+- **activity** · root · _no motion_ — Nothing runs inside a tile; a now-playing indicator belongs to the player, not the grid.
+
+## Accessibility
+
+- No nested interactive content: the title is the tile's link, and its `stretched-link` overlay covers the tile, while the subtitle link and the action sit above it as separate controls.
+- Tab order is title → subtitle → action. The text comes first in the DOM and the cover is drawn above it with CSS `order`, so focus follows how a reader names the item.
+- Focusing the title link rings the whole tile, rounded like the cover, because the whole tile is what the link is; the subtitle link and the action ring themselves.
+- The action is hidden with opacity only, and only where the device can hover; it stays in the tab order and the accessibility tree, appears when anything in the tile has focus, and is always visible on touch.
+- The cover is decorative by default (`alt=""`), since the title names the item; the fallback art is aria-hidden.
+- Truncated titles keep their full text in the link's accessible name and in a `title` tooltip.
+
+## Related
+
+- Components: MediaImage, GradientArt, Grid, AspectBox, Card, Scroller
+
+## Examples
+
+### Album grid
+
+```tsx
+import { Button, Grid, Icon, MediaTile } from "@sableui/react"
+// <Link> = your router's link (react-router, next/link, @tanstack/router, …)
+
+<Grid minItemWidth="10rem" gap={3}>
+	{albums.map((album) => (
+		<MediaTile
+			key={album.id}
+			title={album.title}
+			subtitle={album.artist}
+			src={album.cover}
+			render={<Link to={`/albums/${album.id}`} />}
+			subtitleRender={<Link to={`/artists/${album.artistId}`} />}
+			action={
+				<Button size="icon" aria-label={`Play ${album.title}`} onClick={() => play(album)}>
+					<Icon name="play" variant="solid" />
+				</Button>
+			}
+		/>
+	))}
+</Grid>
+```
+
+### Video tile with a duration
+
+```tsx
+import { Badge, MediaTile } from "@sableui/react"
+
+<MediaTile
+	aspect="video"
+	title="Building a synth from scratch"
+	subtitle="Undertow Sessions · 2 days ago"
+	src={video.thumbnail}
+	href={`/watch/${video.id}`}
+	badge={<Badge appearance="overlay">12:04</Badge>}
+/>
+```
+
+### Gallery, no links
+
+```tsx
+import { Grid, MediaTile } from "@sableui/react"
+
+<Grid minItemWidth="8rem" gap={2}>
+	{photos.map((photo) => (
+		<MediaTile key={photo.id} size="sm" title={photo.caption} src={photo.url} alt={photo.description} />
+	))}
+</Grid>
+```
+
+### Poster shelf
+
+```tsx
+import { MediaTile } from "@sableui/react"
+
+<MediaTile aspect="poster" size="lg" titleAs="h3" title="The Long Dark" subtitle="2026 · Drama" href="/films/the-long-dark" />
 ```
 
 ---
@@ -15306,6 +15931,7 @@ Use PageHeader to establish a page's title, supporting description, and primary 
 - Do: Use one PageHeader per major page or route.
 - Do: Keep the title literal and put explanation in the lede or nearby content.
 - Don't: Do not use PageHeader inside repeated cards, dialogs, or compact panels.
+- Don't: Do not use a second PageHeader for a section of the page. It is the route's one h1; each section below it takes a SectionHeader (an h2 with the same title row, description and actions).
 - Don't: Do not put it outside the Region that holds the page content. It then sits at a different measure from what it introduces, and the page reads as two documents.
 
 ## Props
@@ -15314,8 +15940,8 @@ Use PageHeader to establish a page's title, supporting description, and primary 
 | --- | --- | --- | --- |
 | title | ReactNode | — | The page title (renders an <h1>). |
 | description | ReactNode | — | Supporting copy beneath the title. |
-| back | ReactNode | — | Leading element before the title — typically a back control on drill-in routes. Keep it a ghost icon Button (size="icon", variant="ghost", aria-label="Back") so it stays quieter than the title. |
-| actions | ReactNode | — | Trailing actions aligned to the title row's end. They drop under the title when the row runs out of room, and the title wraps rather than truncating. |
+| back | ReactNode | — | Leading element before the title — typically a back control on drill-in routes. Keep it a ghost icon Button (size="icon", variant="ghost", aria-label="Back") so it stays quieter than the title. A ghost back control bleeds by its inset at the start, so its glyph lines up with the content edge below (Button bleed="none" opts out). |
+| actions | ReactNode | — | Trailing actions aligned to the title row's end. They drop under the title when the row runs out of room, and the title wraps rather than truncating. A ghost or link Button at either end of the group bleeds by its own padding, so its label meets the content edge (the end on the title row, the start once wrapped); filled buttons keep their edge on the line. Direct children only. |
 | titleAs | "h1" \| "h2" | "h1" | The title's heading element. Keep h1 — the route's one h1. Use h2 only when something above already owns the h1: a shell that renders the route title, or a page showing a PageHeader as an example. |
 
 ## Tokens used
@@ -15329,7 +15955,7 @@ Use PageHeader to establish a page's title, supporting description, and primary 
 
 ## Related
 
-- Components: AppHeader, Breadcrumbs, Button
+- Components: AppHeader, SectionHeader, Breadcrumbs, Button
 
 ## Examples
 
@@ -15360,8 +15986,8 @@ import { Button, PageHeader, Region } from "@sableui/react"
 
 // ✗ Outside the Region. The header then sits at a different measure from the
 //   content it introduces, and the page reads as two documents.
-// ✗ Two on one page. A second one is a section heading — an h2 in a
-//   smaller step (text-heading-3 or below), not another PageHeader.
+// ✗ Two on one page. A second one is a section heading: a SectionHeader
+//   (an h2 on text-heading-3, same title row and actions), not another PageHeader.
 // ✗ Global actions in it (account, search). Those persist across routes and
 //   belong in AppHeader.
 ```
@@ -16956,6 +17582,153 @@ import { SearchInput } from "@sableui/react"
 
 ---
 
+# SectionHeader
+
+**Status:** stable
+
+The heading block for one section of a page: a title (h2 by default), an optional line of description, and actions on the title row — a "View all" link or a couple of buttons — that drop beneath the title only when the row runs out of room.
+
+**Keywords:** section header, section heading, section title, shelf, view all, see all, show all, h2, subsection, optical alignment, bleed
+
+## Usage
+
+Use SectionHeader to head each section below the page title — a home-page shelf with View all, a settings group, a list with its own actions. PageHeader is the route's single h1; every section under it takes a SectionHeader, with titleId wired to the section's aria-labelledby.
+
+### Best practices
+
+- Do: Wrap the header and its content in a `<section aria-labelledby={titleId}>` (a flex column with a gap, or a Stack inside it) so the section is a named region and the header's title is its name.
+- Do: Pick titleAs by the document outline (h2 under the page h1, h3 inside an h2 section) and size by visual weight: md for a page's sections and shelves, sm for denser groups like settings.
+- Do: Keep actions to one or two `size="sm"` buttons — the title is centred on that height. A shelf's "View all" is a ghost Button rendered as a link (`render={<a href=… />}`), named for what it opens when the label alone is ambiguous (aria-label="View all new releases").
+- Do: Pass a ghost or link action as a plain Button and let the header align it: the last direct child bleeds by its own padding at the end, so "View all" sits on the edge of the grid below, and the first bleeds at the start, which is the edge once the actions wrap beneath the title. Filled buttons keep their edge on the line. Set bleed="none" on the Button to opt one out.
+- Don't: Nudge a View all onto the edge with -me-3, or wrap the actions in your own div: the header aligns direct children only, and only by each button's real padding. If you must wrap them, set bleed on the Button inside instead.
+- Don't: Use a second PageHeader for a section — that is a second h1, and the outline then reports two documents. And do not hand-build `<div className="flex justify-between"><h2 className="text-heading-3">…` per shelf: it misses the wrapping, the aria wiring and the shared rhythm.
+- Don't: Use SectionHeader to title a Card (use CardHeader + CardTitle) or a docked tool panel (use PanelSection). It heads a section of the page, not a surface.
+- Don't: Add margin to the header to space it from its content. It has no outer spacing on purpose; the section's gap owns that rhythm, so every section on the page keeps the same one.
+
+### Anatomy
+
+| Part | Required | Description |
+| --- | --- | --- |
+| Title | yes | The section's heading (h2 by default), wrapping rather than truncating. Its id names the section. |
+| Description | no | One line of supporting copy under the title, capped at the prose measure. |
+| Actions | no | Buttons or links at the title row's end; they move beneath the title when the row is too narrow for both. A borderless (ghost/link) Button at either end of the group is optically aligned: its label, not its invisible padding, meets the content edge. |
+
+## Props
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| title | ReactNode | — | The section's title. |
+| description | ReactNode | — | One line of supporting copy beneath the title, capped at the prose measure. |
+| actions | ReactNode | — | Trailing actions on the title row — a View all link or a couple of buttons, size="sm". They stay on the title's row and drop beneath it only when the row runs out of room; the title wraps rather than truncating. A ghost or link Button that ends the group bleeds by its padding at the end (and one that starts it, at the start — the edge once wrapped), so its label lines up with the content below; Button bleed="none" opts out. Direct children only. |
+| titleAs | "h2" \| "h3" \| "h4" | "h2" | The heading element, chosen by the document outline: h2 for a section under the page's h1, h3 for a subsection inside one. |
+| titleId | string | — | The title's id, so the section it heads can point at it: <section aria-labelledby={titleId}>. Generated when omitted. |
+| size | "md" \| "sm" | "md" | Visual weight, independent of the heading level: md (text-heading-3) for a page's sections and shelves; sm (text-heading-4) for denser sets — settings groups, subsections. |
+
+## Variants
+
+- **size**: md, sm
+
+## Tokens used
+
+`foreground`, `muted-foreground`
+
+## Motion
+
+- **arrival** · root · _no motion_ — A heading arrives with the section it names; animating it separately would make the section's title lag its content.
+- **response** · root · _no motion_ — The header itself is not interactive; the Buttons passed as actions carry their own response.
+- **transition** · root · _no motion_ — It has no states of its own to move between.
+- **activity** · root · _no motion_ — It never does indeterminate work.
+
+## Accessibility
+
+- Renders a real heading (h2 by default); choose titleAs by the outline, never to get a size — size sets the look.
+- The title always carries an id (titleId, or a generated one). Point the section at it with aria-labelledby so the section is announced as a named region and appears in landmark navigation.
+- A repeated "View all" is ambiguous in a links list; name each one for its section (aria-label="View all new releases") or keep the visible label specific.
+
+## Related
+
+- Components: PageHeader, CardHeader, PanelSection, Grid, Stack, Button
+- Patterns: SettingsPage, DashboardPage
+
+## Examples
+
+### A shelf with View all
+
+```tsx
+import { Button, Card, CardDescription, CardHeader, CardTitle, Grid, SectionHeader } from "@sableui/react"
+
+<section aria-labelledby="new-releases" className="flex flex-col gap-4">
+	<SectionHeader
+		titleId="new-releases"
+		title="New releases"
+		description="Fresh from artists you follow."
+		actions={
+			<Button variant="ghost" size="sm" render={<a href="/new" />} aria-label="View all new releases">
+				View all
+			</Button>
+		}
+	/>
+	<Grid minItemWidth="10rem" gap={2}>
+		<Card><CardHeader><CardTitle>Night Swim</CardTitle><CardDescription>Lena Vale</CardDescription></CardHeader></Card>
+		<Card><CardHeader><CardTitle>Low Tide</CardTitle><CardDescription>Harbour Lights</CardDescription></CardHeader></Card>
+	</Grid>
+</section>
+```
+
+### A settings section
+
+```tsx
+import { Field, SectionHeader, Switch } from "@sableui/react"
+
+<section aria-labelledby="playback" className="flex flex-col gap-4">
+	<SectionHeader
+		titleId="playback"
+		size="sm"
+		title="Playback"
+		description="How tracks start, end and blend into each other."
+	/>
+	<Field label="Crossfade" orientation="horizontal">
+		<Switch defaultChecked />
+	</Field>
+	<Field label="Normalize volume" orientation="horizontal">
+		<Switch />
+	</Field>
+</section>
+```
+
+### A section with two actions
+
+```tsx
+import { Button, Entity, Icon, SectionHeader, Stack } from "@sableui/react"
+
+<section aria-labelledby="playlists" className="flex flex-col gap-4">
+	<SectionHeader
+		titleId="playlists"
+		title="Your playlists"
+		actions={
+			<>
+				<Button variant="ghost" size="sm" iconStart={<Icon name="filter" />}>Filter</Button>
+				<Button size="sm" iconStart={<Icon name="plus" />}>New playlist</Button>
+			</>
+		}
+	/>
+	<Stack gap={1}>
+		<Entity className="[--entity-px:0]" title="Late drives" subtitle="42 tracks" />
+		<Entity className="[--entity-px:0]" title="Focus" subtitle="18 tracks" />
+	</Stack>
+</section>
+```
+
+### A subsection inside a section
+
+```tsx
+import { SectionHeader } from "@sableui/react"
+
+<SectionHeader titleAs="h3" size="sm" title="Appears on" />
+```
+
+---
+
 # SegmentedBar
 
 **Status:** stable
@@ -17414,6 +18187,7 @@ Use Sheet for secondary workflows that slide in while preserving context from th
 | SheetHeader | no | The title and description region. |
 | SheetTitle | no | The sheet heading. |
 | SheetDescription | no | Supporting context for the sheet. |
+| SheetList | no | Edge-to-edge rows (Entity) aligned with the header — a queue, notifications, a picker. |
 | SheetFooter | no | Footer actions for the workflow. |
 
 ## Subcomponents
@@ -17426,6 +18200,7 @@ Use Sheet for secondary workflows that slide in while preserving context from th
 | SheetHeader | ComponentProps<"div"> | Top section holding SheetTitle/SheetDescription. |
 | SheetTitle | Base UI Drawer.Title props + className | The sheet's accessible name — wires aria-labelledby on the popup. |
 | SheetDescription | Base UI Drawer.Description props + className | Muted supporting line; wires aria-describedby. |
+| SheetList | ComponentProps<"div"> | Rows that run edge to edge in the sheet, Entity most often. It bleeds through the sheet's padding (--sheet-p) and hands it back to each row as --entity-px, so row content lines up with SheetHeader and a row's hover fill reaches the panel's edges. Without it a list of Entity rows sits 12px in from the header. The Sheet equivalent of CardList. |
 | SheetFooter | ComponentProps<"div"> | Bottom row for actions, pinned after the scrollable body. In a bottom sheet it stacks: full width, the primary on top, every button at the cta height. |
 
 ## Props
@@ -17458,6 +18233,14 @@ Use Sheet for secondary workflows that slide in while preserving context from th
 - Components: Dialog, Popover, Sidebar
 
 ## Examples
+
+### List of rows (a queue)
+
+```tsx
+import { Button, Entity, GradientArt, Sheet, SheetContent, SheetHeader, SheetList, SheetTitle, SheetTrigger } from "@sableui/react"
+
+<Sheet><SheetTrigger render={<Button variant="secondary">Queue</Button>} /><SheetContent><SheetHeader><SheetTitle>Up next</SheetTitle></SheetHeader><SheetList>{queue.map((track) => <Entity key={track.id} leading={<GradientArt aria-hidden seed={track.title} className="size-10 rounded-sm" />} title={track.title} subtitle={track.artist} />)}</SheetList></SheetContent></Sheet>
+```
 
 ### Basic (right)
 
@@ -17551,7 +18334,7 @@ import { ShowMore } from "@sableui/react"
 
 **Status:** stable
 
-Desktop side-navigation rail (in-flow sticky, hidden below lg) with SidebarHeader / SidebarNav / SidebarItem / SidebarFooter parts. Items are router-agnostic via the `render` prop; an optional collapsed icon-rail mode reveals labels in tooltips.
+Desktop side-navigation rail (in-flow sticky, hidden below lg) with SidebarHeader / SidebarBrand / SidebarNav / SidebarItem / SidebarFooter parts. Items are router-agnostic via the `render` prop; an optional collapsed icon-rail mode reveals labels in tooltips.
 
 **Keywords:** sidebar, navigation, app chrome, rail
 
@@ -17577,6 +18360,7 @@ Use Sidebar for persistent desktop navigation or application chrome outside the 
 
 | Name | Type | Description |
 | --- | --- | --- |
+| SidebarBrand | { mark: ReactNode; label: ReactNode; render?: useRender.RenderProp } + div props | The brand row, inside SidebarHeader, on the same grid as SidebarItem: mark in the icons' 24px slot, label on the labels' column, so a logo lines up with the nav below it without copying the rail's inset numbers. Collapsed, it shows the mark alone (named by a string label). render={<Link to="/" />} makes it the home link. |
 | SidebarItem | { label: ReactNode; icon?: ReactNode; active?: boolean; badge?: ReactNode; render?: useRender.RenderProp } + button props | A single nav row. label is the row text (inline when expanded, in a hover tooltip when collapsed); icon is the leading icon node (the consumer swaps fill weight for the active state); active marks the current route (accent fill + aria-current="page"); badge is a trailing node (e.g. a count) pushed to the row end and hidden when collapsed; render composes another element, e.g. render={<Link to="/x" />}. |
 
 ## Props
@@ -17611,10 +18395,10 @@ Use Sidebar for persistent desktop navigation or application chrome outside the 
 ### Rail with nav
 
 ```tsx
-import { Icon, NotificationBadge, Sidebar, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav } from "@sableui/react"
+import { Icon, NotificationBadge, Sidebar, SidebarBrand, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav } from "@sableui/react"
 // <Link> = your router's link (react-router, next/link, @tanstack/router, …)
 
-<Sidebar><SidebarHeader>{brand}</SidebarHeader><SidebarNav><SidebarItem icon={<Icon name="bell" />} label="Notifications" badge={<NotificationBadge count={3} />} render={<Link to="/notifications" />} /></SidebarNav><SidebarFooter>{wallet}</SidebarFooter></Sidebar>
+<Sidebar><SidebarHeader><SidebarBrand mark={<Icon name="music" variant="solid" />} label="Undertow" render={<Link to="/" />} /></SidebarHeader><SidebarNav><SidebarItem icon={<Icon name="bell" />} label="Notifications" badge={<NotificationBadge count={3} />} render={<Link to="/notifications" />} /></SidebarNav><SidebarFooter>{wallet}</SidebarFooter></Sidebar>
 ```
 
 ### Collapsible (icon rail)
@@ -17865,6 +18649,9 @@ Use Slider for bounded numeric choices where approximate adjustment is faster th
 | step | number | 1 | Granularity the slider steps through. Snaps to multiples. |
 | disabled | boolean | false | Ignore user interaction and dim the control. |
 | orientation | 'horizontal' \| 'vertical' | horizontal | Axis the slider tracks along. A vertical slider has no intrinsic length — give it a height (h-40, or flex-1 in a column). |
+| aria-label | string | — | Accessible name, applied to each thumb's input (the element with role=slider). A range also names its group with it. |
+| getAriaLabel | (index) => string | — | Per-thumb name for a range ("Minimum price" / "Maximum price"). Wins over aria-label on the thumbs. |
+| getAriaValueText | (formattedValue, value, index) => string | — | What a screen reader announces for the value when the number alone is wrong — a seek bar's "1:23 of 3:45". For units or percent, `format` (Intl.NumberFormatOptions) is enough. |
 
 ## Tokens used
 
@@ -17877,7 +18664,8 @@ Use Slider for bounded numeric choices where approximate adjustment is faster th
 - The thumb's hit area is a fixed 16px box at every state. Only the decorative inner dot resizes — rest 12px, full 16px on hover, keyboard focus, and drag — so the target a pointer or finger must land on never moves or changes size. Keyboard users, who never hover, get the enlarged dot from focus-visible.
 - The rest-to-full transition uses the motion duration/easing tokens, so it collapses to an instant state change under prefers-reduced-motion or MotionProvider off. The size change itself still happens: it reports interaction state, it is not decoration.
 - Range sliders get one thumb per value with minStepsBetweenValues honored.
-- Pass an aria-label (or getAriaLabel on a thumb) so each handle has an accessible name.
+- Pass aria-label (or getAriaLabel for a range) so each handle has an accessible name. On Slider it reaches the thumb inputs; on a bare SliderRoot it only names the role=group — when composing, put aria-label / getAriaLabel on each SliderThumb, or label the Root with aria-labelledby or a Field, which Base UI does carry to the thumbs.
+- getAriaValueText sets aria-valuetext for values a number misreads (time, named steps).
 
 ## Related
 
@@ -17899,7 +18687,15 @@ import { Slider } from "@sableui/react"
 import { Slider } from "@sableui/react"
 
 const [range, setRange] = useState([20, 60])
-<Slider value={range} onValueChange={setRange} aria-label="Price range" />
+<Slider value={range} onValueChange={setRange} aria-label="Price range" getAriaLabel={(i) => (i ? "Maximum price" : "Minimum price")} />
+```
+
+### Seek bar with spoken time
+
+```tsx
+import { Slider } from "@sableui/react"
+
+<Slider value={position} max={duration} onValueChange={seek} aria-label="Seek" getAriaValueText={(_, v) => `${formatTime(v)} of ${formatTime(duration)}`} />
 ```
 
 ### Stepped
@@ -18872,22 +19668,36 @@ import { Textarea } from "@sableui/react"
 
 **Status:** stable
 
-A presentational radiogroup for choosing a Sable design theme from theme manifests — swatch-strip cards for a settings page, or compact rows for tool chrome. Pair it with useSableTheme().themeId and setThemeId when the app uses SableThemeProvider.
+A presentational radiogroup for choosing a Sable design theme from theme manifests — tiles that draw each theme as a miniature of its own interface (its colours, type and corner shape) for a settings page, or compact rows for tool chrome. Pair it with useSableTheme().themeId and setThemeId when the app uses SableThemeProvider.
 
 **Keywords:** theme selector, theme, appearance, skin, design theme, preset
 
 ## Usage
 
-Use ThemeSelector wherever a person picks a theme. The default `cards` layout is page-register furniture: a swatch strip, a name, and a caption only where one distinguishes the card (the default theme, or a single-mode theme), at ~144px tall. Use `layout="list"` in tool chrome, a popover, or any docked panel — five cards is the wrong object for a 256px surface, however it is sized. For colour mode (light/dark/system) use ThemeSwitcher, which is a segmented control and belongs in chrome as-is.
+Use ThemeSelector wherever a person picks a theme. The default `cards` layout is page-register furniture: a miniature of each theme's interface (its background, "Aa" in its display face, a card, and a primary button in its own corner shape), with the name and a caption only where one distinguishes it (the default theme, or a single-mode theme). Use `layout="list"` in tool chrome, a popover, or any docked panel — five cards is the wrong object for a 256px surface, however it is sized. For colour mode (light/dark/system) use ThemeSwitcher, which is a segmented control and belongs in chrome as-is.
 
 ### Best practices
 
-- Do: Use layout="list" in a popover, a menu, or a docked panel. Rows sit on the --control-sm ladder and still show each theme's swatch strip, so the choice stays visible rather than described. Rows take `sable-frame-inner`, so host the list in a sable-frame (`sable-frame sable-surface sable-surface-popover sable-frame-popover` — PopoverContent is not one; give it that class list, or its p-4 leaves the rows unnested) and their corners nest concentrically.
+- Do: Use layout="list" in a popover, a menu, or a docked panel. Rows sit on the --control-sm ladder and still show a small tile of each theme, so the choice stays visible rather than described. Rows take `sable-frame-inner`, so host the list in a sable-frame (`sable-frame sable-surface sable-surface-popover sable-frame-popover` — PopoverContent is not one; give it that class list, or its p-4 leaves the rows unnested) and their corners nest concentrically.
 - Do: Pass mode={useSableTheme().mode} so every preview renders in the colour mode actually in use, rather than in each theme's manifest default.
+- Do: Use ThemeSelector when switching is free: it is a radio group, so arrow keys check the next theme and onValueChange fires on every press — the page restyles as you go, which is the point of a live theme switcher. When a switch has a cost (it opens a "discard changes?" confirm, loads fonts, or resets other settings), use a DisclosurePicker list instead, with a `ThemePreview size="sm"` as each option's `media`: arrows only move there, and Enter, Space or a click commits.
 - Do: Load each theme's fonts in the host app. Every card carries a type specimen in that theme's own face so people can compare typography as well as color. A theme whose fonts are not loaded falls back to system-ui, and its specimen stops telling the truth.
 - Don't: Add a viewport breakpoint to force a column count — `className="sm:grid-cols-1"` or similar. `sm:` keys off the VIEWPORT, not this component's container, so on a wide screen it does nothing for a narrow parent. The cards grid already reflows on its own width via auto-fit.
 - Don't: Put the cards layout in workspace chrome. It was built for a settings page; in a 256px popover the cards clip their labels to a single character and grow to roughly twice their intended height.
 - Don't: Use ThemeSelector for light / dark / system colour mode. That is ThemeSwitcher — a segmented control. This picks the design theme, which is a different axis entirely, and the two are frequently confused.
+
+### Anatomy
+
+| Part | Required | Description |
+| --- | --- | --- |
+| ThemeSelector | yes | The radiogroup of themes, as cards or list rows. |
+| ThemePreview | no | The tile each option draws, exported for showing a theme outside the picker — the row naming the current theme, or the `media` of each option in a commit-on-Enter DisclosurePicker list. |
+
+## Subcomponents
+
+| Name | Type | Description |
+| --- | --- | --- |
+| ThemePreview | { theme: ThemeManifest; mode?: "light" \| "dark"; size?: "md" \| "sm" } | The tile each option draws: the theme as a miniature of itself (background, "Aa" in its display face, a card, a primary button in its own corner shape), in its own scope. Exported for anywhere that shows a theme outside the picker, e.g. a row naming the current preset, or each option of a DisclosurePicker list where a pick has a cost. Sized in the caller's spacing unit, so it lines up with the row it sits in. |
 
 ## Props
 
@@ -18896,7 +19706,7 @@ Use ThemeSelector wherever a person picks a theme. The default `cards` layout is
 | value | ThemeId | — | The currently selected Sable design theme id. |
 | onValueChange | (themeId: ThemeId) => void | — | Called with the next design theme id when an option is chosen. |
 | themes | readonly ThemeManifest[] | themeManifests | Theme manifests to render. Defaults to Sable's built-in themes. |
-| mode | "light" \| "dark" | — | Preview mode for each card's swatch strip. Pass useSableTheme().mode to match the current color mode; omitted cards use their manifest defaultMode. |
+| mode | "light" \| "dark" | — | Preview mode for each theme's tile. Pass useSableTheme().mode to match the current color mode; omitted cards use their manifest defaultMode. |
 | label | string | "Design theme" | Accessible label for the radiogroup. |
 | layout | "cards" \| "list" | "cards" | Presentation. "cards" is the page-register picker (~144px per card); "list" is one compact --control-sm row per theme, for chrome and popovers. A presentation variant, not a size — "list" is not "cards, smaller" — which is why it is a prop rather than a density scope. |
 | className | string | — | Merged onto the outer radiogroup grid. |
@@ -18908,6 +19718,7 @@ Use ThemeSelector wherever a person picks a theme. The default `cards` layout is
 ## Accessibility
 
 - The container is role="radiogroup" with an aria-label; each card is a role="radio" button with aria-checked reflecting the selected theme.
+- Standard radio keyboard: arrow keys move the check — calling onValueChange on each press — and Space checks the focused option. That instant switching is right for a free, reversible choice; where a switch has a cost, use a DisclosurePicker list (a listbox: arrows move, Enter commits) with ThemePreview tiles instead.
 - Focus-visible draws a 2px ring on the focused card.
 - The selected card wears the shared selection-card checked ring (the same as RadioCard and CheckboxCard), a muted fill and a check icon, so selection does not rely on colour alone.
 - Presentational only: it does not change the document theme; pass useSableTheme().setThemeId or apply the change in onValueChange.
@@ -18917,6 +19728,31 @@ Use ThemeSelector wherever a person picks a theme. The default `cards` layout is
 - Components: ThemeSwitcher, Popover, RadioCard
 
 ## Examples
+
+### When a switch has a cost: a DisclosurePicker list of ThemePreview tiles
+
+```tsx
+import { DisclosurePicker, DisclosurePickerList, DisclosurePickerOption, DisclosurePickerPanel, DisclosurePickerTrigger, ThemePreview, useSableTheme } from "@sableui/react"
+
+// Arrows move; Enter, Space or a click commits — so whatever the switch costs
+// (a confirm, a font load, a reset) happens once, on the pick.
+const { themeId, setThemeId, themes, mode } = useSableTheme()
+const current = themes.find((theme) => theme.id === themeId)
+<DisclosurePicker>
+  <DisclosurePickerTrigger aria-label={`Theme: ${current?.label}`} media={current ? <ThemePreview theme={current} mode={mode} size="sm" /> : null}>
+    {current?.label}
+  </DisclosurePickerTrigger>
+  <DisclosurePickerPanel>
+    <DisclosurePickerList aria-label="Theme" value={themeId} onValueChange={setThemeId}>
+      {themes.map((theme) => (
+        <DisclosurePickerOption key={theme.id} value={theme.id} media={<ThemePreview theme={theme} mode={mode} size="sm" />}>
+          {theme.label}
+        </DisclosurePickerOption>
+      ))}
+    </DisclosurePickerList>
+  </DisclosurePickerPanel>
+</DisclosurePicker>
+```
 
 ### With SableThemeProvider
 
@@ -19660,7 +20496,7 @@ Use Tree for the hierarchy panel in a workspace: layers, objects, an inspector o
 - Do: Give Tree an aria-label naming the hierarchy ("Layers", "Files"). It is a role="tree", and an unnamed tree is announced as just "tree".
 - Do: For a file tree, nest with `subtree` and use the icon convention: `icon={<Icon name="folder" />}` on a row with a subtree, `icon={<Icon name="file" />}` on a leaf. There are no folder/file presets — they would only bind those two props.
 - Do: Give TreeAddRow the same depth as the rows it adds to, so its mark lands in their type column: one deeper than the parent for a child list, the parent's own depth for a sibling list.
-- Do: Put mutable per-row state (visibility, solo, a row menu) in `actions`, on the right rail. Show it on hover, and at rest only when its value is the non-default one.
+- Do: Put mutable per-row state (visibility, solo, a row menu) in `actions`, on the right rail. Show it on hover with `reveal-on-hover` (the row is its `group`), and at rest only when its value is the non-default one.
 - Do: Let section headers sit on the rail at the same height as a depth-0 row. Space and a hairline separate sections; TreeSection handles both, including dropping the divider on the first.
 - Don't: Hardcode a left inset anywhere in the panel. Use treeIndent(depth) or var(--tree-rail); a hand-written px value is how a tree ends up with four different left edges.
 - Don't: Redefine --tree-indent to anything other than --tree-column. A step smaller than the column puts a child's content left of its parent's and the nesting reads inverted.
@@ -19703,7 +20539,7 @@ Use Tree for the hierarchy panel in a workspace: layers, objects, an inspector o
 | selected | boolean | false | Selection fill and accent bar on a TreeRow. Inside a Tree it is exposed as aria-selected on the treeitem; a row rendered outside a Tree is a plain div and exposes aria-current instead. |
 | toggleLabel | string | — | Names the thing being disclosed, for the toggle's accessible label — "Expand Background" rather than "Expand group". Every example passes it; a screen-reader user hearing twenty identical "Expand group" buttons has no way to tell them apart. |
 | icon | ReactNode | — | The kind marker for a TreeRow, rendered in the type column at 1em. Use a semantic Icon so it follows the app icon set. |
-| disclosureIcon | ReactNode | — | Replaces TreeRow's semantic chevron-down icon. Omit to use the current IconProvider set or Reicon by default. |
+| disclosureIcon | ReactNode | — | Replaces TreeRow's semantic chevron-down icon. Omit to use the chevron-down from the app's IconProvider set. |
 | actions | ReactNode | — | Right-rail controls for a TreeRow: visibility, solo, a row menu. |
 | label | ReactNode | — | TreeAddRow's visible label. Name what gets added — 'Add effect', not 'Add'. |
 
@@ -19719,7 +20555,7 @@ Use Tree for the hierarchy panel in a workspace: layers, objects, an inspector o
 - Each treeitem is named by its own label (aria-labelledby the name), never by the text of its icon or action buttons.
 - The disclosure is a real button with aria-expanded and a label naming what it discloses, and it stops propagation so collapsing a group never changes the selection. Inside a Tree the treeitem carries aria-expanded and the arrow keys, so the button becomes a pointer target only: aria-hidden, out of the tab order, and it leaves focus where it was when clicked.
 - The disclosure's POINTER TARGET is bigger than the mark it draws. `--tree-column` is 20px comfortable and 18px compact, both under WCAG 2.5.8's 24x24 floor, so a centred pseudo-element takes the hit at `--control-xs` (28/24) instead. The drawn box stays on the column, because that column is also the indent step — growing the button would push every name in the tree one column right.
-- Right-rail actions stay in the tab order, so a row with actions costs extra Tab stops. Keep actions few and show them on hover and focus-visible.
+- Right-rail actions stay in the tab order, so a row with actions costs extra Tab stops. Keep actions few and reveal them with `reveal-on-hover`, which also shows them on focus and always on touch.
 - `dimmed` is presentation only. A row switched off must also say so in its actions' aria-pressed or its accessible name; opacity alone is invisible to a screen reader and fails contrast.
 - Right-rail controls that appear on hover must also appear on focus-visible, or they are unreachable by keyboard.
 
@@ -20428,8 +21264,7 @@ Which token to reach for, and what it is most often confused with. Generated fro
 
 The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, when to reach for it, and what you would hand-write without it. Generated from `src/utilities/utility-docs.ts`; the full data is `registry.json → utilities`; one entry at a time with `sable utility <name>`.
 
-- **Typography:** The paired `text-*` page tiers (`text-heading-1`, `text-body-md`, `text-label-sm`, `text-mono-md`, …) are documented as `registry.json → tokens.typography` (named without the `text-` prefix). `sable token typography`.
-- **Motion:** The `motion-*` and `animate-*` recipes are listed in `registry.json → tokens.motion.recipes`, with the slot model in `registry.json → motionLayer`. `sable docs motion`.
+- **Typography:** The paired `text-*` page tiers (`text-heading-1`, `text-body-md`, `text-label-sm`, `text-mono-md`, …) are documented as `registry.json → tokens.typography` (named without the `text-` prefix). Retrieve one with `sable utility text-heading-1`, all with `sable token typography`.
 
 ### relative surface (6)
 
@@ -20557,12 +21392,93 @@ The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, wh
     - **Instead of** An animated fade or a hand-written `mask-image` gradient. Use `StreamingText` first; this is for a stream rendered without it.
     - `<span className="stream-tail">{latestChunk}</span>`
 
-### helper (3)
+### motion (24)
+
+- **`motion-interactive`** — The transition for interactive chrome: colour, background, border, shadow, opacity, fill, stroke, scale and translate at the fast duration and standard easing. Also removes the mobile tap delay and the platform's grey tap flash. *Use for:* On anything clickable that changes on hover, focus, press or selection: a custom row, a tile, a link, an app-owned button. It is the `response` slot, and the only transition declarer such an element needs.
+    - **Instead of** Tailwind's colour-only or all-property transition utilities with a hand-picked duration. Those ignore --motion-scale, skip the transform properties `motion-press` needs, and leave the 300ms tap delay on touch screens. sable-lint's `static-interactive` fires on a hover style with no recipe.
+    - `<a href="/inbox" className="motion-interactive link-underline text-primary">Inbox</a>`
+- **`motion-press`** — A small tactile settle (scale 0.97) while the element is pressed. Skips disabled elements. Declares only the pressed state, not a transition. *Use for:* A pressable surface that is not a Sable Button (Button already has it): a tile, a card that acts as a button, an icon control.
+    - **Instead of** An `active:` scale utility with its own transition, which fights `motion-interactive` for the transition property and keeps animating with motion off.
+    - `<button type="button" className="motion-interactive motion-press sable-surface sable-frame sable-frame-r-lg sable-frame-p-4">Open</button>`
+- **`motion-fade`** — Opacity-only enter and exit, keyed to Base UI's `data-starting-style` / `data-ending-style`: fades in at the enter duration, out at the exit duration. *Use for:* Scrims, backdrops and overlays that should appear without moving. The element rests visible; the data attributes supply the from and to.
+    - **Instead of** A keyframe fade or a conditional opacity class, which cannot animate the exit of an element Base UI is unmounting.
+    - `<div className="motion-fade fixed inset-0 bg-overlay" />`
+- **`motion-pop`** — Enter with a slight scale from the anchor edge (spring easing) and exit faster without overshoot, keyed to `data-starting-style` / `data-ending-style`. Scales from Base UI's `--transform-origin`. *Use for:* Anchored or centred floating surfaces: popovers, menus, selects, tooltips, dialogs, command menus. Sable's own overlays already carry it.
+    - **Instead of** A custom zoom keyframe, or a spring on exit, which draws the eye to what the user just dismissed.
+    - `<div className="motion-pop sable-surface-popover bg-popover text-popover-foreground rounded-lg shadow-lg">…</div>`
+- **`motion-slide-up`** — Fade plus a 0.5rem rise on enter, reversed faster on exit, keyed to `data-starting-style` / `data-ending-style`. The suffix is the travel direction on enter. *Use for:* A surface arriving from below: a toast at the bottom of the screen, a bottom bar, a banner under its trigger.
+    - **Instead of** A translate keyframe with a literal duration, which keeps moving under reduced motion.
+    - `<div className="motion-slide-up sable-surface rounded-lg">Saved</div>`
+- **`motion-slide-down`** — Fade plus a 0.5rem drop on enter, reversed faster on exit, keyed to `data-starting-style` / `data-ending-style`. *Use for:* A surface arriving from above: a top toast, a dropdown panel that reads better sliding than scaling.
+    - **Instead of** A translate keyframe with a literal duration.
+    - `<div className="motion-slide-down sable-surface rounded-lg">Connected</div>`
+- **`motion-slide-left`** — Fade plus a 0.5rem travel leftward on enter (it starts offset to the right), reversed faster on exit. *Use for:* A surface arriving from the right edge: a side panel, a right-anchored toast.
+    - **Instead of** A translate keyframe with a literal duration.
+    - `<aside className="motion-slide-left sable-surface">…</aside>`
+- **`motion-slide-right`** — Fade plus a 0.5rem travel rightward on enter (it starts offset to the left), reversed faster on exit. *Use for:* A surface arriving from the left edge: a navigation drawer, a left-anchored toast.
+    - **Instead of** A translate keyframe with a literal duration.
+    - `<nav className="motion-slide-right sable-surface">…</nav>`
+- **`motion-disclosure`** — Height plus fade for a panel that opens and closes: carries the overflow, the transition and the content fade. The component sets the target height and zeroes it on the starting/ending style. *Use for:* A hand-built expanding region. Accordion and Collapsible already use it; reach for them first.
+    - **Instead of** Animating max-height to a guessed number, or a show/hide with no transition. Height is the one sanctioned non-compositor property.
+    - `<div className="motion-disclosure h-[var(--collapsible-panel-height)]">…</div>`
+- **`motion-icon-swap`** — Cross-fades two glyphs stacked in one cell when a control's icon changes with its state: the outgoing one shrinks and blurs out, the incoming one resolves in. The inactive glyph is the one marked `aria-hidden="true"` (or `data-active="false"`). *Use for:* Play/pause, mute/unmute, outline/fill, copy/check, menu/close: one control whose icon changes. Keep both icons mounted; the correct accessibility markup is also the animation hook.
+    - **Instead of** Rendering one icon or the other (it snaps between two frames), or absolutely positioning the second icon, which collapses the wrapper. Under reduced motion the swap is instant and the glyph still changes.
+    - `<span className="motion-icon-swap"><Icon name="play" aria-hidden={playing} /><Icon name="pause" aria-hidden={!playing} /></span>`
+- **`motion-spin`** — A continuous rotation for a spinner glyph, scaled by --motion-scale so reduced motion freezes it. *Use for:* A loading glyph that is not the Spinner component (use Spinner first), such as an icon inside a busy button.
+    - **Instead of** Tailwind's built-in spin animation, which ignores --motion-scale. sable-lint's `builtin-animate` flags it.
+    - `<Icon name="spinner" className="motion-spin" />`
+- **`motion-orbit`** — A slow continuous rotation (24s by default) for ambient line art. `--motion-orbit-duration` sets the speed and `--motion-orbit-direction` the direction; it rotates about the centre of any viewBox. *Use for:* The idle loop of an illustration or schematic after it draws on, usually with `motion-draw` on the same figure.
+    - **Instead of** `motion-spin`, which is a loader's speed, or a hand-written keyframe that keeps turning under reduced motion.
+    - `<svg className="motion-orbit [--motion-orbit-duration:40s]" viewBox="0 0 200 200">…</svg>`
+- **`motion-pulse`** — A soft looping opacity pulse, scaled by --motion-scale. *Use for:* A live or pending indicator: a recording dot, an unsaved marker, a pending status.
+    - **Instead of** Tailwind's built-in pulse animation, which ignores --motion-scale. For a loading placeholder use Skeleton or `motion-shimmer`.
+    - `<span className="motion-pulse size-2 rounded-full bg-destructive" />`
+- **`motion-shimmer`** — The skeleton sweep: one band of light that passes across every skeleton on screen in sequence, because the gradient is fixed to the viewport. Rests off-screen, so with motion off a skeleton is a calm block. *Use for:* A hand-built loading placeholder. The Skeleton component already uses it.
+    - **Instead of** A pulse on each block, or a per-box gradient, where a short line and a tall card sweep at different speeds.
+    - `<div className="motion-shimmer h-4 w-48 rounded-md bg-muted" />`
+- **`motion-text-shimmer`** — The sweep run through the glyphs instead of behind them, for a live status line. The gradient goes muted to foreground and back, so the text stays readable on every frame. *Use for:* Status text while work is happening: "Thinking…", "Searching", "Generating response".
+    - **Instead of** `motion-shimmer` on text, which paints a band behind real words and reads as a skeleton. Named `motion-*`, not `text-*`, so tailwind-merge does not drop the colour class beside it.
+    - `<span className="motion-text-shimmer text-body-sm">Thinking…</span>`
+- **`motion-dot-bounce`** — A looping vertical bounce for one dot of a typing or waiting indicator. Offset each dot with an animation delay. *Use for:* A three-dot typing indicator in a chat or assistant surface.
+    - **Instead of** Tailwind's built-in bounce animation, which ignores --motion-scale.
+    - `<span className="motion-dot-bounce size-1.5 rounded-full bg-muted-foreground" />`
+- **`motion-ping`** — A looping ring that expands and fades from a point, scaled by --motion-scale. *Use for:* Drawing attention to a live point: a new-activity dot, a location marker, a beacon behind a status dot.
+    - **Instead of** Tailwind's built-in ping animation, which ignores --motion-scale.
+    - `<span className="motion-ping absolute inset-0 rounded-full bg-success" />`
+- **`animate-fade-in`** — A one-shot fade in on mount at the base duration, decelerating, with `both` fill so there is no flash before it starts. *Use for:* Content that appears once when a route or panel mounts.
+    - **Instead of** A keyframe with a literal duration. For content entering on scroll use Reveal (`motion-reveal`).
+    - `<section className="animate-fade-in">…</section>`
+- **`animate-fade-up`** — A one-shot fade plus rise on mount at the slow duration, decelerating, with `both` fill. *Use for:* A page section or list arriving from below on mount.
+    - **Instead of** A translate keyframe with a literal duration. For scroll-triggered entrances use Reveal.
+    - `<div className="animate-fade-up">…</div>`
+- **`animate-fade-down`** — A one-shot fade plus drop on mount at the slow duration, decelerating, with `both` fill. *Use for:* Content arriving from above on mount, such as a notice under a header.
+    - **Instead of** A translate keyframe with a literal duration.
+    - `<div className="animate-fade-down">…</div>`
+- **`motion-stream-in`** — Each token of a live stream resolves in from a slight blur once, on mount. Knows nothing of the final length, so there is no stagger. *Use for:* Wrapping each arriving chunk of a streamed response. StreamingText already does it.
+    - **Instead of** The reveal recipes, which stage text that is already there, or a typewriter effect.
+    - `<span key={chunk.id} className="motion-stream-in">{chunk.text}</span>`
+- **`motion-caret`** — A caret that blinks only when idle and holds steady while `data-streaming="true"`, so the blink returning signals the stream has finished. *Use for:* The cursor at the end of streamed or typed text.
+    - **Instead of** A caret that blinks while text is arriving, which sets two competing rhythms.
+    - `<span className="motion-caret" data-streaming={streaming} aria-hidden="true">▍</span>`
+- **`motion-reveal`** — Fade plus a 0.75rem rise when `data-reveal` flips from "out" to "in". Out of view it rests hidden and nudged down; with motion off the content stays visible. *Use for:* Through the Reveal and TextReveal components, which set `data-reveal` when the element scrolls into view. Use the class directly only on an element whose `data-reveal` you set yourself.
+    - **Instead of** An IntersectionObserver plus hand-written opacity classes.
+    - `<Reveal><Card>…</Card></Reveal>`
+- **`motion-draw`** — Draws an SVG path on when an ancestor's `data-reveal` flips to "in". The path needs `pathLength="1"`. `--motion-draw-duration` and `--motion-draw-delay` (both scaled by --motion-scale) set its pace and stagger. *Use for:* Line art and schematics inside a Reveal. Stagger sibling paths with `--motion-draw-delay`.
+    - **Instead of** A hand-written dash-offset animation with literal timing, which keeps animating, or keeps its delay, under reduced motion.
+    - `<Reveal><svg viewBox="0 0 100 100"><path className="motion-draw" pathLength="1" d="M10 50 L90 50" /></svg></Reveal>`
+
+### helper (5)
 
 - **`hit-target`** — Grows an element's tap target to 44px with a transparent `::after`, without moving its layout by a pixel. `--hit-target-size` overrides the size. *Use for:* A deliberately small mark — a tag's remove ×, a tiny disclosure, a toast close — that must still meet the WCAG touch floor. Shrink it (`[--hit-target-size:32px]`) where targets sit side by side, or the later one steals the taps.
     - **Instead of** Padding the glyph up (moves it off the row's grid and pushes siblings) or a bigger icon. Never on an `<input>` or other replaced element — pseudo-elements silently do nothing there; wrap it in a label.
     - `<button className="hit-target text-muted-foreground" aria-label="Remove"><Icon name="xmark" /></button>`
-- **`link-underline`** — An underline drawn from the font's own metrics (position and thickness `from-font`) with ink skipping descenders, so it retunes when a theme swaps typeface. *Use for:* Inline links in running text. Pair with `motion-interactive` for a colour change on hover.
+- **`reveal-on-hover`** — Hides a row or tile action until its item is hovered or holds focus — on hover-capable devices only. Touch and no-hover devices always show it, and it fades with opacity, so it never leaves the tab order or the accessibility tree. The item is the nearest ancestor with `group` (or `data-reveal-scope`); an open popup keeps its trigger visible. `--reveal-offset` adds a short rise. *Use for:* Secondary per-item actions in a dense list or grid — a tile's play button, a row's overflow menu or visibility toggle — where showing every action at rest would turn the list into a wall of controls. Put `group` on the item (the row, the tile), not on the list, and the class on the action or its wrapper.
+    - **Instead of** `opacity-0 group-hover:opacity-100` (hidden forever on a phone), `hidden group-hover:flex` (drops it from the tab order and the accessibility tree), or a hand-written `[@media(hover:hover)]:opacity-0` pair (snaps, and misses focus and open menus). Not for a primary action — that stays visible.
+    - `<li className="group flex items-center gap-2"><span className="flex-1">Track</span><Button variant="ghost" size="icon-sm" aria-label="Like Track" className="reveal-on-hover"><Icon name="heart" /></Button></li>`
+- **`stretched-link`** — Makes one link cover its whole item with a transparent `::after`, so a tile or card is clickable everywhere while its other links and buttons stay separate controls. Focus draws the ring on the overlay, rounded by `--stretched-link-radius`. *Use for:* A card, tile or row that IS a link but also holds a second control — a subtitle link to the artist, a play button, a menu. Put it on the primary link (usually the title), `relative` on the item, and `relative z-10` on every other control.
+    - **Instead of** Wrapping the item in an `<a>` or `Card render={<a />}` — invalid as soon as it nests another link or button, which browsers re-parent and screen readers read as one long link. Not with `hit-target` on the same element (both own `::after`).
+    - `<article className="relative [--stretched-link-radius:var(--radius-lg)]"><a href="/albums/1" className="stretched-link">Low tide</a><a href="/artists/2" className="relative z-10">Juno Avery</a></article>`
+- **`link-underline`** — An underline drawn from the font's own metrics (position and thickness `from-font`) with ink skipping descenders, so it retunes when a theme swaps typeface. Also carries the link's focus-visible outline in `--ring`, so a plain `<a>` meets the focus floor without app CSS. *Use for:* Every plain text link — inline in running text or standalone ("Forgot password?"). Pair with `motion-interactive` for a colour change on hover.
     - **Instead of** `underline underline-offset-4 decoration-2` — tuned to one face and wrong for the next theme's. Animating thickness or offset is not supported; a growing underline is a separate pseudo-element.
     - `<a href="/terms" className="link-underline motion-interactive text-primary">terms</a>`
 - **`checkerboard`** — The transparency checkerboard, painted from `--panel` and a derived darker step so it reads in both modes. `--checkerboard-size` (default 16px) and `--checkerboard-alt` tune it. *Use for:* Behind anything that can be translucent: a colour swatch with alpha, an image or artboard preview, an alpha slider track.

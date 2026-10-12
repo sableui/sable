@@ -391,14 +391,19 @@
 	   lifted from their text strength to an art strength, glowing over the brand
 	   steeped in the first tone; a theme overrides any of it through the
 	   --theme-art-* hooks. Declared here, on every scope, so a .dark island or a
-	   preset-scoped preview paints from its own tokens. */
+	   preset-scoped preview paints from its own tokens.
+
+   Art that keys off the brand reads `--theme-art-brand`, falling back to
+   `--primary`. They are the same colour until a look turns the primary action
+   neutral (black/white buttons): then the art must keep the brand, or Ember's
+   embers go grey. Set the hook to the brand wherever --primary stops being it. */
 	--art-1: var(--theme-art-1, oklch(from var(--tone-info) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h));
 	--art-2: var(--theme-art-2, oklch(from var(--tone-collectible) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h));
 	--art-3: var(--theme-art-3, oklch(from var(--tone-edition) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h));
 	--art-4: var(--theme-art-4, oklch(from var(--tone-standard) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h));
 	--art-5: var(--theme-art-5, transparent);
 	--art-6: var(--theme-art-6, transparent);
-	--art-ground: var(--theme-art-ground, color-mix(in oklab, var(--primary) 55%, oklch(from var(--tone-info) 0.3 c h)));
+	--art-ground: var(--theme-art-ground, color-mix(in oklab, var(--theme-art-brand, var(--primary)) 55%, oklch(from var(--tone-info) 0.3 c h)));
 	--art-warp: var(--theme-art-warp, 0.8);
 	--art-softness: var(--theme-art-softness, 0.88);
 	--art-grain: var(--theme-art-grain, 0);
@@ -1062,6 +1067,103 @@
 	}
 }
 
+/* Reveal on hover — row and tile actions that rest hidden and appear when the
+   pointer is over their item, without ever becoming unreachable.
+
+   Every app hand-writes this, and the hand-written version is wrong in one of
+   three ways: `group-hover:opacity-100` alone hides the action FOREVER on a
+   phone (touch has no hover), `hidden group-hover:flex` drops it from the tab
+   order and the accessibility tree, and the `[@media(hover:hover)]:` fix that
+   handles the first two snaps with no transition. This is the one version that
+   is right on all three:
+
+   - HIDDEN only where `(hover: hover)` — a touch or no-hover device shows the
+     action at rest, always.
+   - SHOWN when the nearest host is hovered, when anything in it holds focus
+     (Tab to the row and its actions appear), and while the action's own popup
+     is open (an overflow menu whose list took focus into a portal does not
+     vanish from under itself).
+   - OPACITY, never display or visibility: the action stays in the tab order
+     and the accessibility tree, so a keyboard or screen-reader user never has
+     to discover it first.
+
+   The host is the nearest ancestor with Tailwind's `group` class (or a
+   `data-reveal-scope` attribute, for a host whose `group` is named). "Nearest"
+   falls out of how hover works: hovering an inner host hovers every host
+   around it, so the action hides exactly when its own host is not hovered or
+   focused. A bare `reveal-on-hover` with no host stays visible — the safe
+   failure. Put the host on the ITEM (the row, the tile), never on the list:
+   hovering anywhere in a list host reveals every action in it at once.
+
+   The transition lists exactly what `motion-interactive` does, so it composes
+   with a Sable Button (which carries that recipe) instead of fighting it for
+   transition-property; the durations are motion tokens, so reduced motion and
+   <MotionProvider> off make the reveal an instant swap. `--reveal-offset`
+   (default 0) adds a short rise while hidden — `[--reveal-offset:--spacing(1)]`.
+
+   `:has()` and selector-list `:not()` are load-bearing. A browser without them
+   drops the hiding rule entirely and the action simply stays visible. */
+@utility reveal-on-hover {
+	transition-property: color, background-color, border-color, box-shadow,
+		opacity, fill, stroke, scale, translate;
+	transition-duration: var(--motion-duration-fast);
+	transition-timing-function: var(--motion-ease-standard);
+
+	@media (hover: hover) {
+		:is(.group, [data-reveal-scope]):not(:hover, :focus-within)
+			&:not(:focus-within, [data-popup-open], [aria-expanded="true"]):not(
+				:has([data-popup-open], [aria-expanded="true"])
+			) {
+			opacity: 0;
+			translate: 0 var(--reveal-offset, 0);
+		}
+	}
+}
+
+/* Stretched link — one link that makes its whole item clickable, while the
+   item's OTHER controls stay separately clickable and focusable.
+
+   Wrapping a card or tile in an <a> is the instinct, and it is invalid the
+   moment the item holds a second link or a button (interactive content cannot
+   nest): browsers re-parent the inner one, screen readers announce the whole
+   card as one link label, and the inner control activates the outer link.
+   Instead the item's PRIMARY link — usually its title — grows a transparent
+   `::after` over the nearest positioned ancestor (give the item `relative`).
+   Pointer clicks anywhere on the item land on the link; the link is still one
+   tab stop with its own short name.
+
+   Raise every other control above it with `relative z-10` — a subtitle link, a
+   play button, an overflow menu. Text that should stay selectable needs the
+   same, or the overlay swallows the drag.
+
+   Focus draws on the overlay, not the text: a ring around the title alone
+   would say "this word is the link" when the whole item is. The ring follows
+   `--stretched-link-radius` (default 0), so set it to the item's corner.
+
+   Not with `hit-target` on the same element — both own `::after`. */
+@utility stretched-link {
+	&::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		/* 1, not 0: a positioned sibling later in source (a cover in an
+		   AspectBox) would otherwise paint over the overlay and eat its clicks. */
+		z-index: 1;
+		border-radius: var(--stretched-link-radius, 0);
+	}
+
+	&:focus-visible {
+		outline: none;
+	}
+
+	&:focus-visible::after {
+		outline: 2px solid var(--color-ring);
+		/* 4px, not the controls' 2px: the ring goes around a whole item whose
+		   text runs to its edge, and 2px left the words touching the ring. */
+		outline-offset: 4px;
+	}
+}
+
 /* Link underline — driven by the FONT'S OWN metrics, so it retunes itself when
    a theme swaps typeface (which Sable themes do). `from-font` takes the
    underline position and thickness the type designer shipped in the face,
@@ -1074,12 +1176,25 @@
    the line box. If you want an underline that GROWS on hover, that is a
    separate element (a positioned pseudo-element with a scaled transform), not
    this utility. Pair with `motion-interactive`, whose transition-property list
-   already covers `color`. */
+   already covers `color`.
+
+   It also carries the link's focus treatment, because a plain <a> has no
+   component to supply one and would otherwise fall back to the browser's
+   default ring in the UA colour. An OUTLINE, not the components' box-shadow
+   `ring`: outline follows each line fragment of a link that wraps, and it
+   survives forced-colors where box-shadow is dropped. Full-opacity `--ring`,
+   same floor as every component (sable docs accessibility → Focus). */
 @utility link-underline {
 	text-decoration-line: underline;
 	text-underline-position: from-font;
 	text-decoration-thickness: from-font;
 	text-decoration-skip-ink: auto;
+
+	&:focus-visible {
+		outline: 2px solid var(--color-ring);
+		outline-offset: 2px;
+		border-radius: 2px;
+	}
 }
 
 /* ==========================================================================

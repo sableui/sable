@@ -4,7 +4,7 @@
 
 Pill-shaped action primitive (theme-driven radius via --button-radius, defaults to full). Neutral tiers (primary/secondary/ghost/outline), plus destructive and link, and three on-color tiers (on-color/on-color-outline/on-color-ghost) that paint with the surrounding ink so a button reads on any tone or brand fill. Optional loading state shows a spinner and disables the button.
 
-**Keywords:** button, action, cta, submit, save, cancel, destructive, loading, link, icon button, on color, inverse, band, brand fill, tone fill
+**Keywords:** button, action, cta, submit, save, cancel, destructive, loading, link, icon button, on color, inverse, band, brand fill, tone fill, bleed, optical alignment, align label to edge, negative margin, view all
 
 ## Usage
 
@@ -16,7 +16,9 @@ Use Button when the user commits an action, submits a form, opens UI, or confirm
 - Do: Write labels as actions, such as "Save changes" or "Delete draft", instead of vague labels like "OK".
 - Do: Use loading with loadingLabel for async work so the action cannot double-fire and the state is announced.
 - Do: Put icons in iconStart / iconEnd rather than as children, so the button applies its optical padding. Start icons say what the action is (plus, share); end icons say where it goes (chevron-right, external).
+- Do: Set bleed on a ghost or link button that sits at the start or end of a row, so its LABEL lines up with the content edge the row shares ("View all" over a grid, "Add task" under a list, "Resend code" at a card footer's end). The box moves out by exactly its own padding; the hit area and hover fill stay full size and run past the edge. SectionHeader, PageHeader (back and actions) and CardAction already do this for their outermost ghost/link child — don't add it there, and use bleed="none" to opt one out.
 - Do: On a coloured fill — a solid Banner, a bg-tone-* or bg-primary band, an inverse (bg-foreground) section, a brand panel — use variant="on-color" for the main action and on-color-outline / on-color-ghost for the rest. They paint with the band's inherited ink (currentColor), so the surface must set its paired ink (text-tone-info-foreground, text-primary-foreground, text-background…), which it already should. Name the fill once on the surface, e.g. [--on-color-fill:var(--tone-info)], and the solid button's label takes the fill colour; unnamed, it falls back to black or white against the ink. Both clear 4.5:1 in every shipped theme and mode.
+- Don't: Pull a ghost button onto an edge with -ms-3 / -me-3 classNames. That number is one size's padding: it is wrong at xs, md and cta, wrong on a side carrying an icon, and wrong once a preset retunes the spacing. bleed reads the button's own padding var. And don't bleed a filled or outlined button — its visible edge is what aligns, so bleed is a no-op there.
 - Don't: Use destructive for reversible or low-risk actions; reserve it for operations with real loss or danger.
 - Don't: Use a button for plain navigation. Compose with render={<a />} when the element should behave like a link.
 - Don't: Use secondary on a tinted surface — inside a Note, a soft Banner, or any tone fill. `secondary` is a near-background surface token (in some themes within 2% of the page), so on a tint it reads as a hole punched in the fill rather than as a control sitting on it. On a soft tint use outline or ghost; on a full-strength fill use the on-color tiers.
@@ -43,6 +45,7 @@ Use Button when the user commits an action, submits a form, opens UI, or confirm
 | loadingLabel | ReactNode | — | Optional text shown in place of children while loading. |
 | iconStart | ReactNode | — | Icon before the label. The button takes one 2px step off its start padding so icon + label read as centred. Replaced by the spinner while loading. |
 | iconEnd | ReactNode | — | Icon after the label (disclosure, external link, next). Same optical correction on the end side. |
+| bleed | "start" \| "end" \| "both" \| "none" | — | Optical alignment for a borderless button (ghost, link, on-color-ghost): a negative inline margin of exactly its own padding on that side — --button-px, or the icon side's optical padding when an icon sits there; an icon-only size bleeds by its inset to the glyph — so the label (or glyph) lands on the content edge. Hit area and hover/focus fill keep their full size. Logical sides, so it mirrors in RTL. A no-op on variants with a visible edge (primary, secondary, outline, destructive, floating, field, on-color, on-color-outline): a filled button aligns its edge, not its label. Unset, a borderless button renders data-bleed="auto" and SectionHeader, PageHeader and CardAction bleed it when it is their outermost child; none opts out. |
 
 ## Variants
 
@@ -68,6 +71,7 @@ Use Button when the user commits an action, submits a form, opens UI, or confirm
 - Use render={<a/>} for link semantics rather than onClick navigation.
 - On-color tiers replace the --ring focus ring with one drawn in the band's ink past a transparent 2px gap, so focus stays visible on any fill (ink-on-fill is the theme's own tested pair).
 - On-color contrast is measured in button.test.tsx for every shipped theme and mode on each tone, primary, destructive, success, highlight and inverse fill: solid label at rest and hover, and outline/ghost label on the hover wash, all at least 4.5:1.
+- bleed moves only the box, never the hit target: the full padded area stays clickable and the focus ring still draws around the whole button, past the content edge.
 - loading sets aria-busy and disables activation (disabled on a native button, aria-disabled on a render element) so the action can't double-fire.
 
 ## Related
@@ -172,6 +176,21 @@ import { Button, Icon } from "@sableui/react"
 import { Button, Icon } from "@sableui/react"
 
 <Button size="icon" variant="ghost" aria-label="Share"><Icon name="share" /></Button>
+```
+
+### Optically aligned to the row's edges
+
+```tsx
+import { Button, Icon, Row, Stack } from "@sableui/react"
+
+<Stack gap={1.5}>
+  <Row justify="between">
+    <span className="text-title-md">Tasks</span>
+    <Button variant="ghost" size="sm" bleed="end">View all</Button>
+  </Row>
+  <span className="text-body-sm text-muted-foreground">Ship the release notes</span>
+  <Button variant="ghost" size="sm" bleed="start" iconStart={<Icon name="plus" />} className="self-start">Add task</Button>
+</Stack>
 ```
 
 ### Icon button with an unread badge

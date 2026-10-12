@@ -1,5 +1,278 @@
 # What's new
 
+## 0.7.0
+
+A dogfooding release. An agent built a music streaming app on Sable with
+Sable's own skill, and this release closes the gaps it hit:
+- media tiles, an image fallback and a persistent player dock;
+- section headers, portrait avatars and in-place pickers;
+- labelled sliders and focusable text links.
+The package is also much smaller per import, `sable check` runs the whole
+finish check in one command, and lint now catches hand-assembled lookalikes of
+Sable components.
+
+### Upgrading from 0.6
+
+- **Icons are opt-in.** Wrap the app once in `<IconProvider set={reiconIconSet}>`,
+  with `reiconIconSet` from `@sableui/react/icons/reicon`. Without it, every
+  `<Icon>` (including those inside Sable components) renders nothing, and
+  `sable doctor` reports it.
+- **`SableThemeProvider` defaults to `"system"`.** Pass
+  `defaultPreference="dark"` to keep the old first-visit mode.
+- **`Grid minItemWidth` keeps its empty columns (`auto-fill`).** Pass
+  `track="fit"` where a fixed set should stretch across the row.
+- **Button's side padding is a variable.** A `px-*` className on a Button no
+  longer matches its optical alignment (`bleed`). Set `--button-px` instead.
+
+### Everything in this release
+
+- **`SableThemeProvider` follows the visitor's OS on a first visit.**
+  `defaultPreference` now defaults to `"system"` instead of `"dark"`. A stored
+  choice still wins. **Behaviour change:** an app that relied on the implicit
+  dark default should pass `defaultPreference="dark"` (or its preset's
+  `defaultMode`).
+- **`Slider` names the slider, not its wrapper.** `aria-label` used to land on
+  the Root's `role="group"`, so screen readers announced an unnamed slider. It
+  now goes to each thumb's input. New `getAriaLabel` (per thumb, for ranges)
+  and `getAriaValueText` (e.g. a seek bar's "1:23 of 3:45").
+- **AppShell `dock` slot** for persistent chrome such as a now-playing or call
+  bar. It is full width and sticky to the bottom, above `bottomNav` on mobile,
+  and the app Sidebar shortens to clear it.
+- **`link-underline` carries a focus-visible outline** in `--ring`, so plain
+  text links meet the focus floor without app CSS.
+- **Media icons:** `shuffle`, `repeat`, `repeat-one`, `volume`, `volume-low`,
+  `volume-off`, `queue`, `music`.
+- **`--theme-art-brand` hook.** Ember's and Prism's art (and the default art
+  ground) key off it, falling back to `--primary`. Set it wherever the primary
+  action stops being the brand, such as a neutral black/white primary, so the
+  art keeps the brand colour.
+- **`sable lint`'s `static-interactive` rule reads variants, not substrings.**
+  A capability query like `[@media(hover:none)]:opacity-100` is no longer
+  mistaken for a hover style.
+- **Breaking: icons are opt-in.** `<Icon>` no longer falls back to Reicon, so
+  an app that brings its own set ships none of Reicon's artwork (about 190 KB
+  minified). Without an `IconProvider`, icons render nothing and a development
+  build warns once. `reiconIconSet`, `reiconIconNames` and the deprecated
+  `fallbackIconSet` moved off the root (and `/icons`) barrel to
+  `@sableui/react/icons/reicon`. **Migrate:** wrap the app once in
+  `<IconProvider set={reiconIconSet}>` with
+  `import { reiconIconSet } from "@sableui/react/icons/reicon"`.
+- **Smaller bundles: the package ships one module per source file.** `dist`
+  keeps the `src` layout instead of a few large bundles, so a bundler drops
+  every component an app does not import. Importing only `Button` used to pull
+  in about 70% of the library under esbuild; the import paths and exports are
+  unchanged. Each module also keeps its `"use client"` directive.
+- **GradientArt loads its WebGL renderer on first paint.** The shader code
+  (about 43 KB minified) is a separate chunk, so a plain `Avatar` no longer
+  ships it, and art still shows its CSS stand-in until the shader fades in.
+- **`OtpField` resolves Base UI's OTP parts when it first renders**, so apps
+  that never use it no longer carry Base UI's OTP Field.
+- **`sable check`: one command to run before calling a build done.** It runs
+  `sable doctor`, `sable lint` and `sable grade` on the given paths (default
+  `src`), prints one pass/fail summary, exits 1 if any fails, and then lists the
+  review steps no tool can verify (rendered design, journey, motion, reduced
+  motion, reuse inventory, lessons). `--json` returns `{ type: "check", data }`.
+  The skill's finish checklist now opens the skill and starts with it.
+- **`sable setup --agent` offers a Claude Code Stop hook** that runs
+  `sable check --stop-hook` before Claude can end a task: on failure it exits 2
+  with the findings on stderr, so Claude keeps working (once; a second
+  consecutive block lets it stop). Setup prints the exact `.claude/settings.json`
+  entry and writes it only with `--hook`, merging into existing settings. The
+  command is one plain invocation with no `cd`, `&&` or `${…}`, so it runs under
+  Git Bash and PowerShell 5.1 alike; `sable check --stop-hook` locates the
+  project from `CLAUDE_PROJECT_DIR` (plus `--root <dir>` for a workspace
+  package, reached with the package manager's workspace flag).
+- **`sable grade` judges each import against the subpath it came from.** It
+  checked every `@sableui/react/*` import against the root barrel, so correct
+  imports from `/blocks`, `/presets` or `/icons/reicon` read as hallucinations
+  (25 in Sable's own docs app). Each subpath's surface is now read from the
+  package `exports`, an unpublished subpath is reported as such, and
+  `reiconIconSet` imported from the root is caught. Props and icon names are
+  judged only on components imported from Sable (aliases followed), not on an
+  app's own `PageHeader` or `Icon`, and not on JSX inside template-literal code
+  samples. Media attributes such as `autoPlay` are accepted.
+- **`sable doctor` checks icons.** An app that imports Sable with no
+  `<IconProvider>` fails with the fix, since every icon would render nothing.
+- **Global flags work on every command.** `sable learn --search "…" --dense`
+  failed with "Unknown flag: --dense"; `--dense` and `--detail` are now taken out
+  before a command hands off to its script, and `--json --dense` prints that
+  script's JSON on one line. A switch no longer swallows the next word
+  (`sable component --dense Button`), and a bad `--detail` value is an error on
+  every command.
+- **Every utility in styles.css is retrievable.** `sable utility
+  motion-icon-swap` answered ERR_UNKNOWN_UTILITY: the 24 `motion-*`/`animate-*`
+  recipes were only names in `tokens.motion.recipes`. They now have full entries
+  (family `motion`), and `sable utility text-heading-1` resolves the paired type
+  tiers. A test asks the CLI for every `@utility` and `@custom-variant`, with an
+  explicit `INTERNAL_UTILITIES` list for deliberate exceptions.
+- **Providers are in the catalog.** New `sable provider [Name]` and
+  `registry.json → providers` cover SableThemeProvider, IconProvider,
+  MotionProvider, ToastProvider, TooltipProvider, CodeHighlightProvider,
+  DensityProvider and PresentationProvider: whether each is required, where it
+  goes, props and examples. `sable component SableThemeProvider` answers with the
+  provider, and search finds them. The build fails on an exported `*Provider`
+  documented nowhere.
+- **`sable docs AGENTS` serves the package's AGENTS.md** (also README,
+  CONTRIBUTING, DESIGN, CHANGELOG and llms), the file llms.txt points agents to
+  first. An unknown doc now lists the package and task guide names.
+- **`sable lint --json`** returns `{ type: "lint", data: { violations, … } }`.
+  The skill already told agents to pass `--json`; it printed text.
+- **`sable preset --check` warns when a preset is newer than the installed
+  Sable.** A preset authored with a later `sableVersion` used to validate
+  silently. It still validates, but now prints both versions and the upgrade
+  command for the project's package manager; `--json` carries it as
+  `warnings: [{ code: "WARN_PRESET_NEWER_SABLE", authoredWith, installed,
+  suggestion }]`. `--css` reports the same warning.
+- **`sable grade --template` shows what an artifact looks like.** It now starts
+  with one example screenshot and one example report artifact (they fail
+  validation until replaced with real captures), and `sable docs
+  reviewing-a-design` lists every artifact field with its meaning.
+- **`SheetList`**: edge-to-edge rows in a Sheet (a queue, notifications, a
+  picker), the Sheet equivalent of `CardList`. Entity rows line up with
+  `SheetHeader` instead of sitting 12px in, with no `--entity-px` override. The
+  Sheet's padding is now the `--sheet-p` variable.
+- **`SidebarBrand`**: the brand row on the same grid as `SidebarItem`, with the
+  mark in the icon slot and the name on the label column. It collapses to the
+  mark. The dashboard and settings patterns use it.
+- **GradientArt gives each seed its own variant of the palette.** The palette
+  turns by up to ±20° of hue and ±0.04 lightness, so presets whose art is one
+  colour family (Ember, brand-derived palettes) still tell artists and covers
+  apart. The same seed still paints the same art.
+- **Selected table rows paint their fill on the cells**, each overlapping the
+  next by 1px, to rule out hairline seams at fractional column widths.
+- **`MediaPlayerBlock`'s seek bar runs in seconds.** The readouts follow the
+  drag, and the slider announces "1:24 of 3:40".
+- **`static-interactive` explains display-only hovers.** When a hover only
+  flips `display`, visibility or an underline, the hint points at an opacity
+  swap or `motion-icon-swap` instead of `motion-interactive`.
+- **ThemeSelector draws each theme as a miniature of itself.** Each tile is
+  the theme's background, "Aa" in its display face, a card, and a primary
+  button whose corners scale from the theme's real radii, so it shows shape as
+  well as colour. Four of six themes used to come out as the same
+  white-and-black strip. Names sit in the app's face, so every option is the
+  same height. The selected tile takes an outline in the app's own ink, and
+  list rows carry a small tile. A light preview is now pinned with `.light`, so
+  a dark page no longer paints it dark. The docs' Customize panel uses this
+  component instead of its own preset tiles.
+- **Segmented controls follow the theme's control shape.** ThemeSwitcher and
+  ToggleGroup `appearance="segmented"` take `--button-radius`, the same corners
+  as Button: square in Meridian, 12px in Poppy, a capsule in Sable.
+- **`sable lint` catches assemblies, not just controls.** Four new
+  consumer rules (new in 0.7.0, so `sable-lint --since 0.6.2` lists them) find
+  pieces built from Sable's utilities and tokens, which every token rule passes:
+  `lookalike-grid` (a raw `grid` over mapped or repeated items, or an
+  auto-fill `minmax()` track → `Grid`, with the `cols` map spelled out),
+  `lookalike-card` (an `<a>`, `<button>` or router `<Link>` with a card's
+  radius, surface and padding → `Card render={…}`), `lookalike-avatar` (a
+  round fixed-size box holding an image, GradientArt or initials → `Avatar`)
+  and `lookalike-media-frame` (`aspect-*` + `overflow-hidden` around media →
+  `AspectBox`). Each needs a signal beyond the classes, so a form grid, a text
+  link, a status dot or an empty ratio box is left alone. The docs site's own
+  item grids now compose `Grid`.
+- **`sable grade` and `sable check` list app-owned surfaces.** Elements with a
+  card fill, a bordered padded box, a media frame or a fixed-size circle are
+  listed with the component to consider (`inventory` in `--json`). The list is
+  never scored and never fails a check; it is the starting point for the reuse
+  inventory.
+- **`MediaTile`: a cover-first tile** for albums, videos, podcasts, galleries
+  and shelves. Square, `video` or `poster` cover, a title and subtitle that
+  can each be links (`href` / `render={<Link />}`, `subtitleHref` /
+  `subtitleRender`), an `action` over the cover's corner and a `badge` on it.
+  The whole tile follows the title's link without wrapping anything in an
+  `<a>`, so the artist link and the play button stay separate controls; Tab
+  goes title → subtitle → action.
+- **`MediaImage`: an image with a fallback.** It fills its box, rests on a
+  muted surface while loading, fades the image in, and paints GradientArt
+  seeded by the item when there is no `src` or it fails to load. It uses
+  Base UI's image-load tracking, the same Avatar uses, so a failure before
+  hydration is still caught. `MediaPlayerBlock` and `ProductCardBlock` use it
+  for their artwork; add the image URL to their content constant.
+- **`reveal-on-hover` utility** for row and tile actions that wait for hover.
+  It hides the action only on devices that can hover, shows it on hover or
+  focus within the nearest `group` (or `data-reveal-scope`) and while its menu
+  is open, and fades on the motion tokens. The action stays in the tab order
+  and the accessibility tree, and touch devices always show it. `sable lint`'s
+  `static-interactive` rule accepts it as a recipe and now suggests it for a
+  hand-written `group-hover:opacity-*` reveal.
+- **`stretched-link` utility.** One link covers its whole item while the
+  item's other controls stay clickable, and its focus ring goes around the
+  item (`--stretched-link-radius`).
+- **`SectionHeader`** heads each section below the page title: an h2 by
+  default (`titleAs` for h3/h4), an optional description, and actions on the
+  title row, such as a "View all" link or two small buttons. The actions drop
+  beneath the title only when the row runs out of room. `size` sets the look
+  apart from the level (`md` text-heading-3, `sm` text-heading-4), and the
+  title always carries an id (`titleId`, or a generated one) for
+  `<section aria-labelledby>`. It shares PageHeader's title row and has no outer
+  spacing, so the section's gap sets the rhythm. PageHeader's docs now point a
+  second heading to it.
+- **Avatar `xl` (96px) and `2xl` (160px)** for portraits: profile headers,
+  artist heroes and roster tiles. The initials move to `text-heading-2` /
+  `text-display-lg`, about a third of the circle as at row sizes. A `status`
+  indicator and its cut-out ring scale with the portrait, and the photo fades
+  in over the resting surface. AvatarGroup stays at `sm`–`lg`.
+- **Breaking: `Grid minItemWidth` keeps empty columns (`auto-fill`).** With one
+  or two items, `auto-fit` collapsed the empty tracks and stretched each item
+  across the row, so a single search result rendered as a full-width cover.
+  New `track` prop: `"fill"` (default) keeps items at their size whatever their
+  count; `"fit"` restores the old stretch for a fixed set designed to span the
+  row. **Migrate:** add `track="fit"` to a grid of a known, fixed number of
+  cards that should share the row (a KPI row, plan tiers).
+- **New `DisclosurePicker`:** a property row that names the current value and
+  opens its list in place, beneath the row, instead of in a popup, for a tool
+  panel where the choice is made while looking at what it changes. Parts:
+  `DisclosurePickerTrigger` (optional `label` caption and `media`, the value,
+  a chevron that flips), `DisclosurePickerPanel`, `DisclosurePickerList` (a
+  listbox: arrows move, Enter/Space/click pick and close),
+  `DisclosurePickerOption` (optional `media` and `note`) and
+  `DisclosurePickerEmpty`, plus `useDisclosurePicker()` for a list it does not
+  own, such as a Tree.
+  Search is opt-in (`search` on the panel), for lists past about a dozen
+  options. Keyboard opens move focus to the search field or the chosen option;
+  Escape and picks return it to the row. `size="xs"` sits on the
+  property-grid rung.
+- **New `FontPicker`,** built on DisclosurePicker: the row names the family in
+  its own face, and the list draws each family in itself. Fonts and loading
+  come from the app (`fonts`, `loadFont(font, "preview" | "use")`); Sable
+  bundles no catalog. Search is on by default; pass `searchable={false}` for a
+  short list.
+- **Button `bleed` — optical alignment for borderless buttons.** A ghost or
+  link button carries padding you can't see, so at the start or end of a row
+  its label sat ~12px inside the edge the row shares. `bleed="start" | "end" |
+  "both"` pulls the box out by exactly its own padding (the size's new
+  `--button-px`, which the padding now reads; the icon side's optical padding
+  when an icon sits there; an icon-only size's inset to its glyph), so the
+  label lands on the edge while the hit area and hover fill keep their full
+  size. Logical sides, so RTL mirrors. A no-op on variants with a visible edge
+  (primary, secondary, outline, destructive, floating, field, on-color,
+  on-color-outline). SectionHeader and PageHeader actions, PageHeader's back
+  control and CardAction now align their outermost ghost/link Button
+  automatically (it renders `data-bleed="auto"`; `bleed="none"` opts out);
+  when a header's actions wrap beneath the title, the first one aligns to the
+  start edge. Applied in the dashboard, feed and list-detail patterns and the
+  task-list and verify-code blocks (the feed's hand-set `-ms-3` is gone).
+  **Migrate:** replace `-ms-3` / `-me-3` nudges on ghost buttons with `bleed`;
+  to retune a button's padding set `[--button-px:…]` rather than `px-*`.
+- **`DisclosurePicker` commits on Enter, not on every arrow key.** Its list
+  was a radio group, whose checked state follows focus, so each arrow press
+  called `onValueChange`: in the docs Customize panel the first ArrowDown on
+  the preset row switched presets (or opened "discard changes?"), and on a font
+  row loaded every family passed. The list is now a `role="listbox"` of
+  `role="option"` rows: ArrowUp/ArrowDown, Home/End and type-ahead move focus
+  (roving tabindex) and apply nothing; Enter, Space or a click picks, applies
+  and closes; Escape closes with the value untouched. `aria-selected` marks the
+  committed value. `onValueChange` fires once per pick, and not when the pick
+  is the current value. ArrowUp from the first option returns to the search
+  field. New on `DisclosurePickerOption`: `media` (a leading tile),
+  `disabled`, `textValue` (what type-ahead matches). Changed from the
+  unreleased radio version: the list takes div props instead of RadioGroup
+  props, options are no longer
+  `role="radio"`, and `DisclosurePickerEmpty` belongs in place of the list,
+  not inside it. **FontPicker** inherits it: arrows walk the families, Enter
+  picks and loads one. ThemeSelector's `layout="list"` stays a radio group
+  (instant switching is standard there); its guidance now says to use a
+  DisclosurePicker list with `ThemePreview` media when a switch has a cost.
+
 ## 0.6.2
 
 - **`llms.txt` names the default theme correctly.** Its summary still called
