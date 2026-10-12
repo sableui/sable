@@ -175,6 +175,32 @@ export function SheetHeader({ className, ...props }: ComponentProps<"div">) {
 }
 
 /**
+ * Rows that run edge to edge in the sheet — Entity rows, most often: a queue,
+ * notifications, a picker. The list bleeds through the sheet's padding and
+ * hands it back to each row (`--entity-px` from `--sheet-p`), so a row's
+ * avatar and text line up with SheetHeader while its hover fill reaches the
+ * panel's edges. Without it, Entity's own inset stacks on the sheet's and the
+ * rows sit 12px in from the header. The Sheet equivalent of CardList.
+ *
+ *   <SheetContent>
+ *     <SheetHeader><SheetTitle>Up next</SheetTitle></SheetHeader>
+ *     <SheetList>{queue.map((t) => <Entity key={t.id} title={t.title} … />)}</SheetList>
+ *   </SheetContent>
+ */
+export function SheetList({ className, ...props }: ComponentProps<"div">) {
+	return (
+		<div
+			data-slot="sheet-list"
+			className={cn(
+				"-mx-(--sheet-p) flex flex-col [--entity-radius:0px] [--entity-px:var(--sheet-p)]",
+				className,
+			)}
+			{...props}
+		/>
+	)
+}
+
+/**
  * Action row, pushed to the bottom edge of the sheet via mt-auto. In a bottom
  * sheet it stacks: full width, the primary (last, on a page) on top, capped at
  * a phone's width so a wide screen does not stretch two buttons across it.

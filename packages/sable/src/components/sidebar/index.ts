@@ -2,6 +2,8 @@ export {
 	Sidebar,
 	type SidebarProps,
 	SidebarHeader,
+	SidebarBrand,
+	type SidebarBrandProps,
 	SidebarNav,
 	SidebarFooter,
 	SidebarItem,

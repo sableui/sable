@@ -7,6 +7,7 @@ export {
 	SheetTitle,
 	SheetDescription,
 	SheetHeader,
+	SheetList,
 	SheetFooter,
 } from "./sheet"
 export { sheetVariants } from "./sheet.variants"

@@ -86,6 +86,25 @@ describe("SableThemeProvider", () => {
 		expect(screen.getByTestId("presets")).toHaveTextContent("sable:sable,meridian,prism,verdant,ember,poppy")
 		expect(document.documentElement).not.toHaveAttribute(SABLE_THEME_ATTRIBUTE)
 	})
+	it.each([
+		[false, "light"],
+		[true, "dark"],
+	])("follows the OS on a first visit (prefers dark: %s → %s)", (prefersDark, mode) => {
+		vi.stubGlobal("matchMedia", (query: string) => ({
+			matches: prefersDark && query === "(prefers-color-scheme: dark)",
+			media: query,
+			addEventListener: () => {},
+			removeEventListener: () => {},
+		}))
+		render(
+			<SableThemeProvider>
+				<Probe />
+			</SableThemeProvider>,
+		)
+		expect(screen.getByTestId("state")).toHaveTextContent(`sable:system:${mode}`)
+		expect(document.documentElement.classList.contains("dark")).toBe(prefersDark)
+	})
+
 	it("hydrates stored choices and applies updates to the root element", () => {
 		window.localStorage.setItem(SABLE_COLOR_STORAGE_KEY, "light")
 		window.localStorage.setItem(SABLE_THEME_STORAGE_KEY, "meridian")

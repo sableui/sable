@@ -64,6 +64,11 @@ export const sheetMeta: ComponentMeta = {
 				description: "Supporting context for the sheet.",
 			},
 			{
+				name: "SheetList",
+				required: false,
+				description: "Edge-to-edge rows (Entity) aligned with the header — a queue, notifications, a picker.",
+			},
+			{
 				name: "SheetFooter",
 				required: false,
 				description: "Footer actions for the workflow.",
@@ -118,6 +123,12 @@ export const sheetMeta: ComponentMeta = {
 			description: "Muted supporting line; wires aria-describedby.",
 		},
 		{
+			name: "SheetList",
+			type: 'ComponentProps<"div">',
+			description:
+				"Rows that run edge to edge in the sheet, Entity most often. It bleeds through the sheet's padding (--sheet-p) and hands it back to each row as --entity-px, so row content lines up with SheetHeader and a row's hover fill reaches the panel's edges. Without it a list of Entity rows sits 12px in from the header. The Sheet equivalent of CardList.",
+		},
+		{
 			name: "SheetFooter",
 			type: 'ComponentProps<"div">',
 			description: "Bottom row for actions, pinned after the scrollable body. In a bottom sheet it stacks: full width, the primary on top, every button at the cta height.",
@@ -138,6 +149,10 @@ export const sheetMeta: ComponentMeta = {
 		"A mouse drag that starts on sheet content selects text rather than dragging the panel; mouse dragging only starts from the padding edge.",
 	],
 	examples: [
+		{
+			label: "List of rows (a queue)",
+			code: '<Sheet><SheetTrigger render={<Button variant="secondary">Queue</Button>} /><SheetContent><SheetHeader><SheetTitle>Up next</SheetTitle></SheetHeader><SheetList>{queue.map((track) => <Entity key={track.id} leading={<GradientArt aria-hidden seed={track.title} className="size-10 rounded-sm" />} title={track.title} subtitle={track.artist} />)}</SheetList></SheetContent></Sheet>',
+		},
 		{
 			label: "Basic (right)",
 			code: '<Sheet><SheetTrigger render={<Button>Open</Button>} /><SheetContent><SheetHeader><SheetTitle>Filters</SheetTitle><SheetDescription>Narrow the feed.</SheetDescription></SheetHeader><SheetFooter><SheetClose render={<Button variant="secondary">Cancel</Button>} /><SheetClose render={<Button>Apply</Button>} /></SheetFooter></SheetContent></Sheet>',

@@ -1,6 +1,7 @@
 import type { ComponentProps, ReactNode } from "react"
 import { cn } from "../../lib/cn"
 import { buttonVariants } from "../button/button.variants"
+import { AppShellDock } from "./app-shell-dock"
 
 export interface AppShellProps extends Omit<ComponentProps<"div">, "title"> {
 	/**
@@ -23,6 +24,15 @@ export interface AppShellProps extends Omit<ComponentProps<"div">, "title"> {
 	 * `lg`. Rendered fixed to the bottom edge; `<main>` reserves space for it.
 	 */
 	bottomNav?: ReactNode
+	/**
+	 * Persistent chrome that stays on screen across routes — a now-playing bar,
+	 * an active-call bar, an upload tray. Full width, pinned to the bottom edge
+	 * (above `bottomNav` on mobile); the desktop Sidebar shortens to clear it.
+	 * The contents paint their own surface and border, since content scrolls
+	 * beneath them. Keep it mounted in a layout that outlives route changes, or
+	 * the playback it controls restarts.
+	 */
+	dock?: ReactNode
 	/** Floating overlays (a message launcher, FAB, modal mount points). */
 	overlays?: ReactNode
 	/** Main content. */
@@ -32,7 +42,7 @@ export interface AppShellProps extends Omit<ComponentProps<"div">, "title"> {
 /**
  * AppShell — the application frame. Lays out optional status banners, a mobile
  * header, a desktop sidebar, the main content region, a mobile bottom nav, and
- * floating overlays, with a built-in skip link and the `#main-content` target.
+ * a persistent dock, and floating overlays, with a built-in skip link and the `#main-content` target.
  *
  * It is layout-agnostic about the breakpoint switch: each slot component owns
  * its own `hidden`/`lg:*` visibility (Sidebar is `hidden lg:flex`, AppHeader and
@@ -53,6 +63,7 @@ export function AppShell({
 	header,
 	sidebar,
 	bottomNav,
+	dock,
 	overlays,
 	className,
 	children,
@@ -106,6 +117,7 @@ export function AppShell({
 				</main>
 			</div>
 
+			{dock ? <AppShellDock aboveBottomNav={Boolean(bottomNav)}>{dock}</AppShellDock> : null}
 			{bottomNav}
 			{overlays}
 		</div>

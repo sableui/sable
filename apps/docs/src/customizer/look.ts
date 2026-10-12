@@ -565,6 +565,18 @@ function colorDecls(look: Look, base: ThemeBase, mode: "light" | "dark"): string
 
 	const brand = brandFor(look, mode)
 	const labelled = brandFill(look, mode)
+
+	// Neutral is the inverted neutral, as Sable's own preset draws it: the ink as
+	// the fill, the page as its label. Writing nothing left a coloured preset's
+	// primary in place, so Ember stayed red under a control that said Neutral.
+	if (look.primary === "neutral" && resolved.foreground && resolved.background) {
+		const asLooked = (value: Oklch) => (look.neutrals !== "theme" && isNeutral(value) ? tint(value, look.neutrals, brandHue) : value)
+		out.push(`--primary: ${formatOklch(asLooked(resolved.foreground))};`, `--primary-foreground: ${formatOklch(asLooked(resolved.background))};`)
+		// The art keys off the brand, which is no longer the primary.
+		const artBrand = labelled?.fill ?? resolved.primary
+		if (artBrand) out.push(`--theme-art-brand: ${formatOklch(artBrand)};`)
+	}
+
 	if (brand && labelled) {
 		// The brand as picked marks focus; as a labelled fill it may sit lower.
 		const ring = formatOklch(brand)

@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const sidebarMeta: ComponentMeta = {
 	name: "Sidebar",
 	summary:
-		"Desktop side-navigation rail (in-flow sticky, hidden below lg) with SidebarHeader / SidebarNav / SidebarItem / SidebarFooter parts. Items are router-agnostic via the `render` prop; an optional collapsed icon-rail mode reveals labels in tooltips.",
+		"Desktop side-navigation rail (in-flow sticky, hidden below lg) with SidebarHeader / SidebarBrand / SidebarNav / SidebarItem / SidebarFooter parts. Items are router-agnostic via the `render` prop; an optional collapsed icon-rail mode reveals labels in tooltips.",
 	status: "stable",
 	keywords: [
 		"sidebar",
@@ -76,6 +76,12 @@ export const sidebarMeta: ComponentMeta = {
 	],
 	subcomponents: [
 		{
+			name: "SidebarBrand",
+			type: "{ mark: ReactNode; label: ReactNode; render?: useRender.RenderProp } + div props",
+			description:
+				"The brand row, inside SidebarHeader, on the same grid as SidebarItem: mark in the icons' 24px slot, label on the labels' column, so a logo lines up with the nav below it without copying the rail's inset numbers. Collapsed, it shows the mark alone (named by a string label). render={<Link to=\"/\" />} makes it the home link.",
+		},
+		{
 			name: "SidebarItem",
 			type: "{ label: ReactNode; icon?: ReactNode; active?: boolean; badge?: ReactNode; render?: useRender.RenderProp } + button props",
 			description:
@@ -102,7 +108,7 @@ export const sidebarMeta: ComponentMeta = {
 	examples: [
 		{
 			label: "Rail with nav",
-			code: '<Sidebar><SidebarHeader>{brand}</SidebarHeader><SidebarNav><SidebarItem icon={<Icon name="bell" />} label="Notifications" badge={<NotificationBadge count={3} />} render={<Link to="/notifications" />} /></SidebarNav><SidebarFooter>{wallet}</SidebarFooter></Sidebar>',
+			code: '<Sidebar><SidebarHeader><SidebarBrand mark={<Icon name="music" variant="solid" />} label="Undertow" render={<Link to="/" />} /></SidebarHeader><SidebarNav><SidebarItem icon={<Icon name="bell" />} label="Notifications" badge={<NotificationBadge count={3} />} render={<Link to="/notifications" />} /></SidebarNav><SidebarFooter>{wallet}</SidebarFooter></Sidebar>',
 		},
 		{
 			label: "Collapsible (icon rail)",

@@ -83,3 +83,38 @@ describe("Slider thumb", () => {
 		expect(classes).toContain("data-[orientation=vertical]:w-full")
 	})
 })
+
+describe("Slider naming", () => {
+	// Base UI puts a Root aria-label on the role=group wrapper; only a label id
+	// reaches the thumb. Without the routing, getByRole("slider", { name }) fails.
+	it("names the slider input, not just the group", () => {
+		renderWithProviders(<Slider defaultValue={50} aria-label="Volume" />)
+		expect(screen.getByRole("slider", { name: "Volume" })).toBeInTheDocument()
+		expect(screen.queryByRole("group", { name: "Volume" })).toBeNull()
+	})
+
+	it("names a range's group and each thumb, per thumb with getAriaLabel", () => {
+		renderWithProviders(
+			<Slider
+				defaultValue={[20, 60]}
+				aria-label="Price range"
+				getAriaLabel={(i) => (i ? "Maximum price" : "Minimum price")}
+			/>,
+		)
+		expect(screen.getByRole("group", { name: "Price range" })).toBeInTheDocument()
+		expect(screen.getByRole("slider", { name: "Minimum price" })).toBeInTheDocument()
+		expect(screen.getByRole("slider", { name: "Maximum price" })).toBeInTheDocument()
+	})
+
+	it("announces getAriaValueText instead of the bare number", () => {
+		renderWithProviders(
+			<Slider
+				defaultValue={83}
+				max={225}
+				aria-label="Seek"
+				getAriaValueText={(_, v) => `${Math.floor(v / 60)}:${String(v % 60).padStart(2, "0")} of 3:45`}
+			/>,
+		)
+		expect(screen.getByRole("slider", { name: "Seek" })).toHaveAttribute("aria-valuetext", "1:23 of 3:45")
+	})
+})

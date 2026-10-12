@@ -204,8 +204,8 @@
 	--theme-art-1: oklch(from var(--tone-edition) 0.83 0.1 h);
 	--theme-art-2: oklch(from var(--tone-collectible) 0.68 0.16 h);
 	--theme-art-3: oklch(from var(--tone-info) 0.82 0.09 h);
-	--theme-art-4: oklch(from var(--primary) 0.55 0.2 h);
-	--theme-art-ground: oklch(from var(--primary) 0.35 0.14 h);
+	--theme-art-4: oklch(from var(--theme-art-brand, var(--primary)) 0.55 0.2 h);
+	--theme-art-ground: oklch(from var(--theme-art-brand, var(--primary)) 0.35 0.14 h);
 	--theme-art-warp: 0.45;
 	--theme-art-softness: 1;
 	--theme-art-grain: 0;

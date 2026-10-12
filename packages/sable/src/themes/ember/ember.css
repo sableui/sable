@@ -295,12 +295,12 @@
 [data-sable-theme="ember"],
 [data-sable-theme="ember"] .dark,
 [data-sable-theme="ember"] .light {
-	--theme-art-1: oklch(from var(--primary) 0.17 0.03 calc(h + 20));
-	--theme-art-2: var(--primary);
-	--theme-art-3: oklch(from var(--primary) 0.68 0.21 calc(h + 15));
-	--theme-art-4: oklch(from var(--primary) 0.88 0.15 calc(h + 50));
-	--theme-art-5: oklch(from var(--primary) 0.38 0.15 calc(h - 5));
-	--theme-art-ground: oklch(from var(--primary) 0.14 0.02 calc(h + 20));
+	--theme-art-1: oklch(from var(--theme-art-brand, var(--primary)) 0.17 0.03 calc(h + 20));
+	--theme-art-2: var(--theme-art-brand, var(--primary));
+	--theme-art-3: oklch(from var(--theme-art-brand, var(--primary)) 0.68 0.21 calc(h + 15));
+	--theme-art-4: oklch(from var(--theme-art-brand, var(--primary)) 0.88 0.15 calc(h + 50));
+	--theme-art-5: oklch(from var(--theme-art-brand, var(--primary)) 0.38 0.15 calc(h - 5));
+	--theme-art-ground: oklch(from var(--theme-art-brand, var(--primary)) 0.14 0.02 calc(h + 20));
 	--theme-art-warp: 0.95;
 	--theme-art-softness: 0.72;
 	--theme-art-grain: 0;

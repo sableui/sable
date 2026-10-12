@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const appShellMeta: ComponentMeta = {
 	name: "AppShell",
 	summary:
-		"The application frame: slots for status banners, a mobile header, a desktop sidebar, main content, a mobile bottom nav, and floating overlays — plus a built-in skip link and #main-content target.",
+		"The application frame: slots for status banners, a mobile header, a desktop sidebar, main content, a mobile bottom nav, a persistent dock (a now-playing or call bar), and floating overlays — plus a built-in skip link and #main-content target.",
 	keywords: [
 		"app shell",
 		"layout",
@@ -14,6 +14,10 @@ export const appShellMeta: ComponentMeta = {
 		"mobile",
 		"banners",
 		"main",
+		"dock",
+		"player bar",
+		"now playing",
+		"persistent",
 	],
 	usage: {
 		description:
@@ -81,6 +85,12 @@ export const appShellMeta: ComponentMeta = {
 				description:
 					"Mobile fixed navigation with reserved bottom space.",
 			},
+			{
+				name: "Dock",
+				required: false,
+				description:
+					"Persistent bottom chrome that outlives routes — a now-playing bar, a call bar. Sticky above the bottom nav; the desktop Sidebar shortens to clear it.",
+			},
 		],
 	},
 	related: {
@@ -114,6 +124,12 @@ export const appShellMeta: ComponentMeta = {
 				"Mobile bottom navigation (e.g. BottomNav); fixed to the bottom edge. main reserves space for it.",
 		},
 		{
+			name: "dock",
+			type: "ReactNode",
+			description:
+				"Persistent chrome kept on screen across routes (a now-playing bar, an active-call bar, an upload tray). Full width, sticky to the bottom edge and above bottomNav on mobile; its height is published as --dock-height and the app Sidebar subtracts it. In flow, so main needs no reserved space. The contents paint their own surface and top border, and name themselves (e.g. <section aria-label=\"Player\">). Mount AppShell in a layout that survives navigation, or the playback restarts.",
+		},
+		{
 			name: "overlays",
 			type: "ReactNode",
 			description:
@@ -124,6 +140,7 @@ export const appShellMeta: ComponentMeta = {
 		"Renders a skip link to #main-content as the first focusable element.",
 		"Wraps content in a <main id=\"main-content\"> landmark.",
 		"Slot components own their own ARIA (nav landmarks, labels).",
+		"The dock follows <main> in DOM order, so keyboard and screen-reader users reach the player after the page content, not before it.",
 	],
 	tokensUsed: ["background", "foreground", "primary", "primary-foreground"],
 	examples: [

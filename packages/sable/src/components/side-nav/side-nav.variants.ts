@@ -9,6 +9,12 @@ import { cva } from "class-variance-authority"
  * 12px and 16px — on a 44px rail row 16px is most of a pill, and neither nested
  * in the usual rounded-lg p-2 nav frame (16 − 8 = 8 is concentric; 12 is not).
  */
+/**
+ * The rail row's horizontal geometry: inset and icon-to-label gap. Named so a
+ * row that is not an item (SidebarBrand) lands on the same columns.
+ */
+export const RAIL_ROW_INLINE = "gap-3 px-3"
+
 export const sideNavItemVariants = cva(
 	"flex w-full items-center text-start motion-interactive focus-visible:outline-none focus-visible:ring-2 data-[active]:font-semibold",
 	{
@@ -17,7 +23,7 @@ export const sideNavItemVariants = cva(
 				md: "gap-2.5 rounded-sm px-3 py-1.5 text-body-sm",
 				lg: "gap-3 rounded-sm px-3 py-2 text-body-md",
 				// The app rail (Sidebar): chrome-weight rows on the label tier.
-				rail: "gap-3 rounded-sm px-3 py-2.5 text-label-lg",
+				rail: `${RAIL_ROW_INLINE} rounded-sm py-2.5 text-label-lg`,
 			},
 			activeVariant: {
 				content:

@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest"
 import { Button } from "../button"
 import { CardFooter } from "../card"
 import { Dialog, DialogContent, DialogTitle } from "../dialog"
+import { Entity } from "../entity"
 import {
 	Sheet,
 	SheetClose,
@@ -12,6 +13,7 @@ import {
 	SheetDescription,
 	SheetFooter,
 	SheetHeader,
+	SheetList,
 	SheetTitle,
 	SheetTrigger,
 } from "./index"
@@ -24,6 +26,27 @@ import {
  * swipe direction that sends the panel back toward its own edge.
  */
 describe("Sheet", () => {
+	it("bleeds a SheetList through the sheet padding and hands it to each row", async () => {
+		render(
+			<Sheet open>
+				<SheetContent>
+					<SheetTitle>Up next</SheetTitle>
+					<SheetList>
+						<Entity title="Low tide, high noon" />
+					</SheetList>
+				</SheetContent>
+			</Sheet>,
+		)
+		const dialog = await screen.findByRole("dialog")
+		// One padding variable: the sheet pads by it, the list cancels it and
+		// gives it back as the row inset, so rows align with the header.
+		expect(dialog.className).toContain("[--sheet-p:--spacing(6)]")
+		expect(dialog).toHaveClass("p-(--sheet-p)")
+		const list = dialog.querySelector('[data-slot="sheet-list"]') as HTMLElement
+		expect(list).toHaveClass("-mx-(--sheet-p)", "[--entity-px:var(--sheet-p)]", "[--entity-radius:0px]")
+		expect(list).toContainElement(screen.getByText("Low tide, high noon"))
+	})
+
 	it("opens from the trigger as a labelled, described dialog", async () => {
 		render(
 			<Sheet>

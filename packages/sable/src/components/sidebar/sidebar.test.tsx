@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
-import { Sidebar, SidebarHeader, SidebarItem, SidebarNav } from "./sidebar"
+import { Sidebar, SidebarBrand, SidebarHeader, SidebarItem, SidebarNav } from "./sidebar"
 
 describe("Sidebar / SidebarItem", () => {
 	it("renders an expanded item with its label, icon, and active state", () => {
@@ -76,5 +76,41 @@ describe("Sidebar / SidebarItem", () => {
 			</Sidebar>,
 		)
 		expect(screen.getByText("S")).toHaveClass("justify-center", "px-0")
+	})
+})
+
+describe("SidebarBrand", () => {
+	it("sits on the item grid: same inset, gap and icon slot as a SidebarItem", () => {
+		render(
+			<Sidebar>
+				<SidebarHeader>
+					<SidebarBrand mark={<span data-testid="mark" />} label="Undertow" render={<a href="/" />} />
+				</SidebarHeader>
+				<SidebarNav>
+					<SidebarItem icon={<span data-testid="icon" />} label="Home" />
+				</SidebarNav>
+			</Sidebar>,
+		)
+		const brand = screen.getByRole("link", { name: "Undertow" })
+		const item = screen.getByRole("button", { name: "Home" })
+		for (const cls of ["px-3", "gap-3"]) {
+			expect(brand).toHaveClass(cls)
+			expect(item).toHaveClass(cls)
+		}
+		// The mark's slot is the icon's slot, class for class.
+		expect(screen.getByTestId("mark").parentElement?.className).toBe(screen.getByTestId("icon").parentElement?.className)
+	})
+
+	it("collapses to the mark, still named by its label", () => {
+		render(
+			<Sidebar collapsed>
+				<SidebarHeader>
+					<SidebarBrand mark={<span data-testid="mark" />} label="Undertow" render={<a href="/" />} />
+				</SidebarHeader>
+			</Sidebar>,
+		)
+		const brand = screen.getByRole("link", { name: "Undertow" })
+		expect(brand).toContainElement(screen.getByTestId("mark"))
+		expect(brand).not.toHaveTextContent("Undertow")
 	})
 })

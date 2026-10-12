@@ -55,12 +55,22 @@ export function TableFooter({
 }
 TableFooter.displayName = "TableFooter"
 
-/** A table row. Hover-lifts; mark the selected row with `data-selected`. */
+/**
+ * A table row. Hover-lifts; mark the selected row with `data-selected`.
+ *
+ * The selected fill is painted by the cells, each spilling 1px into the next
+ * (a box-shadow, so layout does not move). A row's own background is painted
+ * per cell at fractional widths, and a dogfood build saw 1px dark seams at
+ * cell boundaries on the selected row, the one users look at most. The spill
+ * covers any such gap; the fill is opaque in every theme, so the overlap does
+ * not show. Hover stays on the row: it is translucent, where an overlap would.
+ */
 export function TableRow({ className, ...props }: ComponentPropsWithRef<"tr">) {
 	return (
 		<tr
 			className={cn(
-				"border-b border-border motion-interactive hover:bg-muted/50 data-[selected]:bg-muted",
+				"border-b border-border motion-interactive hover:bg-muted/50",
+				"*:motion-interactive data-[selected]:*:bg-muted data-[selected]:*:shadow-[1px_0_0_var(--muted)]",
 				className,
 			)}
 			{...props}

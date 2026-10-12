@@ -133,6 +133,20 @@ type SliderProps<Value extends SliderValueType> = Omit<
 	"className" | "value" | "defaultValue" | "onValueChange" | "render"
 > & {
 	className?: string
+	/**
+	 * Names each thumb's input — the element with role=slider. Base UI would put
+	 * it on the Root's role=group, leaving the slider itself unnamed. A range
+	 * keeps it on the group too, so the pair is named as well.
+	 */
+	"aria-label"?: string
+	/** Per-thumb name for a range: `(index) => index ? "Maximum price" : "Minimum price"`. Wins over aria-label on the thumbs. */
+	getAriaLabel?: ThumbProps["getAriaLabel"]
+	/**
+	 * What a screen reader announces for the value, when the number alone is
+	 * wrong: `(formatted, value) => toTime(value) + " of " + toTime(duration)`.
+	 * For units or percent, the Root's `format` (Intl.NumberFormatOptions) is enough.
+	 */
+	getAriaValueText?: ThumbProps["getAriaValueText"]
 	/** Controlled value. Pass an array for a range slider (one thumb per entry). */
 	value?: Value
 	/** Uncontrolled initial value. Pass an array for a range slider. */
@@ -148,25 +162,37 @@ type SliderProps<Value extends SliderValueType> = Omit<
  * The all-in-one Slider: Root + Control + Track + Indicator + Thumb(s).
  * Renders a single thumb for a scalar value, or one thumb per entry when the
  * value is an array (range slider). Forwards value / defaultValue /
- * onValueChange / min / max / step (and the rest of the Root props).
+ * onValueChange / min / max / step (and the rest of the Root props), and routes
+ * aria-label / getAriaLabel / getAriaValueText to the thumbs.
  */
 export function Slider<Value extends SliderValueType = number>({
 	className,
+	"aria-label": ariaLabel,
+	getAriaLabel,
+	getAriaValueText,
 	...props
 }: SliderProps<Value>): ReactNode {
 	const current = props.value ?? props.defaultValue
 	const thumbCount = Array.isArray(current) ? current.length : 1
+	const range = thumbCount > 1
 
 	return (
 		<Base.Root
 			className={cn("w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-auto", className)}
+			aria-label={range ? ariaLabel : undefined}
 			{...props}
 		>
 			<SliderControl>
 				<SliderTrack>
 					<SliderIndicator />
 					{Array.from({ length: thumbCount }, (_, i) => (
-						<SliderThumb key={i} index={thumbCount > 1 ? i : undefined} />
+						<SliderThumb
+							key={i}
+							index={range ? i : undefined}
+							aria-label={ariaLabel}
+							getAriaLabel={getAriaLabel}
+							getAriaValueText={getAriaValueText}
+						/>
 					))}
 				</SliderTrack>
 			</SliderControl>

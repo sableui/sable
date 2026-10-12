@@ -56,7 +56,12 @@ export interface SableThemeContextValue {
 
 export interface SableThemeProviderProps {
 	children: ReactNode
-	/** Initial color preference when uncontrolled and no stored value exists. @default "dark" */
+	/**
+	 * Initial color preference when uncontrolled and no stored value exists.
+	 * "system", so a first visit follows the visitor's OS. Dark is still the
+	 * design's home mode; pass "dark" (or a preset's `defaultMode`) to open there.
+	 * @default "system"
+	 */
 	defaultPreference?: SableThemePreference
 	/** Controlled color preference. */
 	preference?: SableThemePreference
@@ -251,7 +256,7 @@ export function applySableTheme(
  */
 export function SableThemeProvider({
 	children,
-	defaultPreference = "dark",
+	defaultPreference = "system",
 	preference: controlledPreference,
 	onPreferenceChange,
 	defaultThemeId = sableDefaultThemeId,

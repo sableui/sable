@@ -9,7 +9,7 @@ import {
 	useContext,
 } from "react"
 import { cn } from "../../lib/cn"
-import { sideNavItemIconVariants, sideNavItemVariants } from "../side-nav/side-nav.variants"
+import { RAIL_ROW_INLINE, sideNavItemIconVariants, sideNavItemVariants } from "../side-nav/side-nav.variants"
 import { SimpleTooltip } from "../tooltip"
 
 type SidebarContextValue = { collapsed: boolean; icons: boolean }
@@ -52,7 +52,9 @@ export interface SidebarProps extends ComponentPropsWithRef<"aside"> {
 
 /** The layout each `variant` takes; colours and width are shared. */
 const SIDEBAR_VARIANT = {
-	app: "hidden lg:flex lg:sticky lg:top-0 lg:h-screen lg:self-start",
+	// Full viewport less an AppShell dock (0 without one), so a persistent
+	// player bar never covers the rail's last rows.
+	app: "hidden lg:flex lg:sticky lg:top-0 lg:h-[calc(100vh-var(--dock-height,0px))] lg:self-start",
 	inline: "flex h-full",
 } as const
 
@@ -62,7 +64,7 @@ const SIDEBAR_VARIANT = {
  * header, a scrollable nav, and a bottom-anchored footer:
  *
  *   <Sidebar collapsed={collapsed}>
- *     <SidebarHeader>{brand}</SidebarHeader>
+ *     <SidebarHeader><SidebarBrand mark={<Logo />} label="Studio" render={<Link to="/" />} /></SidebarHeader>
  *     <SidebarNav>
  *       <SidebarItem icon={<Icon name="home" />} label="Home" active render={<Link to="/" />} />
  *     </SidebarNav>
@@ -136,6 +138,53 @@ export function SidebarHeader({
 	)
 }
 SidebarHeader.displayName = "SidebarHeader"
+
+export interface SidebarBrandProps extends Omit<ComponentPropsWithRef<"div">, "children"> {
+	/** The logo mark. Sits in the items' icon slot (24px); collapsed, it is all that shows. */
+	mark: ReactNode
+	/** The product name, on the items' label column. Hidden when collapsed. */
+	label: ReactNode
+	/** Render as a link home, e.g. `render={<Link to="/" />}`. */
+	render?: useRender.RenderProp
+}
+
+/**
+ * The brand row, on the same grid as SidebarItem: the mark in the icon slot,
+ * the name on the label column. It takes the item row's own inset, slot and
+ * gap from the shared recipe, so it moves with the rail instead of an app
+ * copying 12px + 12px + size-6 out of the bundle. Goes inside SidebarHeader.
+ *
+ *   <SidebarHeader>
+ *     <SidebarBrand mark={<Logo />} label="Undertow" render={<Link to="/" />} />
+ *   </SidebarHeader>
+ */
+export function SidebarBrand({ mark, label, render, className, "aria-label": ariaLabel, ...props }: SidebarBrandProps) {
+	const { collapsed } = useSidebar()
+	return useRender({
+		render: render ?? <div />,
+		props: {
+			...props,
+			// Collapsed shows the mark alone, so a string label still names the link.
+			"aria-label": ariaLabel ?? (collapsed && typeof label === "string" ? label : undefined),
+			className: cn(
+				"flex min-w-0 items-center rounded-sm",
+				// The item row's horizontal geometry, without its height.
+				RAIL_ROW_INLINE,
+				render && "motion-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+				collapsed && "justify-center px-0",
+				className,
+			),
+			children: (
+				<>
+					<span className={sideNavItemIconVariants({ size: "rail" })}>{mark}</span>
+					{collapsed ? null : <span className="min-w-0 truncate text-title-sm">{label}</span>}
+				</>
+			),
+		},
+		defaultTagName: "div",
+	}) as ReactElement
+}
+SidebarBrand.displayName = "SidebarBrand"
 
 /** The scrollable nav region — grows to fill the rail between header and footer. */
 export function SidebarNav({

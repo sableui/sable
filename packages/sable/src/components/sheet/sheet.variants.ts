@@ -26,7 +26,7 @@ import { cva } from "class-variance-authority"
  * units of the motion token, so reduced motion keeps it instant.
  */
 export const sheetVariants = cva(
-	"fixed z-(--z-overlay) flex flex-col gap-4 overflow-y-auto overscroll-contain border-border-floating bg-popover sable-surface-popover p-6 text-popover-foreground shadow-lg outline-none transition-transform duration-(--motion-duration-base) ease-emphasized scrollbar-quiet data-[swiping]:select-none data-[swipe-dismiss]:duration-[calc(var(--motion-duration-base)*var(--drawer-swipe-strength))]",
+	"fixed z-(--z-overlay) flex flex-col gap-4 overflow-y-auto overscroll-contain border-border-floating bg-popover sable-surface-popover [--sheet-p:--spacing(6)] p-(--sheet-p) text-popover-foreground shadow-lg outline-none transition-transform duration-(--motion-duration-base) ease-emphasized scrollbar-quiet data-[swiping]:select-none data-[swipe-dismiss]:duration-[calc(var(--motion-duration-base)*var(--drawer-swipe-strength))]",
 	{
 		variants: {
 			side: {
