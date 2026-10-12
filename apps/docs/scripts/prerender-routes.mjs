@@ -11,7 +11,10 @@
  *                       plus a real <title>, description, canonical URL, Open
  *                       Graph / Twitter meta, a `<link rel="alternate"
  *                       type="text/markdown">` to the agent-readable twin, and
- *                       a <noscript> pointer to it. The app boots on top.
+ *                       the twin itself rendered as plain HTML inside #root.
+ *                       The app boots on top and replaces it.
+ *   <route>.md          the twin at the page's own URL plus `.md`
+ *                       (/getting-started.md), the address agents try first.
  *   index.html          the home route (`/`), with the same head.
  *   404.html            served by the host with HTTP 404 for any other path;
  *                       the app boots on it and renders its not-found page.
@@ -28,6 +31,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
+import { marked } from "marked"
 
 const DOCS_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..")
 const SRC = join(DOCS_ROOT, "src")
@@ -100,7 +104,7 @@ const foundationAlias = { dimensions: "spacing", elevation: "surfaces" }
 /** Metadata for routes the registry does not describe. */
 const extra = {
 	"getting-started": {
-		description: "Install Sable, connect React and Tailwind CSS, and set up your coding agent. Current package access requires GitHub authentication.",
+		description: "Install Sable from npm, connect React and Tailwind CSS, and set up your coding agent.",
 		markdown: "/llms/tasks/getting-started.md",
 	},
 	"build-with-sable": { markdown: "/llms/tasks/building-with-sable.md" },
@@ -165,7 +169,58 @@ const shellHasTitle = /<title>[^<]*<\/title>/.test(shell)
 const shellHasRoot = shell.includes('<div id="root"></div>')
 if (!shellHasTitle || !shellHasRoot) fail("dist/index.html no longer has a <title> and an empty #root to fill.")
 
-function documentFor({ title, description, canonical, markdown, index, noscript }) {
+/*
+ * The page's content, for whoever fetches it without running JavaScript.
+ *
+ * An agent pointed at /getting-started fetched the HTML and got the title and
+ * nothing else: the app renders its content client-side, and the markdown twin
+ * was only named in a <link rel="alternate"> that fetch tools do not follow.
+ * Every shell now carries its twin as plain HTML inside #root, so the URL a
+ * person shares is the URL an agent can read. The app replaces it when it boots
+ * (createRoot clears the container), and until then it is visually hidden, so
+ * nobody sees a flash of unstyled docs. A browser without JavaScript shows it
+ * through the <noscript> style. CSS only: the site's CSP allows no inline script.
+ */
+const PRERENDER_CSS = `<style>.sable-prerendered{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}</style>
+		<noscript><style>.sable-prerendered{position:static;width:auto;height:auto;overflow:visible;clip-path:none;white-space:normal;max-width:72ch;margin:2rem auto;padding:0 1rem;font:16px/1.55 system-ui,sans-serif}.sable-prerendered pre{overflow:auto;padding:1rem;background:#8882}</style></noscript>`
+
+/** The twin as published, read from dist (sync-llms copies it into public/). */
+function twinSource(markdown) {
+	const file = join(DIST, markdown.replace(/^\/+/, ""))
+	if (!existsSync(file)) fail(`markdown twin ${markdown} is not in dist — is it published by sync-llms or public/?`)
+	return readFileSync(file, "utf8")
+}
+
+/**
+ * The twin as HTML. Its relative links are written against the twin's own URL
+ * (`../components/button.md` from /llms/tasks/), so they are resolved there
+ * before the HTML lands at a different path (/getting-started).
+ */
+function twinHtml(markdown) {
+	const base = `${ORIGIN}${markdown}`
+	return marked.parse(twinSource(markdown), {
+		gfm: true,
+		async: false,
+		walkTokens(token) {
+			if ((token.type === "link" || token.type === "image") && token.href && !/^(?:[a-z][a-z0-9+.-]*:|#)/i.test(token.href)) {
+				const url = new URL(token.href, base)
+				token.href = url.origin === ORIGIN ? `${url.pathname}${url.search}${url.hash}` : url.href
+			}
+		},
+	})
+}
+
+/** The line every prerendered page opens with: where the agent-readable forms of it live. */
+function agentPointer(mdUrl) {
+	const links = [
+		mdUrl ? `This page as markdown: <a href="${mdUrl}">${mdUrl}</a>` : null,
+		`Index for agents: <a href="/llms.txt">/llms.txt</a>`,
+		`Everything in one file: <a href="/llms-full.txt">/llms-full.txt</a>`,
+	].filter(Boolean)
+	return `<p>${links.join(" · ")}</p>`
+}
+
+function documentFor({ title, description, canonical, markdown, index, noscript, mdUrl, body }) {
 	const head = [
 		`<title>${escape(title)}</title>`,
 		`<meta name="description" content="${escape(description)}" />`,
@@ -182,13 +237,17 @@ function documentFor({ title, description, canonical, markdown, index, noscript 
 		`<meta name="twitter:card" content="summary" />`,
 		`<meta name="twitter:title" content="${escape(title)}" />`,
 		`<meta name="twitter:description" content="${escape(description)}" />`,
+		body ? PRERENDER_CSS : null,
 	]
 		.filter(Boolean)
 		.join("\n\t\t")
+	const root = body
+		? `<div id="root"><article class="sable-prerendered">\n${agentPointer(mdUrl)}\n${body}</article></div>`
+		: `<div id="root"></div>\n\t\t<noscript><p>${noscript}</p></noscript>`
 	return shell
 		.replace(/<meta\s+name="description"[^>]*>\s*/, "")
 		.replace(/<title>[^<]*<\/title>/, head)
-		.replace('<div id="root"></div>', `<div id="root"></div>\n\t\t<noscript><p>${noscript}</p></noscript>`)
+		.replace('<div id="root"></div>', root)
 }
 
 function write(relative, contents) {
@@ -203,16 +262,25 @@ const pointer = (markdown) =>
 		: `Index for agents: <a href="/llms.txt">/llms.txt</a>.`
 
 let written = 0
+let markdownCopies = 0
 for (const [route, { title, description, markdown, index }] of routes) {
+	// The page's own URL plus `.md`. A twin that already lives there (/credits.md) is left as is.
+	const mdUrl = `/${route}.md`
+	if (markdown !== mdUrl) {
+		write(`${route}.md`, twinSource(markdown))
+		markdownCopies++
+	}
 	write(
 		join(route, "index.html"),
 		documentFor({
 			title: `${title} — ${site.name}`,
 			description,
 			canonical: urlFor(route),
-			markdown,
+			markdown: mdUrl,
 			index,
 			noscript: `${escape(title)} — ${escape(description)} ${pointer(markdown)}`,
+			mdUrl,
+			body: twinHtml(markdown),
 		}),
 	)
 	written++
@@ -220,6 +288,8 @@ for (const [route, { title, description, markdown, index }] of routes) {
 
 // The home page answers at / and at /introduction (the nav's Home item); both
 // name / as canonical so search engines keep one copy.
+// The home page's twin is the agent index itself.
+write("index.md", twinSource("/llms.txt"))
 const home = documentFor({
 	title: site.homeTitle,
 	description: site.homeDescription,
@@ -227,6 +297,8 @@ const home = documentFor({
 	markdown: "/llms.txt",
 	index: true,
 	noscript: `${escape(site.homeTitle)}. ${escape(site.homeDescription)} ${pointer("/llms.txt")}`,
+	mdUrl: "/llms.txt",
+	body: twinHtml("/llms.txt"),
 })
 write("index.html", home)
 write(join("introduction", "index.html"), home)
@@ -254,5 +326,5 @@ write(
 write("robots.txt", `User-agent: *\nAllow: /\n\nSitemap: ${ORIGIN}/sitemap.xml\n`)
 
 console.log(
-	`[prerender-routes] ✓ wrote ${written} route shells (+ /introduction), 404.html, robots.txt and a ${indexed.length}-URL sitemap.xml.`,
+	`[prerender-routes] ✓ wrote ${written} route shells with their content (+ /introduction), ${markdownCopies} <route>.md twins, 404.html, robots.txt and a ${indexed.length}-URL sitemap.xml.`,
 )

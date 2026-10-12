@@ -1,5 +1,17 @@
 # What's new
 
+## 0.6.2
+
+- **`llms.txt` names the default theme correctly.** Its summary still called
+  the default theme Base, which was renamed Sable in 0.4.0; the first line an
+  agent reads now says Sable.
+- **sableui.com is readable without JavaScript.** Every docs page now carries
+  its content as plain HTML in the page itself, so an agent fetching a URL such
+  as /getting-started gets the install steps rather than only the title (the
+  app replaces that copy when it boots). Every page is also available as
+  markdown at its own URL plus `.md`, for example /getting-started.md, and
+  each page opens with links to that, /llms.txt and /llms-full.txt.
+
 ## 0.6.1
 
 - **`sable lint` catches a status fill retuned without its text.** Since 0.6,

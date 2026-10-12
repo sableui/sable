@@ -1,6 +1,6 @@
 # Sable (@sableui/react)
 
-> An owned, themeable React component system. Default theme: **Base** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 106 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
+> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 106 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
 
 ## Start here — brief, composition, evidence
 
@@ -13,7 +13,7 @@ validates a record and `--css <path>` generates its scoped stylesheet.
 
 For a new surface, first read `sable docs designing-a-surface`: define the user
 outcome, content, visual direction, story, interactions, motion, and adaptation.
-Base is the default identity; a consumer's brief can call for a different
+Sable is the default identity; a consumer's brief can call for a different
 visual world. Retrieve conditional precedents with `sable learn --search
 "<context>"`. After building, inspect the rendered result using `sable docs
 reviewing-a-design` and preserve a useful discovery through `sable docs
