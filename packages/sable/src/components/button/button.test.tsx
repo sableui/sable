@@ -76,13 +76,19 @@ describe("Button", () => {
 		const kids = Array.from(btn.children)
 		expect(kids[0]).toBe(screen.getByTestId("start"))
 		expect(kids[kids.length - 1]).toBe(screen.getByTestId("end"))
-		// md is px-4; each icon side comes in one 2px step.
-		expect(btn).toHaveClass("ps-3.5", "pe-3.5")
+		// Each icon side comes in one 2px step under the size's --button-px, and
+		// names that side's padding so a bleed there moves by the same amount.
+		expect(btn).toHaveClass(
+			"[--button-ps:calc(var(--button-px)-(--spacing(0.5)))]",
+			"ps-(--button-ps)",
+			"[--button-pe:calc(var(--button-px)-(--spacing(0.5)))]",
+			"pe-(--button-pe)",
+		)
 	})
 
 	it("leaves an icon-only button square (no optical padding without a label)", () => {
 		renderWithProviders(<Button size="icon" aria-label="Add" iconStart={<svg />} />)
-		expect(screen.getByRole("button", { name: "Add" })).not.toHaveClass("ps-3.5")
+		expect(screen.getByRole("button", { name: "Add" })).not.toHaveClass("ps-(--button-ps)")
 	})
 
 	it("replaces iconStart with the spinner while loading", () => {
@@ -279,5 +285,102 @@ describe("Button field variant", () => {
 		// The field's corner replaces the pill; cn() must drop the base radius.
 		expect(cls).toContain("rounded-[var(--panel-field-radius,var(--radius-xs))]")
 		expect(cls).not.toContain("rounded-[var(--button-radius,9999px)]")
+	})
+
+	describe("bleed", () => {
+		// The padding READS --button-px, so a bleed of --button-px is always
+		// exactly the padding — at every size, in any density scope.
+		it.each([
+			["xs", "[--button-px:--spacing(2)]"],
+			["sm", "[--button-px:--spacing(3)]"],
+			["md", "[--button-px:--spacing(4)]"],
+			["cta", "[--button-px:--spacing(5)]"],
+		] as const)("names the %s padding as --button-px and pads with it", (size, px) => {
+			renderWithProviders(<Button size={size}>Go</Button>)
+			expect(screen.getByRole("button")).toHaveClass(px, "px-(--button-px)")
+		})
+
+		it.each([
+			["icon", "[--button-px:calc((var(--control-md)-var(--button-icon))/2)]"],
+			["icon-sm", "[--button-px:calc((var(--control-sm)-var(--button-icon))/2)]"],
+			["icon-xs", "[--button-px:calc((var(--control-xs)-var(--button-icon))/2)]"],
+		] as const)("gives the square %s size its inset to the glyph", (size, px) => {
+			renderWithProviders(<Button size={size} variant="ghost" aria-label="More" bleed="end" />)
+			const btn = screen.getByRole("button")
+			expect(btn).toHaveClass(px, "-me-(--button-pe,var(--button-px))")
+			expect(btn).not.toHaveClass("px-(--button-px)")
+		})
+
+		it.each([
+			["start", ["-ms-(--button-ps,var(--button-px))"], ["-me-(--button-pe,var(--button-px))"]],
+			["end", ["-me-(--button-pe,var(--button-px))"], ["-ms-(--button-ps,var(--button-px))"]],
+			["both", ["-ms-(--button-ps,var(--button-px))", "-me-(--button-pe,var(--button-px))"], []],
+		] as const)("bleeds a ghost button at %s by its own padding", (bleed, has, hasNot) => {
+			renderWithProviders(
+				<Button variant="ghost" size="sm" bleed={bleed}>
+					View all
+				</Button>,
+			)
+			const btn = screen.getByRole("button")
+			expect(btn).toHaveAttribute("data-bleed", bleed)
+			expect(btn).toHaveClass(...has)
+			for (const c of hasNot) expect(btn).not.toHaveClass(c)
+		})
+
+		it("bleeds link and on-color-ghost too — every variant without a visible edge", () => {
+			renderWithProviders(
+				<>
+					<Button variant="link" bleed="end">Docs</Button>
+					<Button variant="on-color-ghost" bleed="end">Later</Button>
+				</>,
+			)
+			for (const name of ["Docs", "Later"])
+				expect(screen.getByRole("button", { name })).toHaveClass("-me-(--button-pe,var(--button-px))")
+		})
+
+		it.each(["primary", "secondary", "outline", "destructive", "floating", "field", "on-color", "on-color-outline"] as const)(
+			"leaves a %s button's edge on the line (no-op)",
+			(variant) => {
+				renderWithProviders(
+					<Button variant={variant} bleed="both">
+						Save
+					</Button>,
+				)
+				const btn = screen.getByRole("button")
+				expect(btn).not.toHaveAttribute("data-bleed")
+				expect(btn.className).not.toMatch(/-m[se]-\(/)
+			},
+		)
+
+		it("marks an unset borderless button auto, for a container to align, with no margin of its own", () => {
+			renderWithProviders(<Button variant="ghost">Skip</Button>)
+			const btn = screen.getByRole("button")
+			expect(btn).toHaveAttribute("data-bleed", "auto")
+			expect(btn.className).not.toMatch(/-m[se]-\(/)
+		})
+
+		it("opts out of a container's alignment with none", () => {
+			renderWithProviders(
+				<Button variant="ghost" bleed="none">
+					Skip
+				</Button>,
+			)
+			const btn = screen.getByRole("button")
+			expect(btn).toHaveAttribute("data-bleed", "none")
+			expect(btn.className).not.toMatch(/-m[se]-\(/)
+		})
+
+		it("moves by the icon side's optical padding, which the bleed var tracks", () => {
+			renderWithProviders(
+				<Button variant="ghost" size="sm" bleed="start" iconStart={<svg />}>
+					Add task
+				</Button>,
+			)
+			// --button-ps is set on this side, and the margin reads it first.
+			expect(screen.getByRole("button")).toHaveClass(
+				"[--button-ps:calc(var(--button-px)-(--spacing(0.5)))]",
+				"-ms-(--button-ps,var(--button-px))",
+			)
+		})
 	})
 })

@@ -133,7 +133,7 @@ export const cardMeta: ComponentMeta = {
 			name: "CardAction",
 			type: 'ComponentPropsWithRef<"div">',
 			description:
-				"Header-aligned top-right action slot (e.g. an overflow menu, switch, or close button). Place inside CardHeader, which becomes a 2-column grid when present and collapses to a single column otherwise.",
+				"Header-aligned top-right action slot (e.g. an overflow menu, switch, or close button). Place inside CardHeader, which becomes a 2-column grid when present and collapses to a single column otherwise. A ghost or link Button that ends the slot bleeds by its own padding at the end, so a \"View all\" label or a \"⋯\" glyph sits on the card's content edge; filled buttons keep their edge there.",
 		},
 		{
 			name: "CardContent",

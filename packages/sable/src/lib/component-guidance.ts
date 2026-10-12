@@ -126,10 +126,13 @@ export const componentGuidance: Partial<Record<string, ComponentGuidance>> = {
 			"Use Grid for uniform grid layouts inside a Region, especially card grids that can breathe responsively.",
 		dos: [
 			"Prefer minItemWidth for responsive card grids that do not need breakpoint-specific spans.",
+			"Keep the default track=\"fill\" for collections whose count is data (search results, shelves, galleries): sparse rows keep their empty columns, so one result stays one cell wide.",
+			"Use track=\"fit\" only for a fixed set designed to span the row, such as three KPI cards.",
 			"Use explicit columns only when the design truly needs a fixed track count.",
 		],
 		donts: [
 			"Do not use Grid to set a page's reading width; use Region or Center.",
+			"Do not use track=\"fit\" for results or other data-driven collections: with one or two items the empty columns collapse and each item stretches across the row (a single result rendered as a full-width cover).",
 		],
 		related: { components: ["Region", "Columns", "Card"] },
 	}),

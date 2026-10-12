@@ -20,6 +20,11 @@ export const buttonMeta: ComponentMeta = {
 		"band",
 		"brand fill",
 		"tone fill",
+		"bleed",
+		"optical alignment",
+		"align label to edge",
+		"negative margin",
+		"view all",
 	],
 	usage: {
 		description:
@@ -44,6 +49,16 @@ export const buttonMeta: ComponentMeta = {
 				guidance: "do",
 				description:
 					"Put icons in iconStart / iconEnd rather than as children, so the button applies its optical padding. Start icons say what the action is (plus, share); end icons say where it goes (chevron-right, external).",
+			},
+			{
+				guidance: "do",
+				description:
+					"Set bleed on a ghost or link button that sits at the start or end of a row, so its LABEL lines up with the content edge the row shares (\"View all\" over a grid, \"Add task\" under a list, \"Resend code\" at a card footer's end). The box moves out by exactly its own padding; the hit area and hover fill stay full size and run past the edge. SectionHeader, PageHeader (back and actions) and CardAction already do this for their outermost ghost/link child — don't add it there, and use bleed=\"none\" to opt one out.",
+			},
+			{
+				guidance: "dont",
+				description:
+					"Pull a ghost button onto an edge with -ms-3 / -me-3 classNames. That number is one size's padding: it is wrong at xs, md and cta, wrong on a side carrying an icon, and wrong once a preset retunes the spacing. bleed reads the button's own padding var. And don't bleed a filled or outlined button — its visible edge is what aligns, so bleed is a no-op there.",
 			},
 			{
 				guidance: "dont",
@@ -152,6 +167,12 @@ export const buttonMeta: ComponentMeta = {
 			type: "ReactNode",
 			description: "Icon after the label (disclosure, external link, next). Same optical correction on the end side.",
 		},
+		{
+			name: "bleed",
+			type: '"start" | "end" | "both" | "none"',
+			description:
+				"Optical alignment for a borderless button (ghost, link, on-color-ghost): a negative inline margin of exactly its own padding on that side — --button-px, or the icon side's optical padding when an icon sits there; an icon-only size bleeds by its inset to the glyph — so the label (or glyph) lands on the content edge. Hit area and hover/focus fill keep their full size. Logical sides, so it mirrors in RTL. A no-op on variants with a visible edge (primary, secondary, outline, destructive, floating, field, on-color, on-color-outline): a filled button aligns its edge, not its label. Unset, a borderless button renders data-bleed=\"auto\" and SectionHeader, PageHeader and CardAction bleed it when it is their outermost child; none opts out.",
+		},
 	],
 	variants: {
 		variant: [
@@ -222,6 +243,7 @@ export const buttonMeta: ComponentMeta = {
 		"Use render={<a/>} for link semantics rather than onClick navigation.",
 		"On-color tiers replace the --ring focus ring with one drawn in the band's ink past a transparent 2px gap, so focus stays visible on any fill (ink-on-fill is the theme's own tested pair).",
 		"On-color contrast is measured in button.test.tsx for every shipped theme and mode on each tone, primary, destructive, success, highlight and inverse fill: solid label at rest and hover, and outline/ghost label on the hover wash, all at least 4.5:1.",
+		"bleed moves only the box, never the hit target: the full padded area stays clickable and the focus ring still draws around the whole button, past the content edge.",
 		"loading sets aria-busy and disables activation (disabled on a native button, aria-disabled on a render element) so the action can't double-fire.",
 	],
 	examples: [
@@ -269,6 +291,17 @@ export const buttonMeta: ComponentMeta = {
 		{
 			label: "Icon-only",
 			code: '<Button size="icon" variant="ghost" aria-label="Share"><Icon name="share" /></Button>',
+		},
+		{
+			label: "Optically aligned to the row's edges",
+			code: `<Stack gap={1.5}>
+  <Row justify="between">
+    <span className="text-title-md">Tasks</span>
+    <Button variant="ghost" size="sm" bleed="end">View all</Button>
+  </Row>
+  <span className="text-body-sm text-muted-foreground">Ship the release notes</span>
+  <Button variant="ghost" size="sm" bleed="start" iconStart={<Icon name="plus" />} className="self-start">Add task</Button>
+</Stack>`,
 		},
 		{
 			label: "Icon button with an unread badge",

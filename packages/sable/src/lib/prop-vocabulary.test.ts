@@ -37,6 +37,10 @@ const AXES: Record<string, string> = {
 	status: "a lifecycle state (an upload, a step) — not a severity",
 	mode: "a selection model (Calendar single | range)",
 	indicator: "what marks each item in a sequence (Stepper number | dot)",
+	aspect: "a media frame's proportions (MediaTile square | video | poster) — named for CSS aspect-ratio",
+	fit: "how media fills its frame (MediaImage cover | contain) — named for CSS object-fit",
+	bleed:
+		"which inline edge a borderless control's box extends past, by exactly its own padding, so its label sits on the content edge (Button start | end | both | none) — the popup-bleed / Bleed sense: escape the inset by the inset",
 	// States and single-component geometry, documented as variants because they
 	// change classes: not shared axes, and not candidates for a synonym.
 	selected: "state",
@@ -60,6 +64,8 @@ const SYNONYMS: Record<string, string> = {
 	level: "tone",
 	severity: "tone",
 	scale: "size",
+	outdent: "bleed",
+	hang: "bleed",
 }
 
 const SIZE_WORDS = new Set(["xs", "sm", "md", "lg", "xl"])

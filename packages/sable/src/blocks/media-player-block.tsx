@@ -2,13 +2,19 @@ import { useState } from "react"
 import { Button } from "../components/button"
 import { Card, CardContent } from "../components/card"
 import { Entity } from "../components/entity"
-import { GradientArt } from "../components/gradient-art"
+import { MediaImage } from "../components/media-image"
 import { Slider } from "../components/slider"
 import { Icon } from "../icon"
 import { cn } from "../lib/cn"
 
 // ---block-code---
-const track = { title: "Low tide, high noon", artist: "Juno Avery", position: 38, elapsed: "1:24", remaining: "-2:16" }
+// `cover` is the artwork URL; left empty, the cover paints art seeded by the title.
+const track = { title: "Low tide, high noon", artist: "Juno Avery", cover: "", duration: 220, position: 84 }
+
+/** Seconds → m:ss, the way the readout and the screen reader both say it. */
+function formatTime(seconds: number) {
+	return `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`
+}
 
 
 export interface MediaPlayerBlockProps {
@@ -23,6 +29,7 @@ export interface MediaPlayerBlockProps {
 
 export function MediaPlayerBlock({ className, framed = true, onPlayingChange, onPrevious, onNext }: MediaPlayerBlockProps) {
 	const [playing, setPlaying] = useState(true)
+	const [position, setPosition] = useState(track.position)
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs", className)}>
 			<CardContent className="flex flex-col gap-4">
@@ -30,8 +37,7 @@ export function MediaPlayerBlock({ className, framed = true, onPlayingChange, on
 				    card already pads it. */}
 				<Entity
 					className="p-0"
-					// Placeholder cover painted from the theme. Replace with the cover image.
-					leading={<GradientArt aria-hidden seed={track.title} className="size-14 rounded-md" />}
+					leading={<MediaImage src={track.cover} seed={track.title} className="size-14 shrink-0 rounded-md" />}
 					title={track.title}
 					subtitle={track.artist}
 					action={
@@ -41,10 +47,17 @@ export function MediaPlayerBlock({ className, framed = true, onPlayingChange, on
 					}
 				/>
 				<div className="flex flex-col gap-1.5">
-					<Slider defaultValue={track.position} aria-label="Position" />
+					<Slider
+						value={position}
+						max={track.duration}
+						onValueChange={setPosition}
+						aria-label="Position"
+						// Spoken as a time, not "38": the number alone means nothing.
+						getAriaValueText={(_, value) => `${formatTime(value)} of ${formatTime(track.duration)}`}
+					/>
 					<div className="flex justify-between text-mono-caption text-muted-foreground">
-						<span>{track.elapsed}</span>
-						<span>{track.remaining}</span>
+						<span>{formatTime(position)}</span>
+						<span>-{formatTime(track.duration - position)}</span>
 					</div>
 				</div>
 				<div className="flex items-center justify-center gap-3">

@@ -1,11 +1,13 @@
 import { Badge } from "../components/badge"
 import { Button } from "../components/button"
 import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/card"
-import { GradientArt } from "../components/gradient-art"
+import { MediaImage } from "../components/media-image"
+import { AspectBox } from "../layout/AspectBox"
 import { cn } from "../lib/cn"
 
 // ---block-code---
-const product = { title: "Untitled (gold rush)", maker: "Mara Okafor", edition: "12 of 50", price: "0.42 SOL" }
+// `image` is the product shot URL; left empty, it paints art seeded by the title.
+const product = { title: "Untitled (gold rush)", maker: "Mara Okafor", image: "", edition: "12 of 50", price: "0.42 SOL" }
 
 
 export interface ProductCardBlockProps {
@@ -19,8 +21,9 @@ export interface ProductCardBlockProps {
 export function ProductCardBlock({ className, framed = true, onCollect }: ProductCardBlockProps) {
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs overflow-hidden", className)}>
-			{/* Placeholder art painted from the theme, so it follows every look. Replace with the product image. */}
-			<GradientArt aria-hidden seed={product.title} className="aspect-[4/3]" />
+			<AspectBox ratio={4 / 3}>
+				<MediaImage src={product.image} seed={product.title} />
+			</AspectBox>
 			<CardHeader>
 				<CardTitle>{product.title}</CardTitle>
 				<CardDescription>{product.maker}</CardDescription>

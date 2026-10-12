@@ -56,7 +56,7 @@ export function TaskListBlock({ className, framed = true, onAddTask }: TaskListB
 				</ul>
 			</CardContent>
 			<CardFooter>
-				<Button variant="ghost" size="sm" iconStart={<Icon name="plus" />} onClick={onAddTask}>
+				<Button variant="ghost" size="sm" bleed="start" iconStart={<Icon name="plus" />} onClick={onAddTask}>
 					Add task
 				</Button>
 			</CardFooter>

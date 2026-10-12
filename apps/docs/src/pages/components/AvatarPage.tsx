@@ -81,15 +81,57 @@ export function AvatarPage() {
 				</Example>
 			</Section>
 
-			<Section title="Sizes">
+			<Section
+				title="Sizes"
+				description="sm, md and lg for rows: 32, 40 and 48px. xl (96px) and 2xl (160px) are portraits — a profile header, an artist hero, a roster tile. The initials and a status dot scale with them."
+			>
 				<Example
 					code={`<Avatar src="/media/avatars/ana-chen.jpg" alt="Ana Chen" fallback="AC" size="sm" />
 <Avatar src="/media/avatars/ana-chen.jpg" alt="Ana Chen" fallback="AC" size="md" />
-<Avatar src="/media/avatars/ana-chen.jpg" alt="Ana Chen" fallback="AC" size="lg" />`}
+<Avatar src="/media/avatars/ana-chen.jpg" alt="Ana Chen" fallback="AC" size="lg" />
+<Avatar src="/media/avatars/ana-chen.jpg" alt="Ana Chen" fallback="AC" size="xl" />
+<Avatar src="/media/avatars/ana-chen.jpg" alt="Ana Chen" fallback="AC" size="2xl" />`}
 				>
-					<Avatar src={photo("ana-chen")} alt="Ana Chen" fallback="AC" size="sm" />
-					<Avatar src={photo("ana-chen")} alt="Ana Chen" fallback="AC" size="md" />
-					<Avatar src={photo("ana-chen")} alt="Ana Chen" fallback="AC" size="lg" />
+					<div className="flex flex-wrap items-end justify-center gap-4">
+						<Avatar src={photo("ana-chen")} alt="Ana Chen" fallback="AC" size="sm" />
+						<Avatar src={photo("ana-chen")} alt="Ana Chen" fallback="AC" size="md" />
+						<Avatar src={photo("ana-chen")} alt="Ana Chen" fallback="AC" size="lg" />
+						<Avatar src={photo("ana-chen")} alt="Ana Chen" fallback="AC" size="xl" />
+						<Avatar src={photo("ana-chen")} alt="Ana Chen" fallback="AC" size="2xl" />
+					</div>
+				</Example>
+			</Section>
+
+			<Section
+				title="Portraits"
+				description="Without a photo the portrait sizes keep the initials at about a third of the circle, and the status dot and its cut-out ring grow with it instead of shrinking to a speck."
+			>
+				<Example
+					code={`<div className="flex flex-col items-center gap-3 text-center">
+	<Avatar variant="art" size="2xl" fallback="LV" alt="Lena Vale" status={<StatusDot tone="success" />} />
+	<div className="flex flex-col gap-1">
+		<h1 className="text-heading-1">Lena Vale</h1>
+		<p className="text-body-sm text-muted-foreground">1.2M monthly listeners</p>
+	</div>
+</div>`}
+				>
+					<div className="flex flex-wrap items-center justify-center gap-10">
+						<div className="flex flex-col items-center gap-3 text-center">
+							<Avatar variant="art" size="2xl" fallback="LV" alt="Lena Vale" status={<StatusDot tone="success" />} />
+							<div className="flex flex-col gap-1">
+								<p className="text-heading-2">Lena Vale</p>
+								<p className="text-body-sm text-muted-foreground">1.2M monthly listeners</p>
+							</div>
+						</div>
+						<div className="flex flex-col items-center gap-3 text-center">
+							<Avatar variant="art" size="xl" fallback="HL" alt="Harbour Lights" status={<StatusDot tone="success" />} />
+							<div className="flex flex-col gap-1">
+								<p className="text-title-lg">Harbour Lights</p>
+								<p className="text-body-sm text-muted-foreground">Following</p>
+							</div>
+						</div>
+						<Avatar size="xl" fallback="JT" alt="June Tamsin" />
+					</div>
 				</Example>
 			</Section>
 

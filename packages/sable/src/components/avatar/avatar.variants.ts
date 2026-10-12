@@ -4,8 +4,15 @@ import { cva } from "class-variance-authority"
  * Avatar root — a circular, fixed-size frame that clips its image. The only axis
  * is `size`, which sets the square footprint; the image and fallback inherit it.
  * `bg-muted` is the resting surface shown behind a loading or missing image.
- * Each size also sets the label tier its initials (and a group's "+N") take,
- * so the initials grow with the circle instead of one 12px label in all three.
+ * Each size also sets the tier its initials (and a group's "+N") take, so the
+ * initials grow with the circle instead of one 12px label at every size. They
+ * hold roughly 30% of the diameter all the way up: the label tiers cover the
+ * row sizes; past them the initials are a mark standing in for a face — type
+ * as image — so the portrait sizes borrow heading-2 (28px in 96) and display-lg
+ * (48px in 160), the tiers built to be read as a shape at that size.
+ *
+ * `xl` and `2xl` are portrait sizes — a profile header, an artist hero, a
+ * roster tile — not row sizes, so AvatarGroup stops at `lg`.
  */
 export const avatarVariants = cva(
 	"relative inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-muted",
@@ -15,6 +22,8 @@ export const avatarVariants = cva(
 				sm: "size-8 text-label-sm",
 				md: "size-10 text-label-md",
 				lg: "size-12 text-label-lg",
+				xl: "size-24 text-heading-2",
+				"2xl": "size-40 text-display-lg",
 			},
 		},
 		defaultVariants: {

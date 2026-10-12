@@ -8,7 +8,10 @@ import {
 	MenuTrigger,
 	PanelSection,
 	PropertyRow,
+	Row,
 	ScrubField,
+	Stack,
+	type ButtonBleed,
 	useCopy,
 } from "@sableui/react"
 import { useState } from "react"
@@ -49,6 +52,31 @@ function FieldButtonDemo() {
 				</PropertyRow>
 			</PanelSection>
 		</div>
+	)
+}
+
+/*
+ * The dashed rules are the content edges. Without bleed the labels sit one
+ * padding inside them; with it the labels sit on them and the hover fill runs
+ * past.
+ */
+function BleedDemo({ bleed }: { bleed: boolean }) {
+	const end: ButtonBleed = bleed ? "end" : "none"
+	const start: ButtonBleed = bleed ? "start" : "none"
+	return (
+		<Stack gap={1.5} className="w-full max-w-72 border-x border-dashed border-border-strong">
+			<Row justify="between">
+				<span className="text-title-md">Tasks</span>
+				<Button variant="ghost" size="sm" bleed={end}>
+					View all
+				</Button>
+			</Row>
+			<span className="text-body-sm text-muted-foreground">Ship the release notes</span>
+			<span className="text-body-sm text-muted-foreground">Review the icon set</span>
+			<Button variant="ghost" size="sm" bleed={start} iconStart={<Icon name="plus" />} className="self-start">
+				Add task
+			</Button>
+		</Stack>
 	)
 }
 
@@ -174,6 +202,28 @@ export function ButtonPage() {
 					<Button size="icon-sm" variant="ghost" aria-label="More">
 						<Icon name="ellipsis" />
 					</Button>
+				</Example>
+			</Section>
+
+			<Section
+				title="Optical alignment"
+				description="A ghost or link button carries padding you can't see, so at the end or start of a row its label sits inset from the edge everything else lines up on. bleed pulls the box out by exactly its own padding: the label lands on the edge and the hover fill runs past it. Filled and outlined buttons ignore it — their edge is what aligns. SectionHeader, PageHeader and CardAction do this for their outermost ghost action on their own."
+			>
+				<Example
+					code={`<Stack gap={1.5}>
+  <Row justify="between">
+    <span className="text-title-md">Tasks</span>
+    <Button variant="ghost" size="sm" bleed="end">View all</Button>
+  </Row>
+  <span className="text-body-sm text-muted-foreground">Ship the release notes</span>
+  <span className="text-body-sm text-muted-foreground">Review the icon set</span>
+  <Button variant="ghost" size="sm" bleed="start" iconStart={<Icon name="plus" />} className="self-start">
+    Add task
+  </Button>
+</Stack>`}
+				>
+					<BleedDemo bleed={false} />
+					<BleedDemo bleed />
 				</Example>
 			</Section>
 

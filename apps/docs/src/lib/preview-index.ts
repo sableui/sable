@@ -7,7 +7,7 @@ export const PREVIEW_SLUGS = [
 	"toast", "spinner", "progress", "meter", "kbd", "input", "textarea",
 	"thinking-orb", "empty-state", "entity", "attachment", "checkbox-card",
 	"radio-card", "toggle", "stepper", "file-dropzone", "message", "toolbar",
-	"sheet", "dialog", "tooltip", "settings-menu", "gradient-art",
+	"sheet", "dialog", "tooltip", "settings-menu", "gradient-art", "media-tile",
 ] as const
 
 export type PreviewSlug = typeof PREVIEW_SLUGS[number]

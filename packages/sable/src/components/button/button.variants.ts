@@ -140,13 +140,23 @@ export const buttonVariants = cva(
 				 * small beside its word. One size per step keeps glyph and label at
 				 * matching weight; icon-only sizes run a step larger again.
 				 */
-				xs: "h-(--control-xs) px-2 [--button-icon:0.875rem]",
-				sm: "h-(--control-sm) px-3 [--button-icon:1rem]",
-				md: "h-(--control-md) px-4 [--button-icon:1.125rem]",
-				cta: "h-(--control-cta) px-5 [--button-icon:1.25rem]",
-				icon: "h-(--control-md) w-(--control-md) [--button-icon:1.25rem]",
-				"icon-sm": "h-(--control-sm) w-(--control-sm) [--button-icon:1.125rem]",
-				"icon-xs": "h-(--control-xs) w-(--control-xs) p-0 [--button-icon:1rem]",
+				/*
+				 * --button-px: the inline padding, named so `bleed` can pull the box
+				 * outward by exactly this much and land the label on the edge. The
+				 * padding READS it, so the two cannot drift; to retune a button's
+				 * padding set the var (`[--button-px:--spacing(2)]`), not px-*.
+				 * Icon-only sizes have no padding — the glyph is centred in a
+				 * square — so theirs is the inset from the box edge to the glyph's.
+				 */
+				xs: "h-(--control-xs) px-(--button-px) [--button-px:--spacing(2)] [--button-icon:0.875rem]",
+				sm: "h-(--control-sm) px-(--button-px) [--button-px:--spacing(3)] [--button-icon:1rem]",
+				md: "h-(--control-md) px-(--button-px) [--button-px:--spacing(4)] [--button-icon:1.125rem]",
+				cta: "h-(--control-cta) px-(--button-px) [--button-px:--spacing(5)] [--button-icon:1.25rem]",
+				icon: "h-(--control-md) w-(--control-md) [--button-icon:1.25rem] [--button-px:calc((var(--control-md)-var(--button-icon))/2)]",
+				"icon-sm":
+					"h-(--control-sm) w-(--control-sm) [--button-icon:1.125rem] [--button-px:calc((var(--control-sm)-var(--button-icon))/2)]",
+				"icon-xs":
+					"h-(--control-xs) w-(--control-xs) p-0 [--button-icon:1rem] [--button-px:calc((var(--control-xs)-var(--button-icon))/2)]",
 			},
 		},
 		defaultVariants: {

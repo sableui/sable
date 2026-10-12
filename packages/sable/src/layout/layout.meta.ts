@@ -99,7 +99,7 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 	{
 		name: "Grid",
 		summary:
-			"CSS Grid within a region. Two modes: fixed/responsive cols count, or minItemWidth auto-fit so cells breathe with NO breakpoints (the default choice for card grids).",
+			"CSS Grid within a region. Two modes: fixed/responsive cols count, or minItemWidth so cells breathe with NO breakpoints (the default choice for card grids). A minItemWidth grid keeps its empty columns (track=\"fill\"), so one result stays one cell wide; track=\"fit\" stretches a fixed set across the row.",
 		status: "stable",
 		props: [
 			{
@@ -113,13 +113,20 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 				name: "minItemWidth",
 				type: "string",
 				description:
-					'Auto-fit mode: repeat(auto-fit, minmax(minItemWidth, 1fr)) — the grid grows/wraps responsively without breakpoints. e.g. "16rem".',
+					'Breathing mode: repeat(auto-fill, minmax(minItemWidth, 1fr)) — as many columns of at least minItemWidth as fit, wrapping without breakpoints. e.g. "16rem".',
+			},
+			{
+				name: "track",
+				type: '"fill" | "fit"',
+				default: '"fill"',
+				description:
+					'What a minItemWidth grid does with columns it has no items for (only visible when fewer items than fit one row). "fill" (auto-fill) keeps them, so items keep their size whatever their count — one search result is one cover wide, not a banner. Use it for collections whose count is data: results, shelves, galleries. "fit" (auto-fit) collapses them and stretches the items to share the row — only for a fixed set designed to span it (three KPI cards, plan tiers).',
 			},
 			{
 				name: "gap",
-				type: "number | string",
+				type: "number | [row, column] | string",
 				default: "var(--grid-gutter)",
-				description: "Gap between cells. Number = rhythm units (×8px); string = raw CSS.",
+				description: "Gap between cells. Number = rhythm units (×8px); [row, column] = two rhythm counts, for a gallery whose rows want more air than its columns; string = raw CSS.",
 			},
 		],
 		tokensUsed: [],
@@ -127,6 +134,14 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 			{
 				label: "Card grid that breathes (no breakpoints)",
 				code: '<Grid minItemWidth="16rem" gap={3}><Card><CardHeader><CardTitle>Alpha</CardTitle></CardHeader></Card><Card><CardHeader><CardTitle>Beta</CardTitle></CardHeader></Card><Card><CardHeader><CardTitle>Gamma</CardTitle></CardHeader></Card></Grid>',
+			},
+			{
+				label: "Sparse results keep their size",
+				code: '// One match still renders one cover wide: the empty columns are kept (track="fill", the default).\n<Grid minItemWidth="10rem" gap={2}><Card><CardHeader><CardTitle>Night Swim</CardTitle><CardDescription>Album · Undertow</CardDescription></CardHeader></Card></Grid>',
+			},
+			{
+				label: "A fixed set that spans the row",
+				code: '<Grid minItemWidth="12rem" track="fit" gap={2}><Card><CardHeader><CardDescription>Listeners</CardDescription><span className="text-mono-xl">48.2k</span></CardHeader></Card><Card><CardHeader><CardDescription>Streams</CardDescription><span className="text-mono-xl">1.3M</span></CardHeader></Card><Card><CardHeader><CardDescription>Saves</CardDescription><span className="text-mono-xl">9,410</span></CardHeader></Card></Grid>',
 			},
 			{
 				label: "Responsive fixed columns",

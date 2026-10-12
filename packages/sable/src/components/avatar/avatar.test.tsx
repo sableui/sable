@@ -132,6 +132,36 @@ describe("Avatar outside a group", () => {
 	})
 })
 
+describe("Avatar portrait sizes", () => {
+	it("renders xl at 96px and 2xl at 160px, with initials on the matching tier", () => {
+		const xl = render(<Avatar fallback="LV" size="xl" />).container.firstChild as HTMLElement
+		expect(xl.className).toContain("size-24")
+		expect(xl.className).toContain("text-heading-2")
+		const xxl = render(<Avatar fallback="LV" size="2xl" />).container.firstChild as HTMLElement
+		expect(xxl.className).toContain("size-40")
+		expect(xxl.className).toContain("text-display-lg")
+	})
+
+	// At row scale a StatusDot is about a quarter of the circle; left unscaled
+	// on a 160px portrait it shrinks to a speck.
+	it("scales the status indicator with the portrait, and only there", () => {
+		const slot = (size: "lg" | "xl" | "2xl") => {
+			const { container } = render(<Avatar fallback="LV" size={size} status={<span />} />)
+			return container.querySelector<HTMLElement>("[data-slot=avatar-status]")!.className
+		}
+		expect(slot("lg")).not.toMatch(/scale-/)
+		expect(slot("xl")).toContain("scale-200")
+		expect(slot("2xl")).toContain("scale-250")
+	})
+
+	it("keeps the art fallback filling the portrait", () => {
+		const { container } = render(<Avatar variant="art" fallback="LV" alt="Lena Vale" size="2xl" />)
+		const art = container.querySelector<HTMLElement>('[data-slot="gradient-art"]')
+		expect(art).toHaveTextContent("LV")
+		expect(art?.className).toContain("size-full")
+	})
+})
+
 describe("AvatarGroupCount", () => {
 	it("shows +N and reads a custom label", () => {
 		render(<AvatarGroupCount count={4} label="and 4 more reviewers" />)

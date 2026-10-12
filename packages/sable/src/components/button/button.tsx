@@ -41,16 +41,54 @@ export interface ButtonProps
 	 * so callers never hand-position one with absolute offsets.
 	 */
 	badge?: ReactNode
+	/**
+	 * Optical alignment for a borderless button: pull the box outward on that
+	 * inline side by exactly its own padding (`--button-px`, less the icon-side
+	 * step when an icon sits there; an icon-only size bleeds by its inset to the
+	 * glyph), so the LABEL lines up with the content edge the row shares — the
+	 * grid under a SectionHeader, a card's padding. The hit area and the hover
+	 * and focus fill keep their full size; on hover the fill runs past the edge.
+	 * Logical sides, so it mirrors in RTL.
+	 *
+	 * Only the borderless variants bleed — `ghost`, `link`, `on-color-ghost`.
+	 * On a variant with a visible edge (primary, secondary, outline, destructive,
+	 * floating, field, on-color, on-color-outline) it does nothing: a filled
+	 * button aligns its EDGE, not its label.
+	 *
+	 * Left unset, a borderless button bleeds when its container asks —
+	 * SectionHeader, PageHeader and CardAction align their outermost ghost or
+	 * link action this way. `none` opts out of that.
+	 */
+	bleed?: ButtonBleed
 }
+
+export type ButtonBleed = "start" | "end" | "both" | "none"
+
+/** The variants with no visible edge — the only ones whose label can align. */
+const BORDERLESS = new Set(["ghost", "link", "on-color-ghost"])
 
 /*
  * Optical padding: one 2px step off the padding on an icon's side. Symmetric
  * padding around [icon][label] looks lopsided — the label's ink fills its box,
  * an icon's does not — so the icon side gets less. Icon-only sizes are square
  * and unaffected.
+ *
+ * The side's padding is named (`--button-ps` / `--button-pe`) so a bleed on that
+ * side moves by what the side actually carries, not by the size's plain padding.
  */
-const OPTICAL_START: Record<string, string> = { xs: "ps-1.5", sm: "ps-2.5", md: "ps-3.5", cta: "ps-4.5" }
-const OPTICAL_END: Record<string, string> = { xs: "pe-1.5", sm: "pe-2.5", md: "pe-3.5", cta: "pe-4.5" }
+const OPTICAL_START = "[--button-ps:calc(var(--button-px)-(--spacing(0.5)))] ps-(--button-ps)"
+const OPTICAL_END = "[--button-pe:calc(var(--button-px)-(--spacing(0.5)))] pe-(--button-pe)"
+
+/*
+ * Bleed: a negative inline margin of exactly the side's padding. Containers
+ * that align their actions automatically (lib/bleed.ts) write the same margin
+ * against `data-bleed="auto"`.
+ */
+const BLEED_CLASS: Record<Exclude<ButtonBleed, "none">, string> = {
+	start: "-ms-(--button-ps,var(--button-px))",
+	end: "-me-(--button-pe,var(--button-px))",
+	both: "-ms-(--button-ps,var(--button-px)) -me-(--button-pe,var(--button-px))",
+}
 
 /**
  * The primary action primitive. Pill-shaped by default; one `primary` per screen.
@@ -69,6 +107,7 @@ export function Button({
 	iconStart,
 	iconEnd,
 	badge,
+	bleed,
 	disabled,
 	children,
 	...props
@@ -115,9 +154,13 @@ export function Button({
 			inner
 		)
 	const optical = cn(
-		start && hasLabel ? OPTICAL_START[resolvedSize] : null,
-		iconEnd && hasLabel ? OPTICAL_END[resolvedSize] : null,
+		start && hasLabel && !iconOnly ? OPTICAL_START : null,
+		iconEnd && hasLabel && !iconOnly ? OPTICAL_END : null,
 	)
+	// Only a borderless button can bleed, and not one stretched across a stacked
+	// action bar. `auto` marks it for a container that aligns its actions.
+	const bleedable = BORDERLESS.has(variant ?? "primary") && !stacked
+	const resolvedBleed = bleedable ? (bleed ?? "auto") : undefined
 
 	return useRender({
 		render: render ?? <button type={type ?? "button"} />,
@@ -129,6 +172,9 @@ export function Button({
 				stacked ? "w-full" : null,
 				tier.action,
 				optical,
+				resolvedBleed && resolvedBleed !== "auto" && resolvedBleed !== "none"
+					? BLEED_CLASS[resolvedBleed]
+					: null,
 				// Busy is not disabled. Loading sets `disabled` so the action cannot
 				// double-fire, but fading it to 50% made a working button read as an
 				// unavailable one. It keeps full colour; the spinner says "working".
@@ -136,6 +182,7 @@ export function Button({
 				className,
 			),
 			children: content,
+			...(resolvedBleed ? { "data-bleed": resolvedBleed } : null),
 			...(loading ? { "aria-busy": true } : null),
 			...(isNativeButton
 				? { disabled: disabled || loading }

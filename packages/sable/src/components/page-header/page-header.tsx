@@ -1,5 +1,6 @@
 import type { ComponentPropsWithRef, ReactNode } from "react"
 import { cn } from "../../lib/cn"
+import { HeadingRow } from "../../lib/heading-row"
 
 export interface PageHeaderProps
 	extends Omit<ComponentPropsWithRef<"div">, "title"> {
@@ -43,27 +44,16 @@ export function PageHeader({
 	children,
 	...props
 }: PageHeaderProps) {
-	const hasControls = Boolean(back || actions)
 	return (
 		<div className={cn("flex flex-col gap-1 pb-4", className)} {...props}>
-			<div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
-				<div className="flex min-w-0 flex-1 basis-48 items-start gap-2">
-					{back ? <div className="shrink-0">{back}</div> : null}
-					{title ? (
-						<Title
-							className={cn(
-								"min-w-0 text-heading-2 text-balance break-words",
-								hasControls && "flex min-h-(--control-md) items-center",
-							)}
-						>
-							{title}
-						</Title>
-					) : null}
-				</div>
-				{actions ? (
-					<div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
-				) : null}
-			</div>
+			<HeadingRow
+				as={Title}
+				title={title}
+				titleClassName="text-heading-2"
+				band="flex min-h-(--control-md) items-center"
+				leading={back}
+				actions={actions}
+			/>
 			{description ? (
 				<p className="text-body-sm text-muted-foreground">{description}</p>
 			) : null}

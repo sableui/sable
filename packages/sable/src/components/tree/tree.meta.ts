@@ -43,7 +43,7 @@ export const treeMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
-					"Put mutable per-row state (visibility, solo, a row menu) in `actions`, on the right rail. Show it on hover, and at rest only when its value is the non-default one.",
+					"Put mutable per-row state (visibility, solo, a row menu) in `actions`, on the right rail. Show it on hover with `reveal-on-hover` (the row is its `group`), and at rest only when its value is the non-default one.",
 			},
 			{
 				guidance: "do",
@@ -185,7 +185,7 @@ export const treeMeta: ComponentMeta = {
 			name: "disclosureIcon",
 			type: "ReactNode",
 			description:
-				"Replaces TreeRow's semantic chevron-down icon. Omit to use the current IconProvider set or Reicon by default.",
+				"Replaces TreeRow's semantic chevron-down icon. Omit to use the chevron-down from the app's IconProvider set.",
 		},
 		{
 			name: "actions",
@@ -237,7 +237,7 @@ export const treeMeta: ComponentMeta = {
 		"Each treeitem is named by its own label (aria-labelledby the name), never by the text of its icon or action buttons.",
 		"The disclosure is a real button with aria-expanded and a label naming what it discloses, and it stops propagation so collapsing a group never changes the selection. Inside a Tree the treeitem carries aria-expanded and the arrow keys, so the button becomes a pointer target only: aria-hidden, out of the tab order, and it leaves focus where it was when clicked.",
 		"The disclosure's POINTER TARGET is bigger than the mark it draws. `--tree-column` is 20px comfortable and 18px compact, both under WCAG 2.5.8's 24x24 floor, so a centred pseudo-element takes the hit at `--control-xs` (28/24) instead. The drawn box stays on the column, because that column is also the indent step — growing the button would push every name in the tree one column right.",
-		"Right-rail actions stay in the tab order, so a row with actions costs extra Tab stops. Keep actions few and show them on hover and focus-visible.",
+		"Right-rail actions stay in the tab order, so a row with actions costs extra Tab stops. Keep actions few and reveal them with `reveal-on-hover`, which also shows them on focus and always on touch.",
 		"`dimmed` is presentation only. A row switched off must also say so in its actions' aria-pressed or its accessible name; opacity alone is invisible to a screen reader and fails contrast.",
 		"Right-rail controls that appear on hover must also appear on focus-visible, or they are unreachable by keyboard.",
 	],

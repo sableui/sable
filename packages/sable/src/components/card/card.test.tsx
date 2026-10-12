@@ -3,7 +3,7 @@ import { createRef } from "react"
 import { describe, expect, it } from "vitest"
 import { PresentationProvider } from "../../lib/presentation"
 import { Button } from "../button"
-import { Card, CardContent, CardFooter, CardHeader, CardList, CardTitle } from "./card"
+import { Card, CardAction, CardContent, CardFooter, CardHeader, CardList, CardTitle } from "./card"
 
 describe("Card density", () => {
 	it("defaults to comfortable padding (p-6, on the spacing scale so density moves it)", () => {
@@ -195,5 +195,25 @@ describe("Card in a sheet (lib/presentation)", () => {
 		const [inner, outer] = Array.from(container.querySelectorAll("[data-slot=card-footer]")) as HTMLElement[]
 		expect(inner.dataset.actions).toBe("row")
 		expect(outer.dataset.actions).toBe("stack")
+	})
+})
+
+describe("CardAction optical alignment", () => {
+	it("bleeds a trailing ghost action to the card's content edge", () => {
+		render(
+			<Card>
+				<CardHeader>
+					<CardTitle>Top collectors</CardTitle>
+					<CardAction>
+						<Button variant="ghost" size="sm">
+							View all
+						</Button>
+					</CardAction>
+				</CardHeader>
+			</Card>,
+		)
+		const button = screen.getByRole("button", { name: "View all" })
+		expect(button).toHaveAttribute("data-bleed", "auto")
+		expect(button.parentElement).toHaveClass("*:last:data-[bleed=auto]:-me-(--button-pe,var(--button-px))")
 	})
 })

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { renderWithProviders, screen } from "../../test/render"
+import { Button } from "../button"
 import { PageHeader } from "./page-header"
 
 describe("PageHeader", () => {
@@ -19,5 +20,20 @@ describe("PageHeader", () => {
 		const heading = screen.getByRole("heading", { level: 1 })
 		expect(heading).not.toHaveClass("truncate")
 		expect(heading).toHaveClass("min-h-(--control-md)")
+	})
+
+	it("aligns a ghost back control's glyph with the start edge and a ghost action's with the end", () => {
+		renderWithProviders(
+			<PageHeader
+				title="Invoices"
+				back={<Button variant="ghost" size="icon" aria-label="Back" />}
+				actions={<Button variant="ghost" size="sm">Export</Button>}
+			/>,
+		)
+		const back = screen.getByRole("button", { name: "Back" })
+		expect(back).toHaveAttribute("data-bleed", "auto")
+		expect(back.parentElement).toHaveClass("*:first:data-[bleed=auto]:-ms-(--button-ps,var(--button-px))")
+		const exportButton = screen.getByRole("button", { name: "Export" })
+		expect(exportButton.parentElement).toHaveClass("*:last:data-[bleed=auto]:-me-(--button-pe,var(--button-px))")
 	})
 })

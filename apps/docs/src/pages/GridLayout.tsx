@@ -109,6 +109,24 @@ export function GridLayoutPage() {
 			</Section>
 
 			<Section
+				title="Sparse results keep their size"
+				description="With fewer items than fit a row, the grid keeps its empty columns (track=&quot;fill&quot;, the default), so one search result is one cell wide. track=&quot;fit&quot; collapses them and stretches the items across the row: right for a fixed set built to span it, wrong for anything whose count is data."
+			>
+				<Stack gap={2}>
+					<span className="text-label-md text-muted-foreground">track="fill" (default)</span>
+					<Grid minItemWidth="11rem">
+						<Box>Result</Box>
+						<Box>Result</Box>
+					</Grid>
+					<span className="mt-2 text-label-md text-muted-foreground">track="fit"</span>
+					<Grid minItemWidth="11rem" track="fit">
+						<Box>Stretched</Box>
+						<Box>Stretched</Box>
+					</Grid>
+				</Stack>
+			</Section>
+
+			<Section
 				title="Responsive column count"
 				description="Two up on mobile, three on small screens, six on desktop."
 			>

@@ -40,7 +40,7 @@ export const avatarMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
-					"Use consistent sizes within a group; reserve lg for profile headers or major identity moments.",
+					"Pick the size by the job: sm in dense rows and tables, md (the default) beside one line of text, lg in a row with a title and subtitle, xl (96px) for a profile header beside the person's name, 2xl (160px) for an artist or profile hero and roster portraits. Keep one size within a list or group.",
 			},
 			{
 				guidance: "do",
@@ -61,6 +61,11 @@ export const avatarMeta: ComponentMeta = {
 				guidance: "dont",
 				description:
 					"Overload a dense table with large avatars; use sm or omit images when scanning data is more important.",
+			},
+			{
+				guidance: "dont",
+				description:
+					"Build a portrait by stretching an Avatar with size classes (`className=\"size-40\"`) — the initials, the status indicator and the image fade stay at row scale. Use size=\"xl\" or \"2xl\", which scale all three. Past 160px, or for a non-circular cover, it is media: an AspectBox, not an avatar.",
 			},
 		],
 		anatomy: [
@@ -133,9 +138,9 @@ export const avatarMeta: ComponentMeta = {
 		},
 		{
 			name: "size",
-			type: '"sm" | "md" | "lg"',
+			type: '"sm" | "md" | "lg" | "xl" | "2xl"',
 			default: '"md"',
-			description: "Square footprint: 32px / 40px / 48px.",
+			description: "Square footprint: 32px / 40px / 48px for rows; 96px / 160px for portraits (a profile header, an artist hero, a roster tile). The initials, a status indicator and its cut-out ring scale with it, and at the portrait sizes the photo fades in over the resting surface.",
 		},
 		{
 			name: "variant",
@@ -182,7 +187,7 @@ export const avatarMeta: ComponentMeta = {
 		},
 	],
 	variants: {
-		size: ["sm", "md", "lg"],
+		size: ["sm", "md", "lg", "xl", "2xl"],
 		variant: ["neutral", "art"],
 	},
 	tokensUsed: ["muted", "muted-foreground", "background", "card", "popover", "overlay", "overlay-foreground"],
@@ -192,6 +197,12 @@ export const avatarMeta: ComponentMeta = {
 		"The fallback (initials/glyph) gives a non-image identity cue for screen readers and slow connections.",
 		"AvatarGroup renders role=group; give it an aria-label naming the whole set (\"12 collaborators\"), since the visible stack only shows some of them.",
 		"The \"+N\" count is hidden from screen readers and replaced by \"and N more\" (AvatarGroupCount `label`, or AvatarGroup `countLabel`).",
+	],
+	motion: [
+		{ slot: "arrival", recipe: "motion-fade", part: "Image", why: "At the portrait sizes (xl, 2xl) the photo replacing the initials is a visible pop across one of the page's largest elements; fading it in reads as the picture arriving, not the layout glitching. Row sizes swap instantly — too small to register, and a list of fading faces would shimmer." },
+		{ slot: "response", recipe: "none", part: "Root", why: "An avatar is not interactive itself; a link or button wrapping it owns the response." },
+		{ slot: "transition", recipe: "none", part: "Root", why: "It has no states of its own to move between beyond the image arriving." },
+		{ slot: "activity", recipe: "none", part: "Root", why: "Loading shows the fallback, which is already a finished resting state rather than a spinner." },
 	],
 	examples: [
 		{
@@ -209,6 +220,16 @@ export const avatarMeta: ComponentMeta = {
 		{
 			label: "Sizes",
 			code: '<Avatar src="/pfp.png" alt="Alex Morgan" fallback="AM" size="sm" />\n<Avatar src="/pfp.png" alt="Alex Morgan" fallback="AM" size="md" />\n<Avatar src="/pfp.png" alt="Alex Morgan" fallback="AM" size="lg" />',
+		},
+		{
+			label: "Profile portrait",
+			code: `<div className="flex flex-col items-center gap-3 text-center">
+	<Avatar variant="art" size="2xl" fallback="LV" alt="Lena Vale" status={<StatusDot tone="success" />} />
+	<div className="flex flex-col gap-1">
+		<h1 className="text-heading-1">Lena Vale</h1>
+		<p className="text-body-sm text-muted-foreground">1.2M monthly listeners</p>
+	</div>
+</div>`,
 		},
 		{
 			label: "Low-level parts",

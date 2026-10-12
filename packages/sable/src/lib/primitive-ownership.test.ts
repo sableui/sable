@@ -21,7 +21,10 @@ import { describe, expect, it } from "vitest"
 const OWNERS: Record<string, { owners: string[]; why?: string }> = {
 	"@base-ui/react/accordion": { owners: ["accordion"] },
 	"@base-ui/react/alert-dialog": { owners: ["dialog"] },
-	"@base-ui/react/avatar": { owners: ["avatar"] },
+	"@base-ui/react/avatar": {
+		owners: ["avatar", "media-image"],
+		why: "Both take Base UI's image-load status, not a copy of it. Avatar's frame is a circle with a size ladder and an initials tier; a cover is none of those, so MediaImage composes the primitive rather than restyling Avatar out of its shape.",
+	},
 	"@base-ui/react/checkbox": {
 		owners: ["checkbox", "checkbox-card"],
 		why: "Base UI has no card root; the card shell itself is shared (lib/selection-card).",

@@ -28,6 +28,7 @@ import { SideNav, SideNavItem } from "../components/side-nav"
 import {
 	Sidebar,
 	SidebarFooter,
+	SidebarBrand,
 	SidebarHeader,
 	SidebarItem,
 	SidebarNav,
@@ -97,10 +98,7 @@ export function SettingsPage() {
 			sidebar={
 				<Sidebar>
 					<SidebarHeader>
-						<Row gap={1} align="center" className="px-3">
-							<Icon name="gem" variant="solid" className="text-xl" />
-							<span className="text-title-sm">Atelier</span>
-						</Row>
+						<SidebarBrand mark={<Icon name="gem" variant="solid" />} label="Atelier" render={<a href="/" />} />
 					</SidebarHeader>
 					<SidebarNav>
 						<SidebarItem icon={<Icon name="grid" />} label="Overview" render={<a href="/" />} />

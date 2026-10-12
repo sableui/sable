@@ -37,9 +37,33 @@ type RootProps = Omit<ComponentProps<typeof Base.Root>, "className"> &
 	}
 
 type AvatarSize = NonNullable<VariantProps<typeof avatarVariants>["size"]>
+/** The row sizes. `xl`/`2xl` are portraits, which are never stacked. */
+type AvatarGroupSize = NonNullable<VariantProps<typeof avatarGroupVariants>["size"]>
 
 /** Set by AvatarGroup so every avatar inside takes the group's size. */
-const AvatarGroupContext = createContext<{ size: AvatarSize } | null>(null)
+const AvatarGroupContext = createContext<{ size: AvatarGroupSize } | null>(null)
+
+/**
+ * The status indicator grows with a portrait. StatusDot and its 2px cut-out
+ * ring are sized for row avatars (32–48px), where the ring and dot together are
+ * about a quarter of the diameter; left at that size on a 160px portrait the
+ * dot shrinks to a speck. Scaling the slot keeps the dot, the ring and its
+ * position on the rim in proportion with no per-size StatusDot variant.
+ */
+const STATUS_SCALE: Partial<Record<AvatarSize, string>> = {
+	xl: "scale-200",
+	"2xl": "scale-250",
+}
+
+/**
+ * Portraits fade their photo in over the resting surface. At row sizes the
+ * swap from initials to photo is too small to register; at 96–160px it is a
+ * visible pop, often across a page's largest element.
+ */
+const IMAGE_FADE: Partial<Record<AvatarSize, string>> = {
+	xl: "motion-fade",
+	"2xl": "motion-fade",
+}
 
 /** The circular frame. Clips the image; holds the `size` axis. */
 export function AvatarRoot({ size, className, ...props }: RootProps) {
@@ -137,7 +161,7 @@ export function Avatar({
 	const named = !src && alt ? { role: "img" as const, "aria-label": alt } : null
 	const avatar = (
 		<AvatarRoot size={size} className={status == null ? className : undefined} {...named} {...props}>
-			{src ? <AvatarImage src={src} alt={alt ?? ""} /> : null}
+			{src ? <AvatarImage src={src} alt={alt ?? ""} className={size ? IMAGE_FADE[size] : undefined} /> : null}
 			{variant === "art" ? (
 				<AvatarFallback delay={fallbackDelay} aria-hidden={named ? true : undefined} className="size-full">
 					<GradientArt seed={seed ?? ((typeof fallback === "string" && fallback) || alt || undefined)} className="flex size-full items-center justify-center text-overlay-foreground">
@@ -166,7 +190,10 @@ export function Avatar({
 			    half its own size. */}
 			<span
 				data-slot="avatar-status"
-				className="absolute end-[14.6%] bottom-[14.6%] flex translate-x-1/2 translate-y-1/2 rounded-full rtl:-translate-x-1/2 *:ring-2 *:ring-[color:var(--avatar-group-ring,var(--background))]"
+				className={cn(
+					"absolute end-[14.6%] bottom-[14.6%] flex translate-x-1/2 translate-y-1/2 rounded-full rtl:-translate-x-1/2 *:ring-2 *:ring-[color:var(--avatar-group-ring,var(--background))]",
+					size ? STATUS_SCALE[size] : undefined,
+				)}
 			>
 				{status}
 			</span>
@@ -207,7 +234,7 @@ export function AvatarGroupCount({
 AvatarGroupCount.displayName = "AvatarGroupCount"
 
 /** Two circles less one overlap, per size (see avatarGroupVariants). */
-const FIT_MIN_WIDTH: Record<AvatarSize, string> = {
+const FIT_MIN_WIDTH: Record<AvatarGroupSize, string> = {
 	sm: "min-w-15",
 	md: "min-w-[--spacing(18.5)]",
 	lg: "min-w-22",
@@ -215,8 +242,12 @@ const FIT_MIN_WIDTH: Record<AvatarSize, string> = {
 
 export interface AvatarGroupProps
 	extends Omit<ComponentProps<"div">, "className"> {
-	/** Size of every avatar in the group: 32px / 40px / 48px. Overrides each child's own size. */
-	size?: AvatarSize
+	/**
+	 * Size of every avatar in the group: 32px / 40px / 48px. Overrides each
+	 * child's own size. The portrait sizes (`xl`, `2xl`) are not offered: a
+	 * stack is a row-sized summary of people, never a set of portraits.
+	 */
+	size?: AvatarGroupSize
 	/**
 	 * The surface the group sits on, so the separating ring matches it. Omit to
 	 * inherit `--avatar-group-ring` from an ancestor (falling back to the page
@@ -289,7 +320,7 @@ export function AvatarGroup({
 	}
 	const shown = items.length > limit ? items.slice(0, limit) : items
 	const overflow = Math.max(0, people - shown.length)
-	const resolvedSize: AvatarSize = size ?? "md"
+	const resolvedSize: AvatarGroupSize = size ?? "md"
 	return (
 		<AvatarGroupContext.Provider value={{ size: resolvedSize }}>
 			<div

@@ -1,6 +1,7 @@
 import type { ComponentPropsWithRef, CSSProperties } from "react"
 import { useContext } from "react"
 import { useRender } from "@base-ui/react/use-render"
+import { BLEED_LAST_END } from "../../lib/bleed"
 import { cn } from "../../lib/cn"
 import { CardDepthContext, StackedActionsContext, usePresentation } from "../../lib/presentation"
 
@@ -140,6 +141,11 @@ export function CardHeader({
 /**
  * Header-aligned action slot — pins to the top-right of CardHeader (e.g. an
  * overflow menu, close button, or switch). Place as a child of CardHeader.
+ *
+ * A ghost or link Button that ends the slot bleeds by its padding at the end
+ * (lib/bleed.ts), so a "View all" label or a "⋯" glyph lines up with the card's
+ * content edge instead of sitting one padding inside it. Filled buttons keep
+ * their edge on the line.
  */
 export function CardAction({
 	className,
@@ -150,6 +156,7 @@ export function CardAction({
 			data-slot="card-action"
 			className={cn(
 				"col-start-2 row-span-2 row-start-1 self-start justify-self-end",
+				BLEED_LAST_END,
 				className,
 			)}
 			{...props}

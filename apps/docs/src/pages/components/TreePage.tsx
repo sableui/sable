@@ -81,11 +81,9 @@ function TreeDemo() {
 											size="icon-xs"
 											variant="ghost"
 											aria-label={layer.visible ? `Hide ${layer.name}` : `Show ${layer.name}`}
-											className={
-												layer.visible
-													? "opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-													: "opacity-100"
-											}
+											// At rest only when it shows the non-default value (hidden);
+											// otherwise on hover or focus of the row — and always on touch.
+											className={layer.visible ? "reveal-on-hover" : undefined}
 											onClick={(event) => {
 												event.stopPropagation()
 												patch(layer.id, { visible: !layer.visible })

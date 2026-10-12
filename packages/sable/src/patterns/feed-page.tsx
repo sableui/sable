@@ -134,10 +134,10 @@ const renderPost = (post: Post) => (
 						</Meter>
 					</Stack>
 				) : null}
-				{/* Pulled out by exactly a sm Button's own padding (px-3), so the
-				    first icon lands on the text edge above it. */}
-				<Row gap={0.5} className="-ms-3">
-					<Button variant="ghost" size="sm" aria-label={`Like, ${post.likes} likes`}>
+				{/* bleed="start" pulls the first button out by exactly its own
+				    padding, so its icon lands on the text edge above it. */}
+				<Row gap={0.5}>
+					<Button variant="ghost" size="sm" bleed="start" aria-label={`Like, ${post.likes} likes`}>
 						<Icon name="heart" />
 						{post.likes}
 					</Button>
