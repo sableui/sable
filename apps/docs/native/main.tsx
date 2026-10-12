@@ -19,10 +19,9 @@ import {
 	Switch,
 	Textarea,
 	ToastProvider,
-	fallbackIconSet,
 	toast,
 } from "@sableui/react"
-import { reiconIconSet } from "@sableui/react/icons/reicon"
+import { fallbackIconSet, reiconIconSet } from "@sableui/react/icons/reicon"
 import {
 	IosBackLink,
 	IosIconButton,

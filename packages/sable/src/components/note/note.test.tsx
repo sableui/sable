@@ -1,6 +1,13 @@
-import { render } from "@testing-library/react"
+import { render as renderBare } from "@testing-library/react"
+import type { ReactElement, ReactNode } from "react"
 import { describe, expect, it, vi } from "vitest"
+import { IconProvider } from "../../icon"
+import { reiconIconSet } from "../../icon-sets/reicon"
 import { Note } from "./note"
+
+// These assertions count real glyphs, so render with the set an app mounts.
+const WithIcons = ({ children }: { children: ReactNode }) => <IconProvider set={reiconIconSet}>{children}</IconProvider>
+const render = (ui: ReactElement) => renderBare(ui, { wrapper: WithIcons })
 
 describe("Note action", () => {
 	it("renders an onClick remedy as a button with no glyph", () => {

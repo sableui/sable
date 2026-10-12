@@ -2,7 +2,9 @@
 
 import { type ComponentProps, useEffect, useRef } from "react"
 import { cn } from "../../lib/cn"
-import { type ArtVariant, type Rgba, artSupported, cssColorToRgba, onArtInvalidate, onThemeChange, paintArt } from "./renderer"
+// Types only: the renderer (WebGL plus Paper's shaders) loads on first paint, so
+// an app that never shows art, or shows only the CSS stand-in, never ships it.
+import type { ArtVariant, Rgba } from "./renderer"
 
 /** The decorative tones art can be painted from — the palette's `--tone-*` family. */
 export type ArtTone = "info" | "standard" | "collectible" | "edition" | "warning"
@@ -71,6 +73,27 @@ function rotate<T>(items: readonly T[], seed: number): T[] {
 	return [...items.slice(shift), ...items.slice(0, shift)]
 }
 
+/**
+ * The seed's own variant of the palette: every colour turned by the same few
+ * degrees of hue and stepped a little lighter or darker. Rotation alone was not
+ * enough: a preset whose art is one family (Ember's fire, a brand-derived
+ * palette) painted every artist the same red-orange, and a row of portraits
+ * could not be told apart. The turn is bounded (±20°, ±0.04 lightness), so the
+ * art stays inside the preset's family, and shared by the whole palette, so
+ * its harmony holds. Written as relative colour, so the CSS stand-in and the
+ * shader resolve exactly the same colours.
+ */
+const HUE_TURN = 20
+const LIGHT_STEP = 0.04
+function nudge(color: string, seed: number): string {
+	const frac = (n: number) => n - Math.floor(n)
+	// Decorrelated from `rotate`'s pick of the leading colour, so the two vary independently.
+	const dh = ((frac(seed * 7.31) * 2 - 1) * HUE_TURN).toFixed(1)
+	const dl = ((frac(seed * 13.7) * 2 - 1) * LIGHT_STEP).toFixed(3)
+	// design-lint-disable-next-line inline-color -- relative colour over the theme's own art token
+	return `oklch(from ${color} clamp(0, calc(l + ${dl}), 1) c calc(h + ${dh}))`
+}
+
 /** A 0–1 art parameter from the element's cascade, or its default when unset. */
 function param(style: CSSStyleDeclaration, name: string, fallbackValue: number): number {
 	const n = Number.parseFloat(style.getPropertyValue(name))
@@ -120,8 +143,8 @@ export function GradientArt({ variant = "mesh", tones, seed, className, style, c
 	const canvas = useRef<HTMLCanvasElement>(null)
 	const probes = useRef<HTMLSpanElement>(null)
 	const value = seedValue(seed)
-	const palette = tones?.length ? tones.map(lifted) : ART_SLOTS
-	const groundColor = tones?.length ? ground(tones[0]) : ART_GROUND
+	const palette = (tones?.length ? tones.map(lifted) : ART_SLOTS).map((color) => nudge(color, value))
+	const groundColor = nudge(tones?.length ? ground(tones[0]) : ART_GROUND, value)
 	const paletteKey = palette.join(" ")
 	const background = fallback(rotate(palette, value), groundColor, value)
 
@@ -129,72 +152,92 @@ export function GradientArt({ variant = "mesh", tones, seed, className, style, c
 		const element = root.current
 		const target = canvas.current
 		const swatches = probes.current
-		if (!element || !target || !swatches || !artSupported()) return
+		if (!element || !target || !swatches) return
 		if (typeof IntersectionObserver === "undefined" || typeof ResizeObserver === "undefined") return
-		let visible = false
-		let frame = 0
-		let last = ""
-
-		const paint = () => {
-			frame = 0
-			if (!visible) return
-			const rect = element.getBoundingClientRect()
-			if (!rect.width || !rect.height) return
-			let ratio = Math.min(window.devicePixelRatio || 1, 2)
-			const pixels = rect.width * rect.height * ratio * ratio
-			if (pixels > MAX_PIXELS) ratio *= Math.sqrt(MAX_PIXELS / pixels)
-			const width = Math.max(1, Math.round(rect.width * ratio))
-			const height = Math.max(1, Math.round(rect.height * ratio))
-			// Resolved here, in this element's cascade, so a scoped preset paints its own art.
-			const resolve = (probe: Element) => cssColorToRgba(getComputedStyle(probe).color)
-			const [groundProbe, ...colorProbes] = Array.from(swatches.children)
-			// An unset art slot is transparent: skip it rather than paint a hole.
-			const colors = rotate(
-				colorProbes.map(resolve).filter((c): c is Rgba => c != null && c[3] > 0.01),
-				value,
-			)
-			const groundRgba = groundProbe ? resolve(groundProbe) : null
-			if (!colors.length) return
-			const own = getComputedStyle(element)
-			const character = { warp: param(own, "--art-warp", 0.8), softness: param(own, "--art-softness", 0.88), grain: param(own, "--art-grain", 0) }
-			const key = JSON.stringify([variant, value, width, height, colors, groundRgba, character])
-			if (key === last) return
-			// Grain lays its bands over the ground. Mesh paints only the palette:
-			// every colour there is a spot of equal weight, and a dark ground as one
-			// of them cut a streak through the field. A theme that wants dark in its
-			// mesh (Ember's falloff into black) puts it in the palette on purpose.
-			const ordered = variant === "grain" && groundRgba ? [groundRgba, ...colors] : colors
-			if (paintArt(target, { variant, colors: ordered, seed: value, width, height, pixelRatio: ratio, ...character })) {
-				last = key
-				target.dataset.painted = ""
-			}
-		}
-		const schedule = () => {
-			if (!frame) frame = requestAnimationFrame(paint)
-		}
-		const repaint = () => {
-			last = ""
-			schedule()
-		}
-
-		const intersection = new IntersectionObserver(
-			([entry]) => {
-				visible = entry.isIntersecting
-				if (visible) schedule()
+		let cancelled = false
+		let teardown: (() => void) | undefined
+		// The CSS stand-in is already on screen; the shader fades in over it once
+		// its renderer has loaded, exactly as it does once a frame has painted.
+		import("./renderer").then(
+			(renderer) => {
+				if (!cancelled) teardown = start(renderer)
 			},
-			{ rootMargin: "200px" },
+			() => {
+				/* never loaded: the art stays on its CSS stand-in */
+			},
 		)
-		intersection.observe(element)
-		const resize = new ResizeObserver(schedule)
-		resize.observe(element)
-		const offTheme = onThemeChange(schedule)
-		const offInvalidate = onArtInvalidate(repaint)
 		return () => {
-			cancelAnimationFrame(frame)
-			intersection.disconnect()
-			resize.disconnect()
-			offTheme()
-			offInvalidate()
+			cancelled = true
+			teardown?.()
+		}
+
+		function start({ artSupported, cssColorToRgba, onArtInvalidate, onThemeChange, paintArt }: typeof import("./renderer")) {
+			if (!element || !target || !swatches || !artSupported()) return
+			let visible = false
+			let frame = 0
+			let last = ""
+
+			const paint = () => {
+				frame = 0
+				if (!visible) return
+				const rect = element.getBoundingClientRect()
+				if (!rect.width || !rect.height) return
+				let ratio = Math.min(window.devicePixelRatio || 1, 2)
+				const pixels = rect.width * rect.height * ratio * ratio
+				if (pixels > MAX_PIXELS) ratio *= Math.sqrt(MAX_PIXELS / pixels)
+				const width = Math.max(1, Math.round(rect.width * ratio))
+				const height = Math.max(1, Math.round(rect.height * ratio))
+				// Resolved here, in this element's cascade, so a scoped preset paints its own art.
+				const resolve = (probe: Element) => cssColorToRgba(getComputedStyle(probe).color)
+				const [groundProbe, ...colorProbes] = Array.from(swatches.children)
+				// An unset art slot is transparent: skip it rather than paint a hole.
+				const colors = rotate(
+					colorProbes.map(resolve).filter((c): c is Rgba => c != null && c[3] > 0.01),
+					value,
+				)
+				const groundRgba = groundProbe ? resolve(groundProbe) : null
+				if (!colors.length) return
+				const own = getComputedStyle(element)
+				const character = { warp: param(own, "--art-warp", 0.8), softness: param(own, "--art-softness", 0.88), grain: param(own, "--art-grain", 0) }
+				const key = JSON.stringify([variant, value, width, height, colors, groundRgba, character])
+				if (key === last) return
+				// Grain lays its bands over the ground. Mesh paints only the palette:
+				// every colour there is a spot of equal weight, and a dark ground as one
+				// of them cut a streak through the field. A theme that wants dark in its
+				// mesh (Ember's falloff into black) puts it in the palette on purpose.
+				const ordered = variant === "grain" && groundRgba ? [groundRgba, ...colors] : colors
+				if (paintArt(target, { variant, colors: ordered, seed: value, width, height, pixelRatio: ratio, ...character })) {
+					last = key
+					target.dataset.painted = ""
+				}
+			}
+			const schedule = () => {
+				if (!frame) frame = requestAnimationFrame(paint)
+			}
+			const repaint = () => {
+				last = ""
+				schedule()
+			}
+
+			const intersection = new IntersectionObserver(
+				([entry]) => {
+					visible = entry.isIntersecting
+					if (visible) schedule()
+				},
+				{ rootMargin: "200px" },
+			)
+			intersection.observe(element)
+			const resize = new ResizeObserver(schedule)
+			resize.observe(element)
+			const offTheme = onThemeChange(schedule)
+			const offInvalidate = onArtInvalidate(repaint)
+			return () => {
+				cancelAnimationFrame(frame)
+				intersection.disconnect()
+				resize.disconnect()
+				offTheme()
+				offInvalidate()
+			}
 		}
 	}, [variant, value, paletteKey])
 

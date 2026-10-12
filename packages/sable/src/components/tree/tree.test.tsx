@@ -3,6 +3,7 @@ import { userEvent } from "@testing-library/user-event"
 import { axe } from "jest-axe"
 import { describe, expect, it, vi } from "vitest"
 import { IconProvider } from "../../icon"
+import { reiconIconSet } from "../../icon-sets/reicon"
 import { Tree, TreeAddRow, TreeEmpty, TreeRow, TreeSection, treeIndent } from "./tree"
 
 describe("treeIndent", () => {
@@ -136,7 +137,11 @@ describe("TreeAddRow", () => {
 		// only one column puts it in the disclosure column; reserving none puts it on
 		// the rail; reserving both plus a third would push it into the name column.
 		// Exactly one reserved slot, then the marked slot.
-		const { container } = render(<TreeAddRow depth={0} label="Add effect" />)
+		const { container } = render(
+			<IconProvider set={reiconIconSet}>
+				<TreeAddRow depth={0} label="Add effect" />
+			</IconProvider>,
+		)
 		const columns = [...container.querySelectorAll("span[aria-hidden]")].filter(
 			(el) => (el as HTMLElement).style.width === "var(--tree-column)",
 		)

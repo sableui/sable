@@ -1,7 +1,7 @@
 export { Icon, type IconProps } from "./Icon"
 export { composeIconSets } from "./compose"
-export { fallbackIconSet } from "./fallback-set"
-export { reiconIconSet, reiconIconNames } from "../icon-sets/reicon"
+// No icon set is re-exported here: Reicon is opt-in from
+// "@sableui/react/icons/reicon", so this barrel never reaches its artwork.
 export {
 	IconProvider,
 	useIconSet,

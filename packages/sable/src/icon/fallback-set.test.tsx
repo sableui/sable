@@ -2,8 +2,9 @@ import { readFileSync } from "node:fs"
 import { resolve } from "node:path"
 import { render } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
+import { fallbackIconSet } from "../icon-sets/reicon"
 import { Icon } from "./Icon"
-import { fallbackIconSet } from "./fallback-set"
+import { IconProvider } from "./IconProvider"
 
 /** Compatibility alias and no-provider contract coverage. */
 const contractNames: string[] = JSON.parse(
@@ -23,7 +24,7 @@ describe("Reicon compatibility alias", () => {
 		// rendering an invisible icon, so assert each one actually draws something.
 		const empty: string[] = []
 		for (const name of contractNames) {
-			const { container, unmount } = render(<Icon name={name} />)
+			const { container, unmount } = render(<IconProvider set={fallbackIconSet}><Icon name={name} /></IconProvider>)
 			const svg = container.querySelector("svg")
 			if (!svg || svg.children.length === 0) empty.push(name)
 			unmount()

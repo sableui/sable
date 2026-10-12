@@ -23,8 +23,11 @@ export interface IconProviderProps {
 }
 
 /**
- * Overrides Reicon for all <Icon> descendants. Components keep semantic names;
- * an app can supply a complete set or compose its additions with reiconIconSet.
+ * Supplies the icon set every <Icon> descendant renders with. Required: there
+ * is no built-in fallback, so mount it once at the app root —
+ * `<IconProvider set={reiconIconSet}>` with `reiconIconSet` from
+ * "@sableui/react/icons/reicon", another complete set, or your additions
+ * composed over Reicon with composeIconSets(appExtras, reiconIconSet).
  */
 export function IconProvider({
 	set,

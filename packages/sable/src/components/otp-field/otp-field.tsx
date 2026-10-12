@@ -13,13 +13,23 @@ import * as OtpParts from "@base-ui/react/otp-field"
 // produces a missing-export warning in Rollup on newer Base UI installations.
 type OtpNamespace<T> = T extends { OTPField: infer Parts } ? Parts
 	: T extends { OTPFieldPreview: infer Parts } ? Parts : never
-const otpExports = Object.fromEntries(Object.entries(OtpParts))
-const Base: OtpNamespace<typeof OtpParts> = (otpExports.OTPField ?? otpExports.OTPFieldPreview) as OtpNamespace<typeof OtpParts>
+type OtpBase = OtpNamespace<typeof OtpParts>
+// Resolved on first render, not at module load: a top-level
+// `Object.entries(namespace)` is a call no bundler can prove pure, so it kept
+// the whole OTP Field in every app that imported anything from the barrel.
+let resolvedBase: OtpBase | undefined
+function otpBase(): OtpBase {
+	if (!resolvedBase) {
+		const otpExports = Object.fromEntries(Object.entries(OtpParts))
+		resolvedBase = (otpExports.OTPField ?? otpExports.OTPFieldPreview) as OtpBase
+	}
+	return resolvedBase
+}
 import { type ComponentProps, Fragment } from "react"
 import { cn } from "../../lib/cn"
 import { FIELD_INVALID, FIELD_SHELL } from "../../lib/field-shell"
 
-type BaseRootProps = ComponentProps<typeof Base.Root>
+type BaseRootProps = ComponentProps<OtpBase["Root"]>
 
 export type OtpFieldProps = Omit<
 	BaseRootProps,
@@ -77,6 +87,7 @@ export function OtpField({
 	...root
 }: OtpFieldProps) {
 	const invalid = ariaInvalid === true || ariaInvalid === "true"
+	const Base = otpBase()
 	return (
 		<Base.Root
 			length={length}

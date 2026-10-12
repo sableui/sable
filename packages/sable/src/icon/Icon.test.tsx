@@ -1,17 +1,33 @@
 import { render } from "@testing-library/react"
 import { renderToStaticMarkup } from "react-dom/server"
-import { describe, expect, it } from "vitest"
-import { reiconIconSet } from "../icon-sets/reicon"
-import { Icon } from "./Icon"
+import { describe, expect, it, vi } from "vitest"
+import { fallbackIconSet, reiconIconSet } from "../icon-sets/reicon"
+import { Icon, MISSING_ICON_PROVIDER } from "./Icon"
 import { IconProvider } from "./IconProvider"
 import { composeIconSets } from "./compose"
-import { fallbackIconSet } from "./fallback-set"
 
-describe("Icon defaults and overrides", () => {
-	it("renders Reicon without provider setup, including solid weights and labels", () => {
+describe("Icon sets and overrides", () => {
+	it("renders the provider's Reicon set, including solid weights and labels", () => {
 		for (const variant of ["regular", "solid"]) {
 			const props = { name: "heart", variant, title: "Favorite", className: "text-primary", spin: true }
-			expect(renderToStaticMarkup(<Icon {...props} />)).toBe(renderToStaticMarkup(<>{reiconIconSet(props)}</>))
+			expect(renderToStaticMarkup(<IconProvider set={reiconIconSet}><Icon {...props} /></IconProvider>)).toBe(
+				renderToStaticMarkup(<>{reiconIconSet(props)}</>),
+			)
+		}
+	})
+
+	it("renders nothing without a provider, and warns once naming the fix", () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+		try {
+			const { container } = render(<><Icon name="heart" /><Icon name="search" /></>)
+			expect(container.innerHTML).toBe("")
+			render(<Icon name="gear" />)
+			const calls = warn.mock.calls.filter(([message]) => message === MISSING_ICON_PROVIDER)
+			// Once per page, however many icons render without a set.
+			expect(calls).toHaveLength(1)
+			expect(MISSING_ICON_PROVIDER).toContain('<IconProvider set={reiconIconSet}> from "@sableui/react/icons/reicon"')
+		} finally {
+			warn.mockRestore()
 		}
 	})
 
@@ -29,7 +45,7 @@ describe("Icon defaults and overrides", () => {
 		expect(container.querySelectorAll("svg")).toHaveLength(1)
 	})
 
-	it("preserves the old export only as a Reicon alias", () => {
+	it("preserves the old export only as a Reicon alias, on the Reicon subpath", () => {
 		expect(fallbackIconSet).toBe(reiconIconSet)
 	})
 })

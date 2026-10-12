@@ -73,11 +73,15 @@ export function Code() { return <OtpField length={6} groupSize={3} onValueComple
 	}
 	const baseUi = () => JSON.parse(readFileSync(join(realpathSync(installed), "../../@base-ui/react/package.json"), "utf8")).version
 	strictTypes(`Base UI ${baseUi()}`, typedSubpaths.filter((name) => !konstaSubpaths.includes(name)))
-	assert(manifest.dependencies["reicon-react"], "Reicon must install automatically for the default icons.")
-	const { Icon, fallbackIconSet, reiconIconSet } = await import(pathToFileURL(join(installed, "dist/index.js")).href)
+	assert(manifest.dependencies["reicon-react"], "Reicon must install automatically for the opt-in icon set.")
+	const root = await import(pathToFileURL(join(installed, "dist/index.js")).href)
+	const { Icon, IconProvider } = root
+	// Reicon is opt-in from its subpath: the root barrel must not reach its artwork.
+	assert(!("reiconIconSet" in root) && !("fallbackIconSet" in root), "The root barrel must not re-export the Reicon set.")
+	const { fallbackIconSet, reiconIconSet } = await import(pathToFileURL(join(installed, "dist/icon-sets/reicon.js")).href)
 	const { createElement } = await import(pathToFileURL(join(consumer, "node_modules/react/index.js")).href)
 	const { renderToStaticMarkup } = await import(pathToFileURL(join(consumer, "node_modules/react-dom/server.node.js")).href)
-	assert(renderToStaticMarkup(createElement(Icon, { name: "heart" })).includes("<svg"), "Packed icons do not render without an IconProvider.")
+	assert(renderToStaticMarkup(createElement(IconProvider, { set: reiconIconSet }, createElement(Icon, { name: "heart" }))).includes("<svg"), "Packed Reicon icons do not render through IconProvider.")
 	assert(fallbackIconSet === reiconIconSet, "The obsolete fallback export must be an alias, not separate artwork.")
 	const registry = JSON.parse(readFileSync(join(installed, "registry.json"), "utf8"))
 	assert(manifest.version === registry.version, "Packed package and registry versions disagree.")
@@ -147,14 +151,15 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({ plugins: [tailwindcss()], resolve: { dedupe: ["react", "react-dom"] }, esbuild: { jsx: "automatic" } });`)
 	write("src/main.jsx", `import React from "react";
 import { createRoot } from "react-dom/client";
-import { Button, SableThemeProvider } from "@sableui/react";
+import { Button, IconProvider, SableThemeProvider } from "@sableui/react";
+import { reiconIconSet } from "@sableui/react/icons/reicon";
 import { SettingsPage } from "@sableui/react/patterns";
 import { PricingCardBlock } from "@sableui/react/blocks";
 import { parsePreset, presetManifest } from "@sableui/react/presets";
 import record from "../preset.json";
 import "./styles.css";
 const preset = parsePreset(record);
-createRoot(document.getElementById("root")).render(<SableThemeProvider customThemes={[presetManifest(preset)]} defaultThemeId={preset.id}><div className="antialiased"><Button>Save changes</Button><PricingCardBlock /><SettingsPage /></div></SableThemeProvider>);`)
+createRoot(document.getElementById("root")).render(<IconProvider set={reiconIconSet}><SableThemeProvider customThemes={[presetManifest(preset)]} defaultThemeId={preset.id}><div className="antialiased"><Button>Save changes</Button><PricingCardBlock /><SettingsPage /></div></SableThemeProvider></IconProvider>);`)
 	write("src/styles.css", `@import "tailwindcss";
 @import "@sableui/react/styles.css";
 @import "@sableui/react/theme/prism.css";
@@ -180,10 +185,11 @@ if (!renderToString(React.createElement(PhoneFrame, { src: "/native.html" })).in
 	write("native.html", '<!doctype html><html><body><div id="root"></div><script type="module" src="/src/native.jsx"></script></body></html>')
 	write("src/native.jsx", `import React from "react";
 import { createRoot } from "react-dom/client";
-import { Card, CardList, Entity, Input, Switch } from "@sableui/react";
+import { Card, CardList, Entity, IconProvider, Input, Switch } from "@sableui/react";
+import { reiconIconSet } from "@sableui/react/icons/reicon";
 import { NativeApp, NavigationStack, IosPage, IosNavbar, IosTabbar, IosTab, IosIconButton } from "@sableui/react/ios";
 import "./native.css";
-createRoot(document.getElementById("root")).render(<NativeApp><NavigationStack label="Explore"><IosPage><IosNavbar large title="Explore" right={<IosIconButton aria-label="About">i</IosIconButton>} /><Card><CardList><Entity title="Notifications" action={<Switch aria-label="Notifications" />} /></CardList></Card><Input aria-label="Name" /></IosPage></NavigationStack><IosTabbar aria-label="App navigation"><IosTab active label="Explore" /></IosTabbar></NativeApp>);`)
+createRoot(document.getElementById("root")).render(<IconProvider set={reiconIconSet}><NativeApp><NavigationStack label="Explore"><IosPage><IosNavbar large title="Explore" right={<IosIconButton aria-label="About">i</IosIconButton>} /><Card><CardList><Entity title="Notifications" action={<Switch aria-label="Notifications" />} /></CardList></Card><Input aria-label="Name" /></IosPage></NavigationStack><IosTabbar aria-label="App navigation"><IosTab active label="Explore" /></IosTabbar></NativeApp></IconProvider>);`)
 	// The recommended native document: Sable, a preset, then the adapter.
 	write("src/native.css", '@import "tailwindcss";\n@import "@sableui/react/styles.css";\n@import "@sableui/react/theme/verdant.css";\n@import "@sableui/react/ios/styles.css";\n@source "../node_modules/@sableui/react/dist";\n')
 	write("vite.config.mjs", `import { defineConfig } from "vite";

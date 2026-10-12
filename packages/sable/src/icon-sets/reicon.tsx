@@ -77,14 +77,24 @@ import { Send } from "reicon-react/icons/Send"
 import { Star } from "reicon-react/icons/Star"
 import { Trash } from "reicon-react/icons/Trash"
 import { Upload } from "reicon-react/icons/Upload"
+import { Shuffle } from "reicon-react/icons/Shuffle"
+import { Repeat } from "reicon-react/icons/Repeat"
+import { RepeatOne } from "reicon-react/icons/RepeatOne"
+import { VolumeHigh } from "reicon-react/icons/VolumeHigh"
+import { VolumeLow2 } from "reicon-react/icons/VolumeLow2"
+import { VolumeCross } from "reicon-react/icons/VolumeCross"
+import { Playlist } from "reicon-react/icons/Playlist"
+import { MusicNote } from "reicon-react/icons/MusicNote"
 import { type ComponentProps, memo } from "react"
 import type { IconRenderProps, IconSet } from "../icon/registry"
 
 /**
- * Sable's default Reicon adapter. Concrete imports stay here; components use
- * semantic names through <Icon>. Reicon is an external runtime dependency.
- * Extend it with composeIconSets(appExtras, reiconIconSet), or replace it
- * through IconProvider. The icons/reicon subpath remains available.
+ * Sable's Reicon adapter. Concrete imports stay here; components use semantic
+ * names through <Icon>. Reicon is an external runtime dependency, and it is
+ * opt-in: an app imports `reiconIconSet` from this subpath only
+ * (`@sableui/react/icons/reicon`) and mounts it once at its root,
+ * `<IconProvider set={reiconIconSet}>`, so an app that brings its own icons ships none of this artwork. Extend it
+ * with composeIconSets(appExtras, reiconIconSet), or pass another set instead.
  */
 const ICONS: Record<string, IconComponent> = {
 	eyedropper: Pipette,
@@ -163,6 +173,17 @@ const ICONS: Record<string, IconComponent> = {
 	wallet: Wallet,
 	"thumbs-up": ThumbsUp,
 	"thumbs-down": ThumbsDown,
+	// Added when an e2e music player had to extend the set for its transport
+	// and volume controls. Same speaker outline across the volume trio, so a
+	// mute toggle swaps the waves for the cross without the glyph jumping.
+	shuffle: Shuffle,
+	repeat: Repeat,
+	"repeat-one": RepeatOne,
+	volume: VolumeHigh,
+	"volume-low": VolumeLow2,
+	"volume-off": VolumeCross,
+	queue: Playlist,
+	music: MusicNote,
 }
 
 /** Sable's `variant` → Reicon's weight names. */
@@ -223,3 +244,6 @@ const ReiconGlyph = memo(function ReiconGlyph({
 
 /** The semantic names this adapter maps — useful for a coverage assertion. */
 export const reiconIconNames = Object.keys(ICONS)
+
+/** @deprecated Use reiconIconSet. Retained as an alias for existing consumers. */
+export const fallbackIconSet: IconSet = reiconIconSet

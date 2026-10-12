@@ -53,12 +53,22 @@ probably keeping a layout that Sable would have given you.
 
 ## 4. Icons
 
-**Reicon works by default.** No icon provider is needed. To use another icon
-package, map Sable's semantic names in an app-owned IconSet and mount it through
-IconProvider. To add domain-specific names while retaining Reicon:
+**Mount an icon set once at the root.** `<Icon>` has no built-in fallback:
+without an `IconProvider`, icons render nothing (a development build warns once).
 
 ```tsx
-import { IconProvider, composeIconSets, reiconIconSet } from "@sableui/react"
+import { IconProvider } from "@sableui/react"
+import { reiconIconSet } from "@sableui/react/icons/reicon"
+<IconProvider set={reiconIconSet}>{app}</IconProvider>
+```
+
+To use another icon package, map Sable's semantic names in an app-owned IconSet
+and pass it instead; the app then ships none of Reicon. To add domain-specific
+names while retaining Reicon:
+
+```tsx
+import { IconProvider, composeIconSets } from "@sableui/react"
+import { reiconIconSet } from "@sableui/react/icons/reicon"
 <IconProvider set={composeIconSets(appExtras, reiconIconSet)} />
 ```
 
