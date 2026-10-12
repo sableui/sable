@@ -8,8 +8,9 @@ import { useEffect, useState } from "react"
  * a docs site built for agents could not be read by one. Real paths fix that,
  * and old `#/` links are rewritten on load so nothing already shared breaks.
  *
- * The query string is preserved across navigation on purpose: it carries the
- * Customize panel's `?look=`, so a tuned look follows the reader page to page.
+ * A query string belongs to the page it is on (a share link's look is read
+ * once and saved, see CustomizerProvider), so navigation does not carry it.
+ * A redirect keeps it: a retired URL may still be a share link.
  */
 
 const EVENT = "sable-docs-navigate"
@@ -79,8 +80,8 @@ export function redirect(slug: string): void {
 }
 
 export function navigate(slug: string): void {
-	const target = `/${slug.replace(/^\/+/, "")}${window.location.search}`
-	if (target !== `${window.location.pathname}${window.location.search}`) {
+	const target = `/${slug.replace(/^\/+/, "")}`
+	if (target !== window.location.pathname) {
 		window.history.pushState(null, "", target)
 		window.dispatchEvent(new Event(EVENT))
 	}

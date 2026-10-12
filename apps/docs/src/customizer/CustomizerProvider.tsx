@@ -14,6 +14,7 @@ import {
 import { useTheme } from "../theme"
 import { resolveTheme } from "./color"
 import { loadFont } from "./fonts"
+import { resolveShadows } from "./shadow"
 import {
 	CONTROL_STEPS,
 	DEFAULT_LOOK,
@@ -21,15 +22,20 @@ import {
 	RADIUS_STEPS,
 	TYPE_SIZE_TIERS,
 	type ThemeBase,
+	SHARE_PARAMS,
 	decodeLook,
 	encodeLook,
 	fontsInUse,
+	hasLookParams,
+	lookFromParams,
+	lookToParams,
 	toCss,
 } from "./look"
 
 const STYLE_ID = "sable-docs-look"
 const STORAGE_KEY = "sable-docs-look"
-const PARAM = "look"
+/** The retired base64 param; old share links still decode. */
+const LEGACY_PARAM = "look"
 
 /**
  * Two kinds of element must not take on the reader's look, or the active
@@ -136,7 +142,8 @@ interface CustomizerValue {
 	setLook: (patch: Partial<Look>) => void
 	reset: () => void
 	css: string
-	shareUrl: string
+	/** A link to the current page with this preset and look. */
+	getShareUrl: () => string
 	open: boolean
 	setOpen: (open: boolean) => void
 	isCustomized: boolean
@@ -160,10 +167,16 @@ export function useCustomizer(): CustomizerValue {
 	return value
 }
 
+/**
+ * A share link (`?theme=` or any look field) defines the whole design, so its
+ * look wins over the reader's saved one — even when it carries no changes.
+ */
 function readInitialLook(): Look {
 	if (typeof window === "undefined") return DEFAULT_LOOK
-	const fromUrl = new URLSearchParams(window.location.search).get(PARAM)
-	if (fromUrl) return decodeLook(fromUrl)
+	const params = new URLSearchParams(window.location.search)
+	const legacy = params.get(LEGACY_PARAM)
+	if (legacy) return decodeLook(legacy)
+	if (params.has("theme") || hasLookParams(params)) return lookFromParams(params)
 	try {
 		return decodeLook(window.localStorage.getItem(STORAGE_KEY))
 	} catch {
@@ -172,7 +185,7 @@ function readInitialLook(): Look {
 }
 
 /**
- * Read the active preset's own radius, control ladder, type sizes and colors
+ * Read the active preset's own radius, control ladder, type sizes, colors and shadows
  * (both modes) with the look switched off, so every scale is relative to the
  * preset — never compounded on top of a previous scale.
  */
@@ -189,6 +202,7 @@ function readThemeBase(themeId: string): ThemeBase {
 	const typeSize: Record<string, string> = {}
 	for (const tier of TYPE_SIZE_TIERS) typeSize[tier] = read(`--type-${tier}-size`)
 	const colors = resolveTheme(themeId)
+	const shadows = resolveShadows(themeId)
 	const rootPx = Number.parseFloat(computed.fontSize) || 16
 	// Durations are calc()s over --motion-scale; resolve through a probe pinned
 	// to scale 1 so the base reads as the preset authored it.
@@ -198,13 +212,13 @@ function readThemeBase(themeId: string): ThemeBase {
 	const motionBaseMs = (Number.parseFloat(getComputedStyle(probe).transitionDuration) || 0.2) * 1000
 	probe.remove()
 	if (sheet) sheet.disabled = false
-	return { radius, control, typeSize, colors, rootPx, motionBaseMs }
+	return { radius, control, typeSize, colors, rootPx, motionBaseMs, shadows }
 }
 
-const EMPTY_BASE: ThemeBase = { radius: {}, typeSize: {}, control: {}, colors: null, rootPx: 16, motionBaseMs: 200 }
+const EMPTY_BASE: ThemeBase = { radius: {}, typeSize: {}, control: {}, colors: null, rootPx: 16, motionBaseMs: 200, shadows: null }
 
 export function CustomizerProvider({ children }: { children: ReactNode }) {
-	const { themeId, setThemeId, preference, presets } = useTheme()
+	const { themeId, setThemeId, presets } = useTheme()
 	const [look, setLookState] = useState<Look>(readInitialLook)
 	const [base, setBase] = useState<ThemeBase>(EMPTY_BASE)
 	const [open, setOpen] = useState(false)
@@ -251,38 +265,36 @@ export function CustomizerProvider({ children }: { children: ReactNode }) {
 		for (const entry of fontsInUse(look)) loadFont(entry)
 	}, [look])
 
-	const encoded = encodeLook(look)
-	// Persisting is debounced: a drag produces an update per frame, and
-	// replaceState + localStorage on each one is wasted work (browsers also
-	// throttle replaceState past ~100 calls in 10s). The live CSS above is
-	// applied immediately; only the record of it waits for the drag to settle.
+	// A share link has been read (theme, mode and look, during the first
+	// render); clear it from the address bar so it does not ride along on every
+	// page. The look is now the reader's own, saved to storage below.
 	useEffect(() => {
-		const timer = window.setTimeout(() => persist(encoded), 250)
-		return () => window.clearTimeout(timer)
-	}, [encoded, themeId, preference])
-	function persist(encoded: string) {
-		try {
-			if (encoded) window.localStorage.setItem(STORAGE_KEY, encoded)
-			else window.localStorage.removeItem(STORAGE_KEY)
-		} catch {
-			/* storage unavailable — the URL still carries the look */
-		}
 		const url = new URL(window.location.href)
-		if (!presets.some(preset => preset.id === themeId)) url.searchParams.set("theme", themeId)
-		else url.searchParams.delete("theme")
-		url.searchParams.set("mode", preference)
-		if (encoded) url.searchParams.set(PARAM, encoded)
-		else url.searchParams.delete(PARAM)
-		window.history.replaceState(window.history.state, "", url)
-	}
+		const before = url.search
+		for (const name of SHARE_PARAMS) url.searchParams.delete(name)
+		if (url.search !== before) window.history.replaceState(window.history.state, "", url)
+	}, [])
+
+	const encoded = encodeLook(look)
+	// Persisting is debounced: a drag produces an update per frame, and a
+	// storage write on each one is wasted work. The live CSS above is applied
+	// immediately; only the record of it waits for the drag to settle.
+	useEffect(() => {
+		const timer = window.setTimeout(() => {
+			try {
+				if (encoded) window.localStorage.setItem(STORAGE_KEY, encoded)
+				else window.localStorage.removeItem(STORAGE_KEY)
+			} catch {
+				/* storage unavailable — the look lasts for this page view */
+			}
+		}, 250)
+		return () => window.clearTimeout(timer)
+	}, [encoded])
 
 	const setLook = useCallback((patch: Partial<Look>) => setLookState((prev) => ({ ...prev, ...patch })), [])
 	const reset = useCallback(() => {
 		setLookState(DEFAULT_LOOK)
 		try { window.localStorage.removeItem(STORAGE_KEY) } catch { /* storage disabled */ }
-		const url = new URL(window.location.href)
-		url.searchParams.delete(PARAM)
-		window.history.replaceState(window.history.state, "", url)
 	}, [])
 
 	const isCustomized = Boolean(encoded)
@@ -305,22 +317,24 @@ export function CustomizerProvider({ children }: { children: ReactNode }) {
 	}, [pendingPreset, setThemeId, reset])
 	const cancelPreset = useCallback(() => setPendingPreset(null), [])
 
-	const shareUrl = useMemo(() => {
+	// Built only when shared: the current page, the preset and each changed
+	// setting. A function, because the page changes without this provider
+	// re-rendering. The theme is always named, so the reader's own saved preset
+	// never shows through. Light/dark is left to the reader — every preset ships both.
+	const getShareUrl = useCallback(() => {
 		if (typeof window === "undefined") return ""
-		const url = new URL(window.location.href)
+		const url = new URL(window.location.pathname, window.location.origin)
 		url.searchParams.set("theme", themeId)
-		url.searchParams.set("mode", preference)
-		if (encoded) url.searchParams.set(PARAM, encoded)
-		else url.searchParams.delete(PARAM)
+		for (const [name, value] of lookToParams(look)) url.searchParams.set(name, value)
 		return url.toString()
-	}, [encoded, themeId, preference])
+	}, [look, themeId])
 
 	const value = useMemo<CustomizerValue>(
 		() => ({
-			look, setLook, reset, css, shareUrl, open, setOpen, isCustomized, base,
+			look, setLook, reset, css, getShareUrl, open, setOpen, isCustomized, base,
 			requestPreset, pendingPreset, confirmPreset, cancelPreset,
 		}),
-		[look, setLook, reset, css, shareUrl, open, isCustomized, base, requestPreset, pendingPreset, confirmPreset, cancelPreset],
+		[look, setLook, reset, css, getShareUrl, open, isCustomized, base, requestPreset, pendingPreset, confirmPreset, cancelPreset],
 	)
 
 	return (

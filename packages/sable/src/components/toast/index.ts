@@ -6,6 +6,7 @@ export {
 	ToastDescription,
 	ToastClose,
 	ToastAction,
+	ToastContent,
 	toast,
 	useToast,
 	useToastManager,

@@ -1,7 +1,47 @@
 # What's new
 
-## Unreleased
+## 0.5.0
 
+- **Stacked toasts.** `<ToastProvider stacked>` stacks toasts like a deck of
+  cards: the newest in front, older ones peeking out behind it a step smaller,
+  so a burst of toasts no longer takes over the corner of the page. Hovering
+  or focusing the stack fans it out into the list. It works at every
+  `position`. `ToastContent` is the new part that holds a toast's row; in a
+  stacked viewport it hides the cards behind the front one. Collapsed, the
+  deck casts one shadow rather than one per card, so a theme with hard offset
+  shadows (Poppy) stays clean.
+- **Depth in Customize.** On sableui.com, Customize has a Depth control (Flat ↔
+  Lifted) and a Shadow style (Preset, Soft, Crisp, Offset). They write the five
+  `--theme-shadow-*` tokens for light and dark, so the CSS export and preset
+  download carry them. Depth scales the reach and strength of every step
+  together; lifting a flat preset such as Meridian brings in soft shadows. The
+  shadow takes the preset's neutral hue. Advanced replaces the slider with
+  exact numbers set on the largest step, which the others follow: light angle
+  (90° is overhead), distance, blur and opacity. Blur takes one
+  blur-to-distance ratio, so an Offset shadow can be softened; opacity is set
+  in light mode and dark mode darkens in proportion.
+- **Knob shadows stay on their track.** The Switch thumb, Slider thumb and
+  ColorField handle used `shadow-sm`, the elevation step for raised surfaces.
+  Where a theme or a Depth setting made that a long offset (Poppy's hard
+  drops), the shadow fell outside the switch's track. Knobs now take
+  `--knob-shadow`, one small contact shadow that themes can set through
+  `--theme-knob-shadow`. In Sable it looks the same as before.
+- **Pill tabs take the theme's button shape.** `TabsList variant="pill"`
+  triggers used the small radius, so in Sable they were rounded rectangles
+  beside pill buttons. They now read `--button-radius`
+  as `Button` does: pills in Sable, 12px in Poppy, square in Meridian, and a
+  theme's own button shape wherever it sets one.
+- **CodeBlock no longer scrolls code under its copy button.** Without a
+  filename header, the copy button floated over the code, so on a narrow
+  screen a long line ran underneath it. It now has its own column beside the
+  code. The code's edges fade while there is more to scroll, like `Scroller`'s.
+- **Scroller's edge fades follow content and size changes.** They were measured
+  on mount and on scroll only, so a list that grew, shrank or was resized kept
+  the fade it started with until it was scrolled.
+- **Icons no longer redraw on every render.** The default Reicon set and the
+  brand set rewrote their SVG each time a parent re-rendered (React 19
+  re-applies `dangerouslySetInnerHTML` when the object changes). Inside a
+  toast that never settled and froze the page.
 - **A card that is only a header keeps its bottom padding.** `CardHeader` leaves
   the bottom padding to the content that follows it; with nothing after it (a
   stat card: label, number, sparkline) the number sat on the card's edge.

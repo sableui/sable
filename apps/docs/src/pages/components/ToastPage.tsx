@@ -1,5 +1,5 @@
-import { Button, type ToastPosition, ToastProvider, toastMeta, useToast } from "@sableui/react"
-import { useState } from "react"
+import { Button, Toggle, ToggleGroup, ToastProvider, toastMeta, useToast } from "@sableui/react"
+import { useCallback, useContext, useState } from "react"
 import {
 	ComponentPlayground,
 	Example,
@@ -8,7 +8,11 @@ import {
 	Section,
 	ledeFor,
 } from "../../components/docs-ui"
-import { TOAST_DEFAULT_POSITION, ToastPositionControl } from "../../lib/toast-playground"
+import {
+	TOAST_DEFAULT_PROVIDER,
+	ToastProviderControl,
+	type ToastProviderSettings,
+} from "../../lib/toast-playground"
 
 /** Pushes a simple title + description toast. Must render under <ToastProvider>. */
 function BasicTrigger() {
@@ -32,26 +36,26 @@ function VariantsTrigger() {
 	const toast = useToast()
 	return (
 		<>
-			<Button
-				variant="secondary"
-				onClick={() =>
-					toast.add({ description: "Link copied to clipboard." })
-				}
-			>
-				Description only
-			</Button>
-			<Button
-				variant="secondary"
-				onClick={() =>
-					toast.add({
-						title: "Uploading…",
-						description: "Pinning your media to Arweave. This won't auto-dismiss.",
-						timeout: 0,
-					})
-				}
-			>
-				Persistent
-			</Button>
+				<Button
+					variant="secondary"
+					onClick={() =>
+						toast.add({ description: "Link copied to clipboard." })
+					}
+				>
+					Description only
+				</Button>
+				<Button
+					variant="secondary"
+					onClick={() =>
+						toast.add({
+							title: "Uploading…",
+							description: "Pinning your media to Arweave. This won't auto-dismiss.",
+							timeout: 0,
+						})
+					}
+				>
+					Persistent
+				</Button>
 		</>
 	)
 }
@@ -82,10 +86,23 @@ function ActionTrigger() {
 	)
 }
 
-/** Adds three toasts at once to show the limit-aware stack. */
-function StackTrigger() {
+/**
+ * Adds four toasts at once to show the limit-aware stack, as a list or as a
+ * deck. The layout toggle moves the page's provider, like the playground does.
+ */
+function StackTrigger({ stacked }: { stacked: boolean }) {
 	const toast = useToast()
+	const setProvider = useContext(ToastProviderControl)
 	return (
+		<>
+		<ToggleGroup
+			value={[stacked ? "stacked" : "list"]}
+			onValueChange={(v: unknown[]) => v[0] && setProvider({ stacked: v[0] === "stacked" })}
+			aria-label="Layout"
+		>
+			<Toggle value="list">List</Toggle>
+			<Toggle value="stacked">Stacked</Toggle>
+		</ToggleGroup>
 		<Button
 			variant="secondary"
 			onClick={() => {
@@ -97,59 +114,64 @@ function StackTrigger() {
 		>
 			Add four
 		</Button>
+		</>
 	)
 }
 
 export function ToastPage() {
 	// One provider for the page, as in an app: every provider subscribes to the
 	// same toast store, so several on one page would each render every toast.
-	// The playground's position control moves this provider rather than adding one.
-	const [position, setPosition] = useState<ToastPosition>(TOAST_DEFAULT_POSITION)
+	// The playground and the stacking example change this provider rather than adding one.
+	const [settings, setSettings] = useState<ToastProviderSettings>(TOAST_DEFAULT_PROVIDER)
+	const setProvider = useCallback(
+		(next: Partial<ToastProviderSettings>) => setSettings((current) => ({ ...current, ...next })),
+		[],
+	)
 	return (
-		<ToastProvider limit={3} position={position}>
-			<PageHeader eyebrow="Components" title="Toast" lede={ledeFor(toastMeta)} />
+		<ToastProvider limit={3} position={settings.position} stacked={settings.stacked}>
+			<ToastProviderControl.Provider value={setProvider}>
+				<PageHeader eyebrow="Components" title="Toast" lede={ledeFor(toastMeta)} />
 
-			<ToastPositionControl.Provider value={setPosition}>
 				<ComponentPlayground meta={toastMeta} />
-			</ToastPositionControl.Provider>
 
-			<Section
-				title="Basic"
-				description="A title and a line of detail. It dismisses itself after a few seconds."
-			>
-				<Example>
-					<BasicTrigger />
-				</Example>
-			</Section>
+				<Section
+					title="Basic"
+					description="A title and a line of detail. It dismisses itself after a few seconds."
+				>
+					<Example>
+						<BasicTrigger />
+					</Example>
+				</Section>
 
-			<Section
-				title="Description only and persistent"
-				description="A single line, or one that stays until it's dismissed."
-			>
-				<Example>
-					<VariantsTrigger />
-				</Example>
-			</Section>
+				<Section
+					title="Description only and persistent"
+					description="A single line, or one that stays until it's dismissed."
+				>
+					<Example>
+						<VariantsTrigger />
+					</Example>
+				</Section>
 
-			<Section
-				title="With an action"
-				description="A toast with an action, like Undo, stays until it's dismissed."
-			>
-				<Example>
-					<ActionTrigger />
-				</Example>
-			</Section>
+				<Section
+					title="With an action"
+					description="A toast with an action, like Undo, stays until it's dismissed."
+				>
+					<Example>
+						<ActionTrigger />
+					</Example>
+				</Section>
 
-			<Section
-				title="Stacking"
-				description="Up to three at once. A new one pushes out the oldest."
-			>
-				<Example>
-					<StackTrigger />
-				</Example>
-			</Section>
+				<Section
+					title="Stacking"
+					description="Up to three at once. A new one pushes out the oldest. With stacked, they sit on top of one another, the newest in front; hover the stack to fan it out."
+				>
+					<Example>
+						<StackTrigger stacked={settings.stacked} />
+					</Example>
+				</Section>
 
-			<MetaFooter meta={toastMeta} />
+				<MetaFooter meta={toastMeta} />
+			</ToastProviderControl.Provider>
 		</ToastProvider>
 	)
 }

@@ -133,12 +133,11 @@ export function Example({
 	return (
 		<Tabs data-docs-example defaultValue="preview" className="overflow-hidden rounded-xl border border-border">
 			<div className="flex items-center justify-between gap-2 border-b border-border px-2 py-2">
+				{/* Pill tabs take the theme's button shape, so they match the
+				    buttons in the preview below and follow Customize's Button shape. */}
 				<TabsList variant="pill">
-					{/* Concentric with the frame: rounded-xl outer, 8px inset (py-2/px-2),
-					    so the pill takes xl − 2 — computed from the live tokens, so it
-					    holds when Customize rescales the radius ladder. */}
-					<TabsTrigger value="preview" className="rounded-concentric-xl/2">Preview</TabsTrigger>
-					<TabsTrigger value="code" className="rounded-concentric-xl/2">Code</TabsTrigger>
+					<TabsTrigger value="preview">Preview</TabsTrigger>
+					<TabsTrigger value="code">Code</TabsTrigger>
 				</TabsList>
 				<Button variant="ghost" size="icon-sm" aria-label="Copy code" onClick={copy} className="text-muted-foreground">
 					<Icon name={copied ? "check" : "copy"} />

@@ -1,9 +1,10 @@
 "use client";
 
 import type { ComponentPropsWithRef, KeyboardEvent, UIEvent } from "react"
-import { useCallback, useLayoutEffect, useRef, useState } from "react"
+import { useCallback, useRef } from "react"
 import { cn } from "../../lib/cn"
 import { setRef } from "../../lib/refs"
+import { useEdgeFade } from "../../lib/use-edge-fade"
 import { useScrollActivity } from "../../lib/use-scroll-activity"
 import {
 	scrollRegionKeyDown,
@@ -135,64 +136,21 @@ export function Scroller({
 		},
 		[onKeyDown, orientation],
 	)
-	const [showStart, setShowStart] = useState(false)
-	const [showEnd, setShowEnd] = useState(false)
-
-	const sync = useCallback(
-		(el: HTMLDivElement) => {
-			if (orientation === "horizontal") {
-				const { scrollLeft, scrollWidth, clientWidth } = el
-				setShowStart(scrollLeft > 0)
-				// 1px slack absorbs sub-pixel rounding at the trailing edge.
-				setShowEnd(scrollLeft < scrollWidth - clientWidth - 1)
-			} else {
-				const { scrollTop, scrollHeight, clientHeight } = el
-				setShowStart(scrollTop > 0)
-				setShowEnd(scrollTop < scrollHeight - clientHeight - 1)
-			}
-		},
-		[orientation],
-	)
-
-	// Initialize fades once mounted so an overflowing region shows its end fade
-	// before the user scrolls; re-runs if the axis changes.
-	useLayoutEffect(() => {
-		if (regionRef.current) sync(regionRef.current)
-	}, [sync])
+	// The mask lives on the SCROLL element — it has to stay put while the
+	// content moves under it — and not on the chrome wrapper, or the border
+	// fades with the content, which is the whole reason the wrapper exists.
+	// See the note on the component and useEdgeFade.
+	const { sync: syncFade, style: fadeStyle } = useEdgeFade(regionRef, orientation)
 
 	const handleScroll = useCallback(
 		(event: UIEvent<HTMLDivElement>) => {
-			sync(event.currentTarget)
+			syncFade()
 			onScroll?.(event)
 		},
-		[sync, onScroll],
+		[syncFade, onScroll],
 	)
 
 	const isVertical = orientation === "vertical"
-
-	// Alpha-mask the content edges (modern technique) rather than overlaying an
-	// opaque bg-colored gradient: the content itself fades to transparent where
-	// there is more to scroll, so it blends with ANY background and never paints
-	// over the borders/shadows of edge content. Masked only on the edges that
-	// have more to scroll toward.
-	//
-	// The mask lives on the SCROLL element — it has to stay put while the content
-	// moves under it, so it cannot go on anything that scrolls. It cannot go on
-	// the chrome wrapper either, or the border fades with the content, which is
-	// the whole reason the wrapper exists. See the note on the component.
-	// On the spacing scale (7 steps, 28px at the default ladder) so a denser or
-	// roomier Character moves the fade with the content it fades.
-	const fade = "calc(var(--spacing) * 7)"
-	// design-lint-disable inline-color -- CSS edge-fade mask: #000 is alpha-mask machinery (only the mask alpha matters), not a rendered color
-	const mask =
-		showStart || showEnd
-			? `linear-gradient(to ${isVertical ? "bottom" : "right"}, ${
-					showStart ? "transparent" : "#000"
-				}, #000 ${showStart ? fade : "0"}, #000 ${
-					showEnd ? `calc(100% - ${fade})` : "100%"
-				}, ${showEnd ? "transparent" : "#000"})`
-			: undefined
-	// design-lint-enable inline-color
 
 	return (
 		// The chrome box. Carries the consumer's border/background/radius and the
@@ -232,7 +190,7 @@ export function Scroller({
 				 * information, not something ARIA has a place for on a scroll region.
 				 */
 				data-orientation={orientation}
-				style={mask ? { maskImage: mask, WebkitMaskImage: mask } : undefined}
+				style={fadeStyle}
 				className={cn(
 					// Fill the chrome box without a percentage height. `min-h-0` /
 					// `min-w-0` because a flex item's default `min-size: auto` refuses to

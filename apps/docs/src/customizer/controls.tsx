@@ -10,12 +10,15 @@ import {
 	SliderTrack,
 	Toggle,
 	ToggleGroup,
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
 	cn,
 } from "@sableui/react"
-import { type KeyboardEvent, type PointerEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react"
+import { type KeyboardEvent, type PointerEvent, type ReactElement, type ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import { useTheme } from "../theme"
 import { formatOklch, resolveTheme } from "./color"
-import { HUE_STOPS, brandColor } from "./look"
+import { HUE_STOPS, brandColor, cornerRadius } from "./look"
 
 /*
  * The inspector's controls. Wherever Sable ships the control, this is that
@@ -280,23 +283,26 @@ export function HueStrip({
 
 export function CornerControl({
 	corners,
+	preset,
 	onChange,
 }: {
 	corners: number | null
+	/** The active preset's radius ladder in px, which the preview shapes start from. */
+	preset: Record<"xs" | "sm" | "md" | "lg", number>
 	onChange: (corners: number | null) => void
 }) {
 	const value = corners ?? 50
-	// Mirror look.ts's mapping so the preview shapes show the real outcome.
-	const f = value < 50 ? value / 50 : 1 + ((value - 50) / 50) * 1.2
-	const r = (px: number) => `${Math.round(px * f)}px`
+	// The same curve look.ts writes, so the preview shows the real outcome —
+	// including the ceilings that keep the round end from turning boxes into pills.
+	const r = (step: "xs" | "sm" | "md" | "lg") => `${Math.round(cornerRadius(step, preset[step], value))}px`
 	const valueText = corners == null ? "Preset" : value < 15 ? "Square" : value < 45 ? "Tight" : value < 60 ? "Preset scale" : value < 85 ? "Soft" : "Round"
 	return (
 		<div className="grid gap-2">
 			<div className="flex items-end justify-between gap-3 rounded-md sable-well px-4 py-3" aria-hidden>
-				<span className="h-11 w-16 bg-popover shadow-sm" style={{ borderRadius: r(16) }} />
-				<span className="h-7 w-14 bg-popover shadow-sm" style={{ borderRadius: r(8) }} />
-				<span className="size-8 bg-popover shadow-sm" style={{ borderRadius: r(12) }} />
-				<span className="h-4 w-8 bg-popover shadow-sm" style={{ borderRadius: r(4) }} />
+				<span className="h-11 w-16 bg-popover shadow-sm" style={{ borderRadius: r("lg") }} />
+				<span className="h-7 w-14 bg-popover shadow-sm" style={{ borderRadius: r("sm") }} />
+				<span className="size-8 bg-popover shadow-sm" style={{ borderRadius: r("md") }} />
+				<span className="h-4 w-8 bg-popover shadow-sm" style={{ borderRadius: r("xs") }} />
 			</div>
 			{/* Composed from Sable's Slider parts so the thumb can carry the label
 			    and value text. Double-click or Delete returns to the preset. */}
@@ -324,6 +330,79 @@ export function CornerControl({
 				</SliderControl>
 			</SliderRoot>
 		</div>
+	)
+}
+
+/**
+ * Depth: Flat ↔ Lifted, over a preview of three surfaces at the steps that
+ * matter most — a resting card (sm), a popover (md) and a toast (xl) — wearing
+ * the shadows the look will paint in the current mode. The panel itself keeps
+ * the house look, so the preview carries the shadows inline. Simple only:
+ * Advanced sets exact numbers instead (see Inspector).
+ */
+export function DepthControl({
+	depth,
+	preview,
+	onChange,
+}: {
+	depth: number | null
+	/** box-shadow per preview step, for the current mode. */
+	preview: { sm: string; md: string; xl: string } | null
+	onChange: (depth: number | null) => void
+}) {
+	const value = depth ?? 50
+	const valueText = depth == null ? "Preset" : value < 10 ? "Flat" : value < 40 ? "Subtle" : value < 60 ? "Preset depth" : value < 85 ? "Raised" : "Lifted"
+	return (
+		<div className="grid gap-2">
+			{/* Clipped: the well is a window onto the shadows, and a lifted or
+			    Offset ladder reaches well past three small samples. */}
+			<div className="flex items-start justify-between gap-3 overflow-hidden rounded-md sable-well px-4 pt-3 pb-6" aria-hidden>
+				<span className="h-10 w-16 rounded-sm bg-popover" style={{ boxShadow: preview?.sm }} />
+				<span className="h-12 w-14 rounded-sm bg-popover" style={{ boxShadow: preview?.md }} />
+				<span className="h-8 w-20 rounded-sm bg-popover" style={{ boxShadow: preview?.xl }} />
+			</div>
+			<SliderRoot
+				value={value}
+				min={0}
+				max={100}
+				onValueChange={(next) => onChange(Array.isArray(next) ? next[0] : (next as number))}
+				onDoubleClick={() => onChange(null)}
+				onKeyDown={(event) => {
+					if (event.key === "Delete" || event.key === "Backspace") {
+						event.preventDefault()
+						onChange(null)
+					}
+				}}
+				className="w-full px-2.5"
+			>
+				<SliderControl>
+					<SliderTrack>
+						<SliderIndicator />
+						<SliderThumb aria-label="Depth" getAriaValueText={() => valueText} />
+					</SliderTrack>
+				</SliderControl>
+			</SliderRoot>
+			<div className="flex justify-between px-0.5 text-caption text-muted-foreground" aria-hidden>
+				<span>Flat</span>
+				<span>Lifted</span>
+			</div>
+		</div>
+	)
+}
+
+/* ── Tooltip ─────────────────────────────────────────────────────────────── */
+
+/**
+ * A tooltip for the inspector's icon buttons. The popup portals to <body>,
+ * outside the panel, so it carries `data-canvas-chrome` itself: it keeps the
+ * house look instead of wearing the look being tuned.
+ */
+export function ChromeTip({ label, children }: { label: string; children: ReactElement }) {
+	return (
+		<Tooltip>
+			<TooltipTrigger render={children} />
+			<TooltipContent data-canvas-chrome="">{label}</TooltipContent>
+		</Tooltip>
 	)
 }
 

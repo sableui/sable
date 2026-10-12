@@ -209,7 +209,7 @@ export function ColorField({
 							aria-hidden
 							className={
 								// design-lint-disable-next-line raw-black-white -- handle over arbitrary user colour; no token can guarantee contrast
-								"absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-white ring-inset shadow-sm"
+								"absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-white ring-inset shadow-(--knob-shadow)"
 							}
 							style={{
 								left: `${picker.hsv.s * 100}%`,

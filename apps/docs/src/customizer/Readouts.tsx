@@ -1,6 +1,7 @@
 import { Button, Icon, ScrubField } from "@sableui/react"
 import { type ReactNode, useLayoutEffect, useState } from "react"
 import { useCustomizer } from "./CustomizerProvider"
+import { ChromeTip } from "./controls"
 
 /**
  * Advanced view: the numbers the look resolves to, measured live.
@@ -87,6 +88,28 @@ export function Readout({ title, rows, children }: { title?: string; rows: Row[]
 }
 
 /**
+ * A readout whose values are already known rather than measured: a shadow has
+ * no single length a probe could read back, so the look's own ladder supplies
+ * the numbers. Same markup as Readout.
+ */
+export function ValueReadout({ title, rows, children }: { title?: string; rows: { label: string; value: string }[]; children?: ReactNode }) {
+	return (
+		<div className="grid gap-2.5 rounded-sm sable-well p-3">
+			{title ? <span className="text-label-md">{title}</span> : null}
+			{children ? <div className="grid gap-1.5">{children}</div> : null}
+			<dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1">
+				{rows.map((row) => (
+					<div key={row.label} className="contents">
+						<dt className="text-body-xs text-muted-foreground">{row.label}</dt>
+						<dd className="text-end text-mono-caption tabular-nums">{row.value}</dd>
+					</div>
+				))}
+			</dl>
+		</div>
+	)
+}
+
+/**
  * One editable anchor. Shows the live value until you set it, then yours; the
  * reset hands the domain back to the preset.
  */
@@ -120,16 +143,17 @@ export function AnchorField({
 			<span className="flex min-w-0 flex-1 items-center gap-1 text-body-sm">
 				<span className="truncate">{label}</span>
 				{value != null ? (
-					<Button
-						variant="ghost"
-						size="icon-xs"
-						aria-label={`Reset ${label.toLowerCase()}`}
-						title="Back to the preset"
-						onClick={() => onChange(null)}
-						className="shrink-0 text-muted-foreground"
-					>
-						<Icon name="refresh" />
-					</Button>
+					<ChromeTip label="Back to the preset">
+						<Button
+							variant="ghost"
+							size="icon-xs"
+							aria-label={`Reset ${label.toLowerCase()}`}
+							onClick={() => onChange(null)}
+							className="shrink-0 text-muted-foreground"
+						>
+							<Icon name="refresh" />
+						</Button>
+					</ChromeTip>
 				) : null}
 			</span>
 			<ScrubField

@@ -34,6 +34,7 @@ Use Toast for transient feedback caused by a user action: saved, failed, copied,
 | Name | Type | Description |
 | --- | --- | --- |
 | ToastRoot | Base UI Toast.Root props + className (requires the `toast` object) | A single toast surface. Animates enter/leave via data-[starting-style]/data-[ending-style]; swipe-to-dismiss is wired by Base UI. |
+| ToastContent | Base UI Toast.Content props + className | The toast's contents as one row. In a stacked viewport it fades on the cards behind the front one and returns when the stack fans out. Wrap a hand-composed toast's parts in it so a stacked viewport can hide them. |
 | ToastTitle | Base UI Toast.Title props + className | The toast headline (text-title-sm). Auto-associated as the toast's accessible name. |
 | ToastDescription | Base UI Toast.Description props + className | Supporting body copy beneath the title (text-body-sm, muted). Auto-associated as the toast's accessible description. |
 | ToastClose | Base UI Toast.Close props + className | Dismiss button. Base UI handles the close and leave animation; labelled "Dismiss" by default. |
@@ -43,8 +44,9 @@ Use Toast for transient feedback caused by a user action: saved, failed, copied,
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| ToastProvider | { children, timeout?, limit?, closeIcon?, position?, viewportClassName? } | — | Wraps Base UI Toast.Provider and renders the themed Viewport + toast list. Mount once near the app root, above any caller of useToast(). |
+| ToastProvider | { children, timeout?, limit?, closeIcon?, position?, stacked?, viewportClassName? } | — | Wraps Base UI Toast.Provider and renders the themed Viewport + toast list. Mount once near the app root, above any caller of useToast(). |
 | position | "top-left" \| "top-center" \| "top-right" \| "bottom-left" \| "bottom-center" \| "bottom-right" | "top-right" | Screen anchor for the toast stack. |
+| stacked | boolean | false | Stack the toasts like a deck of cards, the newest in front and the older ones peeking out behind it, a step smaller, instead of listing them one under another. Hovering or focusing the stack fans it out into the list. Use it when an app can raise several toasts in a row, so they don't take over the corner of the page. |
 | viewportClassName | string | — | Extra classes merged LAST onto the fixed viewport region — for safe-area insets or an offset (e.g. clearing a sidebar). |
 | timeout | number | 5000 | Default auto-dismiss time in ms for toasts. 0 keeps a toast until it is dismissed. Error toasts, loading toasts, and any toast carrying actionProps default to 0 regardless of this value; a per-toast timeout overrides both. |
 | limit | number | 3 | Maximum toasts shown at once; older toasts are pushed out when the limit is exceeded. |
@@ -62,6 +64,7 @@ Use Toast for transient feedback caused by a user action: saved, failed, copied,
 - **arrival** · ToastRoot · `motion-slide-left` — A toast interrupts without being asked, so where it came from is the reader's first question. Sliding in from the viewport edge answers it and marks the toast as belonging to the edge rather than to whatever it happens to cover.
 - **response** · ToastAction · `motion-interactive` — Toasts are on a timer, so the action has to look actionable at a glance — there is no time to hunt for the hit target.
 - **transition** · ToastRoot · `motion-slide-left` — Leaving the same way it entered keeps the stack legible when several dismiss at once; toasts that fade in place leave the remaining ones jumping to fill gaps with no visible cause.
+- **transition** · ToastRoot (stacked) · _custom (outside the recipe layer)_ — A stacked toast arrives from the anchored edge in front of the others, which step back and shrink to make room; hovering fans the deck out into the list. Moving every card, rather than snapping them, shows that the new one went on top and the old ones are still there.
 - **activity** · ToastRoot · _no motion_ — A toast reports a result that has already happened. Anything still in flight belongs in the surface that started it, where the reader is still looking.
 
 ## Accessibility
@@ -119,6 +122,14 @@ const { toasts } = useToast()
 import { toast } from "@sableui/react"
 
 toast.message("Post archived", { actionProps: { children: "Undo", onClick: () => restorePost() } })
+```
+
+### Stacked
+
+```tsx
+import { ToastProvider } from "@sableui/react"
+
+<ToastProvider stacked position="bottom-right">{children}</ToastProvider>
 ```
 
 ### Provider with app chrome

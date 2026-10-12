@@ -31,7 +31,7 @@ Use Tabs to switch between related panels within the same page context.
 
 | Name | Type | Description |
 | --- | --- | --- |
-| TabsList | Base UI Tabs.List props (activateOnFocus, loopFocus) + variant?: "underline" \| "pill" + className | The tablist row. variant="underline" (default) draws a divider rule beneath the triggers; variant="pill" drops the rule and fills the active trigger. Triggers inherit the variant. |
+| TabsList | Base UI Tabs.List props (activateOnFocus, loopFocus) + variant?: "underline" \| "pill" + className | The tablist row. variant="underline" (default) draws a divider rule beneath the triggers; variant="pill" drops the rule and fills the active trigger, which takes the theme's button shape (--button-radius). Triggers inherit the variant. |
 | TabsTrigger | Base UI Tabs.Tab props (value, disabled) + className | A single tab button. value pairs it with the panel of the same value. |
 | TabsPanel | Base UI Tabs.Panel props (value, keepMounted) + className | The content shown when the matching trigger is active. |
 | TabsContent | Alias of TabsPanel | Re-export of TabsPanel for consumers that prefer this name. |

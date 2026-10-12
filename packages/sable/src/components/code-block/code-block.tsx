@@ -1,6 +1,7 @@
-import { type ComponentPropsWithRef, type ReactNode, createContext, useContext } from "react"
+import { type ComponentPropsWithRef, type ReactNode, createContext, useContext, useRef } from "react"
 import { Icon } from "../../icon"
 import { useCopy } from "../../lib/use-copy"
+import { useEdgeFade } from "../../lib/use-edge-fade"
 import { Button } from "../button/button"
 import { cn } from "../../lib/cn"
 
@@ -42,7 +43,10 @@ export interface CodeBlockProps extends ComponentPropsWithRef<"div"> {
 
 /**
  * A multi-line code block. An optional header bar carries the filename and a
- * copy affordance; the body is a horizontally scrollable monospace pre.
+ * copy affordance; the body is a horizontally scrollable monospace pre whose
+ * edges fade while there is more to scroll (see useEdgeFade). Without a
+ * header, the copy button takes its own column beside the code rather than
+ * floating over it, so a long line can never scroll underneath it.
  * Highlighting is opt-in through `highlight` or `CodeHighlightProvider`.
  * Soft-square (rounded-md), never a pill.
  */
@@ -62,6 +66,8 @@ export function CodeBlock({
 	// the copy affordance floats in the corner instead.
 	const hasHeader = Boolean(filename)
 	const { copy, copied } = useCopy(code)
+	const preRef = useRef<HTMLPreElement>(null)
+	const fade = useEdgeFade(preRef, "horizontal")
 
 	if (prompt != null) {
 		return (
@@ -82,10 +88,12 @@ export function CodeBlock({
 		)
 	}
 
+	const copyColumn = !hasHeader && showCopy
 	return (
 		<div
 			className={cn(
-				"relative overflow-hidden rounded-md border border-border bg-muted/40",
+				"overflow-hidden rounded-md border border-border bg-muted/40",
+				copyColumn && "flex items-start",
 				className,
 			)}
 			{...props}
@@ -99,24 +107,29 @@ export function CodeBlock({
 						</Button>
 					) : null}
 				</div>
-			) : showCopy ? (
-				<Button variant="ghost" size="icon-sm" aria-label="Copy code" onClick={copy} className="absolute end-2 top-2 z-1 text-muted-foreground">
-					<Icon name={copied ? "check" : "copy"} />
-				</Button>
 			) : null}
 			{/* The type tier sits on the <pre>, not the inline <code>: a pre's line
 			    boxes take their height from its own font, so a mono size set only
 			    on the inner element left every line at the body's taller leading.
 			    text-mono-md, because code is reading text — mono-sm is the tiny
-			    tracked tier for kbd hints. */}
+			    tracked tier for kbd hints. The pre is the scroll region, so it
+			    carries the fade mask; it has no border of its own to fade. */}
 			<pre
+				ref={preRef}
+				onScroll={fade.sync}
+				style={fade.style}
 				className={cn(
 					"overflow-x-auto overscroll-x-contain p-4 text-mono-md text-foreground scrollbar-quiet",
-					!hasHeader && showCopy ? "pe-12" : "",
+					copyColumn && "min-w-0 flex-1 pe-2",
 				)}
 			>
 				<code>{highlighter ? highlighter(code) : code}</code>
 			</pre>
+			{copyColumn ? (
+				<Button variant="ghost" size="icon-sm" aria-label="Copy code" onClick={copy} className="m-2 ms-0 shrink-0 text-muted-foreground">
+					<Icon name={copied ? "check" : "copy"} />
+				</Button>
+			) : null}
 		</div>
 	)
 }

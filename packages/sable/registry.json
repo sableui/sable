@@ -1,7 +1,7 @@
 {
   "$schema": "https://sable.design/registry.schema.json",
   "name": "@sableui/react",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Themeable React components, semantic tokens, layout patterns, presets, and package-owned agent skills. Default theme: Sable.",
   "engine": {
     "behavior": "@base-ui/react",
@@ -16798,7 +16798,7 @@
         {
           "name": "TabsList",
           "type": "Base UI Tabs.List props (activateOnFocus, loopFocus) + variant?: \"underline\" | \"pill\" + className",
-          "description": "The tablist row. variant=\"underline\" (default) draws a divider rule beneath the triggers; variant=\"pill\" drops the rule and fills the active trigger. Triggers inherit the variant."
+          "description": "The tablist row. variant=\"underline\" (default) draws a divider rule beneath the triggers; variant=\"pill\" drops the rule and fills the active trigger, which takes the theme's button shape (--button-radius). Triggers inherit the variant."
         },
         {
           "name": "TabsTrigger",
@@ -17450,7 +17450,7 @@
       "props": [
         {
           "name": "ToastProvider",
-          "type": "{ children, timeout?, limit?, closeIcon?, position?, viewportClassName? }",
+          "type": "{ children, timeout?, limit?, closeIcon?, position?, stacked?, viewportClassName? }",
           "default": "—",
           "description": "Wraps Base UI Toast.Provider and renders the themed Viewport + toast list. Mount once near the app root, above any caller of useToast()."
         },
@@ -17459,6 +17459,12 @@
           "type": "\"top-left\" | \"top-center\" | \"top-right\" | \"bottom-left\" | \"bottom-center\" | \"bottom-right\"",
           "default": "\"top-right\"",
           "description": "Screen anchor for the toast stack."
+        },
+        {
+          "name": "stacked",
+          "type": "boolean",
+          "default": "false",
+          "description": "Stack the toasts like a deck of cards, the newest in front and the older ones peeking out behind it, a step smaller, instead of listing them one under another. Hovering or focusing the stack fans it out into the list. Use it when an app can raise several toasts in a row, so they don't take over the corner of the page."
         },
         {
           "name": "viewportClassName",
@@ -17507,6 +17513,11 @@
           "name": "ToastRoot",
           "type": "Base UI Toast.Root props + className (requires the `toast` object)",
           "description": "A single toast surface. Animates enter/leave via data-[starting-style]/data-[ending-style]; swipe-to-dismiss is wired by Base UI."
+        },
+        {
+          "name": "ToastContent",
+          "type": "Base UI Toast.Content props + className",
+          "description": "The toast's contents as one row. In a stacked viewport it fades on the cards behind the front one and returns when the stack fans out. Wrap a hand-composed toast's parts in it so a stacked viewport can hide them."
         },
         {
           "name": "ToastTitle",
@@ -17564,6 +17575,12 @@
           "why": "Leaving the same way it entered keeps the stack legible when several dismiss at once; toasts that fade in place leave the remaining ones jumping to fill gaps with no visible cause."
         },
         {
+          "slot": "transition",
+          "recipe": "custom",
+          "part": "ToastRoot (stacked)",
+          "why": "A stacked toast arrives from the anchored edge in front of the others, which step back and shrink to make room; hovering fans the deck out into the list. Moving every card, rather than snapping them, shows that the new one went on top and the old ones are still there."
+        },
+        {
           "slot": "activity",
           "recipe": "none",
           "part": "ToastRoot",
@@ -17603,6 +17620,11 @@
           "label": "Undo action",
           "code": "toast.message(\"Post archived\", { actionProps: { children: \"Undo\", onClick: () => restorePost() } })",
           "imports": "import { toast } from \"@sableui/react\""
+        },
+        {
+          "label": "Stacked",
+          "code": "<ToastProvider stacked position=\"bottom-right\">{children}</ToastProvider>",
+          "imports": "import { ToastProvider } from \"@sableui/react\""
         },
         {
           "label": "Provider with app chrome",
@@ -23699,6 +23721,11 @@
         "render",
         "style"
       ],
+      "ToastContent": [
+        "className",
+        "render",
+        "style"
+      ],
       "ToastDescription": [
         "className",
         "render",
@@ -23709,6 +23736,7 @@
         "closeIcon",
         "limit",
         "position",
+        "stacked",
         "timeout",
         "viewportClassName"
       ],
@@ -23728,6 +23756,7 @@
         "className",
         "position",
         "render",
+        "stacked",
         "style"
       ],
       "Toggle": [

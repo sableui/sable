@@ -1,4 +1,4 @@
-import { Button } from "@sableui/react"
+import { Button, Tooltip, TooltipContent, TooltipTrigger } from "@sableui/react"
 import { brandIconSet } from "@sableui/react/icons/brands"
 import { useEffect, useState } from "react"
 
@@ -60,15 +60,21 @@ function GitHubLinkButton({ compact }: { compact: boolean }) {
 	const stars = useStars()
 	const mark = brandIconSet({ name: "github", variant: "brands", title: "", className: "text-base" })
 	return (
-		<Button
-			variant="ghost"
-			size={compact ? "icon" : "sm"}
-			render={<a href={`https://github.com/${REPO}`} target="_blank" rel="noopener noreferrer" />}
-			aria-label={`Sable on GitHub, ${stars} ${stars === 1 ? "star" : "stars"} (opens in a new tab)`}
-			title="Sable on GitHub"
-		>
-			{mark}
-			{compact ? null : <span className="text-muted-foreground tabular-nums">{compactNumber.format(stars)}</span>}
-		</Button>
+		<Tooltip>
+			<TooltipTrigger
+				render={
+					<Button
+						variant="ghost"
+						size={compact ? "icon" : "sm"}
+						render={<a href={`https://github.com/${REPO}`} target="_blank" rel="noopener noreferrer" />}
+						aria-label={`Sable on GitHub, ${stars} ${stars === 1 ? "star" : "stars"} (opens in a new tab)`}
+					>
+						{mark}
+						{compact ? null : <span className="text-muted-foreground tabular-nums">{compactNumber.format(stars)}</span>}
+					</Button>
+				}
+			/>
+			<TooltipContent>Sable on GitHub</TooltipContent>
+		</Tooltip>
 	)
 }

@@ -3,6 +3,7 @@ import { resolve } from "node:path"
 import { render } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 import { composeIconSets } from "../icon/compose"
+import { brandIconSet } from "./brands"
 import { reiconIconNames, reiconIconSet } from "./reicon"
 
 /**
@@ -84,5 +85,23 @@ describe("composeIconSets", () => {
 	it("returns null when no set in the chain resolves the name", () => {
 		const composed = composeIconSets(reiconIconSet)
 		expect(composed({ name: "nothing-maps-this", variant: "regular" })).toBeNull()
+	})
+})
+
+describe("icon sets on re-render", () => {
+	// Reicon and the brand set draw with dangerouslySetInnerHTML, and React 19
+	// writes innerHTML back whenever the `{ __html }` object changes. A fresh one
+	// per render replaced the glyph's nodes on every parent render, which Base
+	// UI's Toast.Content (it re-measures on DOM changes, then re-renders) turned
+	// into an infinite loop that froze the page.
+	it.each([
+		["reicon", reiconIconSet, "xmark"],
+		["brands", brandIconSet, "github"],
+	])("%s keeps the glyph's nodes when the props have not changed", (_, set, name) => {
+		const { container, rerender } = render(<>{set({ name, variant: "regular", className: "text-sm" })}</>)
+		const before = container.querySelector("svg")?.firstChild
+		expect(before).toBeTruthy()
+		rerender(<>{set({ name, variant: "regular", className: "text-sm" })}</>)
+		expect(container.querySelector("svg")?.firstChild).toBe(before)
 	})
 })

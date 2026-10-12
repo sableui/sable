@@ -15,6 +15,9 @@
 import { GAMUT_SAFETY, NEUTRAL_TOKENS, type Oklch, type ResolvedTheme, formatOklch as formatRaw, hexToOklch, hueDelta, isNeutral, maxChroma, mix, toGamut } from "./color"
 import { chartPalette } from "./chart-palette"
 import { type FontEntry, findFont, googleFontsUrl, stackFor } from "./fonts"
+import { SHADOW_STEPS, type ShadowLadder, type ShadowStyle, anchorLadder, definingDrop, densityFor, depthFactors, formatShadow, isFlat, recipeLadder, rotateLadder, scaleLadder, shadowInk, shadowToken } from "./shadow"
+
+export type { ShadowStyle } from "./shadow"
 
 export type ButtonShape = "theme" | "pill" | "match"
 export type Motion = "off" | "snappy" | "default" | "relaxed"
@@ -40,6 +43,10 @@ export interface Look {
 	airy: number | null
 	/** Corners, 0 (square) – 100 (very round). null = the preset's ladder. */
 	corners: number | null
+	/** Depth, 0 (flat) – 100 (lifted). null = the preset's shadows as shipped. */
+	depth: number | null
+	/** The shape of a shadow: the preset's own, or a recipe (see shadow.ts). */
+	shadows: ShadowStyle
 	/** Brand hue in degrees, from the swatch strip. null = the preset's own colors. */
 	hue: number | null
 	/** An exact brand colour (hex), from the picker. Wins over `hue`. */
@@ -74,12 +81,22 @@ export interface Look {
 	radiusBase: number | null
 	/** Base duration in ms. Every duration scales with it. */
 	motionBase: number | null
+	/** Light angle in degrees (90 = overhead). Every shadow falls away from it, keeping its length. */
+	shadowAngle: number | null
+	/** The top shadow step's offset length in px; the ladder keeps its proportions. Wins over Depth's reach. */
+	shadowDistance: number | null
+	/** The top shadow step's blur in px; every drop takes the same blur-to-distance ratio. */
+	shadowBlur: number | null
+	/** The top shadow step's opacity in %, in light mode; every drop in both modes scales with it. Wins over Depth's strength. */
+	shadowOpacity: number | null
 }
 
 export const DEFAULT_LOOK: Look = {
 	bold: null,
 	airy: null,
 	corners: null,
+	depth: null,
+	shadows: "theme",
 	hue: null,
 	brand: null,
 	palette: "preset",
@@ -97,10 +114,14 @@ export const DEFAULT_LOOK: Look = {
 	spacingBase: null,
 	radiusBase: null,
 	motionBase: null,
+	shadowAngle: null,
+	shadowDistance: null,
+	shadowBlur: null,
+	shadowOpacity: null,
 }
 
 /** The anchor fields — the numeric keys the URL decoder must accept. */
-export const ANCHOR_KEYS = ["typeBase", "typeRatio", "controlBase", "spacingBase", "radiusBase", "motionBase"] as const
+export const ANCHOR_KEYS = ["typeBase", "typeRatio", "controlBase", "spacingBase", "radiusBase", "motionBase", "shadowAngle", "shadowDistance", "shadowBlur", "shadowOpacity"] as const
 
 export const MOTION_SCALE: Record<Motion, number> = { off: 0, snappy: 0.7, default: 1, relaxed: 1.4 }
 
@@ -150,6 +171,8 @@ export interface ThemeBase {
 	rootPx: number
 	/** The preset's base duration in ms at motion scale 1. */
 	motionBaseMs: number
+	/** The preset's shadow ladder per mode, as the browser resolves it. */
+	shadows: { light: ShadowLadder; dark: ShadowLadder } | null
 }
 
 /** A length token in rendered px. */
@@ -431,6 +454,51 @@ function colorDecls(look: Look, base: ThemeBase, mode: "light" | "dark"): string
 	return out
 }
 
+/**
+ * The shadow ladder a look paints in one mode, or null to leave the preset's.
+ * Depth scales whichever shape is chosen. A flat preset (Meridian, Prism) has
+ * no shape to scale, so with its own style it stays flat up to the middle and
+ * Soft fades in above it: lifting a flat preset should lift it, not do nothing.
+ * Then the Advanced anchors set exact distance, blur and opacity on the top
+ * step (the rest follow), and a light angle turns whatever comes out.
+ */
+export function shadowLadder(look: Look, base: ThemeBase, mode: "light" | "dark"): ShadowLadder | null {
+	let ladder = shapedLadder(look, base, mode)
+	if (!ladder) return null
+	if (hasShadowAnchors(look)) {
+		// Opacity is set in light mode's terms; dark mode scales by the same factor.
+		const lightTop = definingDrop(mode === "light" ? ladder : (shapedLadder(look, base, "light") ?? ladder))?.color.a ?? 0
+		const density = look.shadowOpacity != null ? densityFor(lightTop, look.shadowOpacity / 100) : null
+		ladder = anchorLadder(ladder, { distance: look.shadowDistance, blur: look.shadowBlur, density })
+	}
+	return look.shadowAngle != null ? rotateLadder(ladder, look.shadowAngle) : ladder
+}
+
+const hasShadowAnchors = (look: Look) => look.shadowDistance != null || look.shadowBlur != null || look.shadowOpacity != null
+
+function shapedLadder(look: Look, base: ThemeBase, mode: "light" | "dark"): ShadowLadder | null {
+	const anchored = hasShadowAnchors(look)
+	if (look.depth == null && look.shadows === "theme" && look.shadowAngle == null && !anchored) return null
+	const fg = base.colors?.[mode]?.foreground
+	const brandHue = brandSource(look)?.h ?? null
+	const ink = shadowInk(fg && look.neutrals !== "theme" ? tint(fg, look.neutrals, brandHue) : fg, mode)
+	const depth = look.depth ?? 50
+	if (look.shadows !== "theme") return scaleLadder(recipeLadder(look.shadows, mode, ink), depthFactors(depth))
+	const preset = base.shadows?.[mode]
+	if (!preset) return null
+	if (!isFlat(preset)) return scaleLadder(preset, depthFactors(depth))
+	// Exact numbers on a flat preset need a shape to hold them: Soft, as authored.
+	if (anchored) return recipeLadder("soft", mode, ink)
+	if (depth <= 50) return look.shadowAngle != null ? preset : null
+	const s = (depth - 50) / 50
+	return scaleLadder(recipeLadder("soft", mode, ink), { length: 0.6 + 0.4 * s, alpha: s })
+}
+
+function shadowDecls(look: Look, base: ThemeBase, mode: "light" | "dark"): string[] {
+	const ladder = shadowLadder(look, base, mode)
+	return ladder ? SHADOW_STEPS.map((step) => `${shadowToken(step)}: ${formatShadow(ladder[step])};`) : []
+}
+
 /** The roundest each step may get — see the corners note in shapeDecls. */
 const RADIUS_CEILING: Record<(typeof RADIUS_STEPS)[number], string> = {
 	xs: "8px",
@@ -438,6 +506,17 @@ const RADIUS_CEILING: Record<(typeof RADIUS_STEPS)[number], string> = {
 	md: "18px",
 	lg: "22px",
 	xl: "28px",
+}
+
+/**
+ * One step's radius in px at a Corners setting — the same curve shapeDecls
+ * writes as CSS, so the slider's preview shows what the page will get.
+ */
+export function cornerRadius(step: (typeof RADIUS_STEPS)[number], presetPx: number, corners: number): number {
+	const t = corners / 100
+	if (t <= 0.5) return presetPx * (t / 0.5)
+	const ceiling = Number.parseFloat(RADIUS_CEILING[step])
+	return Math.min(presetPx + (ceiling - presetPx) * ((t - 0.5) / 0.5), ceiling)
 }
 
 /** Sable's own radius ladder, for sizing a preset that ships square. */
@@ -485,7 +564,17 @@ function shapeDecls(look: Look, base: ThemeBase): string[] {
 		}
 	}
 	if (look.buttons === "pill") out.push("--button-radius: 9999px;")
-	if (look.buttons === "match") out.push("--button-radius: var(--theme-radius-sm);")
+	if (look.buttons === "match") {
+		// Buttons echo the small corner. But nothing nests inside a button, so the
+		// ceiling that keeps containers reading as boxes does not apply to them:
+		// past the preset scale they keep going, to a full pill at the round end.
+		const k = look.radiusBase == null && look.corners != null && look.corners > 50 ? (look.corners - 50) / 50 : 0
+		out.push(
+			k > 0
+				? `--button-radius: calc(var(--theme-radius-sm) + (var(--control-lg) / 2 - var(--theme-radius-sm)) * ${k.toFixed(3)});`
+				: "--button-radius: var(--theme-radius-sm);",
+		)
+	}
 
 	// Compact ↔ Airy: controls, spacing and type move together, so density is
 	// one gesture instead of three settings that can contradict each other.
@@ -584,8 +673,9 @@ function darkCovering(light: string[], dark: string[], base: ThemeBase): string[
  */
 export function toCss(look: Look, base: ThemeBase, themeId: string): string {
 	const light = colorDecls(look, base, "light")
-	const root = [...shapeDecls(look, base), ...light]
-	const dark = darkCovering(light, colorDecls(look, base, "dark"), base)
+	// Shadows differ per mode, like colours, and are always written for both.
+	const root = [...shapeDecls(look, base), ...light, ...shadowDecls(look, base, "light")]
+	const dark = [...darkCovering(light, colorDecls(look, base, "dark"), base), ...shadowDecls(look, base, "dark")]
 
 	const header = [
 		"/* Sable look — paste AFTER your Sable imports:",
@@ -625,19 +715,64 @@ export function encodeLook(look: Look): string {
 export function decodeLook(value: string | null | undefined): Look {
 	if (!value) return DEFAULT_LOOK
 	try {
-		const parsed = JSON.parse(atob(value.replace(/-/g, "+").replace(/_/g, "/"))) as Record<string, unknown>
-		const look: Record<string, unknown> = { ...DEFAULT_LOOK }
-		for (const key of Object.keys(DEFAULT_LOOK) as (keyof Look)[]) {
-			if (key === "icons") continue // Migrate the retired fallback selection to Reicon.
-			const v = parsed[key]
-			const d = DEFAULT_LOOK[key]
-			const numeric = key === "bold" || key === "airy" || key === "corners" || key === "hue" || (ANCHOR_KEYS as readonly string[]).includes(key)
-			if (numeric && (typeof v === "number" || v === null)) look[key] = v
-			else if (key === "brand" && (typeof v === "string" || v === null)) look[key] = v
-			else if (!numeric && typeof v === typeof d) look[key] = v
-		}
-		return look as unknown as Look
+		return sanitizeLook(JSON.parse(atob(value.replace(/-/g, "+").replace(/_/g, "/"))) as Record<string, unknown>)
 	} catch {
 		return DEFAULT_LOOK
 	}
 }
+
+const isNumeric = (key: keyof Look) =>
+	key === "bold" || key === "airy" || key === "corners" || key === "depth" || key === "hue" || (ANCHOR_KEYS as readonly string[]).includes(key)
+
+function sanitizeLook(parsed: Record<string, unknown>): Look {
+	const look: Record<string, unknown> = { ...DEFAULT_LOOK }
+	for (const key of Object.keys(DEFAULT_LOOK) as (keyof Look)[]) {
+		if (key === "icons") continue // Migrate the retired fallback selection to Reicon.
+		const v = parsed[key]
+		const d = DEFAULT_LOOK[key]
+		const numeric = isNumeric(key)
+		if (numeric && ((typeof v === "number" && Number.isFinite(v)) || v === null)) look[key] = v
+		else if (key === "brand" && (typeof v === "string" || v === null)) look[key] = v
+		else if (!numeric && typeof v === typeof d) look[key] = v
+	}
+	return look as unknown as Look
+}
+
+/* ── Share links ─────────────────────────────────────────────────────────────
+ * A share link spells the look out one setting per param, only where it
+ * differs from the preset: `?theme=poppy&shadows=crisp&corners=40`. Readable,
+ * short, and a future field still decodes to its default. */
+
+/** The look's fields as share-link params; empty for an untouched look. */
+export function lookToParams(look: Look): [string, string][] {
+	const params: [string, string][] = []
+	for (const key of Object.keys(DEFAULT_LOOK) as (keyof Look)[]) {
+		const v = look[key]
+		if (key === "icons" || v === DEFAULT_LOOK[key] || v == null) continue
+		if (typeof v === "number") params.push([key, String(Math.round(v * 100) / 100)])
+		else if (key === "brand") params.push([key, v.replace(/^#/, "")])
+		else params.push([key, v])
+	}
+	return params
+}
+
+/** Whether a query string names any look field. */
+export function hasLookParams(params: URLSearchParams): boolean {
+	return (Object.keys(DEFAULT_LOOK) as (keyof Look)[]).some((key) => params.has(key))
+}
+
+/** Read a share link's look. Unknown or malformed values fall back to the default. */
+export function lookFromParams(params: URLSearchParams): Look {
+	const parsed: Record<string, unknown> = {}
+	for (const key of Object.keys(DEFAULT_LOOK) as (keyof Look)[]) {
+		const raw = params.get(key)
+		if (!raw) continue
+		if (isNumeric(key)) parsed[key] = Number(raw)
+		else if (key === "brand") parsed[key] = /^#?[0-9a-f]{3,8}$/i.test(raw) ? `#${raw.replace(/^#/, "")}` : null
+		else parsed[key] = raw
+	}
+	return sanitizeLook(parsed)
+}
+
+/** Every param a share link may carry, so the address bar can be cleared of them. */
+export const SHARE_PARAMS = ["theme", "mode", "look", ...Object.keys(DEFAULT_LOOK)]

@@ -7,16 +7,22 @@ import type { PlaygroundControl, PlaygroundValue } from "../components/Playgroun
  *
  * Toast is the one component whose playground cannot be a rendered element: a
  * toast is a call (`toast.success(title, options)`), and its position belongs
- * to the `ToastProvider` the page already mounts — a second provider would
- * render every toast twice, since they all read one store. So the stage is a
- * button that makes the call, and the position control reaches up to the
- * page's provider through this context.
+ * and layout belong to the `ToastProvider` the page already mounts — a second
+ * provider would render every toast twice, since they all read one store. So
+ * the stage is a button that makes the call, and the position and stacked
+ * controls reach up to the page's provider through this context.
  */
 
-/** Lets the playground move the page's one `ToastProvider`. No-op outside the Toast page. */
-export const ToastPositionControl = createContext<(position: ToastPosition) => void>(() => {})
+/** The page provider's settings the playground and examples can change. */
+export interface ToastProviderSettings {
+	position: ToastPosition
+	stacked: boolean
+}
 
-export const TOAST_DEFAULT_POSITION: ToastPosition = "top-right"
+export const TOAST_DEFAULT_PROVIDER: ToastProviderSettings = { position: "top-right", stacked: false }
+
+/** Lets the playground change the page's one `ToastProvider`. No-op outside the Toast page. */
+export const ToastProviderControl = createContext<(settings: Partial<ToastProviderSettings>) => void>(() => {})
 
 /** The options of the call itself — meta describes the provider, not these. */
 export const TOAST_CONTROLS: PlaygroundControl[] = [
@@ -79,9 +85,10 @@ function show(values: Record<string, PlaygroundValue>) {
 
 /** The stage: one button that fires the configured toast. */
 export function ToastStage({ values }: { values: Record<string, PlaygroundValue> }) {
-	const setPosition = useContext(ToastPositionControl)
+	const setProvider = useContext(ToastProviderControl)
 	const position = values.position as ToastPosition
-	useEffect(() => setPosition(position), [position, setPosition])
+	const stacked = values.stacked === true
+	useEffect(() => setProvider({ position, stacked }), [position, stacked, setProvider])
 	return <Button onClick={() => show(values)}>Show toast</Button>
 }
 
@@ -90,7 +97,7 @@ function literal(text: string): string {
 	return JSON.stringify(text)
 }
 
-/** The call as a consumer writes it, plus the provider when its position is not the default. */
+/** The call as a consumer writes it, plus the provider when it is not the default one. */
 export function toastSnippet(values: Record<string, PlaygroundValue>): string {
 	const helper = values.type === "neutral" ? "toast" : `toast.${values.type}`
 	const options: string[] = []
@@ -100,6 +107,9 @@ export function toastSnippet(values: Record<string, PlaygroundValue>): string {
 	const args = [literal(String(values.title || "Notification"))]
 	if (options.length) args.push(`{\n\t${options.join(",\n\t")},\n}`)
 	const call = `${helper}(${args.join(", ")})`
-	if (values.position === TOAST_DEFAULT_POSITION) return call
-	return `// Once, near the app root\n<ToastProvider position="${values.position}">{children}</ToastProvider>\n\n// Anywhere\n${call}`
+	const provider: string[] = []
+	if (values.position !== TOAST_DEFAULT_PROVIDER.position) provider.push(`position="${values.position}"`)
+	if (values.stacked === true) provider.push("stacked")
+	if (!provider.length) return call
+	return `// Once, near the app root\n<ToastProvider ${provider.join(" ")}>{children}</ToastProvider>\n\n// Anywhere\n${call}`
 }

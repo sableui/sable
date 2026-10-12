@@ -94,7 +94,7 @@ export const toastMeta: ComponentMeta = {
 	props: [
 		{
 			name: "ToastProvider",
-			type: "{ children, timeout?, limit?, closeIcon?, position?, viewportClassName? }",
+			type: "{ children, timeout?, limit?, closeIcon?, position?, stacked?, viewportClassName? }",
 			default: "—",
 			description:
 				"Wraps Base UI Toast.Provider and renders the themed Viewport + toast list. Mount once near the app root, above any caller of useToast().",
@@ -104,6 +104,13 @@ export const toastMeta: ComponentMeta = {
 			type: '"top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right"',
 			default: '"top-right"',
 			description: "Screen anchor for the toast stack.",
+		},
+		{
+			name: "stacked",
+			type: "boolean",
+			default: "false",
+			description:
+				"Stack the toasts like a deck of cards, the newest in front and the older ones peeking out behind it, a step smaller, instead of listing them one under another. Hovering or focusing the stack fans it out into the list. Use it when an app can raise several toasts in a row, so they don't take over the corner of the page.",
 		},
 		{
 			name: "viewportClassName",
@@ -160,6 +167,12 @@ export const toastMeta: ComponentMeta = {
 			type: "Base UI Toast.Root props + className (requires the `toast` object)",
 			description:
 				"A single toast surface. Animates enter/leave via data-[starting-style]/data-[ending-style]; swipe-to-dismiss is wired by Base UI.",
+		},
+		{
+			name: "ToastContent",
+			type: "Base UI Toast.Content props + className",
+			description:
+				"The toast's contents as one row. In a stacked viewport it fades on the cards behind the front one and returns when the stack fans out. Wrap a hand-composed toast's parts in it so a stacked viewport can hide them.",
 		},
 		{
 			name: "ToastTitle",
@@ -221,6 +234,12 @@ export const toastMeta: ComponentMeta = {
 			why: "Leaving the same way it entered keeps the stack legible when several dismiss at once; toasts that fade in place leave the remaining ones jumping to fill gaps with no visible cause.",
 		},
 		{
+			slot: "transition",
+			recipe: "custom",
+			part: "ToastRoot (stacked)",
+			why: "A stacked toast arrives from the anchored edge in front of the others, which step back and shrink to make room; hovering fans the deck out into the list. Moving every card, rather than snapping them, shows that the new one went on top and the old ones are still there.",
+		},
+		{
 			slot: "activity",
 			recipe: "none",
 			part: "ToastRoot",
@@ -255,6 +274,10 @@ export const toastMeta: ComponentMeta = {
 		{
 			label: "Undo action",
 			code: 'toast.message("Post archived", { actionProps: { children: "Undo", onClick: () => restorePost() } })',
+		},
+		{
+			label: "Stacked",
+			code: '<ToastProvider stacked position="bottom-right">{children}</ToastProvider>',
 		},
 		{
 			label: "Provider with app chrome",

@@ -77,6 +77,7 @@ import { Send } from "reicon-react/icons/Send"
 import { Star } from "reicon-react/icons/Star"
 import { Trash } from "reicon-react/icons/Trash"
 import { Upload } from "reicon-react/icons/Upload"
+import { type ComponentProps, memo } from "react"
 import type { IconRenderProps, IconSet } from "../icon/registry"
 
 /**
@@ -185,24 +186,40 @@ export const reiconIconSet: IconSet = ({
 		? { role: "img" as const, "aria-label": title }
 		: { "aria-hidden": true as const }
 	return (
-		<Glyph
-			size="1em"
+		<ReiconGlyph
+			glyph={Glyph}
 			weight={WEIGHTS[variant] ?? "Outline"}
 			className={spin ? `motion-spin ${className ?? ""}` : className}
-			// Drop Reicon's inline `color`. `createIcon` defaults to
-			// `style={{ color: 'currentColor', ...style }}`, and an inline
-			// declaration outranks a class — so every `text-*` utility Sable or a
-			// consumer puts on an icon was silently dead, and the glyph always took
-			// its parent's ink. `Note`'s whole severity-colored-icon contract was
-			// off for anyone on the default set. Passing `color: undefined` makes
-			// the spread erase the default and React omit the property, so the
-			// class governs and `currentColor` still applies by inheritance —
-			// identical result everywhere a tint was NOT intended.
-			style={{ color: undefined }}
 			{...a11y}
 		/>
 	)
 }
+
+// Drop Reicon's inline `color`. `createIcon` defaults to
+// `style={{ color: 'currentColor', ...style }}`, and an inline declaration
+// outranks a class — so every `text-*` utility Sable or a consumer puts on an
+// icon was silently dead, and the glyph always took its parent's ink. `Note`'s
+// whole severity-colored-icon contract was off for anyone on the default set.
+// Passing `color: undefined` makes the spread erase the default and React omit
+// the property, so the class governs and `currentColor` still applies by
+// inheritance — identical result everywhere a tint was NOT intended.
+const NO_INLINE_COLOR = { color: undefined }
+
+/**
+ * Memoized, so an icon whose props have not changed does not re-render.
+ * Reicon draws with `dangerouslySetInnerHTML` and a fresh `{ __html }` per
+ * render, which React 19 writes back to the DOM every time: every re-render of
+ * a parent replaced the glyph's paths. Inside Base UI's Toast.Content, which
+ * re-measures on any DOM change and re-renders in reply, that never settled
+ * and froze the page. The props are all primitives or module constants, so the
+ * shallow compare holds.
+ */
+const ReiconGlyph = memo(function ReiconGlyph({
+	glyph: Glyph,
+	...props
+}: { glyph: IconComponent } & Omit<ComponentProps<IconComponent>, "size" | "style" | "ref">) {
+	return <Glyph size="1em" style={NO_INLINE_COLOR} {...props} />
+})
 
 /** The semantic names this adapter maps — useful for a coverage assertion. */
 export const reiconIconNames = Object.keys(ICONS)

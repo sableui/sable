@@ -40,17 +40,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 	const [themeId, setThemeId] = useState(() => initialTheme(presets))
 	const [preference, setPreference] = useState(initialPreference)
 	const customThemes = useMemo(() => presets.map(presetManifest), [presets])
+	// Storage is the record; the address bar stays clean. A share link's
+	// `?theme=` / `?mode=` are read once above and cleared by CustomizerProvider.
 	useLayoutEffect(() => {
 		try {
 			localStorage.setItem("sable-docs-theme-id", themeId)
 			localStorage.setItem("sable-docs-theme", preference)
 		} catch { /* storage disabled: current preview still works */ }
-		const url = new URL(window.location.href)
-		if (presets.some(preset => preset.id === themeId)) url.searchParams.delete("theme")
-		else url.searchParams.set("theme", themeId)
-		url.searchParams.set("mode", preference)
-		window.history.replaceState(window.history.state, "", url)
-	}, [themeId, preference, presets])
+	}, [themeId, preference])
 	useEffect(() => {
 		try { localStorage.setItem(PRESETS_KEY, JSON.stringify(presets)) } catch { /* preview remains usable for this session */ }
 		for (const preset of presets) for (const stack of Object.values(preset.fonts)) {

@@ -408,10 +408,10 @@ export const PREVIEWS: Record<string, PreviewEntry> = {
 		),
 	},
 	// A toast is a call, not an element: the stage is a button that makes it,
-	// and the snippet is the call. Position is the provider's — see ToastStage.
+	// and the snippet is the call. Position and stacked are the provider's — see ToastStage.
 	toast: {
 		meta: toastMeta,
-		only: ["type", "title", "description", "action", "timeout", "position"],
+		only: ["type", "title", "description", "action", "timeout", "position", "stacked"],
 		controls: TOAST_CONTROLS,
 		render: (values) => <ToastStage values={values} />,
 		snippet: (values) => toastSnippet(values),

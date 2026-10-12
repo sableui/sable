@@ -2,12 +2,13 @@ import { Button, Icon, cn, useCopy } from "@sableui/react"
 import { type ReactNode, useState } from "react"
 import { useTheme } from "../theme"
 import { useCustomizer } from "./CustomizerProvider"
-import { BrandColorInput, CharacterPad, CornerControl, HueStrip, PresetCards, Segmented } from "./controls"
+import { BrandColorInput, CharacterPad, ChromeTip, CornerControl, DepthControl, HueStrip, PresetCards, Segmented } from "./controls"
 import { FontPicker } from "./FontPicker"
-import { ANCHOR_ROWS, AnchorField, CONTROL_ROWS, MOTION_ROWS, RADIUS_ROWS, Readout, SPACING_ROWS, TYPE_ROWS, useMeasured } from "./Readouts"
-import { brandFor, presetTypeRatio } from "./look"
+import { ANCHOR_ROWS, AnchorField, CONTROL_ROWS, MOTION_ROWS, RADIUS_ROWS, Readout, SPACING_ROWS, TYPE_ROWS, ValueReadout, useMeasured } from "./Readouts"
+import { brandFor, presetTypeRatio, shadowLadder, toPx } from "./look"
+import { definingDrop, describeStep, formatShadow, ladderAngle } from "./shadow"
 import { formatOklch, oklchToHex } from "./color"
-import { PresetExchange } from "./PresetExchange"
+import { PresetExchange, PresetImport } from "./PresetExchange"
 
 const ADVANCED_KEY = "sable-docs-customize-advanced"
 
@@ -41,9 +42,11 @@ export function Inspector({
 	floating?: boolean
 }) {
 	const { themeId, themes, mode, preference, setPreference, presets } = useTheme()
-	const { look, setLook, reset, shareUrl, isCustomized, requestPreset, pendingPreset, confirmPreset, cancelPreset } = useCustomizer()
-	const share = useCopy(shareUrl)
+	const { look, setLook, reset, getShareUrl, isCustomized, requestPreset, pendingPreset, confirmPreset, cancelPreset } = useCustomizer()
+	const share = useCopy(getShareUrl())
+	const sharable = !presets.some((preset) => preset.id === themeId)
 	const [view, setView] = useState<"tune" | "export">("tune")
+	const [importStatus, setImportStatus] = useState("")
 	// Simple is the default; Advanced adds the resolved numbers under each
 	// control. A per-viewer preference, so it lives in localStorage.
 	const [advanced, setAdvancedState] = useState(() => {
@@ -76,6 +79,32 @@ export function Inspector({
 	const brandLight = brandFor(look, "light")
 	const brandHex = look.brand ?? (brandLight ? oklchToHex(brandLight) : "")
 	const hasBrand = brandOklch != null
+	// The shadows the look paints in this mode (the preset's when untouched), for the Depth preview.
+	const shadowMode = mode === "dark" ? "dark" : "light"
+	const ladder = shadowLadder(look, base, shadowMode) ?? base.shadows?.[shadowMode]
+	const shadowPreview = ladder ? { sm: formatShadow(ladder.sm), md: formatShadow(ladder.md), xl: formatShadow(ladder.xl) } : null
+	// What each anchor shows until it is set: the top step's longest drop. Opacity
+	// is in light-mode terms (see look.ts), so it reads the light ladder.
+	const topDrop = ladder ? definingDrop(ladder) : null
+	const lightLadder = shadowLadder(look, base, "light") ?? base.shadows?.light
+	const lightTop = lightLadder ? definingDrop(lightLadder) : null
+	// The preset's own radius ladder, for the Corners preview (0 until measured).
+	const presetRadius = {
+		xs: toPx(base.radius.xs, base.rootPx) ?? 0,
+		sm: toPx(base.radius.sm, base.rootPx) ?? 0,
+		md: toPx(base.radius.md, base.rootPx) ?? 0,
+		lg: toPx(base.radius.lg, base.rootPx) ?? 0,
+	}
+	const shadowAnchors = { shadowAngle: null, shadowDistance: null, shadowBlur: null, shadowOpacity: null }
+	const shadowRows = ladder
+		? [
+				{ label: "Small · cards", value: describeStep(ladder.sm) },
+				{ label: "Base", value: describeStep(ladder.base) },
+				{ label: "Medium · menus", value: describeStep(ladder.md) },
+				{ label: "Large · dialogs", value: describeStep(ladder.lg) },
+				{ label: "Extra large · toasts", value: describeStep(ladder.xl) },
+			]
+		: []
 
 	// Choosing a preset starts over (see CustomizerProvider.requestPreset); the
 	// confirm lives here because this panel is where the changes are.
@@ -93,59 +122,71 @@ export function Inspector({
 				className,
 			)}
 		>
-			<header className="flex items-center justify-between gap-2 border-b border-border py-2 ps-2 pe-2">
-				<div className="flex items-center gap-2">
-					{view === "tune" ? (
-						// The mode switch IS the title: it names what you are looking at and
-						// shows the way back, where a lone "Advanced" button only showed the way in.
-						<Segmented
-							label="Customize mode"
-							value={advanced ? "advanced" : "simple"}
-							onChange={(next) => setAdvanced(next === "advanced")}
-							options={[
-								{ value: "simple", label: "Simple" },
-								{ value: "advanced", label: "Advanced" },
-							]}
-							className="w-44"
-						/>
-					) : (
-						<span className="ps-2 text-label-lg">Export</span>
-					)}
-				</div>
-				<div className="flex items-center gap-1">
-					<Button
-						variant={view === "export" ? "secondary" : "ghost"}
-						size="sm"
-						onClick={() => setView(view === "tune" ? "export" : "tune")}
-					>
-						{view === "tune" ? "Export" : "Back"}
+			{view === "tune" ? (
+				<header className="flex items-center justify-between gap-2 border-b border-border p-2">
+					{/* The mode switch IS the title: it names what you are looking at and
+					    shows the way back, where a lone "Advanced" button only showed the way in. */}
+					<Segmented
+						label="Customize mode"
+						value={advanced ? "advanced" : "simple"}
+						onChange={(next) => setAdvanced(next === "advanced")}
+						options={[
+							{ value: "simple", label: "Simple" },
+							{ value: "advanced", label: "Advanced" },
+						]}
+						className="w-44"
+					/>
+					<div className="flex items-center gap-1">
+						{/* A personal preset lives only in this browser, so a link to it
+						    would open on Sable for anyone else; Export shares it as a file. */}
+						{sharable ? (
+							<ChromeTip label={share.copied ? "Link copied" : "Copy link to this look"}>
+								<Button
+									variant="ghost"
+									size="icon-sm"
+									aria-label={share.copied ? "Link copied" : "Copy a link to this look"}
+									onClick={share.copy}
+								>
+									<Icon name={share.copied ? "check" : "share"} />
+								</Button>
+							</ChromeTip>
+						) : null}
+						<ChromeTip label="Export">
+							<Button variant="ghost" size="icon-sm" aria-label="Export" onClick={() => setView("export")}>
+								<Icon name="download" />
+							</Button>
+						</ChromeTip>
+						{onClose ? (
+							<ChromeTip label="Close">
+								<Button variant="ghost" size="icon-sm" aria-label="Close customize" onClick={onClose}>
+									<Icon name="xmark" />
+								</Button>
+							</ChromeTip>
+						) : null}
+					</div>
+				</header>
+			) : (
+				// A view inside the panel, not a panel of its own: the only way out is
+				// back, so it has no close and no share of its own.
+				<header className="flex items-center gap-1 border-b border-border p-2">
+					<Button variant="ghost" size="icon-sm" aria-label="Back" onClick={() => setView("tune")}>
+						<Icon name="arrow-left" />
 					</Button>
-					{onClose ? (
-						<Button variant="ghost" size="icon-sm" aria-label="Close customize" onClick={onClose}>
-							<Icon name="xmark" />
-						</Button>
-					) : null}
-				</div>
-			</header>
+					<h2 className="text-label-lg">Export</h2>
+				</header>
+			)}
 
 			{view === "export" ? (
 				// Swipe-ignore: in the mobile sheet, a drag on the controls (the
 				// Character pad, the hue strip) or a scroll is never a swipe to close.
 				<div data-base-ui-swipe-ignore="" className="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto p-4 scrollbar-quiet">
 					<PresetExchange />
-					{!presets.some(preset => preset.id === themeId) && (
-					<div className="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2">
-						<span className="text-label-md">Share this look</span>
-						<Button variant="ghost" size="icon-sm" aria-label="Copy a link to this look" onClick={share.copy} className="text-muted-foreground">
-							<Icon name={share.copied ? "check" : "copy"} />
-						</Button>
-					</div>
-					)}
 				</div>
 			) : (
 				<div data-base-ui-swipe-ignore="" className="grid min-h-0 flex-1 content-start gap-5 overflow-y-auto p-4 scrollbar-quiet">
-					<Group title="Preset" hint="Where you start">
+					<Group title="Preset" action={<PresetImport onStatus={setImportStatus} />}>
 						<PresetCards themes={themes} value={themeId} mode={mode === "dark" ? "dark" : "light"} onChange={requestPreset} />
+						<p role="status" className={cn("text-caption text-muted-foreground", !importStatus && "sr-only")}>{importStatus}</p>
 					</Group>
 
 					<Group title="Mode">
@@ -254,7 +295,7 @@ export function Inspector({
 								<AnchorField label="Medium radius" prefix="R" min={0} max={18} value={look.radiusBase} measured={live[3]} onChange={(radiusBase) => setLook({ radiusBase })} />
 							</Readout>
 						) : (
-							<CornerControl corners={look.corners} onChange={(corners) => setLook({ corners, radiusBase: null })} />
+							<CornerControl corners={look.corners} preset={presetRadius} onChange={(corners) => setLook({ corners, radiusBase: null })} />
 						)}
 						<span className="pt-1 text-caption text-muted-foreground">Button shape</span>
 						<Segmented
@@ -267,6 +308,50 @@ export function Inspector({
 								{ value: "match", label: "Match corners" },
 							]}
 						/>
+					</Group>
+
+					<Group
+						title="Depth"
+						action={
+							look.depth != null || look.shadows !== "theme" || Object.keys(shadowAnchors).some((key) => look[key as keyof typeof shadowAnchors] != null) ? (
+								<Button variant="ghost" size="xs" onClick={() => setLook({ depth: null, shadows: "theme", ...shadowAnchors })}>
+									Reset
+								</Button>
+							) : (
+								<span className="text-caption text-muted-foreground">Shadows</span>
+							)
+						}
+					>
+						{/* The slider is a gesture over reach and strength at once; it hands those
+						    back from any exact numbers set in Advanced. The angle is not part of
+						    depth, so it stays. Advanced drops it: the readout below is the exact
+						    form of the same thing. */}
+						{advanced ? null : (
+							<DepthControl depth={look.depth} preview={shadowPreview} onChange={(depth) => setLook({ depth, shadowDistance: null, shadowBlur: null, shadowOpacity: null })} />
+						)}
+						<span className={cn("text-caption text-muted-foreground", !advanced && "pt-1")}>Shadow style</span>
+						<Segmented
+							label="Shadow style"
+							value={look.shadows}
+							onChange={(shadows) => setLook({ shadows })}
+							options={[
+								{ value: "theme", label: "Preset" },
+								{ value: "soft", label: "Soft" },
+								{ value: "crisp", label: "Crisp" },
+								{ value: "offset", label: "Offset" },
+							]}
+						/>
+						{advanced ? (
+							// Exact numbers, set on the top step (the toast's); every other step
+							// follows in proportion. The rows are each step's longest drop.
+							<ValueReadout title="Shadows" rows={shadowRows}>
+								<AnchorField label="Light angle" prefix="A" suffix="°" min={0} max={360} step={5} value={look.shadowAngle} measured={ladder ? ladderAngle(ladder) : null} onChange={(shadowAngle) => setLook({ shadowAngle })} />
+								<AnchorField label="Distance" prefix="D" min={0} max={48} step={1} value={look.shadowDistance} measured={topDrop ? Math.hypot(topDrop.x, topDrop.y) : null} onChange={(shadowDistance) => setLook({ shadowDistance })} />
+								<AnchorField label="Blur" prefix="B" min={0} max={96} step={1} value={look.shadowBlur} measured={topDrop?.blur} onChange={(shadowBlur) => setLook({ shadowBlur })} />
+								<AnchorField label="Opacity" prefix="O" suffix="%" min={0} max={60} step={1} value={look.shadowOpacity} measured={lightTop ? lightTop.color.a * 100 : null} onChange={(shadowOpacity) => setLook({ shadowOpacity })} />
+								<span className="text-caption text-muted-foreground">Set on the largest step; the others follow. Opacity is light mode's; dark keeps its own in proportion.</span>
+							</ValueReadout>
+						) : null}
 					</Group>
 
 					<Group title="Typography" hint="Google Fonts">

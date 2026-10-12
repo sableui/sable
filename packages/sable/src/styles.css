@@ -345,6 +345,13 @@
 	   a dark track (well under 3:1). When ON the knob takes `--primary-foreground`,
 	   the ink every theme already tunes against its primary fill. */
 	--switch-thumb: var(--theme-switch-thumb, oklch(99% 0.002 90));
+
+	/* The contact shadow under a knob: the Switch thumb, the Slider thumb, the
+	   ColorField handle. NOT the elevation ladder. `shadow-sm` is a surface's
+	   lift, and a theme or a Depth setting may make it a long offset (Poppy's
+	   are hard 3–12px drops); on a 20px knob inside its track that drop escaped
+	   the track. A knob only sits on its rail, so it keeps one small shadow. */
+	--knob-shadow: var(--theme-knob-shadow, 0 1px 2px 0 rgb(0 0 0 / 0.05));
 }
 
 /* ==========================================================================

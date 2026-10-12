@@ -1,5 +1,5 @@
 import type { IconRenderProps, IconSet } from "../icon/registry"
-import { BRAND_GLYPHS, BRAND_GRID } from "./brands.generated"
+import { BRAND_GLYPHS, BRAND_GRID, type BrandGlyph } from "./brands.generated"
 
 /**
  * Brand marks as a Sable icon set — `<Icon name="github" />`.
@@ -28,6 +28,20 @@ import { BRAND_GLYPHS, BRAND_GRID } from "./brands.generated"
  * `scripts/fetch-brand-icons.mjs` for why. Trademark note: these designs belong
  * to their owners — follow each brand's usage guidelines.
  */
+/**
+ * One `{ __html }` object per glyph, reused across renders. React 19 rewrites
+ * an element's innerHTML whenever that object changes, so a fresh one per
+ * render replaced the mark's paths every time its parent re-rendered — and
+ * Base UI's Toast.Content, which re-measures on any DOM change inside it,
+ * re-rendered in reply, forever.
+ */
+const MARKUP = new WeakMap<BrandGlyph, { __html: string }>()
+function markupOf(glyph: BrandGlyph) {
+	let markup = MARKUP.get(glyph)
+	if (!markup) MARKUP.set(glyph, (markup = { __html: glyph.markup }))
+	return markup
+}
+
 export const brandIconSet: IconSet = ({
 	name,
 	spin,
@@ -59,7 +73,7 @@ export const brandIconSet: IconSet = ({
 			// scripts/fetch-brand-icons.mjs and committed — it is never user input
 			// and never fetched at runtime, which is what makes this safe.
 			// biome-ignore lint/security/noDangerouslySetInnerHtml: build-time vendored SVG paths
-			dangerouslySetInnerHTML={{ __html: glyph.markup }}
+			dangerouslySetInnerHTML={markupOf(glyph)}
 			{...a11y}
 		/>
 	)

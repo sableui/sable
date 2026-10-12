@@ -82,8 +82,68 @@ const ENTER_MOTION: Record<ToastPosition, string> = {
 	"bottom-right": "motion-slide-left",
 }
 
-/** The viewport's anchor, read by the toasts inside it for their entrance. */
-const ToastPositionContext = createContext<ToastPosition>("top-right")
+/**
+ * The stacked layout: the toasts sit on top of one another like a deck of
+ * cards, the newest in front and each older one peeking out behind it, a step
+ * smaller. Hovering or focusing the stack fans it out into the list. Base UI
+ * measures the toasts and publishes the geometry as CSS variables (each one's
+ * index, height and offset in the fanned-out list, and the front toast's
+ * height); this is only the drawing. The proportions are Sonner's: a 12px
+ * peek and 5% smaller per card, three cards deep at the default limit.
+ *
+ * Every toast takes the front toast's height while collapsed, so the cards
+ * behind it peek by the same amount whatever they say. Their content fades
+ * (ToastContent), because only an edge of them shows.
+ *
+ * The stack is drawn with `transform`, the property Base UI reads back to hold
+ * a toast under the finger mid-swipe. Arrival and departure use `translate`,
+ * which composes with it, so the two never compete for one property.
+ *
+ * `--toast-dir` is the direction the stack grows: up from a bottom anchor,
+ * down from a top one.
+ */
+const STACKED_ROOT = [
+	// design-lint-disable-next-line raw-z-index -- orders the cards inside the viewport's own stacking context (it is fixed at z-(--z-toast)); not a page layer
+	"absolute inset-x-0 z-[calc(100-var(--toast-index))] select-none",
+	"[--toast-gap:--spacing(2)] [--toast-peek:--spacing(3)]",
+	"[--toast-scale:max(0,1-var(--toast-index)*0.05)]",
+	"[--toast-h:var(--toast-frontmost-height,var(--toast-height))]",
+	"h-(--toast-h) data-expanded:h-(--toast-height)",
+	// Collapsed: shrink about the anchored edge, then lift a peek per card.
+	"[transform:translateX(var(--toast-swipe-movement-x))_translateY(calc(var(--toast-swipe-movement-y)+var(--toast-dir)*(var(--toast-index)*var(--toast-peek)+(1-var(--toast-scale))*var(--toast-h))))_scale(var(--toast-scale))]",
+	// Fanned out: Base UI's offset is the heights in front of it; add the gaps.
+	"data-expanded:[transform:translateX(var(--toast-swipe-movement-x))_translateY(calc(var(--toast-swipe-movement-y)+var(--toast-dir)*(var(--toast-offset-y)+var(--toast-index)*var(--toast-gap))))]",
+	// Arrive from the anchored edge and leave the same way, unless swiped or
+	// pushed out by the limit, which only fade.
+	"data-starting-style:[translate:0_calc(var(--toast-dir)*-100%)] data-starting-style:opacity-0",
+	"[&[data-ending-style]:not([data-limited]):not([data-swipe-direction])]:[translate:0_calc(var(--toast-dir)*-100%)]",
+	"data-ending-style:opacity-0 data-limited:opacity-0",
+	// Fanned out, bridges the gap to the next card, so the pointer stays on the
+	// stack and the list does not collapse under it.
+	"after:absolute after:inset-x-0 after:h-[calc(var(--toast-gap)+1px)] not-data-expanded:after:hidden",
+	// Collapsed, the deck lifts as one: cards resting on each other barely shade
+	// each other. A full shadow on every card stacked a slab per card, and a
+	// theme with hard offset shadows (Poppy's reach 12px, past the 12px peek)
+	// painted the front card's slab over the cards behind it. So the front card
+	// steps down to shadow-md and the cards behind to shadow-sm; fanned out,
+	// each is a toast again and takes the full step back.
+	"not-data-expanded:shadow-md not-data-expanded:has-[>[data-behind]]:shadow-sm",
+	"transition-[transform,translate,opacity,height,box-shadow] duration-(--motion-duration-slow) ease-emphasized",
+].join(" ")
+
+/** The edge a stacked toast is pinned to, and the side its hover bridge reaches. */
+const STACKED_EDGE = {
+	top: "top-0 origin-top [--toast-dir:1] after:top-full",
+	bottom: "bottom-0 origin-bottom [--toast-dir:-1] after:bottom-full",
+} as const
+
+const edgeOf = (position: ToastPosition) => (position.startsWith("top") ? "top" : "bottom")
+
+/** The viewport's anchor and layout, read by the toasts inside it. */
+const ToastViewportContext = createContext<{ position: ToastPosition; stacked: boolean }>({
+	position: "top-right",
+	stacked: false,
+})
 
 type AddOptions = Parameters<typeof toastManager.add>[0]
 /** Options for `toast()` / the `toast.*` helpers (Base UI add-options minus the message). */
@@ -218,6 +278,11 @@ type ViewportProps = Omit<ComponentProps<typeof Base.Viewport>, "className"> & {
 	className?: string
 	/** Screen anchor for the toast stack. @default "top-right" */
 	position?: ToastPosition
+	/**
+	 * Stack the toasts on top of one another, the newest in front, instead of
+	 * listing them. Hovering or focusing the stack fans it out. @default false
+	 */
+	stacked?: boolean
 }
 
 /** Moves the viewport to `<body>`, carrying any themed-subtree scope across. */
@@ -236,21 +301,24 @@ const ToastPortal = withPortalThemeScope(Base.Portal)
 export function ToastViewport({
 	className,
 	position = "top-right",
+	stacked = false,
 	...props
 }: ViewportProps) {
 	return (
-		<ToastPositionContext.Provider value={position}>
+		<ToastViewportContext.Provider value={{ position, stacked }}>
 			<ToastPortal>
 				<Base.Viewport
 					className={cn(
-						"fixed z-(--z-toast) flex w-95 max-w-[90vw] flex-col gap-2 outline-none",
+						"fixed z-(--z-toast) w-95 max-w-[90vw] outline-none",
+						// Stacked toasts are positioned against the viewport, not laid out in it.
+						!stacked && "flex flex-col gap-2",
 						POSITION[position],
 						className,
 					)}
 					{...props}
 				/>
 			</ToastPortal>
-		</ToastPositionContext.Provider>
+		</ToastViewportContext.Provider>
 	)
 }
 
@@ -264,12 +332,36 @@ type RootProps = Omit<ComponentProps<typeof Base.Root>, "className"> & {
  * is wired by Base UI.
  */
 export function ToastRoot({ className, ...props }: RootProps) {
-	const position = useContext(ToastPositionContext)
+	const { position, stacked } = useContext(ToastViewportContext)
 	return (
 		<Base.Root
 			className={cn(
 				"flex w-full gap-3 rounded-md border border-border-floating bg-popover p-4 text-popover-foreground shadow-xl",
-				ENTER_MOTION[position],
+				stacked ? [STACKED_ROOT, STACKED_EDGE[edgeOf(position)]] : ENTER_MOTION[position],
+				className,
+			)}
+			{...props}
+		/>
+	)
+}
+
+type ContentProps = Omit<ComponentProps<typeof Base.Content>, "className"> & {
+	className?: string
+}
+
+/**
+ * The toast's contents (icon, text, action, close) as one row. In a stacked
+ * viewport the contents of the cards behind the front one fade, since only an
+ * edge of them shows, and come back when the stack fans out.
+ */
+export function ToastContent({ className, ...props }: ContentProps) {
+	const { stacked } = useContext(ToastViewportContext)
+	return (
+		<Base.Content
+			className={cn(
+				"flex min-w-0 flex-1 gap-3",
+				stacked &&
+					"transition-opacity duration-(--motion-duration-base) ease-standard data-behind:not-data-expanded:pointer-events-none data-behind:not-data-expanded:opacity-0",
 				className,
 			)}
 			{...props}
@@ -370,6 +462,12 @@ export interface ToastProviderProps {
 	/** Screen anchor for the toast stack. @default "top-right" */
 	position?: ToastPosition
 	/**
+	 * Stack the toasts like a deck of cards, the newest in front and the older
+	 * ones peeking out behind it, instead of listing them one under another.
+	 * Hovering or focusing the stack fans it out into the list. @default false
+	 */
+	stacked?: boolean
+	/**
 	 * Extra classes merged LAST onto the fixed viewport region — for safe-area
 	 * insets or an offset (e.g. clearing a sidebar). @example
 	 * "top-[calc(1rem+env(safe-area-inset-top))]"
@@ -396,6 +494,7 @@ export function ToastProvider({
 	limit,
 	closeIcon,
 	position,
+	stacked,
 	viewportClassName,
 }: ToastProviderProps) {
 	return (
@@ -404,6 +503,7 @@ export function ToastProvider({
 			<ToastList
 				closeIcon={closeIcon}
 				position={position}
+				stacked={stacked}
 				viewportClassName={viewportClassName}
 			/>
 		</Base.Provider>
@@ -421,44 +521,48 @@ const TYPE_ACCENT: Record<string, string> = {
 function ToastList({
 	closeIcon,
 	position,
+	stacked,
 	viewportClassName,
 }: {
 	closeIcon?: ReactNode
 	position?: ToastPosition
+	stacked?: boolean
 	viewportClassName?: string
 }) {
 	const { toasts } = useToast()
 	return (
-		<ToastViewport position={position} className={viewportClassName}>
+		<ToastViewport position={position} stacked={stacked} className={viewportClassName}>
 			{toasts.map((item) => {
 				const accent = item.type ? TYPE_ACCENT[item.type] : undefined
 				return (
 					<ToastRoot key={item.id} toast={item}>
-						{item.type === "loading" ? (
-							<Spinner
-								aria-hidden={true}
-								className="mt-0.5 size-4 shrink-0 text-muted-foreground"
-							/>
-						) : accent ? (
-							<span
-								aria-hidden={true}
-								className={cn("w-1 shrink-0 self-stretch rounded-full", accent)}
-							/>
-						) : null}
-						<div className="flex min-w-0 flex-1 flex-col gap-1">
-							{item.title ? <ToastTitle>{item.title}</ToastTitle> : null}
-							{item.description ? (
-								<ToastDescription>{item.description}</ToastDescription>
+						<ToastContent>
+							{item.type === "loading" ? (
+								<Spinner
+									aria-hidden={true}
+									className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+								/>
+							) : accent ? (
+								<span
+									aria-hidden={true}
+									className={cn("w-1 shrink-0 self-stretch rounded-full", accent)}
+								/>
 							) : null}
-						</div>
-						{/*
-							Renders only when the toast carries `actionProps` — Base UI's
-							Action returns null without children, so this is free for the
-							toasts that have no action. Without it, `actionProps` is
-							accepted by the manager and silently dropped.
-						*/}
-						<ToastAction className="self-center" />
-						<ToastClose>{closeIcon ?? <Icon name="xmark" className="text-sm" />}</ToastClose>
+							<div className="flex min-w-0 flex-1 flex-col gap-1">
+								{item.title ? <ToastTitle>{item.title}</ToastTitle> : null}
+								{item.description ? (
+									<ToastDescription>{item.description}</ToastDescription>
+								) : null}
+							</div>
+							{/*
+								Renders only when the toast carries `actionProps` — Base UI's
+								Action returns null without children, so this is free for the
+								toasts that have no action. Without it, `actionProps` is
+								accepted by the manager and silently dropped.
+							*/}
+							<ToastAction className="self-center" />
+							<ToastClose>{closeIcon ?? <Icon name="xmark" className="text-sm" />}</ToastClose>
+						</ToastContent>
 					</ToastRoot>
 				)
 			})}

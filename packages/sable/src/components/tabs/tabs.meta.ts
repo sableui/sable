@@ -78,7 +78,7 @@ export const tabsMeta: ComponentMeta = {
 		{
 			name: "TabsList",
 			type: "Base UI Tabs.List props (activateOnFocus, loopFocus) + variant?: \"underline\" | \"pill\" + className",
-			description: "The tablist row. variant=\"underline\" (default) draws a divider rule beneath the triggers; variant=\"pill\" drops the rule and fills the active trigger. Triggers inherit the variant.",
+			description: "The tablist row. variant=\"underline\" (default) draws a divider rule beneath the triggers; variant=\"pill\" drops the rule and fills the active trigger, which takes the theme's button shape (--button-radius). Triggers inherit the variant.",
 		},
 		{
 			name: "TabsTrigger",

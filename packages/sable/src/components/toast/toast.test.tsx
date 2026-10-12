@@ -30,6 +30,28 @@ describe("ToastViewport placement", () => {
 	})
 })
 
+describe("stacked", () => {
+	it("pins the toasts to the anchored edge as a deck, and fades the cards behind", async () => {
+		renderWithProviders(<ToastProvider timeout={0} stacked position="bottom-right" />)
+		toast("First")
+		toast("Second")
+		const front = (await screen.findByText("Second")).closest("[role=dialog]") as HTMLElement
+		// Grows up from a bottom anchor; jsdom has no layout, so the classes are the contract.
+		expect(front.className).toContain("bottom-0")
+		expect(front.className).toContain("[--toast-dir:-1]")
+		const behind = screen.getByText("First").closest("[data-behind]") as HTMLElement
+		expect(behind.className).toContain("data-behind:not-data-expanded:opacity-0")
+	})
+
+	it("leaves the list layout alone by default", async () => {
+		mount()
+		toast("Saved")
+		const row = (await screen.findByText("Saved")).closest("[role=dialog]") as HTMLElement
+		expect(row.className).not.toContain("[--toast-dir")
+		expect(row.parentElement?.className).toContain("flex-col")
+	})
+})
+
 describe("ToastList actions", () => {
 	it("renders the action a toast was given", async () => {
 		mount()

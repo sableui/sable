@@ -113,7 +113,7 @@ export function SliderThumb({ className, children, ...props }: ThumbProps) {
 			<span
 				aria-hidden
 				className={cn(
-					"pointer-events-none absolute inset-0 rounded-full border-2 border-primary bg-background shadow-sm",
+					"pointer-events-none absolute inset-0 rounded-full border-2 border-primary bg-background shadow-(--knob-shadow)",
 					// The only thing that resizes. Scale (not width/height) so the box
 					// metrics — and the row height around them — never move.
 					"scale-75 motion-interactive ease-spring",
