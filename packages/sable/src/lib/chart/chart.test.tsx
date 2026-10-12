@@ -129,4 +129,19 @@ describe("charts", () => {
 		render(<Sparkline label="Revenue" data={[3, 9, 1, 6]} locale="en-US" />)
 		expect(screen.getByRole("img").getAttribute("aria-label")).toBe("Revenue: from 3 to 6, low 1, high 9")
 	})
+
+	it("sparkline lines span their own range; bars keep zero", () => {
+		const ys = (d: string) => [...d.matchAll(/[ML]?(-?[\d.]+),(-?[\d.]+)/g)].map((m) => Number(m[2]))
+		const { container, rerender } = render(<Sparkline label="Revenue" data={[12, 26, 19]} animate={false} />)
+		const line = ys(container.querySelector("path")?.getAttribute("d") ?? "")
+		// Inset 2 of 32 top and bottom: the low point sits at the bottom, not mid-box.
+		expect(Math.min(...line)).toBeCloseTo(2)
+		expect(Math.max(...line)).toBeCloseTo(30)
+		rerender(<Sparkline label="Flat" data={[5, 5, 5]} animate={false} />)
+		expect(ys(container.querySelector("path")?.getAttribute("d") ?? "")[0]).toBeCloseTo(16)
+		rerender(<Sparkline label="Signups" data={[12, 26]} variant="bar" animate={false} />)
+		const bar = container.querySelector("rect")
+		expect(Number(bar?.getAttribute("y")) + Number(bar?.getAttribute("height"))).toBeCloseTo(30)
+		expect(Number(bar?.getAttribute("height"))).toBeGreaterThan(10)
+	})
 })

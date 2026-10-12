@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **A card that is only a header keeps its bottom padding.** `CardHeader` leaves
+  the bottom padding to the content that follows it; with nothing after it (a
+  stat card: label, number, sparkline) the number sat on the card's edge.
+- **Line and area sparklines span their own range.** They used to include zero,
+  so a run from 12 to 26 used only the top half of the box: a flat squiggle over
+  a solid block. Bar sparklines keep the zero baseline, since a bar's length is
+  the value.
 - **Combobox chips are balanced.** The remove button was a full 28px icon
   button, which swelled each chip into a 34px pill and left more room after the
   label than before it. It is now drawn to the chip (20px, with a 14px X) and

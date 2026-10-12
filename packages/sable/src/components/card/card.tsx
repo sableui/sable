@@ -110,8 +110,11 @@ export function CardHeader({
 				// one it collapses to a single stacked column (same as before).
 				// Zeroes its own bottom padding so it owns the CardHeader/CardContent
 				// seam — CardContent always has full padding on its own (see below),
-				// so a standalone CardContent never loses its top padding.
-				"grid auto-rows-min grid-cols-1 items-start gap-1.5 p-[var(--card-p,--spacing(6))] pb-0 has-data-[slot=card-action]:grid-cols-[1fr_auto]",
+				// so a standalone CardContent never loses its top padding. As the
+				// card's last child (a stat card: label, number, sparkline) nothing
+				// follows to pad the bottom, so it keeps its own; zeroed, the number
+				// sat on the card's bottom edge.
+				"grid auto-rows-min grid-cols-1 items-start gap-1.5 p-[var(--card-p,--spacing(6))] pb-0 last:pb-[var(--card-p,--spacing(6))] has-data-[slot=card-action]:grid-cols-[1fr_auto]",
 				className,
 			)}
 			{...props}

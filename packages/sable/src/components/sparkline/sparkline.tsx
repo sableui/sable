@@ -37,9 +37,19 @@ export function Sparkline({ data, label, variant = "line", tone = "primary", ani
 	const [ref, inView] = useArrival<SVGSVGElement>()
 	const shown = !animate || !enabled || inView
 	const color = toneColor(tone)
-	const lo = Math.min(0, ...data)
-	const hi = Math.max(...data, lo + 1)
-	const y = (v: number) => H - 2 - ((v - lo) / (hi - lo)) * (H - 4)
+	// A line or area shows the shape, so it spans the data's own range. Pinned
+	// to zero, a run from 12 to 26 used the top half of the box: a flat
+	// squiggle over a solid slab. Bars keep zero, because a bar's length is
+	// the value.
+	const min = data.length ? Math.min(...data) : 0
+	const max = data.length ? Math.max(...data) : 1
+	const [lo, hi] =
+		variant === "bar"
+			? [Math.min(0, min), Math.max(max, Math.min(0, min) + 1)]
+			: min === max
+				? [min - 1, max + 1] // a flat series sits mid-height
+				: [min, max]
+	const y =(v: number) => H - 2 - ((v - lo) / (hi - lo)) * (H - 4)
 	const nf = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 })
 	const summary = data.length
 		? `${label}: from ${nf.format(data[0])} to ${nf.format(data[data.length - 1])}, low ${nf.format(Math.min(...data))}, high ${nf.format(Math.max(...data))}`

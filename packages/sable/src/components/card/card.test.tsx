@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react"
 import { createRef } from "react"
 import { describe, expect, it } from "vitest"
-import { Card, CardContent, CardList, CardTitle } from "./card"
+import { Card, CardContent, CardHeader, CardList, CardTitle } from "./card"
 
 describe("Card density", () => {
 	it("defaults to comfortable padding (p-6, on the spacing scale so density moves it)", () => {
@@ -99,5 +99,22 @@ describe("CardTitle", () => {
 		rerender(<CardTitle render={<h2 />}>Payouts</CardTitle>)
 		const heading = screen.getByRole("heading", { level: 2, name: "Payouts" })
 		expect(heading.className).toContain("text-title-lg")
+	})
+})
+
+describe("CardHeader", () => {
+	it("pads its own bottom when nothing follows it, and leaves the seam to content otherwise", () => {
+		// A stat card is a header alone; with pb-0 unconditional its number sat
+		// on the card's bottom edge.
+		const { container } = render(
+			<Card>
+				<CardHeader>
+					<CardTitle>4.1%</CardTitle>
+				</CardHeader>
+			</Card>,
+		)
+		const header = container.querySelector("[data-slot=card-header]")
+		expect(header?.className).toContain("pb-0")
+		expect(header?.className).toContain("last:pb-[var(--card-p,--spacing(6))]")
 	})
 })
