@@ -1,5 +1,12 @@
 # What's new
 
+## Unreleased
+
+- **Combobox chips are balanced.** The remove button was a full 28px icon
+  button, which swelled each chip into a 34px pill and left more room after the
+  label than before it. It is now drawn to the chip (20px, with a 14px X) and
+  keeps a 28px pointer target, so the label and the X sit evenly in a 23px chip.
+
 ## 0.4.0
 
 ### The default theme is now called Sable

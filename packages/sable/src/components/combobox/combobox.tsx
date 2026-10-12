@@ -20,6 +20,7 @@ import { withPortalThemeScope } from "../../lib/portal-theme-scope"
 import { useAnchoredDensity, useDensity, useTypeTier } from "../../lib/density"
 import { useResizeObserver } from "../../lib/use-resize-observer"
 import { HighlightGlide } from "../../lib/highlight-glide"
+import { hitTargetMin } from "../../lib/hit-target"
 import { Badge } from "../badge"
 import { Button } from "../button"
 
@@ -337,15 +338,20 @@ export function ComboboxChips<Item = unknown>({
 									<Base.Chip
 										key={`${label}-${index}`}
 										render={<Badge appearance="soft" size="sm" />}
-										className="pe-0.5 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+										className="gap-0.5 pe-0.5 outline-none focus-visible:ring-2 focus-visible:ring-ring"
 									>
 										{label}
+										{/* Drawn to the chip, not the control ladder: an icon-xs
+										    button (28px) swelled the chip into a 34px pill whose
+										    curve crowded the label, and its padded glyph left far
+										    more room after the label than before it. The pointer
+										    target keeps the ladder floor through hitTargetMin. */}
 										<Base.ChipRemove
 											render={
 												<Button
 													variant="ghost"
 													size="icon-xs"
-													className="-my-1"
+													className={cn("-my-1 size-5 [--button-icon:0.875rem]", hitTargetMin)}
 												/>
 											}
 											aria-label={`Remove ${label}`}

@@ -210,6 +210,14 @@ describe("Combobox — multiple selection", () => {
 		])
 	})
 
+	it("draws the remove control to the chip but keeps the ladder's pointer target", () => {
+		renderWithProviders(<MultiHost defaultValue={["design"]} />)
+		const remove = screen.getByRole("button", { name: "Remove design" })
+		// A 28px icon-xs button swelled the chip into a 34px pill.
+		expect(remove.className).toContain("size-5")
+		expect(remove.className).toContain("before:size-(--control-xs)")
+	})
+
 	it("labels object items by their label field", () => {
 		renderWithProviders(
 			<Combobox multiple items={[{ id: 1, label: "Ada" }]} defaultValue={[{ id: 1, label: "Ada" }]}>
