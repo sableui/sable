@@ -614,6 +614,49 @@ describe("label-contrast", () => {
 	})
 })
 
+/* ── status-text-drift: a retuned status fill whose text stays on the theme's colour. ──
+ * Since 0.6, text, borders and rings read `--<status>-text`; setting only the
+ * fill splits a red button from a red error message. */
+describe("status-text-drift", () => {
+	function lintCss(css: string) {
+		writeFileSync(join(tmp, "status.css"), css)
+		try {
+			return lint(`export const A = () => null`)
+		} finally {
+			rmSync(join(tmp, "status.css"))
+		}
+	}
+
+	it("catches a retuned fill whose text is left on the theme's colour", () => {
+		const r = lintCss(`:root {\n\t--destructive: oklch(55% 0.22 20);\n\t--destructive-foreground: oklch(98% 0 0);\n}\n`)
+		expect(r.out).toContain("status-text-drift")
+		expect(r.out).toContain("status.css:2")
+		expect(r.out).toContain("--destructive is set without --destructive-text (light and dark)")
+	})
+
+	it("names the one mode the text is missing from", () => {
+		// The fill on :root reaches both modes; the text was set for dark only.
+		const r = lintCss(`:root { --success: oklch(50% 0.12 160); }\n.dark { --success-text: oklch(72% 0.12 160); }\n`)
+		expect(r.out).toContain("--success is set without --success-text (light)")
+		expect(r.out).not.toContain("(light and dark)")
+	})
+
+	it("counts an app's :root text in dark mode too, as the cascade does", () => {
+		const r = lintCss(`:root { --success: oklch(50% 0.12 160); --success-text: oklch(45% 0.12 160); }\n.dark { --success: oklch(60% 0.12 160); }\n`)
+		expect(r.out).not.toContain("status-text-drift")
+	})
+
+	it("passes when the text moves with the fill, in the same theme", () => {
+		const r = lintCss(`[data-sable-theme="ember"] { --tone-warning: oklch(70% 0.14 70); --tone-warning-text: oklch(52% 0.12 65); }\n`)
+		expect(r.out).not.toContain("status-text-drift")
+	})
+
+	it("does not count another theme's text", () => {
+		const r = lintCss(`[data-sable-theme="ember"] { --tone-info: oklch(60% 0.12 250); }\n[data-sable-theme="prism"] { --tone-info-text: oklch(45% 0.12 250); }\n`)
+		expect(r.out).toContain("--tone-info is set without --tone-info-text")
+	})
+})
+
 describe("label-contrast on status fills", () => {
 	it("catches a dark destructive retuned too light for the theme's white label", () => {
 		// The theme's dark destructive takes white; its text lives in

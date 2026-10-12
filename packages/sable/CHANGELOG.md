@@ -1,5 +1,18 @@
 # What's new
 
+## 0.6.1
+
+- **`sable lint` catches a status fill retuned without its text.** Since 0.6,
+  `text-destructive`, `border-destructive`, `ring-destructive` and the rest read
+  `--destructive-text`; only `bg-destructive` reads the fill. An app that set
+  `--destructive` (or `--success`, `--tone-warning`, `--tone-info`) and stopped
+  there painted its buttons in its own red and its error text, borders and rings
+  in the theme's, and nothing said so. The new consumer rule `status-text-drift`
+  reads the app's stylesheets for a status fill set without its `-text` in the
+  same theme and mode, and names the mode that is missing. It needs only the
+  stylesheet, so it reports even where `label-contrast` cannot measure. `sable
+  grade` runs it too.
+
 ## 0.6.0
 
 ### Art from the theme

@@ -27,7 +27,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs"
 import { dirname, join, relative, resolve, sep } from "node:path"
 import { fileURLToPath } from "node:url"
 import { ignoreGlob, lintText, makeRules, report } from "../scripts/lint-rules.mjs"
-import { labelContrastScanner } from "../scripts/label-contrast.mjs"
+import { labelContrastScanner, statusTextDrift } from "../scripts/label-contrast.mjs"
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const PKG_ROOT = join(HERE, "..")
@@ -54,7 +54,7 @@ const motionTokens = new Set([
 	REGISTRY.tokens?.motion?.scale,
 ].filter(Boolean))
 
-const rules = makeRules({ semanticTokens, motionTokens, labelContrast: await labelContrastScanner(PKG_ROOT, REGISTRY.themes?.default) }).filter((r) => r.scope !== "package")
+const rules = makeRules({ semanticTokens, motionTokens, labelContrast: await labelContrastScanner(PKG_ROOT, REGISTRY.themes?.default), statusText: (css) => statusTextDrift(css, REGISTRY.themes?.default) }).filter((r) => r.scope !== "package")
 
 /* ── Args. ─────────────────────────────────────────────────────────────────── */
 const args = process.argv.slice(2)

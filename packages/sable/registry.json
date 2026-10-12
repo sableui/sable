@@ -1,7 +1,7 @@
 {
   "$schema": "https://sable.design/registry.schema.json",
   "name": "@sableui/react",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Themeable React components, semantic tokens, layout patterns, presets, and package-owned agent skills. Default theme: Sable.",
   "engine": {
     "behavior": "@base-ui/react",
@@ -1564,6 +1564,10 @@
       {
         "id": "label-contrast",
         "fails-on": "A label on a brand fill (`--primary`, `--sidebar-primary`, `--highlight`, each with its `-foreground`) should clear 4.5:1 AND APCA Lc 60 — a pair can pass the ratio and still read muddy (dark ink on a bright red-orange, Lc 42). The finding names the nearest pair that reads: the ink the colour takes as picked, with the fill's lightness moved to meet it, hue kept. If the pair is your brand's deliberate choice, keep it on the record: `/* design-lint-disable-next-line label-contrast -- <reason> */` above the declaration."
+      },
+      {
+        "id": "status-text-drift",
+        "fails-on": "A status colour has two tokens: the fill (`--destructive`, `--success`, `--tone-warning`, `--tone-info`), which `bg-*` paints, and its `-text` (`--destructive-text` …), which `text-*`, `border-*`, `ring-*`, `outline-*`, `fill-*` and `stroke-*` read. Setting the fill alone leaves the text on the theme's colour, so a retuned red button sits beside the theme's red error message. Set the `-text` in the same theme and mode: the fill itself where it already reads on your surfaces, or a step of it moved away from them (lighter in dark mode) so it clears 4.5:1 on a card."
       }
     ],
     "escapeHatch": {

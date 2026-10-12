@@ -136,3 +136,39 @@ export async function labelContrastScanner(pkgRoot, defaultTheme = "sable") {
 		return out
 	}
 }
+
+/** Status fills and the token a status colour drawn on a surface reads instead. */
+const STATUS_TEXT = { destructive: "destructive-text", success: "success-text", "tone-warning": "tone-warning-text", "tone-info": "tone-info-text" }
+
+/**
+ * The `status-text-drift` rule's reader. Since 0.6, `text-destructive`,
+ * `border-destructive`, `ring-destructive` and the rest read `--destructive-text`;
+ * only `bg-destructive` reads the fill. An app that retunes `--destructive` and
+ * stops there gets a button in its red and error text, borders and focus rings in
+ * the theme's — and nothing on screen says which is which. CSS cannot notice "the
+ * fill moved and the text did not", so the stylesheet is read for it: a status
+ * fill set, in a theme and mode, with no `-text` set beside it there.
+ *
+ * Pure: it needs the declarations only, not the built package, so it reports
+ * even where `label-contrast` cannot measure.
+ */
+export function statusTextDrift(css, defaultTheme = "sable") {
+	const decls = customProperties(stripComments(css))
+	const fills = decls.filter((d) => d.name in STATUS_TEXT)
+	if (!fills.length) return []
+	const themeOf = (d) => d.context.match(THEME)?.[1] ?? defaultTheme
+	const out = []
+	for (const d of fills) {
+		const text = STATUS_TEXT[d.name]
+		const missing = ["light", "dark"].filter(
+			(mode) => applies(d, mode) && !decls.some((t) => t.name === text && themeOf(t) === themeOf(d) && applies(t, mode)),
+		)
+		if (!missing.length) continue
+		const modes = missing.length === 2 ? "light and dark" : missing[0]
+		out.push({
+			index: d.index,
+			match: `--${d.name} is set without --${text} (${modes}): text-${d.name}, borders and rings keep the theme's colour → set --${text} too`,
+		})
+	}
+	return out
+}

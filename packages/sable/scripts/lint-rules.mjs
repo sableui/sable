@@ -118,12 +118,12 @@ function classTokens(expr) {
 /**
  * Build the rule table against a token contract.
  *
- * @param {{ semanticTokens: Set<string>, motionTokens: Set<string>, labelContrast?: ((css: string) => { index: number, match: string }[]) | null }} contract
- *   `labelContrast` is the stylesheet scanner from label-contrast.mjs. It is
- *   passed in so this table stays dependency free; without it the rule is
- *   listed and reports nothing.
+ * @param {{ semanticTokens: Set<string>, motionTokens: Set<string>, labelContrast?: ((css: string) => { index: number, match: string }[]) | null, statusText?: ((css: string) => { index: number, match: string }[]) | null }} contract
+ *   `labelContrast` and `statusText` are the stylesheet scanners from
+ *   label-contrast.mjs. They are passed in so this table stays dependency free;
+ *   without one its rule is listed and reports nothing.
  */
-export function makeRules({ semanticTokens, motionTokens, labelContrast = null }) {
+export function makeRules({ semanticTokens, motionTokens, labelContrast = null, statusText = null }) {
 	// Easing utility names = the theme's motion-ease-* tokens + Tailwind built-ins.
 	const easeNames = new Set([
 		...[...motionTokens]
@@ -544,6 +544,22 @@ export function makeRules({ semanticTokens, motionTokens, labelContrast = null }
 				"If the pair is your brand's deliberate choice, keep it on the record: `/* design-lint-disable-next-line label-contrast -- <reason> */` above the declaration.",
 			scan(text, ctx) {
 				return ctx?.isStylesheet && labelContrast ? labelContrast(text) : []
+			},
+		},
+		{
+			id: "status-text-drift",
+			/* CONSUMER-scoped. 0.6 split each status colour into a fill and a
+			 * `-text`; an app that retunes only the fill paints its buttons in its
+			 * own red and its error text, borders and rings in the theme's. Nothing
+			 * on screen says which is which, so the stylesheet is read for it. */
+			scope: "consumer",
+			since: "0.6.1",
+			file: true,
+			code: true,
+			why:
+				"A status colour has two tokens: the fill (`--destructive`, `--success`, `--tone-warning`, `--tone-info`), which `bg-*` paints, and its `-text` (`--destructive-text` …), which `text-*`, `border-*`, `ring-*`, `outline-*`, `fill-*` and `stroke-*` read. Setting the fill alone leaves the text on the theme's colour, so a retuned red button sits beside the theme's red error message. Set the `-text` in the same theme and mode: the fill itself where it already reads on your surfaces, or a step of it moved away from them (lighter in dark mode) so it clears 4.5:1 on a card.",
+			scan(text, ctx) {
+				return ctx?.isStylesheet && statusText ? statusText(text) : []
 			},
 		},
 		{
