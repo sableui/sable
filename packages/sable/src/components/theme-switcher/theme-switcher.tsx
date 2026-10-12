@@ -5,6 +5,7 @@ import type { ComponentPropsWithRef, CSSProperties } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
 import {
+	SEGMENTED_INNER_RADIUS,
 	SEGMENTED_ITEM,
 	SEGMENTED_STEP,
 	SEGMENTED_TRACK,
@@ -90,7 +91,8 @@ export function ThemeSwitcher({
 			<span
 				aria-hidden
 				className={cn(
-					"pointer-events-none absolute start-0.5 top-0.5 size-7 rounded-full bg-accent transition-[translate,opacity] duration-(--motion-duration-base) ease-emphasized",
+					"pointer-events-none absolute start-0.5 top-0.5 size-7 bg-accent transition-[translate,opacity] duration-(--motion-duration-base) ease-emphasized",
+					SEGMENTED_INNER_RADIUS,
 					"[translate:calc(var(--segment-index)*var(--segment-step))_0] rtl:[translate:calc(var(--segment-index)*var(--segment-step)*-1)_0]",
 					activeIndex < 0 && "opacity-0",
 				)}

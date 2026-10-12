@@ -41,10 +41,11 @@ describe("ToggleGroup appearance", () => {
 		)
 		const group = screen.getByRole("group", { name: "View" })
 		expect(group).toHaveAttribute("data-appearance", "segmented")
-		expect(group.className).toContain("rounded-full")
+		// Corners follow the theme's control shape (a capsule only by default).
+		expect(group.className).toContain("rounded-[var(--button-radius,9999px)]")
 		const list = screen.getByRole("button", { name: "List" })
 		expect(list).toHaveAttribute("aria-pressed", "true")
-		expect(list.className).toContain("rounded-full")
+		expect(list.className).toContain("rounded-[max(0px,calc(var(--button-radius,9999px)-3px))]")
 		expect(list.className).toContain("data-[pressed]:bg-accent")
 	})
 

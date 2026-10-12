@@ -54,7 +54,7 @@ export function ThemeSelectorPage() {
 
 			<Section
 				title="List"
-				description="Compact rows for a popover or a docked panel, swatches kept."
+				description="Compact rows for a popover or a docked panel, each with a small tile of the theme."
 			>
 				<Example>
 					<div

@@ -3,6 +3,7 @@ import { type ReactNode, useState } from "react"
 import { useTheme } from "../theme"
 import { useCustomizer } from "./CustomizerProvider"
 import {
+	PresetPicker,
 	BrandColorInput,
 	CharacterPad,
 	ChromeSelect,
@@ -10,7 +11,6 @@ import {
 	HueStrip,
 	LookSlider,
 	PalettePreview,
-	PresetCards,
 	SectionReset,
 	Segmented,
 	ShapePreview,
@@ -225,7 +225,7 @@ export function Inspector({
 	// confirm lives here because this panel is where the changes are.
 	const presetSection = (
 		<Section title="Preset" action={<PresetImport onStatus={setImportStatus} />}>
-			<PresetCards themes={themes} value={themeId} mode={mode === "dark" ? "dark" : "light"} onChange={requestPreset} />
+			<PresetPicker themes={themes} value={themeId} mode={mode === "dark" ? "dark" : "light"} onChange={requestPreset} />
 			<p role="status" className={cn("text-ui-body text-muted-foreground", !importStatus && "sr-only")}>
 				{importStatus}
 			</p>
@@ -369,6 +369,14 @@ export function Inspector({
 	)
 
 	const pendingLabel = themes.find((theme) => theme.id === pendingPreset)?.label ?? "this preset"
+	// The confirm is scoped to this panel, not a modal, so nothing restores focus
+	// when it closes: it fell to <body> and a keyboard user lost their place.
+	// Every way out (Cancel, Escape, the scrim, Switch) hands it back to the
+	// preset row that asked. A frame later, once the confirm has unmounted.
+	const closeConfirm = (action: () => void) => {
+		action()
+		requestAnimationFrame(() => document.querySelector<HTMLElement>("[data-preset-trigger]")?.focus())
+	}
 
 	return (
 		<aside
@@ -466,8 +474,8 @@ export function Inspector({
 			{pendingPreset ? (
 				<div
 					className="absolute inset-0 z-10 grid place-items-center bg-background/70 p-4 backdrop-blur-sm"
-					onPointerDown={(event) => event.target === event.currentTarget && cancelPreset()}
-					onKeyDown={(event) => event.key === "Escape" && cancelPreset()}
+					onPointerDown={(event) => event.target === event.currentTarget && closeConfirm(cancelPreset)}
+					onKeyDown={(event) => event.key === "Escape" && closeConfirm(cancelPreset)}
 				>
 					{/* design-lint-disable-next-line hand-rolled-control -- scoped to this panel on purpose; Sable AlertDialog is page-modal and would hide the preview the choice is about */}
 					<div
@@ -486,10 +494,10 @@ export function Inspector({
 							</p>
 						</div>
 						<div className="flex justify-end gap-2">
-							<Button variant="ghost" size="sm" onClick={() => cancelPreset()}>
+							<Button variant="ghost" size="sm" onClick={() => closeConfirm(cancelPreset)}>
 								Cancel
 							</Button>
-							<Button size="sm" autoFocus onClick={confirmPreset}>
+							<Button size="sm" autoFocus onClick={() => closeConfirm(confirmPreset)}>
 								{pendingPreset === themeId ? "Start over" : "Switch"}
 							</Button>
 						</div>

@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const themeSelectorMeta: ComponentMeta = {
 	name: "ThemeSelector",
 	summary:
-		"A presentational radiogroup for choosing a Sable design theme from theme manifests — swatch-strip cards for a settings page, or compact rows for tool chrome. Pair it with useSableTheme().themeId and setThemeId when the app uses SableThemeProvider.",
+		"A presentational radiogroup for choosing a Sable design theme from theme manifests — tiles that draw each theme as a miniature of its own interface (its colours, type and corner shape) for a settings page, or compact rows for tool chrome. Pair it with useSableTheme().themeId and setThemeId when the app uses SableThemeProvider.",
 	status: "stable",
 	// keywords and related were inherited from lib/component-guidance.ts until that
 	// entry was removed as dead code. They belong here now: the fall-through is
@@ -13,17 +13,22 @@ export const themeSelectorMeta: ComponentMeta = {
 	related: { components: ["ThemeSwitcher", "Popover", "RadioCard"] },
 	usage: {
 		description:
-			"Use ThemeSelector wherever a person picks a theme. The default `cards` layout is page-register furniture: a swatch strip, a name, and a caption only where one distinguishes the card (the default theme, or a single-mode theme), at ~144px tall. Use `layout=\"list\"` in tool chrome, a popover, or any docked panel — five cards is the wrong object for a 256px surface, however it is sized. For colour mode (light/dark/system) use ThemeSwitcher, which is a segmented control and belongs in chrome as-is.",
+			"Use ThemeSelector wherever a person picks a theme. The default `cards` layout is page-register furniture: a miniature of each theme's interface (its background, \"Aa\" in its display face, a card, and a primary button in its own corner shape), with the name and a caption only where one distinguishes it (the default theme, or a single-mode theme). Use `layout=\"list\"` in tool chrome, a popover, or any docked panel — five cards is the wrong object for a 256px surface, however it is sized. For colour mode (light/dark/system) use ThemeSwitcher, which is a segmented control and belongs in chrome as-is.",
 		bestPractices: [
 			{
 				guidance: "do",
 				description:
-					'Use layout="list" in a popover, a menu, or a docked panel. Rows sit on the --control-sm ladder and still show each theme\'s swatch strip, so the choice stays visible rather than described. Rows take `sable-frame-inner`, so host the list in a sable-frame (`sable-frame sable-surface sable-surface-popover sable-frame-popover` — PopoverContent is not one; give it that class list, or its p-4 leaves the rows unnested) and their corners nest concentrically.',
+					'Use layout="list" in a popover, a menu, or a docked panel. Rows sit on the --control-sm ladder and still show a small tile of each theme, so the choice stays visible rather than described. Rows take `sable-frame-inner`, so host the list in a sable-frame (`sable-frame sable-surface sable-surface-popover sable-frame-popover` — PopoverContent is not one; give it that class list, or its p-4 leaves the rows unnested) and their corners nest concentrically.',
 			},
 			{
 				guidance: "do",
 				description:
 					"Pass mode={useSableTheme().mode} so every preview renders in the colour mode actually in use, rather than in each theme's manifest default.",
+			},
+			{
+				guidance: "do",
+				description:
+					"Use ThemeSelector when switching is free: it is a radio group, so arrow keys check the next theme and onValueChange fires on every press — the page restyles as you go, which is the point of a live theme switcher. When a switch has a cost (it opens a \"discard changes?\" confirm, loads fonts, or resets other settings), use a DisclosurePicker list instead, with a `ThemePreview size=\"sm\"` as each option's `media`: arrows only move there, and Enter, Space or a click commits.",
 			},
 			{
 				guidance: "do",
@@ -50,6 +55,19 @@ export const themeSelectorMeta: ComponentMeta = {
 					"Use ThemeSelector for light / dark / system colour mode. That is ThemeSwitcher — a segmented control. This picks the design theme, which is a different axis entirely, and the two are frequently confused.",
 			},
 		],
+		anatomy: [
+			{
+				name: "ThemeSelector",
+				required: true,
+				description: "The radiogroup of themes, as cards or list rows.",
+			},
+			{
+				name: "ThemePreview",
+				required: false,
+				description:
+					"The tile each option draws, exported for showing a theme outside the picker — the row naming the current theme, or the `media` of each option in a commit-on-Enter DisclosurePicker list.",
+			},
+		],
 	},
 	props: [
 		{
@@ -73,7 +91,7 @@ export const themeSelectorMeta: ComponentMeta = {
 			name: "mode",
 			type: '"light" | "dark"',
 			description:
-				"Preview mode for each card's swatch strip. Pass useSableTheme().mode to match the current color mode; omitted cards use their manifest defaultMode.",
+				"Preview mode for each theme's tile. Pass useSableTheme().mode to match the current color mode; omitted cards use their manifest defaultMode.",
 		},
 		{
 			name: "label",
@@ -94,6 +112,14 @@ export const themeSelectorMeta: ComponentMeta = {
 			description: "Merged onto the outer radiogroup grid.",
 		},
 	],
+	subcomponents: [
+		{
+			name: "ThemePreview",
+			type: '{ theme: ThemeManifest; mode?: "light" | "dark"; size?: "md" | "sm" }',
+			description:
+				"The tile each option draws: the theme as a miniature of itself (background, \"Aa\" in its display face, a card, a primary button in its own corner shape), in its own scope. Exported for anywhere that shows a theme outside the picker, e.g. a row naming the current preset, or each option of a DisclosurePicker list where a pick has a cost. Sized in the caller's spacing unit, so it lines up with the row it sits in.",
+		},
+	],
 	tokensUsed: [
 		"input",
 		"card",
@@ -108,11 +134,33 @@ export const themeSelectorMeta: ComponentMeta = {
 	],
 	a11y: [
 		'The container is role="radiogroup" with an aria-label; each card is a role="radio" button with aria-checked reflecting the selected theme.',
+		"Standard radio keyboard: arrow keys move the check — calling onValueChange on each press — and Space checks the focused option. That instant switching is right for a free, reversible choice; where a switch has a cost, use a DisclosurePicker list (a listbox: arrows move, Enter commits) with ThemePreview tiles instead.",
 		"Focus-visible draws a 2px ring on the focused card.",
 		"The selected card wears the shared selection-card checked ring (the same as RadioCard and CheckboxCard), a muted fill and a check icon, so selection does not rely on colour alone.",
 		"Presentational only: it does not change the document theme; pass useSableTheme().setThemeId or apply the change in onValueChange.",
 	],
 	examples: [
+		{
+			label: "When a switch has a cost: a DisclosurePicker list of ThemePreview tiles",
+			code: `// Arrows move; Enter, Space or a click commits — so whatever the switch costs
+// (a confirm, a font load, a reset) happens once, on the pick.
+const { themeId, setThemeId, themes, mode } = useSableTheme()
+const current = themes.find((theme) => theme.id === themeId)
+<DisclosurePicker>
+  <DisclosurePickerTrigger aria-label={\`Theme: \${current?.label}\`} media={current ? <ThemePreview theme={current} mode={mode} size="sm" /> : null}>
+    {current?.label}
+  </DisclosurePickerTrigger>
+  <DisclosurePickerPanel>
+    <DisclosurePickerList aria-label="Theme" value={themeId} onValueChange={setThemeId}>
+      {themes.map((theme) => (
+        <DisclosurePickerOption key={theme.id} value={theme.id} media={<ThemePreview theme={theme} mode={mode} size="sm" />}>
+          {theme.label}
+        </DisclosurePickerOption>
+      ))}
+    </DisclosurePickerList>
+  </DisclosurePickerPanel>
+</DisclosurePicker>`,
+		},
 		{
 			label: "With SableThemeProvider",
 			code: "const { themeId, setThemeId, themes, mode } = useSableTheme()\n<ThemeSelector value={themeId} onValueChange={setThemeId} themes={themes} mode={mode} />",

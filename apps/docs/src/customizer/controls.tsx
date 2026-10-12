@@ -1,11 +1,14 @@
 import {
 	Button,
 	ColorField,
+	DisclosurePicker,
+	DisclosurePickerList,
+	DisclosurePickerOption,
+	DisclosurePickerPanel,
+	DisclosurePickerTrigger,
 	Icon,
 	Input,
 	PropertyRow,
-	Radio,
-	RadioGroup,
 	Select,
 	SelectContent,
 	SelectItem,
@@ -15,6 +18,8 @@ import {
 	SliderRoot,
 	SliderThumb,
 	SliderTrack,
+	ThemePreview,
+	type ThemeManifest,
 	Toggle,
 	ToggleGroup,
 	Tooltip,
@@ -24,7 +29,7 @@ import {
 } from "@sableui/react"
 import { type KeyboardEvent, type PointerEvent, type ReactElement, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useTheme } from "../theme"
-import { formatOklch, resolveTheme } from "./color"
+import { formatOklch } from "./color"
 import { useCustomizer } from "./CustomizerProvider"
 import { HUE_STOPS, brandColor } from "./look"
 
@@ -606,84 +611,53 @@ export function Segmented<T extends string>({
 	)
 }
 
-/* ── Presets ──────────────────────────────────────────────────────────────── */
+/* ── Preset ───────────────────────────────────────────────────────────────── */
 
 /**
- * Compact tiles, three to a row: each tile IS the preset's surface, painted
- * from its own resolved tokens in the current mode — so in light mode you see
- * the light presets — with "Aa" in the preset's display face and its two
- * signature colours. The name sits under the tile, in the panel's own type,
- * so six presets read as one scannable row of swatches rather than six cards.
- * Underneath it is a Sable RadioGroup (arrow keys, roving focus, radio
- * semantics); each Radio renders the tile in place of its default dot.
+ * The preset, as one row that opens in place: Sable's DisclosurePicker with
+ * the current preset's tile and name, then its own list with a ThemePreview
+ * tile per option. The same disclosure and list the font rows use (FontPicker
+ * is built on it), so the panel has one way to pick from a list. No search:
+ * six presets read faster than a field to skip past. Six cards cost the panel
+ * its tallest section for a choice made once per session.
+ *
+ * Not ThemeSelector's radio list: there, each arrow key checks the next theme,
+ * and here a pick has a cost — it starts the look over, behind a confirm when
+ * the look is customized. Arrows move; Enter (or a click) picks.
  */
-export function PresetCards({
+export function PresetPicker({
 	themes,
 	value,
 	mode,
 	onChange,
 }: {
-	themes: readonly { id: string; label: string }[]
+	themes: readonly ThemeManifest[]
 	value: string
 	mode: "light" | "dark"
 	onChange: (id: string) => void
 }) {
-	const resolved = useMemo(() => Object.fromEntries(themes.map((t) => [t.id, resolveTheme(t.id)])), [themes])
+	const [open, setOpen] = useState(false)
+	const current = themes.find((theme) => theme.id === value)
 	return (
-		<RadioGroup
-			aria-label="Preset"
-			value={value}
-			onValueChange={(next) => typeof next === "string" && onChange(next)}
-			className="grid grid-cols-3 gap-x-2 gap-y-2.5"
-		>
-			{themes.map((theme) => {
-				const r = resolved[theme.id]
-				const c = r?.[mode]
-				const paint = (token: string, fallback: string) => (c?.[token] ? formatOklch(c[token]) : fallback)
-				return (
-					<Radio
-						key={theme.id}
-						value={theme.id}
-						aria-label={theme.label}
-						// The tile replaces the default dot: keep Base UI's props (ARIA,
-						// handlers, state attributes), drop the dot's class and indicator.
-						render={({ className: _dot, children: _indicator, ...props }, state) => (
-							<button
-								{...props}
-								type="button"
-								className="group grid gap-2.5 rounded-sm text-start motion-interactive focus-visible:outline-none"
-							>
-								<span
-									className={cn(
-										"flex h-10 items-center justify-between rounded-sm px-2 motion-interactive group-focus-visible:ring-2 group-focus-visible:ring-ring",
-										state.checked
-											? "ring-[1.5px] ring-foreground ring-offset-2 ring-offset-popover"
-											: "ring-1 ring-hairline-strong ring-inset group-hover:ring-foreground/40",
-									)}
-									style={{ background: paint("background", "transparent"), color: paint("foreground", "inherit") }}
-								>
-									<span className="text-title-sm leading-none" style={{ fontFamily: r?.fontDisplay || r?.fontSans }}>
-										Aa
-									</span>
-									<span className="flex -space-x-1" aria-hidden>
-										<span className="size-2.5 rounded-full" style={{ background: paint("primary", "transparent"), boxShadow: `0 0 0 1px ${paint("border", "transparent")}` }} />
-										<span className="size-2.5 rounded-full" style={{ background: paint("highlight", paint("ring", "transparent")), boxShadow: `0 0 0 1px ${paint("border", "transparent")}` }} />
-									</span>
-								</span>
-								<span
-									className={cn(
-										"truncate text-caption leading-none motion-interactive",
-										state.checked ? "text-foreground" : "text-muted-foreground group-hover:text-foreground",
-									)}
-								>
-									{theme.label}
-								</span>
-							</button>
-						)}
-					/>
-				)
-			})}
-		</RadioGroup>
+		<DisclosurePicker open={open} onOpenChange={setOpen}>
+			<DisclosurePickerTrigger
+				aria-label={`Preset: ${current?.label ?? value}`}
+				// The Inspector's confirm hands focus back here when it closes.
+				data-preset-trigger=""
+				media={current ? <ThemePreview theme={current} mode={mode} size="sm" /> : null}
+			>
+				{current?.label ?? value}
+			</DisclosurePickerTrigger>
+			<DisclosurePickerPanel>
+				<DisclosurePickerList aria-label="Preset" value={value} onValueChange={onChange}>
+					{themes.map((theme) => (
+						<DisclosurePickerOption key={theme.id} value={theme.id} media={<ThemePreview theme={theme} mode={mode} size="sm" />}>
+							{theme.label}
+						</DisclosurePickerOption>
+					))}
+				</DisclosurePickerList>
+			</DisclosurePickerPanel>
+		</DisclosurePicker>
 	)
 }
 

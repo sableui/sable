@@ -26,38 +26,46 @@ describe("ThemeSelector", () => {
 		expect(onValueChange).toHaveBeenCalledWith("verdant")
 	})
 
-	it("shows a type specimen in each card, in that theme's own face", () => {
-		// Type specimens must distinguish the neutral and technical presets.
+	it("shows a type specimen in each tile, in that theme's own face", () => {
+		// Type must distinguish the neutral and technical presets.
 		render(<ThemeSelector value="sable" onValueChange={() => {}} />)
 		const card = screen.getByRole("radio", { name: /Sable/ })
-		const specimen = [...card.querySelectorAll("span")].find((s) => s.textContent === "Ag")
-		expect(specimen, "no type specimen in the card").toBeDefined()
+		const specimen = [...card.querySelectorAll("span")].find((s) => s.textContent === "Aa" && s.style.fontFamily)
+		expect(specimen, "no type specimen in the tile").toBeDefined()
 		expect(specimen?.style.fontFamily).toContain("Figtree")
 
 		const prism = screen.getByRole("radio", { name: /Prism/ })
-		const other = [...prism.querySelectorAll("span")].find((s) => s.textContent === "Ag")
-		// The whole point: the two specimens must differ even though the swatches do not.
+		const other = [...prism.querySelectorAll("span")].find((s) => s.textContent === "Aa" && s.style.fontFamily)
 		expect(other?.style.fontFamily).not.toBe(specimen?.style.fontFamily)
 	})
 
-	it("keeps the card preview the same height as before the specimen", () => {
-		// The specimen fits by halving the colour strip, not by growing the card —
-		// h-14 total, h-7 bands + h-7 specimen.
+	it("draws the theme's own shape: button and card corners from its radii, inside its scope", () => {
+		// Shape is what a colour strip never showed (Meridian square, Poppy soft,
+		// Sable a capsule). The miniature reads the scoped theme's real radii.
 		const { container } = render(<ThemeSelector value="sable" onValueChange={() => {}} />)
-		const preview = container.querySelector("[data-sable-theme]")!
-		expect(preview.className).toContain("h-14")
-		expect(preview.querySelector(".h-7")).not.toBeNull()
+		const preview = container.querySelector('[data-sable-theme="meridian"]')!
+		expect(preview.querySelector('[class*="rounded-[calc(var(--button-radius"]')).not.toBeNull()
+		expect(preview.querySelector('[class*="rounded-[calc(var(--radius-lg)"]')).not.toBeNull()
+		expect(preview.querySelector(".bg-primary")).not.toBeNull()
+	})
+
+	it("pins a light preview with .light, so a dark page cannot paint it dark", () => {
+		// Theme CSS matches `.dark [data-sable-theme]:not(.light)`.
+		const { container } = render(<ThemeSelector value="sable" mode="light" onValueChange={() => {}} />)
+		for (const preview of container.querySelectorAll("[data-sable-theme]")) {
+			expect(preview).toHaveClass("light")
+			expect(preview).not.toHaveClass("dark")
+		}
 	})
 
 	it("sizes its grid off its own width, never a viewport breakpoint", () => {
 		// The bug: `sm:grid-cols-3` keys off the VIEWPORT, so in a 256px popover on
-		// a wide screen it forced three columns into 256px — ~44px of content per
-		// card. "Default" clipped to "D" and the mode caption wrapped one word per
-		// line. A component cannot learn its container's width from a media query.
+		// a wide screen it forced three columns into 256px. A component cannot
+		// learn its container's width from a media query.
 		const { container } = render(<ThemeSelector value="sable" onValueChange={() => {}} />)
 		const group = container.querySelector('[role="radiogroup"]')!
-		expect(group.className).toContain("auto-fit")
-		expect(group.className).not.toMatch(/\bsm:grid-cols-/)
+		expect(group.className).toMatch(/repeat\(auto-fi(ll|t),minmax/)
+		expect(group.className).not.toMatch(/sm:grid-cols-/)
 	})
 
 	it("truncates both label lines so a narrow card cannot grow instead", () => {

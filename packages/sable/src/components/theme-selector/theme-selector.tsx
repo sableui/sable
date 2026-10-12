@@ -2,7 +2,6 @@ import { Radio as RadioBase } from "@base-ui/react/radio"
 import type { ComponentPropsWithRef } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
-import { SELECTION_CARD_CHECKED, SELECTION_CARD_SHELL } from "../../lib/selection-card"
 import { RadioGroup } from "../radio/radio"
 import type {
 	ThemeManifest,
@@ -67,16 +66,97 @@ function themeCaption(theme: ThemeManifest, defaultId: string): string | null {
 }
 
 /**
- * ThemeSelector - a presentational card radiogroup for Sable design themes.
- * Pair it with useSableTheme().themeId / setThemeId when the app uses
- * SableThemeProvider.
+ * A theme, drawn as a sliver of its own interface: its background, "Aa" in its
+ * display face, a card and a primary button. The tile carries the theme's scope
+ * (`data-sable-theme`, plus `.dark` / `.light`), so every token inside it, the
+ * tile's own corners included, resolves to the previewed theme, not the app's.
  *
- * Built on Sable's RadioGroup over Base UI's Radio, so the roles,
- * `aria-checked`, the single tab stop and arrow-key selection come from Base UI
- * (the hand-rolled `role="radio"` buttons this replaced had no arrow keys).
- * Sable's `<Radio>` is the dot-in-a-ring control and takes no content; a card
- * or a row is its own skin, so each option renders Base UI's Radio.Root.
+ * The button and card corners are the theme's real radii scaled to the
+ * miniature, because shape is the half of a theme a colour strip never showed:
+ * Meridian's square controls, Poppy's soft 12px, Sable's capsule. The old card
+ * was four flat colour blocks, and four of six themes came out as the same
+ * white-and-black strip.
+ *
+ * `.light` is set explicitly, not only `.dark`: theme CSS matches
+ * `.dark [data-sable-theme]:not(.light)`, so under a dark page a "light"
+ * preview without it painted dark.
  */
+export interface ThemePreviewProps {
+	/** The theme to draw. */
+	theme: ThemeManifest
+	/** Which of its modes to draw. @default the theme's defaultMode */
+	mode?: ThemeSelectorPreviewMode
+	/** `md` is the picker tile; `sm` is the row-sized chip a list row or a "current theme" trigger shows. @default "md" */
+	size?: "md" | "sm"
+}
+
+/**
+ * Exported for anywhere that shows a theme outside the picker, e.g. a trigger
+ * row naming the current preset before it opens the list.
+ */
+export function ThemePreview({ theme, mode = theme.defaultMode, size = "md" }: ThemePreviewProps) {
+	const face = { fontFamily: theme.fonts.display ?? theme.fonts.sans }
+	// The unit is captured here, in the caller's scope, when no picker option
+	// above has already done it, so a standalone tile is sized like a picked one.
+	return (
+		<span className="contents [--picker-u:var(--picker-option-u,var(--spacing))]">
+		<span
+			data-sable-theme={theme.id}
+			aria-hidden
+			className={cn(
+				mode,
+				"shrink-0 overflow-hidden border border-border bg-background text-foreground",
+				// Sized in the APP's spacing unit (--picker-u, resolved on the option):
+				// inside this scope `h-16` meant the previewed theme's unit, and themes
+				// set different ones, so Prism's tile came out shorter than Poppy's and
+				// the names below no longer lined up.
+				size === "md"
+					? [
+							"grid h-[calc(var(--picker-u)*16)] w-full grid-cols-[1fr_auto] gap-[calc(var(--picker-u)*2)] rounded-md p-[calc(var(--picker-u)*2)]",
+							// The selection outline, in the APP's ink: --picker-* are resolved on
+							// the option, outside this scope, so they arrive as the app's colours.
+							// (A list row shows selection with its own fill instead.)
+							"outline-offset-2 motion-interactive",
+							"group-hover:outline-1 group-hover:outline-[color-mix(in_oklab,var(--picker-ink)_35%,transparent)]",
+							"group-aria-checked:outline-2 group-aria-checked:outline-(--picker-ink)",
+							"group-focus-visible:outline-2 group-focus-visible:outline-(--picker-focus)",
+						]
+					: "flex h-[calc(var(--picker-u)*6)] w-[calc(var(--picker-u)*11)] items-center justify-between gap-[calc(var(--picker-u)*1)] rounded-xs px-[calc(var(--picker-u)*1.5)]",
+			)}
+		>
+			{size === "md" ? (
+				<>
+					<span className="flex min-w-0 flex-col justify-between">
+						<span className="text-title-lg leading-none" style={face}>
+							Aa
+						</span>
+						<span className="h-[calc(var(--picker-u)*3.5)] w-[calc(var(--picker-u)*10)] rounded-[calc(var(--button-radius,9999px)*0.35)] bg-primary" />
+					</span>
+					{/* A card, legibly one: a raised panel with two lines of "text". */}
+					<span className="flex w-[calc(var(--picker-u)*11)] flex-col justify-end gap-[calc(var(--picker-u)*1)] rounded-[calc(var(--radius-lg)*0.4)] border border-border bg-card p-[calc(var(--picker-u)*1.5)]">
+						<span className="h-[calc(var(--picker-u)*1)] w-full rounded-full bg-foreground/70" />
+						<span className="h-[calc(var(--picker-u)*1)] w-2/3 rounded-full bg-muted-foreground/40" />
+					</span>
+				</>
+			) : (
+				<>
+					<span className="text-caption leading-none" style={face}>
+						Aa
+					</span>
+					<span className="h-[calc(var(--picker-u)*2)] w-[calc(var(--picker-u)*3.5)] rounded-[calc(var(--button-radius,9999px)*0.2)] bg-primary" />
+				</>
+			)}
+		</span>
+		</span>
+	)
+}
+
+/**
+ * The option's own ink, focus colour and spacing unit, resolved in the app's
+ * scope before the tile re-scopes to the previewed theme.
+ */
+const PICKER_INK = "[--picker-ink:var(--foreground)] [--picker-focus:var(--ring)] [--picker-option-u:var(--spacing)]"
+
 export function ThemeSelector({
 	value,
 	onValueChange,
@@ -98,61 +178,31 @@ export function ThemeSelector({
 				className={cn("relative flex flex-col gap-0.5", className)}
 				{...props}
 			>
-				{themes.map((theme) => {
-					const checked = theme.id === value
-					const previewMode = mode ?? theme.defaultMode
-					return (
-						<RadioBase.Root
-							key={theme.id}
-							value={theme.id}
-							// Native activation, as in Sable's Radio (see radio.tsx).
-							render={<button type="button" />}
-							nativeButton
-							className={cn(
-								// sable-frame-inner: concentric inside a sable-frame host (a frame-styled
-								// popover, a docked panel); the theme's small radius anywhere else.
-								"flex h-(--control-sm) w-full items-center gap-2 px-1.5 text-start motion-interactive sable-frame-inner",
-								// Menu / Select rows' fills and ink, so a theme list beside a
-								// menu reads as the same kind of row.
-								"hover:bg-accent hover:text-accent-foreground focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring",
-								"aria-checked:bg-accent aria-checked:text-accent-foreground",
-							)}
-						>
-							<span
-								data-sable-theme={theme.id}
-								className={cn(
-									"grid h-4 w-8 shrink-0 grid-cols-4 overflow-hidden rounded-xs border border-border bg-background",
-									previewMode === "dark" && "dark",
-								)}
-								aria-hidden
-							>
-								<span className="bg-background" />
-								<span className="border-l border-border bg-card" />
-								<span className="border-l border-border bg-primary" />
-								<span className="border-l border-border bg-accent" />
-							</span>
-							{/* The label is set in the theme's OWN typeface. There is no room for a
-							    specimen row at --control-sm, and rendering the name in the face it
-							    selects costs no space at all — the same trick a font picker uses, and
-							    the only thing that separates two achromatic themes here. */}
-							<span
-								className="min-w-0 flex-1 truncate text-ui-md text-foreground"
-								style={{ fontFamily: theme.fonts.display ?? theme.fonts.sans }}
-							>
-								{theme.label}
-							</span>
-							<span
-								className={cn(
-									"shrink-0 text-primary motion-interactive",
-									checked ? "opacity-100" : "opacity-0",
-								)}
-								aria-hidden
-							>
-								<Icon name="check" className="text-xs" />
-							</span>
-						</RadioBase.Root>
-					)
-				})}
+				{themes.map((theme) => (
+					<RadioBase.Root
+						key={theme.id}
+						value={theme.id}
+						// Native activation, as in Sable's Radio (see radio.tsx).
+						render={<button type="button" />}
+						nativeButton
+						className={cn(
+							// sable-frame-inner: concentric inside a sable-frame host (a frame-styled
+							// popover, a docked panel); the theme's small radius anywhere else.
+							"group flex h-(--control-sm) w-full items-center gap-2 px-1.5 text-start motion-interactive sable-frame-inner",
+							PICKER_INK,
+							// Menu / Select rows' fills and ink, so a theme list beside a
+							// menu reads as the same kind of row.
+							"hover:bg-accent hover:text-accent-foreground focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring",
+							"aria-checked:bg-accent aria-checked:text-accent-foreground",
+						)}
+					>
+						<ThemePreview theme={theme} mode={mode ?? theme.defaultMode} size="sm" />
+						{/* The name in the app's face: the tile already shows the theme's,
+						    and names set in six faces made a ragged column. */}
+						<span className="min-w-0 flex-1 truncate text-ui-md">{theme.label}</span>
+						<Icon name="check" className="shrink-0 text-xs text-primary opacity-0 motion-interactive group-aria-checked:opacity-100" />
+					</RadioBase.Root>
+				))}
 			</RadioGroup>
 		)
 	}
@@ -163,19 +213,12 @@ export function ThemeSelector({
 			aria-label={label}
 			value={value}
 			onValueChange={(next) => onValueChange(next as ThemeId)}
-			// Sized off its OWN width, not the viewport. This was
-			// `grid-cols-1 sm:grid-cols-3`, and `sm:` is a viewport breakpoint — so
-			// in a 256px popover on a wide screen it forced three columns into 256px,
-			// leaving ~44px of content per card. "Default" clipped to "D" and the mode
-			// caption wrapped one word per line. A component cannot know its
-			// container's width from a media query; auto-fit reflows on the real one.
-			// `relative` holds Base UI's visually-hidden radio inputs inside the group.
-			className={cn("relative grid grid-cols-[repeat(auto-fit,minmax(--spacing(36),1fr))] gap-3", className)}
+			// Sized off its OWN width, not the viewport (a media query cannot know a
+			// popover's width). `relative` holds Base UI's visually-hidden inputs.
+			className={cn("relative grid grid-cols-[repeat(auto-fill,minmax(--spacing(32),1fr))] gap-x-3 gap-y-4", className)}
 			{...props}
 		>
 			{themes.map((theme) => {
-				const checked = theme.id === value
-				const previewMode = mode ?? theme.defaultMode
 				const caption = themeCaption(theme, defaultThemeId)
 				return (
 					<RadioBase.Root
@@ -184,76 +227,15 @@ export function ThemeSelector({
 						// Native activation, as in Sable's Radio (see radio.tsx).
 						render={<button type="button" />}
 						nativeButton
-						// The selection-card shell RadioCard and CheckboxCard wear, with
-						// its neutral checked ring: one selected-card look, not a third.
-						className={cn(
-							SELECTION_CARD_SHELL,
-							SELECTION_CARD_CHECKED.neutral,
-							"min-h-36 w-full flex-col gap-3 rounded-lg focus-visible:outline-none",
-						)}
+						className={cn("group flex min-w-0 flex-col gap-2 text-start focus-visible:outline-none", PICKER_INK)}
 					>
-						<span
-							data-sable-theme={theme.id}
-							className={cn(
-								"block h-14 w-full overflow-hidden rounded-concentric-lg/4 border border-border bg-background",
-								previewMode === "dark" && "dark",
-							)}
-							aria-hidden
-						>
-							<span className="grid h-7 grid-cols-4">
-								<span className="bg-background" />
-								<span className="border-l border-border bg-card" />
-								<span className="border-l border-border bg-primary" />
-								<span className="border-l border-border bg-accent" />
+						<ThemePreview theme={theme} mode={mode ?? theme.defaultMode} size="md" />
+						{/* One line, so every option is the same height whether or not it has a caption. */}
+						<span className="flex min-w-0 items-baseline gap-1.5">
+							<span className="truncate text-label-md text-muted-foreground motion-interactive group-hover:text-foreground group-aria-checked:text-foreground">
+								{theme.label}
 							</span>
-							{/* Type specimen.
-
-							    Four colour bands cannot distinguish two achromatic themes at
-							    all: measured, the flattest preset sits at 0.7 and the boldest at 3.3 mean
-							    channel spread out of 255, so their strips are effectively
-							    identical. What separates them is the typeface — Inter + Martian
-							    Mono against Figtree + DM Mono — and that was invisible in the
-							    one place a person chooses between them.
-
-							    Shows `display` where a theme has one, since that is its most
-							    distinctive face, and `sans` otherwise. Fits inside the same
-							    h-14 by halving the colour strip, so cards did not grow. */}
-							<span className="flex h-7 items-center gap-1.5 border-t border-border px-2">
-								<span
-									className="text-title-lg text-foreground"
-									style={{ fontFamily: theme.fonts.display ?? theme.fonts.sans }}
-								>
-									Ag
-								</span>
-								<span
-									className="text-mono-caption text-muted-foreground"
-									style={{ fontFamily: theme.fonts.mono }}
-								>
-									01
-								</span>
-							</span>
-						</span>
-						<span className="flex min-w-0 items-start justify-between gap-3">
-							<span className="min-w-0">
-								<span className="block truncate text-title-sm">{theme.label}</span>
-								{/* truncate, like the name above it. Without it this caption wrapped
-								    one word per line as soon as the card got narrow, which is what
-								    turned a 144px card into a 280px one. */}
-								{caption ? (
-									<span className="mt-1 block truncate text-caption text-muted-foreground">
-										{caption}
-									</span>
-								) : null}
-							</span>
-							<span
-								className={cn(
-									"grid size-5 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground motion-interactive",
-									checked ? "opacity-100" : "opacity-0",
-								)}
-								aria-hidden
-							>
-								<Icon name="check" className="text-xs" />
-							</span>
+							{caption ? <span className="shrink-0 truncate text-caption text-muted-foreground">{caption}</span> : null}
 						</span>
 					</RadioBase.Root>
 				)
