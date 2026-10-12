@@ -79,14 +79,18 @@
 	--accent: oklch(87.83223% 0.046910 333.7803);
 	--accent-foreground: oklch(27.91553% 0.070219 323.8141);
 	--destructive: oklch(51.71923% 0.183122 13.5471);
+	--destructive-text: oklch(51.71923% 0.183122 13.5471);
 	--destructive-foreground: oklch(100.00000% 0.000000 89.8756);
 	--success: oklch(44.82304% 0.085811 158.9570);
+	--success-text: oklch(44.82304% 0.085811 158.9570);
 	--success-foreground: oklch(100.00000% 0.000000 89.8756);
 	--tone-standard: oklch(45.04846% 0.050543 265.7140);
 	--tone-collectible: oklch(44.74226% 0.160756 301.6122);
 	--tone-edition: oklch(48.37678% 0.151106 344.8805);
 	--tone-info: oklch(47.10428% 0.117665 253.7666);
+	--tone-info-text: oklch(47.10428% 0.117665 253.7666);
 	--tone-warning: oklch(48.46763% 0.102195 75.1153);
+	--tone-warning-text: oklch(48.46763% 0.102195 75.1153);
 	--highlight: oklch(86.64637% 0.118528 86.6791);
 	--tone-standard-foreground: oklch(100.00000% 0.000000 89.8756);
 	--tone-collectible-foreground: oklch(100.00000% 0.000000 89.8756);
@@ -162,14 +166,18 @@
 	--accent: oklch(45.76059% 0.076204 319.6398);
 	--accent-foreground: oklch(96.99788% 0.031195 84.5922);
 	--destructive: oklch(80.09751% 0.118613 6.8786);
+	--destructive-text: oklch(80.09751% 0.118613 6.8786);
 	--destructive-foreground: oklch(27.91553% 0.070219 323.8141);
 	--success: oklch(83.08052% 0.080357 158.1865);
+	--success-text: oklch(83.08052% 0.080357 158.1865);
 	--success-foreground: oklch(27.91553% 0.070219 323.8141);
 	--tone-standard: oklch(82.64273% 0.059760 270.2687);
 	--tone-collectible: oklch(81.83406% 0.094036 306.4836);
 	--tone-edition: oklch(82.56509% 0.096677 343.4480);
 	--tone-info: oklch(85.19509% 0.074997 252.9332);
+	--tone-info-text: oklch(85.19509% 0.074997 252.9332);
 	--tone-warning: oklch(86.64637% 0.118528 86.6791);
+	--tone-warning-text: oklch(86.64637% 0.118528 86.6791);
 	--highlight: oklch(86.64637% 0.118528 86.6791);
 	--highlight-foreground: oklch(27.91553% 0.070219 323.8141);
 	--overlay: oklch(13.55719% 0.032037 309.1234);
@@ -187,4 +195,24 @@
 	--tone-edition-foreground: oklch(27.91553% 0.070219 323.8141);
 	--tone-info-foreground: oklch(27.91553% 0.070219 323.8141);
 	--tone-warning-foreground: oklch(27.91553% 0.070219 323.8141);
+}
+
+/* Art direction for generated imagery (GradientArt; ART_TOKENS in
+   themes/_contract.ts). Playful: candy colours in crisp, wobbly blobs — sunny yellow,
+   bubblegum, grape, sky and a mint the palette lacks. Low softness keeps each
+   blob its own colour instead of melting into one.
+   Declared on every arm so a .dark or .light island derives from its own
+   tokens rather than inheriting this scope's resolved colours. */
+[data-sable-theme="poppy"],
+[data-sable-theme="poppy"] .dark,
+[data-sable-theme="poppy"] .light {
+	--theme-art-1: oklch(from var(--highlight) 0.88 0.15 h);
+	--theme-art-2: oklch(from var(--tone-edition) 0.72 0.19 h);
+	--theme-art-3: oklch(from var(--tone-collectible) 0.64 0.2 h);
+	--theme-art-4: oklch(from var(--tone-info) 0.76 0.13 h);
+	--theme-art-5: oklch(0.85 0.12 168);
+	--theme-art-ground: oklch(from var(--tone-collectible) 0.45 0.16 h);
+	--theme-art-warp: 1;
+	--theme-art-softness: 0.5;
+	--theme-art-grain: 0;
 }

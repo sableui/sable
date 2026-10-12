@@ -50,6 +50,29 @@ export function AvatarPage() {
 			</Section>
 
 			<Section
+				title="Art fallback"
+				description="variant=&quot;art&quot; paints the initials over GradientArt seeded by the person, so everyone without a photo gets their own, stable colour from the theme."
+			>
+				<Example
+					code={`<Avatar variant="art" fallback="MO" alt="Mara Okafor" />
+<Avatar variant="art" fallback="SR" alt="Sam Rivera" />
+<Avatar variant="art" fallback="JA" alt="Juno Avery" />`}
+				>
+					<div className="flex flex-wrap items-center gap-3">
+						{[
+							["MO", "Mara Okafor"],
+							["SR", "Sam Rivera"],
+							["JA", "Juno Avery"],
+							["LP", "Lee Park"],
+							["AB", "Ada Brooks"],
+						].map(([initials, name]) => (
+							<Avatar key={name} variant="art" fallback={initials} alt={name} size="lg" />
+						))}
+					</div>
+				</Example>
+			</Section>
+
+			<Section
 				title="Broken image"
 				description="A photo that fails to load falls back to initials."
 			>

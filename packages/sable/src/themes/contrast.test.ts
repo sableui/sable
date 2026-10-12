@@ -13,6 +13,12 @@ import {
 	contrastRatio,
 	evaluateContrast,
 	evaluateNonTextContrast,
+	checkLabelledFills,
+	fitFillToInk,
+	inkFor,
+	inkPolarity,
+	labelContrast,
+	maxChromaAt,
 	gamutExcursion,
 	isInSrgbGamut,
 	oklchToLinearRgb,
@@ -253,3 +259,85 @@ describe("un-checkable values", () => {
 		expect(parseColorWithAlpha("oklch(from var(--x) calc(l + 0.1) c h)")).toBeNull()
 	})
 })
+
+describe("labels on fills", () => {
+	const white = { l: 0.985, c: 0.01, h: 32.9 }
+	const dark = { l: 0.2, c: 0.03, h: 32.9 }
+	const inks = [white, dark]
+
+	it("keeps Ember's white label in dark mode and brings the fill down to it", () => {
+		// Ember's orange-red: the dark-mode lift (65.2%) is where WCAG prefers
+		// dark ink and APCA calls it muddy — the defect a lightness cut shipped.
+		const lifted = { l: 0.652, c: 0.235, h: 32.9 }
+		expect(labelContrast(dark, lifted).reads).toBe(false)
+		expect(labelContrast(white, lifted).reads).toBe(false)
+		expect(inkPolarity({ l: 0.58, c: 0.245, h: 32.9 }, inks)).toBe(white)
+		const fitted = fitFillToInk(lifted, white)
+		expect(fitted.h).toBe(32.9)
+		expect(fitted.l).toBeGreaterThan(0.56)
+		expect(fitted.l).toBeLessThan(0.6)
+		expect(labelContrast(white, fitted).reads).toBe(true)
+	})
+
+	it("leaves a fill alone when its ink already reads, and carries extra fields", () => {
+		const fill = { l: 0.45, c: 0.15, h: 260, a: 0.5 }
+		expect(fitFillToInk(fill, white)).toBe(fill)
+		expect(fitFillToInk({ ...fill, l: 0.7 }, white)).toMatchObject({ a: 0.5, h: 260 })
+	})
+
+	it("gives yellows dark ink and keeps it", () => {
+		const yellow = { l: 0.84, c: 0.16, h: 95 }
+		expect(inkPolarity(yellow, inks)).toBe(dark)
+		expect(inkFor(yellow, inks)).toBe(dark)
+	})
+
+	it("never trades the ratio for APCA on a fill that cannot move", () => {
+		// Neither reads; white has the stronger Lc but fails the ratio.
+		const fill = { l: 0.652, c: 0.235, h: 32.9 }
+		expect(Math.abs(labelContrast(white, fill).lc)).toBeGreaterThan(Math.abs(labelContrast(dark, fill).lc))
+		expect(inkFor(fill, inks)).toBe(dark)
+	})
+
+	it("finds a reading pair for every hue at every lift the customizer makes", () => {
+		const failures: string[] = []
+		for (let h = 0; h < 360; h += 5) {
+			const at = { white: { ...white, h }, dark: { ...dark, h } }
+			for (const l of [0.3, 0.45, 0.56, 0.65, 0.72, 0.8, 0.88]) {
+				const color = { l, c: Math.min(0.2, maxChromaAt(l, h) * 0.98), h }
+				const ink = inkPolarity(color, [at.white, at.dark])
+				for (const lift of [l, Math.min(0.88, Math.max(l, 0.7))]) {
+					const fill = fitFillToInk({ ...color, l: lift, c: Math.min(color.c, maxChromaAt(lift, h) * 0.98) }, ink)
+					if (!labelContrast(ink, fill).reads) failures.push(`h${h} l${l} lift${lift}`)
+					if (!isInSrgbGamut(oklchToLinearRgb(fill.l, fill.c, fill.h))) failures.push(`h${h} l${l} out of gamut`)
+				}
+			}
+		}
+		expect(failures).toEqual([])
+	})
+})
+
+describe("status fills", () => {
+	it("brings a dark-mode status fill down to the white label its colour takes", () => {
+		// Ember's old dark destructive: 5.06:1 but Lc 38. Its text lives in
+		// `--destructive-text` now, so the fill is free to sit under white.
+		const { findings } = checkLabelledFills({
+			light: { destructive: "oklch(50% 0.17 25)", "destructive-foreground": "oklch(100% 0 0)" },
+			dark: { destructive: "oklch(62% 0.16 25)", "destructive-foreground": "oklch(14.1% 0.018 70.5)" },
+		})
+		expect(findings).toHaveLength(1)
+		const fill = Number(findings[0].suggestion.fill.match(/oklch\(([\d.]+)%/)?.[1])
+		expect(fill).toBeLessThan(62)
+		expect(findings[0].suggestion.ink).toMatch(/^oklch\(98\.5%/)
+	})
+
+	it("still brings a brand fill down to the white label it takes", () => {
+		const { findings } = checkLabelledFills({
+			light: { primary: "oklch(55% 0.2 30)", "primary-foreground": "oklch(98.5% 0.01 30)" },
+			dark: { background: "oklch(14% 0.01 70)", primary: "oklch(70% 0.18 30)", "primary-foreground": "oklch(20% 0.03 30)" },
+		})
+		expect(findings.map((f) => `${f.mode}.${f.fill}`)).toEqual(["dark.primary"])
+		const dark = findings[0]
+		expect(dark.suggestion.ink).toMatch(/^oklch\(98\.5%/)
+	})
+})
+

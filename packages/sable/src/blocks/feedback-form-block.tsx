@@ -35,7 +35,7 @@ export function FeedbackFormBlock({ className, framed = true, onDone }: Feedback
 				</ToggleGroup>
 				<Textarea placeholder="What worked, what didn’t…" aria-label="Notes" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
 			</CardContent>
-			<CardFooter className="justify-end">
+			<CardFooter actions className="justify-end">
 				<Button variant="ghost" size="sm" onClick={() => onDone?.(false)}>
 					Skip
 				</Button>

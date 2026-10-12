@@ -168,7 +168,9 @@ gaps. A visual-only review leaves code and unobserved behavior untested. For
 
 Every build includes `sable docs reviewing-a-design`, `sable doctor`,
 `sable lint <source paths> --json`, and the project's build/type checks. Repair
-findings instead of suppressing them to finish. Inspect real desktop/mobile
+findings instead of suppressing them to finish. `label-contrast` is Sable's opinion
+on a user's colour: offer its suggested pair, and when the user chose the pair
+deliberately, keep it with a reasoned disable or preset `exceptions` entry. Inspect real desktop/mobile
 layouts, operate the primary task and recovery path, check keyboard/touch and
 loading/empty/error/success states, font loading, focus, and reduced motion.
 Audit source ownership as well as lint: identify the Sable components and composed

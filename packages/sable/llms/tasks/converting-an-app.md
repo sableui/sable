@@ -27,7 +27,7 @@ button and text node takes a minute and settles the argument.
 
 ## 1. Wire the package
 
-Follow **Consuming** in `llms.txt`: `.npmrc`, `pnpm add`, React dedupe, the CSS
+Follow **Consuming** in `llms.txt`: `pnpm add`, React dedupe, the CSS
 import order, `@source`, fonts, providers. React dedupe is the one that fails
 loudest and least clearly ("invalid hook call").
 

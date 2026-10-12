@@ -14,6 +14,7 @@ import {
 	useState,
 } from "react"
 import { cn } from "../../lib/cn"
+import { GradientArt } from "../gradient-art"
 import { mergeRefs } from "../../lib/refs"
 import { useResizeObserver } from "../../lib/use-resize-observer"
 import { avatarGroupVariants, avatarVariants } from "./avatar.variants"
@@ -99,6 +100,19 @@ export interface AvatarProps extends RootProps {
 	 * so it reads as a cut-out, not a sticker.
 	 */
 	status?: ReactNode
+	/**
+	 * What shows when there is no image. `neutral` (default): initials on the
+	 * muted surface. `art`: initials over GradientArt seeded by the person, so
+	 * everyone without a photo still gets their own, stable colour from the theme.
+	 */
+	variant?: "neutral" | "art"
+	/**
+	 * The art's seed. Defaults to the fallback text, then `alt`: the initials are
+	 * on every appearance of a person, where `alt` is often empty on a decorative
+	 * repeat, and a person must not change colour between two places on a page.
+	 * Pass a user id to tell apart two people who share initials.
+	 */
+	seed?: string | number
 }
 
 /**
@@ -112,6 +126,8 @@ export function Avatar({
 	fallbackDelay,
 	size,
 	status,
+	variant = "neutral",
+	seed,
 	className,
 	...props
 }: AvatarProps) {
@@ -122,9 +138,20 @@ export function Avatar({
 	const avatar = (
 		<AvatarRoot size={size} className={status == null ? className : undefined} {...named} {...props}>
 			{src ? <AvatarImage src={src} alt={alt ?? ""} /> : null}
-			<AvatarFallback delay={fallbackDelay} aria-hidden={named ? true : undefined}>
-				{fallback}
-			</AvatarFallback>
+			{variant === "art" ? (
+				<AvatarFallback delay={fallbackDelay} aria-hidden={named ? true : undefined} className="size-full">
+					<GradientArt seed={seed ?? ((typeof fallback === "string" && fallback) || alt || undefined)} className="flex size-full items-center justify-center text-overlay-foreground">
+						{/* The art runs from deep corners to bright light; a 30% overlay scrim
+						    keeps the overlay ink readable on the brightest spot. */}
+						<span aria-hidden className="absolute inset-0 bg-overlay/30" />
+						<span className="relative">{fallback}</span>
+					</GradientArt>
+				</AvatarFallback>
+			) : (
+				<AvatarFallback delay={fallbackDelay} aria-hidden={named ? true : undefined}>
+					{fallback}
+				</AvatarFallback>
+			)}
 		</AvatarRoot>
 	)
 	if (status == null) return avatar

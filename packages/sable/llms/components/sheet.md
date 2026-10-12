@@ -39,7 +39,7 @@ Use Sheet for secondary workflows that slide in while preserving context from th
 | SheetHeader | ComponentProps<"div"> | Top section holding SheetTitle/SheetDescription. |
 | SheetTitle | Base UI Drawer.Title props + className | The sheet's accessible name — wires aria-labelledby on the popup. |
 | SheetDescription | Base UI Drawer.Description props + className | Muted supporting line; wires aria-describedby. |
-| SheetFooter | ComponentProps<"div"> | Bottom row for actions, pinned after the scrollable body. |
+| SheetFooter | ComponentProps<"div"> | Bottom row for actions, pinned after the scrollable body. In a bottom sheet it stacks: full width, the primary on top, every button at the cta height. |
 
 ## Props
 

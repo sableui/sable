@@ -143,14 +143,18 @@
 	--accent: oklch(57.5% 0.2 31.5);
 	--accent-foreground: oklch(99% 0.004 91.5);
 	--destructive: oklch(48% 0.2 25);
+	--destructive-text: oklch(48% 0.2 25);
 	--destructive-foreground: oklch(94.6% 0.0083 91.48);
 	--success: oklch(43% 0.1 165);
+	--success-text: oklch(43% 0.1 165);
 	--success-foreground: oklch(94.6% 0.0083 91.48);
 	--tone-standard: oklch(40% 0.07 130);
 	--tone-collectible: oklch(46% 0.14 285);
 	--tone-edition: oklch(45% 0.15 309);
 	--tone-info: oklch(48% 0.13 250);
+	--tone-info-text: oklch(48% 0.13 250);
 	--tone-warning: oklch(50% 0.12 52);
+	--tone-warning-text: oklch(50% 0.12 52);
 	--highlight: oklch(57.5% 0.2 31.5);
 	/* Ember as TEXT (eyebrow numbers, arrows). The fill ember carries white ink
 	   but is too light to be read as ink itself (4.1:1 on the sand); this is the
@@ -230,15 +234,20 @@
 	--secondary-foreground: oklch(94.3% 0.0042 91.45);
 	--accent: oklch(57.5% 0.2 31.5);
 	--accent-foreground: oklch(99% 0.004 91.5);
-	--destructive: oklch(66% 0.21 25);
-	--destructive-foreground: oklch(22.46% 0.0094 107.13);
-	--success: oklch(72% 0.12 165);
+	/* Status colours come in two: the fill carries a label (destructive sits low under white ink), and `-text` is the same colour drawn on a surface — text, borders, rings — kept light enough to read on a dark card. */
+	--destructive: oklch(55% 0.21 25);
+	--destructive-text: oklch(78.5% 0.122 25);
+	--destructive-foreground: oklch(94.6% 0.0083 91.48);
+	--success: oklch(75.5% 0.12 165);
+	--success-text: oklch(75.5% 0.12 165);
 	--success-foreground: oklch(22.46% 0.0094 107.13);
 	--tone-standard: oklch(70% 0.09 130);
 	--tone-collectible: oklch(70% 0.12 285);
 	--tone-edition: oklch(68% 0.14 309);
-	--tone-info: oklch(72% 0.11 250);
+	--tone-info: oklch(76.5% 0.11 250);
+	--tone-info-text: oklch(76.5% 0.11 250);
 	--tone-warning: oklch(78% 0.13 60);
+	--tone-warning-text: oklch(78% 0.13 60);
 	--highlight: oklch(57.5% 0.2 31.5);
 	--meridian-ember-ink: oklch(72% 0.17 33); /* 6.4:1 on the dark ground */
 	--tone-standard-foreground: oklch(22.46% 0.0094 107.13);
@@ -257,4 +266,24 @@
 	--sidebar-accent-foreground: oklch(94.3% 0.0042 91.45);
 	--sidebar-border: oklch(34.69% 0.0186 98.75);
 	--sidebar-ring: oklch(65.11% 0.2063 32.56);
+}
+
+/* Art direction for generated imagery (GradientArt; ART_TOKENS in
+   themes/_contract.ts). Grainy monochrome photographic grounds (art-direction.md): soft
+   mid-grey tones, slightly lifted blacks, film grain — and none of the orange
+   accent, which belongs to typography and controls. Greys carry the ink's
+   warm cast.
+   Declared on every arm so a .dark or .light island derives from its own
+   tokens rather than inheriting this scope's resolved colours. */
+[data-sable-theme="meridian"],
+[data-sable-theme="meridian"] .dark,
+[data-sable-theme="meridian"] .light {
+	--theme-art-1: oklch(from var(--foreground) 0.88 0.008 h);
+	--theme-art-2: oklch(from var(--foreground) 0.62 0.006 h);
+	--theme-art-3: oklch(from var(--foreground) 0.38 0.008 h);
+	--theme-art-4: oklch(from var(--foreground) 0.74 0.006 h);
+	--theme-art-ground: oklch(from var(--foreground) 0.28 0.008 h);
+	--theme-art-warp: 0.4;
+	--theme-art-softness: 0.92;
+	--theme-art-grain: 0.55;
 }

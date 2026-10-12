@@ -4,6 +4,7 @@ import type { ComponentProps } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
 import { withPortalThemeScope } from "../../lib/portal-theme-scope"
+import { PresentationProvider } from "../../lib/presentation"
 import { Button } from "../button/button"
 
 /**
@@ -134,7 +135,8 @@ function FullscreenContent({
 				)}
 				{...props}
 			>
-				{children}
+				{/* A dialog presents its own content: a page, even opened from a sheet. */}
+				<PresentationProvider value="page">{children}</PresentationProvider>
 				{showCloseButton ? (
 					// The floating Button: Sable's control over content. Its own
 					// translucent popover chip and border keep it legible over bright
@@ -202,13 +204,16 @@ function CardContent({
 				    from a consuming app, reproduced in this package's own Dialog demo.
 				    The 8px is spent inside the popup's own 24px padding, so it costs no
 				    layout and stays clear of the surface edge. */}
-				{scroll ? (
-					<div className="-m-2 min-h-0 overflow-y-auto overscroll-contain p-2 scrollbar-quiet">
-						{children}
-					</div>
-				) : (
-					children
-				)}
+				{/* A dialog presents its own content: a page, even opened from a sheet. */}
+				<PresentationProvider value="page">
+					{scroll ? (
+						<div className="-m-2 min-h-0 overflow-y-auto overscroll-contain p-2 scrollbar-quiet">
+							{children}
+						</div>
+					) : (
+						children
+					)}
+				</PresentationProvider>
 				{showCloseButton ? (
 					<Base.Close
 						render={

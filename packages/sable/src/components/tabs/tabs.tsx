@@ -63,6 +63,8 @@ type TriggerProps = Omit<ComponentProps<typeof Base.Tab>, "className"> & {
  * to the cap height so it centres optically in the short pill. A pill tab is a
  * button-shaped control, so it takes the theme's button shape (`--button-radius`,
  * as Button does): a pill in Sable, rounded in Poppy, square in Meridian.
+ * A badge or icon beside the label is spaced like Button's (`--control-gap`):
+ * the label is its own trimmed span, so a typed space after it collapses.
  */
 export function TabsTrigger({ className, children, ...props }: TriggerProps) {
 	const variant = useContext(TabsVariantContext)
@@ -73,8 +75,8 @@ export function TabsTrigger({ className, children, ...props }: TriggerProps) {
 				variant === "underline"
 					? // On the control ladder like the pill variant (it was py-2 plus
 					// the label's line, ~36px — no rung).
-					"-mb-px inline-flex h-(--control-md) items-center border-b-2 border-transparent px-3 data-[active]:border-foreground"
-					: "inline-flex h-(--control-sm) items-center rounded-[var(--button-radius,9999px)] px-3 data-[active]:bg-muted",
+					"-mb-px inline-flex h-(--control-md) items-center gap-(--control-gap) border-b-2 border-transparent px-3 data-[active]:border-foreground"
+					: "inline-flex h-(--control-sm) items-center gap-(--control-gap) rounded-[var(--button-radius,9999px)] px-3 data-[active]:bg-muted",
 				className,
 			)}
 			{...props}

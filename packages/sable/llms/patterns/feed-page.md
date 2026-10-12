@@ -95,7 +95,7 @@ const renderPost = (post: Post) => (
 		<Card>
 			<CardList>
 				<Entity
-					leading={<Avatar fallback={post.initials} alt={post.author} />}
+					leading={<Avatar variant="art" fallback={post.initials} alt={post.author} />}
 					title={post.author}
 					subtitle={`${post.handle} · ${post.time}`}
 					action={
@@ -176,7 +176,7 @@ export function FeedPage() {
 					<Card>
 						<CardContent>
 							<Row gap={1.5} align="start">
-								<Avatar fallback="AL" alt="Ada Lovelace" />
+								<Avatar variant="art" fallback="AL" alt="Ada Lovelace" />
 								<Stack gap={1.5} className="min-w-0 flex-1">
 									<Textarea
 										autoResize
@@ -243,7 +243,7 @@ export function FeedPage() {
 								{suggestions.map((person) => (
 									<Entity
 										key={person.id}
-										leading={<Avatar fallback={person.initials} alt={person.name} />}
+										leading={<Avatar variant="art" fallback={person.initials} alt={person.name} />}
 										title={person.name}
 										subtitle={person.handle}
 										action={
@@ -263,7 +263,7 @@ export function FeedPage() {
 								{upcoming.map((drop) => (
 									<Entity
 										key={drop.id}
-										leading={<Avatar fallback={drop.initials} alt={drop.artist} />}
+										leading={<Avatar variant="art" fallback={drop.initials} alt={drop.artist} />}
 										title={drop.title}
 										subtitle={`${drop.artist} · ${drop.date}`}
 										action={

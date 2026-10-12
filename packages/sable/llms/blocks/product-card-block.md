@@ -20,25 +20,10 @@ A product card: edge-to-edge artwork, title and maker, an edition Badge, and the
 ## Source
 
 ```tsx
-import { Badge, Button, Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle, cn } from "@sableui/react"
+import { Badge, Button, Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle, cn, GradientArt } from "@sableui/react"
 
 const product = { title: "Untitled (gold rush)", maker: "Mara Okafor", edition: "12 of 50", price: "0.42 SOL" }
 
-/**
- * Placeholder artwork painted from the palette — a soft mesh of the theme's
- * decorative tones over the brand, so it follows every look. Replace the art
- * <div> with your product's image.
- */
-const ART_TONES = ["info", "collectible", "edition", "standard"]
-const ART_SPOTS = [[18, 22, 58], [82, 18, 55], [70, 88, 60], [12, 92, 55]]
-const artwork = [
-	...ART_SPOTS.map(
-		([x, y, reach], i) =>
-			// design-lint-disable-next-line inline-color -- relative colour derived from the theme's own --tone token, so it follows every look
-			`radial-gradient(in oklab at ${x}% ${y}%, oklch(from var(--tone-${ART_TONES[i % ART_TONES.length]}) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h), transparent ${reach}%)`,
-	),
-	"var(--primary)",
-].join(", ")
 
 export interface ProductCardBlockProps {
 	className?: string
@@ -51,7 +36,8 @@ export interface ProductCardBlockProps {
 export function ProductCardBlock({ className, framed = true, onCollect }: ProductCardBlockProps) {
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs overflow-hidden", className)}>
-			<div aria-hidden className="aspect-[4/3]" style={{ background: artwork }} />
+			{/* Placeholder art painted from the theme, so it follows every look. Replace with the product image. */}
+			<GradientArt aria-hidden seed={product.title} className="aspect-[4/3]" />
 			<CardHeader>
 				<CardTitle>{product.title}</CardTitle>
 				<CardDescription>{product.maker}</CardDescription>

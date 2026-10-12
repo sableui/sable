@@ -122,14 +122,18 @@ function isolationCss(defaults: Defaults): string {
 /**
  * On top of the isolation, the chrome runs at a compact tool scale: smaller
  * type, tighter controls, square-ish buttons rather than the house pill.
+ * The control ladder stands aside for a `data-density` scope (Advanced is a
+ * compact Density), including on a popup that re-applies it across the portal.
  */
 const CHROME_RESET = `
-[data-canvas-chrome] {
-	--spacing: 0.25rem;
-	--theme-radius-xs: 4px; --theme-radius-sm: 8px; --theme-radius-md: 12px; --theme-radius-lg: 16px; --theme-radius-xl: 20px;
+[data-canvas-chrome]:not([data-density]) {
 	--button-radius: var(--theme-radius-sm);
 	--control-xs: 28px; --control-sm: 32px; --control-md: 40px; --control-cta: 44px; --control-lg: 48px;
 	--control-gap: 8px; --item-px: 8px; --item-gap: 8px;
+}
+[data-canvas-chrome] {
+	--spacing: 0.25rem;
+	--theme-radius-xs: 4px; --theme-radius-sm: 8px; --theme-radius-md: 12px; --theme-radius-lg: 16px; --theme-radius-xl: 20px;
 	--font-sans: "Figtree", system-ui, sans-serif; --font-mono: "DM Mono", ui-monospace, monospace; --font-display: var(--font-sans);
 	--type-title-sm-size: 0.875rem; --type-title-lg-size: 1rem; --type-body-sm-size: 0.8125rem; --type-body-md-size: 0.9375rem;
 	--type-label-lg-size: 0.875rem; --type-label-md-size: 0.75rem; --type-label-sm-size: 0.6875rem; --type-caption-size: 0.75rem; --type-mono-caption-size: 0.75rem;

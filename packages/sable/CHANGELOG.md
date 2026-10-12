@@ -1,5 +1,140 @@
 # What's new
 
+## 0.6.0
+
+### Art from the theme
+
+- **`GradientArt`, placeholder artwork painted by a shader.** A static WebGL
+  mesh gradient (Paper Shaders' static mesh gradient; `variant="grain"` for
+  their grain gradient) painted from the theme, for covers, banners, tiles and
+  avatars with no image yet. `seed` fixes each item's composition and leading
+  colour, so a row of covers or avatars stays individually recognisable in
+  every theme; children render above the art. It paints once on mount, on
+  resize and when the theme changes, through one WebGL context shared by every
+  instance, so a page of avatars costs one context. A CSS gradient stays
+  underneath for prerendered pages and browsers without WebGL2.
+- **Each preset has its own art direction.** New optional `--art-*` tokens
+  (`art-1` … `art-6`, `art-ground`, `art-warp`, `art-softness`, `art-grain`;
+  `ART_TOKENS` in the contract) set the art's palette and character, through
+  `--theme-art-*` hooks like the workspace surfaces. Ember burns (fire falling
+  off into warm black), Poppy is candy blobs, Prism airbrushed pastels, Verdant
+  stained glass, Meridian grainy monochrome, Atelier a dark studio with one
+  amber glow; Sable keeps its tones. The colours derive from each theme's own
+  tokens where its art direction allows, so a brand change carries into the
+  art. Presets may declare the hooks too.
+- **`Avatar variant="art"`.** The fallback paints the initials over
+  `GradientArt` seeded by the person (the initials, then `alt`, or `seed`), so
+  everyone without a photo gets their own colour and keeps it wherever they
+  appear. The default stays `neutral`.
+- **Blocks and patterns use it.** The product card, media player and profile
+  card blocks and the auth page paint their placeholder art with
+  `GradientArt` instead of hand-written CSS gradients, and the avatars across
+  the blocks and page patterns use `variant="art"`.
+- **New dependency:** `@paper-design/shaders` 0.0.81 (Apache-2.0), pinned
+  exactly while it is pre-1.0. Only the two fragment shaders and the noise
+  texture are imported; the notice is in `THIRD_PARTY_NOTICES.md`.
+
+### Labels on filled colours
+
+- **Labels on brand and status fills now have to pass APCA as well as WCAG.** A
+  filled control's label is held to 4.5:1 and APCA Lc 60 in both modes, for
+  `primary`, `sidebar-primary`, `highlight`, `destructive`, `success`,
+  `tone-warning` and `tone-info`. The ratio alone let dark ink on a bright red
+  through at Lc 38–46, which reads muddy. Every shipped theme is tested against
+  both floors, with no exceptions.
+- **Status colours have a separate token for text.** `--destructive-text`,
+  `--success-text`, `--tone-warning-text` and `--tone-info-text`.
+  `text-destructive`, `border-destructive`, `ring-destructive`, `outline-`,
+  `decoration-`, `fill-` and `stroke-` now read the `-text` token; only
+  `bg-destructive` reads the fill. The class names are unchanged. A dark-mode
+  fill can now sit low enough for a white label while error text stays light
+  enough to read on a dark card. Badge's soft status tones and the destructive
+  Menu item mix their ink from the `-text` token too: from the fill, Meridian's
+  dark destructive menu item measured 3.8:1; every theme now clears 4.5:1.
+  **Migration:** if your app retunes `--destructive` (or `--success`,
+  `--tone-warning`, `--tone-info`), set its `-text` as well, or text, borders
+  and rings keep the theme's colour. Presets saved on 0.5 keep working: a
+  missing `-text` token takes its fill, which is what text read before.
+- **Destructive buttons have white labels in dark mode.** In Sable, Atelier,
+  Ember, Meridian and Verdant the dark destructive fill moved down (Sable
+  68%→59%, Meridian 66%→55%, Atelier 66%→58.5%, Verdant 64%→57.5%, Ember
+  62%→58%) and its label went from dark to white. Error text reads the lighter
+  `-text` value, so it is no darker than before.
+- **Dark highlights have white labels in Sable and Ember.** Sable's dark
+  `--highlight` went from 70% to 57% and Ember's from 65.2% to 58%; dark ink on
+  the brighter fill read at Lc 42–46.
+- **Small status fixes.** In Ember, Atelier, Meridian and Verdant, dark
+  `success` and `tone-info` are a little lighter so the dark label clears Lc
+  60. In light mode, Sable's `text-tone-info` is one step darker and Verdant's
+  `text-tone-warning` is 51%; both measured just under 4.5:1 on `muted`.
+
+### Lint and CLI
+
+- **New `sable lint` rule: `label-contrast`.** It finds an app's overrides of a
+  brand or status fill or its `-foreground`, completes the pair from the
+  installed theme and measures both modes. Findings carry file:line and the
+  nearest pair that reads: the fill's lightness moves, the hue stays. Keep a
+  deliberate brand pair with `/* design-lint-disable-next-line label-contrast
+  -- <reason> */`. `sable grade` runs the same rule. Apps that passed lint on
+  0.5 can fail it now.
+- **`sable preset --check` measures labels on fills.** A failing pair stops the
+  check with `ERR_PRESET_CONTRAST`, the suggested pair and a ready-to-paste
+  `exceptions` entry. Presets accept an optional `exceptions` array (`rule`,
+  `mode`, `token`, `reason`); an accepted pair is reported with its reason on
+  every check instead of failing. `@sableui/react/presets` exports
+  `presetLabelContrast()` and the measuring helpers (`checkLabelledFills`,
+  `fitFillToInk`, `inkFor`, `inkPolarity`, `labelContrast`, `LABELLED_FILLS`,
+  `BRAND_FILLS`, `STATUS_FILLS`).
+
+### Sheets own their actions
+
+- **A sheet lays out the actions inside it.** `CardFooter` has an `actions`
+  prop for a footer that holds only buttons. Inside a bottom `SheetContent` or
+  an `IosSheet`, that footer becomes a full-width stack pinned to the bottom:
+  the primary on top, every button at the cta height. On a page nothing
+  changes. `SheetFooter` stacks the same way in a bottom sheet, capped at
+  `max-w-sm` and centred; side sheets keep the right-aligned row.
+  DangerZoneBlock, FeedbackFormBlock and ProfileFormBlock mark their footers.
+- **Only the sheet's own content.** A Dialog, Popover or side Sheet opened from
+  inside a bottom sheet presents a page again, so its footer is a row. Only the
+  outermost flat Card in a sheet bleeds into the sheet's padding (lining its
+  content up with the sheet's title and close button), and only that card's
+  footer stacks; a card nested inside it is left alone.
+- **`PresentationProvider`, `usePresentation`** and the `Presentation` type let
+  a custom container declare itself a sheet.
+- **`IosSheet background="opaque"`** keeps the floating medium-detent shape but
+  fills it solid, like SwiftUI's `.presentationBackground`, for forms whose
+  fields would otherwise sit on whatever the glass blurs. In an iOS sheet, a
+  form or grid between the content and its action bar keeps its own layout.
+  The iOS target is marked beta, and `sable target ios` prints its layout rules.
+
+### Components
+
+- **Tab triggers space a badge or icon from the label.** Pill and underline
+  `TabsTrigger` use `--control-gap`, as Button does; the label's trimmed span
+  had dropped a typed space, so a badge touched the text.
+- **NotificationListBlock puts the unread dot before the time**, so the times
+  line up on one right edge.
+
+### On sableui.com
+
+- **Customize was redesigned.** Simple is gestures over previews: the character
+  pad, one shape preview for corners and depth together, a live palette strip
+  of what the page is painted with, single-line font rows. Advanced is a
+  property grid in the workspace register (compact density, `PanelSection`,
+  `PropertyRow`/`PropertyPair`, `ScrubField`, `Select`): one exact anchor per
+  domain with the ladder it resolves to beneath it. Mode, Reset all and Export
+  sit in a footer both views share, and every section resets on its own.
+- **Status colours lean toward the brand within their meaning.** Destructive,
+  warning and success each move toward the brand inside a hue range the
+  presets already ship (destructive 5–30°, warning 50–90°, success 140–175°),
+  warning keeps 30° from destructive, and saturation follows the brand at half
+  strength with a floor. Advanced has a Status lean control.
+- **Customize fits labels to brand and status fills**: the label ink is chosen
+  once, from the brand as picked, and each mode's fill moves to meet it.
+- The homepage now says what is true: Sable is open source under MIT and
+  installs from npm.
+
 ## 0.5.0
 
 - **Stacked toasts.** `<ToastProvider stacked>` stacks toasts like a deck of

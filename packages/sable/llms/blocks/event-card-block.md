@@ -66,7 +66,7 @@ export function EventCardBlock({ className, framed = true, onRespond }: EventCar
 			<CardFooter className="flex-wrap justify-between gap-3">
 				<AvatarGroup aria-label={`${event.total} attendees`} total={event.total} size="sm" surface={framed ? "card" : undefined} fit>
 					{event.attendees.map((initials) => (
-						<Avatar key={initials} fallback={initials} alt={initials} />
+						<Avatar variant="art" key={initials} fallback={initials} alt={initials} />
 					))}
 				</AvatarGroup>
 				<div className="flex gap-2">

@@ -8,8 +8,11 @@ import {
 	SearchInput,
 	cn,
 } from "@sableui/react"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { FONT_CATALOG, type FontRole, ROLE_LABEL, loadFont, loadPreviews } from "./fonts"
+
+/** What each role is for, short enough to sit beside the family it names. */
+const ROLE_NAME: Record<FontRole, string> = { primary: "Body", secondary: "Headings", mono: "Mono" }
 
 /**
  * One font role: a row that names the current choice in its own face, and
@@ -28,6 +31,7 @@ export function FontPicker({
 	presetLabel,
 	open,
 	onOpenChange,
+	size = "md",
 }: {
 	role: FontRole
 	value: string
@@ -36,6 +40,8 @@ export function FontPicker({
 	presetLabel: string
 	open: boolean
 	onOpenChange: (open: boolean) => void
+	/** md for the simple view; xs is the property-grid rung. */
+	size?: "md" | "xs"
 }) {
 	const [query, setQuery] = useState("")
 	const entries = FONT_CATALOG[role]
@@ -44,6 +50,30 @@ export function FontPicker({
 	useEffect(() => {
 		if (open) loadPreviews(entries)
 	}, [open, entries])
+
+	// The pickers sit near the foot of a scrolling panel, so an opening list
+	// would grow out of sight. Follow it while it grows (the panel animates its
+	// height), keeping the whole picker on screen; let go once it has settled.
+	const rootRef = useRef<HTMLDivElement>(null)
+	useEffect(() => {
+		const el = rootRef.current
+		if (!open || !el) return
+		const observer = new ResizeObserver(() => el.scrollIntoView({ block: "nearest" }))
+		observer.observe(el)
+		const settle = window.setTimeout(() => observer.disconnect(), 500)
+		// Open on the current choice, centred in the list, not on whatever row
+		// the list last scrolled to.
+		const frame = requestAnimationFrame(() => {
+			const list = el.querySelector<HTMLElement>("[role=radiogroup]")
+			const chosen = list?.querySelector<HTMLElement>("[data-checked]")
+			if (list && chosen) list.scrollTop = chosen.offsetTop - (list.clientHeight - chosen.offsetHeight) / 2
+		})
+		return () => {
+			observer.disconnect()
+			window.clearTimeout(settle)
+			cancelAnimationFrame(frame)
+		}
+	}, [open])
 
 	const shown = useMemo(() => {
 		const q = query.trim().toLowerCase()
@@ -66,25 +96,31 @@ export function FontPicker({
 
 	return (
 		<Collapsible
+			ref={rootRef}
 			open={open}
 			onOpenChange={(next) => (next ? onOpenChange(true) : close())}
-			className="rounded-md sable-well"
+			className={cn("scroll-my-3", size === "xs" ? "rounded-[var(--panel-field-radius,var(--radius-xs))]" : "rounded-sm", open && "sable-well")}
 		>
+			{/* One line, the way a tool names a property and its value: the role,
+			    then the family in its own face. Hover is a step off the surface it
+			    sits on, never a fixed fill — a popover-coloured hover read as a hole. */}
 			<CollapsibleTrigger
-				// Hover is a step off the well it sits on (sable-surface-interactive),
-				// never a fixed surface — a popover-colored hover read as a hole.
-				className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-start motion-interactive sable-surface-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+				className={cn(
+					"flex w-full items-center gap-2 text-start motion-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+					size === "xs"
+						? "h-(--control-xs) rounded-[inherit] bg-panel-field px-1.5 hover:bg-panel-field-hover"
+						: "h-10 rounded-[inherit] px-3 sable-surface-interactive",
+					size === "md" && !open && "sable-well",
+				)}
 			>
-				<span className="grid min-w-0 flex-1 gap-0.5">
-					<span className="text-caption text-muted-foreground">{ROLE_LABEL[role].title} · {ROLE_LABEL[role].detail}</span>
-					<span className="truncate text-body-md" style={{ fontFamily: currentFace }}>
-						{current}
-					</span>
+				<span className={cn("shrink-0 text-muted-foreground", size === "xs" ? "w-16 text-ui-md" : "w-20 text-body-sm")}>{ROLE_NAME[role]}</span>
+				<span className={cn("min-w-0 flex-1 truncate", size === "xs" ? "text-ui-md" : "text-body-md")} style={{ fontFamily: currentFace }}>
+					{current}
 				</span>
 				<Icon name={open ? "chevron-up" : "chevron-down"} className="shrink-0 text-sm text-muted-foreground" />
 			</CollapsibleTrigger>
 			<CollapsiblePanel>
-				<div className="grid gap-1 border-t border-border p-2">
+				<div className="grid gap-1 border-t border-hairline p-1.5">
 					<SearchInput
 						value={query}
 						onValueChange={setQuery}
@@ -95,15 +131,18 @@ export function FontPicker({
 						aria-label={`${ROLE_LABEL[role].title} font`}
 						value={value}
 						onValueChange={(next) => typeof next === "string" && apply(next)}
-						className="grid max-h-64 gap-0.5 overflow-y-auto scrollbar-quiet"
+						// relative: Base UI scrolls the chosen font into view by its
+						// offsetTop, which only measures from the list if the list is the
+						// offsetParent — otherwise it overshoots to the bottom.
+						className="relative grid max-h-64 gap-0.5 overflow-y-auto scrollbar-quiet"
 					>
 						{[{ value: "theme", label: `Preset (${presetLabel})` }, ...extra]
 							.filter((o) => !query || o.label.toLowerCase().includes(query.toLowerCase()))
 							.map((o) => (
-								<Option key={o.value} value={o.value} onPick={close} label={o.label} />
+								<Option key={o.value} value={o.value} onPick={close} label={o.label} size={size} />
 							))}
 						{shown.map((entry) => (
-							<Option key={entry.family} value={entry.family} onPick={close} label={entry.family} note={entry.note} face={`"${entry.family}"`} />
+							<Option key={entry.family} value={entry.family} onPick={close} label={entry.family} note={entry.note} face={`"${entry.family}"`} size={size} />
 						))}
 						{shown.length === 0 && query ? (
 							<p className="px-2.5 py-2 text-caption text-muted-foreground">No fonts match “{query}”.</p>
@@ -121,12 +160,14 @@ function Option({
 	note,
 	face,
 	onPick,
+	size,
 }: {
 	value: string
 	label: string
 	note?: string
 	face?: string
 	onPick: () => void
+	size: "md" | "xs"
 }) {
 	return (
 		<Radio
@@ -150,14 +191,15 @@ function Option({
 						}
 					}}
 					className={cn(
-						"flex items-center justify-between gap-3 rounded-sm px-2.5 py-2 text-start motion-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+						"flex items-center justify-between gap-3 rounded-sm px-(--item-px) text-start motion-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+						size === "xs" ? "min-h-(--control-xs)" : "min-h-(--control-sm) py-1",
 						state.checked ? "bg-popover shadow-sm" : "sable-surface-interactive",
 					)}
 				>
-					<span className="truncate text-body-md" style={{ fontFamily: face }}>
+					<span className={cn("truncate", size === "xs" ? "text-ui-md" : "text-body-md")} style={{ fontFamily: face }}>
 						{label}
 					</span>
-					{note ? <span className="shrink-0 text-caption text-muted-foreground">{note}</span> : null}
+					{note ? <span className={cn("shrink-0 text-muted-foreground", size === "xs" ? "text-ui-sm" : "text-caption")}>{note}</span> : null}
 					{state.checked && !note ? <Icon name="check" className="shrink-0 text-sm" /> : null}
 				</button>
 			)}

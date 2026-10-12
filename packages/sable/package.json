@@ -1,6 +1,6 @@
 {
 	"name": "@sableui/react",
-	"version": "0.5.0",
+	"version": "0.6.0",
 	"description": "Sable: themeable React components, layout patterns, and tools for coding agents.",
 	"type": "module",
 	"sideEffects": [
@@ -115,6 +115,7 @@
 		"dist",
 		"bin",
 		"scripts/lint-rules.mjs",
+		"scripts/label-contrast.mjs",
 		"scripts/skeleton.mjs",
 		"scripts/grade.mjs",
 		"scripts/review-evidence.mjs",
@@ -234,19 +235,20 @@
 		}
 	},
 	"peerDependencies": {
+		"konsta": "^5.5.0",
 		"react": "^19",
 		"react-dom": "^19",
-		"tailwindcss": "^4",
-		"konsta": "^5.5.0"
+		"tailwindcss": "^4"
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.5.0",
+		"@paper-design/shaders": "0.0.81",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"date-fns": "^4.4.0",
 		"react-day-picker": "^9.13.2",
-		"tailwind-merge": "^3.4.0",
-		"reicon-react": "^1.2.0"
+		"reicon-react": "^1.2.0",
+		"tailwind-merge": "^3.4.0"
 	},
 	"devDependencies": {
 		"@testing-library/dom": "^10.4.1",
@@ -258,11 +260,11 @@
 		"@types/react-dom": "^19.2.3",
 		"jest-axe": "^10.0.0",
 		"jsdom": "^29.1.1",
+		"konsta": "^5.5.0",
 		"reicon-brands": "^1.0.2",
 		"tsup": "^8.5.0",
 		"typescript": "^5.9.3",
-		"vitest": "^3.2.6",
-		"konsta": "^5.5.0"
+		"vitest": "^3.2.6"
 	},
 	"license": "MIT",
 	"author": "Sable contributors",

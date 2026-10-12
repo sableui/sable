@@ -67,7 +67,7 @@ for (const entry of readdirSync(themeRoot, { withFileTypes: true }).filter((entr
 			})
 		}
 		for (const [token, doc] of Object.entries(TOKEN_DOCS)) {
-			if (token !== "foreground" && !token.endsWith("-foreground")) continue
+			if (token !== "foreground" && !token.endsWith("-foreground") && !token.endsWith("-text")) continue
 			// Workspace surfaces are derived by styles.css and require browser measurement.
 			if (token === "canvas-foreground" || token === "panel-foreground") continue
 			for (const surface of doc.pairsWith ?? []) measure(token, surface, "text")

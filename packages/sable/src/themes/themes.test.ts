@@ -16,9 +16,12 @@ import {
 	CONTRAST_FLOOR,
 	GAMUT_EPSILON,
 	HAIRLINE_VISIBILITY_FLOOR,
+	LABELLED_FILLS,
 	NON_TEXT_FLOOR,
 	NON_TEXT_PAIRS,
+	PERCEPTUAL_FLOOR,
 	type ParsedColor,
+	apcaLc,
 	compositeOver,
 	contrastRatio,
 	evaluateContrast,
@@ -798,7 +801,8 @@ describe("theme contrast", () => {
 			for (const appearance of ["light", "dark"] as const) {
 				const vars = resolveVars(css, appearance)
 				for (const [token, doc] of Object.entries(TOKEN_DOCS)) {
-					if (token !== "foreground" && !token.endsWith("-foreground")) continue
+					// `-text` is a status colour drawn on a surface: ink, measured the same way.
+					if (token !== "foreground" && !token.endsWith("-foreground") && !token.endsWith("-text")) continue
 					const ink = resolve(`--${token}`, vars)
 					if (!ink) continue
 					// `pairsWith` is the authoritative statement of which surfaces this
@@ -831,6 +835,42 @@ describe("theme contrast", () => {
 			// A theme that resolved nothing would pass vacuously, which is the failure
 			// mode of every check that filters before it asserts.
 			expect(checked).toBeGreaterThan(10)
+			expect(failures).toEqual([])
+		},
+	)
+
+	it.each(themeIds)(
+		"%s labels its brand and status fills with an ink that reads in both models",
+		(themeId) => {
+			/*
+			 * The ratio alone is not enough on a filled control. Ember's old dark
+			 * primary passed it with dark ink (5.6:1) and read muddy (APCA Lc 42);
+			 * white read cleanly on the light-mode fill. Its primary was fixed and its
+			 * highlight, the same brand fill, was not. A label on a brand fill must
+			 * clear the ratio AND the perceptual floor — the rule the customizer's
+			 * generated presets are held to (contrast.ts, "Labels on fills"). Status
+			 * fills too: dark ink on a 62–68% red passed the ratio at Lc 38–44 in
+			 * five themes.
+			 */
+			const css = cssFor(themeId)
+			const failures: string[] = []
+			let checked = 0
+			for (const appearance of ["light", "dark"] as const) {
+				const vars = resolveVars(css, appearance)
+				for (const fill of LABELLED_FILLS) {
+					const surface = surfaceOf(fill, vars)
+					const ink = resolve(`--${fill}-foreground`, vars)
+					if (!surface || !ink) continue
+					checked++
+					const rgb = painted(ink, surface)
+					const ratio = contrastRatio(rgb, surface.rgb)
+					const lc = apcaLc(rgb, surface.rgb)
+					if (ratio < CONTRAST_FLOOR || Math.abs(lc) < PERCEPTUAL_FLOOR) {
+						failures.push(`${appearance}: ${fill}-foreground on ${fill} = ${ratio.toFixed(2)}:1, APCA Lc ${lc.toFixed(1)}`)
+					}
+				}
+			}
+			expect(checked).toBe(LABELLED_FILLS.length * 2)
 			expect(failures).toEqual([])
 		},
 	)
@@ -1036,7 +1076,7 @@ describe("theme contrast", () => {
 			for (const surface of surfaces) gated.add(surface)
 		}
 		for (const [token, doc] of Object.entries(TOKEN_DOCS)) {
-			if (!token.endsWith("-foreground") || !doc.pairsWith?.length) continue
+			if (!(token.endsWith("-foreground") || token.endsWith("-text")) || !doc.pairsWith?.length) continue
 			gated.add(token)
 			for (const surface of doc.pairsWith) gated.add(surface)
 		}

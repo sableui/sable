@@ -84,7 +84,7 @@ const COMMANDS = [
 		arg: null,
 		flags: [
 			{ name: "--template", value: null, describe: "Print a complete editable Sable preset JSON record." },
-			{ name: "--check", value: "file.json", describe: "Validate the schema and Sable token contract." },
+			{ name: "--check", value: "file.json", describe: "Validate the schema, the Sable token contract, and labels on brand and status fills (accept a pair with `exceptions`)." },
 			{ name: "--css", value: "file.json", describe: "Generate scoped theme CSS from a validated preset." },
 		],
 		returns: ["preset.template", "preset.check", "preset.css"],
@@ -282,6 +282,7 @@ const COMMANDS = [
 const ERROR_CODES = [
 	{ code: "ERR_TARGET_MISSING", when: "The installed package is missing its optional target mapping artifact." },
 	{ code: "ERR_PRESET_INVALID", when: "A preset is missing required metadata, semantic values, or uses unsupported tokens or CSS." },
+	{ code: "ERR_PRESET_CONTRAST", when: "A label on a brand or status fill (primary, sidebar-primary, highlight, destructive, success, tone-warning, tone-info) misses 4.5:1 or APCA Lc 60. Apply the suggested pair, or record an `exceptions` entry with a reason." },
 	{ code: "ERR_AGENT_SETUP", when: "The packaged skill is missing, the destination is linked, or existing local edits would be overwritten." },
 	{ code: "ERR_UNKNOWN_COMMAND", when: "The first argument is not a command." },
 	{ code: "ERR_MISSING_ARGUMENT", when: "A command that requires an argument got none." },
@@ -1213,7 +1214,7 @@ const HANDLERS = {
 			const contexts = (match.contexts ?? []).map(c => `${c.role}: ${c.strategy} → ${c.importFrom} (${c.components.join(" + ")})`).join("\n")
 			ok("target.component", match, `${match.source}: ${match.strategy}\n${contexts || `${match.importFrom ?? "app"} → ${match.components.join(" + ") || match.strategy}`}\n${match.guidance}`)
 		}
-		ok("target", target, `iOS ${target.platformVersion}: ${target.designPolicy.principle}\n${target.designPolicy.rule}\n` + Object.values(target.components).map(c => `${c.source}: ${c.strategy} → ${c.strategy === "contextual" ? "choose by role" : c.components.join(" + ") || "redesign for phone"}`).join("\n"))
+		ok("target", target, `iOS ${target.platformVersion}${target.status ? ` (${target.status})` : ""}: ${target.designPolicy.principle}\n${target.statusNote ? `${target.statusNote}\n` : ""}${target.designPolicy.rule}\n${(target.designPolicy.layout ?? []).map((l) => `Layout: ${l}\n`).join("")}` + Object.values(target.components).map(c => `${c.source}: ${c.strategy} → ${c.strategy === "contextual" ? "choose by role" : c.components.join(" + ") || "redesign for phone"}`).join("\n"))
 	},
 	preset: () => cmdDesignTool("design-presets.mjs"),
 	setup: () => {

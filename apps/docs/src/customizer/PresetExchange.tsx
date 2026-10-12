@@ -1,4 +1,4 @@
-import { Button, CodeBlock, Input, Label, Textarea } from "@sableui/react"
+import { Button, CodeBlock, Icon, Input, Label, Textarea } from "@sableui/react"
 import { type SablePreset, presetCss } from "@sableui/react/presets"
 import { useEffect, useId, useRef, useState } from "react"
 import { useTheme } from "../theme"
@@ -74,7 +74,11 @@ export function PresetImport({ onStatus }: { onStatus: (status: string) => void 
 	const input = useRef<HTMLInputElement>(null)
 	return (
 		<>
-			<Button variant="ghost" size="xs" onClick={() => input.current?.click()}>Import</Button>
+			{/* At the section header's scale: an action beside a title, not a second title. */}
+			<Button variant="ghost" size="xs" onClick={() => input.current?.click()} className="-me-1.5 text-ui-md text-muted-foreground">
+				<Icon name="upload" />
+				Import
+			</Button>
 			<input ref={input} type="file" accept=".json,application/json" hidden aria-label="Import a preset" onChange={async event => {
 				const file = event.target.files?.[0]
 				event.target.value = ""

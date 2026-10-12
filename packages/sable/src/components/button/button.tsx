@@ -1,8 +1,9 @@
 import type { VariantProps } from "class-variance-authority"
-import type { ComponentPropsWithRef, ReactNode } from "react"
+import { type ComponentPropsWithRef, type ReactNode, useContext } from "react"
 import { useRender } from "@base-ui/react/use-render"
 import { cn } from "../../lib/cn"
 import { useTypeTier } from "../../lib/density"
+import { StackedActionsContext } from "../../lib/presentation"
 import { trimLabel } from "../../lib/trim-label"
 import { Spinner } from "../spinner"
 import { buttonVariants } from "./button.variants"
@@ -79,7 +80,10 @@ export function Button({
 	// Text labels are wrapped so `text-box-trim` has an element to act on — the
 	// property is inert on this flex container. Icons and the Spinner stay their
 	// own flex items so `gap-2` keeps spacing them. See lib/trim-label.tsx.
-	const resolvedSize = size ?? "md"
+	// In a sheet's stacked action bar every labelled button is the bar's height
+	// and width, whatever size the row on a page asked for (lib/presentation).
+	const stacked = useContext(StackedActionsContext) && !String(size ?? "md").startsWith("icon")
+	const resolvedSize = stacked ? "cta" : (size ?? "md")
 	const hasLabel = children != null && children !== false
 	// The spinner takes the icon slot's size and an icon-weight ring, so it
 	// reads as the icon it replaced rather than a heavier foreign object.
@@ -121,7 +125,8 @@ export function Button({
 		props: {
 			...props,
 			className: cn(
-				buttonVariants({ variant, size }),
+				buttonVariants({ variant, size: resolvedSize }),
+				stacked ? "w-full" : null,
 				tier.action,
 				optical,
 				// Busy is not disabled. Loading sets `disabled` so the action cannot

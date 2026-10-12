@@ -1,6 +1,6 @@
 # Sable (@sableui/react)
 
-> An owned, themeable React component system. Default theme: **Base** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 105 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
+> An owned, themeable React component system. Default theme: **Base** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 106 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
 
 ## Start here — brief, composition, evidence
 
@@ -423,6 +423,12 @@ drift; repeated overrides can indicate a missing system hook rather than app mis
 Run relevant `sable doctor`, `sable lint <paths> --json` and `sable grade <paths>
 --json` checks. Lint is lexical; source grades and pattern similarity do not judge
 taste. Deliberately static motion slots remain valid with appropriate feedback.
+Lint's `label-contrast` measures an app's overrides of the brand fills (`--primary`,
+`--sidebar-primary`, `--highlight`) and status fills (`--destructive`, `--success`,
+`--tone-warning`, `--tone-info`) against their labels on top of the installed theme, and
+names the nearest pair that reads. Report it with that pair as a recommendation.
+A reasoned `design-lint-disable-next-line label-contrast` is the app's recorded
+choice: list it as intentional, not as a defect.
 
 ## Deliver evidence-backed findings
 
@@ -917,7 +923,9 @@ Entity rows in a Card) or `redesign` (desktop workspace tools).
 3. Compose: `NativeApp` at the root (`mode` sets light or dark, also on
    `<html>` so portaled Sable popups follow); one `NavigationStack` per tab,
    each holding an `IosPage` with an `IosNavbar` and Sable content; an
-   `IosTabbar` of `IosTab`s with Sable `Icon`s; `IosSheet` around Sable forms.
+   `IosTabbar` of `IosTab`s with Sable `Icon`s; `IosSheet` around Sable forms
+   (`background="opaque"` for a form at the medium detent, and the block
+   `framed={false}`: the sheet is already its surface).
    Keep the app's `IconProvider`.
 4. Frame it on a host page with `PhoneFrame` from `@sableui/react/ios/preview`
    and `@sableui/react/ios/frame.css` (Sable's Phone around an iframe at
@@ -1173,7 +1181,7 @@ button and text node takes a minute and settles the argument.
 
 ## 1. Wire the package
 
-Follow **Consuming** in `llms.txt`: `.npmrc`, `pnpm add`, React dedupe, the CSS
+Follow **Consuming** in `llms.txt`: `pnpm add`, React dedupe, the CSS
 import order, `@source`, fonts, providers. React dedupe is the one that fails
 loudest and least clearly ("invalid hook call").
 
@@ -1318,6 +1326,30 @@ Preview using real Sable components or import the JSON in Canvas. Inspect both
 light and dark modes and test long text, focus, disabled controls, floating
 surfaces, and errors. Token validation checks the contract and safe CSS structure;
 rendered review establishes contrast, coherence, and suitability.
+
+`--check` also measures the label on every filled role against its `-foreground`,
+in both modes: the brand fills `primary`, `sidebar-primary` and `highlight`, and the
+status fills `destructive`, `success`, `tone-warning` and `tone-info`. A label must
+clear 4.5:1 and APCA Lc 60, because a pair can pass the ratio and still read muddy
+(dark ink on a bright red-orange). A failing pair stops the check with
+`ERR_PRESET_CONTRAST` and the nearest pair that reads, with the fill's lightness
+moved and its hue kept. A fill keeps the ink its light-mode colour takes, so a
+colour with a white label keeps white in dark mode and its fill comes down to meet
+it. Offer that pair to the user.
+
+Each status colour has two tokens. The fill (`destructive`) carries its label;
+`destructive-text` is the same colour drawn on a surface, and `text-destructive`,
+`border-destructive` and `ring-destructive` read it. In dark mode the two usually
+differ: a saturated fill low enough for white, and a lighter text value that reads
+on a dark card. Author both; lowering the fill never darkens the page's error text.
+If the user chose the failing pair on purpose (a brand book, a reference to match),
+keep it and record the decision in the preset rather than overriding it:
+
+```json
+"exceptions": [{ "rule": "label-contrast", "mode": "dark", "token": "primary", "reason": "Brand book specifies dark ink on the bright fill." }]
+```
+
+An accepted pair is reported with its reason on every check; it is never silent.
 
 Canvas's Export view downloads this same format with resolved theme values and
 the current customizations. Enter a name and design guidance, save the JSON, and
@@ -1950,6 +1982,15 @@ Use opaque `focus-visible:ring-ring` or `ring-sidebar-ring`; reducing the ring t
 `faded-focus-ring` rule catches those classes. A token contrast report establishes
 the tested pairs, not the entire rendered product's accessibility.
 
+A label on a filled role (a primary or destructive Button, the sidebar's active
+item, a highlight, a success or warning badge) should clear 4.5:1 and APCA Lc 60 in
+both modes. A colour retuned for dark mode often lands where dark ink passes the
+ratio but reads muddy. `label-contrast`
+in `sable lint` and `sable preset --check` find it and suggest the nearest pair
+that reads; offer that pair. Keep a pair the user chose deliberately, recorded with
+its reason (a lint disable or a preset `exceptions` entry), instead of overriding
+it to finish.
+
 Describe a defect as a visible or behavioral consequence: "The heading wraps to
 six lines at 390px and pushes the action below the intended first decision point."
 Then record the repair and before/after artifact IDs in `iterations`. Avoid vague
@@ -2175,7 +2216,12 @@ Font stacks are requirements, not downloaded fonts. Declare matching stacks in
 the font metadata and tokens. Resolve internal palette variables before saving;
 portable presets may reference public Sable tokens, not private palette names.
 The validator rejects unknown tokens and CSS that can escape its declaration.
-It does not certify contrast or that a CSS value makes visual sense.
+`sable preset --check` also holds labels on brand and status fills to 4.5:1 and APCA Lc 60
+and suggests a pair that reads; a preset may keep a pair deliberately through
+`exceptions` with a reason (see `sable docs creating-a-preset`). Neither certifies
+the rendered product's contrast or that a CSS value makes visual sense. Do not
+change a supplied preset's colours to clear a finding without asking; report the
+finding and the suggested pair.
 
 Motion durations are nominal times at scale 1. `presetCss()` and the CLI connect
 them to the live `--motion-scale` policy, so reduced motion still stops recipes.
@@ -2870,6 +2916,7 @@ Sable's components ship accessible behavior from Base UI. These rules cover what
 
 - **Never:** Color as the only signal (a red border with no message). **Instead:** Color plus text or an icon. Roughly 1 in 12 men cannot tell red from green.
 - **Never:** Opacity on the focus ring. **Instead:** ring-ring at full opacity; tune the token in the theme. A faded ring loses the contrast the theme tested. *Enforced by sable-lint: faded-focus-ring.*
+- **Never:** A brand or status fill retuned under its old label — dark ink on a bright red that passes 4.5:1 at APCA Lc 42. **Instead:** A label that clears 4.5:1 and APCA Lc 60 in both modes. Move the fill's lightness, not its hue, keeping the ink its colour takes. A status colour on a surface is its own token (`--destructive-text`), so the fill can move freely. The ratio alone passes labels that read muddy. A deliberate brand pair is allowed with a recorded reason (lint disable or preset exceptions). *Enforced by sable-lint: label-contrast.*
 - **Never:** Blocking paste, or type="number" for codes and card numbers. **Instead:** type="text" inputMode="numeric" with the right autocomplete. Blocking paste breaks password managers; number inputs scroll-change identifiers.
 - **Never:** forced-color-adjust: none to 'fix' high-contrast mode. **Instead:** Let the system colors apply; verify the result. It removes the user's chosen colors exactly where they need them.
 - **Never:** outline: none without a replacement. **Instead:** focus-visible:ring-2 ring-ring. Keyboard users lose their place.
@@ -2932,22 +2979,7 @@ Split sign-in page: a form column (brand mark, heading, email + password, primar
 
 ```tsx
 import { useState } from "react"
-import { Avatar, Badge, Button, Card, CardContent, Entity, Field, Form, Icon, Input, Region, Separator, Stack } from "@sableui/react"
-
-// A soft mesh of the theme's decorative tones over its brand colour, so the
-// artwork follows every theme and mode. Each tone is lifted from its text
-// strength (dark, restrained) to an art strength.
-const artwork = [
-	// design-lint-disable-next-line inline-color -- relative colour derived from the theme's own --tone token, so it follows every look
-	"radial-gradient(in oklab at 18% 22%, oklch(from var(--tone-info) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h), transparent 58%)",
-	// design-lint-disable-next-line inline-color -- relative colour derived from the theme's own --tone token, so it follows every look
-	"radial-gradient(in oklab at 82% 18%, oklch(from var(--tone-collectible) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h), transparent 55%)",
-	// design-lint-disable-next-line inline-color -- relative colour derived from the theme's own --tone token, so it follows every look
-	"radial-gradient(in oklab at 70% 88%, oklch(from var(--tone-edition) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h), transparent 60%)",
-	// design-lint-disable-next-line inline-color -- relative colour derived from the theme's own --tone token, so it follows every look
-	"radial-gradient(in oklab at 12% 92%, oklch(from var(--tone-standard) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h), transparent 55%)",
-	"var(--primary)",
-].join(", ")
+import { Avatar, Badge, Button, Card, CardContent, Entity, Field, Form, GradientArt, Icon, Input, Region, Separator, Stack } from "@sableui/react"
 
 export function AuthPage() {
 	const [pending, setPending] = useState(false)
@@ -3035,7 +3067,8 @@ export function AuthPage() {
 
 			{/* The brand panel is decoration: on a phone the form is the whole screen. */}
 			<aside aria-label="Featured release" className="hidden p-3 lg:flex">
-				<div className="flex flex-1 flex-col justify-end rounded-xl p-8" style={{ background: artwork }}>
+				{/* Art painted from the theme's tones over its brand, so it follows every look. */}
+				<GradientArt seed="Untitled (gold rush)" className="flex flex-1 flex-col justify-end rounded-xl p-8">
 					<Card className="max-w-md">
 						<CardContent>
 							<Stack gap={3}>
@@ -3047,14 +3080,14 @@ export function AuthPage() {
 								</p>
 								<Entity
 									className="p-0"
-									leading={<Avatar fallback="MO" />}
+									leading={<Avatar variant="art" fallback="MO" />}
 									title="Mara Okafor"
 									subtitle="Untitled (gold rush), 2026"
 								/>
 							</Stack>
 						</CardContent>
 					</Card>
-				</div>
+				</GradientArt>
 			</aside>
 		</main>
 	)
@@ -3442,7 +3475,7 @@ export function BrandLandingPage() {
 									</blockquote>
 								</Stack>
 								<figcaption className="flex items-center gap-3">
-									<Avatar size="lg" fallback="MO" />
+									<Avatar variant="art" size="lg" fallback="MO" />
 									<div>
 										<p className="text-title-sm">Maya Okafor</p>
 										<p className="text-body-sm text-muted-foreground">Head of operations, Fielddesk</p>
@@ -3664,7 +3697,7 @@ export function ChatPanel() {
 	// at that size reads as a speck); `alt` names it for a screen reader, which
 	// otherwise gets nothing from a fallback-only avatar.
 	const assistant = (
-		<Avatar
+		<Avatar variant="art"
 			size="sm"
 			alt="Assistant"
 			fallback={<Icon name="sparkles" className="text-base" />}
@@ -3992,7 +4025,7 @@ export function DashboardPage() {
 							<span className="text-title-sm">Atelier</span>
 						</Row>
 					}
-					actions={<Avatar size="sm" fallback="AL" alt="Ada Lovelace" />}
+					actions={<Avatar variant="art" size="sm" fallback="AL" alt="Ada Lovelace" />}
 				/>
 			}
 			bottomNav={
@@ -4027,7 +4060,7 @@ export function DashboardPage() {
 					<SidebarFooter>
 						<Entity
 							className="[--entity-py:0]"
-							leading={<Avatar size="sm" fallback="AL" alt="" />}
+							leading={<Avatar variant="art" size="sm" fallback="AL" alt="" />}
 							title="Ada Lovelace"
 							subtitle="@ada"
 							action={
@@ -4199,7 +4232,7 @@ export function DashboardPage() {
 								{collectors.map((person) => (
 									<Entity
 										key={person.id}
-										leading={<Avatar size="sm" fallback={person.initials} alt="" />}
+										leading={<Avatar variant="art" size="sm" fallback={person.initials} alt="" />}
 										title={person.name}
 										subtitle={`${person.handle} · ${person.pieces} pieces`}
 										action={<span className="text-mono-sm">{usd.format(person.spent)}</span>}
@@ -4246,7 +4279,7 @@ export function DashboardPage() {
 							{activity.map((item) => (
 								<Entity
 									key={item.id}
-									leading={<Avatar size="sm" fallback={item.initials} alt="" />}
+									leading={<Avatar variant="art" size="sm" fallback={item.initials} alt="" />}
 									title={item.who}
 									subtitle={item.what}
 									action={<RelativeTime date={Date.now() - item.when} className="text-caption text-muted-foreground" />}
@@ -4360,7 +4393,7 @@ const renderPost = (post: Post) => (
 		<Card>
 			<CardList>
 				<Entity
-					leading={<Avatar fallback={post.initials} alt={post.author} />}
+					leading={<Avatar variant="art" fallback={post.initials} alt={post.author} />}
 					title={post.author}
 					subtitle={`${post.handle} · ${post.time}`}
 					action={
@@ -4441,7 +4474,7 @@ export function FeedPage() {
 					<Card>
 						<CardContent>
 							<Row gap={1.5} align="start">
-								<Avatar fallback="AL" alt="Ada Lovelace" />
+								<Avatar variant="art" fallback="AL" alt="Ada Lovelace" />
 								<Stack gap={1.5} className="min-w-0 flex-1">
 									<Textarea
 										autoResize
@@ -4508,7 +4541,7 @@ export function FeedPage() {
 								{suggestions.map((person) => (
 									<Entity
 										key={person.id}
-										leading={<Avatar fallback={person.initials} alt={person.name} />}
+										leading={<Avatar variant="art" fallback={person.initials} alt={person.name} />}
 										title={person.name}
 										subtitle={person.handle}
 										action={
@@ -4528,7 +4561,7 @@ export function FeedPage() {
 								{upcoming.map((drop) => (
 									<Entity
 										key={drop.id}
-										leading={<Avatar fallback={drop.initials} alt={drop.artist} />}
+										leading={<Avatar variant="art" fallback={drop.initials} alt={drop.artist} />}
 										title={drop.title}
 										subtitle={`${drop.artist} · ${drop.date}`}
 										action={
@@ -4861,7 +4894,7 @@ export function LandingPage() {
 											{deploys.map((deploy) => (
 												<Entity
 													key={deploy.meta}
-													leading={<Avatar size="sm" fallback={deploy.initials} alt={deploy.name} />}
+													leading={<Avatar variant="art" size="sm" fallback={deploy.initials} alt={deploy.name} />}
 													title={deploy.title}
 													subtitle={deploy.meta}
 													action={
@@ -5287,7 +5320,8 @@ export function ListDetailPage() {
 												selected={isSelected}
 												onSelect={() => select(m.id)}
 												leading={
-													<Avatar
+													<Avatar variant="art"
+														seed={m.name}
 														fallback={m.pending ? <Icon name="mail" className="size-5" /> : m.initials}
 														status={m.lastActive === "Online now" ? <StatusDot tone="success" /> : undefined}
 														// The row's title already names it: keep the initials out of the row's name.
@@ -5349,7 +5383,7 @@ export function ListDetailPage() {
 								<Card>
 									<CardHeader>
 										<Row gap={2}>
-											<Avatar
+											<Avatar variant="art"
 												size="lg"
 												fallback={selected.pending ? <Icon name="mail" className="size-6" /> : selected.initials}
 												status={selected.lastActive === "Online now" ? <StatusDot tone="success" /> : undefined}
@@ -5562,7 +5596,7 @@ export function SettingsPage() {
 							<span className="text-title-sm">Atelier</span>
 						</Row>
 					}
-					actions={<Avatar size="sm" fallback="AL" alt="Ada Lovelace" />}
+					actions={<Avatar variant="art" size="sm" fallback="AL" alt="Ada Lovelace" />}
 				/>
 			}
 			bottomNav={
@@ -5597,7 +5631,7 @@ export function SettingsPage() {
 					<SidebarFooter>
 						<Entity
 							className="[--entity-py:0]"
-							leading={<Avatar size="sm" fallback="AL" alt="" />}
+							leading={<Avatar variant="art" size="sm" fallback="AL" alt="" />}
 							title="Ada Lovelace"
 							subtitle="@ada"
 							action={
@@ -5647,7 +5681,7 @@ export function SettingsPage() {
 									<CardContent>
 										<Stack gap={3}>
 											<Row gap={2}>
-												<Avatar size="lg" fallback="AL" alt="Ada Lovelace" />
+												<Avatar variant="art" size="lg" fallback="AL" alt="Ada Lovelace" />
 												<Stack gap={0.5} align="start">
 													<Row gap={1}>
 														<Button type="button" variant="outline" size="sm">
@@ -6108,7 +6142,7 @@ export function DangerZoneBlock({ className, framed = true, onDelete }: DangerZo
 						Permanently remove your profile, editions, and sales history. Collectors keep the editions they own.
 					</CardDescription>
 				</CardHeader>
-				<CardFooter className="justify-end">
+				<CardFooter actions className="justify-end">
 					<Button variant="destructive" onClick={() => setOpen(true)}>
 						Delete account
 					</Button>
@@ -6296,7 +6330,7 @@ export function EventCardBlock({ className, framed = true, onRespond }: EventCar
 			<CardFooter className="flex-wrap justify-between gap-3">
 				<AvatarGroup aria-label={`${event.total} attendees`} total={event.total} size="sm" surface={framed ? "card" : undefined} fit>
 					{event.attendees.map((initials) => (
-						<Avatar key={initials} fallback={initials} alt={initials} />
+						<Avatar variant="art" key={initials} fallback={initials} alt={initials} />
 					))}
 				</AvatarGroup>
 				<div className="flex gap-2">
@@ -6522,7 +6556,7 @@ export function FeedbackFormBlock({ className, framed = true, onDone }: Feedback
 				</ToggleGroup>
 				<Textarea placeholder="What worked, what didn’t…" aria-label="Notes" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
 			</CardContent>
-			<CardFooter className="justify-end">
+			<CardFooter actions className="justify-end">
 				<Button variant="ghost" size="sm" onClick={() => onDone?.(false)}>
 					Skip
 				</Button>
@@ -6705,7 +6739,7 @@ export function InviteTeamBlock({ className, framed = true, onSend }: InviteTeam
 			<CardContent className="flex flex-col gap-4">
 				<AvatarGroup aria-label={`${collaborators.length} collaborators`} size="sm" surface={framed ? "card" : undefined}>
 					{collaborators.map((initials) => (
-						<Avatar key={initials} fallback={initials} alt={initials} />
+						<Avatar variant="art" key={initials} fallback={initials} alt={initials} />
 					))}
 				</AvatarGroup>
 				<form
@@ -6896,24 +6930,10 @@ A now-playing card: cover, title and artist as an Entity with a Like action, a p
 
 ```tsx
 import { useState } from "react"
-import { Button, Card, CardContent, cn, Entity, Icon, Slider } from "@sableui/react"
+import { Button, Card, CardContent, cn, Entity, GradientArt, Icon, Slider } from "@sableui/react"
 
 const track = { title: "Low tide, high noon", artist: "Juno Avery", position: 38, elapsed: "1:24", remaining: "-2:16" }
 
-/**
- * Placeholder cover painted from the palette — the theme's decorative tones
- * over the brand, so it follows every look. Replace with the cover image.
- */
-const ART_TONES = ["info", "collectible", "edition"]
-const ART_SPOTS = [[20, 20, 70], [85, 30, 60], [60, 90, 65]]
-const cover = [
-	...ART_SPOTS.map(
-		([x, y, reach], i) =>
-			// design-lint-disable-next-line inline-color -- relative colour derived from the theme's own --tone token, so it follows every look
-			`radial-gradient(in oklab at ${x}% ${y}%, oklch(from var(--tone-${ART_TONES[i % ART_TONES.length]}) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h), transparent ${reach}%)`,
-	),
-	"var(--primary)",
-].join(", ")
 
 export interface MediaPlayerBlockProps {
 	className?: string
@@ -6934,7 +6954,8 @@ export function MediaPlayerBlock({ className, framed = true, onPlayingChange, on
 				    card already pads it. */}
 				<Entity
 					className="p-0"
-					leading={<div aria-hidden className="size-14 rounded-md" style={{ background: cover }} />}
+					// Placeholder cover painted from the theme. Replace with the cover image.
+					leading={<GradientArt aria-hidden seed={track.title} className="size-14 rounded-md" />}
 					title={track.title}
 					subtitle={track.artist}
 					action={
@@ -7113,7 +7134,7 @@ An activity list: Entity rows with the actor's Avatar, who did what, and a compa
 ## Notes
 
 - Rows are Card + CardList + Entity, inset from the card's padding at any density.
-- Unread is a quiet info dot after the time — the list stays calm when most items are unread.
+- Unread is a quiet info dot before the time, so the times keep one right edge — the list stays calm when most items are unread.
 - framed={false} drops the surface for a Popover, which already is one.
 
 ## Accessibility
@@ -7144,7 +7165,7 @@ export function NotificationListBlock({ className, framed = true }: Notification
 				{notifications.map((n) => (
 					<Entity
 						key={n.name}
-						leading={<Avatar size="sm" fallback={n.initials} alt={n.name} />}
+						leading={<Avatar variant="art" size="sm" fallback={n.initials} alt={n.name} />}
 						title={
 							<>
 								{n.name}
@@ -7154,8 +7175,8 @@ export function NotificationListBlock({ className, framed = true }: Notification
 						subtitle={n.what}
 						action={
 							<span className="flex items-center gap-1.5 text-caption text-muted-foreground">
-								{n.when}
 								{n.unread ? <StatusDot tone="info" /> : null}
+								{n.when}
 							</span>
 						}
 					/>
@@ -7529,25 +7550,10 @@ A product card: edge-to-edge artwork, title and maker, an edition Badge, and the
 ## Source
 
 ```tsx
-import { Badge, Button, Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle, cn } from "@sableui/react"
+import { Badge, Button, Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle, cn, GradientArt } from "@sableui/react"
 
 const product = { title: "Untitled (gold rush)", maker: "Mara Okafor", edition: "12 of 50", price: "0.42 SOL" }
 
-/**
- * Placeholder artwork painted from the palette — a soft mesh of the theme's
- * decorative tones over the brand, so it follows every look. Replace the art
- * <div> with your product's image.
- */
-const ART_TONES = ["info", "collectible", "edition", "standard"]
-const ART_SPOTS = [[18, 22, 58], [82, 18, 55], [70, 88, 60], [12, 92, 55]]
-const artwork = [
-	...ART_SPOTS.map(
-		([x, y, reach], i) =>
-			// design-lint-disable-next-line inline-color -- relative colour derived from the theme's own --tone token, so it follows every look
-			`radial-gradient(in oklab at ${x}% ${y}%, oklch(from var(--tone-${ART_TONES[i % ART_TONES.length]}) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h), transparent ${reach}%)`,
-	),
-	"var(--primary)",
-].join(", ")
 
 export interface ProductCardBlockProps {
 	className?: string
@@ -7560,7 +7566,8 @@ export interface ProductCardBlockProps {
 export function ProductCardBlock({ className, framed = true, onCollect }: ProductCardBlockProps) {
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs overflow-hidden", className)}>
-			<div aria-hidden className="aspect-[4/3]" style={{ background: artwork }} />
+			{/* Placeholder art painted from the theme, so it follows every look. Replace with the product image. */}
+			<GradientArt aria-hidden seed={product.title} className="aspect-[4/3]" />
 			<CardHeader>
 				<CardTitle>{product.title}</CardTitle>
 				<CardDescription>{product.maker}</CardDescription>
@@ -7602,7 +7609,7 @@ A profile card: a cover banner, an avatar rising into it, Share and Follow, the 
 
 ```tsx
 import { useState } from "react"
-import { Avatar, Button, Card, CardContent, CardDescription, CardTitle, cn, Icon } from "@sableui/react"
+import { Avatar, Button, Card, CardContent, CardDescription, CardTitle, cn, GradientArt, Icon } from "@sableui/react"
 
 const profile = {
 	name: "Juno Avery",
@@ -7615,20 +7622,6 @@ const profile = {
 	],
 }
 
-/**
- * Placeholder banner painted from the palette — the theme's decorative tones
- * over the brand, so it follows every look. Replace with the person's cover image.
- */
-const ART_TONES = ["info", "collectible", "edition", "standard"]
-const ART_SPOTS = [[10, 50, 60], [50, 0, 55], [90, 60, 60], [40, 100, 50]]
-const banner = [
-	...ART_SPOTS.map(
-		([x, y, reach], i) =>
-			// design-lint-disable-next-line inline-color -- relative colour derived from the theme's own --tone token, so it follows every look
-			`radial-gradient(in oklab at ${x}% ${y}%, oklch(from var(--tone-${ART_TONES[i % ART_TONES.length]}) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h), transparent ${reach}%)`,
-	),
-	"var(--primary)",
-].join(", ")
 
 export interface ProfileCardBlockProps {
 	className?: string
@@ -7643,12 +7636,13 @@ export function ProfileCardBlock({ className, framed = true, onFollowChange, onS
 	const [following, setFollowing] = useState(false)
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs overflow-hidden", className)}>
-			<div aria-hidden className="h-20" style={{ background: banner }} />
+			{/* Placeholder banner painted from the theme, so it follows every look. Replace with the person's cover image. */}
+			<GradientArt aria-hidden seed={profile.handle} className="h-20" />
 			{/* pt-0: the avatar rises into the banner above, so the content
 			    starts at the banner's edge rather than a full pad below it. */}
 			<CardContent className="flex flex-col gap-3 pt-0">
 				<div className="flex items-start justify-between">
-					<Avatar size="lg" fallback={profile.initials} alt={profile.name} className="-mt-6 ring-4 ring-card" />
+					<Avatar variant="art" size="lg" fallback={profile.initials} alt={profile.name} className="-mt-6 ring-4 ring-card" />
 					<div className="flex gap-1.5 pt-3">
 						<Button variant="ghost" size="icon-sm" aria-label="Share profile" onClick={onShare}>
 							<Icon name="share" />
@@ -7751,7 +7745,7 @@ export function ProfileFormBlock({ className, framed = true, onSave }: ProfileFo
 				<CardContent>
 					<Stack gap={3}>
 						<Row gap={2}>
-							<Avatar size="lg" fallback={profile.initials} alt={profile.name} />
+							<Avatar variant="art" size="lg" fallback={profile.initials} alt={profile.name} />
 							<Stack gap={0.5} align="start">
 								<Row gap={1}>
 									<Button type="button" variant="outline" size="sm">
@@ -7791,7 +7785,7 @@ export function ProfileFormBlock({ className, framed = true, onSave }: ProfileFo
 						</Grid>
 					</Stack>
 				</CardContent>
-				<CardFooter className="justify-end">
+				<CardFooter actions className="justify-end">
 					<Button type="submit">Save profile</Button>
 				</CardFooter>
 			</Form>
@@ -8400,7 +8394,7 @@ export function TeamMembersBlock({ className, framed = true, onInvite, onMemberA
 				{members.map((m) => (
 					<Entity
 						key={m.id}
-						leading={<Avatar size="sm" fallback={m.initials} alt={m.name} />}
+						leading={<Avatar variant="art" size="sm" fallback={m.initials} alt={m.name} />}
 						title={m.name}
 						subtitle={m.email}
 						action={
@@ -8490,7 +8484,7 @@ export function TestimonialBlock({ className }: TestimonialBlockProps) {
 							<blockquote className="text-balance text-heading-3 sm:text-heading-2">“{story.quote}”</blockquote>
 						</Stack>
 						<figcaption className="flex items-center gap-3">
-							<Avatar size="lg" fallback={story.initials} alt={story.name} />
+							<Avatar variant="art" size="lg" fallback={story.initials} alt={story.name} />
 							<div>
 								<p className="text-title-sm">{story.name}</p>
 								<p className="text-body-sm text-muted-foreground">{story.role}</p>
@@ -9993,6 +9987,7 @@ Use Avatar to represent a person, team, or account with a compact visual identit
 
 ### Best practices
 
+- Do: Use `variant="art"` where people without photos sit side by side — a member list, an activity feed, a chat. Seeded by the person, each gets their own colour, so faces stay tellable apart at a glance; the neutral fallback makes everyone the same grey circle.
 - Do: Provide meaningful alt text for profile images, or an empty alt when the adjacent text already names the person.
 - Do: Use initials or a simple glyph fallback so missing images still communicate identity.
 - Do: Use consistent sizes within a group; reserve lg for profile headers or major identity moments.
@@ -10031,14 +10026,17 @@ Use Avatar to represent a person, team, or account with a compact visual identit
 | fallbackDelay | number | — | Delay before showing the fallback, in ms — avoids a flash on fast loads. |
 | status | ReactNode | — | A presence indicator pinned to the bottom-end edge, usually <StatusDot tone="success" />. It sits outside the clipped circle and wears a ring in the surface colour (--avatar-group-ring, else the page background). Use this instead of absolutely positioning a dot over an Avatar. |
 | size | "sm" \| "md" \| "lg" | "md" | Square footprint: 32px / 40px / 48px. |
+| variant | "neutral" \| "art" | "neutral" | What the fallback looks like. neutral: initials on the muted surface. art: initials over GradientArt seeded by the person, so each person without a photo gets their own stable colour from the theme. |
+| seed | string \| number | — | The art variant's seed. Defaults to the fallback text, then `alt`, so a person keeps one colour wherever they appear; pass a user id to tell apart two people who share initials. |
 
 ## Variants
 
 - **size**: sm, md, lg
+- **variant**: neutral, art
 
 ## Tokens used
 
-`muted`, `muted-foreground`, `background`, `card`, `popover`
+`muted`, `muted-foreground`, `background`, `card`, `popover`, `overlay`, `overlay-foreground`
 
 ## Accessibility
 
@@ -10069,6 +10067,14 @@ import { Avatar } from "@sableui/react"
 import { Avatar } from "@sableui/react"
 
 <Avatar fallback="AM" alt="Alex Morgan" />
+```
+
+### Art fallback
+
+```tsx
+import { Avatar } from "@sableui/react"
+
+<Avatar variant="art" fallback="AM" alt="Alex Morgan" />
 ```
 
 ### Sizes
@@ -11185,7 +11191,7 @@ Use Card for a discrete thing with its own boundary, such as one product, one no
 | CardAction | ComponentPropsWithRef<"div"> | Header-aligned top-right action slot (e.g. an overflow menu, switch, or close button). Place inside CardHeader, which becomes a 2-column grid when present and collapses to a single column otherwise. |
 | CardContent | ComponentPropsWithRef<"div"> & { flush?: boolean } | The body region. Padding follows the density knob on all sides — does not assume a preceding CardHeader, so it is safe to use standalone (e.g. no CardHeader in the card). When paired with CardHeader, the seam stays tight because CardHeader zeroes its own bottom padding. `flush` runs it edge to edge for a table: the Table insets its first and last columns by exactly the card padding, so it lines up with the header — never hand-set pl-6/pr-6 on columns. |
 | CardList | ComponentPropsWithRef<"div"> | Rows that run edge to edge in the card (Entity rows, most often), divided by hairlines. Insets each row to the card's own padding, so a list card lines up with every other card at any density — no hand-tuned px-* on the rows. Under a CardHeader it opens with a hairline and a gap; alone it fills the card. |
-| CardFooter | ComponentPropsWithRef<"div"> | Bottom row for actions/meta. Padding follows the density knob. |
+| CardFooter | ComponentPropsWithRef<"div"> & { actions?: boolean } | Bottom row for actions/meta. Padding follows the density knob. `actions` marks it as the card's action row (buttons only): in a sheet (IosSheet, a bottom SheetContent) it becomes a full-width stack pinned to the bottom, primary on top; on a page nothing changes. |
 
 ## Props
 
@@ -13633,6 +13639,89 @@ import { GlidingHighlight } from "@sableui/react"
 import { GlidingHighlight } from "@sableui/react"
 
 <GlidingHighlight active={cursor} onKeyDown={(e) => { if (e.key === "ArrowDown") setCursor((c) => (c + 1) % rows.length) }}>{rows.map((r) => (<div key={r.id} role="option" aria-selected={false}>{r.label}</div>))}</GlidingHighlight>
+```
+
+---
+
+# GradientArt
+
+**Status:** beta
+
+Placeholder artwork painted by a static WebGL shader from the preset's own art direction (the --art-* tokens: palette, ground, warp, softness, grain) — Ember burns, Prism airbrushes, Meridian is grainy monochrome — with a CSS gradient underneath for prerendered pages and browsers without WebGL2.
+
+**Keywords:** gradient, mesh gradient, grain, shader, artwork, placeholder image, cover, banner, avatar fallback, generative
+
+## Usage
+
+Use GradientArt where a real image belongs but none exists yet, or where the image is decoration: a product cover before upload, a profile banner, an album tile, an avatar with no photo. It reads the theme's own tokens, so it follows every preset, mode and live edit; `seed` fixes each item's composition so a list of covers or avatars stays individually recognisable.
+
+### Best practices
+
+- Do: Pass a stable `seed` per item — the name for an avatar, the title for a cover. Each item then keeps the same art across renders, reloads and themes, which is what lets someone recognise it.
+- Do: Size it with layout classes (`aspect-[4/3]`, `h-20`, `size-10 rounded-full`) and put any glyph or initials inside as children; they render above the art.
+- Do: Keep the default `mesh` for covers, tiles and avatars. Reach for `grain` where a printed, tactile surface suits — a banner, a hero card — and keep one variant per surface type so art reads as a system.
+- Don't: Do not put body text over it. The art spans the palette's lightest and most saturated tones, so no single ink is guaranteed to clear contrast across it; reserve overlays for a short label on a scrim or an avatar's initials.
+- Don't: Do not pass colours, and reach for `tones` rarely. The art follows the preset's --art-* tokens on purpose; to change how a product's art looks, set the --theme-art-* hooks in its theme or preset, so every cover, banner and avatar changes together.
+- Don't: Do not use it as a page or hero background. It paints at the element's pixel size, so a full-viewport instance costs a large frame on every theme change; it is sized for covers, banners and tiles.
+
+## Props
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| variant | "mesh" \| "grain" | "mesh" | mesh: soft spots of colour pulled together by gentle waves. grain: glowing light over deep corners with a printed texture. |
+| tones | ("info" \| "standard" \| "collectible" \| "edition" \| "warning")[] | — | Paint these `--tone-*` colours instead of the preset's art palette. Leave unset to follow the preset's art direction. |
+| seed | string \| number | — | Fixes the composition: the same seed paints the same art in every theme. Pass a stable id. |
+| children | ReactNode | — | Rendered above the art — initials, a glyph, a short label. |
+| className | string | — | Size and shape: aspect, height, rounding. |
+
+## Variants
+
+- **variant**: mesh, grain
+
+## Tokens used
+
+`art-1`, `art-2`, `art-3`, `art-4`, `art-5`, `art-6`, `art-ground`, `art-warp`, `art-softness`, `art-grain`, `primary`, `tone-info`, `tone-standard`, `tone-collectible`, `tone-edition`, `tone-warning`
+
+## Motion
+
+- **arrival** · canvas · `motion-interactive` — The shader frame fades in over the CSS gradient it replaces, so the swap from fallback to shader reads as the art settling rather than a flash.
+- **response** · root · _no motion_ — Artwork, not a control: it does not react to the pointer.
+- **transition** · canvas · _custom (outside the recipe layer)_ — A theme change repaints the frame in place on the next animation frame; there are no states to move between.
+- **activity** · root · _no motion_ — Static by design: nothing animates between paints, so it costs nothing while idle and respects reduced motion without a branch.
+
+## Accessibility
+
+- Decorative by default: the canvas is aria-hidden. When the art stands for something (an avatar), label the element that contains it, not the art.
+- Children render above the art in the normal reading order, so initials or a label are announced as usual.
+
+## Related
+
+- Components: Avatar, Card, AspectBox
+
+## Examples
+
+### Product cover
+
+```tsx
+import { GradientArt } from "@sableui/react"
+
+<GradientArt seed="Untitled (gold rush)" className="aspect-[4/3] rounded-lg" />
+```
+
+### Grain banner
+
+```tsx
+import { GradientArt } from "@sableui/react"
+
+<GradientArt variant="grain" seed="juno" tones={["info", "edition"]} className="h-20 rounded-md" />
+```
+
+### Avatar with initials
+
+```tsx
+import { GradientArt } from "@sableui/react"
+
+<GradientArt seed="Mara Okafor" className="grid size-10 place-items-center rounded-full text-label-md text-overlay-foreground">MO</GradientArt>
 ```
 
 ---
@@ -17337,7 +17426,7 @@ Use Sheet for secondary workflows that slide in while preserving context from th
 | SheetHeader | ComponentProps<"div"> | Top section holding SheetTitle/SheetDescription. |
 | SheetTitle | Base UI Drawer.Title props + className | The sheet's accessible name — wires aria-labelledby on the popup. |
 | SheetDescription | Base UI Drawer.Description props + className | Muted supporting line; wires aria-describedby. |
-| SheetFooter | ComponentProps<"div"> | Bottom row for actions, pinned after the scrollable body. |
+| SheetFooter | ComponentProps<"div"> | Bottom row for actions, pinned after the scrollable body. In a bottom sheet it stacks: full width, the primary on top, every button at the cta height. |
 
 ## Props
 
@@ -19998,7 +20087,7 @@ import { PanelGroup, Workspace, WorkspaceBar, WorkspaceCanvas } from "@sableui/r
 
 Which token to reach for, and what it is most often confused with. Generated from `src/themes/token-docs.ts`; the full data is `registry.json → tokens`.
 
-### semantic (45)
+### semantic (49)
 
 - **`background`** — The page. The furthest-back surface in the page register. *Use for:* The document body, and any surface meant to read as 'the page itself'. Never anything that floats: background is the BOTTOM of the surface stack (background < card < popover in every dark mode), so a floating panel painted with it reads as a hole beneath the cards it hovers over.
     - **Not** `popover` for anything floating, `card` for a bounded block on the page. `canvas`. `canvas` is the *work* surface in a tool — the artboard being edited — which is not the page behind the UI. Using `background` for an artboard makes the thing being edited indistinguishable from the chrome around it.
@@ -20070,6 +20159,14 @@ Which token to reach for, and what it is most often confused with. Generated fro
     - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
 - **`highlight-foreground`** — Ink paired with `highlight`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `highlight`. Use them as a pair — `bg-highlight text-highlight-foreground` — so a theme can retune the surface and the ink together.
     - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
+- **`destructive-text`** — `destructive` drawn on a surface: text, icons, borders and focus rings. *Use for:* Write `text-destructive`, `border-destructive` or `ring-destructive` — they read this token; only `bg-destructive` reads the fill.
+    - **Not** `destructive` itself for marks on a page. The fill is tuned to carry a label (dark mode lowers it under white ink), which can leave it too dark to read on a dark card.
+- **`success-text`** — `success` drawn on a surface: text, icons, borders and focus rings. *Use for:* Write `text-success`, `border-success` or `ring-success` — they read this token; only `bg-success` reads the fill.
+    - **Not** `success` itself for marks on a page. The fill is tuned to carry a label (dark mode lowers it under white ink), which can leave it too dark to read on a dark card.
+- **`tone-warning-text`** — `tone-warning` drawn on a surface: text, icons, borders and focus rings. *Use for:* Write `text-tone-warning`, `border-tone-warning` or `ring-tone-warning` — they read this token; only `bg-tone-warning` reads the fill.
+    - **Not** `tone-warning` itself for marks on a page. The fill is tuned to carry a label (dark mode lowers it under white ink), which can leave it too dark to read on a dark card.
+- **`tone-info-text`** — `tone-info` drawn on a surface: text, icons, borders and focus rings. *Use for:* Write `text-tone-info`, `border-tone-info` or `ring-tone-info` — they read this token; only `bg-tone-info` reads the fill.
+    - **Not** `tone-info` itself for marks on a page. The fill is tuned to carry a label (dark mode lowers it under white ink), which can leave it too dark to read on a dark card.
 - **`overlay`** — A scrim over the page behind a modal, and the wash behind media chrome. *Use for:* Dialog and sheet backdrops, letterboxing, a pill sitting on top of an image.
     - **Not** `bg-black/50`. Pure black is never right — it crushes whatever is behind it, and a theme cannot tune it. This token is the sanctioned answer, which is why `raw-black-white` is a lint rule.
 - **`overlay-foreground`** — Ink paired with `overlay`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `overlay`. Use them as a pair — `bg-overlay text-overlay-foreground` — so a theme can retune the surface and the ink together.

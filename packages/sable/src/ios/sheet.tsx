@@ -1,14 +1,19 @@
 import { Button, Glass, Sheet } from 'konsta/react'
 import { useEffect, useId, useRef, useState, type ReactNode, type PointerEvent } from 'react'
+import { PresentationProvider } from '../lib/presentation'
 
 /**
  * An iOS 26 sheet. At the medium detent it floats inset from the screen edges in
  * Liquid Glass; at the large detent it is opaque and meets the bottom edge. The
  * header is a glass close button and a centered inline title.
+ *
+ * `background="opaque"` keeps the medium sheet's floating shape but fills it
+ * solid, like SwiftUI's `.presentationBackground`: for a form, whose fields
+ * would otherwise sit on whatever the glass is blurring.
  * Browser dialog owns focus trapping, Escape, inert background, and restoration.
  */
-export function IosSheet({ open, onOpenChange, title, children, detent = 'medium' }: {
-  open: boolean; onOpenChange: (open: boolean) => void; title: string; children: ReactNode; detent?: 'medium' | 'large'
+export function IosSheet({ open, onOpenChange, title, children, detent = 'medium', background = 'glass' }: {
+  open: boolean; onOpenChange: (open: boolean) => void; title: string; children: ReactNode; detent?: 'medium' | 'large'; background?: 'glass' | 'opaque'
 }) {
   const dialog = useRef<HTMLDialogElement>(null)
   const titleId = useId()
@@ -37,7 +42,7 @@ export function IosSheet({ open, onOpenChange, title, children, detent = 'medium
   return <dialog ref={dialog} className="ios-sheet-dialog" aria-labelledby={titleId}
     onCancel={event => { event.preventDefault(); onOpenChange(false) }}
     onClick={event => { if (event.target === event.currentTarget) onOpenChange(false) }}>
-    <Sheet opened={shown} backdrop={false} className="ios-sheet" data-detent={expanded ? 'large' : 'medium'} style={{ height: expanded ? '90%' : '56%' }}>
+    <Sheet opened={shown} backdrop={false} className="ios-sheet" data-detent={expanded ? 'large' : 'medium'} data-background={background} style={{ height: expanded ? '90%' : '56%' }}>
       <Button clear className="ios-sheet-grabber" aria-label={expanded ? 'Reduce sheet height' : 'Expand sheet'}
         onClick={() => { if (dragged.current) { dragged.current = false; return }; setExpanded(value => !value) }}
         onPointerDown={(event: PointerEvent<HTMLButtonElement>) => { startY.current = event.clientY; dragged.current = false; event.currentTarget.setPointerCapture(event.pointerId) }}
@@ -58,7 +63,8 @@ export function IosSheet({ open, onOpenChange, title, children, detent = 'medium
         </Glass>
         <h2 id={titleId} tabIndex={-1}>{title}</h2>
       </div>
-      <div className="ios-sheet-content">{children}</div>
+      {/* The sheet owns its content's actions: a CardFooter marked `actions` stacks at the bottom (lib/presentation). */}
+      <div className="ios-sheet-content"><PresentationProvider value="sheet">{children}</PresentationProvider></div>
     </Sheet>
   </dialog>
 }

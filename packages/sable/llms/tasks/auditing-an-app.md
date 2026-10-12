@@ -51,6 +51,12 @@ drift; repeated overrides can indicate a missing system hook rather than app mis
 Run relevant `sable doctor`, `sable lint <paths> --json` and `sable grade <paths>
 --json` checks. Lint is lexical; source grades and pattern similarity do not judge
 taste. Deliberately static motion slots remain valid with appropriate feedback.
+Lint's `label-contrast` measures an app's overrides of the brand fills (`--primary`,
+`--sidebar-primary`, `--highlight`) and status fills (`--destructive`, `--success`,
+`--tone-warning`, `--tone-info`) against their labels on top of the installed theme, and
+names the nearest pair that reads. Report it with that pair as a recommendation.
+A reasoned `design-lint-disable-next-line label-contrast` is the app's recorded
+choice: list it as intentional, not as a defect.
 
 ## Deliver evidence-backed findings
 

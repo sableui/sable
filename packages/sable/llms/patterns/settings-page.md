@@ -75,7 +75,7 @@ export function SettingsPage() {
 							<span className="text-title-sm">Atelier</span>
 						</Row>
 					}
-					actions={<Avatar size="sm" fallback="AL" alt="Ada Lovelace" />}
+					actions={<Avatar variant="art" size="sm" fallback="AL" alt="Ada Lovelace" />}
 				/>
 			}
 			bottomNav={
@@ -110,7 +110,7 @@ export function SettingsPage() {
 					<SidebarFooter>
 						<Entity
 							className="[--entity-py:0]"
-							leading={<Avatar size="sm" fallback="AL" alt="" />}
+							leading={<Avatar variant="art" size="sm" fallback="AL" alt="" />}
 							title="Ada Lovelace"
 							subtitle="@ada"
 							action={
@@ -160,7 +160,7 @@ export function SettingsPage() {
 									<CardContent>
 										<Stack gap={3}>
 											<Row gap={2}>
-												<Avatar size="lg" fallback="AL" alt="Ada Lovelace" />
+												<Avatar variant="art" size="lg" fallback="AL" alt="Ada Lovelace" />
 												<Stack gap={0.5} align="start">
 													<Row gap={1}>
 														<Button type="button" variant="outline" size="sm">

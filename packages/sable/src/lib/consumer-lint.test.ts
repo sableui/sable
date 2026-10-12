@@ -565,3 +565,67 @@ describe("fixed-spacing (package scope)", () => {
 function consumerSkips() {
 	return lint(`export const A = () => <div className="p-[1.5rem]" />`).out.includes("fixed-spacing") === false
 }
+
+/* ── label-contrast: labels on brand and status fills, read from the app's stylesheet. ──
+ * The app's override is measured against the installed theme, because the case
+ * that ships is a retuned `--primary` with the theme's label left in place. */
+describe("label-contrast", () => {
+	function lintCss(css: string) {
+		writeFileSync(join(tmp, "brand.css"), css)
+		try {
+			return lint(`export const A = () => null`)
+		} finally {
+			rmSync(join(tmp, "brand.css"))
+		}
+	}
+
+	it("catches a retuned primary that keeps a label which no longer reads, and offers the pair", () => {
+		const r = lintCss(`:root {\n\t--primary: oklch(65.2% 0.235 32.9);\n}\n`)
+		expect(r.code).toBe(1)
+		expect(r.out).toContain("label-contrast")
+		expect(r.out).toContain("brand.css:2")
+		expect(r.out).toMatch(/--primary-foreground on --primary is 3\.\d\d:1/)
+		expect(r.out).toMatch(/try --primary: oklch\(5\d\.\d% /)
+	})
+
+	it("fixes a dark-mode failure by keeping the colour's ink, not flipping it", () => {
+		// The Ember case: the light red takes white, so dark mode brings the fill
+		// down to white rather than lifting it under dark ink.
+		const r = lintCss(`:root { --primary: oklch(55% 0.2 30); --primary-foreground: oklch(98.5% 0.01 30); }\n.dark { --primary: oklch(70% 0.18 30); --primary-foreground: oklch(20% 0.03 30); }\n`)
+		expect(r.out).toMatch(/dark: --primary-foreground on --primary .* try --primary: oklch\(5\d\.\d% [\d.]+ 30\.0\); --primary-foreground: oklch\(98\.5%/)
+		expect(r.out).not.toMatch(/light: --primary-foreground/)
+	})
+
+	it("passes a pair that reads in both modes", () => {
+		const r = lintCss(`:root { --primary: oklch(55% 0.2 260); --primary-foreground: oklch(98% 0 0); }\n`)
+		expect(r.out).not.toContain("label-contrast")
+	})
+
+	it("lets the app keep its choice with a reason on the record", () => {
+		const r = lintCss(
+			`:root {\n\t--primary: oklch(72% 0.17 30);\n\t/* design-lint-disable-next-line label-contrast -- brand book: near-black on coral */\n\t--primary-foreground: oklch(20% 0.02 30);\n}\n`,
+		)
+		expect(r.out).not.toContain("label-contrast —")
+	})
+
+	it("ignores tokens the app does not touch", () => {
+		const r = lintCss(`:root { --radius: 4px; --background: oklch(99% 0 0); }\n`)
+		expect(r.out).not.toContain("label-contrast")
+	})
+})
+
+describe("label-contrast on status fills", () => {
+	it("catches a dark destructive retuned too light for the theme's white label", () => {
+		// The theme's dark destructive takes white; its text lives in
+		// --destructive-text, so the fix brings the fill down, not the label dark.
+		writeFileSync(join(tmp, "status.css"), `.dark {\n\t--destructive: oklch(68% 0.2 25);\n}\n`)
+		try {
+			const r = lint(`export const A = () => null`)
+			expect(r.out).toContain("status.css:2")
+			const fill = Number(r.out.match(/try --destructive: oklch\(([\d.]+)%/)?.[1])
+			expect(fill).toBeLessThan(62)
+		} finally {
+			rmSync(join(tmp, "status.css"))
+		}
+	})
+})

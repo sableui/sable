@@ -28,16 +28,18 @@ const MATRIX: Record<BadgeAppearance, Record<BadgeTone, string>> = {
 	// raw tone clears 4.5:1 on the page, but on its own 15% wash it did not
 	// (light info 4.2:1, dark edition 3.6:1, most of Verdant's tones ~4.1:1).
 	// Mixing toward --foreground moves it AWAY from the wash in both modes and
-	// every theme, and keeps the hue.
+	// every theme, and keeps the hue. Status tones mix from their -text token,
+	// not the fill: dark fills now sit low enough for a white label, and ink
+	// mixed from them fell under 4.5:1 (Meridian dark destructive, 3.8:1).
 	soft: {
 		neutral: "bg-secondary text-secondary-foreground",
 		standard: "bg-tone-standard/15 text-[color-mix(in_oklch,var(--tone-standard)_75%,var(--foreground))]",
 		collectible: "bg-tone-collectible/15 text-[color-mix(in_oklch,var(--tone-collectible)_75%,var(--foreground))]",
 		edition: "bg-tone-edition/15 text-[color-mix(in_oklch,var(--tone-edition)_75%,var(--foreground))]",
-		info: "bg-tone-info/15 text-[color-mix(in_oklch,var(--tone-info)_75%,var(--foreground))]",
-		success: "bg-success/15 text-[color-mix(in_oklch,var(--success)_75%,var(--foreground))]",
-		warning: "bg-tone-warning/15 text-[color-mix(in_oklch,var(--tone-warning)_75%,var(--foreground))]",
-		destructive: "bg-destructive/15 text-[color-mix(in_oklch,var(--destructive)_75%,var(--foreground))]",
+		info: "bg-tone-info/15 text-[color-mix(in_oklch,var(--tone-info-text)_75%,var(--foreground))]",
+		success: "bg-success/15 text-[color-mix(in_oklch,var(--success-text)_75%,var(--foreground))]",
+		warning: "bg-tone-warning/15 text-[color-mix(in_oklch,var(--tone-warning-text)_75%,var(--foreground))]",
+		destructive: "bg-destructive/15 text-[color-mix(in_oklch,var(--destructive-text)_75%,var(--foreground))]",
 	},
 	outline: {
 		neutral: "border border-border text-foreground",

@@ -70,7 +70,9 @@ Entity rows in a Card) or `redesign` (desktop workspace tools).
 3. Compose: `NativeApp` at the root (`mode` sets light or dark, also on
    `<html>` so portaled Sable popups follow); one `NavigationStack` per tab,
    each holding an `IosPage` with an `IosNavbar` and Sable content; an
-   `IosTabbar` of `IosTab`s with Sable `Icon`s; `IosSheet` around Sable forms.
+   `IosTabbar` of `IosTab`s with Sable `Icon`s; `IosSheet` around Sable forms
+   (`background="opaque"` for a form at the medium detent, and the block
+   `framed={false}`: the sheet is already its surface).
    Keep the app's `IconProvider`.
 4. Frame it on a host page with `PhoneFrame` from `@sableui/react/ios/preview`
    and `@sableui/react/ios/frame.css` (Sable's Phone around an iframe at

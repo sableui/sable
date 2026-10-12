@@ -2,7 +2,7 @@
 // Components, primitives, layout, and icon adapter are re-exported here as they land.
 // Keep this the single public entry; never deep-import internals from consumer apps.
 
-export const SABLE_UI_VERSION = "0.5.0" as const
+export const SABLE_UI_VERSION = "0.6.0" as const
 
 // Foundations
 export * from "./lib/cn"
@@ -42,6 +42,7 @@ export {
 	TYPE_OVERLINE_TOKENS,
 	DENSITY_TOKENS,
 	WORKSPACE_SURFACE_TOKENS,
+	ART_TOKENS,
 	TYPE_UI_TOKENS,
 } from "./themes/_contract"
 export type {
@@ -202,6 +203,7 @@ export * from "./components/video"
 export * from "./components/page-loader"
 export * from "./components/marquee"
 export * from "./components/carousel"
+export * from "./components/gradient-art"
 // The conversation layer — AI chat, support inboxes, team threads. Filed apart
 // in the taxonomy (by kind, per its own doctrine) but built as one set.
 export * from "./components/message-scroller"
@@ -216,6 +218,9 @@ export * from "./components/marker"
 // reaches it; anchored surfaces re-apply it from here. See lib/density.tsx.
 export { Density, DensityProvider, useDensity, useAnchoredDensity, useTypeTier } from "./lib/density"
 export type { Density as DensityValue } from "./lib/density"
+// Presentation — what content is shown in (a page, or a sheet). A sheet provides
+// "sheet" and an action row stacks for it. See lib/presentation.tsx.
+export { PresentationProvider, usePresentation, type Presentation } from "./lib/presentation"
 // The scroll-activity signal behind `scrollbar-quiet`'s reveal. Exported because
 // a consumer building their own scroll container needs it to honour the policy
 // the six hard rules require of ours. See DESIGN.md → Scrolling.

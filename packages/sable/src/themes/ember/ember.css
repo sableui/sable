@@ -166,14 +166,18 @@
 	--accent: oklch(92% 0.011 74);
 	--accent-foreground: oklch(23.1% 0.014 70);
 	--destructive: oklch(50% 0.17 25);
+	--destructive-text: oklch(50% 0.17 25);
 	--destructive-foreground: oklch(100% 0 0);
 	--success: oklch(43% 0.10 165);
+	--success-text: oklch(43% 0.10 165);
 	--success-foreground: oklch(100% 0 0);
 	--tone-standard: oklch(40% 0.07 130);
 	--tone-collectible: oklch(46% 0.14 285);
 	--tone-edition: oklch(45% 0.15 309);
 	--tone-info: oklch(48% 0.13 250);
+	--tone-info-text: oklch(48% 0.13 250);
 	--tone-warning: oklch(50% 0.12 52);
+	--tone-warning-text: oklch(50% 0.12 52);
 	--highlight: oklch(58% 0.245 32.9);
 	--tone-standard-foreground: oklch(100% 0 0);
 	--tone-collectible-foreground: oklch(100% 0 0);
@@ -240,29 +244,35 @@
 	--ring: oklch(65.2% 0.235 32.9);
 	/* The light-mode fill, not a brighter one: on the brighter fill WCAG preferred
 	   dark ink (5.6:1), but it reads at APCA Lc 42 — muddy — against Lc 67 for
-	   white. At 58% white clears both (4.8:1, Lc 76). */
+	   white. At 58% white clears both (4.8:1, Lc 76). The sidebar's active item
+	   and the highlight are the same brand fill and follow. */
 	--primary: oklch(58% 0.245 32.9);
 	--primary-foreground: oklch(100% 0 0);
 	--secondary: oklch(26% 0.012 67.2); /* a step ABOVE the card, so a secondary Button reads on a card and on the page */
 	--secondary-foreground: oklch(100% 0 0);
 	--accent: oklch(29% 0.014 60);
 	--accent-foreground: oklch(100% 0 0);
-	--destructive: oklch(62% 0.16 25);
-	--destructive-foreground: oklch(14.1% 0.018 70.5);
-	--success: oklch(72% 0.12 165);
+	/* Status colours come in two: the fill carries a label (destructive sits low under white ink), and `-text` is the same colour drawn on a surface — text, borders, rings — kept light enough to read on a dark card. */
+	--destructive: oklch(58% 0.16 25);
+	--destructive-text: oklch(77.5% 0.129 25);
+	--destructive-foreground: oklch(100% 0 0);
+	--success: oklch(74% 0.12 165);
+	--success-text: oklch(74% 0.12 165);
 	--success-foreground: oklch(14.1% 0.018 70.5);
 	--tone-standard: oklch(70% 0.09 130);
 	--tone-collectible: oklch(70% 0.12 285);
 	--tone-edition: oklch(68% 0.14 309);
-	--tone-info: oklch(72% 0.11 250);
+	--tone-info: oklch(75.5% 0.11 250);
+	--tone-info-text: oklch(75.5% 0.11 250);
 	--tone-warning: oklch(78% 0.13 60);
-	--highlight: oklch(65.2% 0.235 32.9);
+	--tone-warning-text: oklch(78% 0.13 60);
+	--highlight: oklch(58% 0.245 32.9);
 	--tone-standard-foreground: oklch(14.1% 0.018 70.5);
 	--tone-collectible-foreground: oklch(14.1% 0.018 70.5);
 	--tone-edition-foreground: oklch(14.1% 0.018 70.5);
 	--tone-info-foreground: oklch(14.1% 0.018 70.5);
 	--tone-warning-foreground: oklch(14.1% 0.018 70.5);
-	--highlight-foreground: oklch(14.1% 0.018 70.5);
+	--highlight-foreground: oklch(100% 0 0);
 	--overlay: oklch(14.1% 0.018 70.5);
 	--overlay-foreground: oklch(100% 0 0);
 	--sidebar: oklch(15.9% 0.016 65);
@@ -273,4 +283,25 @@
 	--sidebar-accent-foreground: oklch(100% 0 0);
 	--sidebar-border: oklch(25.2% 0.012 67.2);
 	--sidebar-ring: oklch(65.2% 0.235 32.9);
+}
+
+/* Art direction for generated imagery (GradientArt; ART_TOKENS in
+   themes/_contract.ts). Light as the accent (art-direction.md): a hot core blooming out of a
+   warm near-black ground and falling off steeply — fire, not a wash. Perfectly
+   flat, no grain. Every colour is the brand moved along the flame, so a new
+   brand still burns in its own hue.
+   Declared on every arm so a .dark or .light island derives from its own
+   tokens rather than inheriting this scope's resolved colours. */
+[data-sable-theme="ember"],
+[data-sable-theme="ember"] .dark,
+[data-sable-theme="ember"] .light {
+	--theme-art-1: oklch(from var(--primary) 0.17 0.03 calc(h + 20));
+	--theme-art-2: var(--primary);
+	--theme-art-3: oklch(from var(--primary) 0.68 0.21 calc(h + 15));
+	--theme-art-4: oklch(from var(--primary) 0.88 0.15 calc(h + 50));
+	--theme-art-5: oklch(from var(--primary) 0.38 0.15 calc(h - 5));
+	--theme-art-ground: oklch(from var(--primary) 0.14 0.02 calc(h + 20));
+	--theme-art-warp: 0.95;
+	--theme-art-softness: 0.72;
+	--theme-art-grain: 0;
 }

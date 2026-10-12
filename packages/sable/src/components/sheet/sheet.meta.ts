@@ -120,7 +120,7 @@ export const sheetMeta: ComponentMeta = {
 		{
 			name: "SheetFooter",
 			type: 'ComponentProps<"div">',
-			description: "Bottom row for actions, pinned after the scrollable body.",
+			description: "Bottom row for actions, pinned after the scrollable body. In a bottom sheet it stacks: full width, the primary on top, every button at the cta height.",
 		},
 	],
 	variants: {

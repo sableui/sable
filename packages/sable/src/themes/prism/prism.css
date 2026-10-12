@@ -79,14 +79,18 @@
 	--accent: oklch(90.43693% 0.027753 253.2434);
 	--accent-foreground: oklch(26.55994% 0.047330 255.4106);
 	--destructive: oklch(51.62734% 0.183834 19.4551);
+	--destructive-text: oklch(51.62734% 0.183834 19.4551);
 	--destructive-foreground: oklch(100.00000% 0.000000 89.8756);
 	--success: oklch(45.54384% 0.081395 166.9049);
+	--success-text: oklch(45.54384% 0.081395 166.9049);
 	--success-foreground: oklch(100.00000% 0.000000 89.8756);
 	--tone-standard: oklch(44.17719% 0.043085 257.4210);
 	--tone-collectible: oklch(45.52411% 0.167785 299.9667);
 	--tone-edition: oklch(46.78672% 0.141265 343.5094);
 	--tone-info: oklch(46.18475% 0.139719 259.8084);
+	--tone-info-text: oklch(46.18475% 0.139719 259.8084);
 	--tone-warning: oklch(48.72795% 0.103396 73.7587);
+	--tone-warning-text: oklch(48.72795% 0.103396 73.7587);
 	--highlight: oklch(87.60451% 0.060193 266.4847);
 	--tone-standard-foreground: oklch(100.00000% 0.000000 89.8756);
 	--tone-collectible-foreground: oklch(100.00000% 0.000000 89.8756);
@@ -158,14 +162,18 @@
 	--accent: oklch(44.66150% 0.052212 253.9323);
 	--accent-foreground: oklch(96.50786% 0.016545 259.4182);
 	--destructive: oklch(79.47983% 0.122016 8.7083);
+	--destructive-text: oklch(79.47983% 0.122016 8.7083);
 	--destructive-foreground: oklch(25.20350% 0.047984 259.9119);
 	--success: oklch(82.23776% 0.085532 165.8233);
+	--success-text: oklch(82.23776% 0.085532 165.8233);
 	--success-foreground: oklch(25.20350% 0.047984 259.9119);
 	--tone-standard: oklch(82.02131% 0.046953 256.4806);
 	--tone-collectible: oklch(77.28561% 0.118760 301.0442);
 	--tone-edition: oklch(80.44093% 0.102099 341.6738);
 	--tone-info: oklch(80.57243% 0.097939 259.4939);
+	--tone-info-text: oklch(80.57243% 0.097939 259.4939);
 	--tone-warning: oklch(84.66478% 0.108333 84.1636);
+	--tone-warning-text: oklch(84.66478% 0.108333 84.1636);
 	--highlight: oklch(82.28684% 0.088371 261.1846);
 	--highlight-foreground: oklch(25.20350% 0.047984 259.9119);
 	--overlay: oklch(14.80476% 0.014876 256.6891);
@@ -183,4 +191,22 @@
 	--tone-edition-foreground: oklch(25.20350% 0.047984 259.9119);
 	--tone-info-foreground: oklch(25.20350% 0.047984 259.9119);
 	--tone-warning-foreground: oklch(25.20350% 0.047984 259.9119);
+}
+
+/* Art direction for generated imagery (GradientArt; ART_TOKENS in
+   themes/_contract.ts). Long soft airbrushed fields, pink to violet to periwinkle, with one
+   vivid indigo (art-direction.md). Diffuse, sourceless glow; no grain.
+   Declared on every arm so a .dark or .light island derives from its own
+   tokens rather than inheriting this scope's resolved colours. */
+[data-sable-theme="prism"],
+[data-sable-theme="prism"] .dark,
+[data-sable-theme="prism"] .light {
+	--theme-art-1: oklch(from var(--tone-edition) 0.83 0.1 h);
+	--theme-art-2: oklch(from var(--tone-collectible) 0.68 0.16 h);
+	--theme-art-3: oklch(from var(--tone-info) 0.82 0.09 h);
+	--theme-art-4: oklch(from var(--primary) 0.55 0.2 h);
+	--theme-art-ground: oklch(from var(--primary) 0.35 0.14 h);
+	--theme-art-warp: 0.45;
+	--theme-art-softness: 1;
+	--theme-art-grain: 0;
 }

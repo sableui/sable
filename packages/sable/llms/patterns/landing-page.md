@@ -309,7 +309,7 @@ export function LandingPage() {
 											{deploys.map((deploy) => (
 												<Entity
 													key={deploy.meta}
-													leading={<Avatar size="sm" fallback={deploy.initials} alt={deploy.name} />}
+													leading={<Avatar variant="art" size="sm" fallback={deploy.initials} alt={deploy.name} />}
 													title={deploy.title}
 													subtitle={deploy.meta}
 													action={

@@ -3,6 +3,8 @@ import { userEvent } from "@testing-library/user-event"
 import { useState } from "react"
 import { describe, expect, it, vi } from "vitest"
 import { Button } from "../button"
+import { CardFooter } from "../card"
+import { Dialog, DialogContent, DialogTitle } from "../dialog"
 import {
 	Sheet,
 	SheetClose,
@@ -173,5 +175,60 @@ describe("Sheet", () => {
 		await waitFor(() =>
 			expect(screen.getByRole("button", { name: "Open" })).toHaveFocus(),
 		)
+	})
+
+	it("stacks its footer in a bottom sheet: primary on top, full width, capped at a phone's width", async () => {
+		render(
+			<Sheet open>
+				<SheetContent side="bottom">
+					<SheetTitle>Feedback</SheetTitle>
+					<SheetFooter>
+						<Button variant="ghost">Skip</Button>
+						<Button>Send</Button>
+					</SheetFooter>
+				</SheetContent>
+			</Sheet>,
+		)
+		const footer = (await screen.findByRole("button", { name: "Send" })).parentElement as HTMLElement
+		expect(footer.dataset.actions).toBe("stack")
+		expect(footer.className).toContain("flex-col-reverse")
+		expect(footer.className).toContain("max-w-sm")
+		expect(screen.getByRole("button", { name: "Send" }).className).toContain("w-full")
+	})
+
+	it("keeps a side sheet's footer a right-aligned row", async () => {
+		render(
+			<Sheet open>
+				<SheetContent side="right">
+					<SheetTitle>Filters</SheetTitle>
+					<SheetFooter>
+						<Button>Apply</Button>
+					</SheetFooter>
+				</SheetContent>
+			</Sheet>,
+		)
+		const footer = (await screen.findByRole("button", { name: "Apply" })).parentElement as HTMLElement
+		expect(footer.dataset.actions).toBe("row")
+		expect(footer.className).toContain("justify-end")
+	})
+
+	it("does not reach into a dialog opened from a bottom sheet", async () => {
+		render(
+			<Sheet open>
+				<SheetContent side="bottom">
+					<SheetTitle>Sheet</SheetTitle>
+					<Dialog open>
+						<DialogContent>
+							<DialogTitle>Confirm</DialogTitle>
+							<CardFooter actions>
+								<Button>Delete</Button>
+							</CardFooter>
+						</DialogContent>
+					</Dialog>
+				</SheetContent>
+			</Sheet>,
+		)
+		const footer = (await screen.findByRole("button", { name: "Delete" })).parentElement as HTMLElement
+		expect(footer.dataset.actions).toBe("row")
 	})
 })

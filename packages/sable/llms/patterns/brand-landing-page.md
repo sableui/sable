@@ -377,7 +377,7 @@ export function BrandLandingPage() {
 									</blockquote>
 								</Stack>
 								<figcaption className="flex items-center gap-3">
-									<Avatar size="lg" fallback="MO" />
+									<Avatar variant="art" size="lg" fallback="MO" />
 									<div>
 										<p className="text-title-sm">Maya Okafor</p>
 										<p className="text-body-sm text-muted-foreground">Head of operations, Fielddesk</p>

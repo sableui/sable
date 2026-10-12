@@ -31,6 +31,30 @@ light and dark modes and test long text, focus, disabled controls, floating
 surfaces, and errors. Token validation checks the contract and safe CSS structure;
 rendered review establishes contrast, coherence, and suitability.
 
+`--check` also measures the label on every filled role against its `-foreground`,
+in both modes: the brand fills `primary`, `sidebar-primary` and `highlight`, and the
+status fills `destructive`, `success`, `tone-warning` and `tone-info`. A label must
+clear 4.5:1 and APCA Lc 60, because a pair can pass the ratio and still read muddy
+(dark ink on a bright red-orange). A failing pair stops the check with
+`ERR_PRESET_CONTRAST` and the nearest pair that reads, with the fill's lightness
+moved and its hue kept. A fill keeps the ink its light-mode colour takes, so a
+colour with a white label keeps white in dark mode and its fill comes down to meet
+it. Offer that pair to the user.
+
+Each status colour has two tokens. The fill (`destructive`) carries its label;
+`destructive-text` is the same colour drawn on a surface, and `text-destructive`,
+`border-destructive` and `ring-destructive` read it. In dark mode the two usually
+differ: a saturated fill low enough for white, and a lighter text value that reads
+on a dark card. Author both; lowering the fill never darkens the page's error text.
+If the user chose the failing pair on purpose (a brand book, a reference to match),
+keep it and record the decision in the preset rather than overriding it:
+
+```json
+"exceptions": [{ "rule": "label-contrast", "mode": "dark", "token": "primary", "reason": "Brand book specifies dark ink on the bright fill." }]
+```
+
+An accepted pair is reported with its reason on every check; it is never silent.
+
 Canvas's Export view downloads this same format with resolved theme values and
 the current customizations. Enter a name and design guidance, save the JSON, and
 place it in the target project. The browser cannot write into that project for

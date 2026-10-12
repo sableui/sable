@@ -1,6 +1,6 @@
 # Sable (@sableui/react)
 
-> An owned, themeable React component system. Default theme: **Base** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 105 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
+> An owned, themeable React component system. Default theme: **Base** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 106 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
 
 ## Start here — brief, composition, evidence
 
@@ -346,7 +346,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **helper** — `hit-target`, `link-underline`, `checkerboard`
 - **elsewhere** — paired `text-*` page tiers: registry.json → tokens.typography; `motion-*` / `animate-*` recipes: registry.json → tokens.motion.recipes.
 
-### Components (105) — full props/subcomponents/variants/guidance/a11y/examples in registry.json → components
+### Components (106) — full props/subcomponents/variants/guidance/a11y/examples in registry.json → components
 
 - **Accordion** — Stacked, collapsible disclosure sections over Base UI Accordion — roving focus, arrow-key navigation, ARIA region/heading/button wiring, and an animated height transition. *Parts:* AccordionItem, AccordionTrigger, AccordionPanel. → [`llms/components/accordion.md`](./llms/components/accordion.md)
 - **AppHeader** — Mobile top bar (sticky, hidden at lg) with leading / title / actions slots on a 3-column grid that keeps the title optically centered. → [`llms/components/app-header.md`](./llms/components/app-header.md)
@@ -388,6 +388,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **FileDropzone** — Drag-and-drop target and file picker in one keyboard-operable button. → [`llms/components/file-dropzone.md`](./llms/components/file-dropzone.md)
 - **Form** — A styled <form> plus Field — the form orchestration layer, built on Base UI Form and Field. *Parts:* Field. → [`llms/components/form.md`](./llms/components/form.md)
 - **GlidingHighlight** — One highlight that travels to the active item, instead of each item toggling its own background. → [`llms/components/gliding-highlight.md`](./llms/components/gliding-highlight.md)
+- **GradientArt** — **BETA.** Placeholder artwork painted by a static WebGL shader from the preset's own art direction (the --art-* tokens: palette, ground, warp, softness, grain) — Ember burns, Prism airbrushes, Meridian is grainy monochrome — with a CSS gradient underneath for prerendered pages and browsers without WebGL2. → [`llms/components/gradient-art.md`](./llms/components/gradient-art.md)
 - **InlineStatus** — A borderless single-line status message — a leading semantic icon + one line of text over the canonical tone scale (neutral/info/success/warning/destructive). → [`llms/components/inline-status.md`](./llms/components/inline-status.md)
 - **Input** — Styled native text input. → [`llms/components/input.md`](./llms/components/input.md)
 - **Kbd** — A keyboard key indicator. → [`llms/components/kbd.md`](./llms/components/kbd.md)

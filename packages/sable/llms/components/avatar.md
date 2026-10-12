@@ -12,6 +12,7 @@ Use Avatar to represent a person, team, or account with a compact visual identit
 
 ### Best practices
 
+- Do: Use `variant="art"` where people without photos sit side by side — a member list, an activity feed, a chat. Seeded by the person, each gets their own colour, so faces stay tellable apart at a glance; the neutral fallback makes everyone the same grey circle.
 - Do: Provide meaningful alt text for profile images, or an empty alt when the adjacent text already names the person.
 - Do: Use initials or a simple glyph fallback so missing images still communicate identity.
 - Do: Use consistent sizes within a group; reserve lg for profile headers or major identity moments.
@@ -50,14 +51,17 @@ Use Avatar to represent a person, team, or account with a compact visual identit
 | fallbackDelay | number | — | Delay before showing the fallback, in ms — avoids a flash on fast loads. |
 | status | ReactNode | — | A presence indicator pinned to the bottom-end edge, usually <StatusDot tone="success" />. It sits outside the clipped circle and wears a ring in the surface colour (--avatar-group-ring, else the page background). Use this instead of absolutely positioning a dot over an Avatar. |
 | size | "sm" \| "md" \| "lg" | "md" | Square footprint: 32px / 40px / 48px. |
+| variant | "neutral" \| "art" | "neutral" | What the fallback looks like. neutral: initials on the muted surface. art: initials over GradientArt seeded by the person, so each person without a photo gets their own stable colour from the theme. |
+| seed | string \| number | — | The art variant's seed. Defaults to the fallback text, then `alt`, so a person keeps one colour wherever they appear; pass a user id to tell apart two people who share initials. |
 
 ## Variants
 
 - **size**: sm, md, lg
+- **variant**: neutral, art
 
 ## Tokens used
 
-`muted`, `muted-foreground`, `background`, `card`, `popover`
+`muted`, `muted-foreground`, `background`, `card`, `popover`, `overlay`, `overlay-foreground`
 
 ## Accessibility
 
@@ -88,6 +92,14 @@ import { Avatar } from "@sableui/react"
 import { Avatar } from "@sableui/react"
 
 <Avatar fallback="AM" alt="Alex Morgan" />
+```
+
+### Art fallback
+
+```tsx
+import { Avatar } from "@sableui/react"
+
+<Avatar variant="art" fallback="AM" alt="Alex Morgan" />
 ```
 
 ### Sizes

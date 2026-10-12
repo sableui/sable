@@ -63,6 +63,16 @@ export const SEMANTIC_TOKENS = [
 	"tone-info-foreground",
 	"tone-warning-foreground",
 	"highlight-foreground",
+	// Status text — a status colour drawn ON a surface: text, icons, borders,
+	// rings. Separate from the fill because the two want different lightness in
+	// dark mode: a solid fill sits low enough for a white label, while text and
+	// marks must stay light enough to read on a dark card. `text-destructive`,
+	// `border-destructive` and `ring-destructive` read these through Tailwind's
+	// per-property colour namespaces (styles.css); only `bg-*` reads the fill.
+	"destructive-text",
+	"success-text",
+	"tone-warning-text",
+	"tone-info-text",
 	// Overlay — a fixed, theme-independent dark surface for things that sit OVER
 	// content rather than on a theme surface: modal/sheet scrims, media letterbox,
 	// pills on imagery. `overlay-foreground` is its always-legible light ink.
@@ -413,6 +423,38 @@ export const WORKSPACE_SURFACE_TOKENS = [
 ] as const
 
 export type WorkspaceSurfaceToken = (typeof WORKSPACE_SURFACE_TOKENS)[number]
+
+/**
+ * Art direction for generated imagery (GradientArt) — like the workspace
+ * surfaces, every theme gets them from styles.css with a `--theme-*` hook, so a
+ * theme declares only what makes its art its own.
+ *
+ * - `art-1` … `art-6` are the colours the art is painted from, in placement
+ *   order; unset slots are transparent and skipped. The default is the four
+ *   decorative tones, lifted to an art strength.
+ * - `art-ground` is what the colours glow over (grain's ground, the CSS
+ *   fallback's base). The default is the brand steeped in the first tone.
+ * - `art-warp` (0–1) bends the field; `art-softness` (0–1) is how far colours
+ *   melt into each other, 0 crisp blobs to 1 one wash; `art-grain` (0–1) is a
+ *   film-grain overlay for themes whose imagery carries one.
+ *
+ * Derive the colours from the theme's own tokens (`oklch(from var(--primary)
+ * …)`) where the art direction allows, so a brand change carries into the art.
+ */
+export const ART_TOKENS = [
+	"art-1",
+	"art-2",
+	"art-3",
+	"art-4",
+	"art-5",
+	"art-6",
+	"art-ground",
+	"art-warp",
+	"art-softness",
+	"art-grain",
+] as const
+
+export type ArtToken = (typeof ART_TOKENS)[number]
 
 /**
  * Derived edges — like the workspace surfaces, every theme gets them from

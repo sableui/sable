@@ -109,6 +109,39 @@
 	--color-tone-edition-foreground: var(--tone-edition-foreground);
 	--color-tone-warning-foreground: var(--tone-warning-foreground);
 	--color-tone-info-foreground: var(--tone-info-foreground);
+	/* Status text: a status colour drawn on a surface. Tailwind resolves each
+	   property's own namespace before --color-*, so `text-destructive`,
+	   `border-destructive`, `ring-destructive` (and outline, decoration, fill,
+	   stroke) read --destructive-text while `bg-destructive` keeps the fill.
+	   Same class names; the value fits the job. */
+	--text-color-destructive: var(--destructive-text);
+	--border-color-destructive: var(--destructive-text);
+	--ring-color-destructive: var(--destructive-text);
+	--outline-color-destructive: var(--destructive-text);
+	--text-decoration-color-destructive: var(--destructive-text);
+	--fill-destructive: var(--destructive-text);
+	--stroke-destructive: var(--destructive-text);
+	--text-color-success: var(--success-text);
+	--border-color-success: var(--success-text);
+	--ring-color-success: var(--success-text);
+	--outline-color-success: var(--success-text);
+	--text-decoration-color-success: var(--success-text);
+	--fill-success: var(--success-text);
+	--stroke-success: var(--success-text);
+	--text-color-tone-warning: var(--tone-warning-text);
+	--border-color-tone-warning: var(--tone-warning-text);
+	--ring-color-tone-warning: var(--tone-warning-text);
+	--outline-color-tone-warning: var(--tone-warning-text);
+	--text-decoration-color-tone-warning: var(--tone-warning-text);
+	--fill-tone-warning: var(--tone-warning-text);
+	--stroke-tone-warning: var(--tone-warning-text);
+	--text-color-tone-info: var(--tone-info-text);
+	--border-color-tone-info: var(--tone-info-text);
+	--ring-color-tone-info: var(--tone-info-text);
+	--outline-color-tone-info: var(--tone-info-text);
+	--text-decoration-color-tone-info: var(--tone-info-text);
+	--fill-tone-info: var(--tone-info-text);
+	--stroke-tone-info: var(--tone-info-text);
 	--color-highlight-foreground: var(--highlight-foreground);
 
 	/* Overlay — fixed dark scrim/media surface + its light ink (bg-overlay,
@@ -352,6 +385,23 @@
 	   are hard 3–12px drops); on a 20px knob inside its track that drop escaped
 	   the track. A knob only sits on its rail, so it keeps one small shadow. */
 	--knob-shadow: var(--theme-knob-shadow, 0 1px 2px 0 rgb(0 0 0 / 0.05));
+
+	/* Art direction for generated imagery (GradientArt; see ART_TOKENS in
+	   themes/_contract.ts). The default paints the four decorative tones,
+	   lifted from their text strength to an art strength, glowing over the brand
+	   steeped in the first tone; a theme overrides any of it through the
+	   --theme-art-* hooks. Declared here, on every scope, so a .dark island or a
+	   preset-scoped preview paints from its own tokens. */
+	--art-1: var(--theme-art-1, oklch(from var(--tone-info) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h));
+	--art-2: var(--theme-art-2, oklch(from var(--tone-collectible) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h));
+	--art-3: var(--theme-art-3, oklch(from var(--tone-edition) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h));
+	--art-4: var(--theme-art-4, oklch(from var(--tone-standard) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h));
+	--art-5: var(--theme-art-5, transparent);
+	--art-6: var(--theme-art-6, transparent);
+	--art-ground: var(--theme-art-ground, color-mix(in oklab, var(--primary) 55%, oklch(from var(--tone-info) 0.3 c h)));
+	--art-warp: var(--theme-art-warp, 0.8);
+	--art-softness: var(--theme-art-softness, 0.88);
+	--art-grain: var(--theme-art-grain, 0);
 }
 
 /* ==========================================================================

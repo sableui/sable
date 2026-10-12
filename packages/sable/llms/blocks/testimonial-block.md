@@ -50,7 +50,7 @@ export function TestimonialBlock({ className }: TestimonialBlockProps) {
 							<blockquote className="text-balance text-heading-3 sm:text-heading-2">“{story.quote}”</blockquote>
 						</Stack>
 						<figcaption className="flex items-center gap-3">
-							<Avatar size="lg" fallback={story.initials} alt={story.name} />
+							<Avatar variant="art" size="lg" fallback={story.initials} alt={story.name} />
 							<div>
 								<p className="text-title-sm">{story.name}</p>
 								<p className="text-body-sm text-muted-foreground">{story.role}</p>

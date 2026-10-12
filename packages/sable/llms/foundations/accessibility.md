@@ -29,6 +29,7 @@ Sable's components ship accessible behavior from Base UI. These rules cover what
 
 - **Never:** Color as the only signal (a red border with no message). **Instead:** Color plus text or an icon. Roughly 1 in 12 men cannot tell red from green.
 - **Never:** Opacity on the focus ring. **Instead:** ring-ring at full opacity; tune the token in the theme. A faded ring loses the contrast the theme tested. *Enforced by sable-lint: faded-focus-ring.*
+- **Never:** A brand or status fill retuned under its old label — dark ink on a bright red that passes 4.5:1 at APCA Lc 42. **Instead:** A label that clears 4.5:1 and APCA Lc 60 in both modes. Move the fill's lightness, not its hue, keeping the ink its colour takes. A status colour on a surface is its own token (`--destructive-text`), so the fill can move freely. The ratio alone passes labels that read muddy. A deliberate brand pair is allowed with a recorded reason (lint disable or preset exceptions). *Enforced by sable-lint: label-contrast.*
 - **Never:** Blocking paste, or type="number" for codes and card numbers. **Instead:** type="text" inputMode="numeric" with the right autocomplete. Blocking paste breaks password managers; number inputs scroll-change identifiers.
 - **Never:** forced-color-adjust: none to 'fix' high-contrast mode. **Instead:** Let the system colors apply; verify the result. It removes the user's chosen colors exactly where they need them.
 - **Never:** outline: none without a replacement. **Instead:** focus-visible:ring-2 ring-ring. Keyboard users lose their place.

@@ -1,4 +1,6 @@
 import {
+	GradientArt,
+	gradientArtMeta,
 	Attachment,
 	attachmentMeta,
 	Avatar,
@@ -288,10 +290,18 @@ export const PREVIEWS: Record<string, PreviewEntry> = {
 			<Pill {...as<ComponentProps<typeof Pill>>(values)}>{text}</Pill>
 		),
 	},
+	"gradient-art": {
+		meta: gradientArtMeta,
+		only: ["variant"],
+		fixed: ['seed="Untitled (gold rush)"', 'className="aspect-[4/3] w-64 rounded-lg"'],
+		render: (values) => (
+			<GradientArt {...as<ComponentProps<typeof GradientArt>>(values)} seed="Untitled (gold rush)" className="aspect-[4/3] w-64 rounded-lg" />
+		),
+	},
 	avatar: {
 		fixed: ['fallback="AM"', 'alt="Alex Morgan"'],
 		meta: avatarMeta,
-		only: ["size"],
+		only: ["size", "variant"],
 		render: (values) => (
 			<Avatar
 				{...as<ComponentProps<typeof Avatar>>(values)}

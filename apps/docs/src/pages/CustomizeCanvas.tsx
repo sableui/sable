@@ -1,4 +1,4 @@
-import { Grid, Tabs, TabsList, TabsPanel, TabsTrigger, cn } from "@sableui/react"
+import { Badge, Grid, Tabs, TabsList, TabsPanel, TabsTrigger, cn } from "@sableui/react"
 import {
 	ChatThreadBlock,
 	CommandPaletteBlock,
@@ -133,8 +133,9 @@ export function TasksScene() {
 	return <Stage><TaskListBlock className={SCENE} /></Stage>
 }
 
-export function SignInScene({ onSignIn }: { onSignIn?: () => void } = {}) {
-	return <Stage><SignInBlock className={SCENE} onSignIn={onSignIn} /></Stage>
+/** `framed={false}` when a sheet holds it: the sheet is already the surface. */
+export function SignInScene({ framed, onSignIn }: { framed?: boolean; onSignIn?: () => void } = {}) {
+	return <Stage><SignInBlock className={SCENE} framed={framed} onSignIn={onSignIn} /></Stage>
 }
 
 export function UploadScene() {
@@ -145,9 +146,12 @@ export function WalletScene() {
 	return <Stage><WalletBlock className={SCENE} /></Stage>
 }
 
-/** `onDone` closes the iPhone canvas's sheet from Skip or Send. */
-export function FeedbackScene({ onDone }: { onDone?: (sent: boolean) => void } = {}) {
-	return <Stage><FeedbackFormBlock className={SCENE} onDone={onDone} /></Stage>
+/**
+ * `onDone` closes the iPhone canvas's sheet from Skip or Send; `framed={false}`
+ * there, since the sheet is already the surface and a card in it reads as nested.
+ */
+export function FeedbackScene({ framed, onDone }: { framed?: boolean; onDone?: (sent: boolean) => void } = {}) {
+	return <Stage><FeedbackFormBlock className={SCENE} framed={framed} onDone={onDone} /></Stage>
 }
 
 /** Charts on the canvas: the palette's tones as data colours, judged as a set. */
@@ -225,7 +229,7 @@ export function CustomizeCanvasPage() {
 			}}>
 				{/* Hidden by CSS too, so a phone never sees it flash before hydration. */}
 				<div className={cn("flex items-center justify-between gap-4 mb-6", "[@media(max-width:47.99rem)_and_(pointer:coarse)]:hidden", phone && "hidden")}>
-					<TabsList variant="pill" aria-label="Canvas platform"><TabsTrigger value="web">Web</TabsTrigger><TabsTrigger value="ios">iOS</TabsTrigger></TabsList>
+					<TabsList variant="pill" aria-label="Canvas platform"><TabsTrigger value="web">Web</TabsTrigger><TabsTrigger value="ios">iOS<Badge size="sm">Beta</Badge></TabsTrigger></TabsList>
 				</div>
 				<TabsPanel value="web" keepMounted><ThemeCanvas /></TabsPanel>
 				<TabsPanel value="ios" keepMounted>{showIos && !phone && <IosCanvasPreview />}</TabsPanel>

@@ -250,6 +250,7 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 	   a player, and it sits with the other media now. */
 	Browser: ["Media & mockups", "page"],
 	Carousel: ["Media & mockups", "page"],
+	GradientArt: ["Media & mockups", "either"],
 	Marquee: ["Media & mockups", "page"],
 	Phone: ["Media & mockups", "page"],
 	Video: ["Media & mockups", "page"],

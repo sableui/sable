@@ -21,24 +21,10 @@ A now-playing card: cover, title and artist as an Entity with a Like action, a p
 
 ```tsx
 import { useState } from "react"
-import { Button, Card, CardContent, cn, Entity, Icon, Slider } from "@sableui/react"
+import { Button, Card, CardContent, cn, Entity, GradientArt, Icon, Slider } from "@sableui/react"
 
 const track = { title: "Low tide, high noon", artist: "Juno Avery", position: 38, elapsed: "1:24", remaining: "-2:16" }
 
-/**
- * Placeholder cover painted from the palette — the theme's decorative tones
- * over the brand, so it follows every look. Replace with the cover image.
- */
-const ART_TONES = ["info", "collectible", "edition"]
-const ART_SPOTS = [[20, 20, 70], [85, 30, 60], [60, 90, 65]]
-const cover = [
-	...ART_SPOTS.map(
-		([x, y, reach], i) =>
-			// design-lint-disable-next-line inline-color -- relative colour derived from the theme's own --tone token, so it follows every look
-			`radial-gradient(in oklab at ${x}% ${y}%, oklch(from var(--tone-${ART_TONES[i % ART_TONES.length]}) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h), transparent ${reach}%)`,
-	),
-	"var(--primary)",
-].join(", ")
 
 export interface MediaPlayerBlockProps {
 	className?: string
@@ -59,7 +45,8 @@ export function MediaPlayerBlock({ className, framed = true, onPlayingChange, on
 				    card already pads it. */}
 				<Entity
 					className="p-0"
-					leading={<div aria-hidden className="size-14 rounded-md" style={{ background: cover }} />}
+					// Placeholder cover painted from the theme. Replace with the cover image.
+					leading={<GradientArt aria-hidden seed={track.title} className="size-14 rounded-md" />}
 					title={track.title}
 					subtitle={track.artist}
 					action={

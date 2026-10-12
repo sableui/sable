@@ -166,3 +166,25 @@ describe("Avatar without an image", () => {
 		expect(screen.getByRole("img", { name: "Alex Morgan" })).toBeTruthy()
 	})
 })
+
+describe("Avatar art fallback", () => {
+	const art = (container: HTMLElement) => container.querySelector<HTMLElement>('[data-slot="gradient-art"]')
+
+	it("paints the initials over art and keeps the name from alt", () => {
+		const { container } = render(<Avatar variant="art" fallback="MO" alt="Mara Okafor" />)
+		expect(art(container)).toHaveTextContent("MO")
+		expect(screen.getByRole("img", { name: "Mara Okafor" })).toBeTruthy()
+	})
+
+	it("gives each person their own art, and keeps it wherever they appear", () => {
+		const paint = (fallback: string, alt: string) => art(render(<Avatar variant="art" fallback={fallback} alt={alt} />).container)?.style.background
+		// Seeded by the initials, so a decorative repeat (alt="") matches the named avatar.
+		expect(paint("AL", "Ada Lovelace")).toBe(paint("AL", ""))
+		expect(paint("AL", "Ada Lovelace")).not.toBe(paint("MO", "Mara Okafor"))
+	})
+
+	it("stays neutral by default", () => {
+		const { container } = render(<Avatar fallback="MO" alt="Mara Okafor" />)
+		expect(art(container)).toBeNull()
+	})
+})

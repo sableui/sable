@@ -10,7 +10,7 @@ export const notificationListBlockMeta: BlockMeta = {
 		"Reach for this for a notifications popover, a recent-activity card or an inbox preview. A full inbox with selection and bulk actions is a ListDetailPage.",
 	notes: [
 		"Rows are Card + CardList + Entity, inset from the card's padding at any density.",
-		"Unread is a quiet info dot after the time — the list stays calm when most items are unread.",
+		"Unread is a quiet info dot before the time, so the times keep one right edge — the list stays calm when most items are unread.",
 		"framed={false} drops the surface for a Popover, which already is one.",
 	],
 	a11y: [

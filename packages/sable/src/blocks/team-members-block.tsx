@@ -41,7 +41,7 @@ export function TeamMembersBlock({ className, framed = true, onInvite, onMemberA
 				{members.map((m) => (
 					<Entity
 						key={m.id}
-						leading={<Avatar size="sm" fallback={m.initials} alt={m.name} />}
+						leading={<Avatar variant="art" size="sm" fallback={m.initials} alt={m.name} />}
 						title={m.name}
 						subtitle={m.email}
 						action={

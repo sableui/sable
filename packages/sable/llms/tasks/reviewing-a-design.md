@@ -92,6 +92,15 @@ Use opaque `focus-visible:ring-ring` or `ring-sidebar-ring`; reducing the ring t
 `faded-focus-ring` rule catches those classes. A token contrast report establishes
 the tested pairs, not the entire rendered product's accessibility.
 
+A label on a filled role (a primary or destructive Button, the sidebar's active
+item, a highlight, a success or warning badge) should clear 4.5:1 and APCA Lc 60 in
+both modes. A colour retuned for dark mode often lands where dark ink passes the
+ratio but reads muddy. `label-contrast`
+in `sable lint` and `sable preset --check` find it and suggest the nearest pair
+that reads; offer that pair. Keep a pair the user chose deliberately, recorded with
+its reason (a lint disable or a preset `exceptions` entry), instead of overriding
+it to finish.
+
 Describe a defect as a visible or behavioral consequence: "The heading wraps to
 six lines at 390px and pushes the action below the intended first decision point."
 Then record the repair and before/after artifact IDs in `iterations`. Avoid vague

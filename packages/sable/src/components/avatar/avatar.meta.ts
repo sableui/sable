@@ -25,6 +25,11 @@ export const avatarMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
+					'Use `variant="art"` where people without photos sit side by side — a member list, an activity feed, a chat. Seeded by the person, each gets their own colour, so faces stay tellable apart at a glance; the neutral fallback makes everyone the same grey circle.',
+			},
+			{
+				guidance: "do",
+				description:
 					"Provide meaningful alt text for profile images, or an empty alt when the adjacent text already names the person.",
 			},
 			{
@@ -132,6 +137,17 @@ export const avatarMeta: ComponentMeta = {
 			default: '"md"',
 			description: "Square footprint: 32px / 40px / 48px.",
 		},
+		{
+			name: "variant",
+			type: '"neutral" | "art"',
+			default: '"neutral"',
+			description: "What the fallback looks like. neutral: initials on the muted surface. art: initials over GradientArt seeded by the person, so each person without a photo gets their own stable colour from the theme.",
+		},
+		{
+			name: "seed",
+			type: "string | number",
+			description: "The art variant's seed. Defaults to the fallback text, then `alt`, so a person keeps one colour wherever they appear; pass a user id to tell apart two people who share initials.",
+		},
 	],
 	subcomponents: [
 		{
@@ -167,8 +183,9 @@ export const avatarMeta: ComponentMeta = {
 	],
 	variants: {
 		size: ["sm", "md", "lg"],
+		variant: ["neutral", "art"],
 	},
-	tokensUsed: ["muted", "muted-foreground", "background", "card", "popover"],
+	tokensUsed: ["muted", "muted-foreground", "background", "card", "popover", "overlay", "overlay-foreground"],
 	a11y: [
 		"Base UI tracks the image loading status and swaps to the fallback on missing/loading/error — no manual onError wiring.",
 		"Provide meaningful alt text via the alt prop; pass an empty alt for decorative avatars.",
@@ -184,6 +201,10 @@ export const avatarMeta: ComponentMeta = {
 		{
 			label: "Fallback only",
 			code: '<Avatar fallback="AM" alt="Alex Morgan" />',
+		},
+		{
+			label: "Art fallback",
+			code: '<Avatar variant="art" fallback="AM" alt="Alex Morgan" />',
 		},
 		{
 			label: "Sizes",

@@ -87,6 +87,8 @@
   box-shadow: inset 0 .75px .5px rgb(255 255 255 / .6), 0 8px 40px color-mix(in srgb, var(--ios-ink) 14%, transparent);
 }
 .ios-prototype.dark .ios-sheet[data-detent='medium'], .dark .ios-sheet[data-detent='medium'] { box-shadow: inset 0 .75px .5px rgb(255 255 255 / .25), 0 8px 40px rgb(0 0 0 / .4); }
+/* Opaque: the same floating shape, filled solid (presentationBackground). */
+.ios-sheet[data-detent='medium'][data-background='opaque'] { background: var(--ios-canvas); -webkit-backdrop-filter: none; backdrop-filter: none; }
 .ios-sheet-grabber { display: flex; margin-inline: auto; width: 80px; touch-action: none; }
 .ios-grabber-mark { width: 36px; height: 5px; border-radius: 4px; background: var(--ios-secondary); }
 /* A glass close button, a centered inline title, and an empty column that keeps it centered. */
@@ -97,6 +99,13 @@
    flat surface only smears pale patches into the rim. Keep the fill and highlights. */
 .ios-prototype .ios-sheet .k-glass { -webkit-backdrop-filter: none; backdrop-filter: none; }
 .ios-sheet-content { height: calc(100% - 88px); overflow-y: auto; scrollbar-width: none; padding: 16px 20px; }
+/* A stacked action bar sits at the sheet's bottom: every plain box between the content
+   and the bar becomes a column that fills the height, so the bar's margin-top: auto has
+   room to push into. A <form> or a grid keeps its own layout (a form's fields are often
+   a grid), and the bar inside it follows the content, as it would in a tall form anyway. */
+.ios-sheet-content:has([data-actions='stack']),
+.ios-sheet-content :has([data-actions='stack']):not(form, .grid, [role='group']) { display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch; }
+.ios-sheet-content :has([data-actions='stack']):not(form, .grid, [role='group']) { flex: 1 0 auto; }
 .ios-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 @keyframes ios-route-enter { from { opacity: .7; transform: translateX(28px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes ios-route-back { from { opacity: .7; transform: translateX(-16px); } to { opacity: 1; transform: translateX(0); } }

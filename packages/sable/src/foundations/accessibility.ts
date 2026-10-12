@@ -66,6 +66,12 @@ const accessibility: Foundation = {
 			enforcedBy: "sable-lint: faded-focus-ring",
 		},
 		{
+			never: "A brand or status fill retuned under its old label — dark ink on a bright red that passes 4.5:1 at APCA Lc 42.",
+			instead: "A label that clears 4.5:1 and APCA Lc 60 in both modes. Move the fill's lightness, not its hue, keeping the ink its colour takes. A status colour on a surface is its own token (`--destructive-text`), so the fill can move freely.",
+			why: "The ratio alone passes labels that read muddy. A deliberate brand pair is allowed with a recorded reason (lint disable or preset exceptions).",
+			enforcedBy: "sable-lint: label-contrast",
+		},
+		{
 			never: "Blocking paste, or type=\"number\" for codes and card numbers.",
 			instead: "type=\"text\" inputMode=\"numeric\" with the right autocomplete.",
 			why: "Blocking paste breaks password managers; number inputs scroll-change identifiers.",

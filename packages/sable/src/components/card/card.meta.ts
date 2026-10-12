@@ -149,9 +149,9 @@ export const cardMeta: ComponentMeta = {
 		},
 		{
 			name: "CardFooter",
-			type: 'ComponentPropsWithRef<"div">',
+			type: 'ComponentPropsWithRef<"div"> & { actions?: boolean }',
 			description:
-				"Bottom row for actions/meta. Padding follows the density knob.",
+				"Bottom row for actions/meta. Padding follows the density knob. `actions` marks it as the card's action row (buttons only): in a sheet (IosSheet, a bottom SheetContent) it becomes a full-width stack pinned to the bottom, primary on top; on a page nothing changes.",
 		},
 	],
 	variants: {

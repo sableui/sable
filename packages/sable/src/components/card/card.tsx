@@ -1,6 +1,8 @@
 import type { ComponentPropsWithRef, CSSProperties } from "react"
+import { useContext } from "react"
 import { useRender } from "@base-ui/react/use-render"
 import { cn } from "../../lib/cn"
+import { CardDepthContext, StackedActionsContext, usePresentation } from "../../lib/presentation"
 
 export interface CardProps extends ComponentPropsWithRef<"div"> {
 	/** "default" = raised surface (bg-card + border + soft shadow). "flat" = transparent. */
@@ -66,7 +68,15 @@ export function Card({
 	ref,
 	...props
 }: CardProps) {
-	return useRender({
+	// In a sheet a flat card is not a surface, and its padding is not an inset:
+	// the sheet already pads its content. Bleeding out by exactly --card-p lines
+	// the card's content up with the sheet's (the close button, the title) and
+	// keeps the rhythm between the parts, which the same padding also spaces.
+	// Inline, so it beats the w-full / max-w-* every block puts on its root.
+	// Only the outermost card: a flat card nested in it is part of its content.
+	const depth = useContext(CardDepthContext)
+	const bleed = usePresentation() === "sheet" && variant === "flat" && depth === 0
+	const element = useRender({
 		render: render ?? <div />,
 		ref,
 		props: {
@@ -91,10 +101,15 @@ export function Card({
 				INTERACTIVE_HOVER[variant],
 				className,
 			),
-			style: { "--card-p": DENSITY_PAD[density], ...style } as CSSProperties,
+			style: {
+				"--card-p": DENSITY_PAD[density],
+				...(bleed ? { margin: "calc(var(--card-p) * -1)", width: "calc(100% + var(--card-p) * 2)", maxWidth: "none" } : null),
+				...style,
+			} as CSSProperties,
 		},
 		defaultTagName: "div",
 	})
+	return <CardDepthContext.Provider value={depth + 1}>{element}</CardDepthContext.Provider>
 }
 Card.displayName = "Card"
 
@@ -254,6 +269,17 @@ export function CardList({
 	)
 }
 
+export interface CardFooterProps extends ComponentPropsWithRef<"div"> {
+	/**
+	 * The footer is the card's action row — its buttons and nothing else. On a
+	 * page that changes nothing. In a sheet (`IosSheet`, a bottom `SheetContent`)
+	 * the sheet owns the actions: the row becomes a full-width stack pinned to
+	 * the bottom, the primary on top, every button at the cta height. Leave it
+	 * off a footer that holds a caption, a price or a lone list affordance.
+	 */
+	actions?: boolean
+}
+
 /**
  * The card's closing band. Its top padding is zero because the part above
  * normally owns the seam (CardContent's own bottom padding) — so the two cases
@@ -267,19 +293,31 @@ export function CardList({
  *   footer read as one more row of the table or list above it.
  */
 export function CardFooter({
+	actions = false,
 	className,
+	children,
 	...props
-}: ComponentPropsWithRef<"div">) {
+}: CardFooterProps) {
+	// Stacked: the DOM keeps the page order (secondary, then the trailing
+	// primary), and column-reverse lifts the primary to the top of the bar.
+	// The sheet owns the outermost card's actions (or a footer used on its own),
+	// never those of a card nested inside it.
+	const depth = useContext(CardDepthContext)
+	const stacked = usePresentation() === "sheet" && actions && depth <= 1
 	return (
 		<div
 			data-slot="card-footer"
+			data-actions={actions ? (stacked ? "stack" : "row") : undefined}
 			className={cn(
 				"flex items-center gap-2 p-[var(--card-p,--spacing(6))] pt-0",
 				"[[data-slot=card-header]+&]:pt-[var(--card-p,--spacing(6))]",
 				"[:is([data-slot=card-list],[data-slot=card-content][data-flush])+&]:border-t [:is([data-slot=card-list],[data-slot=card-content][data-flush])+&]:border-border [:is([data-slot=card-list],[data-slot=card-content][data-flush])+&]:pt-[var(--card-p,--spacing(6))]",
 				className,
+				stacked && "mt-auto flex-col-reverse items-stretch justify-start",
 			)}
 			{...props}
-		/>
+		>
+			{stacked ? <StackedActionsContext.Provider value={true}>{children}</StackedActionsContext.Provider> : children}
+		</div>
 	)
 }

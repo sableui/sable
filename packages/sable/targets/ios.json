@@ -3,6 +3,8 @@
   "target": "ios",
   "platformVersion": "27",
   "verifiedOn": "2026-10-10",
+  "status": "beta",
+  "statusNote": "Early preview. The web components are the mature surface; the iOS adapter and these decisions are still being iterated, so expect layout rules and chrome to change between releases. Report what looks wrong rather than patching around it.",
   "designPolicy": {
     "principle": "Sable first. Every screen is built from Sable components in the chosen preset. The adapter supplies only the iOS system chrome Sable has no equivalent for: the app frame and status bar, the navigation bar, the tab bar and sheet presentation.",
     "chrome": [
@@ -20,7 +22,12 @@
       "all content, typography and imagery"
     ],
     "rule": "Never import from konsta. Chrome comes from @sableui/react/ios; anything else is a Sable component. If Sable lacks something a screen needs, report it as a library gap rather than reaching for a native control.",
-    "styling": "One document: Tailwind, Sable styles.css, the preset, then @sableui/react/ios/styles.css. The chrome reads the preset; Sable content follows it as on the web. Align content to px-(--ios-inset)."
+    "styling": "One document: Tailwind, Sable styles.css, the preset, then @sableui/react/ios/styles.css. The chrome reads the preset; Sable content follows it as on the web. Align content to px-(--ios-inset).",
+    "layout": [
+      "A sheet owns what a card owns on a page: the surface, the edge padding and the actions. IosSheet provides a \"sheet\" PresentationProvider, and Sable lays its content out for it; do not restyle it by hand.",
+      "Actions: mark a footer that holds only buttons with <CardFooter actions>. In a sheet it becomes a full-width stack pinned to the bottom, the primary on top, every button at the cta height. A footer with a caption, a price or a list affordance stays unmarked.",
+      "Surface: pass framed={false} to a block in a sheet; a flat card there bleeds its padding so its content lines up with the sheet. Use background=\"opaque\" for a form at the medium detent; keep glass for short, read-only content."
+    ]
   },
   "implementation": {
     "package": "konsta",
@@ -446,6 +453,15 @@
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
+    "GradientArt": {
+      "source": "GradientArt",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "GradientArt"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
     "InlineStatus": {
       "source": "InlineStatus",
       "strategy": "preserve",
@@ -814,7 +830,7 @@
       "components": [
         "IosSheet"
       ],
-      "guidance": "IosSheet presents and dismisses (detents, drag, Escape, focus). Everything inside it is Sable: Form, Field, Input, Button."
+      "guidance": "IosSheet presents and dismisses (detents, drag, Escape, focus). Everything inside it is Sable: Form, Field, Input, Button. The sheet owns the surface, edge padding and actions: put a block in with framed={false}, and a form at the medium detent with background=\"opaque\"."
     },
     "ShowMore": {
       "source": "ShowMore",

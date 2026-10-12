@@ -13,6 +13,7 @@
  */
 
 import { GAMUT_SAFETY, NEUTRAL_TOKENS, type Oklch, type ResolvedTheme, formatOklch as formatRaw, hexToOklch, hueDelta, isNeutral, maxChroma, mix, toGamut } from "./color"
+import { STATUS_FILLS, fitFillToInk, inkFor, inkPolarity, labelContrast } from "@sableui/react/presets"
 import { chartPalette } from "./chart-palette"
 import { type FontEntry, findFont, googleFontsUrl, stackFor } from "./fonts"
 import { SHADOW_STEPS, type ShadowLadder, type ShadowStyle, anchorLadder, definingDrop, densityFor, depthFactors, formatShadow, isFlat, recipeLadder, rotateLadder, scaleLadder, shadowInk, shadowToken } from "./shadow"
@@ -47,6 +48,11 @@ export interface Look {
 	depth: number | null
 	/** The shape of a shadow: the preset's own, or a recipe (see shadow.ts). */
 	shadows: ShadowStyle
+	/**
+	 * How far status colours lean toward the brand: 0 (as the preset ships) to
+	 * 100 (the edge of each status's band). null = the palette's default.
+	 */
+	statusLean: number | null
 	/** Brand hue in degrees, from the swatch strip. null = the preset's own colors. */
 	hue: number | null
 	/** An exact brand colour (hex), from the picker. Wins over `hue`. */
@@ -97,6 +103,7 @@ export const DEFAULT_LOOK: Look = {
 	corners: null,
 	depth: null,
 	shadows: "theme",
+	statusLean: null,
 	hue: null,
 	brand: null,
 	palette: "preset",
@@ -266,12 +273,124 @@ function toneAt(h: number, c: number, mode: "light" | "dark"): Oklch {
 
 /**
  * Material 3's harmonize: rotate toward the brand by half the gap, at most 15°.
- * Decorative tones pass a stronger pull; status colours keep the default cap.
+ * Decorative tones pass a stronger pull. Status colours lean by their own
+ * rule instead (see leanStatus).
  */
 function harmonize(color: Oklch, brandHue: number, amount = 0.5, cap = 15): Oklch {
 	const delta = hueDelta(color.h, brandHue)
 	const rotate = Math.sign(delta) * Math.min(Math.abs(delta) * amount, cap)
 	return { ...color, h: (color.h + rotate + 360) % 360 }
+}
+
+/*
+ * Status colours lean toward the brand only as far as their meaning survives.
+ * Each has a hue band: the span the shipped presets already use for it (Ember's
+ * crimson destructive at 7° to Sable's 25°; Ember's orange warning at 52° to
+ * Prism's gold at 87°; success 159–173°), widened a little at each end. Every
+ * hue in a band still reads as error, caution or done. Success stops at 175°:
+ * past it, a blue brand pulled success into teal, which reads as info. A status moves from the
+ * preset's hue toward the point of its band nearest the brand, by the lean.
+ */
+export type StatusToken = "destructive" | "tone-warning" | "success"
+export const STATUS_TOKENS: readonly StatusToken[] = ["destructive", "tone-warning", "success"]
+export const STATUS_BANDS: Record<StatusToken, readonly [number, number]> = {
+	destructive: [5, 30],
+	"tone-warning": [50, 90],
+	success: [140, 175],
+}
+/**
+ * Warning and destructive sit ~30° apart, so a brand between them (a red-orange)
+ * pulls them into each other. Destructive holds; warning gives way, because a
+ * warning mistaken for an error is the worse confusion.
+ */
+const WARNING_GAP = 30
+/**
+ * The least chroma a status may take when it follows a muted brand, so a dusty
+ * brand never turns destructive brown or pink, or warning into mud. A preset
+ * that ships its status quieter than this keeps its own.
+ */
+const STATUS_CHROMA_FLOOR: Record<StatusToken, number> = { destructive: 0.14, "tone-warning": 0.1, success: 0.08 }
+/**
+ * How much of the lean chroma follows. Hue carries the family resemblance;
+ * following a muted brand's saturation one-for-one drained status to its floor
+ * (Sable's dark success, 0.205 → 0.10), and status has to stay louder than the
+ * brand it sits beside. Half the move keeps the resemblance and the signal.
+ */
+const STATUS_CHROMA_FOLLOW = 0.5
+/**
+ * How far status leans when the look does not say (0–100). Brand only leans
+ * furthest, since a family resemblance is that palette's whole point; the
+ * schemes, which already bring their own hues, lean less.
+ */
+export const DEFAULT_STATUS_LEAN: Record<Palette, number> = { preset: 65, harmonize: 50, analogous: 40, triadic: 40 }
+
+const norm360 = (x: number) => ((x % 360) + 360) % 360
+
+/**
+ * A status's band for one colour. Warning's top edge depends on lightness: a
+ * light amber reads as caution right up to gold (Prism ships 87°), but a deep
+ * one past ~75° is olive, and olive reads as nothing. And a preset hue outside
+ * its band widens it: the lean starts from the preset and must never pull a
+ * status away from the brand just to get back inside.
+ */
+function bandFor(token: StatusToken, color: Oklch): [number, number] {
+	let [lo, hi] = STATUS_BANDS[token]
+	if (token === "tone-warning") hi = 75 + (hi - 75) * Math.min(1, Math.max(0, (color.l - 0.5) / 0.25))
+	if (hueDelta(lo, color.h) < 0 && hueDelta(color.h, lo) < 90) lo = norm360(color.h)
+	if (hueDelta(color.h, hi) < 0 && hueDelta(hi, color.h) < 90) hi = norm360(color.h)
+	return [lo, hi]
+}
+
+/** The hue in the band nearest `hue`, around the wheel. */
+function nearestInBand(hue: number, [lo, hi]: readonly [number, number]): number {
+	if (hueDelta(lo, hue) >= 0 && hueDelta(hue, hi) >= 0) return norm360(hue)
+	return Math.abs(hueDelta(hue, lo)) <= Math.abs(hueDelta(hue, hi)) ? lo : hi
+}
+
+/** How saturated a colour is for its lightness and hue: chroma over the most sRGB allows there. */
+function relativeChroma(color: Oklch): number {
+	const max = maxChroma(color.l, color.h)
+	return max > 0 ? Math.min(1, color.c / max) : 0
+}
+
+/**
+ * Each status as this look paints it, in one mode. Hue moves from the preset's
+ * toward the brand by `lean` (0–1), stopping at the status's band; chroma moves
+ * toward the brand's own saturation by half that (STATUS_CHROMA_FOLLOW), above
+ * the floor.
+ * Lightness stays the preset's: statusFill and textOn refit the labels.
+ */
+export function leanStatus(resolved: Partial<Record<string, Oklch>>, brandHue: number, source: Oklch, lean: number): Partial<Record<StatusToken, Oklch>> {
+	const t = Math.min(1, Math.max(0, lean))
+	const brandRel = relativeChroma(source)
+	const out: Partial<Record<StatusToken, Oklch>> = {}
+	for (const token of STATUS_TOKENS) {
+		const value = resolved[token]
+		if (!value) continue
+		const target = nearestInBand(brandHue, bandFor(token, value))
+		const h = norm360(value.h + hueDelta(value.h, target) * t)
+		const max = maxChroma(value.l, h)
+		const rel = relativeChroma(value)
+		const wanted = (rel + (brandRel - rel) * t * STATUS_CHROMA_FOLLOW) * max
+		const floor = Math.min(value.c, STATUS_CHROMA_FLOOR[token])
+		out[token] = { ...value, h, c: Math.min(max * GAMUT_SAFETY, Math.max(floor, wanted)) }
+	}
+	// The gap a preset ships is its own call (Ember's is 27°): hold the lean to
+	// that, never demand more of it than the preset itself does.
+	const destructive = out.destructive
+	const warning = out["tone-warning"]
+	const shipped = resolved.destructive && resolved["tone-warning"] ? hueDelta(resolved.destructive.h, resolved["tone-warning"].h) : WARNING_GAP
+	const gap = Math.min(WARNING_GAP, Math.max(0, shipped))
+	if (destructive && warning && hueDelta(destructive.h, warning.h) < gap) {
+		const h = norm360(destructive.h + gap)
+		out["tone-warning"] = { ...warning, h, c: Math.min(warning.c, maxChroma(warning.l, h) * GAMUT_SAFETY) }
+	}
+	return out
+}
+
+/** The lean a look uses, 0–1: its own, or the palette's default. */
+export function statusLeanFor(look: Look): number {
+	return (look.statusLean ?? DEFAULT_STATUS_LEAN[look.palette]) / 100
 }
 
 /**
@@ -323,9 +442,81 @@ const SCHEMES: Record<"analogous" | "triadic", Record<string, number>> = {
 	triadic: { "tone-info": 120, "tone-edition": -120, "tone-collectible": 180, "tone-standard": 60 },
 }
 
-/** Ink that reads on a fill: near-white on dark fills, near-black on light ones. */
+/** The two label inks, carrying the fill's hue. */
+const inksAt = (h: number): Oklch[] => [{ l: 0.985, c: 0.01, h, a: 1 }, { l: 0.2, c: 0.03, h, a: 1 }]
+
+/**
+ * Ink for a fill the look does not move (an accent, a tone): measured, not a
+ * lightness cut — the ink that clears the WCAG ratio and the perceptual floor
+ * (contrast.ts, "Labels on fills").
+ */
 export function inkOn(fill: Oklch): Oklch {
-	return fill.l > 0.68 ? { l: 0.2, c: 0.03, h: fill.h, a: 1 } : { l: 0.985, c: 0.01, h: fill.h, a: 1 }
+	return inkFor(fill, inksAt(fill.h))
+}
+
+/**
+ * The brand as a labelled fill — primary, highlight, the sidebar's active item.
+ * Which ink is decided once, on the brand as picked, and each mode's fill moves
+ * to meet it. Deciding per mode was the bug: dark mode lifts a red to 72%,
+ * where white fails the ratio and dark ink reads muddy, and the nearest way
+ * out flipped the label dark. Ember's hand fix, as the rule: a brand that
+ * takes white keeps it, and its dark fill comes down to where white reads.
+ */
+export function brandFill(look: Look, mode: "light" | "dark"): { fill: Oklch; ink: Oklch } | null {
+	const brand = brandFor(look, mode)
+	const source = brandSource(look)
+	if (!brand || !source) return null
+	const polarity = inkPolarity(source, inksAt(source.h))
+	const ink = { ...polarity, h: brand.h }
+	// A lift gives up chroma the lighter colour cannot hold; coming back down
+	// may take it back (up to the cap brandFor applies). Gamut is held either way.
+	// Gamut first: clipping chroma after the fit moves luminance off the measured pair.
+	const fitted = fitFillToInk(toGamut({ ...brand, c: Math.max(brand.c, Math.min(source.c, 0.25)) }), ink)
+	return { fill: toGamut(fitted), ink }
+}
+
+/**
+ * A status fill and its label: the fill moves until the label reads. `ink` is the
+ * preset's own label when it has one; a generated tone takes the mode's ink.
+ * The colour drawn on the page is a separate token (`-text`, see toneDecls).
+ */
+function statusFill(fill: Oklch, mode: "light" | "dark", ink?: Oklch): { fill: Oklch; ink: Oklch } {
+	const label = ink ?? inksAt(fill.h)[mode === "dark" ? 1 : 0]
+	return { fill: toGamut(fitFillToInk(toGamut(fill), label)), ink: label }
+}
+
+/**
+ * A colour drawn as text on the look's surfaces: lightness moves away from the
+ * page (up in dark mode, down in light) until it clears 4.5:1 on every opaque
+ * surface it may sit on. Tinted presets (Prism, Poppy) have muted wells a
+ * generated tone was never measured against.
+ */
+function textOn(color: Oklch, surfaces: (Oklch | undefined)[], mode: "light" | "dark"): Oklch {
+	const opaque = surfaces.filter((s): s is Oklch => !!s && s.a >= 0.999)
+	const step = mode === "dark" ? 0.005 : -0.005
+	let out = toGamut(color)
+	for (let i = 0; i < 120 && !opaque.every((s) => labelContrast(out, s).ratio >= 4.6); i++) {
+		const l = Math.min(0.98, Math.max(0.05, out.l + step))
+		out = { ...out, l, c: fitChroma(l, color.c, color.h) }
+	}
+	return out
+}
+
+const isStatus = (token: string) => (STATUS_FILLS as readonly string[]).includes(token)
+
+/**
+ * A generated tone and its label: a status tone is fitted, a decorative one only
+ * inked. A status tone also writes its `-text`, the text-safe tone at its hue,
+ * since text-tone-info reads that and not the fill.
+ */
+function toneDecls(token: string, tone: Oklch, mode: "light" | "dark", surfaces: (Oklch | undefined)[]): string[] {
+	if (!isStatus(token)) return [`--${token}: ${formatOklch(tone)};`, `--${token}-foreground: ${formatOklch(inkOn(tone))};`]
+	const pair = statusFill(tone, mode)
+	return [
+		`--${token}: ${formatOklch(pair.fill)};`,
+		`--${token}-foreground: ${formatOklch(pair.ink)};`,
+		`--${token}-text: ${formatOklch(textOn(toneAt(tone.h, tone.c, mode), surfaces, mode))};`,
+	]
 }
 
 const NEUTRAL_TINT: Record<Exclude<Neutrals, "theme">, { c: number; h: number | "brand" }> = {
@@ -373,9 +564,12 @@ function colorDecls(look: Look, base: ThemeBase, mode: "light" | "dark"): string
 	}
 
 	const brand = brandFor(look, mode)
-	if (brand) {
-		const ink = formatOklch(inkOn(brand))
-		const fill = formatOklch(brand)
+	const labelled = brandFill(look, mode)
+	if (brand && labelled) {
+		// The brand as picked marks focus; as a labelled fill it may sit lower.
+		const ring = formatOklch(brand)
+		const ink = formatOklch(labelled.ink)
+		const fill = formatOklch(labelled.fill)
 		if (look.primary === "brand") out.push(`--primary: ${fill};`, `--primary-foreground: ${ink};`)
 		// A preset whose selection colour is a colour, not a tinted neutral
 		// (Meridian's orange accent: pressed toggles, selected tabs), carries its
@@ -388,12 +582,12 @@ function colorDecls(look: Look, base: ThemeBase, mode: "light" | "dark"): string
 			out.push(`--${token}: ${formatOklch(hued)};`, `--${token}-foreground: ${formatOklch(inkOn(hued))};`)
 		}
 		out.push(
-			`--ring: ${fill};`,
+			`--ring: ${ring};`,
 			`--highlight: ${fill};`,
 			`--highlight-foreground: ${ink};`,
 			`--sidebar-primary: ${fill};`,
 			`--sidebar-primary-foreground: ${ink};`,
-			`--sidebar-ring: ${fill};`,
+			`--sidebar-ring: ${ring};`,
 		)
 		// Bold looks let the brand reach selection fills, not just the primary.
 		if (look.bold != null && look.bold > 60 && resolved.accent && resolved.background) {
@@ -404,38 +598,56 @@ function colorDecls(look: Look, base: ThemeBase, mode: "light" | "dark"): string
 			out.push(`--accent: ${formatOklch(acc)};`, `--accent-foreground: ${formatOklch(inkOn(acc))};`)
 		}
 
+		// The surfaces status text is drawn on, as this look paints them.
+		const surfaces = (["background", "card", "popover", "muted"] as const).map((token) => {
+			const value = resolved[token]
+			return value && look.neutrals !== "theme" && isNeutral(value) ? tint(value, look.neutrals, brandHue) : value
+		})
+
+		// Status first: every palette leans it within its band, and the schemes
+		// below keep their decorative hues clear of where it landed.
+		// A lean of 0 is the preset's status exactly as shipped: nothing is written.
+		const lean = statusLeanFor(look)
+		const leaned = leanStatus(resolved, brand.h, brandSource(look) ?? brand, lean)
+		const statusHues = STATUS_TOKENS.flatMap((token) => {
+			const tone = leaned[token]
+			return tone ? [tone.h] : []
+		})
+		for (const token of lean > 0 ? STATUS_TOKENS : []) {
+			const value = resolved[token]
+			const tone = leaned[token]
+			if (!value || !tone) continue
+			// A new hue and chroma move the label's contrast; keep the preset's label and refit.
+			const pair = statusFill(tone, mode, resolved[`${token}-foreground`])
+			out.push(`--${token}: ${formatOklch(pair.fill)};`, `--${token}-foreground: ${formatOklch(pair.ink)};`)
+			// The colour on the page turns with it, at the preset's own depth, its
+			// chroma scaled as the fill's was.
+			const text = resolved[`${token}-text`]
+			if (text) {
+				const scale = value.c > 0 ? tone.c / value.c : 1
+				out.push(`--${token}-text: ${formatOklch(textOn({ ...text, h: tone.h, c: text.c * scale }, surfaces, mode))};`)
+			}
+		}
+
 		// The rest of the palette, built from the brand.
 		if (look.palette === "preset") {
 			// Brand only: the decorative tones become one family, the brand hue at
 			// different depths plus a muted member, so charts and badges read as
 			// monochrome brand rather than the preset's own colours.
 			for (const [token, step] of Object.entries(MONO_STEPS)) {
-				const tone = monoTone(brand, step, mode)
-				out.push(`--${token}: ${formatOklch(tone)};`, `--${token}-foreground: ${formatOklch(inkOn(tone))};`)
+				out.push(...toneDecls(token, monoTone(brand, step, mode), mode, surfaces))
 			}
-		} else {
-			const statusHues: number[] = []
-			for (const token of ["success", "destructive", "tone-warning"] as const) {
+		} else if (look.palette === "harmonize") {
+			// Decorative tones keep their own identity but lean well toward the
+			// brand, further than status colours, which must stay unmistakable.
+			for (const token of DECORATIVE_TONES) {
 				const value = resolved[token]
 				if (!value) continue
-				const harmonized = harmonize(value, brand.h)
-				statusHues.push(harmonized.h)
-				out.push(`--${token}: ${formatOklch(harmonized)};`)
+				out.push(...toneDecls(token, toneAt(harmonize(value, brand.h, 0.4, 35).h, Math.max(value.c, brand.c * 0.8), mode), mode, surfaces))
 			}
-			if (look.palette === "harmonize") {
-				// Decorative tones keep their own identity but lean well toward the
-				// brand, further than status colours, which must stay unmistakable.
-				for (const token of DECORATIVE_TONES) {
-					const value = resolved[token]
-					if (!value) continue
-					const tone = toneAt(harmonize(value, brand.h, 0.4, 35).h, Math.max(value.c, brand.c * 0.8), mode)
-					out.push(`--${token}: ${formatOklch(tone)};`, `--${token}-foreground: ${formatOklch(inkOn(tone))};`)
-				}
-			} else {
-				for (const [token, offset] of Object.entries(SCHEMES[look.palette])) {
-					const tone = toneAt(clearOfStatus(brand.h + offset, statusHues), brand.c, mode)
-					out.push(`--${token}: ${formatOklch(tone)};`, `--${token}-foreground: ${formatOklch(inkOn(tone))};`)
-				}
+		} else {
+			for (const [token, offset] of Object.entries(SCHEMES[look.palette])) {
+				out.push(...toneDecls(token, toneAt(clearOfStatus(brand.h + offset, statusHues), brand.c, mode), mode, surfaces))
 			}
 		}
 
@@ -443,11 +655,7 @@ function colorDecls(look: Look, base: ThemeBase, mode: "light" | "dark"): string
 		// held to the validated palette's separation checks (chart-palette.ts).
 		// Status hues are the ones this look paints, so a generated series never
 		// lands on "error red" or "success green".
-		const chartStatus = (["success", "destructive", "tone-warning"] as const)
-			.map((token) => resolved[token])
-			.filter((value): value is Oklch => Boolean(value))
-			.map((value) => (look.palette === "preset" ? value.h : harmonize(value, brand.h).h))
-		chartPalette(brand, look.palette, mode, (hue) => clearOfStatus(hue, chartStatus)).forEach((color, i) => {
+		chartPalette(brand, look.palette, mode, (hue) => clearOfStatus(hue, statusHues)).forEach((color, i) => {
 			out.push(`--chart-${i + 1}: ${formatOklch(color)};`)
 		})
 	}
@@ -722,7 +930,7 @@ export function decodeLook(value: string | null | undefined): Look {
 }
 
 const isNumeric = (key: keyof Look) =>
-	key === "bold" || key === "airy" || key === "corners" || key === "depth" || key === "hue" || (ANCHOR_KEYS as readonly string[]).includes(key)
+	key === "bold" || key === "airy" || key === "corners" || key === "depth" || key === "hue" || key === "statusLean" || (ANCHOR_KEYS as readonly string[]).includes(key)
 
 function sanitizeLook(parsed: Record<string, unknown>): Look {
 	const look: Record<string, unknown> = { ...DEFAULT_LOOK }

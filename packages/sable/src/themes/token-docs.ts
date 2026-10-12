@@ -627,6 +627,17 @@ export const TOKEN_DOCS: Record<string, TokenDoc> = {
 			"panel",
 		].map((base) => [`${base}-foreground`, foregroundDoc(base)]),
 	),
+	...Object.fromEntries(
+		["destructive", "success", "tone-warning", "tone-info"].map((base) => [
+			`${base}-text`,
+			{
+				intent: `\`${base}\` drawn on a surface: text, icons, borders and focus rings.`,
+				whenToUse: `Write \`text-${base}\`, \`border-${base}\` or \`ring-${base}\` — they read this token; only \`bg-${base}\` reads the fill.`,
+				insteadOf: `\`${base}\` itself for marks on a page. The fill is tuned to carry a label (dark mode lowers it under white ink), which can leave it too dark to read on a dark card.`,
+				pairsWith: ["background", "card", "popover", "muted"],
+			} satisfies TokenDoc,
+		]),
+	),
 }
 
 /**

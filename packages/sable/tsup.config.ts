@@ -46,6 +46,8 @@ export default defineConfig({
 		// Default icon dependency — resolve from the consumer, never bundle artwork.
 		"reicon-react",
 		/^reicon-react\//,
+		// Shader sources for GradientArt — a dependency, resolved from the consumer.
+		"@paper-design/shaders",
 		// Optional browser iOS adapter only; never reachable from the core barrel.
 		"konsta",
 		/^konsta\//,

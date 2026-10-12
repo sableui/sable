@@ -3,6 +3,7 @@ import type { ComponentProps } from "react"
 import { anchoredScroll } from "../../lib/anchored-scroll"
 import { cn } from "../../lib/cn"
 import { withPortalThemeScope } from "../../lib/portal-theme-scope"
+import { PresentationProvider } from "../../lib/presentation"
 import { useAnchoredDensity } from "../../lib/density"
 
 /**
@@ -79,7 +80,8 @@ export function PopoverContent({
 					)}
 					{...props}
 				>
-					{children}
+					{/* Opened from a sheet, a popover's content is still a page. */}
+					<PresentationProvider value="page">{children}</PresentationProvider>
 				</Base.Popup>
 			</Base.Positioner>
 		</PopoverPortal>

@@ -1,7 +1,9 @@
 import { render, screen } from "@testing-library/react"
 import { createRef } from "react"
 import { describe, expect, it } from "vitest"
-import { Card, CardContent, CardHeader, CardList, CardTitle } from "./card"
+import { PresentationProvider } from "../../lib/presentation"
+import { Button } from "../button"
+import { Card, CardContent, CardFooter, CardHeader, CardList, CardTitle } from "./card"
 
 describe("Card density", () => {
 	it("defaults to comfortable padding (p-6, on the spacing scale so density moves it)", () => {
@@ -116,5 +118,82 @@ describe("CardHeader", () => {
 		const header = container.querySelector("[data-slot=card-header]")
 		expect(header?.className).toContain("pb-0")
 		expect(header?.className).toContain("last:pb-[var(--card-p,--spacing(6))]")
+	})
+})
+
+describe("Card in a sheet (lib/presentation)", () => {
+	const actions = (
+		<CardFooter actions>
+			<Button variant="ghost" size="sm">Skip</Button>
+			<Button size="sm">Send</Button>
+		</CardFooter>
+	)
+
+	it("keeps an action footer a row on a page", () => {
+		const { container } = render(actions)
+		const footer = container.querySelector("[data-slot=card-footer]") as HTMLElement
+		expect(footer.dataset.actions).toBe("row")
+		expect(footer.className).not.toContain("flex-col-reverse")
+		expect(screen.getByRole("button", { name: "Send" }).className).toContain("h-(--control-sm)")
+	})
+
+	it("stacks an action footer in a sheet: full width, primary on top, cta height", () => {
+		const { container } = render(<PresentationProvider value="sheet">{actions}</PresentationProvider>)
+		const footer = container.querySelector("[data-slot=card-footer]") as HTMLElement
+		expect(footer.dataset.actions).toBe("stack")
+		expect(footer.className).toContain("flex-col-reverse")
+		expect(footer.className).toContain("mt-auto")
+		for (const name of ["Skip", "Send"]) {
+			const button = screen.getByRole("button", { name })
+			expect(button.className).toContain("h-(--control-cta)")
+			expect(button.className).not.toContain("h-(--control-sm)")
+			expect(button.className).toContain("w-full")
+		}
+	})
+
+	it("leaves a footer without `actions` alone in a sheet", () => {
+		const { container } = render(
+			<PresentationProvider value="sheet">
+				<CardFooter>
+					<Button size="sm">Add task</Button>
+				</CardFooter>
+			</PresentationProvider>,
+		)
+		expect((container.querySelector("[data-slot=card-footer]") as HTMLElement).dataset.actions).toBeUndefined()
+		expect(screen.getByRole("button").className).toContain("h-(--control-sm)")
+	})
+
+	it("bleeds a flat card's padding into the sheet's, and keeps a framed card whole", () => {
+		const { container } = render(
+			<PresentationProvider value="sheet">
+				<Card variant="flat">flat</Card>
+				<Card>framed</Card>
+			</PresentationProvider>,
+		)
+		const [flat, framed] = Array.from(container.children) as HTMLElement[]
+		expect(flat.style.margin).toBe("calc(var(--card-p) * -1)")
+		expect(flat.style.width).toBe("calc(100% + var(--card-p) * 2)")
+		expect(framed.style.margin).toBe("")
+	})
+
+	it("leaves a card nested in the sheet's card alone: no bleed, its actions stay a row", () => {
+		const { container } = render(
+			<PresentationProvider value="sheet">
+				<Card variant="flat">
+					<Card variant="flat" data-testid="inner">
+						<CardFooter actions>
+							<Button size="sm">Inner</Button>
+						</CardFooter>
+					</Card>
+					<CardFooter actions>
+						<Button size="sm">Outer</Button>
+					</CardFooter>
+				</Card>
+			</PresentationProvider>,
+		)
+		expect(screen.getByTestId("inner").style.margin).toBe("")
+		const [inner, outer] = Array.from(container.querySelectorAll("[data-slot=card-footer]")) as HTMLElement[]
+		expect(inner.dataset.actions).toBe("row")
+		expect(outer.dataset.actions).toBe("stack")
 	})
 })

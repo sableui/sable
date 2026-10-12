@@ -92,6 +92,9 @@ export const PROBE_TOKENS = [
 	// Status + decorative tones, so a generated palette can harmonize from the
 	// preset's own values instead of replacing them blind.
 	"success", "destructive", "tone-warning", "tone-info", "tone-standard", "tone-collectible", "tone-edition",
+	// Status labels, so a harmonized status fill is refitted to the preset's own ink.
+	"success-foreground", "destructive-foreground", "tone-warning-foreground", "tone-info-foreground",
+	"success-text", "destructive-text", "tone-warning-text", "tone-info-text",
 ] as const
 
 export type ResolvedTokens = Record<string, Oklch>

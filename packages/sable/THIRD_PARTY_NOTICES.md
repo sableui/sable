@@ -16,9 +16,20 @@ Third-party software, fonts, and trademarks retain their own terms.
 | [React](https://github.com/facebook/react) | MIT | Component runtime |
 | [Reicon](https://github.com/dqev/reicon) | MIT | Default interface icons and bundled brand icons |
 | [Konsta UI](https://github.com/konstaui/konsta) | MIT | Optional native controls for iOS prototypes |
+| [Paper Shaders](https://github.com/paper-design/shaders) | Apache-2.0 | GradientArt's mesh and grain fragment shaders |
 
 Library dependencies are external to Sable's library build and carry their
 license notices in their distributions.
+
+## Paper Shaders
+
+GradientArt renders fragment shaders from `@paper-design/shaders` 0.0.81, a
+dependency. Its vertex shader is adapted from that package's
+`dist/vertex-shader.js` (outputs the two fragment shaders do not read are
+removed) and lives in `src/components/gradient-art/renderer.ts`. Copyright 2026
+Paper, "Powered by Paper Shaders" (https://shaders.paper.design); the license
+and NOTICE are included as `third-party/paper-shaders-LICENSE.txt` and
+`third-party/paper-shaders-NOTICE.txt`.
 
 ## Brand icons
 

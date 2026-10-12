@@ -9,7 +9,7 @@ An activity list: Entity rows with the actor's Avatar, who did what, and a compa
 ## Notes
 
 - Rows are Card + CardList + Entity, inset from the card's padding at any density.
-- Unread is a quiet info dot after the time — the list stays calm when most items are unread.
+- Unread is a quiet info dot before the time, so the times keep one right edge — the list stays calm when most items are unread.
 - framed={false} drops the surface for a Popover, which already is one.
 
 ## Accessibility
@@ -40,7 +40,7 @@ export function NotificationListBlock({ className, framed = true }: Notification
 				{notifications.map((n) => (
 					<Entity
 						key={n.name}
-						leading={<Avatar size="sm" fallback={n.initials} alt={n.name} />}
+						leading={<Avatar variant="art" size="sm" fallback={n.initials} alt={n.name} />}
 						title={
 							<>
 								{n.name}
@@ -50,8 +50,8 @@ export function NotificationListBlock({ className, framed = true }: Notification
 						subtitle={n.what}
 						action={
 							<span className="flex items-center gap-1.5 text-caption text-muted-foreground">
-								{n.when}
 								{n.unread ? <StatusDot tone="info" /> : null}
+								{n.when}
 							</span>
 						}
 					/>

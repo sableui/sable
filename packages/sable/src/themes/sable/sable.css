@@ -220,8 +220,12 @@
 	--tone-standard-dark: oklch(78% 0.205 168);
 	--tone-info-dark: oklch(76% 0.165 235);
 	--tone-warning-dark: oklch(82% 0.165 65);
-	--highlight-dark: oklch(70% 0.285 318);
-	--destructive-dark: oklch(68% 0.225 25);
+	/* A labelled fill: dropped to where white reads (4.8:1, Lc 72) rather than
+	   lifted to where dark ink reads muddy (Lc 46). */
+	--highlight-dark: oklch(57% 0.28 318);
+	/* Status colours come in two: the fill carries a label (destructive sits low under white ink), and `-text` is the same colour drawn on a surface — text, borders, rings — kept light enough to read on a dark card. */
+	--destructive-dark: oklch(77.5% 0.129 25);
+	--destructive-fill-dark: oklch(59% 0.225 25);
 	/* Success twins the standard tone's dark value today (same caribbean-green),
 	   but is a SEPARATE token a theme can retune independently of the post-type. */
 	--success-dark: oklch(78% 0.205 168);
@@ -245,8 +249,10 @@
 	--accent: var(--zinc-100);
 	--accent-foreground: var(--zinc-950);
 	--destructive: var(--torch-red-600);
+	--destructive-text: var(--torch-red-600);
 	--destructive-foreground: var(--white);
 	--success: var(--caribbean-green-600);
+	--success-text: var(--caribbean-green-600);
 	--success-foreground: var(--zinc-50);
 
 	--border: var(--zinc-200);
@@ -263,7 +269,9 @@
 	--tone-collectible: var(--blue-gem-600);
 	--tone-edition: var(--purple-heart-700);
 	--tone-warning: var(--flush-orange-700);
+	--tone-warning-text: var(--flush-orange-700);
 	--tone-info: var(--azure-radiance-600);
+	--tone-info-text: var(--azure-radiance-700); /* a step under the fill: 600 is 4.46:1 as text on muted */
 	--highlight: var(--purple-heart-700);
 
 	/* Tone ink — light mode the tone fills resolve to dark 600/700 steps, so the
@@ -422,15 +430,18 @@
 	--muted-foreground: var(--zinc-400);
 	--accent: var(--zinc-800);
 	--accent-foreground: var(--zinc-50);
-	--destructive: var(--destructive-dark);
-	/* Dark `--destructive` is a light, vibrant red (so `text-destructive` reads on
-	   the near-black canvas). White ink on that fill is only ~3.3:1 (fails AA), so
-	   the legible ink flips to the dark neutral — exactly like the tone fills below.
-	   Dark ink on the light-red fill is ~5.9:1. */
-	--destructive-foreground: var(--zinc-950);
-	/* Like the tone fills, dark `--success` is a light, vibrant green, so the
-	   legible ink flips to the dark neutral (same model as --destructive above). */
+	--destructive: var(--destructive-fill-dark);
+	--destructive-text: var(--destructive-dark);
+	/* Dark destructive is two colours. The fill is a saturated red low enough for
+	   white (4.6:1, Lc 75); dark ink on the old light-red fill passed the ratio but
+	   read muddy (Lc 44). `text-destructive` and its borders and rings read
+	   `--destructive-text`, the light, vibrant red that reads on the near-black
+	   canvas. */
+	--destructive-foreground: var(--white);
+	/* Dark `--success` is a light, vibrant green that works as both fill and text,
+	   so the legible ink flips to the dark neutral. */
 	--success: var(--success-dark);
+	--success-text: var(--success-dark);
 	--success-foreground: var(--zinc-950);
 
 	--border: oklch(from var(--zinc-700) l c h / 0.4);
@@ -444,7 +455,9 @@
 	--tone-collectible: var(--tone-collectible-dark);
 	--tone-edition: var(--tone-edition-dark);
 	--tone-warning: var(--tone-warning-dark);
+	--tone-warning-text: var(--tone-warning-dark);
 	--tone-info: var(--tone-info-dark);
+	--tone-info-text: var(--tone-info-dark);
 	--highlight: var(--highlight-dark);
 
 	/* Tone ink — dark mode the tone fills resolve to lighter dark-tuned values,
@@ -455,7 +468,7 @@
 	--tone-edition-foreground: var(--zinc-950);
 	--tone-warning-foreground: var(--zinc-950);
 	--tone-info-foreground: var(--zinc-950);
-	--highlight-foreground: var(--zinc-950);
+	--highlight-foreground: var(--zinc-50);
 	--overlay: var(--zinc-950);
 	--overlay-foreground: var(--zinc-50);
 

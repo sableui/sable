@@ -25,7 +25,7 @@ export function InviteTeamBlock({ className, framed = true, onSend }: InviteTeam
 			<CardContent className="flex flex-col gap-4">
 				<AvatarGroup aria-label={`${collaborators.length} collaborators`} size="sm" surface={framed ? "card" : undefined}>
 					{collaborators.map((initials) => (
-						<Avatar key={initials} fallback={initials} alt={initials} />
+						<Avatar variant="art" key={initials} fallback={initials} alt={initials} />
 					))}
 				</AvatarGroup>
 				<form

@@ -34,6 +34,7 @@ import { createHash } from "node:crypto"
 import { dirname, extname, join, relative, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { ignoreGlob, lintText, makeRules } from "./lint-rules.mjs"
+import { labelContrastScanner } from "./label-contrast.mjs"
 import { skeletonize } from "./skeleton.mjs"
 import { assessReview, reviewTemplate } from "./review-evidence.mjs"
 
@@ -108,7 +109,7 @@ const motionTokens = new Set(
 		REGISTRY.tokens?.motion?.scale,
 	].filter(Boolean),
 )
-const RULES = makeRules({ semanticTokens, motionTokens }).filter((r) => r.scope !== "package")
+const RULES = makeRules({ semanticTokens, motionTokens, labelContrast: await labelContrastScanner(PKG_ROOT, REGISTRY.themes?.default) }).filter((r) => r.scope !== "package")
 const PROP_SURFACE = REGISTRY.propSurface?.items ?? {}
 const ICONS = new Set(REGISTRY.iconContract?.names ?? [])
 /**

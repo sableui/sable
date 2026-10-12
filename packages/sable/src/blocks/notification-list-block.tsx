@@ -23,7 +23,7 @@ export function NotificationListBlock({ className, framed = true }: Notification
 				{notifications.map((n) => (
 					<Entity
 						key={n.name}
-						leading={<Avatar size="sm" fallback={n.initials} alt={n.name} />}
+						leading={<Avatar variant="art" size="sm" fallback={n.initials} alt={n.name} />}
 						title={
 							<>
 								{n.name}
@@ -33,8 +33,8 @@ export function NotificationListBlock({ className, framed = true }: Notification
 						subtitle={n.what}
 						action={
 							<span className="flex items-center gap-1.5 text-caption text-muted-foreground">
-								{n.when}
 								{n.unread ? <StatusDot tone="info" /> : null}
+								{n.when}
 							</span>
 						}
 					/>

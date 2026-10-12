@@ -1,15 +1,24 @@
 import {
 	SEMANTIC_TOKENS, MOTION_TOKENS, RADIUS_TOKENS, TYPE_SCALE_TOKENS,
 	TYPE_REFINEMENT_TOKENS, TYPE_OVERLINE_TOKENS, DENSITY_TOKENS,
-	LAYERING_TOKENS, WORKSPACE_SURFACE_TOKENS, DERIVED_EDGE_TOKENS, TYPE_UI_TOKENS,
+	LAYERING_TOKENS, WORKSPACE_SURFACE_TOKENS, DERIVED_EDGE_TOKENS, TYPE_UI_TOKENS, ART_TOKENS,
 	type ThemeManifest,
 } from "../themes/_contract"
+import { LABEL_CONTRAST_RULE, LABELLED_FILLS, checkLabelledFills, type LabelFinding } from "../themes/contrast"
+
+/** Label-on-fill contrast: build a preset's filled colours with these, not a lightness cut. */
+export {
+	BRAND_FILLS, LABEL_CONTRAST_RULE, LABELLED_FILLS, STATUS_FILLS, checkLabelledFills, fitFillToInk, inkFor, inkPolarity, labelContrast,
+	type LabelFinding, type OklchColor,
+} from "../themes/contrast"
 
 /** The public theme vocabulary. Presets never need component overrides. */
 export const PRESET_TOKEN_NAMES: readonly string[] = [...new Set([
 	...SEMANTIC_TOKENS,
 	...WORKSPACE_SURFACE_TOKENS.map(name => `theme-${name}`),
 	...DERIVED_EDGE_TOKENS.map(name => `theme-${name}`),
+	// Art direction: optional hooks — a preset without them paints the default art.
+	...ART_TOKENS.map(name => `theme-${name}`),
 	...WORKSPACE_SURFACE_TOKENS, ...DERIVED_EDGE_TOKENS,
 	...RADIUS_TOKENS, ...MOTION_TOKENS, ...TYPE_SCALE_TOKENS,
 	...TYPE_REFINEMENT_TOKENS, ...TYPE_OVERLINE_TOKENS, ...DENSITY_TOKENS,
@@ -32,6 +41,20 @@ export interface SablePreset {
 	direction: string
 	references?: { source: string; observation: string; method: "measured" | "estimated" | "derived" | "user-edited" }[]
 	tokens: { shared: Record<string, string>; light: Record<string, string>; dark: Record<string, string> }
+	/**
+	 * Sable's opinions the preset declines, on the record. A check reports an
+	 * accepted finding with its reason instead of failing on it.
+	 */
+	exceptions?: PresetException[]
+}
+
+/** A deliberate departure from a Sable check — e.g. a brand that requires dark ink on its primary. */
+export interface PresetException {
+	rule: typeof LABEL_CONTRAST_RULE
+	mode: "light" | "dark"
+	/** The fill token, e.g. `primary`. */
+	token: (typeof LABELLED_FILLS)[number]
+	reason: string
 }
 
 const tokenNames = new Set(PRESET_TOKEN_NAMES)
@@ -40,7 +63,40 @@ const text = (value: unknown): value is string => typeof value === "string" && v
 const safeCss = (value: string) => value.length <= 2048 && !/[;{}<>\\@]|\/\*|\*\/|!important|url\s*\(|expression\s*\(|REPLACE/i.test(value)
 
 /** Structural/contract validation; visual contrast and brief fit still need review. */
-export function validatePreset(input: unknown): string[] {
+/**
+ * The status text tokens arrived in 0.6.0. Before them, `text-destructive`,
+ * `border-destructive` and the rest read the fill, so a preset saved on 0.5
+ * that lacks one takes its fill: it paints exactly as it did, instead of
+ * failing every check and vanishing from a browser's saved presets.
+ */
+const STATUS_TEXT_FROM_FILL = {
+	"destructive-text": "destructive",
+	"success-text": "success",
+	"tone-warning-text": "tone-warning",
+	"tone-info-text": "tone-info",
+} as const
+
+/** A copy of `input` with any missing status text token filled from its fill, per mode. */
+function upgradePreset(input: unknown): unknown {
+	if (!record(input) || !record(input.tokens)) return input
+	const tokens = input.tokens
+	const shared = record(tokens.shared) ? tokens.shared : {}
+	const upgraded: Record<string, unknown> = { ...tokens }
+	for (const mode of ["light", "dark"] as const) {
+		const values = tokens[mode]
+		if (!record(values)) continue
+		const next: Record<string, unknown> = { ...values }
+		for (const [name, fill] of Object.entries(STATUS_TEXT_FROM_FILL)) {
+			const value = values[fill] ?? shared[fill]
+			if (!text(values[name]) && !text(shared[name]) && text(value)) next[name] = value
+		}
+		upgraded[mode] = next
+	}
+	return { ...input, tokens: upgraded }
+}
+
+export function validatePreset(raw: unknown): string[] {
+	const input = upgradePreset(raw)
 	if (!record(input)) return ["Preset must be a JSON object."]
 	const issues: string[] = []
 	if (input.schemaVersion !== 1) issues.push("Unsupported preset schemaVersion; expected 1.")
@@ -58,6 +114,13 @@ export function validatePreset(input: unknown): string[] {
 		if (!Array.isArray(input.references) || input.references.length > 50) issues.push("references must be an array of at most 50 observations.")
 		else input.references.forEach((item, index) => {
 			if (!record(item) || !text(item.source) || !text(item.observation) || !["measured", "estimated", "derived", "user-edited"].includes(String(item.method))) issues.push(`Invalid reference observation ${index + 1}.`)
+		})
+	}
+	if (input.exceptions !== undefined) {
+		if (!Array.isArray(input.exceptions) || input.exceptions.length > 50) issues.push("exceptions must be an array of at most 50 entries.")
+		else input.exceptions.forEach((item, index) => {
+			if (!record(item) || item.rule !== LABEL_CONTRAST_RULE || !["light", "dark"].includes(String(item.mode)) || !(LABELLED_FILLS as readonly unknown[]).includes(item.token) || !text(item.reason) || item.reason.length > 500)
+				issues.push(`Invalid exception ${index + 1}: needs rule "${LABEL_CONTRAST_RULE}", mode light|dark, token (${LABELLED_FILLS.join(", ")}) and a reason.`)
 		})
 	}
 	if (!record(input.tokens)) return [...issues, "tokens must contain shared, light, and dark objects."]
@@ -92,10 +155,10 @@ export function validatePreset(input: unknown): string[] {
 	return issues
 }
 
-export function parsePreset(input: unknown): SablePreset {
-	const issues = validatePreset(input)
+export function parsePreset(raw: unknown): SablePreset {
+	const issues = validatePreset(raw)
 	if (issues.length) throw new Error(issues.join("\n"))
-	return input as SablePreset
+	return upgradePreset(raw) as SablePreset
 }
 
 export function presetManifest(input: SablePreset): ThemeManifest {
@@ -115,4 +178,37 @@ export function presetCss(input: SablePreset): string {
 	}).join("\n")
 	const shared = { ...preset.tokens.shared, "font-sans": preset.fonts.sans, "font-mono": preset.fonts.mono, "font-display": preset.fonts.display ?? preset.fonts.sans }
 	return `${selector} {\n${declarations({ ...shared, ...preset.tokens.light })}\n}\n\n${selector}.dark, .dark ${selector}:not(.light) {\n${declarations(preset.tokens.dark)}\n}\n\n${selector}.light {\n${declarations(preset.tokens.light)}\n}\n`
+}
+
+/**
+ * Labels on the preset's brand and status fills (contrast.ts, "Labels on fills"): each
+ * failing pair with the nearest pair that reads. Findings the preset accepts in
+ * `exceptions` come back under `accepted` with their reason — reported, not
+ * failed, because the choice is the preset author's to make.
+ */
+export function presetLabelContrast(input: SablePreset): {
+	open: LabelFinding[]
+	accepted: (LabelFinding & { reason: string })[]
+	measured: number
+	unmeasured: string[]
+} {
+	const preset = parsePreset(input)
+	const values = (mode: "light" | "dark") => {
+		const all: Record<string, string> = { ...preset.tokens.shared, ...preset.tokens[mode] }
+		const resolve = (value: string, depth = 0): string =>
+			depth > 10 ? value : value.replace(/^var\(\s*--([\w-]+)\s*\)$/, (m, name: string) => (all[name] ? resolve(all[name], depth + 1) : m))
+		return Object.fromEntries(Object.entries(all).map(([name, value]) => [name, resolve(value)]))
+	}
+	const { findings, measured, unmeasured } = checkLabelledFills({ light: values("light"), dark: values("dark") })
+	const reasonFor = (f: LabelFinding) =>
+		preset.exceptions?.find((e) => e.rule === LABEL_CONTRAST_RULE && e.mode === f.mode && e.token === f.fill)?.reason
+	return {
+		open: findings.filter((f) => !reasonFor(f)),
+		accepted: findings.flatMap((f) => {
+			const reason = reasonFor(f)
+			return reason ? [{ ...f, reason }] : []
+		}),
+		measured,
+		unmeasured,
+	}
 }

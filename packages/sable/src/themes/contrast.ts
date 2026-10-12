@@ -404,3 +404,198 @@ export function isInSrgbGamut(rgb: LinearRgb, epsilon = GAMUT_EPSILON): boolean 
 export function gamutExcursion(rgb: LinearRgb): number {
 	return Math.max(0, ...rgb.map((c) => Math.max(-c, c - 1)))
 }
+
+/* ──────────────────────────────────────────────────────────────────────────────
+   Labels on fills.
+
+   A filled control's label — a primary Button, the sidebar's active item, a
+   highlight — is chosen from two inks, one light and one dark. A single
+   lightness cut cannot choose well: on a mid-tone fill one ink can clear the
+   WCAG ratio while reading muddy (Ember's old dark-mode primary: dark ink at
+   5.6:1 but APCA Lc 42), and the other reads cleanly while failing the ratio.
+   So a label reads only when it clears BOTH: the ratio, which no house policy
+   may waive, and the perceptual floor, which is what "muddy" measures.
+
+   When the fill can move, neither ink is forced onto it: the fill gives up
+   lightness — never hue — until its ink reads. Which ink is a property of the
+   colour as picked, not of each mode's lift. A brand that takes white keeps
+   white in dark mode, and its fill comes down to meet it, because lifting a
+   red-orange for a dark page lands it squarely in the band where neither ink
+   reads, and the nearest exit from that band is the wrong polarity.
+   ────────────────────────────────────────────────────────────────────────────── */
+
+/** An OKLCH colour, lightness 0–1. Extra fields (alpha) ride along untouched. */
+export interface OklchColor {
+	l: number
+	c: number
+	h: number
+}
+
+const linearOf = ({ l, c, h }: OklchColor) => oklchToLinearRgb(l, c, h)
+
+/** The most chroma sRGB can show at this lightness and hue. */
+export function maxChromaAt(l: number, h: number): number {
+	if (l <= 0 || l >= 1) return 0
+	let lo = 0
+	let hi = 0.4
+	for (let i = 0; i < 24; i++) {
+		const mid = (lo + hi) / 2
+		if (isInSrgbGamut(oklchToLinearRgb(l, mid, h))) lo = mid
+		else hi = mid
+	}
+	return lo
+}
+
+/** Ratio and Lc of a label on a fill, and whether it clears both floors. */
+export function labelContrast(ink: OklchColor, fill: OklchColor) {
+	const a = linearOf(ink)
+	const b = linearOf(fill)
+	const ratio = contrastRatio(a, b)
+	const lc = apcaLc(a, b)
+	return { ratio, lc, reads: ratio >= CONTRAST_FLOOR && Math.abs(lc) >= PERCEPTUAL_FLOOR }
+}
+
+/**
+ * The ink for a fill that cannot move (a status colour, a decorative tone).
+ * One that reads; of two, the stronger. Of none, the one meeting the ratio,
+ * because APCA cannot waive it; failing that, the stronger.
+ */
+export function inkFor<T extends OklchColor>(fill: OklchColor, inks: readonly T[]): T {
+	const rank = (ink: T) => {
+		const v = labelContrast(ink, fill)
+		return (v.reads ? 2 : v.ratio >= CONTRAST_FLOOR ? 1 : 0) * 1000 + Math.abs(v.lc)
+	}
+	return inks.reduce((best, ink) => (rank(ink) > rank(best) ? ink : best))
+}
+
+/** Headroom under the gamut edge, so a value written to CSS never clips. */
+const FILL_GAMUT_SAFETY = 0.98
+
+/**
+ * The fill nearest `fill` on which `ink` reads: lightness moves away from the
+ * ink in small steps, hue holds, and chroma is kept unless the new lightness
+ * cannot show it. Returns `fill` itself when the ink already reads, and the
+ * furthest step tried when nothing in range does.
+ */
+export function fitFillToInk<T extends OklchColor>(fill: T, ink: OklchColor): T {
+	if (labelContrast(ink, fill).reads) return fill
+	const step = ink.l > fill.l ? -0.005 : 0.005
+	let candidate = fill
+	for (let l = fill.l + step; l > 0.05 && l < 0.98; l += step) {
+		candidate = { ...fill, l, c: Math.min(fill.c, maxChromaAt(l, fill.h) * FILL_GAMUT_SAFETY) }
+		if (labelContrast(ink, candidate).reads) return candidate
+	}
+	return candidate
+}
+
+/**
+ * Which ink a colour takes: the one that reads on it with the least change to
+ * it — none, when one already reads (the stronger, when both do). Decide this
+ * once, on the colour as picked, then `fitFillToInk` each mode's fill to it.
+ */
+export function inkPolarity<T extends OklchColor>(color: OklchColor, inks: readonly T[]): T {
+	const cost = (ink: T) => {
+		const fitted = fitFillToInk(color, ink)
+		const v = labelContrast(ink, fitted)
+		// Unreachable is worst; then distance moved; then strength.
+		return (v.reads ? 0 : 10) + Math.abs(fitted.l - color.l) - Math.abs(v.lc) / 1e4
+	}
+	return inks.reduce((best, ink) => (cost(ink) < cost(best) ? ink : best))
+}
+
+/** Linear sRGB → OKLCH (Ottosson), so a measured colour can be moved and written back. */
+export function linearRgbToOklch([r, g, b]: LinearRgb): OklchColor {
+	const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b)
+	const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b)
+	const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b)
+	const L = 0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s
+	const A = 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s
+	const B = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s
+	const c = Math.hypot(A, B)
+	return { l: L, c, h: c < 1e-4 ? 0 : ((Math.atan2(B, A) * 180) / Math.PI + 360) % 360 }
+}
+
+const formatOklchColor = ({ l, c, h }: OklchColor) =>
+	`oklch(${(l * 100).toFixed(1)}% ${c.toFixed(3)} ${h.toFixed(1)})`
+
+/** Fills a theme or preset authors from its brand. Their ink follows the colour as picked. */
+export const BRAND_FILLS = ["primary", "sidebar-primary", "highlight"] as const
+
+/**
+ * Status fills. Each has a separate `-text` token for the colour drawn on a
+ * surface (`text-destructive` reads `--destructive-text`), so the fill is free to
+ * sit where its label reads — a dark-mode red under white ink — without taking
+ * the page's error text down with it.
+ */
+export const STATUS_FILLS = ["destructive", "success", "tone-warning", "tone-info"] as const
+
+/**
+ * Every fill a label sits on that the rule measures. Sable's own themes are held
+ * to it (themes.test.ts); a preset or an app is told, offered a fix, and may keep
+ * its choice on the record.
+ */
+export const LABELLED_FILLS = [...BRAND_FILLS, ...STATUS_FILLS] as const
+
+
+/** The rule's id, shared by `sable-lint`, `sable preset --check` and preset `exceptions`. */
+export const LABEL_CONTRAST_RULE = "label-contrast"
+
+export interface LabelFinding {
+	mode: "light" | "dark"
+	/** The fill token, without `--`; its ink is `${fill}-foreground`. */
+	fill: string
+	ratio: number
+	lc: number
+	/** The nearest pair that reads, decided as the customizer decides it. */
+	suggestion: { fill: string; ink: string }
+}
+
+/**
+ * Check each labelled fill against its ink, in both modes.
+ *
+ * Takes resolved values (`oklch(…)` or hex; anything else is counted as
+ * unmeasured, never guessed). Which ink a fix uses is decided on the LIGHT-mode
+ * fill — the colour as picked — so a dark-mode failure on a colour that takes
+ * white is fixed by bringing the fill down, not by flipping the label dark.
+ */
+export function checkLabelledFills(tokens: {
+	light: Record<string, string | undefined>
+	dark: Record<string, string | undefined>
+}): { findings: LabelFinding[]; measured: number; unmeasured: string[] } {
+	const findings: LabelFinding[] = []
+	const unmeasured: string[] = []
+	let measured = 0
+	const read = (value: string | undefined) => {
+		const parsed = value ? parseColorWithAlpha(value) : null
+		return parsed && parsed.alpha >= 1 ? linearRgbToOklch(parsed.rgb) : null
+	}
+	for (const mode of ["light", "dark"] as const) {
+		for (const fill of LABELLED_FILLS) {
+			const rawFill = tokens[mode][fill]
+			const rawInk = tokens[mode][`${fill}-foreground`]
+			if (!rawFill && !rawInk) continue
+			const fillColor = read(rawFill)
+			const ink = read(rawInk)
+			if (!fillColor || !ink) {
+				unmeasured.push(`${mode}.${fill}`)
+				continue
+			}
+			measured++
+			const verdict = labelContrast(ink, fillColor)
+			if (verdict.reads) continue
+			const opposite: OklchColor =
+				ink.l > 0.5 ? { l: 0.2, c: 0.03, h: fillColor.h } : { l: 0.985, c: 0.01, h: fillColor.h }
+			const reference = read(tokens.light[fill]) ?? fillColor
+			const chosen = inkPolarity(reference, [ink, { ...opposite, h: reference.h }])
+			const nextInk = chosen === ink ? ink : opposite
+			findings.push({
+				mode,
+				fill,
+				ratio: verdict.ratio,
+				lc: verdict.lc,
+				suggestion: { fill: formatOklchColor(fitFillToInk(fillColor, nextInk)), ink: formatOklchColor(nextInk) },
+			})
+		}
+	}
+	return { findings, measured, unmeasured }
+}

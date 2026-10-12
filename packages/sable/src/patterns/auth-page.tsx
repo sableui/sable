@@ -5,26 +5,13 @@ import { Button } from "../components/button"
 import { Card, CardContent } from "../components/card"
 import { Entity } from "../components/entity"
 import { Field, Form } from "../components/form"
+import { GradientArt } from "../components/gradient-art"
 import { Input } from "../components/input"
 import { Separator } from "../components/separator"
 import { Region, Stack } from "../layout"
 import { Icon } from "../icon"
 
 // ---pattern-code---
-// A soft mesh of the theme's decorative tones over its brand colour, so the
-// artwork follows every theme and mode. Each tone is lifted from its text
-// strength (dark, restrained) to an art strength.
-const artwork = [
-	// design-lint-disable-next-line inline-color -- relative colour derived from the theme's own --tone token, so it follows every look
-	"radial-gradient(in oklab at 18% 22%, oklch(from var(--tone-info) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h), transparent 58%)",
-	// design-lint-disable-next-line inline-color -- relative colour derived from the theme's own --tone token, so it follows every look
-	"radial-gradient(in oklab at 82% 18%, oklch(from var(--tone-collectible) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h), transparent 55%)",
-	// design-lint-disable-next-line inline-color -- relative colour derived from the theme's own --tone token, so it follows every look
-	"radial-gradient(in oklab at 70% 88%, oklch(from var(--tone-edition) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h), transparent 60%)",
-	// design-lint-disable-next-line inline-color -- relative colour derived from the theme's own --tone token, so it follows every look
-	"radial-gradient(in oklab at 12% 92%, oklch(from var(--tone-standard) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h), transparent 55%)",
-	"var(--primary)",
-].join(", ")
 
 export function AuthPage() {
 	const [pending, setPending] = useState(false)
@@ -112,7 +99,8 @@ export function AuthPage() {
 
 			{/* The brand panel is decoration: on a phone the form is the whole screen. */}
 			<aside aria-label="Featured release" className="hidden p-3 lg:flex">
-				<div className="flex flex-1 flex-col justify-end rounded-xl p-8" style={{ background: artwork }}>
+				{/* Art painted from the theme's tones over its brand, so it follows every look. */}
+				<GradientArt seed="Untitled (gold rush)" className="flex flex-1 flex-col justify-end rounded-xl p-8">
 					<Card className="max-w-md">
 						<CardContent>
 							<Stack gap={3}>
@@ -124,14 +112,14 @@ export function AuthPage() {
 								</p>
 								<Entity
 									className="p-0"
-									leading={<Avatar fallback="MO" />}
+									leading={<Avatar variant="art" fallback="MO" />}
 									title="Mara Okafor"
 									subtitle="Untitled (gold rush), 2026"
 								/>
 							</Stack>
 						</CardContent>
 					</Card>
-				</div>
+				</GradientArt>
 			</aside>
 		</main>
 	)

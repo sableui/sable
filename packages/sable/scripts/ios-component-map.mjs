@@ -18,7 +18,7 @@ const decisions = [
   ['replace', 'StatusBar', ['NativeApp'], 'NativeApp draws the iOS status bar. App status belongs in Sable content (InlineStatus, Banner), not a desktop tool strip.'],
   ['replace', 'AppHeader', ['IosNavbar', 'IosBackLink', 'IosIconButton'], 'The screen title, back and bar actions are the iOS navigation bar. It takes the preset font and accent; keep its geometry.'],
   ['replace', 'BottomNav', ['IosTabbar', 'IosTab'], 'Top-level destinations are the iOS tab bar with a Sable Icon in each IosTab. Keep one NavigationStack per tab; pushed details never go in the tab bar.'],
-  ['replace', 'Sheet', ['IosSheet'], 'IosSheet presents and dismisses (detents, drag, Escape, focus). Everything inside it is Sable: Form, Field, Input, Button.'],
+  ['replace', 'Sheet', ['IosSheet'], 'IosSheet presents and dismisses (detents, drag, Escape, focus). Everything inside it is Sable: Form, Field, Input, Button. The sheet owns the surface, edge padding and actions: put a block in with framed={false}, and a form at the medium detent with background="opaque".'],
   ['contextual', 'PageHeader', 'Screen title', ['IosNavbar'], 'A screen title is the navigation bar (`large` for the top of a tab). An editorial heading or product introduction inside the screen stays PageHeader or Sable typography.'],
   ['contextual', 'Button', 'Navigation-bar action', ['IosIconButton', 'IosBackLink'], 'Only actions in the navigation bar are adapter controls. Every other button — product actions, form submits, sheet actions, empty-state actions — is a Sable Button.'],
   ['recompose', 'SideNav Sidebar Breadcrumbs Tree', ['Card', 'CardList', 'Entity'], 'Hierarchy becomes drill-down: a list of interactive Entity rows in a Card that push the next screen with useNavigation().push. Back is the navigation bar.'],
@@ -61,12 +61,19 @@ export const decidedNames = [...strategyOf.keys()]
 
 export const targetRegistry = (names) => ({
   schemaVersion: 3, target: 'ios', platformVersion: '27', verifiedOn: '2026-10-10',
+  status: 'beta',
+  statusNote: 'Early preview. The web components are the mature surface; the iOS adapter and these decisions are still being iterated, so expect layout rules and chrome to change between releases. Report what looks wrong rather than patching around it.',
   designPolicy: {
     principle: 'Sable first. Every screen is built from Sable components in the chosen preset. The adapter supplies only the iOS system chrome Sable has no equivalent for: the app frame and status bar, the navigation bar, the tab bar and sheet presentation.',
     chrome: ['status bar and safe areas', 'navigation bar: title, large title, back, bar actions', 'tab bar', 'sheet presentation and dismissal', 'glass material'],
     sable: ['every control: Switch, Input, Slider, SearchInput, Select, Checkbox, Button', 'lists and rows: Card, CardList, Entity', 'forms: Form, Field', 'feedback: Toast, Banner, EmptyState, InlineStatus', 'all content, typography and imagery'],
     rule: 'Never import from konsta. Chrome comes from @sableui/react/ios; anything else is a Sable component. If Sable lacks something a screen needs, report it as a library gap rather than reaching for a native control.',
     styling: 'One document: Tailwind, Sable styles.css, the preset, then @sableui/react/ios/styles.css. The chrome reads the preset; Sable content follows it as on the web. Align content to px-(--ios-inset).',
+    layout: [
+      'A sheet owns what a card owns on a page: the surface, the edge padding and the actions. IosSheet provides a "sheet" PresentationProvider, and Sable lays its content out for it; do not restyle it by hand.',
+      'Actions: mark a footer that holds only buttons with <CardFooter actions>. In a sheet it becomes a full-width stack pinned to the bottom, the primary on top, every button at the cta height. A footer with a caption, a price or a list affordance stays unmarked.',
+      'Surface: pass framed={false} to a block in a sheet; a flat card there bleeds its padding so its content lines up with the sheet. Use background="opaque" for a form at the medium detent; keep glass for short, read-only content.',
+    ],
   },
   implementation: { package: 'konsta', verifiedVersion: '5.5.0', license: 'MIT', install: 'pnpm add konsta', ownership: 'The adapter\'s optional peer, installed in the consuming project only for an iOS prototype. Apps never import it.' },
   integration: {

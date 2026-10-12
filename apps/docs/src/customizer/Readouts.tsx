@@ -1,5 +1,5 @@
 import { Button, Icon, ScrubField } from "@sableui/react"
-import { type ReactNode, useLayoutEffect, useState } from "react"
+import { useLayoutEffect, useState } from "react"
 import { useCustomizer } from "./CustomizerProvider"
 import { ChromeTip } from "./controls"
 
@@ -17,6 +17,8 @@ import { ChromeTip } from "./controls"
 type Kind = "length" | "time"
 interface Row {
 	label: string
+	/** The ladder cell's name: a few characters, since a cell is ~52px. */
+	short: string
 	/** A custom property to resolve… */
 	token?: string
 	/** …or a utility class to apply and read the font size of (type tiers, so
@@ -69,39 +71,20 @@ export function useMeasured(rows: readonly Row[], enabled = true): (number | nul
 	return values
 }
 
-export function Readout({ title, rows, children }: { title?: string; rows: Row[]; children?: ReactNode }) {
-	const values = useMeasured(rows)
-	return (
-		<div className="grid gap-2.5 rounded-sm sable-well p-3">
-			{title ? <span className="text-label-md">{title}</span> : null}
-			{children ? <div className="grid gap-1.5">{children}</div> : null}
-			<dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1">
-				{rows.map((row, i) => (
-					<div key={row.label} className="contents">
-						<dt className="text-body-xs text-muted-foreground">{row.label}</dt>
-						<dd className="text-end text-mono-caption tabular-nums">{format(values[i], row.kind)}</dd>
-					</div>
-				))}
-			</dl>
-		</div>
-	)
-}
-
 /**
- * A readout whose values are already known rather than measured: a shadow has
- * no single length a probe could read back, so the look's own ladder supplies
- * the numbers. Same markup as Readout.
+ * A ladder: every step a domain resolves to, as one compact grid of name and
+ * value — what a design tool shows as a token scale. Read-only, so it carries
+ * no field surface; the anchor above it is the thing you edit.
  */
-export function ValueReadout({ title, rows, children }: { title?: string; rows: { label: string; value: string }[]; children?: ReactNode }) {
+export function Ladder({ rows, caption }: { rows: { label: string; short: string; value: string }[]; caption?: string }) {
 	return (
-		<div className="grid gap-2.5 rounded-sm sable-well p-3">
-			{title ? <span className="text-label-md">{title}</span> : null}
-			{children ? <div className="grid gap-1.5">{children}</div> : null}
-			<dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1">
+		<div className="grid gap-1 pt-0.5">
+			{caption ? <span className="text-ui-micro text-muted-foreground">{caption}</span> : null}
+			<dl className="grid grid-cols-[repeat(auto-fill,minmax(3.25rem,1fr))] gap-x-2 gap-y-1.5">
 				{rows.map((row) => (
-					<div key={row.label} className="contents">
-						<dt className="text-body-xs text-muted-foreground">{row.label}</dt>
-						<dd className="text-end text-mono-caption tabular-nums">{row.value}</dd>
+					<div key={row.label} title={`${row.label}: ${row.value}`} className="grid min-w-0">
+						<dt className="truncate text-ui-micro text-muted-foreground">{row.short}</dt>
+						<dd className="truncate text-ui-num">{row.value}</dd>
 					</div>
 				))}
 			</dl>
@@ -109,9 +92,15 @@ export function ValueReadout({ title, rows, children }: { title?: string; rows: 
 	)
 }
 
+/** A ladder whose values are measured live from the page. */
+export function MeasuredLadder({ rows, caption }: { rows: Row[]; caption?: string }) {
+	const values = useMeasured(rows)
+	return <Ladder caption={caption} rows={rows.map((row, i) => ({ label: row.label, short: row.short, value: format(values[i], row.kind) }))} />
+}
+
 /**
- * One editable anchor. Shows the live value until you set it, then yours; the
- * reset hands the domain back to the preset.
+ * One editable anchor: a ScrubField whose glyph is the drag handle. Shows the
+ * live value until you set it, then yours.
  */
 export function AnchorField({
 	label,
@@ -136,92 +125,110 @@ export function AnchorField({
 }) {
 	const shown = value ?? measured ?? min
 	return (
-		// The field's right edge lines up with the value column below it; the
-		// reset rides beside the label and takes no room until there is something
-		// to reset, so the field never shifts and no gap is reserved for it.
-		<div className="flex items-center gap-3">
-			<span className="flex min-w-0 flex-1 items-center gap-1 text-body-sm">
-				<span className="truncate">{label}</span>
-				{value != null ? (
-					<ChromeTip label="Back to the preset">
-						<Button
-							variant="ghost"
-							size="icon-xs"
-							aria-label={`Reset ${label.toLowerCase()}`}
-							onClick={() => onChange(null)}
-							className="shrink-0 text-muted-foreground"
-						>
-							<Icon name="refresh" />
-						</Button>
-					</ChromeTip>
-				) : null}
-			</span>
-			<ScrubField
-				label={label}
-				prefix={prefix}
-				suffix={suffix}
-				value={Math.round(shown / step) * step}
-				min={min}
-				max={max}
-				step={step}
-				onValueChange={(next) => onChange(next)}
-				className="w-24 shrink-0"
-			/>
-		</div>
+		<ScrubField
+			label={label}
+			prefix={prefix}
+			suffix={suffix}
+			value={Math.round(shown / step) * step}
+			min={min}
+			max={max}
+			step={step}
+			onValueChange={(next) => onChange(next)}
+			className="min-w-0"
+		/>
+	)
+}
+
+/**
+ * An anchor's caption, with its way back to the preset beside the name once
+ * it is set — where a tool puts "reset to default", out of the field's row so
+ * the field never moves under a scrub. Pulled into the caption's line height,
+ * so appearing never pushes the row down.
+ */
+export function AnchorCaption({ label, set, onReset }: { label: string; set: boolean; onReset: () => void }) {
+	return (
+		<span className="flex min-w-0 items-center justify-between gap-1">
+			<span className="truncate">{label}</span>
+			{set ? (
+				<ChromeTip label="Back to the preset">
+					<Button variant="ghost" size="icon-xs" aria-label={`Reset ${label.toLowerCase()}`} onClick={onReset} className="-my-1 shrink-0 text-muted-foreground">
+						<Icon name="refresh" />
+					</Button>
+				</ChromeTip>
+			) : null}
+		</span>
 	)
 }
 
 export const TYPE_ROWS: Row[] = [
-	{ label: "Display", type: "text-display-lg" },
-	{ label: "Heading 1", type: "text-heading-1" },
-	{ label: "Heading 2", type: "text-heading-2" },
-	{ label: "Heading 3", type: "text-heading-3" },
-	{ label: "Heading 4", type: "text-heading-4" },
-	{ label: "Title", type: "text-title-lg" },
-	{ label: "Body", type: "text-body-md" },
-	{ label: "Body small", type: "text-body-sm" },
-	{ label: "Label", type: "text-label-md" },
-	{ label: "Caption", type: "text-caption" },
-	{ label: "Mono", type: "text-mono-md" },
+	{ label: "Display", short: "Disp", type: "text-display-lg" },
+	{ label: "Heading 1", short: "H1", type: "text-heading-1" },
+	{ label: "Heading 2", short: "H2", type: "text-heading-2" },
+	{ label: "Heading 3", short: "H3", type: "text-heading-3" },
+	{ label: "Heading 4", short: "H4", type: "text-heading-4" },
+	{ label: "Title", short: "Title", type: "text-title-lg" },
+	{ label: "Body", short: "Body", type: "text-body-md" },
+	{ label: "Body small", short: "Small", type: "text-body-sm" },
+	{ label: "Label", short: "Label", type: "text-label-md" },
+	{ label: "Caption", short: "Cap", type: "text-caption" },
+	{ label: "Mono", short: "Mono", type: "text-mono-md" },
 ]
 
 export const CONTROL_ROWS: Row[] = [
-	{ label: "Extra small", token: "--control-xs" },
-	{ label: "Small", token: "--control-sm" },
-	{ label: "Medium", token: "--control-md" },
-	{ label: "Call to action", token: "--control-cta" },
-	{ label: "Large", token: "--control-lg" },
+	{ label: "Extra small", short: "XS", token: "--control-xs" },
+	{ label: "Small", short: "S", token: "--control-sm" },
+	{ label: "Medium", short: "M", token: "--control-md" },
+	{ label: "Call to action", short: "CTA", token: "--control-cta" },
+	{ label: "Large", short: "L", token: "--control-lg" },
 ]
 
 export const SPACING_ROWS: Row[] = [
-	{ label: "Gap between controls", token: "--control-gap" },
-	{ label: "Row padding", token: "--item-px" },
-	{ label: "Gap inside a row", token: "--item-gap" },
+	{ label: "Gap between controls", short: "Gap", token: "--control-gap" },
+	{ label: "Row padding", short: "Pad", token: "--item-px" },
+	{ label: "Gap inside a row", short: "Inner", token: "--item-gap" },
 ]
 
 export const RADIUS_ROWS: Row[] = [
-	{ label: "Extra small", token: "--radius-xs" },
-	{ label: "Small", token: "--radius-sm" },
-	{ label: "Medium", token: "--radius-md" },
-	{ label: "Large", token: "--radius-lg" },
-	{ label: "Extra large", token: "--radius-xl" },
-	{ label: "Buttons", token: "--button-radius" },
+	{ label: "Extra small", short: "XS", token: "--radius-xs" },
+	{ label: "Small", short: "S", token: "--radius-sm" },
+	{ label: "Medium", short: "M", token: "--radius-md" },
+	{ label: "Large", short: "L", token: "--radius-lg" },
+	{ label: "Extra large", short: "XL", token: "--radius-xl" },
+	{ label: "Buttons", short: "Button", token: "--button-radius" },
 ]
 
 export const MOTION_ROWS: Row[] = [
-	{ label: "Instant", token: "--motion-duration-instant", kind: "time" },
-	{ label: "Fast", token: "--motion-duration-fast", kind: "time" },
-	{ label: "Base", token: "--motion-duration-base", kind: "time" },
-	{ label: "Slow", token: "--motion-duration-slow", kind: "time" },
-	{ label: "Enter", token: "--motion-duration-enter", kind: "time" },
-	{ label: "Exit", token: "--motion-duration-exit", kind: "time" },
+	{ label: "Instant", short: "Instant", token: "--motion-duration-instant", kind: "time" },
+	{ label: "Fast", short: "Fast", token: "--motion-duration-fast", kind: "time" },
+	{ label: "Base", short: "Base", token: "--motion-duration-base", kind: "time" },
+	{ label: "Slow", short: "Slow", token: "--motion-duration-slow", kind: "time" },
+	{ label: "Enter", short: "Enter", token: "--motion-duration-enter", kind: "time" },
+	{ label: "Exit", short: "Exit", token: "--motion-duration-exit", kind: "time" },
 ]
 
 /** The current value of each advanced anchor, in Inspector order. */
 export const ANCHOR_ROWS: Row[] = [
-	{ label: "Body", type: "text-body-md" },
-	{ label: "Medium control", token: "--control-md" },
-	{ label: "Row padding", token: "--item-px" },
-	{ label: "Medium radius", token: "--radius-md" },
-	{ label: "Base duration", token: "--motion-duration-base", kind: "time" },
+	{ label: "Body", short: "Body", type: "text-body-md" },
+	{ label: "Medium control", short: "M", token: "--control-md" },
+	{ label: "Row padding", short: "Pad", token: "--item-px" },
+	{ label: "Medium radius", short: "M", token: "--radius-md" },
+	{ label: "Base duration", short: "Base", token: "--motion-duration-base", kind: "time" },
 ]
+
+/**
+ * The shadow ladder as what it is — five surfaces wearing each step — since a
+ * shadow has no single number worth a cell. Each step's longest drop is its
+ * hover text. On a well, so the shadows have a ground to fall on.
+ */
+export function ShadowSteps({ steps }: { steps: { label: string; short: string; shadow: string; value: string }[] }) {
+	return (
+		<div className="grid grid-cols-5 gap-2 overflow-hidden rounded-sm sable-well px-2.5 pt-3 pb-2" role="img" aria-label="Shadow ladder">
+			{steps.map((step) => (
+				<div key={step.label} title={`${step.label}: ${step.value}`} className="grid justify-items-center gap-2">
+					<span className="h-6 w-full max-w-10 rounded-xs bg-popover" style={{ boxShadow: step.shadow }} />
+					<span className="text-ui-micro text-muted-foreground">{step.short}</span>
+				</div>
+			))}
+		</div>
+	)
+}

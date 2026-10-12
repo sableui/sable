@@ -10,6 +10,7 @@ import {
 } from "react"
 import { cn } from "../../lib/cn"
 import { withPortalThemeScope } from "../../lib/portal-theme-scope"
+import { PresentationProvider, StackedActionsContext, usePresentation } from "../../lib/presentation"
 import { mergeRefs } from "../../lib/refs"
 import { useIsomorphicLayoutEffect } from "../../lib/use-isomorphic-layout-effect"
 import { sheetVariants } from "./sheet.variants"
@@ -131,7 +132,12 @@ export function SheetContent({
 					className={cn(sheetVariants({ side }), className)}
 					{...props}
 				>
-					<Base.Content className="contents">{children}</Base.Content>
+					<Base.Content className="contents">
+						{/* A bottom sheet is the phone's sheet: it owns its content's actions
+						    (lib/presentation). A side sheet is a page again, even one opened
+						    from inside a bottom sheet. */}
+						<PresentationProvider value={resolvedSide === "bottom" ? "sheet" : "page"}>{children}</PresentationProvider>
+					</Base.Content>
 				</Base.Popup>
 			</Base.Viewport>
 		</SheetPortal>
@@ -168,12 +174,24 @@ export function SheetHeader({ className, ...props }: ComponentProps<"div">) {
 	return <div className={cn("flex flex-col gap-1.5", className)} {...props} />
 }
 
-/** Action row, pushed to the bottom edge of the sheet via mt-auto. */
-export function SheetFooter({ className, ...props }: ComponentProps<"div">) {
+/**
+ * Action row, pushed to the bottom edge of the sheet via mt-auto. In a bottom
+ * sheet it stacks: full width, the primary (last, on a page) on top, capped at
+ * a phone's width so a wide screen does not stretch two buttons across it.
+ */
+export function SheetFooter({ className, children, ...props }: ComponentProps<"div">) {
+	const stacked = usePresentation() === "sheet"
 	return (
 		<div
-			className={cn("mt-auto flex items-center justify-end gap-2", className)}
+			data-actions={stacked ? "stack" : "row"}
+			className={cn(
+				"mt-auto flex items-center justify-end gap-2",
+				className,
+				stacked && "w-full max-w-sm flex-col-reverse items-stretch justify-start self-center",
+			)}
 			{...props}
-		/>
+		>
+			{stacked ? <StackedActionsContext.Provider value={true}>{children}</StackedActionsContext.Provider> : children}
+		</div>
 	)
 }

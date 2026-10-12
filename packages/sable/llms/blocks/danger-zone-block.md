@@ -44,7 +44,7 @@ export function DangerZoneBlock({ className, framed = true, onDelete }: DangerZo
 						Permanently remove your profile, editions, and sales history. Collectors keep the editions they own.
 					</CardDescription>
 				</CardHeader>
-				<CardFooter className="justify-end">
+				<CardFooter actions className="justify-end">
 					<Button variant="destructive" onClick={() => setOpen(true)}>
 						Delete account
 					</Button>

@@ -68,7 +68,7 @@ export function ChatPanel() {
 	// at that size reads as a speck); `alt` names it for a screen reader, which
 	// otherwise gets nothing from a fallback-only avatar.
 	const assistant = (
-		<Avatar
+		<Avatar variant="art"
 			size="sm"
 			alt="Assistant"
 			fallback={<Icon name="sparkles" className="text-base" />}

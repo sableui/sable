@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs"
 import { resolve } from "node:path"
 import { fileURLToPath } from "node:url"
-import { parsePreset, presetCss } from "../dist/presets/index.js"
+import { LABEL_CONTRAST_RULE, parsePreset, presetCss, presetLabelContrast } from "../dist/presets/index.js"
 import { parseFlags } from "./design-preferences.mjs"
 
 const packageRoot = fileURLToPath(new URL("../", import.meta.url))
@@ -39,10 +39,33 @@ try {
 		const file = flags.get(action)
 		if (!file || file.startsWith("--")) throw new Error(`${action} requires a preset JSON path.`)
 		const preset = parsePreset(JSON.parse(readFileSync(resolve(file), "utf8")))
-		if (action === "--check") emit("preset.check", { valid: true, id: preset.id, revision: preset.revision, authoredWith: preset.sableVersion }, `Valid preset ${preset.id}, revision ${preset.revision}. Review rendered contrast and brief fit separately.`)
-		else { const css = presetCss(preset); emit("preset.css", { id: preset.id, revision: preset.revision, css }, css) }
+		if (action === "--check") {
+			// Labels on brand and status fills: Sable's opinion, enforced unless the preset
+			// records that it declines it (`exceptions`), which is then reported.
+			const labels = presetLabelContrast(preset)
+			const pair = f => `${f.mode} ${f.fill}-foreground on ${f.fill}: ${f.ratio.toFixed(2)}:1, APCA Lc ${Math.abs(f.lc).toFixed(0)}`
+			if (labels.open.length) {
+				const exceptions = labels.open.map(f => JSON.stringify({ rule: LABEL_CONTRAST_RULE, mode: f.mode, token: f.fill, reason: "<why>" }))
+				const err = new Error(
+					"Labels on filled roles must clear 4.5:1 and APCA Lc 60. These fail the ratio or read muddy:\n" +
+					labels.open.map(f => `  ${pair(f)} → try ${f.fill}: ${f.suggestion.fill}; ${f.fill}-foreground: ${f.suggestion.ink}`).join("\n") +
+					`\nTo keep a pair as designed, record it in the preset: "exceptions": [${exceptions.join(", ")}]`,
+				)
+				err.code = "ERR_PRESET_CONTRAST"
+				err.data = { findings: labels.open }
+				err.suggestions = ["Apply the suggested fill/ink pairs", "Or add an exceptions entry with a reason", "sable docs creating-a-preset"]
+				throw err
+			}
+			const accepted = labels.accepted.map(f => `\n  accepted: ${pair(f)} — ${f.reason}`).join("")
+			const unmeasured = labels.unmeasured.length ? `, ${labels.unmeasured.length} unmeasured (${labels.unmeasured.join(", ")})` : ""
+			emit(
+				"preset.check",
+				{ valid: true, id: preset.id, revision: preset.revision, authoredWith: preset.sableVersion, labelContrast: { measured: labels.measured, accepted: labels.accepted, unmeasured: labels.unmeasured } },
+				`Valid preset ${preset.id}, revision ${preset.revision}. Labels on filled roles: ${labels.measured} pairs measured${unmeasured}.${accepted}\nReview rendered contrast and brief fit separately.`,
+			)
+		} else { const css = presetCss(preset); emit("preset.css", { id: preset.id, revision: preset.revision, css }, css) }
 	}
 } catch (error) {
-	process.stderr.write(JSON.stringify({ type: "error", code: "ERR_PRESET_INVALID", message: error.message, suggestions: ["sable docs using-presets", "sable preset --template"] }) + "\n")
+	process.stderr.write(JSON.stringify({ type: "error", code: error.code ?? "ERR_PRESET_INVALID", message: error.message, ...(error.data ? { data: error.data } : {}), suggestions: error.suggestions ?? ["sable docs using-presets", "sable preset --template"] }) + "\n")
 	process.exitCode = 1
 }

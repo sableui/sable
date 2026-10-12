@@ -274,6 +274,7 @@ const pages: Record<string, ComponentType> = {
 		"CarouselPage",
 	),
 	marquee: page(() => import("./pages/components/MarqueePage"), "MarqueePage"),
+	"gradient-art": page(() => import("./pages/components/GradientArtPage"), "GradientArtPage"),
 	"message-scroller": page(
 		() => import("./pages/components/MessageScrollerPage"),
 		"MessageScrollerPage",

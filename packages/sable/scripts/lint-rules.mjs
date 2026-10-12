@@ -118,9 +118,12 @@ function classTokens(expr) {
 /**
  * Build the rule table against a token contract.
  *
- * @param {{ semanticTokens: Set<string>, motionTokens: Set<string> }} contract
+ * @param {{ semanticTokens: Set<string>, motionTokens: Set<string>, labelContrast?: ((css: string) => { index: number, match: string }[]) | null }} contract
+ *   `labelContrast` is the stylesheet scanner from label-contrast.mjs. It is
+ *   passed in so this table stays dependency free; without it the rule is
+ *   listed and reports nothing.
  */
-export function makeRules({ semanticTokens, motionTokens }) {
+export function makeRules({ semanticTokens, motionTokens, labelContrast = null }) {
 	// Easing utility names = the theme's motion-ease-* tokens + Tailwind built-ins.
 	const easeNames = new Set([
 		...[...motionTokens]
@@ -523,6 +526,24 @@ export function makeRules({ semanticTokens, motionTokens }) {
 					}
 				}
 				return out
+			},
+		},
+		{
+			id: "label-contrast",
+			/* CONSUMER-scoped. An app retunes `--primary` and keeps the theme's
+			 * label — and a red lifted for dark mode lands where dark ink passes
+			 * the ratio and reads muddy, and white fails it. Sable's themes are
+			 * held to this in themes.test.ts; an app is told and offered the fix,
+			 * and keeps its own choice with a reasoned disable. */
+			scope: "consumer",
+			since: "0.6.0",
+			file: true,
+			code: true,
+			why:
+				"A label on a filled role — brand (`--primary`, `--sidebar-primary`, `--highlight`) or status (`--destructive`, `--success`, `--tone-warning`, `--tone-info`), each with its `-foreground` — should clear 4.5:1 AND APCA Lc 60. A pair can pass the ratio and still read muddy (dark ink on a bright red-orange, Lc 42). The finding names the nearest pair that reads, with the fill's lightness moved and hue kept, keeping the ink its light-mode colour takes. A status colour drawn on a surface (`text-destructive`, borders, rings) reads `--<status>-text`, so moving the fill does not move the page's text. " +
+				"If the pair is your brand's deliberate choice, keep it on the record: `/* design-lint-disable-next-line label-contrast -- <reason> */` above the declaration.",
+			scan(text, ctx) {
+				return ctx?.isStylesheet && labelContrast ? labelContrast(text) : []
 			},
 		},
 		{

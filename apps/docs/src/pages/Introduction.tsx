@@ -170,7 +170,7 @@ export function IntroductionPage() {
 			</Region>
 
 			<Region as="footer" max="wide" className="flex flex-wrap items-center justify-between gap-4 py-8">
-				<p className="text-body-sm text-muted-foreground">Sable isn't public yet. Installing it needs access to its private GitHub package.</p>
+				<p className="text-body-sm text-muted-foreground">Open source under the MIT license. Install it from npm as @sableui/react.</p>
 				<nav aria-label="Footer" className="flex items-center gap-1">
 					<Button variant="ghost" size="sm" render={<a href={hrefFor("whats-new")} />}>What's new</Button>
 					<Button variant="ghost" size="sm" render={<a href={hrefFor("credits")} />}>Credits and license</Button>

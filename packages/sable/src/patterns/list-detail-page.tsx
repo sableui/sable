@@ -209,7 +209,8 @@ export function ListDetailPage() {
 												selected={isSelected}
 												onSelect={() => select(m.id)}
 												leading={
-													<Avatar
+													<Avatar variant="art"
+														seed={m.name}
 														fallback={m.pending ? <Icon name="mail" className="size-5" /> : m.initials}
 														status={m.lastActive === "Online now" ? <StatusDot tone="success" /> : undefined}
 														// The row's title already names it: keep the initials out of the row's name.
@@ -271,7 +272,7 @@ export function ListDetailPage() {
 								<Card>
 									<CardHeader>
 										<Row gap={2}>
-											<Avatar
+											<Avatar variant="art"
 												size="lg"
 												fallback={selected.pending ? <Icon name="mail" className="size-6" /> : selected.initials}
 												status={selected.lastActive === "Online now" ? <StatusDot tone="success" /> : undefined}

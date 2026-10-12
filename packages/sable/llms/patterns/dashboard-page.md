@@ -111,7 +111,7 @@ export function DashboardPage() {
 							<span className="text-title-sm">Atelier</span>
 						</Row>
 					}
-					actions={<Avatar size="sm" fallback="AL" alt="Ada Lovelace" />}
+					actions={<Avatar variant="art" size="sm" fallback="AL" alt="Ada Lovelace" />}
 				/>
 			}
 			bottomNav={
@@ -146,7 +146,7 @@ export function DashboardPage() {
 					<SidebarFooter>
 						<Entity
 							className="[--entity-py:0]"
-							leading={<Avatar size="sm" fallback="AL" alt="" />}
+							leading={<Avatar variant="art" size="sm" fallback="AL" alt="" />}
 							title="Ada Lovelace"
 							subtitle="@ada"
 							action={
@@ -318,7 +318,7 @@ export function DashboardPage() {
 								{collectors.map((person) => (
 									<Entity
 										key={person.id}
-										leading={<Avatar size="sm" fallback={person.initials} alt="" />}
+										leading={<Avatar variant="art" size="sm" fallback={person.initials} alt="" />}
 										title={person.name}
 										subtitle={`${person.handle} · ${person.pieces} pieces`}
 										action={<span className="text-mono-sm">{usd.format(person.spent)}</span>}
@@ -365,7 +365,7 @@ export function DashboardPage() {
 							{activity.map((item) => (
 								<Entity
 									key={item.id}
-									leading={<Avatar size="sm" fallback={item.initials} alt="" />}
+									leading={<Avatar variant="art" size="sm" fallback={item.initials} alt="" />}
 									title={item.who}
 									subtitle={item.what}
 									action={<RelativeTime date={Date.now() - item.when} className="text-caption text-muted-foreground" />}

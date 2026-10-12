@@ -9,6 +9,7 @@ export {
 	CardFooter,
 	type CardProps,
 	type CardContentProps,
+	type CardFooterProps,
 	type CardTitleProps,
 } from "./card"
 export { cardMeta } from "./card.meta"

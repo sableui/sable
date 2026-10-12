@@ -18,7 +18,12 @@ Font stacks are requirements, not downloaded fonts. Declare matching stacks in
 the font metadata and tokens. Resolve internal palette variables before saving;
 portable presets may reference public Sable tokens, not private palette names.
 The validator rejects unknown tokens and CSS that can escape its declaration.
-It does not certify contrast or that a CSS value makes visual sense.
+`sable preset --check` also holds labels on brand and status fills to 4.5:1 and APCA Lc 60
+and suggests a pair that reads; a preset may keep a pair deliberately through
+`exceptions` with a reason (see `sable docs creating-a-preset`). Neither certifies
+the rendered product's contrast or that a CSS value makes visual sense. Do not
+change a supplied preset's colours to clear a finding without asking; report the
+finding and the suggested pair.
 
 Motion durations are nominal times at scale 1. `presetCss()` and the CLI connect
 them to the live `--motion-scale` policy, so reduced motion still stops recipes.

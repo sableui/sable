@@ -2,7 +2,7 @@
 
 Which token to reach for, and what it is most often confused with. Generated from `src/themes/token-docs.ts`; the full data is `registry.json → tokens`.
 
-### semantic (45)
+### semantic (49)
 
 - **`background`** — The page. The furthest-back surface in the page register. *Use for:* The document body, and any surface meant to read as 'the page itself'. Never anything that floats: background is the BOTTOM of the surface stack (background < card < popover in every dark mode), so a floating panel painted with it reads as a hole beneath the cards it hovers over.
     - **Not** `popover` for anything floating, `card` for a bounded block on the page. `canvas`. `canvas` is the *work* surface in a tool — the artboard being edited — which is not the page behind the UI. Using `background` for an artboard makes the thing being edited indistinguishable from the chrome around it.
@@ -74,6 +74,14 @@ Which token to reach for, and what it is most often confused with. Generated fro
     - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
 - **`highlight-foreground`** — Ink paired with `highlight`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `highlight`. Use them as a pair — `bg-highlight text-highlight-foreground` — so a theme can retune the surface and the ink together.
     - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
+- **`destructive-text`** — `destructive` drawn on a surface: text, icons, borders and focus rings. *Use for:* Write `text-destructive`, `border-destructive` or `ring-destructive` — they read this token; only `bg-destructive` reads the fill.
+    - **Not** `destructive` itself for marks on a page. The fill is tuned to carry a label (dark mode lowers it under white ink), which can leave it too dark to read on a dark card.
+- **`success-text`** — `success` drawn on a surface: text, icons, borders and focus rings. *Use for:* Write `text-success`, `border-success` or `ring-success` — they read this token; only `bg-success` reads the fill.
+    - **Not** `success` itself for marks on a page. The fill is tuned to carry a label (dark mode lowers it under white ink), which can leave it too dark to read on a dark card.
+- **`tone-warning-text`** — `tone-warning` drawn on a surface: text, icons, borders and focus rings. *Use for:* Write `text-tone-warning`, `border-tone-warning` or `ring-tone-warning` — they read this token; only `bg-tone-warning` reads the fill.
+    - **Not** `tone-warning` itself for marks on a page. The fill is tuned to carry a label (dark mode lowers it under white ink), which can leave it too dark to read on a dark card.
+- **`tone-info-text`** — `tone-info` drawn on a surface: text, icons, borders and focus rings. *Use for:* Write `text-tone-info`, `border-tone-info` or `ring-tone-info` — they read this token; only `bg-tone-info` reads the fill.
+    - **Not** `tone-info` itself for marks on a page. The fill is tuned to carry a label (dark mode lowers it under white ink), which can leave it too dark to read on a dark card.
 - **`overlay`** — A scrim over the page behind a modal, and the wash behind media chrome. *Use for:* Dialog and sheet backdrops, letterboxing, a pill sitting on top of an image.
     - **Not** `bg-black/50`. Pure black is never right — it crushes whatever is behind it, and a theme cannot tune it. This token is the sanctioned answer, which is why `raw-black-white` is a lint rule.
 - **`overlay-foreground`** — Ink paired with `overlay`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `overlay`. Use them as a pair — `bg-overlay text-overlay-foreground` — so a theme can retune the surface and the ink together.

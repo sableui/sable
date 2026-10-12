@@ -229,9 +229,10 @@ function CanvasApp() {
 								These are the web canvas’s real scenes, in your current preset. Navigation, the tab bar and these sheets are the native iOS layer; everything inside them is Sable.
 							</p>
 						</IosSheet>
-						<IosSheet open={feedback} onOpenChange={setFeedback} title="Feedback">
+						<IosSheet open={feedback} onOpenChange={setFeedback} title="Feedback" background="opaque">
 							<CanvasContent>
 								<FeedbackScene
+									framed={false}
 									onDone={(sent) => {
 										setFeedback(false)
 										if (sent) toast.success("Thanks for the feedback")
@@ -242,6 +243,7 @@ function CanvasApp() {
 						<IosSheet open={signIn} onOpenChange={setSignIn} title="Sign in" detent="large">
 							<CanvasContent>
 								<SignInScene
+									framed={false}
 									onSignIn={() => {
 										setSignIn(false)
 										toast.success(`Signed in as ${name}`)

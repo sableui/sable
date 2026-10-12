@@ -1,4 +1,4 @@
-import { BADGE_TONES, Badge, badgeMeta } from "@sableui/react"
+import { BADGE_TONES, Badge, GradientArt, badgeMeta } from "@sableui/react"
 import {
 	ComponentPlayground,
 	Example,
@@ -57,13 +57,10 @@ export function BadgePage() {
 <Badge appearance="overlay" tone="edition">Edition</Badge>`}
 				>
 					{/* A stand-in for artwork: the theme's own tones, so it is busy in every preset. */}
-					<div
-						className="relative flex aspect-[4/3] w-64 items-end gap-1.5 overflow-hidden rounded-lg p-3"
-						style={{ background: "linear-gradient(135deg, var(--tone-info), var(--tone-standard) 55%, var(--tone-warning))" }}
-					>
+					<GradientArt seed="On media" className="flex aspect-[4/3] w-64 items-end gap-1.5 rounded-lg p-3">
 						<Badge appearance="overlay">3 images</Badge>
 						<Badge appearance="overlay" tone="edition">Edition</Badge>
-					</div>
+					</GradientArt>
 				</Example>
 			</Section>
 

@@ -64,7 +64,7 @@ export function ProfileFormBlock({ className, framed = true, onSave }: ProfileFo
 				<CardContent>
 					<Stack gap={3}>
 						<Row gap={2}>
-							<Avatar size="lg" fallback={profile.initials} alt={profile.name} />
+							<Avatar variant="art" size="lg" fallback={profile.initials} alt={profile.name} />
 							<Stack gap={0.5} align="start">
 								<Row gap={1}>
 									<Button type="button" variant="outline" size="sm">
@@ -104,7 +104,7 @@ export function ProfileFormBlock({ className, framed = true, onSave }: ProfileFo
 						</Grid>
 					</Stack>
 				</CardContent>
-				<CardFooter className="justify-end">
+				<CardFooter actions className="justify-end">
 					<Button type="submit">Save profile</Button>
 				</CardFooter>
 			</Form>

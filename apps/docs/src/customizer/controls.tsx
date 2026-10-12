@@ -1,8 +1,15 @@
 import {
+	Button,
 	ColorField,
+	Icon,
 	Input,
+	PropertyRow,
 	Radio,
 	RadioGroup,
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
 	SliderControl,
 	SliderIndicator,
 	SliderRoot,
@@ -15,10 +22,11 @@ import {
 	TooltipTrigger,
 	cn,
 } from "@sableui/react"
-import { type KeyboardEvent, type PointerEvent, type ReactElement, type ReactNode, useEffect, useMemo, useRef, useState } from "react"
+import { type KeyboardEvent, type PointerEvent, type ReactElement, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useTheme } from "../theme"
 import { formatOklch, resolveTheme } from "./color"
-import { HUE_STOPS, brandColor, cornerRadius } from "./look"
+import { useCustomizer } from "./CustomizerProvider"
+import { HUE_STOPS, brandColor } from "./look"
 
 /*
  * The inspector's controls. Wherever Sable ships the control, this is that
@@ -156,7 +164,7 @@ export function CharacterPad({
 			{...drag}
 			onDoubleClick={() => onChange({ bold: null, airy: null })}
 			onKeyDown={onKey}
-			className="relative aspect-[3/2] w-full cursor-crosshair touch-none select-none overflow-hidden rounded-md sable-well motion-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+			className="relative aspect-[2/1] w-full cursor-crosshair touch-none select-none overflow-hidden rounded-md sable-well motion-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 			style={{
 				backgroundImage:
 					// The grid dots are the strong hairline: an alpha of the ink, right on any well.
@@ -184,12 +192,13 @@ export function CharacterPad({
 	)
 
 	return (
-		<div className="grid gap-2">
+		<>
 			{pad}
-			<p id="character-help" className="text-caption text-muted-foreground">
+			{/* The section's reset says the same thing visibly; this is for the keyboard. */}
+			<p id="character-help" className="sr-only">
 				Drag to explore. Double-click or Delete returns to the preset.
 			</p>
-		</div>
+		</>
 	)
 }
 
@@ -204,9 +213,12 @@ export function CharacterPad({
 export function HueStrip({
 	hue,
 	onChange,
+	size = "md",
 }: {
 	hue: number | null
 	onChange: (hue: number | null) => void
+	/** md for the simple view; sm is the property-grid rung. */
+	size?: "md" | "sm"
 }) {
 	const { mode } = useTheme()
 	const paint = mode === "dark" ? "dark" : "light"
@@ -253,7 +265,7 @@ export function HueStrip({
 			aria-valuetext={hue == null ? "Preset colors" : `Hue ${hue}°`}
 			{...drag}
 			onKeyDown={onKey}
-			className="relative flex h-8 cursor-pointer touch-none select-none overflow-hidden rounded-sm motion-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover"
+			className={cn("relative flex cursor-pointer touch-none select-none overflow-hidden rounded-sm motion-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover", size === "sm" ? "h-6 rounded-xs" : "h-8")}
 		>
 			{swatches.map(({ h, fill }) => (
 				<span key={h} aria-hidden className="h-full flex-1" style={{ background: fill }} />
@@ -279,35 +291,70 @@ export function HueStrip({
 	)
 }
 
-/* ── Corners ──────────────────────────────────────────────────────────────── */
+/* ── Shape: corners and depth ─────────────────────────────────────────────── */
 
-export function CornerControl({
-	corners,
-	preset,
-	onChange,
+/**
+ * One preview for corners and depth together, because together is how you see
+ * them: a resting card (lg radius, sm shadow) holding a chip (xs), a menu (md,
+ * md) and a toast (sm, xl). The radii come from the same curve look.ts writes,
+ * ceilings included; the shadows are the ladder the look paints in this mode.
+ * The panel keeps the house look, so all of it is carried inline. Clipped: a
+ * lifted or Offset ladder reaches well past three small samples.
+ */
+export function ShapePreview({
+	radius,
+	shadow,
 }: {
-	corners: number | null
-	/** The active preset's radius ladder in px, which the preview shapes start from. */
-	preset: Record<"xs" | "sm" | "md" | "lg", number>
-	onChange: (corners: number | null) => void
+	/** Radius per step in px. */
+	radius: Record<"xs" | "sm" | "md" | "lg", number>
+	/** box-shadow per preview step, for the current mode. */
+	shadow: { sm: string; md: string; xl: string } | null
 }) {
-	const value = corners ?? 50
-	// The same curve look.ts writes, so the preview shows the real outcome —
-	// including the ceilings that keep the round end from turning boxes into pills.
-	const r = (step: "xs" | "sm" | "md" | "lg") => `${Math.round(cornerRadius(step, preset[step], value))}px`
-	const valueText = corners == null ? "Preset" : value < 15 ? "Square" : value < 45 ? "Tight" : value < 60 ? "Preset scale" : value < 85 ? "Soft" : "Round"
+	const r = (step: keyof typeof radius) => `${Math.round(radius[step])}px`
 	return (
-		<div className="grid gap-2">
-			<div className="flex items-end justify-between gap-3 rounded-md sable-well px-4 py-3" aria-hidden>
-				<span className="h-11 w-16 bg-popover shadow-sm" style={{ borderRadius: r("lg") }} />
-				<span className="h-7 w-14 bg-popover shadow-sm" style={{ borderRadius: r("sm") }} />
-				<span className="size-8 bg-popover shadow-sm" style={{ borderRadius: r("md") }} />
-				<span className="h-4 w-8 bg-popover shadow-sm" style={{ borderRadius: r("xs") }} />
-			</div>
-			{/* Composed from Sable's Slider parts so the thumb can carry the label
-			    and value text. Double-click or Delete returns to the preset. */}
+		<div className="flex h-24 items-center justify-center gap-4 overflow-hidden rounded-md sable-well px-4" aria-hidden>
+			<span className="flex h-14 w-20 flex-col justify-end gap-1.5 bg-popover p-2" style={{ borderRadius: r("lg"), boxShadow: shadow?.sm }}>
+				<span className="h-1 w-10 rounded-full bg-hairline-strong" />
+				<span className="h-3 w-8 bg-foreground" style={{ borderRadius: r("xs") }} />
+			</span>
+			<span className="grid h-16 w-14 content-start gap-1.5 bg-popover p-2" style={{ borderRadius: r("md"), boxShadow: shadow?.md }}>
+				<span className="h-1 w-8 rounded-full bg-hairline-strong" />
+				<span className="h-1 w-6 rounded-full bg-hairline-strong" />
+				<span className="h-1 w-7 rounded-full bg-hairline-strong" />
+			</span>
+			<span className="flex h-8 w-20 items-center gap-1.5 bg-popover px-2" style={{ borderRadius: r("sm"), boxShadow: shadow?.xl }}>
+				<span className="size-2 rounded-full bg-foreground" />
+				<span className="h-1 w-10 rounded-full bg-hairline-strong" />
+			</span>
+		</div>
+	)
+}
+
+/**
+ * A 0–100 look slider whose untouched value is null ("the preset"): composed
+ * from Sable's Slider parts so the thumb carries the label and value text.
+ * The value text sits on the label's line, the way a tool names a setting and
+ * its state together. Double-click or Delete returns to the preset.
+ */
+export function LookSlider({
+	label,
+	value,
+	onChange,
+	valueText,
+}: {
+	label: string
+	value: number | null
+	onChange: (value: number | null) => void
+	valueText: (value: number | null) => string
+}) {
+	const text = valueText(value)
+	return (
+		<div className="grid gap-1">
+			<PropertyRow label={label}>
+				<span className={cn("text-ui-md", value == null ? "text-muted-foreground" : "text-foreground")}>{text}</span>
+			</PropertyRow>
 			<SliderRoot
-				value={value}
+				value={value ?? 50}
 				min={0}
 				max={100}
 				onValueChange={(next) => onChange(Array.isArray(next) ? next[0] : (next as number))}
@@ -320,12 +367,12 @@ export function CornerControl({
 				}}
 				// Inset by half a thumb: Sable's slider centres the thumb on the value,
 				// so at 0 it hung past the panel's content edge.
-				className="w-full px-2.5"
+				className="w-full px-2"
 			>
 				<SliderControl>
 					<SliderTrack>
 						<SliderIndicator />
-						<SliderThumb aria-label="Corner roundness" getAriaValueText={() => valueText} />
+						<SliderThumb aria-label={label} getAriaValueText={() => text} />
 					</SliderTrack>
 				</SliderControl>
 			</SliderRoot>
@@ -333,60 +380,125 @@ export function CornerControl({
 	)
 }
 
+export const cornersText = (corners: number | null) =>
+	corners == null ? "Preset" : corners < 15 ? "Square" : corners < 45 ? "Tight" : corners < 60 ? "Preset scale" : corners < 85 ? "Soft" : "Round"
+
+export const depthText = (depth: number | null) =>
+	depth == null ? "Preset" : depth < 10 ? "Flat" : depth < 40 ? "Subtle" : depth < 60 ? "Preset depth" : depth < 85 ? "Raised" : "Lifted"
+
+/* ── Palette ──────────────────────────────────────────────────────────────── */
+
 /**
- * Depth: Flat ↔ Lifted, over a preview of three surfaces at the steps that
- * matter most — a resting card (sm), a popover (md) and a toast (xl) — wearing
- * the shadows the look will paint in the current mode. The panel itself keeps
- * the house look, so the preview carries the shadows inline. Simple only:
- * Advanced sets exact numbers instead (see Inspector).
+ * The roles a palette preview shows, grouped the way look.ts treats them:
+ * ground, brand, the decorative tones a palette scheme rebuilds from the brand,
+ * and status. Status leans toward the brand only within the hue range where it
+ * still reads as error, caution or done (see `leanStatus`), so its swatches move
+ * less than the tones beside them. Labelled, so that reads as intended.
  */
-export function DepthControl({
-	depth,
-	preview,
-	onChange,
-}: {
-	depth: number | null
-	/** box-shadow per preview step, for the current mode. */
-	preview: { sm: string; md: string; xl: string } | null
-	onChange: (depth: number | null) => void
-}) {
-	const value = depth ?? 50
-	const valueText = depth == null ? "Preset" : value < 10 ? "Flat" : value < 40 ? "Subtle" : value < 60 ? "Preset depth" : value < 85 ? "Raised" : "Lifted"
+const PALETTE_GROUPS = [
+	{ name: "Ground", tokens: ["background", "muted", "foreground"] },
+	{ name: "Brand", tokens: ["primary", "highlight"] },
+	{ name: "Tones", tokens: ["tone-info", "tone-standard", "tone-collectible", "tone-edition"] },
+	{ name: "Status", tokens: ["success", "tone-warning", "destructive"] },
+] as const
+
+const PALETTE_TOKENS = PALETTE_GROUPS.flatMap((group) => group.tokens)
+
+/**
+ * The palette the look paints right now, read back from the page — not
+ * recomputed — so Harmonize or Triadic shows exactly what the canvas got.
+ * Custom properties compute with var() substituted, so one read per token is
+ * enough; it runs a frame after the look's stylesheet is rewritten.
+ */
+export function PalettePreview() {
+	const { css } = useCustomizer()
+	const { mode } = useTheme()
+	const [colors, setColors] = useState<Record<string, string>>({})
+	useLayoutEffect(() => {
+		const frame = requestAnimationFrame(() => {
+			const computed = getComputedStyle(document.documentElement)
+			setColors(Object.fromEntries(PALETTE_TOKENS.map((token) => [token, computed.getPropertyValue(`--${token}`).trim()])))
+		})
+		return () => cancelAnimationFrame(frame)
+	}, [css, mode])
 	return (
-		<div className="grid gap-2">
-			{/* Clipped: the well is a window onto the shadows, and a lifted or
-			    Offset ladder reaches well past three small samples. */}
-			<div className="flex items-start justify-between gap-3 overflow-hidden rounded-md sable-well px-4 pt-3 pb-6" aria-hidden>
-				<span className="h-10 w-16 rounded-sm bg-popover" style={{ boxShadow: preview?.sm }} />
-				<span className="h-12 w-14 rounded-sm bg-popover" style={{ boxShadow: preview?.md }} />
-				<span className="h-8 w-20 rounded-sm bg-popover" style={{ boxShadow: preview?.xl }} />
+		<div className="grid gap-1" role="img" aria-label="Current palette. Status colours lean toward the brand only as far as they keep their meaning.">
+			<div className="flex h-5 items-center gap-1">
+				{PALETTE_GROUPS.map((group) => (
+					// An outline, not an inset ring: it paints over the swatches, so a white ground still has an edge.
+					<span
+						key={group.name}
+						title={group.name === "Status" ? "Status leans toward the brand only as far as it keeps its meaning" : group.name}
+						className="flex h-full overflow-hidden rounded-xs outline-1 -outline-offset-1 outline-hairline-strong"
+						style={{ flex: `${group.tokens.length} 1 0` }}
+					>
+						{group.tokens.map((token) => (
+							<span key={token} className="flex-1" style={{ background: colors[token] || "transparent" }} />
+						))}
+					</span>
+				))}
 			</div>
-			<SliderRoot
-				value={value}
-				min={0}
-				max={100}
-				onValueChange={(next) => onChange(Array.isArray(next) ? next[0] : (next as number))}
-				onDoubleClick={() => onChange(null)}
-				onKeyDown={(event) => {
-					if (event.key === "Delete" || event.key === "Backspace") {
-						event.preventDefault()
-						onChange(null)
-					}
-				}}
-				className="w-full px-2.5"
-			>
-				<SliderControl>
-					<SliderTrack>
-						<SliderIndicator />
-						<SliderThumb aria-label="Depth" getAriaValueText={() => valueText} />
-					</SliderTrack>
-				</SliderControl>
-			</SliderRoot>
-			<div className="flex justify-between px-0.5 text-caption text-muted-foreground" aria-hidden>
-				<span>Flat</span>
-				<span>Lifted</span>
+			<div className="flex gap-1 text-ui-micro text-muted-foreground" aria-hidden>
+				{PALETTE_GROUPS.map((group) => (
+					<span key={group.name} className="min-w-0 truncate" style={{ flex: `${group.tokens.length} 1 0` }}>
+						{group.name}
+					</span>
+				))}
 			</div>
 		</div>
+	)
+}
+
+/* ── Section reset ────────────────────────────────────────────────────────── */
+
+/**
+ * The one way back for a section, in its header's action slot. It appears only
+ * when the section differs from the preset, so it doubles as the signal that
+ * it does.
+ */
+export function SectionReset({ label, onReset }: { label: string; onReset: () => void }) {
+	return (
+		<ChromeTip label={`Reset ${label.toLowerCase()}`}>
+			<Button variant="ghost" size="icon-xs" aria-label={`Reset ${label.toLowerCase()}`} onClick={onReset} className="-me-1 text-muted-foreground">
+				<Icon name="refresh" />
+			</Button>
+		</ChromeTip>
+	)
+}
+
+/* ── Select ───────────────────────────────────────────────────────────────── */
+
+/**
+ * Sable's Select at the property-grid rung. The popup portals to <body>,
+ * outside the panel, so it carries `data-canvas-chrome` itself and keeps the
+ * house look (see ChromeTip).
+ */
+export function ChromeSelect<T extends string>({
+	label,
+	value,
+	options,
+	onChange,
+	className,
+	id,
+}: {
+	label: string
+	value: T
+	options: readonly { value: T; label: string }[]
+	onChange: (value: T) => void
+	className?: string
+	id?: string
+}) {
+	return (
+		<Select value={value} onValueChange={(next) => next != null && next !== value && onChange(next as T)}>
+			<SelectTrigger id={id} size="xs" aria-label={label} className={className} />
+			<SelectContent data-canvas-chrome="">
+				{options.map((option) => (
+					<SelectItem key={option.value} value={option.value}>
+						{option.label}
+					</SelectItem>
+				))}
+			</SelectContent>
+		</Select>
 	)
 }
 
@@ -408,12 +520,20 @@ export function ChromeTip({ label, children }: { label: string; children: ReactE
 
 /* ── Segmented control ────────────────────────────────────────────────────── */
 
+/*
+ * The selected segment wears --knob-shadow, not shadow-sm: it sits on its
+ * track the way a switch thumb sits on its rail. shadow-sm is a surface's lift,
+ * and a preset may make that a hard offset drop (Poppy's), which spilled out of
+ * the track and smeared the pill into the page around it.
+ */
 const TRACK = {
 	// The inspector: a sable-well track (a fixed step off the panel, in every
 	// theme and mode — no outline needed), the pick lifted back to the panel.
-	card: { group: "sable-well p-1", item: "rounded-concentric-md/1 px-2", pressed: "data-[pressed]:bg-popover data-[pressed]:shadow-sm" },
+	card: { group: "sable-well p-1", item: "rounded-concentric-md/1 px-2", pressed: "data-[pressed]:bg-popover data-[pressed]:shadow-(--knob-shadow)" },
 	// A page surface (the playground): a muted track, the pick on the page.
 	muted: { group: "gap-0.5 bg-muted p-0.5", item: "rounded-concentric-md/0.5 px-2.5", pressed: "data-[pressed]:bg-background" },
+	// The property grid: the card track at half the inset, around 24px segments.
+	compact: { group: "sable-well p-0.5", item: "rounded-concentric-md/0.5 px-1.5", pressed: "data-[pressed]:bg-popover data-[pressed]:shadow-(--knob-shadow)" },
 } as const
 
 /**
@@ -433,19 +553,24 @@ export function Segmented<T extends string>({
 	className,
 	track = "card",
 	fill = true,
+	size = "md",
 	id,
 }: {
 	label: string
 	value: T
-	options: readonly { value: T; label: ReactNode; style?: React.CSSProperties; title?: string }[]
+	/** `ariaLabel` names a segment whose label is an icon. */
+	options: readonly { value: T; label: ReactNode; style?: React.CSSProperties; title?: string; ariaLabel?: string }[]
 	onChange: (value: T) => void
 	className?: string
 	/** The surface it sits on: the inspector's card, or a page (muted track). */
 	track?: keyof typeof TRACK
 	/** Stretch to the container with segments sharing the width; off hugs the labels. */
 	fill?: boolean
+	/** md for the simple view; sm is the property-grid rung (24px segments). */
+	size?: "md" | "sm"
 	id?: string
 }) {
+	const t = TRACK[size === "sm" && track === "card" ? "compact" : track]
 	return (
 		<ToggleGroup
 			id={id}
@@ -455,20 +580,22 @@ export function Segmented<T extends string>({
 				const picked = (next as T[])[0]
 				if (picked != null && picked !== value) onChange(picked)
 			}}
-			className={cn("rounded-md", fill ? "flex" : "inline-flex", TRACK[track].group, className)}
+			className={cn("rounded-md", fill ? "flex" : "inline-flex", t.group, className)}
 		>
 			{options.map((option) => (
 				<Toggle
 					key={option.value}
 					value={option.value}
-					title={option.title}
+					title={option.title ?? option.ariaLabel}
+					aria-label={option.ariaLabel}
 					style={option.style}
 					className={cn(
-						"h-7 min-w-0",
+						size === "sm" ? "h-6 text-ui-md" : "h-7",
+						"min-w-0",
 						fill && "flex-1",
-						TRACK[track].item,
-						"hover:bg-transparent hover:text-foreground data-[pressed]:text-foreground data-[pressed]:shadow-sm",
-						TRACK[track].pressed,
+						t.item,
+						"hover:bg-transparent hover:text-foreground data-[pressed]:text-foreground data-[pressed]:shadow-(--knob-shadow)",
+						t.pressed,
 					)}
 				>
 					{/* No truncate: overflow:hidden on a cap-trimmed box clips descenders. */}
@@ -563,18 +690,29 @@ export function PresetCards({
 /* ── Brand colour: picker + hex ──────────────────────────────────────────── */
 
 const HEX = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i
-// design-lint-disable-next-line inline-color -- placeholder text showing the hex format, never painted
-const HEX_EXAMPLE = "#5b5bd6"
+const HEX6 = /^#[0-9a-f]{6}$/i
 
 /**
  * An exact brand colour. The swatch is Sable's ColorField: a themed picker
  * with its own hex field and eyedropper. The field beside it takes 3- or
  * 6-digit hex without opening anything. Its draft is local so typing a partial
  * value never clobbers the look — it commits only when it parses. Empty is not
- * an error: it means "no brand colour — the preset's own", and the swatch
- * shows the transparency checkerboard rather than an arbitrary black.
+ * an error: it means "no brand colour — the preset's own", so the swatch and
+ * the placeholder show the preset's primary, and the picker opens on it.
  */
-export function BrandColorInput({ value, onChange }: { value: string; onChange: (hex: string) => void }) {
+export function BrandColorInput({
+	value,
+	fallback,
+	onChange,
+	size = "md",
+}: {
+	value: string
+	/** The preset's own primary as hex, shown while `value` is empty. */
+	fallback?: string
+	onChange: (hex: string) => void
+	/** md for the simple view; xs is the property-grid rung. */
+	size?: "md" | "xs"
+}) {
 	const [draft, setDraft] = useState(value)
 	useEffect(() => setDraft(value), [value])
 	const valid = draft.trim() === "" || HEX.test(draft.trim())
@@ -582,15 +720,17 @@ export function BrandColorInput({ value, onChange }: { value: string; onChange: 
 		const v = next.trim()
 		if (HEX.test(v)) onChange(v.startsWith("#") ? v.toLowerCase() : `#${v.toLowerCase()}`)
 	}
+	const swatch = HEX6.test(value) ? value : fallback && HEX6.test(fallback) ? fallback : "transparent"
 	return (
-		<div className="flex items-center gap-2">
+		<div className={cn("flex items-center", size === "xs" ? "gap-1" : "gap-2")}>
 			<ColorField
 				label="Brand colour"
-				value={/^#[0-9a-f]{6}$/i.test(value) ? value : "transparent"}
+				value={swatch}
 				onValueChange={(hex) => HEX.test(hex) && onChange(hex.toLowerCase())}
-				className="size-8 rounded-sm"
+				className={size === "xs" ? "size-6 rounded-xs" : "size-8 rounded-sm"}
 			/>
 			<Input
+				size={size}
 				value={draft}
 				onChange={(event) => {
 					setDraft(event.target.value)
@@ -600,8 +740,8 @@ export function BrandColorInput({ value, onChange }: { value: string; onChange: 
 				spellCheck={false}
 				aria-label="Brand colour hex"
 				aria-invalid={!valid}
-				placeholder={HEX_EXAMPLE}
-				className="h-8 min-w-0 flex-1 px-2.5 text-mono-caption"
+				placeholder={fallback ? `${fallback} · preset` : "Preset"}
+				className={cn("min-w-0 flex-1 text-mono-caption", size === "md" && "h-8 px-2.5")}
 			/>
 		</div>
 	)
