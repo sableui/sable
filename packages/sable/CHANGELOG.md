@@ -1,5 +1,15 @@
 # What's new
 
+## 0.8.1
+
+- **`sable check` shows doctor's notes.** Warnings and notes from `sable doctor`
+  don't fail the check, so a passing check printed none of them. They now list
+  under the doctor line, and when the app still scans all of Sable, the finish
+  steps add one: trim the CSS with `sable sources` to the components the app
+  imports. The skill says to act on check's notes, and the install recipe
+  (`registry.json` → `consume.cssSources`) and `sable docs getting-started`
+  mention `sable sources` beside the whole-package `@source`.
+
 ## 0.8.0
 
 The same support-workspace app was built twice, on Sable and on shadcn, and this

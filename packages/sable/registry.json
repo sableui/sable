@@ -1,7 +1,7 @@
 {
   "$schema": "https://sable.design/registry.schema.json",
   "name": "@sableui/react",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Themeable React components, semantic tokens, layout patterns, presets, and package-owned agent skills. Default theme: Sable.",
   "engine": {
     "behavior": "@base-ui/react",
@@ -28,6 +28,7 @@
       "@import \"@sableui/react/styles.css\";",
       "@source \"<node_modules>/@sableui/react/dist/**/*.{js,mjs}\";"
     ],
+    "cssSources": "That @source ships every component's classes (about 32 KB gzipped). Once the app is built, `sable sources --write src/sable-sources.css` lists just the modules it imports; @import that file in place of the @source. sable check fails while it is stale.",
     "fonts": {
       "sans": "Figtree",
       "mono": "DM Mono",

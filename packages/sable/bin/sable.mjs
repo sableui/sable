@@ -1472,6 +1472,9 @@ function cmdCheck() {
 		status: doctorFailures.length ? "fail" : "pass",
 		summary: doctorFailures.length ? `${doctorFailures.length} wiring failure(s): ${doctorFailures.map((c) => c.name).join(", ")}` : "wiring holds",
 		details: doctorFailures.map((c) => `${c.name}: ${c.detail}${c.fix ? ` → ${c.fix}` : ""}`),
+		// Warnings and notes don't fail the check, but they are things to act on,
+		// and a passing check that printed nothing else hid them from the agent.
+		notes: doctor.checks.filter((c) => c.status === "warn" || c.status === "info").map((c) => `${c.name}: ${c.detail}${c.fix ? ` → ${c.fix}` : ""}`),
 		data: doctor,
 	})
 
@@ -1529,7 +1532,12 @@ function cmdCheck() {
 	const inventory = grade && grade.type !== "error" ? (grade.inventory ?? null) : null
 
 	const failed = checks.filter((c) => c.status !== "pass").map((c) => c.name)
-	const data = { paths, passed: !failed.length, failed, checks, inventory, manualReview: MANUAL_REVIEW }
+	// A build that still scans all of Sable ships every component's classes;
+	// trimming it is a finish step, because sources are only final once the app is.
+	const manual = doctor.checks.some((c) => c.name === "css:size")
+		? [...MANUAL_REVIEW, { step: "Ship only the CSS you use", how: "sable sources --write src/sable-sources.css, then @import it in place of the whole-package @source (about 32 KB of CSS gzipped down to what the app imports). Re-run it whenever you import something new from Sable; sable check fails while it is stale." }]
+		: MANUAL_REVIEW
+	const data = { paths, passed: !failed.length, failed, checks, inventory, manualReview: manual }
 	const MARK = { pass: "✓", fail: "✗", error: "✗" }
 	const MAX_DETAILS = 12
 	const summaryText = () =>
@@ -1539,6 +1547,7 @@ function cmdCheck() {
 				`  ${MARK[c.status]} ${c.name.padEnd(7)}${c.summary}`,
 				...c.details.slice(0, MAX_DETAILS).map((d) => `      ${d}`),
 				...(c.details.length > MAX_DETAILS ? [`      … ${c.details.length - MAX_DETAILS} more: sable ${c.name}${c.name === "doctor" ? "" : ` ${paths.join(" ")}`}`] : []),
+				...(c.notes ?? []).map((n) => `      note — ${n}`),
 			]),
 			"",
 			failed.length ? `[sable check] ✗ ${failed.join(", ")} failed. Fix these and run sable check again.` : "[sable check] ✓ doctor, lint and grade pass.",
@@ -1558,7 +1567,7 @@ function cmdCheck() {
 		[
 			"",
 			"Automated checks cannot judge the design. Before calling it done:",
-			...MANUAL_REVIEW.map((m, i) => `  ${i + 1}. ${m.step}: ${m.how}`),
+			...manual.map((m, i) => `  ${i + 1}. ${m.step}: ${m.how}`),
 		].join("\n")
 
 	/* Stop-hook mode (Claude Code): exit 2 blocks the agent from ending its turn

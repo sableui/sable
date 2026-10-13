@@ -13,7 +13,9 @@ References inform an original direction. A reference or preset is optional.
 
 1. Run `sable check <source paths>` (default `src`). It runs `sable doctor`,
    `sable lint`, and `sable grade` and exits 1 if any fails. Repair the findings
-   instead of suppressing them, then run it again until it passes. Also run the
+   instead of suppressing them, then run it again until it passes. Act on its
+   notes too: they don't fail the check but name real work, such as trimming the
+   CSS to the components the app imports (`sable sources`). Also run the
    project's own build and type checks.
 2. Review the rendered design: `sable docs reviewing-a-design`. Capture desktop and
    mobile in every promised colour mode, and judge brief fit, composition,
@@ -34,7 +36,7 @@ References inform an original direction. A reference or preset is optional.
    lessons with evidence; never fabricate human approval or preference records.
 
 Steps 2–7 are what no tool can verify; `sable check` prints them after its
-results. A passing check is a contract result, not design approval.
+results, plus any step its notes call for. A passing check is a contract result, not design approval.
 
 ## Route the request
 

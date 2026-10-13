@@ -1807,8 +1807,11 @@ For `src/styles.css` with `node_modules` at the project root:
 @source "../node_modules/@sableui/react/dist/**/*.{js,mjs}";
 ```
 
-Adjust the relative `@source` path to your stylesheet's location. Import this
-stylesheet from your app entry. For Vite, preserve your plugins and add
+Adjust the relative `@source` path to your stylesheet's location. It makes
+Tailwind generate every Sable component's classes; once the app is built,
+`sable sources --write src/sable-sources.css` lists just the ones it imports, to
+`@import` in its place (`sable check` notes this). Import this stylesheet from
+your app entry. For Vite, preserve your plugins and add
 `resolve: { dedupe: ["react", "react-dom"] }` to its configuration. Load Figtree
 and DM Mono through your font setup, or customize the font tokens.
 
