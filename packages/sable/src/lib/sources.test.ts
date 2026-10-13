@@ -74,4 +74,14 @@ describe("sable sources", () => {
 		const [check] = sourcesCheck(pkg, app, [{ path: join(app, "src/app.css"), text: '@source "../node_modules/@sableui/react/dist/**/*.{js,mjs}";' }])
 		expect(check).toMatchObject({ status: "info", name: "css:size" })
 	})
+
+	it("warns when the whole-package @source is still there beside the generated file", () => {
+		put(app, "src/App.tsx", 'import { Card } from "@sableui/react"\n')
+		const { css } = sourcesCss(pkg, app, "src/sable-sources.css")
+		const generated = { path: join(app, "src/sable-sources.css"), text: css }
+		const main = { path: join(app, "src/app.css"), text: '@import "./sable-sources.css";\n@source "../node_modules/@sableui/react/dist/**/*.{js,mjs}";' }
+		const [check] = sourcesCheck(pkg, app, [main, generated])
+		expect(check).toMatchObject({ status: "warn", name: "css:sources" })
+		expect(check.detail).toContain("trims nothing")
+	})
 })

@@ -86,7 +86,7 @@ export const stepperMeta: ComponentMeta = {
 			type: '"horizontal" | "vertical"',
 			default: '"horizontal"',
 			description:
-				"Horizontal for a short flow across the top of a form; vertical for long flows, narrow columns or steps with descriptions.",
+				"Horizontal for a short flow across the top of a form; vertical for long flows, narrow columns or steps with descriptions. A horizontal stepper narrower than 28rem (a phone) compacts itself: every disc stays, only the current step's title shows, and the other titles stay for screen readers. No breakpoint code needed.",
 		},
 		{
 			name: "indicator",

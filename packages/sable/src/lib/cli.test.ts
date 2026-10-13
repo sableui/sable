@@ -222,6 +222,17 @@ describe("search", () => {
 		expect(kinds.size).toBeGreaterThan(1)
 	})
 
+	it("marks blocks, patterns and compositions as references, and behaviour as not", () => {
+		const results = json(["search", "card"]).data.results as { kind: string; name: string; reference?: boolean; parts?: string }[]
+		const byName = new Map(results.map((r) => [r.name, r]))
+		expect(byName.get("Card")?.reference).toBeUndefined()
+		expect(byName.get("ProductCardBlock")?.reference).toBe(true)
+		const tile = json(["search", "MediaTile"]).data.results[0]
+		expect(tile).toMatchObject({ name: "MediaTile", reference: true })
+		expect(tile.parts).toContain("AspectBox")
+		expect(run(["search", "MediaTile"]).out).toContain("◇ a reference layout")
+	})
+
 	it("fails with a code rather than an empty list", () => {
 		const err = JSON.parse(run(["search", "zzzznotathing", "--json"]).out)
 		expect(err.code).toBe("ERR_NO_RESULTS")
@@ -520,6 +531,22 @@ describe("sable check", () => {
 		}
 	}, 60_000)
 
+	it("notes, without failing, arrow keys handled by hand", () => {
+		const app = CLEAN_APP.replace(
+			/\n?$/,
+			'\nexport const List = () => <ul onKeyDown={(e) => { if (e.key === "ArrowDown") e.preventDefault() }}><li>One</li></ul>\n',
+		)
+		const root = project(app)
+		try {
+			const { data } = JSON.parse(runIn(root, ["check", "--json"]).out)
+			expect(data.failed).toEqual([])
+			expect(data.inventory.surfaces).toMatchObject([{ file: "src/App.tsx", kind: "keyboard" }])
+			expect(data.inventory.surfaces[0].consider).toContain("CommandMenu")
+		} finally {
+			rmSync(root, { recursive: true, force: true })
+		}
+	}, 60_000)
+
 	it("lists app-owned surfaces for the reuse inventory without failing on them", () => {
 		const app = CLEAN_APP.replace(/\n?$/, '\nexport const Note = () => <div className="rounded-lg border border-border p-4">Saved</div>\n')
 		const root = project(app)
@@ -529,7 +556,7 @@ describe("sable check", () => {
 			expect(data.failed).toEqual([])
 			expect(data.inventory.surfaces).toMatchObject([{ file: "src/App.tsx", tag: "div", kind: "surface" }])
 			const text = runIn(root, ["check"]).out
-			expect(text).toMatch(/App-owned surfaces for the reuse inventory \(review, not failures\) — 1:\n\s+src\/App\.tsx:\d+ {2}<div> surface \(rounded-lg border border-border p-4\) → Card/)
+			expect(text).toMatch(/App-owned surfaces, for the reuse inventory — 1\. Notes, not failures: .*keep yours\.\n\s+src\/App\.tsx:\d+ {2}<div> surface \(rounded-lg border border-border p-4\) → Sable has Card/)
 			// After the result, before the manual steps that consume it.
 			expect(text.indexOf("App-owned surfaces")).toBeGreaterThan(text.indexOf("[sable check] ✓"))
 			expect(text.indexOf("App-owned surfaces")).toBeLessThan(text.indexOf("Write the reuse inventory"))

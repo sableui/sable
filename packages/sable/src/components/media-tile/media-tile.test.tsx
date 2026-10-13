@@ -95,3 +95,21 @@ describe("MediaTile", () => {
 		expect(heading.getAttribute("title")).toBe("Low tide, high noon")
 	})
 })
+
+describe("MediaTile — product slots", () => {
+	it("renders meta under the subtitle", () => {
+		const { container } = render(
+			<MediaTile
+				title="Oak lounge chair"
+				subtitle="Solid oak"
+				src="/chair-800.jpg"
+				srcSet="/chair-400.jpg 400w, /chair-800.jpg 800w"
+				sizes="25vw"
+				meta={<><span>$1,240</span><span>3 finishes</span></>}
+			/>,
+		)
+		const meta = container.querySelector('[data-slot="media-tile-meta"]')
+		expect(meta).toHaveTextContent("$1,2403 finishes")
+		expect(screen.getByText("Solid oak").nextElementSibling).toBe(meta)
+	})
+})

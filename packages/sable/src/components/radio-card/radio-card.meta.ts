@@ -70,6 +70,12 @@ export const radioCardMeta: ComponentMeta = {
 				"Optional supporting copy beneath the title (text-body-sm, muted).",
 		},
 		{
+			name: "trailing",
+			type: "ReactNode",
+			description:
+				"End-aligned on the title's line: a price, a delivery date, a count. The title takes the rest of the row.",
+		},
+		{
 			name: "icon",
 			type: "ReactNode",
 			description:

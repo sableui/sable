@@ -136,6 +136,14 @@ export const appShellMeta: ComponentMeta = {
 				"Floating overlays — a message launcher, FAB, or modal mount points.",
 		},
 	],
+	subcomponents: [
+		{
+			name: "SkipLink",
+			type: 'ComponentProps<"a">',
+			description:
+				"AppShell's skip link on its own, for a layout that is not an AppShell (a storefront with a top header). Put it first in the body and give the page's <main> the matching id: `<SkipLink />` then `<main id=\"main-content\" tabIndex={-1}>`. `href` defaults to #main-content, the label to \"Skip to content\".",
+		},
+	],
 	a11y: [
 		"Renders a skip link to #main-content as the first focusable element.",
 		"Wraps content in a <main id=\"main-content\"> landmark.",
@@ -169,6 +177,21 @@ export const appShellMeta: ComponentMeta = {
     <PageHeader title="Home" description="Latest posts from artists you follow." />
   </Region>
 </AppShell>`,
+		},
+		{
+			label: "SkipLink in a layout of your own",
+			code: `<>
+  <SkipLink />
+  <header className="flex items-center justify-between px-(--page-inset) py-4">
+    <Link to="/">Alder & Lune</Link>
+    <Button variant="ghost" size="icon" aria-label="Search"><Icon name="search" /></Button>
+  </header>
+  <main id="main-content" tabIndex={-1}>
+    <Region max="wide">
+      <PageHeader title="Lighting" />
+    </Region>
+  </main>
+</>`,
 		},
 		{
 			label: "Minimal (sidebar + content only)",

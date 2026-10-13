@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs"
 import { resolve } from "node:path"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
-import { renderWithProviders, screen } from "../../test/render"
+import { act, renderWithProviders, screen } from "../../test/render"
 import { themeIds } from "../../themes"
 import {
 	CONTRAST_FLOOR,
@@ -22,10 +22,12 @@ describe("Button", () => {
 		expect(btn).not.toHaveAttribute("aria-busy")
 	})
 
-	it("disables, sets aria-busy, and shows a spinner while loading", () => {
+	it("refuses presses, sets aria-busy, and shows a spinner while loading", () => {
 		renderWithProviders(<Button loading>Save</Button>)
 		const btn = screen.getByRole("button")
-		expect(btn).toBeDisabled()
+		// aria-disabled, not `disabled`: disabling the focused button drops focus.
+		expect(btn).not.toHaveAttribute("disabled")
+		expect(btn).toHaveAttribute("aria-disabled", "true")
 		expect(btn).toHaveAttribute("aria-busy", "true")
 		// The Spinner renders its own role=status live region.
 		expect(screen.getByRole("status")).toBeInTheDocument()
@@ -52,6 +54,59 @@ describe("Button", () => {
 		)
 		await user.click(screen.getByRole("button"))
 		expect(onClick).not.toHaveBeenCalled()
+	})
+
+	it("keeps focus when it starts loading", () => {
+		const { rerender } = renderWithProviders(<Button>Add to cart</Button>)
+		const btn = screen.getByRole("button")
+		btn.focus()
+		rerender(<Button loading>Add to cart</Button>)
+		expect(document.activeElement).toBe(btn)
+	})
+
+	it("refuses keyboard activation while loading", async () => {
+		const user = userEvent.setup()
+		const onClick = vi.fn()
+		renderWithProviders(
+			<Button loading onClick={onClick}>
+				Save
+			</Button>,
+		)
+		screen.getByRole("button").focus()
+		await user.keyboard("{Enter} ")
+		expect(onClick).not.toHaveBeenCalled()
+	})
+
+	it("does not submit its form while loading", () => {
+		const onSubmit = vi.fn((event: Event) => event.preventDefault())
+		renderWithProviders(
+			<form onSubmit={(event) => onSubmit(event.nativeEvent)}>
+				<Button type="submit" loading>
+					Pay
+				</Button>
+			</form>,
+		)
+		screen.getByRole("button").click()
+		expect(onSubmit).not.toHaveBeenCalled()
+	})
+
+	it("holds loading until an async onClick settles, and runs it once", async () => {
+		let settle: () => void = () => {}
+		const onClick = vi.fn(() => new Promise<void>((resolve) => { settle = resolve }))
+		renderWithProviders(<Button onClick={onClick}>Add to cart</Button>)
+		const btn = screen.getByRole("button")
+		// Three presses in one tick: the state has not re-rendered between them.
+		act(() => {
+			btn.click()
+			btn.click()
+			btn.click()
+		})
+		expect(onClick).toHaveBeenCalledTimes(1)
+		expect(btn).toHaveAttribute("aria-busy", "true")
+		await act(async () => settle())
+		expect(btn).not.toHaveAttribute("aria-busy")
+		act(() => btn.click())
+		expect(onClick).toHaveBeenCalledTimes(2)
 	})
 
 	it("uses aria-disabled (not the disabled attr) on a polymorphic render element", () => {

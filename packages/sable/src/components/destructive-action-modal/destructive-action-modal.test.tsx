@@ -67,9 +67,10 @@ describe("DestructiveActionModal", () => {
 		await user.click(screen.getByRole("button", { name: "Delete" }))
 		expect(onConfirm).toHaveBeenCalledOnce()
 
-		// Pending: the confirm button swaps to the confirming label and disables.
+		// Pending: the confirm button swaps to the confirming label and refuses
+		// presses (aria-disabled, so it keeps focus).
 		const confirming = await screen.findByText("Deleting…")
-		expect(confirming.closest("button")).toBeDisabled()
+		expect(confirming.closest("button")).toHaveAttribute("aria-disabled", "true")
 
 		resolve()
 		await waitFor(() =>

@@ -96,7 +96,7 @@ export const cardMeta: ComponentMeta = {
 			type: '"default" | "flat"',
 			default: '"default"',
 			description:
-				'"default" raises with bg-card + border + soft shadow; "flat" is transparent.',
+				'"default" raises with bg-card + border + soft shadow; "flat" is transparent, for a card inside a section that already frames it. A flat card made a link or button shows its shape only on hover (the muted fill), so over a photo with square bottom corners it reads as a cropped image at rest: give a linked media card the default variant.',
 		},
 		{
 			name: "density",

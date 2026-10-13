@@ -74,7 +74,7 @@ export const PROVIDER_METAS: ProviderMeta[] = [
 			{ name: "themeId", type: "ThemeId | string", description: "Controlled design theme id. Pair with onThemeIdChange." },
 			{ name: "onThemeIdChange", type: "(themeId) => void", description: "Called whenever the design theme is set." },
 			{ name: "colorStorageKey", type: "string | null", default: "SABLE_COLOR_STORAGE_KEY", description: "localStorage key for the colour preference. null disables persistence." },
-			{ name: "themeStorageKey", type: "string | null", default: "SABLE_THEME_STORAGE_KEY", description: "localStorage key for the design theme. null disables persistence." },
+			{ name: "themeStorageKey", type: "string | null", default: "SABLE_THEME_STORAGE_KEY", description: "localStorage key for the design theme. null disables persistence. The default key is shared by every Sable app on an origin (several apps on localhost:5173 in development), and a stored id another app set wins over `defaultThemeId` when this app knows it too. An app with one fixed preset passes `themeId` (or `themeStorageKey={null}`); an app that lets users switch themes passes its own key." },
 			{ name: "target", type: '"root" | (() => HTMLElement | null)', default: '"root"', description: "Where to write `.dark` and `data-sable-theme`. A getter scopes theming to a subtree." },
 			{ name: "customThemes", type: "ThemeManifest[]", description: "Extra theme manifests, for example `presetManifest(preset)` for an app-owned preset. Their ids become valid themeId values. Sable does not load their CSS: import it yourself." },
 		],

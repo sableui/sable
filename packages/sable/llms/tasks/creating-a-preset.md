@@ -13,7 +13,10 @@ cannot establish animation timing, hidden behavior, or an unseen responsive stat
 Choose an original direction suitable for the user's future product. Map that
 direction onto the installed Sable token vocabulary. Preserve readable semantic
 roles and supported control behavior rather than recoloring every primitive
-independently. Load fonts through the consuming project's font setup. Page widths
+independently. Load fonts through the consuming project's font setup.
+`fonts.display` sets every `text-display-*` tier and `text-heading-1` to `-4`,
+so it reaches PageHeader and SectionHeader titles too, not only a hero.
+Leave it unset to keep headings in `fonts.sans`. Page widths
 are optional: set `page-inset` and the `region-*` caps (`form`, `feed`, `content`,
 `wide`, `full`) in `tokens.shared` only when the direction calls for a different
 page proportion, and keep each cap's role.

@@ -38,7 +38,7 @@ Use Stepper above or beside a flow that is split into a known, small number of n
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
 | current | number | 0 | Zero-based index of the current step. Earlier steps derive complete, later ones upcoming. |
-| orientation | "horizontal" \| "vertical" | "horizontal" | Horizontal for a short flow across the top of a form; vertical for long flows, narrow columns or steps with descriptions. |
+| orientation | "horizontal" \| "vertical" | "horizontal" | Horizontal for a short flow across the top of a form; vertical for long flows, narrow columns or steps with descriptions. A horizontal stepper narrower than 28rem (a phone) compacts itself: every disc stays, only the current step's title shows, and the other titles stay for screen readers. No breakpoint code needed. |
 | indicator | "number" \| "dot" | "number" | `number` for a flow the user moves through; `dot` for a timeline of events (delivery tracking, a document's history) where the position number adds nothing. The dot centres on the title's first line and scales with its type at every density. |
 | statusLabels | Partial<Record<StepStatus, string>> | — | Screen-reader status words appended to each title (Completed, Current step, Not started, Needs attention). Override to localize. |
 | aria-label | string | — | Names the flow ("Checkout progress"). Every Stepper needs one. |

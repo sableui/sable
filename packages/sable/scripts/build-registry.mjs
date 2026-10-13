@@ -544,6 +544,9 @@ function toEntry(meta, path) {
 		// that `Toast` is a family label and there is nothing to `import { Toast }`.
 		...(meta.system ? { system: true } : {}),
 		...(meta.supersededBy ? { supersededBy: meta.supersededBy } : {}),
+		// A reference layout, not a behaviour: optional, with the parts to build
+		// your own from.
+		...(meta.composition ? { composition: meta.composition } : {}),
 		// Role and register, emitted per component so a consumer of registry.json
 		// gets the grouping too. Before this the catalog was a flat list of 100
 		// components with no sibling signal at all.
@@ -837,6 +840,8 @@ function checkExampleProps() {
 		"onSubmit", "onFocus", "onBlur", "onInput", "onDragOver", "onDragLeave",
 		"onDrop", "onDragStart", "onMouseEnter", "onMouseLeave", "onPointerDown",
 		"accept", "autoFocus", "readOnly", "required", "rows", "target", "rel",
+		// Input attributes the form contract asks for (sable grade allows them too).
+		"inputMode", "enterKeyHint", "autoCapitalize", "autoCorrect", "autoComplete", "pattern",
 	])
 
 	for (const ex of EXAMPLE_TAGS) {

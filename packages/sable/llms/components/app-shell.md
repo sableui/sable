@@ -30,6 +30,12 @@ Use AppShell as the outer product frame for authenticated or app-like experience
 | Bottom nav | no | Mobile fixed navigation with reserved bottom space. |
 | Dock | no | Persistent bottom chrome that outlives routes — a now-playing bar, a call bar. Sticky above the bottom nav; the desktop Sidebar shortens to clear it. |
 
+## Subcomponents
+
+| Name | Type | Description |
+| --- | --- | --- |
+| SkipLink | ComponentProps<"a"> | AppShell's skip link on its own, for a layout that is not an AppShell (a storefront with a top header). Put it first in the body and give the page's <main> the matching id: `<SkipLink />` then `<main id="main-content" tabIndex={-1}>`. `href` defaults to #main-content, the label to "Skip to content". |
+
 ## Props
 
 | Name | Type | Default | Description |
@@ -88,6 +94,26 @@ import { AppHeader, AppShell, Banner, BottomNav, BottomNavItem, Icon, PageHeader
     <PageHeader title="Home" description="Latest posts from artists you follow." />
   </Region>
 </AppShell>
+```
+
+### SkipLink in a layout of your own
+
+```tsx
+import { Button, Icon, PageHeader, Region, SkipLink } from "@sableui/react"
+// <Link> = your router's link (react-router, next/link, @tanstack/router, …)
+
+<>
+  <SkipLink />
+  <header className="flex items-center justify-between px-(--page-inset) py-4">
+    <Link to="/">Alder & Lune</Link>
+    <Button variant="ghost" size="icon" aria-label="Search"><Icon name="search" /></Button>
+  </header>
+  <main id="main-content" tabIndex={-1}>
+    <Region max="wide">
+      <PageHeader title="Lighting" />
+    </Region>
+  </main>
+</>
 ```
 
 ### Minimal (sidebar + content only)

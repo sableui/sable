@@ -149,7 +149,13 @@ export const buttonMeta: ComponentMeta = {
 			type: "boolean",
 			default: "false",
 			description:
-				"Disable the button and show a leading Spinner while an action is in flight. Sets aria-busy; a native button is disabled, a render element (e.g. an <a>) gets aria-disabled.",
+				"Show a leading Spinner while an action is in flight and refuse presses. Sets aria-busy and aria-disabled, never the native disabled: disabling the focused button sent focus to <body>, so a sheet the action opened had nowhere to return it.",
+		},
+		{
+			name: "onClick",
+			type: "(event: MouseEvent<HTMLButtonElement>) => unknown",
+			description:
+				"May return a promise: the button shows `loading` until it settles and ignores further presses meanwhile, from the first click on. Prefer it to a `busy` flag in state, which takes effect a render late (three fast clicks ran three times).",
 		},
 		{
 			name: "badge",

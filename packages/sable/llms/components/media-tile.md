@@ -36,7 +36,10 @@ The item in a media grid or shelf: an album, a playlist, a video, a podcast, a f
 | --- | --- | --- | --- |
 | title | ReactNode | — | The item's name. Seeds the fallback art when it is a string. |
 | subtitle | ReactNode | — | The second line — an artist, a channel, a year. |
+| meta | ReactNode | — | Lines under the subtitle, in its muted type: a price beside its sale price, a count of finishes, a status Badge. A wrapping block, where the subtitle is one truncated line. Use it for a product tile instead of building one. |
 | src | string | — | Cover image URL. Without one, or when it fails, the cover is GradientArt seeded by the item. |
+| srcSet | string | — | Responsive cover candidates, passed to the `<img>`. |
+| sizes | string | — | The cover's layout width for `srcSet`, e.g. `"(min-width: 64rem) 25vw, 50vw"`. |
 | alt | string | "" | Cover alt text. Empty by default: the title below already names the item. |
 | seed | string \| number | — | Seeds the fallback art. Defaults to `title` when it is a string. |
 | aspect | "square" \| "video" \| "poster" \| number | "square" | The cover's shape: square (albums, podcasts), video (16:9), poster (2:3 — films, books), or any width / height ratio. |
@@ -81,6 +84,35 @@ The item in a media grid or shelf: an album, a playlist, a video, a podcast, a f
 - Components: MediaImage, GradientArt, Grid, AspectBox, Card, Scroller
 
 ## Examples
+
+### Product tile
+
+```tsx
+import { Badge, Grid, MediaTile } from "@sableui/react"
+// <Link> = your router's link (react-router, next/link, @tanstack/router, …)
+
+<Grid minItemWidth="14rem" gap={4}>
+	{products.map((product) => (
+		<MediaTile
+			key={product.id}
+			aspect={4 / 5}
+			title={product.name}
+			subtitle={product.material}
+			src={product.image}
+			srcSet={product.imageSet}
+			sizes="(min-width: 64rem) 25vw, 50vw"
+			render={<Link to={`/products/${product.slug}`} />}
+			badge={product.isNew ? <Badge appearance="overlay">New</Badge> : undefined}
+			meta={
+				<>
+					<span className="text-foreground">{formatPrice(product.price)}</span>
+					<span>{product.finishes.length} finishes</span>
+				</>
+			}
+		/>
+	))}
+</Grid>
+```
 
 ### Album grid
 

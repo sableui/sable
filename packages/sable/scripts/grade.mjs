@@ -304,6 +304,9 @@ const UNIVERSAL_PROPS = new Set([
 	"minLength", "min", "max", "step", "rows", "cols", "open", "selected", "multiple", "loading",
 	// Media attributes, for components that spread onto <video>/<audio>/<img> (Video, Image).
 	"autoPlay", "muted", "loop", "playsInline", "preload", "crossOrigin", "decoding", "fetchPriority", "srcSet", "sizes",
+	// Input attributes the form contract asks for (the numeric keypad, the
+	// return key's label), on components that spread onto <input>.
+	"inputMode", "enterKeyHint", "autoCapitalize", "autoCorrect", "pattern", "list", "accept", "capture",
 ])
 const isEventProp = (p) => /^on[A-Z]/.test(p)
 const isPassthrough = (p) => p.startsWith("data-") || p.startsWith("aria-") || p.startsWith("--")
@@ -500,6 +503,14 @@ for (const file of files) {
 	/* 7. Surfaces the app built itself (informational). */
 	if (/\.(tsx|jsx)$/.test(file)) {
 		for (const { index, ...s } of surfaceInventory(text)) inventory.push({ file: rel, line: lineOf(text, index), ...s })
+		// Arrow-key handling written by hand: list navigation is behaviour Sable
+		// owns (roving focus, active descendant, typeahead), and the storefront
+		// search wrote its own. A note, since a canvas or a game has its own keys.
+		const arrows = /\bonKeyDown\b[\s\S]{0,600}?["'`]Arrow(?:Up|Down)["'`]|["'`]Arrow(?:Up|Down)["'`][\s\S]{0,600}?\bonKeyDown\b/.exec(text)
+		if (arrows) {
+			const at = text.indexOf("Arrow", arrows.index)
+			inventory.push({ file: rel, line: lineOf(text, at), tag: "onKeyDown", kind: "keyboard", classes: "ArrowUp / ArrowDown handled by hand", consider: "CommandMenu, Combobox, Menu, Select, Toolbar or Tabs, whose keyboard model is built and tested" })
+		}
 	}
 
 	/* 8. Composition. Anything exporting a component that returns a big tree is
@@ -679,10 +690,10 @@ if (conformance.length) {
 	L("  composition                 no route-like files found")
 }
 if (inventory.length) {
-	const kinds = ["surface", "media frame", "round"].map((k) => [k, inventory.filter((s) => s.kind === k).length]).filter(([, n]) => n)
+	const kinds = ["surface", "media frame", "round", "keyboard"].map((k) => [k, inventory.filter((s) => s.kind === k).length]).filter(([, n]) => n)
 	L()
-	L(`  app-owned surfaces (review, not scored) — ${inventory.length}: ${kinds.map(([k, n]) => `${n} ${k}`).join(" · ")}`)
-	for (const s of inventory.slice(0, 12)) L(`    ${s.file}:${s.line}  <${s.tag}> ${s.kind} (${s.classes}) → ${s.consider}`)
+	L(`  app-owned surfaces (notes, not scored; keeping your own is fine) — ${inventory.length}: ${kinds.map(([k, n]) => `${n} ${k}`).join(" · ")}`)
+	for (const s of inventory.slice(0, 12)) L(`    ${s.file}:${s.line}  <${s.tag}> ${s.kind} (${s.classes}) → Sable has ${s.consider}`)
 	if (inventory.length > 12) L(`    … ${inventory.length - 12} more (--json lists every one)`)
 }
 if (cliUsage) {

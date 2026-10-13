@@ -1,5 +1,12 @@
 import type { VariantProps } from "class-variance-authority"
-import { type ComponentPropsWithRef, type ReactNode, useContext } from "react"
+import {
+	type ComponentPropsWithRef,
+	type MouseEvent,
+	type ReactNode,
+	useContext,
+	useRef,
+	useState,
+} from "react"
 import { useRender } from "@base-ui/react/use-render"
 import { cn } from "../../lib/cn"
 import { useTypeTier } from "../../lib/density"
@@ -9,18 +16,25 @@ import { Spinner } from "../spinner"
 import { buttonVariants } from "./button.variants"
 
 export interface ButtonProps
-	extends ComponentPropsWithRef<"button">,
+	extends Omit<ComponentPropsWithRef<"button">, "onClick">,
 		VariantProps<typeof buttonVariants> {
+	/**
+	 * May return a promise: the button then shows `loading` until it settles and
+	 * ignores further presses meanwhile, from the first click on (a `busy` flag
+	 * in React state only takes effect a render later, so three quick clicks
+	 * all ran).
+	 */
+	onClick?: (event: MouseEvent<HTMLButtonElement>) => unknown
 	/**
 	 * Replace the rendered element or compose with another component
 	 * (e.g. `render={<a href="…" />}`) through Base UI's render prop.
 	 */
 	render?: useRender.RenderProp
 	/**
-	 * Disable the button and show a leading Spinner while an action is in flight.
-	 * Sets `aria-busy`. A native `<button>` is also `disabled`; a polymorphic
-	 * `render` element (e.g. an `<a>`, which can't be disabled) gets
-	 * `aria-disabled` instead. @default false
+	 * Show a leading Spinner while an action is in flight, and ignore presses.
+	 * Sets `aria-busy` and `aria-disabled`, not the native `disabled`: disabling
+	 * the focused button dropped focus to the page, so a sheet opened by the
+	 * action had nowhere to return it. @default false
 	 */
 	loading?: boolean
 	/** Optional text shown in place of children while loading. */
@@ -110,12 +124,35 @@ export function Button({
 	bleed,
 	disabled,
 	children,
+	onClick,
 	...props
 }: ButtonProps) {
 	const tier = useTypeTier()
 	// A custom `render` element may be an <a> (or any tag) that can't take the
 	// native `disabled` attribute — guard so we only set it on a real <button>.
 	const isNativeButton = render === undefined
+	// A promise from onClick holds the button busy until it settles. The ref
+	// refuses a second press in the same tick, before the state re-renders.
+	const [pending, setPending] = useState(false)
+	const pendingRef = useRef(false)
+	const busy = loading || pending
+	const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+		if (busy || pendingRef.current || (!isNativeButton && disabled)) {
+			// Keyboard activation still reaches a button with aria-disabled (the
+			// pointer does not), and so does a form's implicit submit: refuse both.
+			event.preventDefault()
+			return
+		}
+		const result = onClick?.(event)
+		if (typeof (result as Promise<unknown> | undefined)?.then === "function") {
+			pendingRef.current = true
+			setPending(true)
+			;(result as Promise<unknown>).finally(() => {
+				pendingRef.current = false
+				setPending(false)
+			})
+		}
+	}
 	// Text labels are wrapped so `text-box-trim` has an element to act on — the
 	// property is inert on this flex container. Icons and the Spinner stay their
 	// own flex items so `gap-2` keeps spacing them. See lib/trim-label.tsx.
@@ -127,17 +164,17 @@ export function Button({
 	// The spinner takes the icon slot's size and an icon-weight ring, so it
 	// reads as the icon it replaced rather than a heavier foreign object.
 	const spinner = <Spinner className="size-(--button-icon)" thickness={2} />
-	const start = loading ? spinner : iconStart
+	const start = busy ? spinner : iconStart
 	// An icon-only button has one glyph slot: while loading, the spinner IS the
 	// icon. Rendering it beside the glyph put two icons in a square button.
 	const iconOnly = String(resolvedSize).startsWith("icon")
 	const inner =
-		loading && iconOnly ? (
+		busy && iconOnly ? (
 			spinner
 		) : (
 			<>
 				{start}
-				{trimLabel(loading ? (loadingLabel ?? children) : children)}
+				{trimLabel(busy ? (loadingLabel ?? children) : children)}
 				{iconEnd}
 			</>
 		)
@@ -175,20 +212,20 @@ export function Button({
 				resolvedBleed && resolvedBleed !== "auto" && resolvedBleed !== "none"
 					? BLEED_CLASS[resolvedBleed]
 					: null,
-				// Busy is not disabled. Loading sets `disabled` so the action cannot
+				// Busy is not disabled. Loading refuses presses so the action cannot
 				// double-fire, but fading it to 50% made a working button read as an
 				// unavailable one. It keeps full colour; the spinner says "working".
-				loading ? "cursor-progress disabled:opacity-100 aria-disabled:opacity-100" : null,
+				busy ? "cursor-progress disabled:opacity-100 aria-disabled:opacity-100" : null,
 				className,
 			),
 			children: content,
+			onClick: handleClick,
 			...(resolvedBleed ? { "data-bleed": resolvedBleed } : null),
-			...(loading ? { "aria-busy": true } : null),
-			...(isNativeButton
-				? { disabled: disabled || loading }
-				: loading || disabled
-					? { "aria-disabled": true }
-					: null),
+			...(busy ? { "aria-busy": true } : null),
+			// A busy native button stays focusable: aria-disabled, with presses
+			// refused in handleClick. `disabled` would move focus to <body>.
+			...(isNativeButton && disabled ? { disabled: true } : null),
+			...(busy || (!isNativeButton && disabled) ? { "aria-disabled": true } : null),
 		},
 		defaultTagName: "button",
 	})

@@ -1547,6 +1547,31 @@
 	--split-gap: initial;
 }
 
+/* Toasts keep clear of an open Sheet's actions. A right sheet's pinned footer
+   (Check out) sat under a bottom-right toast, and its close button under a
+   top-right one. Where there is room, the stack moves beside the sheet (both are
+   w-95); on a narrower screen a bottom stack moves to the top, away from the
+   footer. A bottom sheet sends a bottom stack to the top at any width. */
+@media (width >= 52rem) {
+	:root:has([data-sable-sheet="right"][data-open]) [data-sable-toast-viewport][data-position$="right"] {
+		right: calc(min(var(--spacing) * 95, 90vw) + var(--spacing) * 4);
+	}
+	:root:has([data-sable-sheet="left"][data-open]) [data-sable-toast-viewport][data-position$="left"] {
+		left: calc(min(var(--spacing) * 95, 90vw) + var(--spacing) * 4);
+	}
+}
+@media (width < 52rem) {
+	:root:has([data-sable-sheet="right"][data-open]) [data-sable-toast-viewport][data-position="bottom-right"],
+	:root:has([data-sable-sheet="left"][data-open]) [data-sable-toast-viewport][data-position="bottom-left"] {
+		top: calc(var(--spacing) * 4);
+		bottom: auto;
+	}
+}
+:root:has([data-sable-sheet="bottom"][data-open]) [data-sable-toast-viewport][data-position^="bottom"] {
+	top: calc(var(--spacing) * 4);
+	bottom: auto;
+}
+
 /* `Col span={{ base, md, lg }}` / `start={…}` — each breakpoint resolves to the
    most specific value defined at or below it (mobile-first cascade). */
 [data-sable-col] {
@@ -1970,7 +1995,12 @@
    it on data-[starting-style]/data-[ending-style]; this recipe carries the
    overflow, the transition, and the content fade. */
 @utility motion-disclosure {
+	/* Clipped for the height animation, with a margin so a focus ring (or a
+	   control a few pixels proud of its row) at the panel's edge is not cut
+	   off. `hidden` is the fallback where `clip` is unsupported. */
 	overflow: hidden;
+	overflow: clip;
+	overflow-clip-margin: calc(var(--spacing) * 1);
 	transition-property: height, opacity;
 	transition-duration: var(--motion-duration-base);
 	transition-timing-function: var(--motion-ease-standard);

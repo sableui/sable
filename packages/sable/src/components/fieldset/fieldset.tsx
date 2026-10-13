@@ -1,5 +1,5 @@
 import { Fieldset as Base } from "@base-ui/react/fieldset"
-import type { ComponentPropsWithRef } from "react"
+import { type ComponentPropsWithRef, createContext, useContext } from "react"
 import { cn } from "../../lib/cn"
 
 /**
@@ -25,30 +25,55 @@ import { cn } from "../../lib/cn"
  *
  * Disabling the whole group propagates through Base UI as data-[disabled] on
  * the root (native <fieldset disabled> also disables its controls).
+ *
+ * `variant="plain"` drops the surface: a bare group whose legend reads as a
+ * field label, for the question a RadioGroup or a run of checkboxes answers
+ * inside a form that is already framed.
+ *
+ *   <Fieldset variant="plain">
+ *     <FieldsetLegend>Delivery</FieldsetLegend>
+ *     <RadioGroup>…</RadioGroup>
+ *   </Fieldset>
  */
+
+export type FieldsetVariant = "card" | "plain"
+
+const VariantContext = createContext<FieldsetVariant>("card")
 
 type RootProps = Omit<ComponentPropsWithRef<typeof Base.Root>, "className"> & {
 	className?: string
+	/**
+	 * `card` (default) is a bordered, raised section with padded parts. `plain`
+	 * is the grouping alone: no border, surface or inset, and a legend in the
+	 * field-label style.
+	 * @default "card"
+	 */
+	variant?: FieldsetVariant
 }
 
-/** The bordered container. Wraps Base.Root (a native <fieldset>) as a raised card surface. */
-export function Fieldset({ className, ...props }: RootProps) {
+/** The container. Wraps Base.Root (a native <fieldset>): a raised card surface, or a bare group. */
+export function Fieldset({ className, variant = "card", ...props }: RootProps) {
 	return (
-		<Base.Root
-			className={cn(
-				// min-w-0: a native <fieldset> defaults to min-inline-size: min-content
-				// and would refuse to shrink below its widest control. overflow-hidden
-				// keeps the footer's wash inside the rounded corners.
-				// Publishes its surface like Card, so wells, stepper discs and
-				// interactive rows inside derive from the card, not the page.
-				"min-w-0 overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-sm [--sable-surface-bg:var(--card)]",
-				// No opacity of its own: a disabled fieldset disables every control
-				// in it, and each already dims to 50% — dimming here as well stacked
-				// to ~30%, against 50% everywhere else in the system.
-				className,
-			)}
-			{...props}
-		/>
+		<VariantContext.Provider value={variant}>
+			<Base.Root
+				data-variant={variant}
+				className={cn(
+					// min-w-0: a native <fieldset> defaults to min-inline-size: min-content
+					// and would refuse to shrink below its widest control.
+					variant === "plain"
+						? "flex min-w-0 flex-col gap-2"
+						: // overflow-hidden keeps the footer's wash inside the rounded corners.
+							// Publishes its surface like Card, so wells, stepper discs and
+							// interactive rows inside derive from the card, not the page.
+							"min-w-0 overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-sm [--sable-surface-bg:var(--card)]",
+					// No opacity of its own: a disabled fieldset disables every control
+					// in it, and each already dims to 50% — dimming here as well stacked
+					// to ~30%, against 50% everywhere else in the system.
+					className,
+				)}
+				{...props}
+			/>
+		</VariantContext.Provider>
 	)
 }
 Fieldset.displayName = "Fieldset"
@@ -65,9 +90,10 @@ type LegendProps = Omit<
  * <div> that Base UI wires to the fieldset via aria-labelledby.
  */
 export function FieldsetLegend({ className, ...props }: LegendProps) {
+	const plain = useContext(VariantContext) === "plain"
 	return (
 		<Base.Legend
-			className={cn("px-6 pt-6 text-title-lg text-foreground", className)}
+			className={cn(plain ? "text-label-lg text-foreground" : "px-6 pt-6 text-title-lg text-foreground", className)}
 			{...props}
 		/>
 	)
@@ -79,10 +105,11 @@ export function FieldsetDescription({
 	className,
 	...props
 }: ComponentPropsWithRef<"p">) {
+	const plain = useContext(VariantContext) === "plain"
 	return (
 		<p
 			data-slot="fieldset-description"
-			className={cn("px-6 text-body-sm text-muted-foreground", className)}
+			className={cn(plain ? "text-body-sm text-muted-foreground" : "px-6 text-body-sm text-muted-foreground", className)}
 			{...props}
 		/>
 	)
@@ -97,8 +124,9 @@ export function FieldsetContent({
 	className,
 	...props
 }: ComponentPropsWithRef<"div">) {
+	const plain = useContext(VariantContext) === "plain"
 	return (
-		<div className={cn("space-y-4 px-6 py-4 last:pb-6", className)} {...props} />
+		<div className={cn(plain ? "space-y-4" : "space-y-4 px-6 py-4 last:pb-6", className)} {...props} />
 	)
 }
 FieldsetContent.displayName = "FieldsetContent"
@@ -108,11 +136,14 @@ export function FieldsetFooter({
 	className,
 	...props
 }: ComponentPropsWithRef<"div">) {
+	const plain = useContext(VariantContext) === "plain"
 	return (
 		<div
 			className={cn(
-				"flex justify-end gap-2 border-t border-border bg-muted/30 px-6 py-4",
-				"[[data-slot=fieldset-description]+&]:mt-6",
+				plain
+					? "flex justify-end gap-2 pt-2"
+					: "flex justify-end gap-2 border-t border-border bg-muted/30 px-6 py-4",
+				!plain && "[[data-slot=fieldset-description]+&]:mt-6",
 				className,
 			)}
 			{...props}

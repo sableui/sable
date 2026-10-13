@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-Form section panel (Card-like bordered surface) over Base UI Fieldset, with Legend/Description/Content/Footer parts.
+Form section panel (Card-like bordered surface) over Base UI Fieldset, with Legend/Description/Content/Footer parts; `variant="plain"` is the bare group, for a radio group's shared name.
 
 **Keywords:** fieldset, form group, legend, fields
 
@@ -14,6 +14,7 @@ Use Fieldset to group related controls under a shared label or explanation.
 
 - Do: Use it for grouped form sections such as contact details, preferences, or permissions.
 - Do: Keep the legend meaningful so assistive tech and agents understand the group purpose.
+- Do: Use `variant="plain"` to name a radio group or a run of checkboxes inside a form or card that is already framed: the legend reads as a field label and nothing draws a second box. Do not strip the card variant with classes instead.
 - Don't: Do not use Fieldset as a generic spacing wrapper outside forms.
 - Don't: Do not use a Legend that is really a heading. A legend names the group's question for assistive technology; using it as a section title puts a question mark where the outline should be.
 
@@ -40,6 +41,7 @@ Use Fieldset to group related controls under a shared label or explanation.
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
+| variant | "card" \| "plain" | "card" | `card` is a bordered, raised section with padded parts. `plain` is the grouping alone (no border, surface or inset) with the legend in the field-label style: the shared name a radio group needs, inside a form that is already framed. |
 | disabled | boolean | — | Disables the whole group. Renders <fieldset disabled> (native control disabling) and surfaces data-[disabled] for dimming. |
 | render | ReactElement \| function | — | Base UI render prop to replace or compose the underlying element. |
 | className | string | — | Merged onto each part via cn() for one-off overrides. |
@@ -103,4 +105,22 @@ import { Field, Fieldset, FieldsetContent, FieldsetLegend, Radio, RadioGroup } f
 // ✗ Not for visual grouping of unrelated fields. Use PanelSection on a panel or
 //   a Card section on a page; a legend that is really a heading lies to
 //   assistive technology about the form's structure.
+```
+
+### A radio group's name, without a second box
+
+```tsx
+import { Card, CardContent, Fieldset, FieldsetLegend, RadioCard, RadioGroup } from "@sableui/react"
+
+<Card>
+  <CardContent>
+    <Fieldset variant="plain">
+      <FieldsetLegend>Delivery</FieldsetLegend>
+      <RadioGroup defaultValue="standard">
+        <RadioCard value="standard" title="Standard" description="3–5 working days" trailing="Free" />
+        <RadioCard value="express" title="Express" description="Next working day" trailing="$12.00" />
+      </RadioGroup>
+    </Fieldset>
+  </CardContent>
+</Card>
 ```

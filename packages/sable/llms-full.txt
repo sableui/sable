@@ -1350,7 +1350,10 @@ cannot establish animation timing, hidden behavior, or an unseen responsive stat
 Choose an original direction suitable for the user's future product. Map that
 direction onto the installed Sable token vocabulary. Preserve readable semantic
 roles and supported control behavior rather than recoloring every primitive
-independently. Load fonts through the consuming project's font setup. Page widths
+independently. Load fonts through the consuming project's font setup.
+`fonts.display` sets every `text-display-*` tier and `text-heading-1` to `-4`,
+so it reaches PageHeader and SectionHeader titles too, not only a hero.
+Leave it unset to keep headings in `fonts.sans`. Page widths
 are optional: set `page-inset` and the `region-*` caps (`form`, `feed`, `content`,
 `wide`, `full`) in `tokens.shared` only when the direction calls for a different
 page proportion, and keep each cap's role.
@@ -10015,6 +10018,12 @@ Use AppShell as the outer product frame for authenticated or app-like experience
 | Bottom nav | no | Mobile fixed navigation with reserved bottom space. |
 | Dock | no | Persistent bottom chrome that outlives routes — a now-playing bar, a call bar. Sticky above the bottom nav; the desktop Sidebar shortens to clear it. |
 
+## Subcomponents
+
+| Name | Type | Description |
+| --- | --- | --- |
+| SkipLink | ComponentProps<"a"> | AppShell's skip link on its own, for a layout that is not an AppShell (a storefront with a top header). Put it first in the body and give the page's <main> the matching id: `<SkipLink />` then `<main id="main-content" tabIndex={-1}>`. `href` defaults to #main-content, the label to "Skip to content". |
+
 ## Props
 
 | Name | Type | Default | Description |
@@ -10073,6 +10082,26 @@ import { AppHeader, AppShell, Banner, BottomNav, BottomNavItem, Icon, PageHeader
     <PageHeader title="Home" description="Latest posts from artists you follow." />
   </Region>
 </AppShell>
+```
+
+### SkipLink in a layout of your own
+
+```tsx
+import { Button, Icon, PageHeader, Region, SkipLink } from "@sableui/react"
+// <Link> = your router's link (react-router, next/link, @tanstack/router, …)
+
+<>
+  <SkipLink />
+  <header className="flex items-center justify-between px-(--page-inset) py-4">
+    <Link to="/">Alder & Lune</Link>
+    <Button variant="ghost" size="icon" aria-label="Search"><Icon name="search" /></Button>
+  </header>
+  <main id="main-content" tabIndex={-1}>
+    <Region max="wide">
+      <PageHeader title="Lighting" />
+    </Region>
+  </main>
+</>
 ```
 
 ### Minimal (sidebar + content only)
@@ -11279,7 +11308,8 @@ Use Button when the user commits an action, submits a form, opens UI, or confirm
 | variant | "primary" \| "secondary" \| "ghost" \| "outline" \| "destructive" \| "link" \| "floating" \| "field" \| "on-color" \| "on-color-outline" \| "on-color-ghost" | "primary" | Visual emphasis tier. One primary per screen. The on-color tiers are for buttons ON a coloured fill: they paint with the inherited text colour (the fill's ink) — on-color is solid (ink background, fill-coloured label via the optional --on-color-fill var, else black/white), on-color-outline and on-color-ghost are transparent with an ink label. Never use them on page or card surfaces. floating is for a control that sits OVER content (carousel arrows, a marquee pause, a jump-to-latest over a conversation): its own edge, lift and translucent popover fill, so it reads on arbitrary content beneath. field is for a button docked in a workspace panel among xs fields: the inset panel-field fill and the field's corner, so a picker trigger or an add action reads as one of the row's controls; pair it with size xs or icon-xs. |
 | size | "xs" \| "sm" \| "md" \| "cta" \| "icon" \| "icon-sm" \| "icon-xs" | "md" | Reads the density ladder, so every value differs by register: page 28/32/40/44, workspace 24/28/32/36. xs and icon-xs were added in 0.31.0 for the workspace control floor and are the sizes tool chrome wants; md is the default everywhere. icon/icon-sm/icon-xs are square. |
 | render | ReactElement \| (props, state) => ReactElement | — | Compose with another element/component through the Base UI render prop. |
-| loading | boolean | false | Disable the button and show a leading Spinner while an action is in flight. Sets aria-busy; a native button is disabled, a render element (e.g. an <a>) gets aria-disabled. |
+| loading | boolean | false | Show a leading Spinner while an action is in flight and refuse presses. Sets aria-busy and aria-disabled, never the native disabled: disabling the focused button sent focus to <body>, so a sheet the action opened had nowhere to return it. |
+| onClick | (event: MouseEvent<HTMLButtonElement>) => unknown | — | May return a promise: the button shows `loading` until it settles and ignores further presses meanwhile, from the first click on. Prefer it to a `busy` flag in state, which takes effect a render late (three fast clicks ran three times). |
 | badge | ReactNode | — | A corner indicator (usually <NotificationBadge dot /> or a count) overlaid on the top-end corner of the glyph. For icon-only sizes; never hand-position a badge over a Button with absolute offsets. |
 | loadingLabel | ReactNode | — | Optional text shown in place of children while loading. |
 | iconStart | ReactNode | — | Icon before the label. The button takes one 2px step off its start padding so icon + label read as centred. Replaced by the spinner while loading. |
@@ -11595,7 +11625,7 @@ Use Card for a discrete thing with its own boundary, such as one product, one no
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| variant | "default" \| "flat" | "default" | "default" raises with bg-card + border + soft shadow; "flat" is transparent. |
+| variant | "default" \| "flat" | "default" | "default" raises with bg-card + border + soft shadow; "flat" is transparent, for a card inside a section that already frames it. A flat card made a link or button shows its shape only on hover (the muted fill), so over a photo with square bottom corners it reads as a cropped image at rest: give a linked media card the default variant. |
 | density | "comfortable" \| "compact" | "comfortable" | Padding of the Header/Content/Footer parts: comfortable = p-6 (default), compact = p-4 for denser section panels (pair compact with the flat variant for a settings / form section panel). Threaded to the parts via the inherited --card-p custom property. Card sets --card-p via inline style, which beats a plain (non-!important) stylesheet override of the same property on the same element — use this prop rather than a className override; if an external override is unavoidable, it needs !important. |
 | render | useRender.RenderProp | — | Replace the rendered element through the Base UI render prop — most often `render={<a href="/x" />}` (or a router Link) to make the whole card one link. When the rendered element is a link (a[href]) or a button, the card gains a hover state (stronger border and shadow; a muted fill when flat), a full-card focus-visible ring and motion-interactive easing. Any other element (article, li) stays a static surface. Children can answer the hover with `group-hover/card:`. |
 
@@ -13834,7 +13864,7 @@ import { Feedback } from "@sableui/react"
 
 **Status:** stable
 
-Form section panel (Card-like bordered surface) over Base UI Fieldset, with Legend/Description/Content/Footer parts.
+Form section panel (Card-like bordered surface) over Base UI Fieldset, with Legend/Description/Content/Footer parts; `variant="plain"` is the bare group, for a radio group's shared name.
 
 **Keywords:** fieldset, form group, legend, fields
 
@@ -13846,6 +13876,7 @@ Use Fieldset to group related controls under a shared label or explanation.
 
 - Do: Use it for grouped form sections such as contact details, preferences, or permissions.
 - Do: Keep the legend meaningful so assistive tech and agents understand the group purpose.
+- Do: Use `variant="plain"` to name a radio group or a run of checkboxes inside a form or card that is already framed: the legend reads as a field label and nothing draws a second box. Do not strip the card variant with classes instead.
 - Don't: Do not use Fieldset as a generic spacing wrapper outside forms.
 - Don't: Do not use a Legend that is really a heading. A legend names the group's question for assistive technology; using it as a section title puts a question mark where the outline should be.
 
@@ -13872,6 +13903,7 @@ Use Fieldset to group related controls under a shared label or explanation.
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
+| variant | "card" \| "plain" | "card" | `card` is a bordered, raised section with padded parts. `plain` is the grouping alone (no border, surface or inset) with the legend in the field-label style: the shared name a radio group needs, inside a form that is already framed. |
 | disabled | boolean | — | Disables the whole group. Renders <fieldset disabled> (native control disabling) and surfaces data-[disabled] for dimming. |
 | render | ReactElement \| function | — | Base UI render prop to replace or compose the underlying element. |
 | className | string | — | Merged onto each part via cn() for one-off overrides. |
@@ -13935,6 +13967,24 @@ import { Field, Fieldset, FieldsetContent, FieldsetLegend, Radio, RadioGroup } f
 // ✗ Not for visual grouping of unrelated fields. Use PanelSection on a panel or
 //   a Card section on a page; a legend that is really a heading lies to
 //   assistive technology about the form's structure.
+```
+
+### A radio group's name, without a second box
+
+```tsx
+import { Card, CardContent, Fieldset, FieldsetLegend, RadioCard, RadioGroup } from "@sableui/react"
+
+<Card>
+  <CardContent>
+    <Fieldset variant="plain">
+      <FieldsetLegend>Delivery</FieldsetLegend>
+      <RadioGroup defaultValue="standard">
+        <RadioCard value="standard" title="Standard" description="3–5 working days" trailing="Free" />
+        <RadioCard value="express" title="Express" description="Next working day" trailing="$12.00" />
+      </RadioGroup>
+    </Fieldset>
+  </CardContent>
+</Card>
 ```
 
 ---
@@ -14186,13 +14236,14 @@ Use Form and Field as the default wrapper for Sable form controls. Field owns th
 
 | Name | Type | Description |
 | --- | --- | --- |
-| Field | { label?: ReactNode; description?: ReactNode; error?: ReactNode; required?: boolean; messages?: Partial<Record<"valueMissing" \| "typeMismatch" \| "patternMismatch" \| "tooShort" \| "tooLong" \| "rangeUnderflow" \| "rangeOverflow" \| "stepMismatch" \| "badInput", ReactNode>>; disabled?: boolean; name?: string; validate?: (value, formValues) => string \| string[] \| null \| Promise<…>; validationMode?: "onSubmit" \| "onBlur" \| "onChange"; validationDebounceTime?: number; orientation?: "vertical" \| "horizontal"; className?: string; children: ReactElement } | Wraps a single control element (e.g. <Input />) on Base UI Field and wires label (htmlFor + aria-labelledby), helper text and error (aria-describedby), aria-invalid, and required onto it automatically. Base UI-backed controls (Input, Textarea, Select, Combobox, NumberField, Checkbox, Switch, Slider, OtpField…) register through context; the child is also cloned so plain elements keep the same wiring. error renders a destructive message and takes precedence; without it the slot shows the field's messages entry for the native constraint that failed (messages={{ valueMissing: "Enter a subject." }}), else Base UI's validation message (the browser's wording for a native constraint, validate, or Form errors). required adds the native attribute plus a visual asterisk (defaults to false). disabled disables the control and dims the label. name keys the field in Form errors / onFormSubmit. validationMode overrides the Form's. orientation defaults to "vertical" (label → control); "horizontal" places control then label inline for a single checkbox / switch / radio — the control centres on the label's first line (it stays there when the label wraps) and description/error sit in the label's column. The root, label, description, error and control carry data-invalid / data-valid, data-touched, data-dirty, data-filled, data-focused and data-disabled for state styling. |
+| Field | { label?: ReactNode; description?: ReactNode; error?: ReactNode; required?: boolean; messages?: Partial<Record<"valueMissing" \| "typeMismatch" \| "patternMismatch" \| "tooShort" \| "tooLong" \| "rangeUnderflow" \| "rangeOverflow" \| "stepMismatch" \| "badInput", ReactNode>>; disabled?: boolean; name?: string; validate?: (value, formValues) => string \| string[] \| null \| Promise<…>; validationMode?: "onSubmit" \| "onBlur" \| "onChange"; validationDebounceTime?: number; orientation?: "vertical" \| "horizontal"; trailing?: ReactNode; className?: string; children: ReactElement } + other div props on the root | Wraps a single control element (e.g. <Input />) on Base UI Field and wires label (htmlFor + aria-labelledby), helper text and error (aria-describedby), aria-invalid, and required onto it automatically. Base UI-backed controls (Input, Textarea, Select, Combobox, NumberField, Checkbox, Switch, Slider, OtpField…) register through context; the child is also cloned so plain elements keep the same wiring. error renders a destructive message and takes precedence; without it the slot shows the field's messages entry for the native constraint that failed (messages={{ valueMissing: "Enter a subject." }}), else Base UI's validation message (the browser's wording for a native constraint, validate, or Form errors). required adds the native attribute plus a visual asterisk (defaults to false). disabled disables the control and dims the label. name keys the field in Form errors / onFormSubmit. validationMode overrides the Form's. orientation defaults to "vertical" (label → control); "horizontal" places control then label inline for a single checkbox / switch / radio — the control centres on the label's first line (it stays there when the label wraps) and description/error sit in the label's column. trailing puts something at the end of the control's row: vertically, beside the control (a promo code's Apply button, the control taking the rest); horizontally, at the end of the label's first line (a facet count). Other props (data-*, id, aria-*) land on the root. The root, label, description, error and control carry data-invalid / data-valid, data-touched, data-dirty, data-filled, data-focused and data-disabled for state styling. |
 
 ## Props
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| Form | { validationMode?: "onSubmit" \| "onBlur" \| "onChange"; errors?: Record<string, string \| string[]>; onFormSubmit?: (values, details) => void; actionsRef?: RefObject<Form.Actions> } + ComponentPropsWithRef<"form"> | — | A <form> laid out as a vertical column with comfortable field spacing (override with className, e.g. gap-4). On submit it validates every Field (native constraints plus Field validate), shows each message under its field, focuses the first invalid control, and only then calls onSubmit. validationMode defaults to "onSubmit" (then live re-validation on change). errors shows external (e.g. server) messages keyed by Field name and clears one when its field is edited. onFormSubmit receives the named Field values and prevents the native submit. A control outside any Field is still checked by the browser before onSubmit runs. Validating in your own code (react-hook-form, a schema, state)? Pass noValidate: onSubmit always runs and each Field shows the error you set; without it an empty required Field stops the submit before your handler can set that error. |
+| Form | { validationMode?: "onSubmit" \| "onBlur" \| "onChange"; errors?: Record<string, string \| string[]>; onFormSubmit?: (values, details) => void; actionsRef?: RefObject<Form.Actions> } + ComponentPropsWithRef<"form"> | — | A <form> laid out as a vertical column with comfortable field spacing (override with className, e.g. gap-4). On submit it validates every Field (native constraints plus Field validate), shows each message under its field, focuses the first invalid control, and only then calls onSubmit. validationMode defaults to "onSubmit" (then live re-validation on change). errors shows external (e.g. server) messages keyed by Field name and clears one when its field is edited. onFormSubmit receives the named Field values and prevents the native submit. A control outside any Field is still checked by the browser before onSubmit runs. Validating in your own code (react-hook-form, a schema, state)? Pass noValidate: onSubmit always runs and each Field shows the error you set; without it an empty required Field stops the submit before your handler can set that error. Either way, once onSubmit returns (or the promise it returns settles), the first control a Field marks invalid takes focus. |
+| onSubmit | (event: FormEvent<HTMLFormElement>) => unknown | — | The native submit handler. It may return a promise. When it returns, or its promise settles, the first control a Field marks invalid takes focus, so errors your own code sets get the same treatment as Sable's validation. |
 | validationMode | "onSubmit" \| "onBlur" \| "onChange" | "onSubmit" | When Fields validate. After the first submit, fields re-check as the user edits. A Field's own validationMode wins. |
 | errors | Record<string, string \| string[]> | — | External (e.g. server) messages keyed by Field name, shown under that field. Each clears when its field is edited. |
 | onFormSubmit | (values: Record<string, unknown>, details) => void | — | Called with the named Field values after validation passes; prevents the native submit. |
@@ -14231,6 +14282,14 @@ import { Field, Input } from "@sableui/react"
 import { Field, Input } from "@sableui/react"
 
 <Field label="Password" error="Must be at least 8 characters."><Input type="password" /></Field>
+```
+
+### An input with its action
+
+```tsx
+import { Button, Field, Input } from "@sableui/react"
+
+<Field label="Promo code" error={promoError} trailing={<Button variant="secondary" onClick={applyPromo}>Apply</Button>}><Input name="promo" autoCapitalize="characters" /></Field>
 ```
 
 ### Your own wording for a missing value
@@ -15210,7 +15269,10 @@ The item in a media grid or shelf: an album, a playlist, a video, a podcast, a f
 | --- | --- | --- | --- |
 | title | ReactNode | — | The item's name. Seeds the fallback art when it is a string. |
 | subtitle | ReactNode | — | The second line — an artist, a channel, a year. |
+| meta | ReactNode | — | Lines under the subtitle, in its muted type: a price beside its sale price, a count of finishes, a status Badge. A wrapping block, where the subtitle is one truncated line. Use it for a product tile instead of building one. |
 | src | string | — | Cover image URL. Without one, or when it fails, the cover is GradientArt seeded by the item. |
+| srcSet | string | — | Responsive cover candidates, passed to the `<img>`. |
+| sizes | string | — | The cover's layout width for `srcSet`, e.g. `"(min-width: 64rem) 25vw, 50vw"`. |
 | alt | string | "" | Cover alt text. Empty by default: the title below already names the item. |
 | seed | string \| number | — | Seeds the fallback art. Defaults to `title` when it is a string. |
 | aspect | "square" \| "video" \| "poster" \| number | "square" | The cover's shape: square (albums, podcasts), video (16:9), poster (2:3 — films, books), or any width / height ratio. |
@@ -15255,6 +15317,35 @@ The item in a media grid or shelf: an album, a playlist, a video, a podcast, a f
 - Components: MediaImage, GradientArt, Grid, AspectBox, Card, Scroller
 
 ## Examples
+
+### Product tile
+
+```tsx
+import { Badge, Grid, MediaTile } from "@sableui/react"
+// <Link> = your router's link (react-router, next/link, @tanstack/router, …)
+
+<Grid minItemWidth="14rem" gap={4}>
+	{products.map((product) => (
+		<MediaTile
+			key={product.id}
+			aspect={4 / 5}
+			title={product.name}
+			subtitle={product.material}
+			src={product.image}
+			srcSet={product.imageSet}
+			sizes="(min-width: 64rem) 25vw, 50vw"
+			render={<Link to={`/products/${product.slug}`} />}
+			badge={product.isNew ? <Badge appearance="overlay">New</Badge> : undefined}
+			meta={
+				<>
+					<span className="text-foreground">{formatPrice(product.price)}</span>
+					<span>{product.finishes.length} finishes</span>
+				</>
+			}
+		/>
+	))}
+</Grid>
+```
 
 ### Album grid
 
@@ -17536,6 +17627,7 @@ Use RadioCard for visual choice cards when users compare a small set of named op
 | value | string | — | The unique value that pairs this card with the group's selected value. |
 | title | ReactNode | — | The card's primary label (rendered as text-title-sm). |
 | description | ReactNode | — | Optional supporting copy beneath the title (text-body-sm, muted). |
+| trailing | ReactNode | — | End-aligned on the title's line: a price, a delivery date, a count. The title takes the rest of the row. |
 | icon | ReactNode | — | Leading icon (e.g. a solid <Icon>). Its presence switches to the two-dimensional card — icon top-left, indicator top-right, copy below — and the glyph is rendered as a solid-fill icon in the tone colour. |
 | tone | "neutral" \| "standard" \| "collectible" \| "edition" \| "info" \| "warning" | "neutral" | Semantic colour the selected state carries across the border, radio, and icon glyph. Neutral uses the primary ring with a muted wash. |
 | disabled | boolean | false | Dims the card and blocks selection. The group skips it during keyboard navigation. |
@@ -19454,7 +19546,7 @@ Use Stepper above or beside a flow that is split into a known, small number of n
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
 | current | number | 0 | Zero-based index of the current step. Earlier steps derive complete, later ones upcoming. |
-| orientation | "horizontal" \| "vertical" | "horizontal" | Horizontal for a short flow across the top of a form; vertical for long flows, narrow columns or steps with descriptions. |
+| orientation | "horizontal" \| "vertical" | "horizontal" | Horizontal for a short flow across the top of a form; vertical for long flows, narrow columns or steps with descriptions. A horizontal stepper narrower than 28rem (a phone) compacts itself: every disc stays, only the current step's title shows, and the other titles stay for screen readers. No breakpoint code needed. |
 | indicator | "number" \| "dot" | "number" | `number` for a flow the user moves through; `dot` for a timeline of events (delivery tracking, a document's history) where the position number adds nothing. The dot centres on the title's first line and scales with its type at every density. |
 | statusLabels | Partial<Record<StepStatus, string>> | — | Screen-reader status words appended to each title (Completed, Current step, Not started, Needs attention). Override to localize. |
 | aria-label | string | — | Names the flow ("Checkout progress"). Every Stepper needs one. |

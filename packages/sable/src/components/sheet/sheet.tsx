@@ -129,6 +129,8 @@ export function SheetContent({
 							? (type) => (type === "touch" ? popupRef.current : true)
 							: initialFocus
 					}
+					// Toasts read this to keep clear of the sheet's actions (styles.css).
+					data-sable-sheet={resolvedSide}
 					className={cn(sheetVariants({ side }), className)}
 					{...props}
 				>

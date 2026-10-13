@@ -308,6 +308,9 @@ export function ToastViewport({
 		<ToastViewportContext.Provider value={{ position, stacked }}>
 			<ToastPortal>
 				<Base.Viewport
+					// styles.css moves the stack clear of an open Sheet on its edge.
+					data-sable-toast-viewport=""
+					data-position={position}
 					className={cn(
 						"fixed z-(--z-toast) w-95 max-w-[90vw] outline-none",
 						// Stacked toasts are positioned against the viewport, not laid out in it.

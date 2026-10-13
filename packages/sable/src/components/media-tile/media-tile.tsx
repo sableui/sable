@@ -22,8 +22,18 @@ export interface MediaTileProps extends Omit<ComponentPropsWithRef<"div">, "titl
 	title: ReactNode
 	/** The second line — an artist, a channel, a price. Optional. */
 	subtitle?: ReactNode
+	/**
+	 * Lines under the subtitle, in its muted type: a price beside its sale price,
+	 * a count of finishes, a status Badge. A block, so it can wrap and hold
+	 * several elements where the one-line subtitle truncates.
+	 */
+	meta?: ReactNode
 	/** Cover image URL. Without one (or when it fails) the cover is GradientArt seeded by the item. */
 	src?: string
+	/** Responsive cover candidates, passed to the `<img>` with `sizes`. */
+	srcSet?: string
+	/** Which candidate width the layout needs, e.g. `"(min-width: 64rem) 25vw, 50vw"`. */
+	sizes?: string
 	/**
 	 * Cover alt text. Defaults to `""`: the title right below already names the
 	 * item, so describing the cover again makes a screen reader say it twice.
@@ -117,7 +127,10 @@ function TileLink({
 export function MediaTile({
 	title,
 	subtitle,
+	meta,
 	src,
+	srcSet,
+	sizes,
 	alt,
 	seed,
 	aspect = "square",
@@ -185,6 +198,17 @@ export function MediaTile({
 						<p className={mediaTileSubtitleVariants({ size })}>{subtitle}</p>
 					)
 				) : null}
+				{meta != null ? (
+					<div
+						data-slot="media-tile-meta"
+						className={cn(
+							mediaTileSubtitleVariants({ size }),
+							"flex flex-wrap items-center gap-x-2 gap-y-1 overflow-visible whitespace-normal",
+						)}
+					>
+						{meta}
+					</div>
+				) : null}
 			</div>
 
 			<AspectBox
@@ -193,7 +217,7 @@ export function MediaTile({
 				// Drawn first, read last: see "Tab order" above.
 				className="order-first rounded-(--media-tile-radius)"
 			>
-				<MediaImage src={src} alt={alt} seed={seed ?? titleText} loading={loading} />
+				<MediaImage src={src} srcSet={srcSet} sizes={sizes} alt={alt} seed={seed ?? titleText} loading={loading} />
 				{linked || action != null ? (
 					// The tile answers the pointer and the keyboard alike: a light scrim
 					// deepens the cover so the action reads over any artwork. Hover only

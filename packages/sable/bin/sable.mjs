@@ -608,7 +608,7 @@ function cmdSearch() {
 	const pool = []
 	if (!type || type === "component")
 		for (const c of COMPONENTS)
-			pool.push({ kind: "component", name: c.name, summary: c.summary, status: c.status, group: c.group, _s: score({ name: c.name, keywords: c.keywords, text: `${c.summary} ${c.usage?.description ?? ""}` }) })
+			pool.push({ kind: "component", name: c.name, summary: c.summary, status: c.status, group: c.group, ...(c.composition ? { reference: true, parts: c.composition } : {}), _s: score({ name: c.name, keywords: c.keywords, text: `${c.summary} ${c.usage?.description ?? ""}` }) })
 	if (!type || type === "provider")
 		for (const p of PROVIDERS)
 			pool.push({ kind: "provider", name: p.name, summary: p.summary, _s: score({ name: p.name, keywords: ["provider", ...(p.companions ?? [])], text: `${p.summary} ${p.placement ?? ""}` }) })
@@ -646,15 +646,26 @@ function cmdSearch() {
 			"Try a single word — search is term-wise, not phrase-wise",
 		])
 
-	const results = hits.map(({ _s, ...h }) => ({ ...h, retrieve: `sable ${h.kind === "doc" ? "docs" : h.kind} ${h.name}` }))
+	// Patterns, blocks and composition components are designed arrangements,
+	// not behaviour: references to use when their layout fits the brief. Marked
+	// so an agent does not take the nearest one as the required answer.
+	const results = hits.map(({ _s, ...h }) => ({
+		...h,
+		...(h.kind === "pattern" || h.kind === "block" ? { reference: true } : {}),
+		retrieve: `sable ${h.kind === "doc" ? "docs" : h.kind} ${h.name}`,
+	}))
+	const anyReference = results.some((h) => h.reference)
 	ok("search", { query, count: results.length, results }, () =>
-		results
-			.map((h) =>
+		[
+			...results.map((h) =>
 				DENSE
-					? `${h.kind}/${h.name}`
-					: `${h.kind.padEnd(9)} ${h.name.padEnd(24)} ${firstSentence(h.summary ?? "")}`,
-			)
-			.join("\n"),
+					? `${h.kind}/${h.name}${h.reference ? " (reference)" : ""}`
+					: `${h.kind.padEnd(9)} ${`${h.name}${h.reference ? " ◇" : ""}`.padEnd(24)} ${firstSentence(h.summary ?? "")}`,
+			),
+			...(anyReference && !DENSE
+				? ["", "◇ a reference layout: use it when it fits the brief, or compose your own from Sable's parts. Either is fine. Behaviour components (controls, overlays, fields) are always used, never rebuilt."]
+				: []),
+		].join("\n"),
 	)
 }
 
@@ -726,6 +737,7 @@ function cmdComponent() {
 		register: c.register,
 		import: importLine(c.name),
 		summary: c.summary,
+		...(c.composition ? { composition: c.composition } : {}),
 	}
 	if (level !== "brief") {
 		data.props = c.props ?? []
@@ -744,6 +756,9 @@ function cmdComponent() {
 		[
 			`${c.name}  [${c.status}]  ${c.group}  register:${c.register}`,
 			c.summary,
+			c.composition
+				? `Reference layout: use it when it fits the brief, or compose your own from ${c.composition}.`
+				: "",
 			`\n${data.import}`,
 			level === "brief" ? "" : renderProps(c),
 			level !== "full" || DENSE ? "" : renderUsage(c),
@@ -1442,7 +1457,7 @@ const MANUAL_REVIEW = [
 	{ step: "Walk the journey", how: "sable docs reviewing-a-journey — operate the primary task and its recovery path end to end; loading, empty, error and success states; keyboard and touch." },
 	{ step: "Review the motion", how: "sable docs reviewing-motion — observe playback and interruption for anything that moves." },
 	{ step: "Check reduced motion", how: "Turn on prefers-reduced-motion (or MotionProvider \"reduced\"): state still changes, nothing essential depends on animation, nothing keeps moving." },
-	{ step: "Write the reuse inventory", how: "List the Sable components, parts, utilities and token groups used, and every app-owned UI or CSS addition with the catalog search that justified it. Start from the app-owned surfaces sable check lists (sable grade --json → inventory): each composes the component named beside it, or the inventory says why the app owns it." },
+	{ step: "Write the reuse inventory", how: "List the Sable components, parts, utilities and token groups used, and every app-owned UI or CSS addition with the catalog search that justified it. Start from the app-owned surfaces sable check lists (sable grade --json → inventory) and note, for each, whether you used the Sable part named beside it or kept your own. Either is fine for layout and look. Behaviour (controls, overlays, keyboard handling) comes from Sable." },
 	{ step: "Record what you learned", how: "sable docs learning-from-builds — keep conditional lessons with evidence (sable learn --record); never record human approval you did not get." },
 ]
 
@@ -1557,8 +1572,8 @@ function cmdCheck() {
 		if (!list.length) return ""
 		return [
 			"",
-			`App-owned surfaces for the reuse inventory (review, not failures) — ${list.length}:`,
-			...list.slice(0, MAX_DETAILS).map((s) => `      ${s.file}:${s.line}  <${s.tag}> ${s.kind} (${s.classes}) → ${s.consider}`),
+			`App-owned surfaces, for the reuse inventory — ${list.length}. Notes, not failures: use the Sable part named if it fits your design, or keep yours.`,
+			...list.slice(0, MAX_DETAILS).map((s) => `      ${s.file}:${s.line}  <${s.tag}> ${s.kind} (${s.classes}) → Sable has ${s.consider}`),
 			...(list.length > MAX_DETAILS ? [`      … ${list.length - MAX_DETAILS} more: sable grade ${paths.join(" ")} --json → inventory.surfaces`] : []),
 			"",
 		].join("\n")

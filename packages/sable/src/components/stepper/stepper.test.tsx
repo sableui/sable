@@ -98,3 +98,15 @@ describe("Stepper", () => {
 		expect(screen.getByRole("listitem")).toHaveTextContent("Carrito (Paso actual)")
 	})
 })
+
+describe("Stepper — narrow", () => {
+	it("keeps only the current title on screen below 28rem, and every title for screen readers", () => {
+		renderWithProviders(<Checkout current={1} />)
+		const [cart, shipping] = screen.getAllByRole("listitem")
+		const cartTitle = within(cart).getByText("Cart").parentElement
+		const shippingTitle = within(shipping).getByText("Shipping").parentElement
+		expect(cartTitle).toHaveClass("@max-md/stepper:sr-only")
+		expect(shippingTitle).not.toHaveClass("@max-md/stepper:sr-only")
+		expect(screen.getByRole("list")).toHaveClass("@container/stepper")
+	})
+})

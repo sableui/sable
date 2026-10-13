@@ -25,6 +25,8 @@ import {
 	DialogDescription,
 	DialogTitle,
 } from "../dialog/dialog";
+import { mergeRefs } from "../../lib/refs";
+import { Button } from "../button";
 import { Scroller } from "../scroller/scroller";
 
 /**
@@ -98,6 +100,12 @@ export interface CommandItem {
 	onSelect: () => void;
 	/** Optional leading icon (semantic name, e.g. "home"). */
 	icon?: string;
+	/**
+	 * A leading visual of your own in place of `icon`: a product thumbnail, an
+	 * Avatar. Decorative, since the label names the row; size it to the row
+	 * (`size-8` beside a `stacked` detail).
+	 */
+	leading?: ReactNode;
 	/** Secondary text after the label — a destination, a type, an owner. */
 	detail?: ReactNode;
 	/**
@@ -339,6 +347,8 @@ function CommandMenuBody({
 	// for the data-driven and declarative paths without an item registry.
 	const [activeId, setActiveId] = useState<string | null>(null);
 	const listRef = useRef<HTMLDivElement>(null);
+	const inputRef = useRef<HTMLInputElement>(null);
+	const mergedInputRef = useMemo(() => mergeRefs(inputRef, inputProps?.ref), [inputProps?.ref]);
 	const listboxId = useId();
 	const tier = useTypeTier();
 
@@ -533,6 +543,7 @@ function CommandMenuBody({
 					// box, and a caller who replaced one would break the other five.
 					// `onKeyDown` composes instead, above.
 					{...inputProps}
+					ref={mergedInputRef}
 					// The one editable element useCommandMenuShortcut still fires
 					// from, so the shortcut keeps working while the palette is open.
 					// Not inline: a panel's field is an ordinary text field, where
@@ -553,6 +564,22 @@ function CommandMenuBody({
 						inputProps?.className,
 					)}
 				/>
+				{query ? (
+					// Empties the query and hands focus back to the field, which owns
+					// the keyboard (the list is driven from it).
+					<Button
+						variant="ghost"
+						size="icon-xs"
+						aria-label="Clear search"
+						className="-my-1 text-muted-foreground hover:text-foreground"
+						onClick={() => {
+							setQuery("");
+							inputRef.current?.focus();
+						}}
+					>
+						<Icon name="xmark" />
+					</Button>
+				) : null}
 			</div>
 
 			{/* Sighted users count the list; this is the same fact for everyone
@@ -595,6 +622,7 @@ function CommandMenuBody({
 										// among its own items, not in the whole document.
 										id={item.id ? `${listboxId}-${item.id}` : undefined}
 										icon={item.icon}
+										leading={item.leading}
 										detail={item.detail}
 										stacked={item.stacked}
 										hint={item.hint}
@@ -829,6 +857,8 @@ export interface CommandMenuItemProps
 	onSelect?: () => void;
 	/** Optional leading icon (semantic name). */
 	icon?: string;
+	/** A leading visual of your own in place of `icon`: a product thumbnail, an Avatar. */
+	leading?: ReactNode;
 	/** Secondary text after the label. */
 	detail?: ReactNode;
 	/** Put `detail` on its own line under the label, so it never truncates away first. */
@@ -853,6 +883,7 @@ export interface CommandMenuItemProps
 export function CommandMenuItem({
 	onSelect,
 	icon,
+	leading,
 	detail,
 	stacked,
 	hint,
@@ -908,7 +939,13 @@ export function CommandMenuItem({
 			)}
 			{...props}
 		>
-			{icon && <Icon name={icon} className="text-base text-muted-foreground" />}
+			{leading != null ? (
+				<span aria-hidden="true" className="flex shrink-0 items-center">
+					{leading}
+				</span>
+			) : (
+				icon && <Icon name={icon} className="text-base text-muted-foreground" />
+			)}
 			{stacked ? (
 				<span className="flex min-w-0 flex-1 flex-col">
 					<span className="truncate">{children}</span>

@@ -48,7 +48,10 @@ export interface StepperProps extends ComponentPropsWithRef<"ol"> {
 	/**
 	 * `horizontal` for a short flow across the top of a form (checkout, 3–5
 	 * steps); `vertical` for a longer flow or a narrow column, where each step
-	 * has room for a description.
+	 * has room for a description. Horizontal steps compact themselves when the
+	 * stepper is narrower than 28rem (a phone): every disc stays, only the
+	 * current step keeps its title on screen, and the others' titles stay for
+	 * screen readers.
 	 * @default "horizontal"
 	 */
 	orientation?: StepperOrientation
@@ -101,7 +104,8 @@ export function Stepper({
 				// isolate: the indicators' z-10 (above the connector) stays inside the
 				// stepper instead of rising over sticky headers and nav bars.
 				"isolate flex w-full",
-				orientation === "horizontal" ? "flex-row items-start gap-3" : "flex-col",
+				// A container, so the steps compact on the stepper's own width.
+				orientation === "horizontal" ? "@container/stepper flex-row items-start gap-3" : "flex-col",
 				className,
 			)}
 			{...props}
@@ -188,6 +192,10 @@ export function StepperItem({
 				className={cn(
 					"flex min-w-0 flex-col gap-0.5 text-start",
 					!dot && "min-h-(--control-xs) justify-center",
+					// Narrow and horizontal: three two-word titles wrapped under their
+					// connectors at 390px. The current step keeps its title; the rest
+					// are discs on screen and full titles to a screen reader.
+					orientation === "horizontal" && !isCurrent && "@max-md/stepper:sr-only",
 				)}
 			>
 				<span

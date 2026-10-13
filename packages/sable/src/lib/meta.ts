@@ -223,6 +223,15 @@ export interface ComponentMeta {
 	 * otherwise — a deprecation with no forward path just strands the reader.
 	 */
 	supersededBy?: string
+	/**
+	 * Marks a composition: a designed arrangement of parts for one kind of item
+	 * (a cover tile, a calendar date), not a behaviour. Agents treat it as a
+	 * reference, used when its layout fits the brief, otherwise rebuilt to the
+	 * product's own design from the parts named here (e.g. "AspectBox,
+	 * MediaImage, Card render, Badge"). Behaviour components never set it: those
+	 * are always used, never rebuilt.
+	 */
+	composition?: string
 	/** Public props of the root component only — never subcomponents. */
 	props: PropMeta[]
 	/**

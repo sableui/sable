@@ -843,3 +843,37 @@ describe("CommandMenu — stacked rows", () => {
 		expect(within(inline).getByText("#4188 · Grace Hopper").parentElement).toBe(inline)
 	})
 })
+
+describe("CommandMenu — leading visuals and clearing", () => {
+	it("renders an item's own leading node in place of an icon", () => {
+		renderWithProviders(
+			<CommandMenu
+				open
+				onOpenChange={() => {}}
+				items={[
+					{ group: "Products", label: "Oak lounge chair", leading: <img alt="" src="data:," data-testid="thumb" />, onSelect: () => {} },
+				]}
+			/>,
+		)
+		const option = screen.getByRole("option", { name: /Oak lounge chair/ })
+		expect(within(option).getByTestId("thumb")).toBeInTheDocument()
+	})
+
+	it("clears the query and keeps focus in the field", async () => {
+		const user = userEvent.setup()
+		renderWithProviders(
+			<CommandMenu
+				open
+				onOpenChange={() => {}}
+				items={[{ group: "Go", label: "Home", onSelect: () => {} }]}
+			/>,
+		)
+		expect(screen.queryByRole("button", { name: "Clear search" })).toBeNull()
+		const field = screen.getByRole("combobox")
+		await user.type(field, "ho")
+		await user.click(screen.getByRole("button", { name: "Clear search" }))
+		expect(field).toHaveValue("")
+		expect(field).toHaveFocus()
+		expect(screen.queryByRole("button", { name: "Clear search" })).toBeNull()
+	})
+})

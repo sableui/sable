@@ -45,6 +45,11 @@ export type RadioCardProps = Omit<
 	/** Optional supporting copy beneath the title. */
 	description?: ReactNode
 	/**
+	 * End-aligned on the title's line: a price ("$12.00"), a delivery date, a
+	 * count. The title takes the rest of the row.
+	 */
+	trailing?: ReactNode
+	/**
 	 * Leading icon (e.g. a solid `<Icon>`). Its presence switches the card to the
 	 * two-dimensional layout — icon top-left, indicator top-right, copy below —
 	 * and the glyph takes the tone colour automatically.
@@ -71,6 +76,7 @@ export function RadioCard({
 	className,
 	title,
 	description,
+	trailing,
 	icon,
 	tone = "neutral",
 	titleClassName,
@@ -100,8 +106,15 @@ export function RadioCard({
 	)
 
 	const content = (
-		<span className="flex min-w-0 flex-col gap-0.5">
-			<span className={cn("text-title-sm", titleClassName)}>{title}</span>
+		<span className="flex min-w-0 flex-1 flex-col gap-0.5">
+			{trailing != null ? (
+				<span className="flex items-baseline justify-between gap-3">
+					<span className={cn("min-w-0 text-title-sm", titleClassName)}>{title}</span>
+					<span className="shrink-0 text-body-md text-foreground tabular-nums">{trailing}</span>
+				</span>
+			) : (
+				<span className={cn("text-title-sm", titleClassName)}>{title}</span>
+			)}
 			{description ? (
 				<span
 					className={cn("text-body-sm text-muted-foreground", descriptionClassName)}

@@ -5,6 +5,7 @@ export const mediaTileMeta: ComponentMeta = {
 	summary:
 		"A cover-first tile — square, 16:9 or poster artwork with an optional play-style action over it, then a title and a subtitle that can each be links — that is one link as a whole without nesting its other controls inside one.",
 	status: "beta",
+	composition: 'AspectBox, MediaImage, a stretched link (or Card render), Badge appearance="overlay", Button',
 	keywords: [
 		"album",
 		"album art",
@@ -73,7 +74,10 @@ export const mediaTileMeta: ComponentMeta = {
 	props: [
 		{ name: "title", type: "ReactNode", description: "The item's name. Seeds the fallback art when it is a string." },
 		{ name: "subtitle", type: "ReactNode", description: "The second line — an artist, a channel, a year." },
+		{ name: "meta", type: "ReactNode", description: "Lines under the subtitle, in its muted type: a price beside its sale price, a count of finishes, a status Badge. A wrapping block, where the subtitle is one truncated line. Use it for a product tile instead of building one." },
 		{ name: "src", type: "string", description: "Cover image URL. Without one, or when it fails, the cover is GradientArt seeded by the item." },
+		{ name: "srcSet", type: "string", description: "Responsive cover candidates, passed to the `<img>`." },
+		{ name: "sizes", type: "string", description: "The cover's layout width for `srcSet`, e.g. `\"(min-width: 64rem) 25vw, 50vw\"`." },
 		{ name: "alt", type: "string", default: '""', description: "Cover alt text. Empty by default: the title below already names the item." },
 		{ name: "seed", type: "string | number", description: "Seeds the fallback art. Defaults to `title` when it is a string." },
 		{
@@ -120,6 +124,10 @@ export const mediaTileMeta: ComponentMeta = {
 		"Truncated titles keep their full text in the link's accessible name and in a `title` tooltip.",
 	],
 	examples: [
+		{
+			label: "Product tile",
+			code: '<Grid minItemWidth="14rem" gap={4}>\n\t{products.map((product) => (\n\t\t<MediaTile\n\t\t\tkey={product.id}\n\t\t\taspect={4 / 5}\n\t\t\ttitle={product.name}\n\t\t\tsubtitle={product.material}\n\t\t\tsrc={product.image}\n\t\t\tsrcSet={product.imageSet}\n\t\t\tsizes="(min-width: 64rem) 25vw, 50vw"\n\t\t\trender={<Link to={`/products/${product.slug}`} />}\n\t\t\tbadge={product.isNew ? <Badge appearance="overlay">New</Badge> : undefined}\n\t\t\tmeta={\n\t\t\t\t<>\n\t\t\t\t\t<span className="text-foreground">{formatPrice(product.price)}</span>\n\t\t\t\t\t<span>{product.finishes.length} finishes</span>\n\t\t\t\t</>\n\t\t\t}\n\t\t/>\n\t))}\n</Grid>',
+		},
 		{
 			label: "Album grid",
 			code: '<Grid minItemWidth="10rem" gap={3}>\n\t{albums.map((album) => (\n\t\t<MediaTile\n\t\t\tkey={album.id}\n\t\t\ttitle={album.title}\n\t\t\tsubtitle={album.artist}\n\t\t\tsrc={album.cover}\n\t\t\trender={<Link to={`/albums/${album.id}`} />}\n\t\t\tsubtitleRender={<Link to={`/artists/${album.artistId}`} />}\n\t\t\taction={\n\t\t\t\t<Button size="icon" aria-label={`Play ${album.title}`} onClick={() => play(album)}>\n\t\t\t\t\t<Icon name="play" variant="solid" />\n\t\t\t\t</Button>\n\t\t\t}\n\t\t/>\n\t))}\n</Grid>',

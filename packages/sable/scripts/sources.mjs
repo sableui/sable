@@ -195,13 +195,21 @@ export function sourcesCss(pkgRoot, root, outFile) {
  * that component unstyled, silently — so it fails. A whole-package @source is
  * correct, just heavy, so it only gets a note.
  */
+const WHOLE_DIST = /@source[^;]*(?:@sableui\/react|packages\/sable)\/dist(?:\/\*\*)?[^;]*;/
+
 export function sourcesCheck(pkgRoot, root, cssFiles) {
 	const generated = cssFiles.find((f) => f.text.includes(SOURCES_MARKER))
 	if (!generated) {
-		const whole = cssFiles.some((f) => /@source[^;]*(?:@sableui\/react|packages\/sable)\/dist(?:\/\*\*)?[^;]*;/.test(f.text))
-		return whole ? [{ status: "info", name: "css:size", detail: "@source scans all of Sable's dist, so every component's classes ship (about 32 KB gzipped).", fix: "sable sources --write src/sable-sources.css, then import it in place of that @source." }] : []
+		const whole = cssFiles.some((f) => WHOLE_DIST.test(f.text))
+		return whole ? [{ status: "info", name: "css:size", detail: "@source scans all of Sable's dist, so every component's classes ship (about 32 KB gzipped; an app using half the catalog lands near 20 KB).", fix: "sable sources --write src/sable-sources.css, then import it in place of that @source." }] : []
 	}
 	const rel = relative(root, generated.path)
+	// The generated list only trims anything once the whole-package @source is
+	// gone: left beside it, Tailwind still scans every module, and the CSS stays
+	// the size it was.
+	const leftover = cssFiles.find((f) => f !== generated && WHOLE_DIST.test(f.text))
+	if (leftover)
+		return [{ status: "warn", name: "css:sources", detail: `${relative(root, leftover.path)} still has the whole-package @source, so ${rel} trims nothing: Tailwind scans all of Sable either way.`, fix: `Delete that @source line; ${rel} replaces it.` }]
 	const { modules, unresolved } = sableModules(pkgRoot, appSources(root))
 	if (unresolved.length && !/\/dist\/\*\*\//.test(generated.text))
 		return [{ status: "fail", name: "css:sources", detail: `${rel} lists modules, but these imports could not be traced: ${unresolved.slice(0, 4).join(", ")}.`, fix: `sable sources --write ${rel}` }]

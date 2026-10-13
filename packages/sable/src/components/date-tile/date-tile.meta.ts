@@ -38,6 +38,7 @@ export const dateTileMeta: ComponentMeta = {
 		components: ["Entity", "Card", "RelativeTime", "Calendar"],
 	},
 	status: "stable",
+	composition: "a <time> element with the type tiers, on a surface utility",
 	props: [
 		{
 			name: "date",

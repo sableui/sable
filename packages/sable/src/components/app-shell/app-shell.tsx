@@ -1,7 +1,7 @@
 import type { ComponentProps, ReactNode } from "react"
 import { cn } from "../../lib/cn"
-import { buttonVariants } from "../button/button.variants"
 import { AppShellDock } from "./app-shell-dock"
+import { SkipLink } from "./skip-link"
 
 export interface AppShellProps extends Omit<ComponentProps<"div">, "title"> {
 	/**
@@ -80,17 +80,7 @@ export function AppShell({
 			)}
 			{...rest}
 		>
-			<a
-				href="#main-content"
-				// Button's own primary look (radius, control height, ring), so the
-				// skip link is not a private lookalike of it.
-				className={cn(
-					buttonVariants({ variant: "primary", size: "sm" }),
-					"text-label-md sr-only focus:not-sr-only focus:fixed focus:start-2 focus:top-2 focus:z-(--z-skip-link)",
-				)}
-			>
-				Skip to content
-			</a>
+			<SkipLink />
 
 			{banners ? <div className="relative z-(--z-nav)">{banners}</div> : null}
 

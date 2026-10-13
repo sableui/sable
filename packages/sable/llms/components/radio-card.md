@@ -37,6 +37,7 @@ Use RadioCard for visual choice cards when users compare a small set of named op
 | value | string | — | The unique value that pairs this card with the group's selected value. |
 | title | ReactNode | — | The card's primary label (rendered as text-title-sm). |
 | description | ReactNode | — | Optional supporting copy beneath the title (text-body-sm, muted). |
+| trailing | ReactNode | — | End-aligned on the title's line: a price, a delivery date, a count. The title takes the rest of the row. |
 | icon | ReactNode | — | Leading icon (e.g. a solid <Icon>). Its presence switches to the two-dimensional card — icon top-left, indicator top-right, copy below — and the glyph is rendered as a solid-fill icon in the tone colour. |
 | tone | "neutral" \| "standard" \| "collectible" \| "edition" \| "info" \| "warning" | "neutral" | Semantic colour the selected state carries across the border, radio, and icon glyph. Neutral uses the primary ring with a muted wash. |
 | disabled | boolean | false | Dims the card and blocks selection. The group skips it during keyboard navigation. |

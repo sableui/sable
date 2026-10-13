@@ -29,9 +29,11 @@ References inform an original direction. A reference or preset is optional.
    `"reduced"`), state still changes and nothing keeps moving.
 6. Write the reuse inventory: the Sable components, parts, utilities, and token
    groups used, and every app-owned UI or CSS addition with the catalog search
-   that justified it. Start from the app-owned surfaces `sable check` lists:
-   each one composes the component named beside it, or the inventory says why
-   the app owns it.
+   that justified it. Start from the app-owned surfaces `sable check` lists,
+   which are notes, not failures: for each, write one line saying you used the
+   Sable part named beside it or kept your own, and why ("composed our own
+   product tile from AspectBox + Badge: the brief wants the price over the
+   photo"). Keeping your own layout is fine. Behaviour still comes from Sable.
 7. Record what you learned: `sable docs learning-from-builds`. Keep conditional
    lessons with evidence; never fabricate human approval or preference records.
 
@@ -142,9 +144,18 @@ The installed catalog and guides are authoritative for API and token names.
 
 1. Search the installed catalog for every recognizable element or behavior:
    `sable search "<need>" --json`. Inspect the matching
-   `sable component <Name> --props` and `--examples` before using it. Use its public
-   component and composed anatomy. A native element wearing a component's classes
-   is a reinvention, even if it uses valid tokens.
+   `sable component <Name> --props` and `--examples` before using it. What a
+   result asks of you depends on what it is:
+   - **Behaviour** (controls, fields, overlays, menus, tabs, anything with focus,
+     keyboard or ARIA): always use it, never rebuild it. A native element wearing
+     a component's classes, or arrow keys handled by hand, is a reinvention even
+     if it uses valid tokens.
+   - **Parts** (Card, Entity, AspectBox, Badge, Avatar, MediaImage, layout
+     primitives): compose them freely, in whatever arrangement the design needs.
+   - **References** (patterns, blocks, and compositions marked ◇ such as
+     MediaTile): use one when its layout fits the brief. When it doesn't, compose
+     your own from parts; that is not a gap and needs no apology. Apps on Sable
+     should not all look alike.
 2. Resolve styling in this order: Sable component/variant, Sable utility or recipe,
    semantic token, then app-owned CSS for a genuinely uncovered need. Retrieve
    `sable utility <name>` and `sable token <group>` rather than guessing names.
@@ -170,7 +181,12 @@ The installed catalog and guides are authoritative for API and token names.
 Save a short brief in the project's existing design location: audience, primary
 task, content, constraints, selected identity, and meaningful states, plus each
 route's width (a Region `max`, or fluid) and why, chosen by what the person does
-there (`sable docs building-a-page`). Label invented sample content. A supplied preset is an explicit input: read its exact record and
+there (`sable docs building-a-page`). Name the product's signature surfaces: the
+one to three places its identity lives (a shop's product card and search, a music
+app's player and album tile). Design those from the brief's direction first,
+composing Sable's parts and behaviour; take a Sable reference for one only when
+it already matches that direction. Everything else (forms, settings, menus,
+tables) takes Sable's defaults. Label invented sample content. A supplied preset is an explicit input: read its exact record and
 revision, validate it through `sable preset --check <path> --json`, and read
 `sable docs using-presets`. Preserve its tokens and guidance unless the user requests
 a change or the new task requires a documented adaptation.

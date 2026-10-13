@@ -6,6 +6,7 @@ import {
 	Children,
 	cloneElement,
 	type ComponentPropsWithRef,
+	type FormEvent,
 	type ReactElement,
 	type ReactNode,
 	useId,
@@ -14,7 +15,13 @@ import {
 import { cn } from "../../lib/cn"
 import { Label } from "../label"
 
-export interface FormProps extends ComponentPropsWithRef<"form"> {
+export interface FormProps extends Omit<ComponentPropsWithRef<"form">, "onSubmit"> {
+	/**
+	 * The native submit handler. It may return a promise: when it (or the
+	 * promise) is done, the first control a Field marks invalid takes focus, so
+	 * errors your own code sets get the same treatment as Sable's validation.
+	 */
+	onSubmit?: (event: FormEvent<HTMLFormElement>) => unknown
 	/**
 	 * When fields validate: `onSubmit` (default — on submit, then live on change
 	 * after the first attempt), `onBlur`, or `onChange`. A Field's own
@@ -29,9 +36,12 @@ export interface FormProps extends ComponentPropsWithRef<"form"> {
 	errors?: BaseForm.Props["errors"]
 	/**
 	 * Called with the named Field values (as an object) once every field is
-	 * valid. Using it calls `preventDefault()` on the native submit for you.
+	 * valid. Using it calls `preventDefault()` on the native submit for you. It
+	 * may return a promise, as `onSubmit` may.
 	 */
-	onFormSubmit?: BaseForm.Props["onFormSubmit"]
+	onFormSubmit?: (
+		...args: Parameters<NonNullable<BaseForm.Props["onFormSubmit"]>>
+	) => unknown
 	/** Imperative actions: `actionsRef.current.validate(name?)`. */
 	actionsRef?: BaseForm.Props["actionsRef"]
 	/**
@@ -81,18 +91,18 @@ export function Form({
 	// ask the browser too and block on anything it still rejects — the same
 	// guarantee a plain <form> gave. Pass `noValidate` to skip that check.
 	const blockedRef = useRef(false)
-	const handleSubmit = (
-		event: Parameters<NonNullable<FormProps["onSubmit"]>>[0],
-	) => {
+	const formRef = useRef<HTMLFormElement | null>(null)
+	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
 		blockedRef.current = false
 		const form = event.currentTarget
+		formRef.current = form
 		if (!form.checkValidity()) {
 			event.preventDefault()
 			blockedRef.current = true
 			form.reportValidity()
 			return
 		}
-		onSubmit?.(event)
+		afterSubmit(form, onSubmit?.(event))
 	}
 	if (noValidate) {
 		// Base UI's Form validates every Field before it calls onSubmit, and no prop
@@ -104,7 +114,10 @@ export function Form({
 			<form
 				noValidate
 				className={cn("flex flex-col gap-6", className)}
-				onSubmit={onSubmit}
+				onSubmit={(event) => {
+					const form = event.currentTarget
+					afterSubmit(form, onSubmit?.(event))
+				}}
 				{...props}
 			/>
 		)
@@ -119,7 +132,9 @@ export function Form({
 			onFormSubmit={
 				onFormSubmit
 					? (values, details) => {
-							if (!blockedRef.current) onFormSubmit(values, details)
+							if (blockedRef.current) return
+							const result = onFormSubmit(values, details)
+							if (formRef.current && isPromise(result)) afterSubmit(formRef.current, result)
 						}
 					: undefined
 			}
@@ -128,6 +143,35 @@ export function Form({
 	)
 }
 Form.displayName = "Form"
+
+const isPromise = (value: unknown): value is Promise<unknown> =>
+	typeof (value as Promise<unknown> | undefined)?.then === "function"
+
+/**
+ * Errors the app sets itself (each Field's `error`) render after its handler
+ * returns, so Base UI's focus-first-invalid, which runs inside the submit, never
+ * sees them. Once the handler (or its promise) is done and React has painted,
+ * focus the first control a Field marked invalid, unless focus is already on
+ * one.
+ */
+function afterSubmit(form: HTMLFormElement, result: unknown) {
+	const focus = () =>
+		requestAnimationFrame(() => {
+			if (!form.isConnected) return
+			const active = document.activeElement
+			if (active && form.contains(active) && active.getAttribute("aria-invalid") === "true") return
+			const first = [...form.querySelectorAll<HTMLElement>('[aria-invalid="true"]')].find(
+				(el) => !(el instanceof HTMLInputElement && el.type === "hidden") && !el.closest("[aria-hidden='true'],[inert]"),
+			)
+			if (!first) return
+			first.focus()
+			if (first instanceof HTMLInputElement && /^(?:text|search|email|tel|url|password|number)?$/.test(first.type)) {
+				first.select()
+			}
+		})
+	if (isPromise(result)) result.finally(focus)
+	else focus()
+}
 
 /** The native constraint flags of `ValidityState` a Field can word itself. */
 export type ConstraintFlag =
@@ -141,7 +185,8 @@ export type ConstraintFlag =
 	| "stepMismatch"
 	| "badInput"
 
-export interface FieldProps {
+export interface FieldProps
+	extends Omit<ComponentPropsWithRef<"div">, "children" | "title" | "onChange"> {
 	/** Field label (wired to the control via htmlFor). */
 	label?: ReactNode
 	/** Helper text under the control (wired via aria-describedby). */
@@ -185,6 +230,13 @@ export interface FieldProps {
 	 * control then the label inline — for a single checkbox / switch / radio.
 	 */
 	orientation?: "vertical" | "horizontal"
+	/**
+	 * Something at the end of the control's row. Vertically, beside the control:
+	 * a promo code's Apply button, with the control taking the rest of the row.
+	 * Horizontally, at the end of the label's first line: a facet count or a
+	 * price, with the label taking the rest.
+	 */
+	trailing?: ReactNode
 	className?: string
 	/** The single control element (e.g. `<Input />`, `<Textarea />`, `<Select…>`). */
 	children: ReactElement
@@ -208,6 +260,11 @@ export interface FieldProps {
  *     <Input />
  *   </Field>
  *   <Field label="Subscribe" orientation="horizontal"><Checkbox /></Field>
+ *   <Field label="Promo code" trailing={<Button variant="secondary">Apply</Button>}>
+ *     <Input />
+ *   </Field>
+ *
+ * Other props (`data-*`, `id`, `aria-*`) land on the root element.
  */
 export function Field({
 	label,
@@ -221,8 +278,10 @@ export function Field({
 	validationMode,
 	validationDebounceTime,
 	orientation = "vertical",
+	trailing,
 	className,
 	children,
+	...props
 }: FieldProps) {
 	const generatedId = useId()
 	const child = Children.only(children) as ReactElement<Record<string, unknown>>
@@ -312,26 +371,39 @@ export function Field({
 			validate={validate}
 			validationMode={validationMode}
 			validationDebounceTime={validationDebounceTime}
+			{...props}
 		>
 			{orientation === "horizontal" ? (
 				// Control beside a text column. The control sits in a box one LABEL
 				// line tall (`h-[1lh]` in the label's own type step), so it centres
 				// on the first line and stays there when the label wraps. Helper and
 				// error text live in the label's column, not under the control.
-				<div className="flex items-start gap-2">
-					<div className="flex h-[1lh] shrink-0 items-center text-label-lg">
-						{control}
-					</div>
-					<div className="flex min-w-0 flex-col gap-1.5">
+				// A Switch (the tallest, --spacing(6)) is taller than that line, so
+				// the row is padded by the difference: the control stays inside the
+				// Field's box, where an AccordionPanel or any clipping parent keeps
+				// it whole.
+				<div className="flex items-start gap-2 py-[max(0px,calc((--spacing(6)_-_1lh)/2))] text-label-lg">
+					<div className="flex h-[1lh] shrink-0 items-center">{control}</div>
+					<div className="flex min-w-0 flex-1 flex-col gap-1.5">
 						{labelNode}
 						{descriptionNode}
 						{errorNode}
 					</div>
+					{trailing != null ? (
+						<div className="flex h-[1lh] shrink-0 items-center">{trailing}</div>
+					) : null}
 				</div>
 			) : (
 				<>
 					{labelNode}
-					{control}
+					{trailing != null ? (
+						<div className="flex items-start gap-2">
+							<div className="min-w-0 flex-1">{control}</div>
+							{trailing}
+						</div>
+					) : (
+						control
+					)}
 					{descriptionNode}
 					{errorNode}
 				</>

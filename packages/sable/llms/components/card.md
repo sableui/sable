@@ -45,7 +45,7 @@ Use Card for a discrete thing with its own boundary, such as one product, one no
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| variant | "default" \| "flat" | "default" | "default" raises with bg-card + border + soft shadow; "flat" is transparent. |
+| variant | "default" \| "flat" | "default" | "default" raises with bg-card + border + soft shadow; "flat" is transparent, for a card inside a section that already frames it. A flat card made a link or button shows its shape only on hover (the muted fill), so over a photo with square bottom corners it reads as a cropped image at rest: give a linked media card the default variant. |
 | density | "comfortable" \| "compact" | "comfortable" | Padding of the Header/Content/Footer parts: comfortable = p-6 (default), compact = p-4 for denser section panels (pair compact with the flat variant for a settings / form section panel). Threaded to the parts via the inherited --card-p custom property. Card sets --card-p via inline style, which beats a plain (non-!important) stylesheet override of the same property on the same element — use this prop rather than a className override; if an external override is unavoidable, it needs !important. |
 | render | useRender.RenderProp | — | Replace the rendered element through the Base UI render prop — most often `render={<a href="/x" />}` (or a router Link) to make the whole card one link. When the rendered element is a link (a[href]) or a button, the card gains a hover state (stronger border and shadow; a muted fill when flat), a full-card focus-visible ring and motion-interactive easing. Any other element (article, li) stays a static surface. Children can answer the hover with `group-hover/card:`. |
 

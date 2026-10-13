@@ -1,5 +1,88 @@
 # What's new
 
+## 0.9.0
+
+A storefront built on 0.8.2 (and the same brief on shadcn) found the seams
+below: focus lost after async actions, controls clipped in accordions, and
+slots a shop needs that the parts did not have. It also built its own search
+panel, and it was good. This release makes that the expected outcome rather
+than a rule bent.
+
+### Apps on Sable shouldn't all look alike
+
+- **Behaviour is fixed; layout is yours.** The skill and `AGENTS.md` now sort
+  the catalog three ways. Behaviour (controls, fields, overlays, anything with
+  focus or keys) is always used. Parts (Card, Entity, AspectBox, Badge) are
+  composed freely. References (patterns, blocks, and compositions such as
+  MediaTile) are used when their layout fits the brief; otherwise the agent
+  composes its own from parts, and that is not a gap.
+- **Signature surfaces.** The brief names the one to three surfaces where a
+  product's identity lives (a shop's product card and search). The agent
+  designs those from the brief's direction, and takes Sable's defaults
+  everywhere else.
+- **`sable search` and `sable component` mark references** with ◇ and name
+  the parts to compose your own from (`reference` and `parts` in JSON).
+- **`sable check`'s surface list reads as notes.** "→ Sable has Card"
+  replaces "→ consider Card", and the reuse inventory records "used it" or
+  "kept ours, because…" with neither treated as a failure. A new note flags
+  arrow keys handled by hand: list keyboard navigation is behaviour CommandMenu,
+  Combobox, Menu and Toolbar already own.
+
+### Upgrading from 0.8
+
+- **Button `loading` no longer sets `disabled`.** A busy native button gets
+  `aria-disabled` and refuses presses itself, so it keeps focus. Disabling the
+  focused button sent focus to `<body>`, and a sheet the action opened had
+  nowhere to return it. A test asserting `toBeDisabled()` on a loading button
+  checks `aria-disabled="true"` now.
+- **A horizontal Field is a few pixels taller.** Its row is padded to a
+  Switch's height, so the control no longer overflows the Field's box.
+
+### Fixes
+
+- **Focus moves to the first invalid field after your own validation.** Form
+  focused it only for its own checks. Errors your handler sets on Fields now get
+  the same, once `onSubmit` (or the promise it returns) is done, with or
+  without `noValidate`.
+- **Controls in an AccordionPanel are no longer clipped.** The first checkbox
+  or switch lost its top edge, and focus rings their left edge.
+  `motion-disclosure` clips with a small margin, and horizontal Fields contain
+  their control.
+- **Toasts keep clear of an open Sheet.** A toast on the sheet's edge covered
+  its footer (Check out) or its close button. With room, the stack moves beside
+  the sheet; on a narrow screen, a bottom stack moves to the top.
+- **Field forwards `data-*`, `id` and other props to its root.**
+- **`sable grade` accepts native input attributes** (`inputMode`,
+  `enterKeyHint`, `autoCapitalize`, `autoCorrect`, `pattern`, `list`, `accept`,
+  `capture`). It flagged the ones the form contract asks for.
+- **`sable check` warns when `sable sources` trims nothing.** With the
+  whole-package `@source` still beside the generated file, Tailwind scans all
+  of Sable anyway.
+
+### New
+
+- **Button `onClick` can return a promise.** The button shows `loading` until
+  it settles and ignores presses meanwhile, from the first click on. A `busy`
+  flag in state took effect a render late, so three fast clicks added three
+  items.
+- **Field `trailing`.** Vertically, it sits beside the control: a promo code's
+  Apply button. Horizontally, it sits at the end of the label's line: a facet
+  count.
+- **RadioCard `trailing`,** end-aligned on the title's line: a delivery
+  option's price.
+- **MediaTile `meta`, `srcSet` and `sizes`.** `meta` holds the lines under the
+  subtitle (price, sale price, finishes, a Badge), so a product tile is a
+  MediaTile.
+- **CommandMenu items take `leading`** (a thumbnail or Avatar in place of
+  `icon`), and the field has a clear button once there is a query.
+- **`Fieldset variant="plain"`:** the group and its legend without the card.
+  It names a radio group inside a form that is already framed.
+- **Stepper compacts on a phone.** A horizontal stepper narrower than 28rem
+  keeps every disc and only the current step's title; the other titles stay
+  for screen readers.
+- **`SkipLink`,** AppShell's skip link on its own, for layouts that are not an
+  AppShell.
+
 ## 0.8.2
 
 - **A suggested stack for blank-slate apps.** Sable still depends on no router,

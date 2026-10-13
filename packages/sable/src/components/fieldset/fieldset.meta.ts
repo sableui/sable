@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const fieldsetMeta: ComponentMeta = {
 	name: "Fieldset",
 	summary:
-		"Form section panel (Card-like bordered surface) over Base UI Fieldset, with Legend/Description/Content/Footer parts.",
+		"Form section panel (Card-like bordered surface) over Base UI Fieldset, with Legend/Description/Content/Footer parts; `variant=\"plain\"` is the bare group, for a radio group's shared name.",
 	status: "stable",
 	keywords: [
 		"fieldset",
@@ -25,6 +25,10 @@ export const fieldsetMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Do not use Fieldset as a generic spacing wrapper outside forms.",
+			},
+			{
+				guidance: "do",
+				description: "Use `variant=\"plain\"` to name a radio group or a run of checkboxes inside a form or card that is already framed: the legend reads as a field label and nothing draws a second box. Do not strip the card variant with classes instead.",
 			},
 			{
 				guidance: "dont",
@@ -66,6 +70,13 @@ export const fieldsetMeta: ComponentMeta = {
 		],
 	},
 	props: [
+		{
+			name: "variant",
+			type: '"card" | "plain"',
+			default: '"card"',
+			description:
+				"`card` is a bordered, raised section with padded parts. `plain` is the grouping alone (no border, surface or inset) with the legend in the field-label style: the shared name a radio group needs, inside a form that is already framed.",
+		},
 		{
 			name: "disabled",
 			type: "boolean",
@@ -157,6 +168,20 @@ export const fieldsetMeta: ComponentMeta = {
 // ✗ Not for visual grouping of unrelated fields. Use PanelSection on a panel or
 //   a Card section on a page; a legend that is really a heading lies to
 //   assistive technology about the form's structure.`,
+		},
+		{
+			label: "A radio group's name, without a second box",
+			code: `<Card>
+  <CardContent>
+    <Fieldset variant="plain">
+      <FieldsetLegend>Delivery</FieldsetLegend>
+      <RadioGroup defaultValue="standard">
+        <RadioCard value="standard" title="Standard" description="3–5 working days" trailing="Free" />
+        <RadioCard value="express" title="Express" description="Next working day" trailing="$12.00" />
+      </RadioGroup>
+    </Fieldset>
+  </CardContent>
+</Card>`,
 		},
 	],
 }

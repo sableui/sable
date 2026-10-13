@@ -5,6 +5,7 @@ export const feedbackMeta: ComponentMeta = {
 	summary:
 		"A compact feedback popover. Composes Popover + Textarea + Button + Toggle into a rating row plus a message field; submitting reports the rating + message and closes the popover.",
 	status: "stable",
+	composition: "Popover, Textarea, ToggleGroup, Button",
 	keywords: [
 		"feedback",
 		"sentiment",

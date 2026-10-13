@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react"
+import { act, fireEvent, render, screen } from "@testing-library/react"
 import { useState } from "react"
 import { describe, expect, it, vi } from "vitest"
 import { Input } from "../input"
@@ -243,5 +243,76 @@ describe("Form validation", () => {
 		)
 		expect(screen.getByText("Already taken.")).toBeInTheDocument()
 		expect(screen.getByLabelText("Email")).toHaveAttribute("aria-invalid", "true")
+	})
+
+	it("focuses the first field the app's own handler marked invalid", async () => {
+		function Checkout() {
+			const [errors, setErrors] = useState<Record<string, string>>({})
+			return (
+				<Form noValidate onSubmit={(event) => { event.preventDefault(); setErrors({ zip: "Enter a ZIP code." }) }}>
+					<Field label="Name"><Input defaultValue="Ada" /></Field>
+					<Field label="ZIP" error={errors.zip}><Input /></Field>
+					<button type="submit">Continue</button>
+				</Form>
+			)
+		}
+		render(<Checkout />)
+		const submit = screen.getByRole("button", { name: "Continue" })
+		submit.focus()
+		fireEvent.click(submit)
+		await act(() => new Promise((resolve) => requestAnimationFrame(() => resolve(null))))
+		expect(document.activeElement).toBe(screen.getByLabelText("ZIP"))
+	})
+
+	it("waits for an async handler before focusing the first invalid field", async () => {
+		let settle: () => void = () => {}
+		function Signup() {
+			const [error, setError] = useState<string>()
+			return (
+				<Form
+					onSubmit={(event) => {
+						event.preventDefault()
+						return new Promise<void>((resolve) => {
+							settle = () => {
+								setError("Already taken.")
+								resolve()
+							}
+						})
+					}}
+				>
+					<Field label="Email" error={error}><Input defaultValue="a@b.co" /></Field>
+					<button type="submit">Sign up</button>
+				</Form>
+			)
+		}
+		render(<Signup />)
+		fireEvent.click(screen.getByRole("button", { name: "Sign up" }))
+		await act(() => new Promise((resolve) => requestAnimationFrame(() => resolve(null))))
+		expect(document.activeElement).not.toBe(screen.getByLabelText("Email"))
+		await act(async () => settle())
+		await act(() => new Promise((resolve) => requestAnimationFrame(() => resolve(null))))
+		expect(document.activeElement).toBe(screen.getByLabelText("Email"))
+	})
+})
+
+describe("Field root and slots", () => {
+	it("forwards data-* and other props to the root", () => {
+		const { container } = render(
+			<Field label="Email" data-field="email" id="email-field"><Input /></Field>,
+		)
+		const root = container.querySelector('[data-field="email"]')
+		expect(root).toBeInTheDocument()
+		expect(root).toHaveAttribute("id", "email-field")
+	})
+
+	it("puts `trailing` beside a vertical control", () => {
+		render(
+			<Field label="Promo code" trailing={<button type="button">Apply</button>}>
+				<Input />
+			</Field>,
+		)
+		const input = screen.getByLabelText("Promo code")
+		const apply = screen.getByRole("button", { name: "Apply" })
+		expect(input.parentElement?.parentElement).toBe(apply.parentElement)
 	})
 })

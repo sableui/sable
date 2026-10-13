@@ -1,7 +1,7 @@
 {
   "$schema": "https://sable.design/registry.schema.json",
   "name": "@sableui/react",
-  "version": "0.8.2",
+  "version": "0.9.0",
   "description": "Themeable React components, semantic tokens, layout patterns, presets, and package-owned agent skills. Default theme: Sable.",
   "engine": {
     "behavior": "@base-ui/react",
@@ -2957,6 +2957,13 @@
           "description": "Floating overlays — a message launcher, FAB, or modal mount points."
         }
       ],
+      "subcomponents": [
+        {
+          "name": "SkipLink",
+          "type": "ComponentProps<\"a\">",
+          "description": "AppShell's skip link on its own, for a layout that is not an AppShell (a storefront with a top header). Put it first in the body and give the page's <main> the matching id: `<SkipLink />` then `<main id=\"main-content\" tabIndex={-1}>`. `href` defaults to #main-content, the label to \"Skip to content\"."
+        }
+      ],
       "tokensUsed": [
         "background",
         "foreground",
@@ -2974,6 +2981,11 @@
           "label": "Full frame",
           "code": "<AppShell\n  banners={<Banner tone=\"warning\">Network congested — mints may be slow.</Banner>}\n  header={<AppHeader title=\"Studio\" />}\n  sidebar={\n    <Sidebar>\n      <SidebarNav>\n        <SidebarItem icon={<Icon name=\"home\" />} label=\"Home\" active render={<Link to=\"/\" />} />\n        <SidebarItem icon={<Icon name=\"bell\" />} label=\"Notifications\" render={<Link to=\"/notifications\" />} />\n        <SidebarItem icon={<Icon name=\"gear\" />} label=\"Settings\" render={<Link to=\"/settings\" />} />\n      </SidebarNav>\n    </Sidebar>\n  }\n  bottomNav={\n    <BottomNav>\n      <BottomNavItem icon={<Icon name=\"home\" />} label=\"Home\" active render={<Link to=\"/\" />} />\n      <BottomNavItem icon={<Icon name=\"bell\" />} label=\"Alerts\" render={<Link to=\"/notifications\" />} />\n    </BottomNav>\n  }\n>\n  <Region max=\"feed\">\n    <PageHeader title=\"Home\" description=\"Latest posts from artists you follow.\" />\n  </Region>\n</AppShell>",
           "imports": "import { AppHeader, AppShell, Banner, BottomNav, BottomNavItem, Icon, PageHeader, Region, Sidebar, SidebarItem, SidebarNav } from \"@sableui/react\"\n// <Link> = your router's link (react-router, next/link, @tanstack/router, …)"
+        },
+        {
+          "label": "SkipLink in a layout of your own",
+          "code": "<>\n  <SkipLink />\n  <header className=\"flex items-center justify-between px-(--page-inset) py-4\">\n    <Link to=\"/\">Alder & Lune</Link>\n    <Button variant=\"ghost\" size=\"icon\" aria-label=\"Search\"><Icon name=\"search\" /></Button>\n  </header>\n  <main id=\"main-content\" tabIndex={-1}>\n    <Region max=\"wide\">\n      <PageHeader title=\"Lighting\" />\n    </Region>\n  </main>\n</>",
+          "imports": "import { Button, Icon, PageHeader, Region, SkipLink } from \"@sableui/react\"\n// <Link> = your router's link (react-router, next/link, @tanstack/router, …)"
         },
         {
           "label": "Minimal (sidebar + content only)",
@@ -4922,7 +4934,12 @@
           "name": "loading",
           "type": "boolean",
           "default": "false",
-          "description": "Disable the button and show a leading Spinner while an action is in flight. Sets aria-busy; a native button is disabled, a render element (e.g. an <a>) gets aria-disabled."
+          "description": "Show a leading Spinner while an action is in flight and refuse presses. Sets aria-busy and aria-disabled, never the native disabled: disabling the focused button sent focus to <body>, so a sheet the action opened had nowhere to return it."
+        },
+        {
+          "name": "onClick",
+          "type": "(event: MouseEvent<HTMLButtonElement>) => unknown",
+          "description": "May return a promise: the button shows `loading` until it settles and ignores further presses meanwhile, from the first click on. Prefer it to a `busy` flag in state, which takes effect a render late (three fast clicks ran three times)."
         },
         {
           "name": "badge",
@@ -5354,7 +5371,7 @@
           "name": "variant",
           "type": "\"default\" | \"flat\"",
           "default": "\"default\"",
-          "description": "\"default\" raises with bg-card + border + soft shadow; \"flat\" is transparent."
+          "description": "\"default\" raises with bg-card + border + soft shadow; \"flat\" is transparent, for a card inside a section that already frames it. A flat card made a link or button shows its shape only on hover (the muted fill), so over a photo with square bottom corners it reads as a cropped image at rest: give a linked media card the default variant."
         },
         {
           "name": "density",
@@ -7800,6 +7817,7 @@
     {
       "name": "DateTile",
       "status": "stable",
+      "composition": "a <time> element with the type tiers, on a surface utility",
       "group": "Data display",
       "register": "page",
       "path": "components/date-tile",
@@ -8859,6 +8877,7 @@
     {
       "name": "Feedback",
       "status": "stable",
+      "composition": "Popover, Textarea, ToggleGroup, Button",
       "group": "Overlays",
       "register": "page",
       "path": "components/feedback",
@@ -8972,7 +8991,7 @@
       "group": "Forms",
       "register": "either",
       "path": "components/fieldset",
-      "summary": "Form section panel (Card-like bordered surface) over Base UI Fieldset, with Legend/Description/Content/Footer parts.",
+      "summary": "Form section panel (Card-like bordered surface) over Base UI Fieldset, with Legend/Description/Content/Footer parts; `variant=\"plain\"` is the bare group, for a radio group's shared name.",
       "keywords": [
         "fieldset",
         "form group",
@@ -8993,6 +9012,10 @@
           {
             "guidance": "dont",
             "description": "Do not use Fieldset as a generic spacing wrapper outside forms."
+          },
+          {
+            "guidance": "do",
+            "description": "Use `variant=\"plain\"` to name a radio group or a run of checkboxes inside a form or card that is already framed: the legend reads as a field label and nothing draws a second box. Do not strip the card variant with classes instead."
           },
           {
             "guidance": "dont",
@@ -9034,6 +9057,12 @@
         ]
       },
       "props": [
+        {
+          "name": "variant",
+          "type": "\"card\" | \"plain\"",
+          "default": "\"card\"",
+          "description": "`card` is a bordered, raised section with padded parts. `plain` is the grouping alone (no border, surface or inset) with the legend in the field-label style: the shared name a radio group needs, inside a form that is already framed."
+        },
         {
           "name": "disabled",
           "type": "boolean",
@@ -9095,6 +9124,11 @@
           "label": "Why a fieldset, and when it is wrong",
           "code": "// Fieldset groups inputs that are ONE question with multiple parts, and gives\n// the group a single accessible name — which is the part you cannot do with a\n// div and a heading.\n\n<Fieldset>\n  <FieldsetLegend>Digest frequency</FieldsetLegend>\n  <FieldsetContent>\n    <RadioGroup defaultValue=\"weekly\">\n      <Field label=\"Daily\" orientation=\"horizontal\"><Radio value=\"daily\" /></Field>\n      <Field label=\"Weekly\" orientation=\"horizontal\"><Radio value=\"weekly\" /></Field>\n    </RadioGroup>\n  </FieldsetContent>\n</Fieldset>\n\n// ✓ Required for radio groups: without a fieldset the options have no shared\n//   name, so a screen reader announces \"Weekly, radio\" with no question.\n// ✗ Not for visual grouping of unrelated fields. Use PanelSection on a panel or\n//   a Card section on a page; a legend that is really a heading lies to\n//   assistive technology about the form's structure.",
           "imports": "import { Field, Fieldset, FieldsetContent, FieldsetLegend, Radio, RadioGroup } from \"@sableui/react\""
+        },
+        {
+          "label": "A radio group's name, without a second box",
+          "code": "<Card>\n  <CardContent>\n    <Fieldset variant=\"plain\">\n      <FieldsetLegend>Delivery</FieldsetLegend>\n      <RadioGroup defaultValue=\"standard\">\n        <RadioCard value=\"standard\" title=\"Standard\" description=\"3–5 working days\" trailing=\"Free\" />\n        <RadioCard value=\"express\" title=\"Express\" description=\"Next working day\" trailing=\"$12.00\" />\n      </RadioGroup>\n    </Fieldset>\n  </CardContent>\n</Card>",
+          "imports": "import { Card, CardContent, Fieldset, FieldsetLegend, RadioCard, RadioGroup } from \"@sableui/react\""
         }
       ]
     },
@@ -9575,7 +9609,12 @@
         {
           "name": "Form",
           "type": "{ validationMode?: \"onSubmit\" | \"onBlur\" | \"onChange\"; errors?: Record<string, string | string[]>; onFormSubmit?: (values, details) => void; actionsRef?: RefObject<Form.Actions> } + ComponentPropsWithRef<\"form\">",
-          "description": "A <form> laid out as a vertical column with comfortable field spacing (override with className, e.g. gap-4). On submit it validates every Field (native constraints plus Field validate), shows each message under its field, focuses the first invalid control, and only then calls onSubmit. validationMode defaults to \"onSubmit\" (then live re-validation on change). errors shows external (e.g. server) messages keyed by Field name and clears one when its field is edited. onFormSubmit receives the named Field values and prevents the native submit. A control outside any Field is still checked by the browser before onSubmit runs. Validating in your own code (react-hook-form, a schema, state)? Pass noValidate: onSubmit always runs and each Field shows the error you set; without it an empty required Field stops the submit before your handler can set that error."
+          "description": "A <form> laid out as a vertical column with comfortable field spacing (override with className, e.g. gap-4). On submit it validates every Field (native constraints plus Field validate), shows each message under its field, focuses the first invalid control, and only then calls onSubmit. validationMode defaults to \"onSubmit\" (then live re-validation on change). errors shows external (e.g. server) messages keyed by Field name and clears one when its field is edited. onFormSubmit receives the named Field values and prevents the native submit. A control outside any Field is still checked by the browser before onSubmit runs. Validating in your own code (react-hook-form, a schema, state)? Pass noValidate: onSubmit always runs and each Field shows the error you set; without it an empty required Field stops the submit before your handler can set that error. Either way, once onSubmit returns (or the promise it returns settles), the first control a Field marks invalid takes focus."
+        },
+        {
+          "name": "onSubmit",
+          "type": "(event: FormEvent<HTMLFormElement>) => unknown",
+          "description": "The native submit handler. It may return a promise. When it returns, or its promise settles, the first control a Field marks invalid takes focus, so errors your own code sets get the same treatment as Sable's validation."
         },
         {
           "name": "validationMode",
@@ -9608,8 +9647,8 @@
       "subcomponents": [
         {
           "name": "Field",
-          "type": "{ label?: ReactNode; description?: ReactNode; error?: ReactNode; required?: boolean; messages?: Partial<Record<\"valueMissing\" | \"typeMismatch\" | \"patternMismatch\" | \"tooShort\" | \"tooLong\" | \"rangeUnderflow\" | \"rangeOverflow\" | \"stepMismatch\" | \"badInput\", ReactNode>>; disabled?: boolean; name?: string; validate?: (value, formValues) => string | string[] | null | Promise<…>; validationMode?: \"onSubmit\" | \"onBlur\" | \"onChange\"; validationDebounceTime?: number; orientation?: \"vertical\" | \"horizontal\"; className?: string; children: ReactElement }",
-          "description": "Wraps a single control element (e.g. <Input />) on Base UI Field and wires label (htmlFor + aria-labelledby), helper text and error (aria-describedby), aria-invalid, and required onto it automatically. Base UI-backed controls (Input, Textarea, Select, Combobox, NumberField, Checkbox, Switch, Slider, OtpField…) register through context; the child is also cloned so plain elements keep the same wiring. error renders a destructive message and takes precedence; without it the slot shows the field's messages entry for the native constraint that failed (messages={{ valueMissing: \"Enter a subject.\" }}), else Base UI's validation message (the browser's wording for a native constraint, validate, or Form errors). required adds the native attribute plus a visual asterisk (defaults to false). disabled disables the control and dims the label. name keys the field in Form errors / onFormSubmit. validationMode overrides the Form's. orientation defaults to \"vertical\" (label → control); \"horizontal\" places control then label inline for a single checkbox / switch / radio — the control centres on the label's first line (it stays there when the label wraps) and description/error sit in the label's column. The root, label, description, error and control carry data-invalid / data-valid, data-touched, data-dirty, data-filled, data-focused and data-disabled for state styling."
+          "type": "{ label?: ReactNode; description?: ReactNode; error?: ReactNode; required?: boolean; messages?: Partial<Record<\"valueMissing\" | \"typeMismatch\" | \"patternMismatch\" | \"tooShort\" | \"tooLong\" | \"rangeUnderflow\" | \"rangeOverflow\" | \"stepMismatch\" | \"badInput\", ReactNode>>; disabled?: boolean; name?: string; validate?: (value, formValues) => string | string[] | null | Promise<…>; validationMode?: \"onSubmit\" | \"onBlur\" | \"onChange\"; validationDebounceTime?: number; orientation?: \"vertical\" | \"horizontal\"; trailing?: ReactNode; className?: string; children: ReactElement } + other div props on the root",
+          "description": "Wraps a single control element (e.g. <Input />) on Base UI Field and wires label (htmlFor + aria-labelledby), helper text and error (aria-describedby), aria-invalid, and required onto it automatically. Base UI-backed controls (Input, Textarea, Select, Combobox, NumberField, Checkbox, Switch, Slider, OtpField…) register through context; the child is also cloned so plain elements keep the same wiring. error renders a destructive message and takes precedence; without it the slot shows the field's messages entry for the native constraint that failed (messages={{ valueMissing: \"Enter a subject.\" }}), else Base UI's validation message (the browser's wording for a native constraint, validate, or Form errors). required adds the native attribute plus a visual asterisk (defaults to false). disabled disables the control and dims the label. name keys the field in Form errors / onFormSubmit. validationMode overrides the Form's. orientation defaults to \"vertical\" (label → control); \"horizontal\" places control then label inline for a single checkbox / switch / radio — the control centres on the label's first line (it stays there when the label wraps) and description/error sit in the label's column. trailing puts something at the end of the control's row: vertically, beside the control (a promo code's Apply button, the control taking the rest); horizontally, at the end of the label's first line (a facet count). Other props (data-*, id, aria-*) land on the root. The root, label, description, error and control carry data-invalid / data-valid, data-touched, data-dirty, data-filled, data-focused and data-disabled for state styling."
         }
       ],
       "tokensUsed": [
@@ -9632,6 +9671,11 @@
           "label": "Field with an error",
           "code": "<Field label=\"Password\" error=\"Must be at least 8 characters.\"><Input type=\"password\" /></Field>",
           "imports": "import { Field, Input } from \"@sableui/react\""
+        },
+        {
+          "label": "An input with its action",
+          "code": "<Field label=\"Promo code\" error={promoError} trailing={<Button variant=\"secondary\" onClick={applyPromo}>Apply</Button>}><Input name=\"promo\" autoCapitalize=\"characters\" /></Field>",
+          "imports": "import { Button, Field, Input } from \"@sableui/react\""
         },
         {
           "label": "Your own wording for a missing value",
@@ -11107,6 +11151,7 @@
     {
       "name": "MediaTile",
       "status": "beta",
+      "composition": "AspectBox, MediaImage, a stretched link (or Card render), Badge appearance=\"overlay\", Button",
       "group": "Media & mockups",
       "register": "page",
       "path": "components/media-tile",
@@ -11209,9 +11254,24 @@
           "description": "The second line — an artist, a channel, a year."
         },
         {
+          "name": "meta",
+          "type": "ReactNode",
+          "description": "Lines under the subtitle, in its muted type: a price beside its sale price, a count of finishes, a status Badge. A wrapping block, where the subtitle is one truncated line. Use it for a product tile instead of building one."
+        },
+        {
           "name": "src",
           "type": "string",
           "description": "Cover image URL. Without one, or when it fails, the cover is GradientArt seeded by the item."
+        },
+        {
+          "name": "srcSet",
+          "type": "string",
+          "description": "Responsive cover candidates, passed to the `<img>`."
+        },
+        {
+          "name": "sizes",
+          "type": "string",
+          "description": "The cover's layout width for `srcSet`, e.g. `\"(min-width: 64rem) 25vw, 50vw\"`."
         },
         {
           "name": "alt",
@@ -11338,6 +11398,11 @@
         "Truncated titles keep their full text in the link's accessible name and in a `title` tooltip."
       ],
       "examples": [
+        {
+          "label": "Product tile",
+          "code": "<Grid minItemWidth=\"14rem\" gap={4}>\n\t{products.map((product) => (\n\t\t<MediaTile\n\t\t\tkey={product.id}\n\t\t\taspect={4 / 5}\n\t\t\ttitle={product.name}\n\t\t\tsubtitle={product.material}\n\t\t\tsrc={product.image}\n\t\t\tsrcSet={product.imageSet}\n\t\t\tsizes=\"(min-width: 64rem) 25vw, 50vw\"\n\t\t\trender={<Link to={`/products/${product.slug}`} />}\n\t\t\tbadge={product.isNew ? <Badge appearance=\"overlay\">New</Badge> : undefined}\n\t\t\tmeta={\n\t\t\t\t<>\n\t\t\t\t\t<span className=\"text-foreground\">{formatPrice(product.price)}</span>\n\t\t\t\t\t<span>{product.finishes.length} finishes</span>\n\t\t\t\t</>\n\t\t\t}\n\t\t/>\n\t))}\n</Grid>",
+          "imports": "import { Badge, Grid, MediaTile } from \"@sableui/react\"\n// <Link> = your router's link (react-router, next/link, @tanstack/router, …)"
+        },
         {
           "label": "Album grid",
           "code": "<Grid minItemWidth=\"10rem\" gap={3}>\n\t{albums.map((album) => (\n\t\t<MediaTile\n\t\t\tkey={album.id}\n\t\t\ttitle={album.title}\n\t\t\tsubtitle={album.artist}\n\t\t\tsrc={album.cover}\n\t\t\trender={<Link to={`/albums/${album.id}`} />}\n\t\t\tsubtitleRender={<Link to={`/artists/${album.artistId}`} />}\n\t\t\taction={\n\t\t\t\t<Button size=\"icon\" aria-label={`Play ${album.title}`} onClick={() => play(album)}>\n\t\t\t\t\t<Icon name=\"play\" variant=\"solid\" />\n\t\t\t\t</Button>\n\t\t\t}\n\t\t/>\n\t))}\n</Grid>",
@@ -14802,6 +14867,11 @@
           "description": "Optional supporting copy beneath the title (text-body-sm, muted)."
         },
         {
+          "name": "trailing",
+          "type": "ReactNode",
+          "description": "End-aligned on the title's line: a price, a delivery date, a count. The title takes the rest of the row."
+        },
+        {
           "name": "icon",
           "type": "ReactNode",
           "description": "Leading icon (e.g. a solid <Icon>). Its presence switches to the two-dimensional card — icon top-left, indicator top-right, copy below — and the glyph is rendered as a solid-fill icon in the tone colour."
@@ -17687,7 +17757,7 @@
           "name": "orientation",
           "type": "\"horizontal\" | \"vertical\"",
           "default": "\"horizontal\"",
-          "description": "Horizontal for a short flow across the top of a form; vertical for long flows, narrow columns or steps with descriptions."
+          "description": "Horizontal for a short flow across the top of a form; vertical for long flows, narrow columns or steps with descriptions. A horizontal stepper narrower than 28rem (a phone) compacts itself: every disc stays, only the current step's title shows, and the other titles stay for screen readers. No breakpoint code needed."
         },
         {
           "name": "indicator",
@@ -23874,6 +23944,7 @@
         "iconStart",
         "loading",
         "loadingLabel",
+        "onClick",
         "render",
         "size",
         "variant"
@@ -24289,6 +24360,7 @@
         "disabled",
         "hint",
         "icon",
+        "leading",
         "onSelect",
         "stacked"
       ],
@@ -24621,6 +24693,7 @@
         "name",
         "orientation",
         "required",
+        "trailing",
         "validate",
         "validationDebounceTime",
         "validationMode"
@@ -24628,7 +24701,8 @@
       "Fieldset": [
         "className",
         "render",
-        "style"
+        "style",
+        "variant"
       ],
       "FieldsetLegend": [
         "className",
@@ -24676,6 +24750,7 @@
         "errors",
         "noValidate",
         "onFormSubmit",
+        "onSubmit",
         "validationMode"
       ],
       "GlidingHighlight": [
@@ -24790,10 +24865,13 @@
         "badge",
         "href",
         "loading",
+        "meta",
         "render",
         "seed",
         "size",
+        "sizes",
         "src",
+        "srcSet",
         "subtitle",
         "subtitleHref",
         "subtitleRender",
@@ -25352,6 +25430,7 @@
         "title",
         "titleClassName",
         "tone",
+        "trailing",
         "value"
       ],
       "RadioGroup": [
@@ -26377,7 +26456,7 @@
             "name": "themeStorageKey",
             "type": "string | null",
             "default": "SABLE_THEME_STORAGE_KEY",
-            "description": "localStorage key for the design theme. null disables persistence."
+            "description": "localStorage key for the design theme. null disables persistence. The default key is shared by every Sable app on an origin (several apps on localhost:5173 in development), and a stored id another app set wins over `defaultThemeId` when this app knows it too. An app with one fixed preset passes `themeId` (or `themeStorageKey={null}`); an app that lets users switch themes passes its own key."
           },
           {
             "name": "target",
