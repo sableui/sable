@@ -13,7 +13,10 @@ cannot establish animation timing, hidden behavior, or an unseen responsive stat
 Choose an original direction suitable for the user's future product. Map that
 direction onto the installed Sable token vocabulary. Preserve readable semantic
 roles and supported control behavior rather than recoloring every primitive
-independently. Load fonts through the consuming project's font setup.
+independently. Load fonts through the consuming project's font setup. Page widths
+are optional: set `page-inset` and the `region-*` caps (`form`, `feed`, `content`,
+`wide`, `full`) in `tokens.shared` only when the direction calls for a different
+page proportion, and keep each cap's role.
 
 ```bash
 pnpm exec sable preset --template

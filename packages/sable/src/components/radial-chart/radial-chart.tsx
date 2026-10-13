@@ -4,7 +4,7 @@ import type { CSSProperties } from "react"
 import { ChartFrame, type ChartSize } from "../../lib/chart/chart-frame"
 import { ChartLegend } from "../../lib/chart/chart-legend"
 import { ChartTooltipContent } from "../../lib/chart/chart-tooltip"
-import { categoryText, chartFormatters } from "../../lib/chart/format"
+import { categoryText, centerValueText, chartFormatters } from "../../lib/chart/format"
 import { polar, strokeArcPath } from "../../lib/chart/geometry"
 import { drawTransition, morphTransition, pathStyle, stagger } from "../../lib/chart/motion"
 import {
@@ -219,11 +219,11 @@ export function RadialChart({
 								className="[[data-reveal=out]_&]:opacity-0"
 								style={{ transition: morphTransition() }}
 							>
-								<tspan x={g.cx} dy={gauge && sweep <= 180 ? (centerLabel.label ? "-1.4em" : "0") : centerLabel.label ? "-0.1em" : "0.32em"} className="fill-foreground text-heading-2 tabular-nums">
-									{centerLabel.value}
+								<tspan x={g.cx} dy={gauge && sweep <= 180 ? (centerLabel.label ? "-1.4em" : "0") : "0.35em"} className="fill-foreground text-heading-2 tabular-nums">
+									{centerValueText(centerLabel.value, locale)}
 								</tspan>
 								{centerLabel.label ? (
-									<tspan x={g.cx} dy="1.6em" className="fill-muted-foreground text-caption">
+									<tspan x={g.cx} dy={gauge && sweep <= 180 ? "1.6em" : "1.9em"} className="fill-muted-foreground text-caption">
 										{centerLabel.label}
 									</tspan>
 								) : null}

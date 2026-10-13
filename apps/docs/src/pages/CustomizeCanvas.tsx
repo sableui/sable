@@ -4,7 +4,6 @@ import {
 	CommandPaletteBlock,
 	EventCardBlock,
 	FeedbackFormBlock,
-	GoalProgressBlock,
 	InviteTeamBlock,
 	MediaPlayerBlock,
 	NotificationListBlock,
@@ -16,6 +15,7 @@ import {
 	RevenueBreakdownBlock,
 	SignInBlock,
 	TrafficSourcesBlock,
+	TrafficTrendBlock,
 	TaskListBlock,
 	UploadListBlock,
 	WalletBlock,
@@ -159,8 +159,8 @@ export function SourcesScene() {
 	return <Stage><TrafficSourcesBlock className={SCENE} /></Stage>
 }
 
-export function GoalsScene() {
-	return <Stage><GoalProgressBlock className={SCENE} /></Stage>
+export function TrendScene() {
+	return <Stage><TrafficTrendBlock className={SCENE} /></Stage>
 }
 
 export function ShippingScene() {
@@ -187,7 +187,7 @@ function ThemeCanvas() {
 			<EventScene />
 			<SignInScene />
 			<TasksScene />
-			<GoalsScene />
+			<TrendScene />
 			<WalletScene />
 			<InviteScene />
 			<ChatScene />

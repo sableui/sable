@@ -56,7 +56,9 @@ export function TableFooter({
 TableFooter.displayName = "TableFooter"
 
 /**
- * A table row. Hover-lifts; mark the selected row with `data-selected`.
+ * A table row. Body rows hover-lift; header and footer rows stay still, since
+ * nothing there responds to a click on the row. Mark the selected row with
+ * `data-selected`.
  *
  * The selected fill is painted by the cells, each spilling 1px into the next
  * (a box-shadow, so layout does not move). A row's own background is painted
@@ -69,7 +71,7 @@ export function TableRow({ className, ...props }: ComponentPropsWithRef<"tr">) {
 	return (
 		<tr
 			className={cn(
-				"border-b border-border motion-interactive hover:bg-muted/50",
+				"border-b border-border motion-interactive [tbody>&:hover]:bg-muted/50",
 				"*:motion-interactive data-[selected]:*:bg-muted data-[selected]:*:shadow-[1px_0_0_var(--muted)]",
 				className,
 			)}

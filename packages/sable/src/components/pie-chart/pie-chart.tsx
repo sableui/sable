@@ -4,7 +4,7 @@ import { type CSSProperties, useId } from "react"
 import { ChartFrame, type ChartSize } from "../../lib/chart/chart-frame"
 import { ChartLegend } from "../../lib/chart/chart-legend"
 import { ChartTooltipContent } from "../../lib/chart/chart-tooltip"
-import { categoryText, chartFormatters } from "../../lib/chart/format"
+import { categoryText, centerValueText, chartFormatters } from "../../lib/chart/format"
 import { arcPath, polar } from "../../lib/chart/geometry"
 import { DRAW_DURATION, morphTransition, pathStyle } from "../../lib/chart/motion"
 import {
@@ -238,11 +238,14 @@ export function PieChart({
 							: null}
 						{centerLabel && g.inner > 0 ? (
 							<text x={g.cx} y={g.cy} textAnchor="middle" className="[[data-reveal=out]_&]:opacity-0" style={{ transition: morphTransition() }}>
-								<tspan x={g.cx} dy={centerLabel.label ? "-0.1em" : "0.32em"} className="fill-foreground text-heading-2 tabular-nums">
-									{centerLabel.value}
+								{/* The number holds the centre whether or not a label follows: 0.35em
+								    drops the baseline so the figures' middle sits on it. The label
+								    hangs below rather than the pair splitting the centre between them. */}
+								<tspan x={g.cx} dy="0.35em" className="fill-foreground text-heading-2 tabular-nums">
+									{centerValueText(centerLabel.value, locale)}
 								</tspan>
 								{centerLabel.label ? (
-									<tspan x={g.cx} dy="1.6em" className="fill-muted-foreground text-caption">
+									<tspan x={g.cx} dy="1.9em" className="fill-muted-foreground text-caption">
 										{centerLabel.label}
 									</tspan>
 								) : null}

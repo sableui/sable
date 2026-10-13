@@ -10,6 +10,10 @@ Save the surface brief, then capture the rendered route at a desktop width of at
 least 1024px and a mobile width of at most 480px. Record the actual viewport,
 route/state, supported color mode, and motion setting with each artifact. Inspect
 the whole route as well as its first viewport. Ensure fonts and media have loaded.
+Also capture a route that sets a width cap, or goes fluid, at 1920px: a cap applies
+only once the viewport minus app chrome exceeds it, so at 1024–1440px `wide`,
+`full` and fluid usually look the same and the width decision never shows. Add
+2560px for a fluid route.
 Use a recording or an observed interaction report for behavior that a still cannot
 show. Include reduced motion and every color mode the surface promises to support.
 

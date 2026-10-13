@@ -627,15 +627,46 @@ designs. Record the reason for the chosen composition.
 </AppShell>
 ```
 
-- **Never a global `max-width`.** Width is capped per region by role:
-  `prose` / `form` / `feed` / `content` / `wide` / `full`. A form region is narrow
-  because a 700px text input is harder to use, not more generous.
+- **Never a global `max-width`.** Width is chosen per route by what the person
+  does there (below). A form region is narrow because a 700px text input is
+  harder to use, not more generous.
 - **Measure ≠ width.** Cap prose line length in `ch` (`--measure-prose`)
   independently of the region's layout width.
 - **The 12-column grid lives *inside* a region**, for genuinely multi-column
   content. A column span is not a page width.
 - **Chrome is off the grid.** `Sidebar` and rails are fixed-width, outside the
   content grid.
+
+## Choosing a width
+
+Pick each route's `max` by what the person mainly does on it:
+
+| They mainly… | `max` | Why |
+|---|---|---|
+| read long text | `prose` on the text, inside `content` | line length sets readability: cap the text, not the page |
+| fill in a form | `form` | narrow fields are faster to scan and fill |
+| scroll one stream | `feed` | one column, one eye path |
+| review one record, or settings | `content` | labels stay close to their values |
+| scan and compare rows, cards or charts | `wide` | room for columns without stretching the gaps between them |
+| work across panes, a board, an editor or a map | omit it (fluid), or `full` | the extra width goes to the parts that use it |
+
+- **Go fluid only when a flexible part uses the space**: a table's main column,
+  a canvas, a board, a reading pane. If extra width only widens the gaps between
+  fixed columns (a date drifting away from its subject), cap it.
+- **In a fluid page, cap text by line length** (`--measure-prose`, or
+  `Center max="prose"`), not by page width.
+- **Sibling routes in one nav share a width**, so the header doesn't jump as
+  people move between them. A detail view may differ.
+- **`full` is the largest cap, not edge to edge.** It keeps the page inset;
+  `bleed` is edge to edge.
+- **A cap is a ceiling.** It applies only once the viewport minus app chrome is
+  wider than it: beside a 256px sidebar, `wide` (1280px) starts at about 1536px,
+  so at 1440px `wide`, `full` and fluid look the same. Judge widths at 1920px and
+  2560px, and record each route's width and reason in the brief.
+- **A product's widths belong in its theme.** A preset may set `page-inset` and
+  `region-*` (`form`, `feed`, `content`, `wide`, `full`) in `tokens.shared`
+  (a copy in `light` or `dark` wins over it); keep the role names and change
+  the values.
 
 ## Typography: pick the tier by ROLE, not by size
 
@@ -1319,7 +1350,10 @@ cannot establish animation timing, hidden behavior, or an unseen responsive stat
 Choose an original direction suitable for the user's future product. Map that
 direction onto the installed Sable token vocabulary. Preserve readable semantic
 roles and supported control behavior rather than recoloring every primitive
-independently. Load fonts through the consuming project's font setup.
+independently. Load fonts through the consuming project's font setup. Page widths
+are optional: set `page-inset` and the `region-*` caps (`form`, `feed`, `content`,
+`wide`, `full`) in `tokens.shared` only when the direction calls for a different
+page proportion, and keep each cap's role.
 
 ```bash
 pnpm exec sable preset --template
@@ -1910,6 +1944,10 @@ Save the surface brief, then capture the rendered route at a desktop width of at
 least 1024px and a mobile width of at most 480px. Record the actual viewport,
 route/state, supported color mode, and motion setting with each artifact. Inspect
 the whole route as well as its first viewport. Ensure fonts and media have loaded.
+Also capture a route that sets a width cap, or goes fluid, at 1920px: a cap applies
+only once the viewport minus app chrome exceeds it, so at 1024–1440px `wide`,
+`full` and fluid usually look the same and the width decision never shows. Add
+2560px for a fluid route.
 Use a recording or an observed interaction report for behavior that a still cannot
 show. Include reduced motion and every color mode the surface promises to support.
 
@@ -2298,6 +2336,25 @@ are scoped by `data-sable-theme`; importing a stylesheet alone does not activate
 Use a unique preset ID so it cannot override a bundled theme or another record.
 Record any intentional adaptation and run the validation and rendered review in
 [building-with-sable.md](./building-with-sable.md).
+
+## Apply to an existing app
+
+A preset pasted into an agent for a running app (Canvas's “Copy for agent”) is a
+restyle: the job ends with the app built and rendered in the preset, not with a
+saved file. Replace, don't add beside:
+
+1. Save it to `.sable/presets/<id>.json`, overwriting an earlier revision of the
+   same ID, and run `sable preset --check`.
+2. Regenerate its CSS with `sable preset --css` and import it after Sable's
+   stylesheet. Remove the stylesheet of a theme it replaces when nothing else uses it.
+3. Load the families its `fonts` stacks name through the app's existing font
+   setup, and drop the old theme's font loading when no other code uses it.
+   An unloaded family falls back to a system face without any error.
+4. Point SableThemeProvider's `defaultThemeId` at the preset ID and
+   `defaultPreference` at its `defaultMode`, unless the user asked for another
+   mode. A bundled theme left as the default keeps the app on the old look.
+5. Run the app's build and type check, then `sable check`, and review the result
+   in both modes.
 
 ## Upgrade the package and skill
 
@@ -8601,7 +8658,7 @@ export function TrafficSourcesBlock({ className, framed = true }: TrafficSources
 					index="source"
 					valueKey="visitors"
 					donut
-					centerLabel={{ value: total.toLocaleString("en-US"), label: "Visitors" }}
+					centerLabel={{ value: total, label: "Visitors" }}
 				/>
 			</CardContent>
 			<CardFooter className="text-body-sm text-muted-foreground">
@@ -8672,11 +8729,13 @@ export function TrafficTrendBlock({ className, framed = true }: TrafficTrendBloc
 	const [range, setRange] = useState("90d")
 	const shown = days.slice(-(ranges.find((r) => r.id === range)?.days ?? 90))
 	return (
-		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-3xl", className)}>
-			<CardHeader>
+		<Card variant={framed ? "default" : "flat"} className={cn("@container/trend w-full max-w-3xl", className)}>
+			<CardHeader className="@max-sm/trend:has-data-[slot=card-action]:grid-cols-1">
 				<CardTitle render={<h2 />}>Visitors</CardTitle>
 				<CardDescription>Desktop and mobile, by day.</CardDescription>
-				<CardAction>
+				{/* Beside the title on a wide card; under it on a narrow one, where three
+				    ranges would squeeze the title and description into a sliver. */}
+				<CardAction className="@max-sm/trend:col-start-1 @max-sm/trend:row-span-1 @max-sm/trend:row-start-auto @max-sm/trend:mt-2 @max-sm/trend:justify-self-start">
 					<ToggleGroup value={[range]} onValueChange={(v: unknown[]) => v[0] && setRange(String(v[0]))} aria-label="Time range">
 						{ranges.map((r) => (
 							<Toggle key={r.id} value={r.id}>
@@ -8944,9 +9003,14 @@ Use Region as the page-width primitive that applies fluid page inset and an opti
 
 ### Best practices
 
-- Do: Choose the max value by content role, such as prose, form, feed, content, wide, or full.
+- Do: Choose the max value by what the person does on the page: read (prose), fill in a form (form), scroll one stream (feed), review one record or settings (content), scan and compare rows or cards (wide).
+- Do: Omit max (fluid) for work across panes, a board, an editor or a map, where a flexible part uses the extra width; cap text inside it with --measure-prose.
+- Do: Give sibling routes in one nav the same width so the header does not jump between them.
+- Do: Review a capped or fluid route at 1920px and 2560px: a cap is a ceiling, so below the cap plus app chrome every choice looks the same.
 - Do: Use Region near the route or section boundary so inner layout stays intentional.
 - Don't: Do not use Region as a global wrapper that forces every page into the same max width.
+- Don't: Do not go fluid when the extra width only widens the gaps between fixed columns; cap it.
+- Don't: Do not read full as edge to edge: it is the largest cap and keeps the page inset. Use bleed for edge to edge.
 
 ## Props
 
@@ -8954,7 +9018,7 @@ Use Region as the page-width primitive that applies fluid page inset and an opti
 | --- | --- | --- | --- |
 | as | ElementType | "div" | Semantic element to render (e.g. "main", "section", "nav"). |
 | inset | boolean | true | Apply the fluid horizontal page inset (--page-inset). |
-| max | "prose" \| "form" \| "feed" \| "content" \| "wide" \| "full" \| CSS length | — | Opt-in centered max-width cap, purpose-named: prose 65ch (long-form reading) · form 480px (auth, narrow single-column forms) · feed 640px (single-column timeline) · content 896px (settings/admin panes) · wide 1280px (dashboards, tables, card grids) · full 1536px (full-bleed ceiling). Omit for fully fluid. |
+| max | "prose" \| "form" \| "feed" \| "content" \| "wide" \| "full" \| CSS length | — | Opt-in centered max-width cap, purpose-named: prose 65ch (long-form reading) · form 480px (auth, narrow single-column forms) · feed 640px (single-column timeline) · content 896px (settings/admin panes) · wide 1280px (dashboards, tables, card grids) · full 1536px (the largest cap; keeps the inset, so not edge to edge — that is bleed). Omit for fluid: work views whose panes, board or canvas use the extra width. A cap is a ceiling: it applies only once the viewport minus app chrome exceeds it, so judge it at 1920px and up. |
 | bleed | boolean | false | Full-bleed: edge to edge with no inset. Overrides inset. |
 | safeArea | boolean \| ("top"\|"bottom"\|"left"\|"right")[] | false | env(safe-area-inset-*) padding for fixed or native-shell surfaces. true pads top+bottom; pass an edge array to target edges. |
 
@@ -8972,12 +9036,20 @@ import { PageHeader, Region } from "@sableui/react"
 <Region as="main" max="content"><PageHeader title="Settings" /></Region>
 ```
 
-### Fluid dashboard region
+### Dashboard region (capped at wide)
 
 ```tsx
 import { Card, CardHeader, CardTitle, Grid, Region } from "@sableui/react"
 
 <Region max="wide"><Grid minItemWidth="16rem"><Card><CardHeader><CardTitle>Revenue</CardTitle></CardHeader></Card><Card><CardHeader><CardTitle>Collects</CardTitle></CardHeader></Card></Grid></Region>
+```
+
+### Fluid workspace: the queue's table takes the extra width
+
+```tsx
+import { Card, CardContent, Col, Columns, DataTable, Region, SideNav, SideNavItem } from "@sableui/react"
+
+<Region as="main"><Columns count={{ base: 1, lg: 12 }}><Col span={{ base: 1, lg: 3 }}><SideNav aria-label="Views"><SideNavItem label="Open" active /><SideNavItem label="Pending" /></SideNav></Col><Col span={{ base: 1, lg: 9 }}><Card><CardContent flush><DataTable columns={columns} data={tickets} /></CardContent></Card></Col></Columns></Region>
 ```
 
 ---
@@ -16510,7 +16582,7 @@ Use PieChart for a share of one total across two to six categories — traffic s
 | categories | Record<string, { label?: string; tone?: ChartTone; color?: string; icon?: string }> | — | Labels, tones and icons per slice, keyed by the slice's name. Unlisted slices take the tones in order. |
 | className | string | "h-64" | Sizes the chart. Set a height. |
 | donut | boolean \| number | false | Cut out the middle: `true` for a ring at 60% of the radius, or a ratio (0–0.9). |
-| centerLabel | { value: string; label?: string } | — | A value and caption in the hole of a donut. |
+| centerLabel | { value: string \| number; label?: string } | — | A value and caption in the hole of a donut. The value holds the centre and the caption hangs below it. A number is formatted for you: in full up to 9,999, compact from 10,000 (10.2K, 102.1K, 1.2M); pass a string for units. |
 | separator | boolean | true | A hairline in the surface colour between slices. |
 | labels | "none" \| "outside" \| "inside" | "none" | Label each slice outside the pie or inside it. |
 | labelContent | "value" \| "percent" \| "name" | "value" | What a slice label says. |
@@ -16564,7 +16636,7 @@ const sources = [
 	index="source"
 	valueKey="visitors"
 	donut
-	centerLabel={{ value: "752", label: "Visitors" }}
+	centerLabel={{ value: 752, label: "Visitors" }}
 />
 ```
 
@@ -16988,7 +17060,7 @@ Use RadialChart for progress toward goals (several rings), a single score or usa
 | stacked | boolean | false | Split ONE ring between the rows instead of a ring each. |
 | track | boolean | true | Draw each ring's full track behind it. |
 | labels | boolean | false | Name each ring at its start. |
-| centerLabel | { value: string; label?: string } | — | A value and caption in the middle. |
+| centerLabel | { value: string \| number; label?: string } | — | A value and caption in the middle. On a full ring the value holds the centre and the caption hangs below it. A number is formatted for you: in full up to 9,999, compact from 10,000 (10.2K); pass a string for units ("7.2 GB", "72%"). |
 | legend | boolean | true unless rings are labelled | Show the legend. |
 | tooltip | boolean \| { indicator?: "dot" \| "line" \| "dashed" \| "none"; hideLabel?: boolean; labelFormatter?: (label, datum) => ReactNode; showTotal?: boolean } | true | Show a tooltip on hover and keyboard focus, or configure it: the row marker, hiding the heading, rewriting it, adding a Total row. |
 | valueFormatter | (value: number) => string | — | Format values everywhere (axis, labels, tooltip, table) — units like "$12,480". Default: compact on the axis, full elsewhere. |

@@ -94,10 +94,13 @@ export function Card({
 				"[--card-inner-radius:max(var(--radius-sm),calc(var(--radius-lg)-var(--card-p)-1px))]",
 				// Declares its surface so sable-well / sable-surface-interactive inside derive from the card.
 				variant === "default" && "border border-border bg-card shadow-sm [--sable-surface-bg:var(--card)]",
-				// A CardList runs its rows to the card's edges, and an interactive
-				// row's hover fill would otherwise poke square-ish corners out past
-				// the card's rounded ones — clip to the card's own curve instead.
-				"has-data-[slot=card-list]:overflow-clip",
+				// A CardList or a flush CardContent (an edge-to-edge Table) runs its
+				// rows to the card's edges, and a row's hover fill or a TableFooter's
+				// tint would otherwise poke square corners out past the card's
+				// rounded ones — clip to the card's own curve instead. Nothing
+				// overflows on purpose here: the table insets its edge cells by
+				// --table-edge-px, so focus rings stay inside, and menus portal out.
+				"has-data-[slot=card-list]:overflow-clip has-[[data-slot=card-content][data-flush]]:overflow-clip",
 				INTERACTIVE_BASE,
 				INTERACTIVE_HOVER[variant],
 				className,

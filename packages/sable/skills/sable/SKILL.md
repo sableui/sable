@@ -157,11 +157,20 @@ The installed catalog and guides are authoritative for API and token names.
 ## Develop or use a preset
 
 Save a short brief in the project's existing design location: audience, primary
-task, content, constraints, selected identity, and meaningful states. Label invented
-sample content. A supplied preset is an explicit input: read its exact record and
+task, content, constraints, selected identity, and meaningful states, plus each
+route's width (a Region `max`, or fluid) and why, chosen by what the person does
+there (`sable docs building-a-page`). Label invented sample content. A supplied preset is an explicit input: read its exact record and
 revision, validate it through `sable preset --check <path> --json`, and read
 `sable docs using-presets`. Preserve its tokens and guidance unless the user requests
 a change or the new task requires a documented adaptation.
+
+A preset pasted or supplied for a project that already has an app (for example
+from Canvas's “Copy for agent”) is a request to restyle that app, so it is
+`polish`: save and check it, then apply it. Generate its CSS, load its fonts,
+make it SableThemeProvider's default theme and mode in place of the old one, run
+the build and the finish checklist, and look at it rendered. Don't stop at a saved
+file plus a list of wiring steps for the user. Stop after saving only when the
+user says so or the project has no app yet.
 
 Without a preset, develop an appropriate direction from the brief. Use the bundled
 presets as starting points or create original app-owned tokens. When the project has

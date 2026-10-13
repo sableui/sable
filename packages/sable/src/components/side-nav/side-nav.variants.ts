@@ -36,10 +36,18 @@ export const sideNavItemVariants = cva(
 	},
 )
 
+/**
+ * The icon box, sized in the icon's own unit. Icons are 1em, so the box is a
+ * multiple of the font size it sets: on the spacing scale (`size-5`) it shrank
+ * with a theme's `--spacing` while the icon held its size, and a 3.3px step
+ * left every icon 2px below its label. Flex, not grid, centres it: content
+ * larger than a grid track spills downward only, flex spills it evenly.
+ */
 export const sideNavItemIconVariants = cva(
-	"grid shrink-0 place-items-center",
+	"flex shrink-0 items-center justify-center",
 	{
-		variants: { size: { md: "size-5 text-xl", lg: "size-6 text-xl", rail: "size-6 text-2xl" } },
+		// md 20px icon in a 20px box; lg 20px in 24px; rail 24px in 24px.
+		variants: { size: { md: "size-[1em] text-xl", lg: "size-[1.2em] text-xl", rail: "size-[1em] text-2xl" } },
 		defaultVariants: { size: "md" },
 	},
 )

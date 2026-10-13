@@ -94,6 +94,21 @@ describe("CardList", () => {
 	})
 })
 
+describe("CardContent flush", () => {
+	it("lets the card clip an edge-to-edge table's hover and footer fills to its corners", () => {
+		const { container } = render(
+			<Card>
+				<CardContent flush>
+					<div>Table</div>
+				</CardContent>
+			</Card>,
+		)
+		const card = container.firstChild as HTMLElement
+		expect(card.className).toContain("has-[[data-slot=card-content][data-flush]]:overflow-clip")
+		expect(card.querySelector("[data-slot=card-content]")).toHaveAttribute("data-flush")
+	})
+})
+
 describe("CardTitle", () => {
 	it("is a div by default and a real heading when rendered as one", () => {
 		const { rerender } = render(<CardTitle>Payouts</CardTitle>)

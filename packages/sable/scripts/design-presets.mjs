@@ -55,7 +55,7 @@ try {
 			const target = match[1].includes(".dark") ? groups.dark : groups.light
 			for (const declaration of match[2].matchAll(/--([\w-]+)\s*:\s*([^;]+);/g)) target[declaration[1]] = declaration[2].trim()
 		}
-		const { PRESET_TOKEN_NAMES } = await import("../dist/presets/index.js")
+		const { PAGE_WIDTH_TOKENS, PRESET_TOKEN_NAMES } = await import("../dist/presets/index.js")
 		function tokens(mode) {
 			const values = { ...groups.light, ...(mode === "dark" ? groups.dark : {}) }
 			function resolveValue(value, chain = []) {
@@ -65,7 +65,9 @@ try {
 					return resolveValue(values[name], [...chain, name])
 				})
 			}
-			return Object.fromEntries(PRESET_TOKEN_NAMES.filter(name => values[name]).map(name => [name, resolveValue(values[name])]))
+			// Page widths are opt-in: copying the defaults would override any widths
+			// an app already sets in its own CSS, since preset CSS loads after it.
+			return Object.fromEntries(PRESET_TOKEN_NAMES.filter(name => values[name] && !PAGE_WIDTH_TOKENS.includes(name)).map(name => [name, resolveValue(values[name])]))
 		}
 		const preset = parsePreset({ schemaVersion: 1, id: "my-preset", label: "My preset", revision: 1, sableVersion: manifest.version, defaultMode: "dark", fonts: { sans: groups.light["font-sans"], mono: groups.light["font-mono"] }, direction: "Content-first composition with a clear primary action. Replace this guidance with the direction for your product.", tokens: { shared: {}, light: tokens("light"), dark: tokens("dark") } })
 		emit("preset.template", preset, JSON.stringify(preset, null, 2))
@@ -95,10 +97,19 @@ try {
 			}
 			const accepted = labels.accepted.map(f => `\n  accepted: ${pair(f)} — ${f.reason}`).join("")
 			const unmeasured = labels.unmeasured.length ? `, ${labels.unmeasured.length} unmeasured (${labels.unmeasured.join(", ")})` : ""
+			// A passing check is the start of applying a preset, not the end: say what
+			// makes the app use it, so a check does not read as "done".
+			const fonts = [...new Set(Object.values(preset.fonts).filter(Boolean).map(stack => stack.split(",")[0].trim().replace(/^["']|["']$/g, "")))]
+			const next = [
+				`sable preset --css ${file} > <stylesheet>, imported after Sable's`,
+				`load fonts: ${fonts.join(", ")}`,
+				`SableThemeProvider defaultThemeId="${preset.id}" defaultPreference="${preset.defaultMode}" with the preset in customThemes`,
+				"build the app, run sable check, review both modes (sable docs using-presets)",
+			]
 			emit(
 				"preset.check",
-				{ valid: true, id: preset.id, revision: preset.revision, authoredWith: preset.sableVersion, installed, warnings, labelContrast: { measured: labels.measured, accepted: labels.accepted, unmeasured: labels.unmeasured } },
-				`Valid preset ${preset.id}, revision ${preset.revision}. Labels on filled roles: ${labels.measured} pairs measured${unmeasured}.${accepted}${warningText}\nReview rendered contrast and brief fit separately.`,
+				{ valid: true, id: preset.id, revision: preset.revision, authoredWith: preset.sableVersion, installed, warnings, labelContrast: { measured: labels.measured, accepted: labels.accepted, unmeasured: labels.unmeasured }, fonts, next },
+				`Valid preset ${preset.id}, revision ${preset.revision}. Labels on filled roles: ${labels.measured} pairs measured${unmeasured}.${accepted}${warningText}\nReview rendered contrast and brief fit separately.\nTo apply it to an app:\n${next.map(step => `  - ${step}`).join("\n")}`,
 			)
 		} else {
 			const css = presetCss(preset)

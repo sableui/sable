@@ -51,7 +51,7 @@ export function TrafficSourcesBlock({ className, framed = true }: TrafficSources
 					index="source"
 					valueKey="visitors"
 					donut
-					centerLabel={{ value: total.toLocaleString("en-US"), label: "Visitors" }}
+					centerLabel={{ value: total, label: "Visitors" }}
 				/>
 			</CardContent>
 			<CardFooter className="text-body-sm text-muted-foreground">

@@ -7,6 +7,7 @@ import { PieChart } from "../../components/pie-chart"
 import { RadarChart } from "../../components/radar-chart"
 import { RadialChart } from "../../components/radial-chart"
 import { Sparkline } from "../../components/sparkline"
+import { centerValueText } from "./format"
 import { arcPath, linePath, rectPath } from "./geometry"
 import { bandScale, niceTicks, stack } from "./scale"
 import { resolveSeries } from "./types"
@@ -53,6 +54,17 @@ describe("chart scales", () => {
 		expect(b.at(0)).toBe(0)
 		expect(b.bandwidth).toBeCloseTo(b.step * 0.8)
 		expect(b.at(3) + b.bandwidth).toBeCloseTo(100)
+	})
+})
+
+describe("centre labels", () => {
+	it("writes a number in full up to 9,999 and compact from 10,000, and leaves a string alone", () => {
+		expect(centerValueText(9990, "en-US")).toBe("9,990")
+		expect(centerValueText(7.25, "en-US")).toBe("7.3")
+		expect(centerValueText(10_200, "en-US")).toBe("10.2K")
+		expect(centerValueText(102_140, "en-US")).toBe("102.1K")
+		expect(centerValueText(1_234_567, "en-US")).toBe("1.2M")
+		expect(centerValueText("7.2 GB", "en-US")).toBe("7.2 GB")
 	})
 })
 

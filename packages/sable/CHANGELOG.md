@@ -1,5 +1,47 @@
 # What's new
 
+## 0.7.1
+
+Fixes from building a customer-support app on 0.7.0 with an app-owned preset,
+plus guidance for choosing a page width. Nothing to migrate.
+
+- **A table in a flush card keeps the card's corners.** `Card` now clips to its
+  rounded corners when it holds a `CardContent flush`, as it already did for a
+  `CardList`. The hover fill of an edge-to-edge `Table` or `DataTable` row and a
+  `TableFooter`'s tint no longer poke square corners out past the card's.
+- **Only body rows hover.** `TableRow` lifts on hover inside `TableBody`; header
+  and footer rows stay still, since nothing there responds to a click.
+- **SideNav and Sidebar icons stay level with their labels at any spacing
+  step.** The icon box was sized in spacing steps around an icon sized in type,
+  so a theme with a step other than 4px shrank the box and dropped every icon
+  about 2px below its label. The box is now sized in the icon's own unit and
+  centred with flex.
+- **A donut's number holds the centre.** In `PieChart` and a full-ring
+  `RadialChart`, `centerLabel`'s value sits on the centre and its caption hangs
+  below, instead of the pair splitting the centre between them.
+- **`centerLabel.value` takes a number.** It is written in full up to 9,999 and
+  shortened from 10,000 on (`10.2K`, `102.1K`, `1.2M`), in the chart's
+  `locale`. A string still shows as written, for units.
+- **Presets can set page widths.** `page-inset` and the role caps
+  (`region-form`, `-feed`, `-content`, `-wide`, `-full`) are preset tokens, so a
+  product's widths live in its preset rather than app CSS. They are opt-in:
+  `sable preset --template` and Canvas exports leave them out, so a preset never
+  overrides widths an app already sets. `PAGE_WIDTH_TOKENS` lists them.
+- **Guidance for choosing a page width.** `sable docs building-a-page` has a
+  table of which `max` to use by what the person does on the page, and when to
+  go fluid. The Region docs say `full` is the largest cap (edge to edge is
+  `bleed`) and show a fluid workspace; the old "Fluid dashboard" example was
+  capped and is retitled. `reviewing-a-design` asks for a 1920px capture of a
+  capped or fluid route, where the choice shows, and the skill's brief records
+  each route's width.
+- **A pasted preset gets applied.** Canvas's "Copy for agent" message now asks
+  the agent to apply the preset and build the app, not only save it. The skill
+  treats a preset supplied for an existing app as a restyle, `sable docs
+  using-presets` has an "Apply to an existing app" section, and a passing
+  `sable preset --check` lists the steps that make an app use the preset.
+- **`TrafficTrendBlock` fits a narrow card.** Below 24rem its range toggles
+  move under the title instead of squeezing it.
+
 ## 0.7.0
 
 A dogfooding release. An agent built a music streaming app on Sable with

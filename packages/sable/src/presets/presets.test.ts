@@ -34,6 +34,18 @@ describe("portable Sable presets", () => {
 		expect(css).toContain('--control-md: 40px;')
 		expect(css).not.toContain(":root")
 	})
+	it("carries a product's page widths: the inset and the role caps, under their names", () => {
+		const preset = fixture()
+		preset.tokens.shared["page-inset"] = "clamp(16px, 3vw, 40px)"
+		preset.tokens.shared["region-wide"] = "1440px"
+		expect(validatePreset(preset)).toEqual([])
+		const css = presetCss(preset)
+		expect(css).toContain("--page-inset: clamp(16px, 3vw, 40px);")
+		expect(css).toContain("--region-wide: 1440px;")
+		// The legacy cap stays out: a preset sets the roles agents are told to pick.
+		preset.tokens.shared["region-ultrawide"] = "1800px"
+		expect(validatePreset(preset)).toEqual([expect.stringContaining("Unknown Sable token in shared: region-ultrawide")])
+	})
 	it("keeps a 0.5 preset working: a missing status text token takes its fill, as text did then", () => {
 		const preset = fixture()
 		preset.tokens.dark.destructive = "oklch(58% 0.2 25)"

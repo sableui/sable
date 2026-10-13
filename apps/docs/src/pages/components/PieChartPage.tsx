@@ -3,7 +3,7 @@ import { useState } from "react"
 import { ComponentPlayground, Example, MetaFooter, PageHeader, Section, ledeFor } from "../../components/docs-ui"
 import { BROWSERS, VISITORS } from "../../content/chart-data"
 
-const TOTAL = BROWSERS.reduce((sum, b) => sum + b.visitors, 0).toLocaleString("en-US")
+const TOTAL = BROWSERS.reduce((sum, b) => sum + b.visitors, 0)
 const RINGS = VISITORS.slice(0, 4).map((v) => ({ ...v, month: v.month.slice(0, 3) }))
 
 function InteractivePie() {
@@ -18,7 +18,7 @@ function InteractivePie() {
 			donut
 			activeIndex={active}
 			onActiveIndexChange={(i) => i != null && setActive(i)}
-			centerLabel={{ value: BROWSERS[shown].visitors.toLocaleString("en-US"), label: BROWSERS[shown].browser }}
+			centerLabel={{ value: BROWSERS[shown].visitors, label: BROWSERS[shown].browser }}
 		/>
 	)
 }

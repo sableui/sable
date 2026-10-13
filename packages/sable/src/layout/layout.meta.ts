@@ -35,7 +35,7 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 				name: "max",
 				type: '"prose" | "form" | "feed" | "content" | "wide" | "full" | CSS length',
 				description:
-					"Opt-in centered max-width cap, purpose-named: prose 65ch (long-form reading) · form 480px (auth, narrow single-column forms) · feed 640px (single-column timeline) · content 896px (settings/admin panes) · wide 1280px (dashboards, tables, card grids) · full 1536px (full-bleed ceiling). Omit for fully fluid.",
+					"Opt-in centered max-width cap, purpose-named: prose 65ch (long-form reading) · form 480px (auth, narrow single-column forms) · feed 640px (single-column timeline) · content 896px (settings/admin panes) · wide 1280px (dashboards, tables, card grids) · full 1536px (the largest cap; keeps the inset, so not edge to edge — that is bleed). Omit for fluid: work views whose panes, board or canvas use the extra width. A cap is a ceiling: it applies only once the viewport minus app chrome exceeds it, so judge it at 1920px and up.",
 			},
 			{
 				name: "bleed",
@@ -58,8 +58,12 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 				code: '<Region as="main" max="content"><PageHeader title="Settings" /></Region>',
 			},
 			{
-				label: "Fluid dashboard region",
+				label: "Dashboard region (capped at wide)",
 				code: '<Region max="wide"><Grid minItemWidth="16rem"><Card><CardHeader><CardTitle>Revenue</CardTitle></CardHeader></Card><Card><CardHeader><CardTitle>Collects</CardTitle></CardHeader></Card></Grid></Region>',
+			},
+			{
+				label: "Fluid workspace: the queue's table takes the extra width",
+				code: '<Region as="main"><Columns count={{ base: 1, lg: 12 }}><Col span={{ base: 1, lg: 3 }}><SideNav aria-label="Views"><SideNavItem label="Open" active /><SideNavItem label="Pending" /></SideNav></Col><Col span={{ base: 1, lg: 9 }}><Card><CardContent flush><DataTable columns={columns} data={tickets} /></CardContent></Card></Col></Columns></Region>',
 			},
 		],
 	},

@@ -12,6 +12,15 @@ export {
 	type LabelFinding, type OklchColor,
 } from "../themes/contrast"
 
+/**
+ * Page widths: the inset and the role caps. A product sets their values, keeping
+ * the role names; bundled themes already do. Opt-in, so a template or snapshot
+ * leaves them out rather than copying defaults over widths an app set itself.
+ */
+export const PAGE_WIDTH_TOKENS = [
+	"page-inset", "region-form", "region-feed", "region-content", "region-wide", "region-full",
+] as const
+
 /** The public theme vocabulary. Presets never need component overrides. */
 export const PRESET_TOKEN_NAMES: readonly string[] = [...new Set([
 	...SEMANTIC_TOKENS,
@@ -24,6 +33,7 @@ export const PRESET_TOKEN_NAMES: readonly string[] = [...new Set([
 	...TYPE_REFINEMENT_TOKENS, ...TYPE_OVERLINE_TOKENS, ...DENSITY_TOKENS,
 	...LAYERING_TOKENS, ...TYPE_UI_TOKENS,
 	"font-sans", "font-mono", "font-display", "spacing",
+	...PAGE_WIDTH_TOKENS,
 	"theme-shadow-sm", "theme-shadow", "theme-shadow-md", "theme-shadow-lg", "theme-shadow-xl",
 	// Chart series colours: optional — a preset without them inherits the Sable theme's validated set.
 	"chart-1", "chart-2", "chart-3", "chart-4", "chart-5", "chart-6", "chart-7", "chart-8",

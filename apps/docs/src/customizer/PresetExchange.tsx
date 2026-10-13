@@ -5,15 +5,37 @@ import { useTheme } from "../theme"
 import { useCustomizer } from "./CustomizerProvider"
 import { downloadPreset, snapshotPreset } from "./preset"
 
+/** The family a font stack asks for first, unquoted (`"Geist", sans-serif` → Geist). */
+function firstFamily(stack: string) {
+	return stack.split(",")[0]?.trim().replace(/^["']|["']$/g, "") ?? ""
+}
+
 /**
- * The preset as a message for a coding agent: where to save it, plus the file
- * itself. Pasting it into the agent replaces downloading the file and moving
- * it into the project by hand.
+ * The preset as a message for a coding agent: save it, then apply it to the
+ * app and build. Pasting a style is a request to see it in the app, so the
+ * message asks for the whole job; an agent told only to save and validate
+ * stops there, leaving the app on its old theme and fonts.
  */
 function agentMessage(preset: SablePreset) {
 	const path = `.sable/presets/${preset.id}.json`
+	const fonts = [...new Set(Object.values(preset.fonts).filter(Boolean).map(firstFamily))].join(", ")
 	const fence = "```"
-	return `Save this Sable preset as ${path} in this project, then validate it with \`sable preset --check ${path}\`. I'll build with it next.\n\n${fence}json\n${JSON.stringify(preset, null, 2)}\n${fence}\n`
+	return [
+		`Apply this Sable preset (${preset.label}, revision ${preset.revision}) to this project's app:`,
+		"",
+		`1. Save it as ${path} (replace an earlier revision with the same ID) and run \`sable preset --check ${path}\`. Report contrast findings; don't change the preset's colours to clear them.`,
+		`2. Generate its CSS with \`sable preset --css ${path}\` into a stylesheet imported after Sable's, replacing the CSS of any earlier revision.`,
+		`3. Load its fonts (${fonts}) the way the app loads fonts now, and drop the previous theme's fonts if nothing else uses them.`,
+		`4. Make it the app's theme: register it in SableThemeProvider with \`customThemes={[presetManifest(parsePreset(record))]}\`, \`defaultThemeId="${preset.id}"\` and \`defaultPreference="${preset.defaultMode}"\`, replacing the current default theme. \`sable docs using-presets\` has the full wiring.`,
+		"5. Run the app's build and type check and `sable check`, fix what they report, and look at the result in light and dark.",
+		"",
+		"If the project has no app yet, stop after step 1; I'll build with it next.",
+		"",
+		`${fence}json`,
+		JSON.stringify(preset, null, 2),
+		fence,
+		"",
+	].join("\n")
 }
 
 function errorText(error: unknown) {
@@ -52,7 +74,7 @@ export function PresetExchange() {
 				<Textarea id={`${uid}-direction`} rows={4} maxLength={16000} value={direction} placeholder="Describe the composition, imagery, and feel to carry into your project." onChange={event => setDirection(event.target.value)} />
 			</div>
 			<div className="flex flex-wrap gap-2">
-				<Button size="sm" disabled={!ready} onClick={async () => { try { const preset = record(); await navigator.clipboard.writeText(agentMessage(preset)); setStatus(`Copied. Paste it into your coding agent to save ${preset.id}.json in your project.`) } catch (error) { report(error) } }}>Copy for agent</Button>
+				<Button size="sm" disabled={!ready} onClick={async () => { try { const preset = record(); await navigator.clipboard.writeText(agentMessage(preset)); setStatus(`Copied. Paste it into your coding agent to apply ${preset.label} to your app.`) } catch (error) { report(error) } }}>Copy for agent</Button>
 				<Button variant="secondary" size="sm" disabled={!ready} onClick={() => { try { const preset = record(); downloadPreset(preset); setStatus(`Downloaded ${preset.id}.json. Place it in your project's .sable/presets folder.`) } catch (error) { report(error) } }}>Download preset</Button>
 				<Button variant="ghost" size="sm" disabled={!ready} onClick={async () => { try { await navigator.clipboard.writeText(presetCss(record())); setStatus("Copied the full preset CSS. Load its fonts and apply its theme ID in your project.") } catch (error) { report(error) } }}>Copy CSS</Button>
 			</div>

@@ -51,4 +51,17 @@ describe("SideNav", () => {
 			"data-[active]:bg-sidebar-accent",
 		)
 	})
+
+	it("sizes the icon box in the icon's own unit, so a theme's spacing step cannot shrink it", () => {
+		render(
+			<SideNav>
+				<SideNavItem label="Inbox" icon={<svg data-testid="icon" />} />
+			</SideNav>,
+		)
+		const box = screen.getByTestId("icon").parentElement as HTMLElement
+		// Icons are 1em: a spacing-scale box (size-5) drifted from them when
+		// --spacing was not 4px, and grid centring dropped the overflow downward.
+		expect(box).toHaveClass("size-[1em]", "text-xl", "flex", "items-center", "justify-center")
+		expect(box.className).not.toMatch(/(^|\s)(size-\d|grid|place-items-center)/)
+	})
 })

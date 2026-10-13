@@ -1,7 +1,7 @@
 {
   "$schema": "https://sable.design/registry.schema.json",
   "name": "@sableui/react",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Themeable React components, semantic tokens, layout patterns, presets, and package-owned agent skills. Default theme: Sable.",
   "engine": {
     "behavior": "@base-ui/react",
@@ -1706,7 +1706,19 @@
           "bestPractices": [
             {
               "guidance": "do",
-              "description": "Choose the max value by content role, such as prose, form, feed, content, wide, or full."
+              "description": "Choose the max value by what the person does on the page: read (prose), fill in a form (form), scroll one stream (feed), review one record or settings (content), scan and compare rows or cards (wide)."
+            },
+            {
+              "guidance": "do",
+              "description": "Omit max (fluid) for work across panes, a board, an editor or a map, where a flexible part uses the extra width; cap text inside it with --measure-prose."
+            },
+            {
+              "guidance": "do",
+              "description": "Give sibling routes in one nav the same width so the header does not jump between them."
+            },
+            {
+              "guidance": "do",
+              "description": "Review a capped or fluid route at 1920px and 2560px: a cap is a ceiling, so below the cap plus app chrome every choice looks the same."
             },
             {
               "guidance": "do",
@@ -1715,6 +1727,14 @@
             {
               "guidance": "dont",
               "description": "Do not use Region as a global wrapper that forces every page into the same max width."
+            },
+            {
+              "guidance": "dont",
+              "description": "Do not go fluid when the extra width only widens the gaps between fixed columns; cap it."
+            },
+            {
+              "guidance": "dont",
+              "description": "Do not read full as edge to edge: it is the largest cap and keeps the page inset. Use bleed for edge to edge."
             }
           ]
         },
@@ -1741,7 +1761,7 @@
           {
             "name": "max",
             "type": "\"prose\" | \"form\" | \"feed\" | \"content\" | \"wide\" | \"full\" | CSS length",
-            "description": "Opt-in centered max-width cap, purpose-named: prose 65ch (long-form reading) · form 480px (auth, narrow single-column forms) · feed 640px (single-column timeline) · content 896px (settings/admin panes) · wide 1280px (dashboards, tables, card grids) · full 1536px (full-bleed ceiling). Omit for fully fluid."
+            "description": "Opt-in centered max-width cap, purpose-named: prose 65ch (long-form reading) · form 480px (auth, narrow single-column forms) · feed 640px (single-column timeline) · content 896px (settings/admin panes) · wide 1280px (dashboards, tables, card grids) · full 1536px (the largest cap; keeps the inset, so not edge to edge — that is bleed). Omit for fluid: work views whose panes, board or canvas use the extra width. A cap is a ceiling: it applies only once the viewport minus app chrome exceeds it, so judge it at 1920px and up."
           },
           {
             "name": "bleed",
@@ -1764,9 +1784,14 @@
             "imports": "import { PageHeader, Region } from \"@sableui/react\""
           },
           {
-            "label": "Fluid dashboard region",
+            "label": "Dashboard region (capped at wide)",
             "code": "<Region max=\"wide\"><Grid minItemWidth=\"16rem\"><Card><CardHeader><CardTitle>Revenue</CardTitle></CardHeader></Card><Card><CardHeader><CardTitle>Collects</CardTitle></CardHeader></Card></Grid></Region>",
             "imports": "import { Card, CardHeader, CardTitle, Grid, Region } from \"@sableui/react\""
+          },
+          {
+            "label": "Fluid workspace: the queue's table takes the extra width",
+            "code": "<Region as=\"main\"><Columns count={{ base: 1, lg: 12 }}><Col span={{ base: 1, lg: 3 }}><SideNav aria-label=\"Views\"><SideNavItem label=\"Open\" active /><SideNavItem label=\"Pending\" /></SideNav></Col><Col span={{ base: 1, lg: 9 }}><Card><CardContent flush><DataTable columns={columns} data={tickets} /></CardContent></Card></Col></Columns></Region>",
+            "imports": "import { Card, CardContent, Col, Columns, DataTable, Region, SideNav, SideNavItem } from \"@sableui/react\""
           }
         ]
       },
@@ -13561,8 +13586,8 @@
         },
         {
           "name": "centerLabel",
-          "type": "{ value: string; label?: string }",
-          "description": "A value and caption in the hole of a donut."
+          "type": "{ value: string | number; label?: string }",
+          "description": "A value and caption in the hole of a donut. The value holds the centre and the caption hangs below it. A number is formatted for you: in full up to 9,999, compact from 10,000 (10.2K, 102.1K, 1.2M); pass a string for units."
         },
         {
           "name": "separator",
@@ -13675,7 +13700,7 @@
       "examples": [
         {
           "label": "Donut with a total",
-          "code": "const sources = [\n\t{ source: \"Search\", visitors: 275 },\n\t{ source: \"Direct\", visitors: 200 },\n\t{ source: \"Social\", visitors: 187 },\n\t{ source: \"Email\", visitors: 90 },\n]\n\n<PieChart\n\tlabel=\"Visitors by source\"\n\tdata={sources}\n\tindex=\"source\"\n\tvalueKey=\"visitors\"\n\tdonut\n\tcenterLabel={{ value: \"752\", label: \"Visitors\" }}\n/>",
+          "code": "const sources = [\n\t{ source: \"Search\", visitors: 275 },\n\t{ source: \"Direct\", visitors: 200 },\n\t{ source: \"Social\", visitors: 187 },\n\t{ source: \"Email\", visitors: 90 },\n]\n\n<PieChart\n\tlabel=\"Visitors by source\"\n\tdata={sources}\n\tindex=\"source\"\n\tvalueKey=\"visitors\"\n\tdonut\n\tcenterLabel={{ value: 752, label: \"Visitors\" }}\n/>",
           "imports": "import { PieChart } from \"@sableui/react\""
         },
         {
@@ -14439,8 +14464,8 @@
         },
         {
           "name": "centerLabel",
-          "type": "{ value: string; label?: string }",
-          "description": "A value and caption in the middle."
+          "type": "{ value: string | number; label?: string }",
+          "description": "A value and caption in the middle. On a full ring the value holds the centre and the caption hangs below it. A number is formatted for you: in full up to 9,999, compact from 10,000 (10.2K); pass a string for units (\"7.2 GB\", \"72%\")."
         },
         {
           "name": "legend",
@@ -21174,7 +21199,7 @@
           "Hovering or arrowing through the slices pulls each out and announces it."
         ],
         "imports": "import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, cn, PieChart } from \"@sableui/react\"",
-        "code": "const sources = [\n\t{ source: \"Search\", visitors: 4280 },\n\t{ source: \"Direct\", visitors: 2910 },\n\t{ source: \"Social\", visitors: 1840 },\n\t{ source: \"Email\", visitors: 960 },\n]\n\nconst total = sources.reduce((sum, s) => sum + s.visitors, 0)\n\nexport interface TrafficSourcesBlockProps {\n\tclassName?: string\n\t/** false drops the card's surface and border — for a muted section that already frames it. */\n\tframed?: boolean\n}\n\nexport function TrafficSourcesBlock({ className, framed = true }: TrafficSourcesBlockProps) {\n\treturn (\n\t\t<Card variant={framed ? \"default\" : \"flat\"} className={cn(\"w-full max-w-sm\", className)}>\n\t\t\t<CardHeader>\n\t\t\t\t<CardTitle render={<h2 />}>Traffic sources</CardTitle>\n\t\t\t\t<CardDescription>Where this month's visitors came from.</CardDescription>\n\t\t\t</CardHeader>\n\t\t\t<CardContent>\n\t\t\t\t<PieChart\n\t\t\t\t\tlabel=\"Visitors by source, this month\"\n\t\t\t\t\tdata={sources}\n\t\t\t\t\tindex=\"source\"\n\t\t\t\t\tvalueKey=\"visitors\"\n\t\t\t\t\tdonut\n\t\t\t\t\tcenterLabel={{ value: total.toLocaleString(\"en-US\"), label: \"Visitors\" }}\n\t\t\t\t/>\n\t\t\t</CardContent>\n\t\t\t<CardFooter className=\"text-body-sm text-muted-foreground\">\n\t\t\t\tSearch brings {Math.round((sources[0].visitors / total) * 100)}% of visitors.\n\t\t\t</CardFooter>\n\t\t</Card>\n\t)\n}"
+        "code": "const sources = [\n\t{ source: \"Search\", visitors: 4280 },\n\t{ source: \"Direct\", visitors: 2910 },\n\t{ source: \"Social\", visitors: 1840 },\n\t{ source: \"Email\", visitors: 960 },\n]\n\nconst total = sources.reduce((sum, s) => sum + s.visitors, 0)\n\nexport interface TrafficSourcesBlockProps {\n\tclassName?: string\n\t/** false drops the card's surface and border — for a muted section that already frames it. */\n\tframed?: boolean\n}\n\nexport function TrafficSourcesBlock({ className, framed = true }: TrafficSourcesBlockProps) {\n\treturn (\n\t\t<Card variant={framed ? \"default\" : \"flat\"} className={cn(\"w-full max-w-sm\", className)}>\n\t\t\t<CardHeader>\n\t\t\t\t<CardTitle render={<h2 />}>Traffic sources</CardTitle>\n\t\t\t\t<CardDescription>Where this month's visitors came from.</CardDescription>\n\t\t\t</CardHeader>\n\t\t\t<CardContent>\n\t\t\t\t<PieChart\n\t\t\t\t\tlabel=\"Visitors by source, this month\"\n\t\t\t\t\tdata={sources}\n\t\t\t\t\tindex=\"source\"\n\t\t\t\t\tvalueKey=\"visitors\"\n\t\t\t\t\tdonut\n\t\t\t\t\tcenterLabel={{ value: total, label: \"Visitors\" }}\n\t\t\t\t/>\n\t\t\t</CardContent>\n\t\t\t<CardFooter className=\"text-body-sm text-muted-foreground\">\n\t\t\t\tSearch brings {Math.round((sources[0].visitors / total) * 100)}% of visitors.\n\t\t\t</CardFooter>\n\t\t</Card>\n\t)\n}"
       },
       {
         "name": "TrafficTrendBlock",
@@ -21197,7 +21222,7 @@
           "The range control is a labelled ToggleGroup; the chart is one tab stop with arrow-key navigation."
         ],
         "imports": "import { useState } from \"react\"\nimport { AreaChart, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, cn, Icon, Toggle, ToggleGroup } from \"@sableui/react\"",
-        "code": "/** 90 days of visitors — replace with your own rows ({ date, desktop, mobile }). */\nconst days = Array.from({ length: 90 }, (_, i) => {\n\tconst wave = Math.sin(i / 6) * 60 + Math.sin(i / 2.3) * 25\n\treturn {\n\t\tdate: new Date(2026, 6, 1 + i).toISOString().slice(0, 10),\n\t\tdesktop: Math.round(240 + wave + (i % 7) * 9),\n\t\tmobile: Math.round(160 + wave * 0.7 + ((i * 3) % 11) * 6),\n\t}\n})\n\nconst series = [\n\t{ key: \"desktop\", label: \"Desktop\" },\n\t{ key: \"mobile\", label: \"Mobile\" },\n]\n\nconst ranges = [\n\t{ id: \"90d\", label: \"3 months\", days: 90 },\n\t{ id: \"30d\", label: \"30 days\", days: 30 },\n\t{ id: \"7d\", label: \"7 days\", days: 7 },\n]\n\nconst shortDate = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString(\"en-US\", { month: \"short\", day: \"numeric\" })\n\nexport interface TrafficTrendBlockProps {\n\tclassName?: string\n\t/** false drops the card's surface and border — for a muted section that already frames it. */\n\tframed?: boolean\n}\n\nexport function TrafficTrendBlock({ className, framed = true }: TrafficTrendBlockProps) {\n\tconst [range, setRange] = useState(\"90d\")\n\tconst shown = days.slice(-(ranges.find((r) => r.id === range)?.days ?? 90))\n\treturn (\n\t\t<Card variant={framed ? \"default\" : \"flat\"} className={cn(\"w-full max-w-3xl\", className)}>\n\t\t\t<CardHeader>\n\t\t\t\t<CardTitle render={<h2 />}>Visitors</CardTitle>\n\t\t\t\t<CardDescription>Desktop and mobile, by day.</CardDescription>\n\t\t\t\t<CardAction>\n\t\t\t\t\t<ToggleGroup value={[range]} onValueChange={(v: unknown[]) => v[0] && setRange(String(v[0]))} aria-label=\"Time range\">\n\t\t\t\t\t\t{ranges.map((r) => (\n\t\t\t\t\t\t\t<Toggle key={r.id} value={r.id}>\n\t\t\t\t\t\t\t\t{r.label}\n\t\t\t\t\t\t\t</Toggle>\n\t\t\t\t\t\t))}\n\t\t\t\t\t</ToggleGroup>\n\t\t\t\t</CardAction>\n\t\t\t</CardHeader>\n\t\t\t<CardContent>\n\t\t\t\t<AreaChart\n\t\t\t\t\tlabel={`Visitors per day, last ${ranges.find((r) => r.id === range)?.label}`}\n\t\t\t\t\tdata={shown}\n\t\t\t\t\tindex=\"date\"\n\t\t\t\t\tseries={series}\n\t\t\t\t\tindexFormatter={shortDate}\n\t\t\t\t\ttooltip={{ labelFormatter: (d) => new Date(`${d}T00:00:00`).toLocaleDateString(\"en-US\", { weekday: \"short\", month: \"short\", day: \"numeric\" }) }}\n\t\t\t\t\tstacked\n\t\t\t\t\tgradient\n\t\t\t\t\tclassName=\"h-64\"\n\t\t\t\t/>\n\t\t\t</CardContent>\n\t\t\t<CardFooter className=\"gap-1.5 text-body-sm\">\n\t\t\t\t<Icon name=\"arrow-up\" className=\"text-success\" />\n\t\t\t\t<span>\n\t\t\t\t\tUp 5.2% on the previous period <span className=\"text-muted-foreground\">· desktop leads every week</span>\n\t\t\t\t</span>\n\t\t\t</CardFooter>\n\t\t</Card>\n\t)\n}"
+        "code": "/** 90 days of visitors — replace with your own rows ({ date, desktop, mobile }). */\nconst days = Array.from({ length: 90 }, (_, i) => {\n\tconst wave = Math.sin(i / 6) * 60 + Math.sin(i / 2.3) * 25\n\treturn {\n\t\tdate: new Date(2026, 6, 1 + i).toISOString().slice(0, 10),\n\t\tdesktop: Math.round(240 + wave + (i % 7) * 9),\n\t\tmobile: Math.round(160 + wave * 0.7 + ((i * 3) % 11) * 6),\n\t}\n})\n\nconst series = [\n\t{ key: \"desktop\", label: \"Desktop\" },\n\t{ key: \"mobile\", label: \"Mobile\" },\n]\n\nconst ranges = [\n\t{ id: \"90d\", label: \"3 months\", days: 90 },\n\t{ id: \"30d\", label: \"30 days\", days: 30 },\n\t{ id: \"7d\", label: \"7 days\", days: 7 },\n]\n\nconst shortDate = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString(\"en-US\", { month: \"short\", day: \"numeric\" })\n\nexport interface TrafficTrendBlockProps {\n\tclassName?: string\n\t/** false drops the card's surface and border — for a muted section that already frames it. */\n\tframed?: boolean\n}\n\nexport function TrafficTrendBlock({ className, framed = true }: TrafficTrendBlockProps) {\n\tconst [range, setRange] = useState(\"90d\")\n\tconst shown = days.slice(-(ranges.find((r) => r.id === range)?.days ?? 90))\n\treturn (\n\t\t<Card variant={framed ? \"default\" : \"flat\"} className={cn(\"@container/trend w-full max-w-3xl\", className)}>\n\t\t\t<CardHeader className=\"@max-sm/trend:has-data-[slot=card-action]:grid-cols-1\">\n\t\t\t\t<CardTitle render={<h2 />}>Visitors</CardTitle>\n\t\t\t\t<CardDescription>Desktop and mobile, by day.</CardDescription>\n\t\t\t\t{/* Beside the title on a wide card; under it on a narrow one, where three\n\t\t\t\t    ranges would squeeze the title and description into a sliver. */}\n\t\t\t\t<CardAction className=\"@max-sm/trend:col-start-1 @max-sm/trend:row-span-1 @max-sm/trend:row-start-auto @max-sm/trend:mt-2 @max-sm/trend:justify-self-start\">\n\t\t\t\t\t<ToggleGroup value={[range]} onValueChange={(v: unknown[]) => v[0] && setRange(String(v[0]))} aria-label=\"Time range\">\n\t\t\t\t\t\t{ranges.map((r) => (\n\t\t\t\t\t\t\t<Toggle key={r.id} value={r.id}>\n\t\t\t\t\t\t\t\t{r.label}\n\t\t\t\t\t\t\t</Toggle>\n\t\t\t\t\t\t))}\n\t\t\t\t\t</ToggleGroup>\n\t\t\t\t</CardAction>\n\t\t\t</CardHeader>\n\t\t\t<CardContent>\n\t\t\t\t<AreaChart\n\t\t\t\t\tlabel={`Visitors per day, last ${ranges.find((r) => r.id === range)?.label}`}\n\t\t\t\t\tdata={shown}\n\t\t\t\t\tindex=\"date\"\n\t\t\t\t\tseries={series}\n\t\t\t\t\tindexFormatter={shortDate}\n\t\t\t\t\ttooltip={{ labelFormatter: (d) => new Date(`${d}T00:00:00`).toLocaleDateString(\"en-US\", { weekday: \"short\", month: \"short\", day: \"numeric\" }) }}\n\t\t\t\t\tstacked\n\t\t\t\t\tgradient\n\t\t\t\t\tclassName=\"h-64\"\n\t\t\t\t/>\n\t\t\t</CardContent>\n\t\t\t<CardFooter className=\"gap-1.5 text-body-sm\">\n\t\t\t\t<Icon name=\"arrow-up\" className=\"text-success\" />\n\t\t\t\t<span>\n\t\t\t\t\tUp 5.2% on the previous period <span className=\"text-muted-foreground\">· desktop leads every week</span>\n\t\t\t\t</span>\n\t\t\t</CardFooter>\n\t\t</Card>\n\t)\n}"
       },
       {
         "name": "UploadListBlock",

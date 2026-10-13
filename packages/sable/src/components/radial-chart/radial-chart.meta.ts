@@ -108,8 +108,8 @@ export const radialChartMeta: ComponentMeta = {
 		},
 		{
 			name: "centerLabel",
-			type: "{ value: string; label?: string }",
-			description: "A value and caption in the middle."
+			type: "{ value: string | number; label?: string }",
+			description: "A value and caption in the middle. On a full ring the value holds the centre and the caption hangs below it. A number is formatted for you: in full up to 9,999, compact from 10,000 (10.2K); pass a string for units (\"7.2 GB\", \"72%\")."
 		},
 		{
 			name: "legend",

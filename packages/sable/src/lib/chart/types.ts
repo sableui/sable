@@ -105,7 +105,11 @@ export function categoryStyle(categories: ChartCategories | undefined, name: str
 
 /** A big number with a caption in the middle of a donut or radial chart. */
 export interface ChartCenterLabel {
-	value: string
+	/**
+	 * The number. Pass a number to have it formatted: in full up to 9,999,
+	 * compact from 10,000 ("10.2K"). Pass a string for units or your own wording.
+	 */
+	value: string | number
 	label?: string
 }
 

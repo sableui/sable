@@ -30,15 +30,46 @@ designs. Record the reason for the chosen composition.
 </AppShell>
 ```
 
-- **Never a global `max-width`.** Width is capped per region by role:
-  `prose` / `form` / `feed` / `content` / `wide` / `full`. A form region is narrow
-  because a 700px text input is harder to use, not more generous.
+- **Never a global `max-width`.** Width is chosen per route by what the person
+  does there (below). A form region is narrow because a 700px text input is
+  harder to use, not more generous.
 - **Measure ≠ width.** Cap prose line length in `ch` (`--measure-prose`)
   independently of the region's layout width.
 - **The 12-column grid lives *inside* a region**, for genuinely multi-column
   content. A column span is not a page width.
 - **Chrome is off the grid.** `Sidebar` and rails are fixed-width, outside the
   content grid.
+
+## Choosing a width
+
+Pick each route's `max` by what the person mainly does on it:
+
+| They mainly… | `max` | Why |
+|---|---|---|
+| read long text | `prose` on the text, inside `content` | line length sets readability: cap the text, not the page |
+| fill in a form | `form` | narrow fields are faster to scan and fill |
+| scroll one stream | `feed` | one column, one eye path |
+| review one record, or settings | `content` | labels stay close to their values |
+| scan and compare rows, cards or charts | `wide` | room for columns without stretching the gaps between them |
+| work across panes, a board, an editor or a map | omit it (fluid), or `full` | the extra width goes to the parts that use it |
+
+- **Go fluid only when a flexible part uses the space**: a table's main column,
+  a canvas, a board, a reading pane. If extra width only widens the gaps between
+  fixed columns (a date drifting away from its subject), cap it.
+- **In a fluid page, cap text by line length** (`--measure-prose`, or
+  `Center max="prose"`), not by page width.
+- **Sibling routes in one nav share a width**, so the header doesn't jump as
+  people move between them. A detail view may differ.
+- **`full` is the largest cap, not edge to edge.** It keeps the page inset;
+  `bleed` is edge to edge.
+- **A cap is a ceiling.** It applies only once the viewport minus app chrome is
+  wider than it: beside a 256px sidebar, `wide` (1280px) starts at about 1536px,
+  so at 1440px `wide`, `full` and fluid look the same. Judge widths at 1920px and
+  2560px, and record each route's width and reason in the brief.
+- **A product's widths belong in its theme.** A preset may set `page-inset` and
+  `region-*` (`form`, `feed`, `content`, `wide`, `full`) in `tokens.shared`
+  (a copy in `light` or `dark` wins over it); keep the role names and change
+  the values.
 
 ## Typography: pick the tier by ROLE, not by size
 

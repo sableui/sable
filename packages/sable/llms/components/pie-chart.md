@@ -28,7 +28,7 @@ Use PieChart for a share of one total across two to six categories — traffic s
 | categories | Record<string, { label?: string; tone?: ChartTone; color?: string; icon?: string }> | — | Labels, tones and icons per slice, keyed by the slice's name. Unlisted slices take the tones in order. |
 | className | string | "h-64" | Sizes the chart. Set a height. |
 | donut | boolean \| number | false | Cut out the middle: `true` for a ring at 60% of the radius, or a ratio (0–0.9). |
-| centerLabel | { value: string; label?: string } | — | A value and caption in the hole of a donut. |
+| centerLabel | { value: string \| number; label?: string } | — | A value and caption in the hole of a donut. The value holds the centre and the caption hangs below it. A number is formatted for you: in full up to 9,999, compact from 10,000 (10.2K, 102.1K, 1.2M); pass a string for units. |
 | separator | boolean | true | A hairline in the surface colour between slices. |
 | labels | "none" \| "outside" \| "inside" | "none" | Label each slice outside the pie or inside it. |
 | labelContent | "value" \| "percent" \| "name" | "value" | What a slice label says. |
@@ -82,7 +82,7 @@ const sources = [
 	index="source"
 	valueKey="visitors"
 	donut
-	centerLabel={{ value: "752", label: "Visitors" }}
+	centerLabel={{ value: 752, label: "Visitors" }}
 />
 ```
 

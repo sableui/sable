@@ -22,3 +22,16 @@ export function categoryText(v: unknown, locale?: string): string {
 export function approxTextWidth(text: string): number {
 	return text.length * 6.6 + 4
 }
+
+/**
+ * A donut or radial chart's centre number. In full up to 9,999, which still fits
+ * the hole; compact from 10,000 on ("10.2K", "102.1K", "1.2M"), since a sixth
+ * digit and a comma would crowd the ring. A string passes through as written,
+ * so a value with units ("7.2 GB", "72%") is the caller's to word.
+ */
+export function centerValueText(value: string | number, locale?: string): string {
+	if (typeof value === "string") return value
+	return Math.abs(value) < 10_000
+		? new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(value)
+		: new Intl.NumberFormat(locale, { notation: "compact", maximumFractionDigits: 1 }).format(value)
+}

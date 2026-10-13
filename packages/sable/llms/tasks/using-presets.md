@@ -76,6 +76,25 @@ Use a unique preset ID so it cannot override a bundled theme or another record.
 Record any intentional adaptation and run the validation and rendered review in
 [building-with-sable.md](./building-with-sable.md).
 
+## Apply to an existing app
+
+A preset pasted into an agent for a running app (Canvas's “Copy for agent”) is a
+restyle: the job ends with the app built and rendered in the preset, not with a
+saved file. Replace, don't add beside:
+
+1. Save it to `.sable/presets/<id>.json`, overwriting an earlier revision of the
+   same ID, and run `sable preset --check`.
+2. Regenerate its CSS with `sable preset --css` and import it after Sable's
+   stylesheet. Remove the stylesheet of a theme it replaces when nothing else uses it.
+3. Load the families its `fonts` stacks name through the app's existing font
+   setup, and drop the old theme's font loading when no other code uses it.
+   An unloaded family falls back to a system face without any error.
+4. Point SableThemeProvider's `defaultThemeId` at the preset ID and
+   `defaultPreference` at its `defaultMode`, unless the user asked for another
+   mode. A bundled theme left as the default keeps the app on the old look.
+5. Run the app's build and type check, then `sable check`, and review the result
+   in both modes.
+
 ## Upgrade the package and skill
 
 ```bash

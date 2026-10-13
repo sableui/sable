@@ -10,7 +10,10 @@ import { type Edge, safeAreaInsets } from "./_safeArea"
  * - `feed`    640px — single-column timeline / reading feed
  * - `content` 896px — general content + settings/admin panes (some 2-up fields)
  * - `wide`    1280px — dashboards, tables, multi-column grids
- * - `full`    1536px — full-bleed safety ceiling
+ * - `full`    1536px — the largest cap; keeps the inset (edge to edge is `bleed`)
+ *
+ * Omit `max` for fluid: work views whose panes, board or canvas use the space.
+ * A cap is a ceiling, reached only when the viewport minus app chrome exceeds it.
  * - `ultrawide` 1800px — legacy; prefer `full`
  */
 export type RegionMax =
@@ -40,7 +43,7 @@ export interface RegionProps extends ComponentPropsWithRef<"div"> {
 	/**
 	 * Opt-in centered max-width cap: a purpose-named region ("prose" | "form" |
 	 * "feed" | "content" | "wide" | "full") or any raw CSS length (e.g. "56rem").
-	 * Omit for fully fluid, edge-to-edge (the default).
+	 * Omit for fluid (the default): full width inside the page inset.
 	 */
 	max?: RegionMax | (string & {})
 	/** Full-bleed: edge to edge with no inset. Overrides `inset`. */

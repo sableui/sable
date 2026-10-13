@@ -32,7 +32,7 @@ Use RadialChart for progress toward goals (several rings), a single score or usa
 | stacked | boolean | false | Split ONE ring between the rows instead of a ring each. |
 | track | boolean | true | Draw each ring's full track behind it. |
 | labels | boolean | false | Name each ring at its start. |
-| centerLabel | { value: string; label?: string } | — | A value and caption in the middle. |
+| centerLabel | { value: string \| number; label?: string } | — | A value and caption in the middle. On a full ring the value holds the centre and the caption hangs below it. A number is formatted for you: in full up to 9,999, compact from 10,000 (10.2K); pass a string for units ("7.2 GB", "72%"). |
 | legend | boolean | true unless rings are labelled | Show the legend. |
 | tooltip | boolean \| { indicator?: "dot" \| "line" \| "dashed" \| "none"; hideLabel?: boolean; labelFormatter?: (label, datum) => ReactNode; showTotal?: boolean } | true | Show a tooltip on hover and keyboard focus, or configure it: the row marker, hiding the heading, rewriting it, adding a Total row. |
 | valueFormatter | (value: number) => string | — | Format values everywhere (axis, labels, tooltip, table) — units like "$12,480". Default: compact on the axis, full elsewhere. |

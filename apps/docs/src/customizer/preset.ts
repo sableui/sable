@@ -1,5 +1,5 @@
 import { SABLE_UI_VERSION } from "@sableui/react"
-import { PRESET_TOKEN_NAMES, parsePreset, type SablePreset } from "@sableui/react/presets"
+import { PAGE_WIDTH_TOKENS, PRESET_TOKEN_NAMES, parsePreset, type SablePreset } from "@sableui/react/presets"
 
 /** Freeze resolved values in both modes; restore the document before any paint. */
 export function snapshotPreset({ id, label, direction, defaultMode, revision = 1, references }: Pick<SablePreset, "id" | "label" | "direction" | "defaultMode"> & Partial<Pick<SablePreset, "revision" | "references">>): SablePreset {
@@ -13,7 +13,9 @@ export function snapshotPreset({ id, label, direction, defaultMode, revision = 1
 	root.appendChild(probe)
 	const read = () => {
 		const style = getComputedStyle(root)
-		const values = Object.fromEntries(PRESET_TOKEN_NAMES.flatMap(name => {
+		// Canvas has no width controls: leave page widths out rather than copy the
+		// defaults over widths the app sets itself.
+		const values = Object.fromEntries(PRESET_TOKEN_NAMES.filter(name => !(PAGE_WIDTH_TOKENS as readonly string[]).includes(name)).flatMap(name => {
 			const value = style.getPropertyValue(`--${name}`).trim()
 			return value ? [[name, value]] : []
 		}))

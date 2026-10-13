@@ -84,8 +84,8 @@ export const pieChartMeta: ComponentMeta = {
 		},
 		{
 			name: "centerLabel",
-			type: "{ value: string; label?: string }",
-			description: "A value and caption in the hole of a donut."
+			type: "{ value: string | number; label?: string }",
+			description: "A value and caption in the hole of a donut. The value holds the centre and the caption hangs below it. A number is formatted for you: in full up to 9,999, compact from 10,000 (10.2K, 102.1K, 1.2M); pass a string for units."
 		},
 		{
 			name: "separator",
@@ -198,7 +198,7 @@ export const pieChartMeta: ComponentMeta = {
 	examples: [
 		{
 			label: "Donut with a total",
-			code: "const sources = [\n\t{ source: \"Search\", visitors: 275 },\n\t{ source: \"Direct\", visitors: 200 },\n\t{ source: \"Social\", visitors: 187 },\n\t{ source: \"Email\", visitors: 90 },\n]\n\n<PieChart\n\tlabel=\"Visitors by source\"\n\tdata={sources}\n\tindex=\"source\"\n\tvalueKey=\"visitors\"\n\tdonut\n\tcenterLabel={{ value: \"752\", label: \"Visitors\" }}\n/>"
+			code: "const sources = [\n\t{ source: \"Search\", visitors: 275 },\n\t{ source: \"Direct\", visitors: 200 },\n\t{ source: \"Social\", visitors: 187 },\n\t{ source: \"Email\", visitors: 90 },\n]\n\n<PieChart\n\tlabel=\"Visitors by source\"\n\tdata={sources}\n\tindex=\"source\"\n\tvalueKey=\"visitors\"\n\tdonut\n\tcenterLabel={{ value: 752, label: \"Visitors\" }}\n/>"
 		},
 		{
 			label: "Labelled slices",

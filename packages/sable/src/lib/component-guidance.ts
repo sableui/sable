@@ -99,11 +99,16 @@ export const componentGuidance: Partial<Record<string, ComponentGuidance>> = {
 		description:
 			"Use Region as the page-width primitive that applies fluid page inset and an optional purpose-named max width.",
 		dos: [
-			"Choose the max value by content role, such as prose, form, feed, content, wide, or full.",
+			"Choose the max value by what the person does on the page: read (prose), fill in a form (form), scroll one stream (feed), review one record or settings (content), scan and compare rows or cards (wide).",
+			"Omit max (fluid) for work across panes, a board, an editor or a map, where a flexible part uses the extra width; cap text inside it with --measure-prose.",
+			"Give sibling routes in one nav the same width so the header does not jump between them.",
+			"Review a capped or fluid route at 1920px and 2560px: a cap is a ceiling, so below the cap plus app chrome every choice looks the same.",
 			"Use Region near the route or section boundary so inner layout stays intentional.",
 		],
 		donts: [
 			"Do not use Region as a global wrapper that forces every page into the same max width.",
+			"Do not go fluid when the extra width only widens the gaps between fixed columns; cap it.",
+			"Do not read full as edge to edge: it is the largest cap and keeps the page inset. Use bleed for edge to edge.",
 		],
 		related: { components: ["Page", "Grid", "Columns"] },
 	}),

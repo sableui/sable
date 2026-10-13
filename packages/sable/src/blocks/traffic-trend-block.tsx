@@ -39,11 +39,13 @@ export function TrafficTrendBlock({ className, framed = true }: TrafficTrendBloc
 	const [range, setRange] = useState("90d")
 	const shown = days.slice(-(ranges.find((r) => r.id === range)?.days ?? 90))
 	return (
-		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-3xl", className)}>
-			<CardHeader>
+		<Card variant={framed ? "default" : "flat"} className={cn("@container/trend w-full max-w-3xl", className)}>
+			<CardHeader className="@max-sm/trend:has-data-[slot=card-action]:grid-cols-1">
 				<CardTitle render={<h2 />}>Visitors</CardTitle>
 				<CardDescription>Desktop and mobile, by day.</CardDescription>
-				<CardAction>
+				{/* Beside the title on a wide card; under it on a narrow one, where three
+				    ranges would squeeze the title and description into a sliver. */}
+				<CardAction className="@max-sm/trend:col-start-1 @max-sm/trend:row-span-1 @max-sm/trend:row-start-auto @max-sm/trend:mt-2 @max-sm/trend:justify-self-start">
 					<ToggleGroup value={[range]} onValueChange={(v: unknown[]) => v[0] && setRange(String(v[0]))} aria-label="Time range">
 						{ranges.map((r) => (
 							<Toggle key={r.id} value={r.id}>
