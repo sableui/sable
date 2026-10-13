@@ -1,5 +1,19 @@
 # What's new
 
+## 0.8.2
+
+- **A suggested stack for blank-slate apps.** Sable still depends on no router,
+  data or form library, and an app keeps the ones it has. Starting from
+  nothing, the skill, `AGENTS.md`, `sable docs getting-started` and the install
+  recipe (`registry.json` → `consume.stack`) now suggest Vite + TypeScript with
+  TanStack Router, TanStack Query, TanStack Form for forms with validation
+  logic, and TanStack Table once a table outgrows `DataTable`.
+- **`sable docs tables-with-tanstack`:** when to move from `DataTable` to
+  TanStack Table (server-side data, column visibility or resizing, grouping,
+  virtualised rows), and how to render it with Sable's `Table` parts,
+  `Checkbox`, `Button` and `Pagination`, with server data through TanStack
+  Query and bulk-action selection. `DataTable` stays dependency-free.
+
 ## 0.8.1
 
 - **`sable check` shows doctor's notes.** Warnings and notes from `sable doctor`

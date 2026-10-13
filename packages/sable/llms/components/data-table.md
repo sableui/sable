@@ -16,6 +16,7 @@ Use DataTable when a data array and column definition should render a sortable, 
 - Do: Provide stable rowKey values for dynamic data so selection and sorting do not jump.
 - Do: Use sortable only on columns where ordering is obvious and useful.
 - Do: Pair server-side datasets with Pagination and pass already-sorted/paged rows.
+- Do: Move to TanStack Table, rendered with Sable's Table parts, once the table needs server-side sorting or filtering, column visibility or resizing, grouping, or virtualised rows. DataTable stays dependency-free and does not grow into a data grid; `sable docs tables-with-tanstack` maps one onto the other.
 - Don't: Make every row clickable and also fill it with competing buttons. Choose a clear row interaction model.
 - Don't: Use DataTable for heterogeneous cards or timeline content. A list or card layout will scan better.
 

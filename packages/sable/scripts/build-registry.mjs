@@ -1678,6 +1678,7 @@ const REQUIRED_TASKS = [
 	"adding-a-component.md",
 	"converting-an-app.md",
 	"patching-a-component.md",
+	"tables-with-tanstack.md",
 	// The one that runs AFTER an app is already on Sable. Converting is a project;
 	// staying converted is not, and nothing in the package used to say so — the
 	// rules ship with every upgrade and silently widen what counts as a violation,

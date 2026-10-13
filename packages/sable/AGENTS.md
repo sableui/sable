@@ -55,7 +55,7 @@ Pick a theme as a starting point, then override tokens on top of it. Every token
 
 The machine-readable version of this section is the `consume` block in `registry.json`.
 
-1. **Install** from npm: `pnpm add @sableui/react` (or the project's package manager). No registry configuration or token is needed.
+1. **Install** from npm: `pnpm add @sableui/react` (or the project's package manager). No registry configuration or token is needed. Sable depends on no router, data or form library, and keeps whatever the project already uses: links, menus and nav items take any router's link through `render` (`render={<Link to="/inbox" />}` is TanStack Router's or React Router's `Link` alike). For a blank-slate app, the suggested stack is Vite + TypeScript with TanStack Router, TanStack Query, TanStack Form for forms with validation logic, and TanStack Table once a table outgrows `DataTable` (`sable docs tables-with-tanstack`).
 2. **Dedupe React** in the bundler (`resolve.dedupe: ["react","react-dom"]`) — Base UI must not resolve a second React, or you get an "invalid hook call" blank page.
 3. **CSS, in order:** `@import "tailwindcss";` → `@import "@sableui/react/styles.css";` → `@source "<node_modules>/@sableui/react/dist/**/*.{js,mjs}";` so Tailwind scans the package's classes. That ships every component's classes (about 32 KB gzipped); before shipping, `sable sources --write src/sable-sources.css` lists just the modules the app imports, imported in place of that `@source`, and `sable check` fails when it goes stale.
 

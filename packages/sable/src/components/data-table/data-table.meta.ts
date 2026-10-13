@@ -39,6 +39,11 @@ export const dataTableMeta: ComponentMeta = {
 					"Pair server-side datasets with Pagination and pass already-sorted/paged rows.",
 			},
 			{
+				guidance: "do",
+				description:
+					"Move to TanStack Table, rendered with Sable's Table parts, once the table needs server-side sorting or filtering, column visibility or resizing, grouping, or virtualised rows. DataTable stays dependency-free and does not grow into a data grid; `sable docs tables-with-tanstack` maps one onto the other.",
+			},
+			{
 				guidance: "dont",
 				description:
 					"Make every row clickable and also fill it with competing buttons. Choose a clear row interaction model.",

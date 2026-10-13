@@ -4,6 +4,12 @@ Sable is on npm as `@sableui/react`. The installed version's `registry.json`
 consume block has the exact recipe. Requirements: React 19, React DOM 19, and
 Tailwind CSS 4 integrated into your build.
 
+Sable works in any React 19 app and depends on no router, data or form
+library. Starting from a blank slate, its suggested stack is React with
+TypeScript on Vite, TanStack Router, TanStack Query, TanStack Form for forms with
+validation logic, and TanStack Table once a table outgrows `DataTable`
+(`sable docs tables-with-tanstack`). An existing app keeps its own.
+
 ## Install
 
 ```bash

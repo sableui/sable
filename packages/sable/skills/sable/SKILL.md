@@ -93,6 +93,15 @@ and registry `consume` block. Install from npm with the project's package
 manager, for example `pnpm add @sableui/react`; no registry setup or token is
 needed. Do not substitute an unrelated package with a similar name.
 
+A project that already has a router, data layer or form library keeps it: Sable
+depends on none, and its links, menus and nav take any router's link through
+`render`. For a blank-slate app, start from Sable's suggested stack: React with
+TypeScript on Vite, **TanStack Router** for routes and links, **TanStack Query**
+for server data, **TanStack Form** when a form needs validation logic, and
+**TanStack Table** once a table outgrows `DataTable` (`sable docs
+tables-with-tanstack`). Say so in the brief, and use something else only when the
+user or the product asks for it.
+
 Complete setup before implementing UI:
 
 - Match the installed package's React, React DOM, Tailwind, and Node requirements.

@@ -1,7 +1,7 @@
 {
   "$schema": "https://sable.design/registry.schema.json",
   "name": "@sableui/react",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "Themeable React components, semantic tokens, layout patterns, presets, and package-owned agent skills. Default theme: Sable.",
   "engine": {
     "behavior": "@base-ui/react",
@@ -28,6 +28,7 @@
       "@import \"@sableui/react/styles.css\";",
       "@source \"<node_modules>/@sableui/react/dist/**/*.{js,mjs}\";"
     ],
+    "stack": "Sable depends on no router, data or form library; an existing app keeps its own, and links take any router's Link through render. For a blank-slate app the suggested stack is Vite + TypeScript, TanStack Router, TanStack Query, TanStack Form for forms with validation logic, and TanStack Table once a table outgrows DataTable (sable docs tables-with-tanstack).",
     "cssSources": "That @source ships every component's classes (about 32 KB gzipped). Once the app is built, `sable sources --write src/sable-sources.css` lists just the modules it imports; @import that file in place of the @source. sable check fails while it is stale.",
     "fonts": {
       "sans": "Figtree",
@@ -7470,6 +7471,10 @@
           {
             "guidance": "do",
             "description": "Pair server-side datasets with Pagination and pass already-sorted/paged rows."
+          },
+          {
+            "guidance": "do",
+            "description": "Move to TanStack Table, rendered with Sable's Table parts, once the table needs server-side sorting or filtering, column visibility or resizing, grouping, or virtualised rows. DataTable stays dependency-free and does not grow into a data grid; `sable docs tables-with-tanstack` maps one onto the other."
           },
           {
             "guidance": "dont",
