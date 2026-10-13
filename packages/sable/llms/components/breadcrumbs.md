@@ -31,7 +31,7 @@ Use Breadcrumbs to show the user's location inside a hierarchy and provide light
 | Name | Type | Description |
 | --- | --- | --- |
 | BreadcrumbItem | ComponentPropsWithRef<'li'> | A single crumb slot (<li>) holding a link or the current page. |
-| BreadcrumbLink | ComponentPropsWithRef<'a'> | An interactive ancestor crumb (<a>). Muted by default, brightens to foreground on hover/focus. |
+| BreadcrumbLink | ComponentPropsWithRef<'a'> & { render?: useRender.RenderProp } | An interactive ancestor crumb (<a>). Muted by default, brightens to foreground on hover/focus. render composes another element with the crumb's styling, e.g. a router link: render={<Link to="/library" />}, so navigating stays in the app. |
 | BreadcrumbPage | ComponentPropsWithRef<'span'> | The current-page crumb (<span aria-current="page">). Non-interactive, full-contrast. |
 | BreadcrumbSeparator | ComponentPropsWithRef<'li'> + { children? } | Decorative divider (<li aria-hidden>) between crumbs. Defaults to a chevron-right icon; pass children to swap the glyph. |
 

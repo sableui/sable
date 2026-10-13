@@ -5,8 +5,9 @@
 // Theme CSS is discovered from src/themes/*/<dir>.css rather than hardcoded:
 // a hardcoded list once shipped a dist/styles.css whose @imports pointed at
 // theme files that were never copied (new themes added, list not updated).
-import { cpSync, existsSync, mkdirSync, readdirSync } from "node:fs"
-import { dirname, join } from "node:path"
+import { createHash } from "node:crypto"
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
+import { dirname, join, relative } from "node:path"
 import { fileURLToPath } from "node:url"
 
 const packageRoot = fileURLToPath(new URL("../", import.meta.url))
@@ -34,6 +35,22 @@ for (const [from, to] of assets) {
 }
 
 console.log(`[copy-assets] copied ${assets.length} CSS files into dist/`)
+
+// The hash of every published file, as shipped. `sable doctor` compares an app's
+// installed copy against it to tell whether a recorded patch (`sable patch`) is
+// applied, and whether a later Sable changed the file it patched.
+const hashes = {}
+const walk = (dir) => {
+	for (const entry of readdirSync(dir, { withFileTypes: true })) {
+		const path = join(dir, entry.name)
+		if (entry.isDirectory()) walk(path)
+		else if (entry.name !== "file-hashes.json")
+			hashes[relative(packageRoot, path).split("\\").join("/")] = createHash("sha256").update(readFileSync(path)).digest("hex").slice(0, 16)
+	}
+}
+walk(join(packageRoot, "dist"))
+writeFileSync(join(packageRoot, "dist/file-hashes.json"), `${JSON.stringify(hashes, null, "\t")}\n`)
+console.log(`[copy-assets] hashed ${Object.keys(hashes).length} dist files`)
 
 // A root license is not automatically included by npm in a monorepo subpackage.
 cpSync(join(packageRoot, "../../LICENSE"), join(packageRoot, "LICENSE"))

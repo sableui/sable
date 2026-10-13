@@ -77,9 +77,9 @@ export const breadcrumbsMeta: ComponentMeta = {
 		},
 		{
 			name: "BreadcrumbLink",
-			type: "ComponentPropsWithRef<'a'>",
+			type: "ComponentPropsWithRef<'a'> & { render?: useRender.RenderProp }",
 			description:
-				"An interactive ancestor crumb (<a>). Muted by default, brightens to foreground on hover/focus.",
+				"An interactive ancestor crumb (<a>). Muted by default, brightens to foreground on hover/focus. render composes another element with the crumb's styling, e.g. a router link: render={<Link to=\"/library\" />}, so navigating stays in the app.",
 		},
 		{
 			name: "BreadcrumbPage",

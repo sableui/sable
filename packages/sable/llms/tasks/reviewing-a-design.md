@@ -10,6 +10,11 @@ Save the surface brief, then capture the rendered route at a desktop width of at
 least 1024px and a mobile width of at most 480px. Record the actual viewport,
 route/state, supported color mode, and motion setting with each artifact. Inspect
 the whole route as well as its first viewport. Ensure fonts and media have loaded.
+Charts and other arrival motion draw when they scroll into view, so a full-page
+still taken with full motion shows the ones below the fold empty. Scroll the route
+through first and let the motion finish, or take that capture with
+`prefers-reduced-motion: reduce` emulated (everything then starts drawn). Don't
+report an undrawn chart as a defect without checking which happened.
 Also capture a route that sets a width cap, or goes fluid, at 1920px: a cap applies
 only once the viewport minus app chrome exceeds it, so at 1024–1440px `wide`,
 `full` and fluid usually look the same and the width decision never shows. Add

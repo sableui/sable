@@ -1,4 +1,5 @@
 import userEvent from "@testing-library/user-event"
+import { useState } from "react"
 import { describe, expect, it, vi } from "vitest"
 import { renderWithProviders, screen } from "../../test/render"
 import { DataTable, type DataTableColumn } from "./data-table"
@@ -59,5 +60,63 @@ describe("DataTable", () => {
 		)
 		await user.click(screen.getByText("Alice"))
 		expect(onRowClick).toHaveBeenCalledWith({ name: "Alice", age: 25 })
+	})
+})
+
+describe("DataTable selection", () => {
+	function Selectable({ onRowClick }: { onRowClick?: (row: Row) => void }) {
+		const [keys, setKeys] = useState<Set<string | number>>(new Set())
+		return (
+			<>
+				<DataTable
+					columns={columns}
+					data={data}
+					rowKey={(r) => r.name}
+					selectedKeys={keys}
+					onSelectedKeysChange={setKeys}
+					rowSelectionLabel={(r) => `Select ${r.name}`}
+					onRowClick={onRowClick}
+				/>
+				<output>{[...keys].sort().join(",")}</output>
+			</>
+		)
+	}
+
+	it("checks rows by key, and select-all goes mixed, then all, then none", async () => {
+		const user = userEvent.setup()
+		renderWithProviders(<Selectable />)
+		const all = screen.getByRole("checkbox", { name: "Select all 3 shown" })
+		await user.click(screen.getByRole("checkbox", { name: "Select Bob" }))
+		expect(screen.getByRole("status")).toHaveTextContent("Bob")
+		expect(all).toHaveAttribute("aria-checked", "mixed")
+		expect(screen.getByRole("checkbox", { name: "Select Bob" }).closest("tr")).toHaveAttribute("data-selected")
+		await user.click(all)
+		expect(screen.getByRole("status")).toHaveTextContent("Alice,Bob,Carol")
+		expect(all).toHaveAttribute("aria-checked", "true")
+		await user.click(all)
+		expect(screen.getByRole("status")).toHaveTextContent(/^$/)
+	})
+
+	it("keeps a row's key through a re-sort", async () => {
+		const user = userEvent.setup()
+		renderWithProviders(<Selectable />)
+		await user.click(screen.getByRole("checkbox", { name: "Select Carol" }))
+		await user.click(screen.getByRole("button", { name: /Name/ }))
+		expect(screen.getByRole("checkbox", { name: "Select Carol" })).toHaveAttribute("aria-checked", "true")
+		expect(screen.getByRole("checkbox", { name: "Select Alice" })).toHaveAttribute("aria-checked", "false")
+	})
+
+	it("checking a box does not open the row", async () => {
+		const user = userEvent.setup()
+		const onRowClick = vi.fn()
+		renderWithProviders(<Selectable onRowClick={onRowClick} />)
+		await user.click(screen.getByRole("checkbox", { name: "Select Alice" }))
+		expect(onRowClick).not.toHaveBeenCalled()
+		expect(screen.getByRole("status")).toHaveTextContent("Alice")
+	})
+
+	it("adds no checkbox column without onSelectedKeysChange", () => {
+		renderWithProviders(<DataTable columns={columns} data={data} />)
+		expect(screen.queryAllByRole("checkbox")).toHaveLength(0)
 	})
 })

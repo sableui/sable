@@ -32,16 +32,17 @@ Use Form and Field as the default wrapper for Sable form controls. Field owns th
 
 | Name | Type | Description |
 | --- | --- | --- |
-| Field | { label?: ReactNode; description?: ReactNode; error?: ReactNode; required?: boolean; disabled?: boolean; name?: string; validate?: (value, formValues) => string \| string[] \| null \| Promise<…>; validationMode?: "onSubmit" \| "onBlur" \| "onChange"; validationDebounceTime?: number; orientation?: "vertical" \| "horizontal"; className?: string; children: ReactElement } | Wraps a single control element (e.g. <Input />) on Base UI Field and wires label (htmlFor + aria-labelledby), helper text and error (aria-describedby), aria-invalid, and required onto it automatically. Base UI-backed controls (Input, Textarea, Select, Combobox, NumberField, Checkbox, Switch, Slider, OtpField…) register through context; the child is also cloned so plain elements keep the same wiring. error renders a destructive message and takes precedence; without it the slot shows Base UI's validation message when the field fails (native constraint, validate, or Form errors). required adds the native attribute plus a visual asterisk (defaults to false). disabled disables the control and dims the label. name keys the field in Form errors / onFormSubmit. validationMode overrides the Form's. orientation defaults to "vertical" (label → control); "horizontal" places control then label inline for a single checkbox / switch / radio — the control centres on the label's first line (it stays there when the label wraps) and description/error sit in the label's column. The root, label, description, error and control carry data-invalid / data-valid, data-touched, data-dirty, data-filled, data-focused and data-disabled for state styling. |
+| Field | { label?: ReactNode; description?: ReactNode; error?: ReactNode; required?: boolean; messages?: Partial<Record<"valueMissing" \| "typeMismatch" \| "patternMismatch" \| "tooShort" \| "tooLong" \| "rangeUnderflow" \| "rangeOverflow" \| "stepMismatch" \| "badInput", ReactNode>>; disabled?: boolean; name?: string; validate?: (value, formValues) => string \| string[] \| null \| Promise<…>; validationMode?: "onSubmit" \| "onBlur" \| "onChange"; validationDebounceTime?: number; orientation?: "vertical" \| "horizontal"; className?: string; children: ReactElement } | Wraps a single control element (e.g. <Input />) on Base UI Field and wires label (htmlFor + aria-labelledby), helper text and error (aria-describedby), aria-invalid, and required onto it automatically. Base UI-backed controls (Input, Textarea, Select, Combobox, NumberField, Checkbox, Switch, Slider, OtpField…) register through context; the child is also cloned so plain elements keep the same wiring. error renders a destructive message and takes precedence; without it the slot shows the field's messages entry for the native constraint that failed (messages={{ valueMissing: "Enter a subject." }}), else Base UI's validation message (the browser's wording for a native constraint, validate, or Form errors). required adds the native attribute plus a visual asterisk (defaults to false). disabled disables the control and dims the label. name keys the field in Form errors / onFormSubmit. validationMode overrides the Form's. orientation defaults to "vertical" (label → control); "horizontal" places control then label inline for a single checkbox / switch / radio — the control centres on the label's first line (it stays there when the label wraps) and description/error sit in the label's column. The root, label, description, error and control carry data-invalid / data-valid, data-touched, data-dirty, data-filled, data-focused and data-disabled for state styling. |
 
 ## Props
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| Form | { validationMode?: "onSubmit" \| "onBlur" \| "onChange"; errors?: Record<string, string \| string[]>; onFormSubmit?: (values, details) => void; actionsRef?: RefObject<Form.Actions> } + ComponentPropsWithRef<"form"> | — | A <form> laid out as a vertical column with comfortable field spacing (override with className, e.g. gap-4). On submit it validates every Field (native constraints plus Field validate), shows each message under its field, focuses the first invalid control, and only then calls onSubmit. validationMode defaults to "onSubmit" (then live re-validation on change). errors shows external (e.g. server) messages keyed by Field name and clears one when its field is edited. onFormSubmit receives the named Field values and prevents the native submit. A control outside any Field is still checked by the browser before onSubmit runs; pass noValidate to skip that. |
+| Form | { validationMode?: "onSubmit" \| "onBlur" \| "onChange"; errors?: Record<string, string \| string[]>; onFormSubmit?: (values, details) => void; actionsRef?: RefObject<Form.Actions> } + ComponentPropsWithRef<"form"> | — | A <form> laid out as a vertical column with comfortable field spacing (override with className, e.g. gap-4). On submit it validates every Field (native constraints plus Field validate), shows each message under its field, focuses the first invalid control, and only then calls onSubmit. validationMode defaults to "onSubmit" (then live re-validation on change). errors shows external (e.g. server) messages keyed by Field name and clears one when its field is edited. onFormSubmit receives the named Field values and prevents the native submit. A control outside any Field is still checked by the browser before onSubmit runs. Validating in your own code (react-hook-form, a schema, state)? Pass noValidate: onSubmit always runs and each Field shows the error you set; without it an empty required Field stops the submit before your handler can set that error. |
 | validationMode | "onSubmit" \| "onBlur" \| "onChange" | "onSubmit" | When Fields validate. After the first submit, fields re-check as the user edits. A Field's own validationMode wins. |
 | errors | Record<string, string \| string[]> | — | External (e.g. server) messages keyed by Field name, shown under that field. Each clears when its field is edited. |
 | onFormSubmit | (values: Record<string, unknown>, details) => void | — | Called with the named Field values after validation passes; prevents the native submit. |
+| noValidate | boolean | false | Your code owns validation: nothing is checked before onSubmit (neither the Fields nor the browser), so it always runs and each Field shows the error you pass. required Fields keep their asterisk and aria-required. validationMode, errors, onFormSubmit and actionsRef do nothing with it. |
 | actionsRef | RefObject<{ validate(name?: string): void }> | — | Imperative handle to validate every field, or one by name. |
 
 ## Tokens used
@@ -76,6 +77,22 @@ import { Field, Input } from "@sableui/react"
 import { Field, Input } from "@sableui/react"
 
 <Field label="Password" error="Must be at least 8 characters."><Input type="password" /></Field>
+```
+
+### Your own wording for a missing value
+
+```tsx
+import { Button, Field, Form, Input } from "@sableui/react"
+
+<Form onSubmit={handleSubmit}><Field label="Subject" required messages={{ valueMissing: "Enter a subject." }}><Input name="subject" /></Field><Button type="submit">Send</Button></Form>
+```
+
+### Validation in your own code
+
+```tsx
+import { Button, Field, Form, Input } from "@sableui/react"
+
+<Form noValidate onSubmit={handleSubmit}><Field label="Subject" required error={errors.subject}><Input name="subject" /></Field><Button type="submit">Send</Button></Form>
 ```
 
 ### Validated on submit

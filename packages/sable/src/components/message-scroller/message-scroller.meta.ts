@@ -103,7 +103,7 @@ export const messageScrollerMeta: ComponentMeta = {
 			name: "ref",
 			type: "Ref<MessageScrollerHandle>",
 			description:
-				"Imperative commands, not the DOM node: `scrollToBottom(opts)`, `scrollToTop(opts)`, `scrollToMessage(id, opts)` (returns false when the message is not rendered), `isFollowing()`, and `element` for the scrolling node itself.",
+				"Imperative commands, not the DOM node: `scrollToBottom(opts)`, `scrollToTop(opts)`, `scrollToMessage(id, opts)` (returns false when the message is not rendered), `isFollowing()`, and `element` for the scrolling node itself. `opts` is `ScrollCommandOptions`: `{ animate?: boolean }` (default true, and off whenever motion is), not the DOM's `behavior`.",
 		},
 		{
 			name: "autoFollow",

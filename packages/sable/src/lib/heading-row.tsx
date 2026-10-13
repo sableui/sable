@@ -8,9 +8,11 @@ import { cn } from "./cn"
  * than truncating, and actions at the row's end that drop beneath the title
  * when the row runs out of room.
  *
- * The title claims at least `basis-48` (12rem) before the actions are allowed
- * on its row, so on a phone a short action ("View all") stays beside the title
- * and a long one wraps under it instead of squeezing the title into a column.
+ * The title claims a minimum width (`titleBasis`) before the actions are allowed
+ * on its row; below it they wrap under the title instead of squeezing it into a
+ * column. SectionHeader keeps 12rem, so on a phone a short "View all" stays
+ * beside its title. PageHeader claims 20rem: its heading-2 title beside two
+ * actions on a 390px phone got 12rem and broke one word per line.
  *
  * Beside controls the title sits in a `band` one control tall, so a one-line
  * title centres on the buttons and a wrapped one starts level with them. The
@@ -34,6 +36,7 @@ export function HeadingRow({
 	band,
 	leading,
 	actions,
+	titleBasis = "basis-48",
 }: {
 	as: ElementType
 	title?: ReactNode
@@ -44,11 +47,13 @@ export function HeadingRow({
 	band: string
 	leading?: ReactNode
 	actions?: ReactNode
+	/** The title's minimum width before the actions wrap under it, as a basis class. */
+	titleBasis?: string
 }) {
 	const hasControls = Boolean(leading || actions)
 	return (
 		<div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
-			<div className="flex min-w-0 flex-1 basis-48 items-start gap-2">
+			<div className={cn("flex min-w-0 flex-1 items-start gap-2", titleBasis)}>
 				{leading ? <div className={cn("shrink-0", BLEED_FIRST_START)}>{leading}</div> : null}
 				{title ? (
 					<Title

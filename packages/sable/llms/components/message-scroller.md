@@ -35,7 +35,7 @@ The scroll region a conversation lives in. It owns the scrolling and nothing els
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| ref | Ref<MessageScrollerHandle> | — | Imperative commands, not the DOM node: `scrollToBottom(opts)`, `scrollToTop(opts)`, `scrollToMessage(id, opts)` (returns false when the message is not rendered), `isFollowing()`, and `element` for the scrolling node itself. |
+| ref | Ref<MessageScrollerHandle> | — | Imperative commands, not the DOM node: `scrollToBottom(opts)`, `scrollToTop(opts)`, `scrollToMessage(id, opts)` (returns false when the message is not rendered), `isFollowing()`, and `element` for the scrolling node itself. `opts` is `ScrollCommandOptions`: `{ animate?: boolean }` (default true, and off whenever motion is), not the DOM's `behavior`. |
 | autoFollow | boolean | true | Keep the newest message in view as content arrives, until the reader scrolls away from the bottom. Set false for a transcript that must never move under the reader. |
 | followThreshold | number | 64 | Distance from the bottom, in px, that still counts as following. A band rather than a pixel, so a token arriving mid-frame does not flicker the state. |
 | onFollowChange | (following: boolean) => void | — | Notified when the viewport pins to, or releases from, the newest message. |

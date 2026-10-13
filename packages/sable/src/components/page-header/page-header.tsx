@@ -51,6 +51,7 @@ export function PageHeader({
 				title={title}
 				titleClassName="text-heading-2"
 				band="flex min-h-(--control-md) items-center"
+				titleBasis="basis-[min(100%,20rem)]"
 				leading={back}
 				actions={actions}
 			/>

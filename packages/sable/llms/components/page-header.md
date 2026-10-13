@@ -25,7 +25,7 @@ Use PageHeader to establish a page's title, supporting description, and primary 
 | title | ReactNode | — | The page title (renders an <h1>). |
 | description | ReactNode | — | Supporting copy beneath the title. |
 | back | ReactNode | — | Leading element before the title — typically a back control on drill-in routes. Keep it a ghost icon Button (size="icon", variant="ghost", aria-label="Back") so it stays quieter than the title. A ghost back control bleeds by its inset at the start, so its glyph lines up with the content edge below (Button bleed="none" opts out). |
-| actions | ReactNode | — | Trailing actions aligned to the title row's end. They drop under the title when the row runs out of room, and the title wraps rather than truncating. A ghost or link Button at either end of the group bleeds by its own padding, so its label meets the content edge (the end on the title row, the start once wrapped); filled buttons keep their edge on the line. Direct children only. |
+| actions | ReactNode | — | Trailing actions aligned to the title row's end. They drop under the title when the title would have less than 20rem beside them (on a phone, nearly always), and the title wraps rather than truncating. A ghost or link Button at either end of the group bleeds by its own padding, so its label meets the content edge (the end on the title row, the start once wrapped); filled buttons keep their edge on the line. Direct children only. |
 | titleAs | "h1" \| "h2" | "h1" | The title's heading element. Keep h1 — the route's one h1. Use h2 only when something above already owns the h1: a shell that renders the route title, or a page showing a PageHeader as an example. |
 
 ## Tokens used

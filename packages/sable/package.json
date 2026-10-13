@@ -1,6 +1,6 @@
 {
 	"name": "@sableui/react",
-	"version": "0.7.1",
+	"version": "0.8.0",
 	"description": "Sable: themeable React components, layout patterns, and tools for coding agents.",
 	"type": "module",
 	"sideEffects": [
@@ -137,7 +137,9 @@
 		"THIRD_PARTY_NOTICES.md",
 		"third-party",
 		"scripts/agent-setup.mjs",
-		"scripts/design-presets.mjs"
+		"scripts/design-presets.mjs",
+		"scripts/patches.mjs",
+		"scripts/sources.mjs"
 	],
 	"publishConfig": {
 		"registry": "https://registry.npmjs.org",

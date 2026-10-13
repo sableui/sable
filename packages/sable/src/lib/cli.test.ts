@@ -302,6 +302,8 @@ describe("global flags", () => {
 	const INVOCATIONS: Record<string, string[]> = {
 		target: ["target", "ios"],
 		preset: ["preset", "--check", "missing.json"],
+		patch: ["patch", "--list"],
+		sources: ["sources"],
 		setup: ["setup", "--agent", "--dry-run"],
 		manifest: ["manifest"],
 		search: ["search", "button"],

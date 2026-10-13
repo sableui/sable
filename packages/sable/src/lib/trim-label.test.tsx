@@ -35,6 +35,24 @@ describe("trimLabel", () => {
 		expect(trimLabel(false)).toBe(false)
 	})
 
+	it("keeps text around an expression one label, so a gap can't split it", () => {
+		const count = 12
+		const { container } = render(<Button>All ({count})</Button>)
+		const labels = container.querySelectorAll(".sable-label-trim")
+		expect(labels).toHaveLength(1)
+		expect(labels[0].textContent).toBe("All (12)")
+	})
+
+	it("joins the text on each side of an element separately", () => {
+		const { container } = render(
+			<span>
+				{trimLabel(["Due ", 3, <svg key="i" data-testid="icon" />, " days"])}
+			</span>,
+		)
+		const root = container.firstElementChild as HTMLElement
+		expect([...root.children].map((c) => c.textContent)).toEqual(["Due 3", "", " days"])
+	})
+
 	it("wraps only the text in a mixed icon + text label", () => {
 		const { container } = render(
 			<div>

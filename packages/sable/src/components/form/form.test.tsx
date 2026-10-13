@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react"
+import { useState } from "react"
 import { describe, expect, it, vi } from "vitest"
 import { Input } from "../input"
 import { Switch } from "../switch"
@@ -192,6 +193,44 @@ describe("Form validation", () => {
 		)
 		fireEvent.click(screen.getByRole("button", { name: "Save" }))
 		expect(onSubmit).not.toHaveBeenCalled()
+	})
+
+	it("words a failed native constraint with the Field's own message", () => {
+		const onSubmit = vi.fn((event) => event.preventDefault())
+		render(
+			<Form onSubmit={onSubmit}>
+				<Field label="Subject" required messages={{ valueMissing: "Enter a subject." }}>
+					<Input />
+				</Field>
+				<button type="submit">Send</button>
+			</Form>,
+		)
+		fireEvent.click(screen.getByRole("button", { name: "Send" }))
+		expect(onSubmit).not.toHaveBeenCalled()
+		expect(screen.getByText("Enter a subject.")).toBeInTheDocument()
+	})
+
+	it("noValidate leaves validation to the app: onSubmit runs and the Field's error shows", () => {
+		// The dogfood bug: an empty required Field blocked submit with the
+		// browser's wording, so the handler that sets `error` never ran.
+		function Ticket() {
+			const [error, setError] = useState<string>()
+			return (
+				<Form noValidate aria-label="Ticket" onSubmit={(event) => { event.preventDefault(); setError("Enter a subject.") }}>
+					<Field label="Subject" required error={error}>
+						<Input />
+					</Field>
+					<button type="submit">Send</button>
+				</Form>
+			)
+		}
+		render(<Ticket />)
+		fireEvent.click(screen.getByRole("button", { name: "Send" }))
+		const input = screen.getByLabelText(/Subject/)
+		expect(screen.getByText("Enter a subject.")).toBeInTheDocument()
+		expect(input).toHaveAttribute("aria-invalid", "true")
+		expect(input).toBeRequired()
+		expect(screen.getByRole("form", { name: "Ticket" })).toHaveAttribute("novalidate")
 	})
 
 	it("shows Form errors keyed by Field name", () => {

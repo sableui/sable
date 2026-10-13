@@ -156,7 +156,7 @@ export const commandMenuMeta: ComponentMeta = {
 			name: "items",
 			type: "CommandItem[]",
 			description:
-				"Data-driven commands ({ group, label, onSelect, id?, icon?, detail?, hint?, disabled? }). Ignored when children are provided. id is optional identity: filter is handed these same objects, so it is how a caller that ranks over its own richer model maps the array back onto it — and it becomes the row's DOM id (namespaced to the palette) and React key, so two rows may share a label.",
+				"Data-driven commands ({ group, label, onSelect, id?, icon?, detail?, stacked?, hint?, disabled? }). stacked puts detail on its own line under the label, for results only their detail tells apart (two tickets with one subject); beside a long label an inline detail truncates first. Ignored when children are provided. id is optional identity: filter is handed these same objects, so it is how a caller that ranks over its own richer model maps the array back onto it — and it becomes the row's DOM id (namespaced to the palette) and React key, so two rows may share a label.",
 		},
 		{
 			name: "query",
@@ -248,9 +248,9 @@ export const commandMenuMeta: ComponentMeta = {
 		},
 		{
 			name: "CommandMenuItem",
-			type: "{ onSelect?: () => void; icon?: string; detail?: ReactNode; hint?: ReactNode; disabled?: boolean; id?: string; children }",
+			type: "{ onSelect?: () => void; icon?: string; detail?: ReactNode; stacked?: boolean; hint?: ReactNode; disabled?: boolean; id?: string; children }",
 			description:
-				"A selectable row. Self-filters by its text (unless the root was given a filter), runs onSelect, then closes the palette. detail is secondary text after the label; hint is the end-aligned trailing slot — a shortcut, a count, or a disabled row's reason. A disabled row stays listed, stays announced, and stays reachable by arrow key so its reason can be read, but is inert to Enter and to a click.",
+				"A selectable row. Self-filters by its text (unless the root was given a filter), runs onSelect, then closes the palette. detail is secondary text after the label, or under it with stacked; hint is the end-aligned trailing slot — a shortcut, a count, or a disabled row's reason. A disabled row stays listed, stays announced, and stays reachable by arrow key so its reason can be read, but is inert to Enter and to a click.",
 		},
 	],
 	tokensUsed: [

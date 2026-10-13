@@ -31,7 +31,7 @@ export function Switch({ className, ...props }: RootProps) {
 			)}
 			{...props}
 		>
-			<Base.Thumb className="block h-5 w-5 rounded-full bg-(--switch-thumb) shadow-(--knob-shadow) motion-interactive ease-spring data-[checked]:translate-x-4 rtl:data-[checked]:-translate-x-4 data-[checked]:bg-primary-foreground" />
+			<Base.Thumb className="block h-5 w-5 rounded-full bg-(--switch-thumb) shadow-(--knob-shadow) motion-interactive ease-spring data-[checked]:translate-x-4 rtl:data-[checked]:-translate-x-4 data-[checked]:bg-(--switch-thumb-on)" />
 		</Base.Root>
 	)
 }

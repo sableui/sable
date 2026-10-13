@@ -86,7 +86,7 @@ export const formMeta: ComponentMeta = {
 			name: "Form",
 			type: '{ validationMode?: "onSubmit" | "onBlur" | "onChange"; errors?: Record<string, string | string[]>; onFormSubmit?: (values, details) => void; actionsRef?: RefObject<Form.Actions> } + ComponentPropsWithRef<"form">',
 			description:
-				"A <form> laid out as a vertical column with comfortable field spacing (override with className, e.g. gap-4). On submit it validates every Field (native constraints plus Field validate), shows each message under its field, focuses the first invalid control, and only then calls onSubmit. validationMode defaults to \"onSubmit\" (then live re-validation on change). errors shows external (e.g. server) messages keyed by Field name and clears one when its field is edited. onFormSubmit receives the named Field values and prevents the native submit. A control outside any Field is still checked by the browser before onSubmit runs; pass noValidate to skip that.",
+				"A <form> laid out as a vertical column with comfortable field spacing (override with className, e.g. gap-4). On submit it validates every Field (native constraints plus Field validate), shows each message under its field, focuses the first invalid control, and only then calls onSubmit. validationMode defaults to \"onSubmit\" (then live re-validation on change). errors shows external (e.g. server) messages keyed by Field name and clears one when its field is edited. onFormSubmit receives the named Field values and prevents the native submit. A control outside any Field is still checked by the browser before onSubmit runs. Validating in your own code (react-hook-form, a schema, state)? Pass noValidate: onSubmit always runs and each Field shows the error you set; without it an empty required Field stops the submit before your handler can set that error.",
 		},
 		{
 			name: "validationMode",
@@ -105,6 +105,12 @@ export const formMeta: ComponentMeta = {
 			description: "Called with the named Field values after validation passes; prevents the native submit.",
 		},
 		{
+			name: "noValidate",
+			type: "boolean",
+			default: "false",
+			description: "Your code owns validation: nothing is checked before onSubmit (neither the Fields nor the browser), so it always runs and each Field shows the error you pass. required Fields keep their asterisk and aria-required. validationMode, errors, onFormSubmit and actionsRef do nothing with it.",
+		},
+		{
 			name: "actionsRef",
 			type: 'RefObject<{ validate(name?: string): void }>',
 			description: "Imperative handle to validate every field, or one by name.",
@@ -113,9 +119,9 @@ export const formMeta: ComponentMeta = {
 	subcomponents: [
 		{
 			name: "Field",
-			type: '{ label?: ReactNode; description?: ReactNode; error?: ReactNode; required?: boolean; disabled?: boolean; name?: string; validate?: (value, formValues) => string | string[] | null | Promise<…>; validationMode?: "onSubmit" | "onBlur" | "onChange"; validationDebounceTime?: number; orientation?: "vertical" | "horizontal"; className?: string; children: ReactElement }',
+			type: '{ label?: ReactNode; description?: ReactNode; error?: ReactNode; required?: boolean; messages?: Partial<Record<\"valueMissing\" | \"typeMismatch\" | \"patternMismatch\" | \"tooShort\" | \"tooLong\" | \"rangeUnderflow\" | \"rangeOverflow\" | \"stepMismatch\" | \"badInput\", ReactNode>>; disabled?: boolean; name?: string; validate?: (value, formValues) => string | string[] | null | Promise<…>; validationMode?: "onSubmit" | "onBlur" | "onChange"; validationDebounceTime?: number; orientation?: "vertical" | "horizontal"; className?: string; children: ReactElement }',
 			description:
-				"Wraps a single control element (e.g. <Input />) on Base UI Field and wires label (htmlFor + aria-labelledby), helper text and error (aria-describedby), aria-invalid, and required onto it automatically. Base UI-backed controls (Input, Textarea, Select, Combobox, NumberField, Checkbox, Switch, Slider, OtpField…) register through context; the child is also cloned so plain elements keep the same wiring. error renders a destructive message and takes precedence; without it the slot shows Base UI's validation message when the field fails (native constraint, validate, or Form errors). required adds the native attribute plus a visual asterisk (defaults to false). disabled disables the control and dims the label. name keys the field in Form errors / onFormSubmit. validationMode overrides the Form's. orientation defaults to \"vertical\" (label → control); \"horizontal\" places control then label inline for a single checkbox / switch / radio — the control centres on the label's first line (it stays there when the label wraps) and description/error sit in the label's column. The root, label, description, error and control carry data-invalid / data-valid, data-touched, data-dirty, data-filled, data-focused and data-disabled for state styling.",
+				"Wraps a single control element (e.g. <Input />) on Base UI Field and wires label (htmlFor + aria-labelledby), helper text and error (aria-describedby), aria-invalid, and required onto it automatically. Base UI-backed controls (Input, Textarea, Select, Combobox, NumberField, Checkbox, Switch, Slider, OtpField…) register through context; the child is also cloned so plain elements keep the same wiring. error renders a destructive message and takes precedence; without it the slot shows the field's messages entry for the native constraint that failed (messages={{ valueMissing: \"Enter a subject.\" }}), else Base UI's validation message (the browser's wording for a native constraint, validate, or Form errors). required adds the native attribute plus a visual asterisk (defaults to false). disabled disables the control and dims the label. name keys the field in Form errors / onFormSubmit. validationMode overrides the Form's. orientation defaults to \"vertical\" (label → control); \"horizontal\" places control then label inline for a single checkbox / switch / radio — the control centres on the label's first line (it stays there when the label wraps) and description/error sit in the label's column. The root, label, description, error and control carry data-invalid / data-valid, data-touched, data-dirty, data-filled, data-focused and data-disabled for state styling.",
 		},
 	],
 	tokensUsed: ["muted-foreground", "destructive"],
@@ -133,6 +139,14 @@ export const formMeta: ComponentMeta = {
 		{
 			label: "Field with an error",
 			code: '<Field label="Password" error="Must be at least 8 characters."><Input type="password" /></Field>',
+		},
+		{
+			label: "Your own wording for a missing value",
+			code: '<Form onSubmit={handleSubmit}><Field label="Subject" required messages={{ valueMissing: "Enter a subject." }}><Input name="subject" /></Field><Button type="submit">Send</Button></Form>',
+		},
+		{
+			label: "Validation in your own code",
+			code: '<Form noValidate onSubmit={handleSubmit}><Field label="Subject" required error={errors.subject}><Input name="subject" /></Field><Button type="submit">Send</Button></Form>',
 		},
 		{
 			label: "Validated on submit",

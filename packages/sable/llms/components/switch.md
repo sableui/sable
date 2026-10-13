@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-Binary on/off toggle for immediate-effect settings. Track fills with the primary tone when checked; the thumb slides on a spring-eased transform (mirrored in RTL).
+Binary on/off toggle for immediate-effect settings. Track fills with the primary tone when checked; the thumb slides on a spring-eased transform (mirrored in RTL). The thumb is white in both states, like every physical toggle, and turns dark only on a near-white track (a dark mode's light primary). Themes can set --theme-switch-thumb-on.
 
 **Keywords:** switch, toggle setting, on off, form control
 
@@ -32,7 +32,7 @@ Use Switch for immediate on/off settings that take effect as a persistent prefer
 
 ## Tokens used
 
-`input`, `primary`, `primary-foreground`, `ring`
+`input`, `primary`, `ring`
 
 ## Motion
 

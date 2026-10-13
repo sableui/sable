@@ -545,6 +545,23 @@ export const A = () => <div role="slider" />`,
 		})
 	})
 
+	describe("form-required-error", () => {
+		it("catches a required Field with an error inside a Form that validates for you", () => {
+			const r = lint(`export const A = ({ e }) => <Form onSubmit={save}><Field label="Subject" required error={e.subject}><Input /></Field></Form>`)
+			expect(r.out).toContain("form-required-error")
+			expect(r.out).toContain("<Form noValidate> or messages={{ valueMissing }}")
+		})
+
+		it.each([
+			["a Form with noValidate", `<Form noValidate onSubmit={save}><Field label="Subject" required error={e.subject}><Input /></Field></Form>`],
+			["a required Field without error", `<Form onSubmit={save}><Field label="Subject" required messages={{ valueMissing: "Enter one." }}><Input /></Field></Form>`],
+			["required={false}", `<Form onSubmit={save}><Field label="Subject" required={false} error={e.subject}><Input /></Field></Form>`],
+			["a Field outside any Form", `<form><Field label="Subject" required error={e.subject}><Input /></Field></form>`],
+		])("leaves %s alone", (_, jsx) => {
+			expect(lint(`export const A = ({ e }) => ${jsx}`).out).not.toContain("form-required-error")
+		})
+	})
+
 	describe("lookalike-avatar", () => {
 		it("catches a round fixed-size box holding art, an image or initials, and a round image", () => {
 			const art = lint(`export const A = ({ a }) => <div className="size-16 shrink-0 overflow-hidden rounded-full"><GradientArt seed={a.name} /></div>`)

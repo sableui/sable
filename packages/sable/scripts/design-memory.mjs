@@ -95,7 +95,12 @@ const template = {
 	avoidWhen: "",
 	change: { before: "", after: "" },
 	provenance: { kind: "build-review", source: "", date: "", reviewer: "", sableVersion: "" },
-	evidence: [{ kind: "before", path: "", observation: "" }, { kind: "after", path: "", observation: "" }],
+	// The paths say their own rules, which recording enforces: a dogfood run met
+	// both only as ERR_LESSON_INVALID after filling the template in.
+	evidence: [
+		{ kind: "before", path: "<a non-empty file inside this project, relative to its root, e.g. design/evidence/before.png>", observation: "" },
+		{ kind: "after", path: "<a different file from the before one, also inside the project>", observation: "" },
+	],
 }
 
 function main() {
@@ -118,7 +123,7 @@ function main() {
 	const actions = ["--list", "--search", "--show", "--record", "--template", "--check"].filter((flag) => flags.has(flag))
 	if (actions.length > 1) return fail("ERR_BAD_FLAG", "Choose one of --list, --search, --show, --record, --template, --check.")
 	if (flags.has("--help")) {
-		process.stdout.write("sable learn — retrieve precedents and record project-owned lessons\n\n  --list | --search <words> | --show <id> | --template | --record <lesson.json> | --check\n  --json   structured { type, data } output\n\nRun from the project root. Evidence paths are relative to that root. Records are provisional reviewer observations, never automatic proof of taste.\n")
+		process.stdout.write("sable learn — retrieve precedents and record project-owned lessons\n\n  --list | --search <words> | --show <id> | --template | --record <lesson.json> | --check\n  --json   structured { type, data } output\n\nRun from the project root. Evidence paths are relative to that root, must stay inside it, and before and after must be different files. Records are provisional reviewer observations, never automatic proof of taste.\n")
 		return
 	}
 	if (flags.has("--template")) {

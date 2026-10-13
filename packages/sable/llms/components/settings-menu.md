@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-A compact trigger that states the current settings, over a menu of rows that change them. Each row shows its own value and opens a submenu.
+A compact trigger that states the current settings, over a menu of rows that change them. Each row shows its own value and opens a submenu; with one setting, the menu opens straight to its options under the row's label.
 
 **Keywords:** settings, model picker, model switcher, options menu, preferences, submenu, quality settings, ai chat
 

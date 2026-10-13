@@ -31,6 +31,13 @@ describe("ToggleGroup", () => {
 	})
 })
 
+describe("Toggle", () => {
+	it("spaces an icon from its label like Button", () => {
+		renderWithProviders(<Toggle aria-label="Bold"><svg /> Bold</Toggle>)
+		expect(screen.getByRole("button", { name: "Bold" })).toHaveClass("gap-(--control-gap)")
+	})
+})
+
 describe("ToggleGroup appearance", () => {
 	it("draws the shared segmented track and fills the pressed option", () => {
 		renderWithProviders(

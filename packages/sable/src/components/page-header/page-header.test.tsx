@@ -15,6 +15,13 @@ describe("PageHeader", () => {
 		expect(screen.getByRole("heading", { level: 2, name: "Invoices" })).toBeInTheDocument()
 	})
 
+	it("holds 20rem for the title before its actions share the row, so a phone title isn't one word a line", () => {
+		renderWithProviders(<PageHeader title="Refund for a damaged order" actions={<button type="button">Reply</button>} />)
+		const column = screen.getByRole("heading", { level: 1 }).parentElement as HTMLElement
+		expect(column).toHaveClass("basis-[min(100%,20rem)]")
+		expect(column).not.toHaveClass("basis-48")
+	})
+
 	it("wraps the title instead of truncating it", () => {
 		renderWithProviders(<PageHeader title="A long page title" actions={<button type="button">Save</button>} />)
 		const heading = screen.getByRole("heading", { level: 1 })

@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const settingsMenuMeta: ComponentMeta = {
 	name: "SettingsMenu",
 	summary:
-		"A compact trigger that states the current settings, over a menu of rows that change them. Each row shows its own value and opens a submenu.",
+		"A compact trigger that states the current settings, over a menu of rows that change them. Each row shows its own value and opens a submenu; with one setting, the menu opens straight to its options under the row's label.",
 	status: "stable",
 	keywords: [
 		"settings",

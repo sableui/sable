@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const switchMeta: ComponentMeta = {
 	name: "Switch",
 	summary:
-		"Binary on/off toggle for immediate-effect settings. Track fills with the primary tone when checked; the thumb slides on a spring-eased transform (mirrored in RTL).",
+		"Binary on/off toggle for immediate-effect settings. Track fills with the primary tone when checked; the thumb slides on a spring-eased transform (mirrored in RTL). The thumb is white in both states, like every physical toggle, and turns dark only on a near-white track (a dark mode's light primary). Themes can set --theme-switch-thumb-on.",
 	status: "stable",
 	keywords: [
 		"switch",
@@ -86,7 +86,7 @@ export const switchMeta: ComponentMeta = {
 			description: "Identifies the field when the enclosing form is submitted.",
 		},
 	],
-	tokensUsed: ["input", "primary", "primary-foreground", "ring"],
+	tokensUsed: ["input", "primary", "ring"],
 	motion: [
 		{
 			slot: "arrival",

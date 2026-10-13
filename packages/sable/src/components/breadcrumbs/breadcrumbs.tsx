@@ -1,3 +1,4 @@
+import { useRender } from "@base-ui/react/use-render"
 import type { ComponentPropsWithRef, ReactNode } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
@@ -55,24 +56,31 @@ export function BreadcrumbItem({
 }
 BreadcrumbItem.displayName = "BreadcrumbItem"
 
-export interface BreadcrumbLinkProps extends ComponentPropsWithRef<"a"> {}
+export interface BreadcrumbLinkProps extends ComponentPropsWithRef<"a"> {
+	/**
+	 * Render another element, such as a router link, so navigating stays in the
+	 * app: `render={<Link to="/library" />}`. Keeps the crumb's styling.
+	 */
+	render?: useRender.RenderProp
+}
 
 /** An interactive ancestor crumb — muted, brightening to foreground on hover. */
 export function BreadcrumbLink({
 	className,
-	ref,
+	render,
 	...props
 }: BreadcrumbLinkProps) {
-	return (
-		<a
-			ref={ref}
-			className={cn(
+	return useRender({
+		render: render ?? <a />,
+		props: {
+			...props,
+			className: cn(
 				"rounded-sm text-muted-foreground motion-interactive hover:text-foreground focus-visible:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
 				className,
-			)}
-			{...props}
-		/>
-	)
+			),
+		},
+		defaultTagName: "a",
+	})
 }
 BreadcrumbLink.displayName = "BreadcrumbLink"
 

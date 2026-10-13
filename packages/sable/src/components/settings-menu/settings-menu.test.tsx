@@ -58,6 +58,26 @@ describe("SettingsMenu", () => {
 		expect(screen.queryByRole("menuitem", { name: /Effort/ })).toBeNull()
 	})
 
+	it("opens straight to the options when it holds one setting: one click, not two", async () => {
+		const onValueChange = vi.fn()
+		renderWithProviders(
+			<SettingsMenu summary="Then: Pending">
+				<SettingsRow label="After sending" value="Pending">
+					<MenuRadioGroup value="pending" onValueChange={onValueChange}>
+						<MenuRadioItem value="pending">Pending</MenuRadioItem>
+						<MenuRadioItem value="resolved">Resolved</MenuRadioItem>
+					</MenuRadioGroup>
+				</SettingsRow>
+			</SettingsMenu>,
+		)
+		fireEvent.click(trigger())
+		const resolved = await screen.findByRole("menuitemradio", { name: "Resolved" })
+		expect(screen.getByText("After sending")).toBeInTheDocument()
+		expect(screen.queryByRole("menuitem", { name: /After sending/ })).toBeNull()
+		fireEvent.click(resolved)
+		expect(onValueChange).toHaveBeenCalledWith("resolved", expect.anything())
+	})
+
 	it("reports the chosen option as checked, not just ticked", async () => {
 		renderWithProviders(<Fixture model="lite" />)
 		fireEvent.click(trigger())

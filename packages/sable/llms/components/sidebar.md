@@ -28,6 +28,7 @@ Use Sidebar for persistent desktop navigation or application chrome outside the 
 
 | Name | Type | Description |
 | --- | --- | --- |
+| SidebarHeader | div props | The top of the rail, at least 64px tall. It holds SidebarBrand and may take a second row under it, such as a search field or a notifications button: give that row basis-full and the header grows to hold it instead of clipping. |
 | SidebarBrand | { mark: ReactNode; label: ReactNode; render?: useRender.RenderProp } + div props | The brand row, inside SidebarHeader, on the same grid as SidebarItem: mark in the icons' 24px slot, label on the labels' column, so a logo lines up with the nav below it without copying the rail's inset numbers. Collapsed, it shows the mark alone (named by a string label). render={<Link to="/" />} makes it the home link. |
 | SidebarItem | { label: ReactNode; icon?: ReactNode; active?: boolean; badge?: ReactNode; render?: useRender.RenderProp } + button props | A single nav row. label is the row text (inline when expanded, in a hover tooltip when collapsed); icon is the leading icon node (the consumer swaps fill weight for the active state); active marks the current route (accent fill + aria-current="page"); badge is a trailing node (e.g. a count) pushed to the row end and hidden when collapsed; render composes another element, e.g. render={<Link to="/x" />}. |
 

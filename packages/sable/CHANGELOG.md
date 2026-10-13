@@ -1,5 +1,78 @@
 # What's new
 
+## 0.8.0
+
+The same support-workspace app was built twice, on Sable and on shadcn, and this
+release closes every gap the comparison found: two silent layout and form bugs,
+the component defects, row selection, a sanctioned way to patch a component
+while its fix ships, and CSS that only carries the components an app imports.
+
+### Upgrading from 0.7
+
+- **`<Form noValidate>` now means your code owns validation.** `onSubmit` always
+  runs and each Field shows the `error` you set; nothing checks the Fields or
+  the browser first. It used to skip only Sable's extra browser check, while
+  Form still blocked an empty `required` Field. `validationMode`, `errors`,
+  `onFormSubmit` and `actionsRef` do nothing with it. Drop `noValidate` to keep
+  Sable's validation, and word its messages with Field's new `messages`.
+- **A Switch's knob stays white when on.** It took the primary's label ink, so
+  a mid-light brand colour gave a dark knob. It now turns dark only on a track
+  lighter than L 0.9 (a dark mode's near-white primary). Set
+  `--theme-switch-thumb-on` to choose your own.
+- **PageHeader holds 20rem for its title** before actions may share its row, so
+  on a phone the actions sit under the title instead of squeezing it to one
+  word a line.
+
+### Everything in this release
+
+- **Nested `Grid`, `Col` and `SplitPane` no longer inherit their parent's
+  breakpoints.** A breakpoint a nested one left unset read its ancestor's value,
+  so a `cols={2}` Grid inside a 12-column `lg` Columns drew 12 tracks, and a
+  nested `span={6}` Col spanned 9. Each now resets its own.
+- **`Field messages`** words a failed native constraint:
+  `messages={{ valueMissing: "Enter a subject." }}`, instead of the browser's
+  "Please fill out this field."
+- **Text around an expression stays one label.** `All ({count})` rendered as
+  "All ( 12 )" in Button, Pill, Badge, NotificationBadge, Toolbar and pill Tabs:
+  each text child was its own flex item, spaced by the gap. Adjacent text now
+  joins into one.
+- **Toggle spaces an icon from its label**, like Button.
+- **SidebarHeader grows to hold a second row** (a search field under the brand)
+  instead of clipping it at 64px. Give that row `basis-full`.
+- **`BreadcrumbLink` takes `render`**, so a router link navigates in the app
+  instead of reloading the page.
+- **DataTable checkbox selection.** `selectedKeys` and `onSelectedKeysChange`
+  add a checkbox column, each box named by `rowSelectionLabel`, and a
+  select-all box that acts on the rows shown and goes mixed when some are
+  checked. Checked rows take the selected fill; a box never opens the row. The
+  docs show a bulk-action bar with a live status.
+- **`sable patch`** fixes a component in place while the library fix ships.
+  `sable patch Card --reason … --repro …` records why and how to check it, and
+  prints your package manager's patch steps (`pnpm patch`, `yarn patch`, or
+  patch-package). Every build now ships `dist/file-hashes.json`, and `sable
+  doctor` re-checks each patch on upgrade: it fails when Sable changed a
+  patched file, quoting the changelog for that component, until the repro says
+  `--keep` or `--drop`. See `sable docs patching-a-component`.
+- **`sable sources`** writes `@source` lines for just the Sable modules an app
+  imports. The whole-package `@source` ships every component's classes (about
+  32 KB gzipped); an app on Card, Button and DataTable measured 12 KB. `sable
+  doctor` fails when the file goes stale, since an unlisted component renders
+  unstyled.
+- **New lint rule `form-required-error`:** a `required` Field with an `error`
+  inside a validating Form, where that error can never show for an empty field.
+- **Icons:** `tag`, `paperclip`, `chart`, `flag` and `at-sign`.
+- **`CommandMenu` stacked rows:** `stacked` puts `detail` under the label, for
+  results only their detail tells apart.
+- **A one-setting `SettingsMenu`** opens straight to its options under the
+  row's label: one click, not two.
+- **`ChatComposer sendOn="mod-enter"`** for long-form replies: Enter breaks the
+  line, Cmd/Ctrl+Enter sends.
+- **Docs:** `sable learn --template` states its evidence rules (inside the
+  project; different before and after files); MessageScroller names its scroll
+  options (`{ animate }`, not `behavior`); Button explains `useCopy(text)`; and
+  `reviewing-a-design` says to scroll through, or capture with reduced motion,
+  before calling a below-the-fold chart empty.
+
 ## 0.7.1
 
 Fixes from building a customer-support app on 0.7.0 with an app-owned preset,

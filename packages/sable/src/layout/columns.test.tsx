@@ -1,5 +1,8 @@
 import { render } from "@testing-library/react"
+import { readFileSync } from "node:fs"
+import { resolve } from "node:path"
 import { describe, expect, it } from "vitest"
+import { BREAKPOINTS } from "./_responsive"
 import { Col, Columns } from "./Columns"
 
 function el(node: ReturnType<typeof render>) {
@@ -84,5 +87,22 @@ describe("Columns (responsive count)", () => {
 		const e = el(render(<Columns />))
 		expect(e).toHaveAttribute("data-sable-grid-cols")
 		expect(e.style.getPropertyValue("--cols-base")).toBe("")
+	})
+})
+
+describe("nested Grid and Col", () => {
+	// jsdom has no cascade, so this pins the CSS that stops a nested Grid or Col
+	// reading an ancestor's breakpoint value (a cols={2} Grid inside a 12-column
+	// lg Columns drew 12 tracks). Every breakpoint must be reset on the element.
+	const css = readFileSync(resolve(__dirname, "../styles.css"), "utf8")
+	const rule = (selector: string) =>
+		css.split(`[${selector}] {`).slice(1).map((block) => block.slice(0, block.indexOf("}"))).find((body) => body.includes(": initial")) ?? ""
+
+	it.each([
+		["data-sable-grid-cols", ["--cols"]],
+		["data-sable-col", ["--col-span", "--col-start"]],
+	])("%s resets every breakpoint it reads to initial", (selector, prefixes) => {
+		const body = rule(selector)
+		for (const prefix of prefixes) for (const bp of BREAKPOINTS) expect(body).toContain(`${prefix}-${bp}: initial`)
 	})
 })

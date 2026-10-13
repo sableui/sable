@@ -119,7 +119,12 @@ export function Sidebar({
 }
 Sidebar.displayName = "Sidebar"
 
-/** Brand/logo row pinned to the top of the rail. */
+/**
+ * Brand/logo row pinned to the top of the rail. At least 64px tall, not exactly:
+ * a second row under the brand (a search field, a notifications button) wraps
+ * onto its own line and the header grows to hold it, where a fixed height
+ * clipped it. Give that row `basis-full` (or `w-full`) to put it on its own line.
+ */
 export function SidebarHeader({
 	className,
 	...props
@@ -128,7 +133,7 @@ export function SidebarHeader({
 	return (
 		<div
 			className={cn(
-				"flex h-16 items-center px-3",
+				"flex min-h-16 flex-wrap content-center items-center gap-y-2 px-3 has-[>:nth-child(2)]:py-3",
 				// Collapsed, the brand mark centres on the same axis as the item icons.
 				collapsed && "justify-center px-0",
 				className,

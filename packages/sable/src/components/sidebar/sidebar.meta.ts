@@ -76,6 +76,12 @@ export const sidebarMeta: ComponentMeta = {
 	],
 	subcomponents: [
 		{
+			name: "SidebarHeader",
+			type: "div props",
+			description:
+				"The top of the rail, at least 64px tall. It holds SidebarBrand and may take a second row under it, such as a search field or a notifications button: give that row basis-full and the header grows to hold it instead of clipping.",
+		},
+		{
 			name: "SidebarBrand",
 			type: "{ mark: ReactNode; label: ReactNode; render?: useRender.RenderProp } + div props",
 			description:

@@ -59,7 +59,7 @@ export const pageHeaderMeta: ComponentMeta = {
 		{
 			name: "actions",
 			type: "ReactNode",
-			description: "Trailing actions aligned to the title row's end. They drop under the title when the row runs out of room, and the title wraps rather than truncating. A ghost or link Button at either end of the group bleeds by its own padding, so its label meets the content edge (the end on the title row, the start once wrapped); filled buttons keep their edge on the line. Direct children only.",
+			description: "Trailing actions aligned to the title row's end. They drop under the title when the title would have less than 20rem beside them (on a phone, nearly always), and the title wraps rather than truncating. A ghost or link Button at either end of the group bleeds by its own padding, so its label meets the content edge (the end on the title row, the start once wrapped); filled buttons keep their edge on the line. Direct children only.",
 		},
 		{
 			name: "titleAs",

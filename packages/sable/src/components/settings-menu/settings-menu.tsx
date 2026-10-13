@@ -1,10 +1,12 @@
-import type { ComponentProps, ReactNode } from "react"
+import { Children, type ComponentProps, isValidElement, type ReactElement, type ReactNode } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
 import { useTypeTier } from "../../lib/density"
 import {
 	Menu,
 	MenuContent,
+	MenuGroup,
+	MenuGroupLabel,
 	MenuSubmenu,
 	MenuSubmenuTrigger,
 	MenuTrigger,
@@ -73,6 +75,9 @@ export interface SettingsMenuProps
  *
  * Opens upward and end-aligned by default, because its home is the bottom-right
  * of a composer or a toolbar — where a downward menu would open off-screen.
+ *
+ * One setting opens straight to its options, under the row's label: a lone row
+ * that then opens a submenu is two clicks for one choice.
  */
 export function SettingsMenu({
 	summary,
@@ -87,6 +92,17 @@ export function SettingsMenu({
 	...props
 }: SettingsMenuProps) {
 	const tier = useTypeTier()
+	const rows = Children.toArray(children)
+	const only = rows.length === 1 && isValidElement(rows[0]) && rows[0].type === SettingsRow ? (rows[0] as ReactElement<SettingsRowProps>) : null
+	const content =
+		only?.props.children && !only.props.disabled ? (
+			<MenuGroup>
+				<MenuGroupLabel>{only.props.label}</MenuGroupLabel>
+				{only.props.children}
+			</MenuGroup>
+		) : (
+			children
+		)
 	return (
 		<Menu {...props}>
 			<MenuTrigger
@@ -106,7 +122,7 @@ export function SettingsMenu({
 				<Icon name="chevron-down" className="opacity-60" />
 			</MenuTrigger>
 			<MenuContent side={side} align={align} className="min-w-56">
-				{children}
+				{content}
 			</MenuContent>
 		</Menu>
 	)

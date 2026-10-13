@@ -101,6 +101,12 @@ export interface CommandItem {
 	/** Secondary text after the label — a destination, a type, an owner. */
 	detail?: ReactNode;
 	/**
+	 * Put `detail` on its own line under the label instead of after it. For
+	 * results that only their detail tells apart (two tickets with one subject):
+	 * beside a long label the detail truncates first.
+	 */
+	stacked?: boolean;
+	/**
 	 * End-aligned trailing slot: a shortcut (`<Kbd>`), a count — or, when the row
 	 * is `disabled`, the reason it is.
 	 */
@@ -590,6 +596,7 @@ function CommandMenuBody({
 										id={item.id ? `${listboxId}-${item.id}` : undefined}
 										icon={item.icon}
 										detail={item.detail}
+										stacked={item.stacked}
 										hint={item.hint}
 										disabled={item.disabled}
 										onSelect={() => {
@@ -824,6 +831,8 @@ export interface CommandMenuItemProps
 	icon?: string;
 	/** Secondary text after the label. */
 	detail?: ReactNode;
+	/** Put `detail` on its own line under the label, so it never truncates away first. */
+	stacked?: boolean;
 	/** End-aligned trailing slot: a shortcut, a count, or a disabled row's reason. */
 	hint?: ReactNode;
 	/**
@@ -845,6 +854,7 @@ export function CommandMenuItem({
 	onSelect,
 	icon,
 	detail,
+	stacked,
 	hint,
 	id: idProp,
 	className,
@@ -899,14 +909,23 @@ export function CommandMenuItem({
 			{...props}
 		>
 			{icon && <Icon name={icon} className="text-base text-muted-foreground" />}
-			<span className="truncate">{children}</span>
-			{/* The detail starts from zero width and only grows into what the label
-			    leaves: shrinking in proportion to its own length, a long summary
-			    squeezed the label to a single letter. */}
-			{detail && (
-				<span className="min-w-0 flex-1 truncate text-body-sm text-muted-foreground">
-					{detail}
+			{stacked ? (
+				<span className="flex min-w-0 flex-1 flex-col">
+					<span className="truncate">{children}</span>
+					{detail && <span className="truncate text-body-sm text-muted-foreground">{detail}</span>}
 				</span>
+			) : (
+				<>
+					<span className="truncate">{children}</span>
+					{/* The detail starts from zero width and only grows into what the label
+					    leaves: shrinking in proportion to its own length, a long summary
+					    squeezed the label to a single letter. */}
+					{detail && (
+						<span className="min-w-0 flex-1 truncate text-body-sm text-muted-foreground">
+							{detail}
+						</span>
+					)}
+				</>
 			)}
 			{/* The hint shrinks and truncates like the label does, rather than
 			    holding its full width: a disabled row's reason can be a sentence,

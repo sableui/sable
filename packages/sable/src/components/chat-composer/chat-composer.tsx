@@ -27,6 +27,13 @@ export interface ChatComposerProps
 	/** Placeholder for the field. @default "Send a message…" */
 	placeholder?: string
 	/**
+	 * Which key sends. `enter` for chat: Enter sends, Shift+Enter breaks the line.
+	 * `mod-enter` for long-form replies (an email, a support answer): Enter breaks
+	 * the line and ⌘/Ctrl+Enter sends, so a paragraph break never mails a draft.
+	 * @default "enter"
+	 */
+	sendOn?: "enter" | "mod-enter"
+	/**
 	 * A reply is streaming. Disables send, and swaps it for a stop control when
 	 * `onStop` is supplied.
 	 * @default false
@@ -73,7 +80,8 @@ export interface ChatComposerProps
  *
  * The three details that are the whole job:
  *
- * - **Enter sends, Shift+Enter breaks the line** — and neither fires mid-IME.
+ * - **Enter sends, Shift+Enter breaks the line** (or, with `sendOn="mod-enter"`,
+ *   Enter breaks it and ⌘/Ctrl+Enter sends) — and neither fires mid-IME.
  *   A Japanese, Chinese, or Korean reader confirming a candidate in the
  *   composition popup presses Enter to *choose a word*, and a composer that
  *   reads that as "send" mails half a sentence. `event.nativeEvent.isComposing`
@@ -90,6 +98,7 @@ export function ChatComposer({
 	onValueChange,
 	onSend,
 	placeholder = "Send a message…",
+	sendOn = "enter",
 	busy = false,
 	onStop,
 	disabled = false,
@@ -154,11 +163,11 @@ export function ChatComposer({
 			// Mid-composition Enter is "commit this candidate", not "send". Without
 			// this guard every CJK reader sends a fragment of their first word.
 			if (event.nativeEvent.isComposing) return
-			if (event.shiftKey) return
+			if (sendOn === "mod-enter" ? !(event.metaKey || event.ctrlKey) : event.shiftKey) return
 			event.preventDefault()
 			send()
 		},
-		[send],
+		[send, sendOn],
 	)
 
 	const showStop = busy && Boolean(onStop)
@@ -186,6 +195,7 @@ export function ChatComposer({
 				autoResize
 				rows={1}
 				aria-label={label}
+				aria-keyshortcuts={sendOn === "mod-enter" ? "Meta+Enter Control+Enter" : "Enter"}
 				aria-invalid={invalid || undefined}
 				disabled={disabled}
 				placeholder={placeholder}

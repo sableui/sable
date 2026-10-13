@@ -34,6 +34,14 @@ export interface FormProps extends ComponentPropsWithRef<"form"> {
 	onFormSubmit?: BaseForm.Props["onFormSubmit"]
 	/** Imperative actions: `actionsRef.current.validate(name?)`. */
 	actionsRef?: BaseForm.Props["actionsRef"]
+	/**
+	 * Your code owns validation: `onSubmit` always runs, and each Field shows its
+	 * `error`. Nothing is checked first, neither the Fields nor the browser, so a
+	 * `required` Field keeps its asterisk and `aria-required` without blocking the
+	 * submit. `validationMode`, `errors`, `onFormSubmit` and `actionsRef` do
+	 * nothing here: they drive Sable's own validation.
+	 */
+	noValidate?: boolean
 }
 
 /**
@@ -47,15 +55,24 @@ export interface FormProps extends ComponentPropsWithRef<"form"> {
  * and pass each `Field` an `error` string. Library-agnostic by design.
  *
  *   <Form onSubmit={handleSubmit}>
- *     <Field label="Email" error={errors.email}><Input type="email" /></Field>
+ *     <Field label="Email" required messages={{ valueMissing: "Enter your email." }}>
+ *       <Input type="email" />
+ *     </Field>
  *     <Button type="submit">Save</Button>
  *   </Form>
+ *
+ * Validating in your own code instead? Pass `noValidate`: `onSubmit` always
+ * runs, and each Field shows the `error` you give it. Without it, an empty
+ * `required` Field stops the submit before your handler could set that error.
  */
 export function Form({
 	className,
 	onSubmit,
 	onFormSubmit,
 	noValidate,
+	validationMode,
+	errors,
+	actionsRef,
 	...props
 }: FormProps) {
 	// Base UI's Form turns the browser's own validation off (noValidate) and
@@ -69,7 +86,7 @@ export function Form({
 	) => {
 		blockedRef.current = false
 		const form = event.currentTarget
-		if (!noValidate && !form.checkValidity()) {
+		if (!form.checkValidity()) {
 			event.preventDefault()
 			blockedRef.current = true
 			form.reportValidity()
@@ -77,9 +94,27 @@ export function Form({
 		}
 		onSubmit?.(event)
 	}
+	if (noValidate) {
+		// Base UI's Form validates every Field before it calls onSubmit, and no prop
+		// turns that off. An empty `required` Field then blocked the submit with the
+		// browser's wording, so the app never got to set its own `error`. A plain
+		// form leaves validation wholly to the app; the Fields still wire their
+		// labels, descriptions, errors and `required` (they need no Form around them).
+		return (
+			<form
+				noValidate
+				className={cn("flex flex-col gap-6", className)}
+				onSubmit={onSubmit}
+				{...props}
+			/>
+		)
+	}
 	return (
 		<BaseForm
 			className={cn("flex flex-col gap-6", className)}
+			validationMode={validationMode}
+			errors={errors}
+			actionsRef={actionsRef}
 			onSubmit={handleSubmit}
 			onFormSubmit={
 				onFormSubmit
@@ -94,6 +129,18 @@ export function Form({
 }
 Form.displayName = "Form"
 
+/** The native constraint flags of `ValidityState` a Field can word itself. */
+export type ConstraintFlag =
+	| "valueMissing"
+	| "typeMismatch"
+	| "patternMismatch"
+	| "tooShort"
+	| "tooLong"
+	| "rangeUnderflow"
+	| "rangeOverflow"
+	| "stepMismatch"
+	| "badInput"
+
 export interface FieldProps {
 	/** Field label (wired to the control via htmlFor). */
 	label?: ReactNode
@@ -106,6 +153,13 @@ export interface FieldProps {
 	error?: ReactNode
 	/** Marks the field required: adds the control's `required` + a visual asterisk. */
 	required?: boolean
+	/**
+	 * Your wording for a failed native constraint, by the `ValidityState` flag it
+	 * sets: `{ valueMissing: "Enter a subject.", typeMismatch: "That isn't an
+	 * email address." }`. A constraint without one shows the browser's message.
+	 * `error` still wins over both.
+	 */
+	messages?: Partial<Record<ConstraintFlag, ReactNode>>
 	/**
 	 * Disables the control (and any Base UI control inside) and dims the label.
 	 * @default false
@@ -160,6 +214,7 @@ export function Field({
 	description,
 	error,
 	required,
+	messages,
 	disabled,
 	name,
 	validate,
@@ -224,14 +279,28 @@ export function Field({
 		</BaseField.Description>
 	) : null
 
-	// One error slot: the `error` prop when set, otherwise Base UI's validation
-	// message (native constraint, `validate`, or Form errors).
+	// One error slot: the `error` prop when set, then the Field's own wording for
+	// the constraint that failed, then Base UI's message (the browser's text for a
+	// native constraint, `validate`'s, or Form errors).
 	const errorNode = (
-		<BaseField.Error
-			id={errId}
-			className="text-body-sm text-destructive"
-			{...(hasError ? { match: true, children: error } : null)}
-		/>
+		<BaseField.Validity>
+			{({ validity }) => {
+				const flag = messages
+					? (Object.keys(messages) as ConstraintFlag[]).find((key) => validity[key])
+					: undefined
+				return (
+					<BaseField.Error
+						id={errId}
+						className="text-body-sm text-destructive"
+						{...(hasError
+							? { match: true, children: error }
+							: flag
+								? { children: messages?.[flag] }
+								: null)}
+					/>
+				)
+			}}
+		</BaseField.Validity>
 	)
 
 	return (

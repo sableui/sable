@@ -33,6 +33,20 @@ describe("ChatComposer", () => {
 		expect(field()).toHaveValue("first line")
 	})
 
+	it("with sendOn=\"mod-enter\", breaks the line on Enter and sends on Cmd/Ctrl+Enter", () => {
+		const onSend = vi.fn()
+		renderWithProviders(<ChatComposer onSend={onSend} sendOn="mod-enter" />)
+		type("Hi Ada,")
+		fireEvent.keyDown(field(), { key: "Enter" })
+		expect(onSend).not.toHaveBeenCalled()
+		fireEvent.keyDown(field(), { key: "Enter", ctrlKey: true })
+		expect(onSend).toHaveBeenCalledWith("Hi Ada,")
+		type("Thanks")
+		fireEvent.keyDown(field(), { key: "Enter", metaKey: true })
+		expect(onSend).toHaveBeenLastCalledWith("Thanks")
+		expect(field()).toHaveAttribute("aria-keyshortcuts", "Meta+Enter Control+Enter")
+	})
+
 	it("does not send mid-IME-composition", () => {
 		// A CJK reader pressing Enter to confirm a candidate word is choosing a
 		// word, not sending a message. Without this guard they mail a fragment of

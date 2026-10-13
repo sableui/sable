@@ -37,6 +37,8 @@ import { dirname, join, relative, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { skeletonize } from "../scripts/skeleton.mjs"
 import { claudeStopHook, installAgentSkill, installClaudeStopHook } from "../scripts/agent-setup.mjs"
+import { patchChecks } from "../scripts/patches.mjs"
+import { sourcesCheck } from "../scripts/sources.mjs"
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const PKG_ROOT = join(HERE, "..")
@@ -88,6 +90,28 @@ const COMMANDS = [
 			{ name: "--css", value: "file.json", describe: "Generate scoped theme CSS from a validated preset." },
 		],
 		returns: ["preset.template", "preset.check", "preset.css"],
+	},
+	{
+		name: "patch",
+		summary: "Fix a Sable component in place while the library fix ships: record why and how to check it, patch with your package manager, and have doctor re-check it on every upgrade.",
+		arg: { name: "Component", required: false },
+		flags: [
+			{ name: "--reason", value: "text", describe: "What is wrong. Required to record a patch." },
+			{ name: "--repro", value: "text", describe: "How to see it, so a later upgrade can be checked against it. Required to record a patch." },
+			{ name: "--issue", value: "id", describe: "Where it was reported upstream." },
+			{ name: "--file", value: "dist/lib/<module>.js", describe: "Also cover a shared module the component uses, or patch one on its own." },
+			{ name: "--list", value: null, describe: "Each recorded patch and its state against the installed Sable." },
+			{ name: "--keep", value: null, describe: "After an upgrade: the repro still fails on Sable's own files, so keep the patch against this version." },
+			{ name: "--drop", value: null, describe: "The repro passes on Sable's own files: drop the record (and the patch)." },
+		],
+		returns: ["patch.recorded", "patch.list", "patch.kept", "patch.dropped"],
+	},
+	{
+		name: "sources",
+		summary: "Write the @source lines for just the Sable modules this app imports, so Tailwind generates their classes and no others (about 32 KB gzipped for all of Sable, a fraction for a typical app). doctor fails while the file is stale.",
+		arg: null,
+		flags: [{ name: "--write", value: "file.css", describe: "Write the stylesheet there (e.g. src/sable-sources.css) instead of printing it." }],
+		returns: ["sources"],
 	},
 	{
 		name: "setup",
@@ -1265,6 +1289,9 @@ function doctorReport() {
 				'@source "<path-to>/@sableui/react/dist/**/*.{js,mjs}";',
 			)
 		else if (hasSable) add("pass", "css:source", "@source covers the package.")
+		// A generated per-module list (sable sources) must cover every module the
+		// app imports, or those components render unstyled.
+		if (hasSable) checks.push(...sourcesCheck(PKG_ROOT, CWD, expandedCss.map(({ path }) => cssByPath.get(path))))
 	}
 
 	/* The theme trap: opting into theme switching without importing theme CSS. */
@@ -1299,6 +1326,11 @@ function doctorReport() {
 				'Wrap your app in <IconProvider set={reiconIconSet}> from "@sableui/react/icons/reicon".',
 			)
 	}
+
+	/* Local patches (sable patch): each one is re-checked against the installed
+	 * Sable, and fails when Sable changed a patched file, so an upgrade tells the
+	 * agent to re-run the repro instead of keeping or losing a fix silently. */
+	checks.push(...patchChecks(PKG_ROOT, CWD, R.version))
 
 	if (pkg && !/resolve\s*:\s*\{[^}]*dedupe|dedupe/.test(readConfigs()))
 		add("info", "dedupe", "Could not confirm React dedupe in a bundler config.", 'resolve.dedupe: ["react","react-dom"] — a second React is an invalid-hook blank page.')
@@ -1627,6 +1659,8 @@ const HANDLERS = {
 		ok("target", target, `iOS ${target.platformVersion}${target.status ? ` (${target.status})` : ""}: ${target.designPolicy.principle}\n${target.statusNote ? `${target.statusNote}\n` : ""}${target.designPolicy.rule}\n${(target.designPolicy.layout ?? []).map((l) => `Layout: ${l}\n`).join("")}` + Object.values(target.components).map(c => `${c.source}: ${c.strategy} → ${c.strategy === "contextual" ? "choose by role" : c.components.join(" + ") || "redesign for phone"}`).join("\n"))
 	},
 	preset: () => cmdDesignTool("design-presets.mjs"),
+	patch: () => cmdDesignTool("patches.mjs"),
+	sources: () => cmdDesignTool("sources.mjs"),
 	setup: cmdSetup,
 	check: cmdCheck,
 	provider: cmdProvider,

@@ -1,7 +1,7 @@
 {
   "$schema": "https://sable.design/registry.schema.json",
   "name": "@sableui/react",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "Themeable React components, semantic tokens, layout patterns, presets, and package-owned agent skills. Default theme: Sable.",
   "engine": {
     "behavior": "@base-ui/react",
@@ -1585,6 +1585,10 @@
       {
         "id": "lookalike-media-frame",
         "fails-on": "A cover or media frame built by hand — an `aspect-*` ratio + `overflow-hidden` wrapped around an <img>, <video>, <picture> or GradientArt. That is `AspectBox`: `ratio` as a number reserves the box before the media arrives (no layout shift while a cover loads or a shader starts), it clips and positions what it holds (`relative w-full overflow-hidden`), and it is the one frame the media components share, so a change to how frames behave reaches every cover. Put the radius on it as a className. For a cover with its title beneath (an album, an episode, a product), `MediaTile` composes this frame with fallback art for a missing or broken image and an action revealed on hover. Not flagged: a ratio box with no media in it (a pad, a canvas well), a frame without overflow clipping, an <img> sized by its own aspect class, or a round fixed-size frame (lookalike-avatar's)."
+      },
+      {
+        "id": "form-required-error",
+        "fails-on": "A `required` Field with an `error` prop, inside a `Form` that validates for you. On submit Form checks every Field first, so an empty required one stops the submit with the browser's message (\"Please fill out this field.\") and your onSubmit, which would set `error`, never runs. Either let your code own validation, `<Form noValidate>` (onSubmit always runs and the Field shows your `error`), or let Form validate and word the message on the Field: `messages={{ valueMissing: \"Enter a subject.\" }}`."
       }
     ],
     "escapeHatch": {
@@ -1678,7 +1682,12 @@
       "volume-low",
       "volume-off",
       "queue",
-      "music"
+      "music",
+      "tag",
+      "paperclip",
+      "chart",
+      "flag",
+      "at-sign"
     ]
   },
   "layoutPrimitives": {
@@ -4482,8 +4491,8 @@
         },
         {
           "name": "BreadcrumbLink",
-          "type": "ComponentPropsWithRef<'a'>",
-          "description": "An interactive ancestor crumb (<a>). Muted by default, brightens to foreground on hover/focus."
+          "type": "ComponentPropsWithRef<'a'> & { render?: useRender.RenderProp }",
+          "description": "An interactive ancestor crumb (<a>). Muted by default, brightens to foreground on hover/focus. render composes another element with the crumb's styling, e.g. a router link: render={<Link to=\"/library\" />}, so navigating stays in the app."
         },
         {
           "name": "BreadcrumbPage",
@@ -4807,6 +4816,10 @@
           {
             "guidance": "do",
             "description": "Use a single primary button in a view or dense panel so the action hierarchy stays obvious."
+          },
+          {
+            "guidance": "do",
+            "description": "For a copy control, pair an icon Button with `useCopy(text, { timeout? })`. It takes the text when the hook is called and returns `{ copy, copied }`; `copy()` takes no argument, so pass the value the button copies to the hook, not to `copy`."
           },
           {
             "guidance": "do",
@@ -5647,7 +5660,7 @@
       "group": "Chat & AI",
       "register": "either",
       "path": "components/chat-composer",
-      "summary": "The input half of a conversation: one surface holding attachments, an auto-growing field, and its controls. Enter sends, Shift+Enter breaks the line, and send becomes stop while a reply streams.",
+      "summary": "The input half of a conversation: one surface holding attachments, an auto-growing field, and its controls. Enter sends, Shift+Enter breaks the line (sendOn=\"mod-enter\" swaps them for long-form replies), and send becomes stop while a reply streams.",
       "keywords": [
         "chat input",
         "composer",
@@ -5691,7 +5704,7 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not use it as a general multi-line input. That is `Textarea` — this one submits on Enter, which is wrong for any field inside a larger form."
+            "description": "Do not use it as a general multi-line input inside a larger form. That is `Textarea`. A standalone reply box that sends multi-paragraph messages (email, support replies) is this one with sendOn=\"mod-enter\"."
           },
           {
             "guidance": "dont",
@@ -5764,6 +5777,12 @@
           "type": "string",
           "default": "\"Send a message…\"",
           "description": "Placeholder for the field."
+        },
+        {
+          "name": "sendOn",
+          "type": "\"enter\" | \"mod-enter\"",
+          "default": "\"enter\"",
+          "description": "Which key sends. enter for chat (Shift+Enter breaks the line). mod-enter for long-form replies such as an email or a support answer: Enter breaks the line and Cmd/Ctrl+Enter sends, so a paragraph break never mails a draft. Say so in footer (\"Cmd+Enter to send\")."
         },
         {
           "name": "busy",
@@ -7019,7 +7038,7 @@
         {
           "name": "items",
           "type": "CommandItem[]",
-          "description": "Data-driven commands ({ group, label, onSelect, id?, icon?, detail?, hint?, disabled? }). Ignored when children are provided. id is optional identity: filter is handed these same objects, so it is how a caller that ranks over its own richer model maps the array back onto it — and it becomes the row's DOM id (namespaced to the palette) and React key, so two rows may share a label."
+          "description": "Data-driven commands ({ group, label, onSelect, id?, icon?, detail?, stacked?, hint?, disabled? }). stacked puts detail on its own line under the label, for results only their detail tells apart (two tickets with one subject); beside a long label an inline detail truncates first. Ignored when children are provided. id is optional identity: filter is handed these same objects, so it is how a caller that ranks over its own richer model maps the array back onto it — and it becomes the row's DOM id (namespaced to the palette) and React key, so two rows may share a label."
         },
         {
           "name": "query",
@@ -7100,8 +7119,8 @@
         },
         {
           "name": "CommandMenuItem",
-          "type": "{ onSelect?: () => void; icon?: string; detail?: ReactNode; hint?: ReactNode; disabled?: boolean; id?: string; children }",
-          "description": "A selectable row. Self-filters by its text (unless the root was given a filter), runs onSelect, then closes the palette. detail is secondary text after the label; hint is the end-aligned trailing slot — a shortcut, a count, or a disabled row's reason. A disabled row stays listed, stays announced, and stays reachable by arrow key so its reason can be read, but is inert to Enter and to a click."
+          "type": "{ onSelect?: () => void; icon?: string; detail?: ReactNode; stacked?: boolean; hint?: ReactNode; disabled?: boolean; id?: string; children }",
+          "description": "A selectable row. Self-filters by its text (unless the root was given a filter), runs onSelect, then closes the palette. detail is secondary text after the label, or under it with stacked; hint is the end-aligned trailing slot — a shortcut, a count, or a disabled row's reason. A disabled row stays listed, stays announced, and stays reachable by arrow key so its reason can be read, but is inert to Enter and to a click."
         }
       ],
       "tokensUsed": [
@@ -7520,7 +7539,29 @@
         {
           "name": "isRowSelected",
           "type": "(row) => boolean",
-          "description": "Mark a row visually selected (data-selected). Derive it from a stable id (row.id === selectedId), not the row index, so selection survives re-sorts."
+          "description": "Mark a row visually selected (data-selected), e.g. the one open in a detail pane. Derive it from a stable id (row.id === selectedId), not the row index, so selection survives re-sorts. For checking several rows, use selectedKeys."
+        },
+        {
+          "name": "selectedKeys",
+          "type": "ReadonlySet<string | number>",
+          "description": "The checked rows, by rowKey, for bulk actions. With onSelectedKeysChange it adds a checkbox column (each box named by rowSelectionLabel) and a select-all box in the header that acts on the rows shown and goes mixed when some are checked. Checked rows get the selected fill. Controlled: when the rows shown change (a filter, another view), set the keys to keep, usually none. Needs rowKey."
+        },
+        {
+          "name": "onSelectedKeysChange",
+          "type": "(keys: Set<string | number>) => void",
+          "description": "Called with the new set of checked keys. Its presence turns selection on. A click on a box never fires onRowClick."
+        },
+        {
+          "name": "rowSelectionLabel",
+          "type": "(row) => string",
+          "default": "() => \"Select row\"",
+          "description": "A row checkbox's accessible name. Name the row, e.g. (t) => `Select ${t.subject}`, so a screen reader can tell the boxes apart."
+        },
+        {
+          "name": "selectAllLabel",
+          "type": "(count: number) => string",
+          "default": "(count) => `Select all ${count} shown`",
+          "description": "The select-all checkbox's accessible name; say what it acts on (\"Select all 7 tickets shown\")."
         },
         {
           "name": "defaultSort",
@@ -7550,6 +7591,11 @@
         "Inherits the Table's scrollable frame and semantic <table>/<th>/<td> structure."
       ],
       "examples": [
+        {
+          "label": "Checkbox selection with a bulk-action bar",
+          "code": "const [selected, setSelected] = useState<Set<string | number>>(new Set())\n\n<Stack gap={2}>\n\t{/* Mounted from the start, so a screen reader hears each change. */}\n\t<span role=\"status\" className=\"sr-only\">{selected.size ? `${selected.size} of ${tickets.length} selected` : \"\"}</span>\n\t{selected.size ? (\n\t\t<Toolbar aria-label=\"Bulk actions\">\n\t\t\t<span className=\"text-label-md\">{selected.size} of {tickets.length} selected</span>\n\t\t\t<Button size=\"sm\" variant=\"secondary\" onClick={() => resolve(selected)}>Resolve</Button>\n\t\t</Toolbar>\n\t) : null}\n\t<DataTable\n\t\tdata={tickets}\n\t\trowKey={(t) => t.id}\n\t\tcolumns={columns}\n\t\tselectedKeys={selected}\n\t\tonSelectedKeysChange={setSelected}\n\t\trowSelectionLabel={(t) => `Select ${t.subject}`}\n\t\tselectAllLabel={(n) => `Select all ${n} tickets shown`}\n\t/>\n</Stack>",
+          "imports": "import { Button, DataTable, Stack, Toolbar } from \"@sableui/react\""
+        },
         {
           "label": "Sortable columns",
           "code": "<DataTable data={users} columns={[{ key: \"name\", header: \"Name\", sortable: true }, { key: \"role\", header: \"Role\" }, { key: \"joined\", header: \"Joined\", sortable: true, sortValue: (u) => u.joinedAt, cell: (u) => formatDate(u.joinedAt) }]} />",
@@ -9523,7 +9569,7 @@
         {
           "name": "Form",
           "type": "{ validationMode?: \"onSubmit\" | \"onBlur\" | \"onChange\"; errors?: Record<string, string | string[]>; onFormSubmit?: (values, details) => void; actionsRef?: RefObject<Form.Actions> } + ComponentPropsWithRef<\"form\">",
-          "description": "A <form> laid out as a vertical column with comfortable field spacing (override with className, e.g. gap-4). On submit it validates every Field (native constraints plus Field validate), shows each message under its field, focuses the first invalid control, and only then calls onSubmit. validationMode defaults to \"onSubmit\" (then live re-validation on change). errors shows external (e.g. server) messages keyed by Field name and clears one when its field is edited. onFormSubmit receives the named Field values and prevents the native submit. A control outside any Field is still checked by the browser before onSubmit runs; pass noValidate to skip that."
+          "description": "A <form> laid out as a vertical column with comfortable field spacing (override with className, e.g. gap-4). On submit it validates every Field (native constraints plus Field validate), shows each message under its field, focuses the first invalid control, and only then calls onSubmit. validationMode defaults to \"onSubmit\" (then live re-validation on change). errors shows external (e.g. server) messages keyed by Field name and clears one when its field is edited. onFormSubmit receives the named Field values and prevents the native submit. A control outside any Field is still checked by the browser before onSubmit runs. Validating in your own code (react-hook-form, a schema, state)? Pass noValidate: onSubmit always runs and each Field shows the error you set; without it an empty required Field stops the submit before your handler can set that error."
         },
         {
           "name": "validationMode",
@@ -9542,6 +9588,12 @@
           "description": "Called with the named Field values after validation passes; prevents the native submit."
         },
         {
+          "name": "noValidate",
+          "type": "boolean",
+          "default": "false",
+          "description": "Your code owns validation: nothing is checked before onSubmit (neither the Fields nor the browser), so it always runs and each Field shows the error you pass. required Fields keep their asterisk and aria-required. validationMode, errors, onFormSubmit and actionsRef do nothing with it."
+        },
+        {
           "name": "actionsRef",
           "type": "RefObject<{ validate(name?: string): void }>",
           "description": "Imperative handle to validate every field, or one by name."
@@ -9550,8 +9602,8 @@
       "subcomponents": [
         {
           "name": "Field",
-          "type": "{ label?: ReactNode; description?: ReactNode; error?: ReactNode; required?: boolean; disabled?: boolean; name?: string; validate?: (value, formValues) => string | string[] | null | Promise<…>; validationMode?: \"onSubmit\" | \"onBlur\" | \"onChange\"; validationDebounceTime?: number; orientation?: \"vertical\" | \"horizontal\"; className?: string; children: ReactElement }",
-          "description": "Wraps a single control element (e.g. <Input />) on Base UI Field and wires label (htmlFor + aria-labelledby), helper text and error (aria-describedby), aria-invalid, and required onto it automatically. Base UI-backed controls (Input, Textarea, Select, Combobox, NumberField, Checkbox, Switch, Slider, OtpField…) register through context; the child is also cloned so plain elements keep the same wiring. error renders a destructive message and takes precedence; without it the slot shows Base UI's validation message when the field fails (native constraint, validate, or Form errors). required adds the native attribute plus a visual asterisk (defaults to false). disabled disables the control and dims the label. name keys the field in Form errors / onFormSubmit. validationMode overrides the Form's. orientation defaults to \"vertical\" (label → control); \"horizontal\" places control then label inline for a single checkbox / switch / radio — the control centres on the label's first line (it stays there when the label wraps) and description/error sit in the label's column. The root, label, description, error and control carry data-invalid / data-valid, data-touched, data-dirty, data-filled, data-focused and data-disabled for state styling."
+          "type": "{ label?: ReactNode; description?: ReactNode; error?: ReactNode; required?: boolean; messages?: Partial<Record<\"valueMissing\" | \"typeMismatch\" | \"patternMismatch\" | \"tooShort\" | \"tooLong\" | \"rangeUnderflow\" | \"rangeOverflow\" | \"stepMismatch\" | \"badInput\", ReactNode>>; disabled?: boolean; name?: string; validate?: (value, formValues) => string | string[] | null | Promise<…>; validationMode?: \"onSubmit\" | \"onBlur\" | \"onChange\"; validationDebounceTime?: number; orientation?: \"vertical\" | \"horizontal\"; className?: string; children: ReactElement }",
+          "description": "Wraps a single control element (e.g. <Input />) on Base UI Field and wires label (htmlFor + aria-labelledby), helper text and error (aria-describedby), aria-invalid, and required onto it automatically. Base UI-backed controls (Input, Textarea, Select, Combobox, NumberField, Checkbox, Switch, Slider, OtpField…) register through context; the child is also cloned so plain elements keep the same wiring. error renders a destructive message and takes precedence; without it the slot shows the field's messages entry for the native constraint that failed (messages={{ valueMissing: \"Enter a subject.\" }}), else Base UI's validation message (the browser's wording for a native constraint, validate, or Form errors). required adds the native attribute plus a visual asterisk (defaults to false). disabled disables the control and dims the label. name keys the field in Form errors / onFormSubmit. validationMode overrides the Form's. orientation defaults to \"vertical\" (label → control); \"horizontal\" places control then label inline for a single checkbox / switch / radio — the control centres on the label's first line (it stays there when the label wraps) and description/error sit in the label's column. The root, label, description, error and control carry data-invalid / data-valid, data-touched, data-dirty, data-filled, data-focused and data-disabled for state styling."
         }
       ],
       "tokensUsed": [
@@ -9574,6 +9626,16 @@
           "label": "Field with an error",
           "code": "<Field label=\"Password\" error=\"Must be at least 8 characters.\"><Input type=\"password\" /></Field>",
           "imports": "import { Field, Input } from \"@sableui/react\""
+        },
+        {
+          "label": "Your own wording for a missing value",
+          "code": "<Form onSubmit={handleSubmit}><Field label=\"Subject\" required messages={{ valueMissing: \"Enter a subject.\" }}><Input name=\"subject\" /></Field><Button type=\"submit\">Send</Button></Form>",
+          "imports": "import { Button, Field, Form, Input } from \"@sableui/react\""
+        },
+        {
+          "label": "Validation in your own code",
+          "code": "<Form noValidate onSubmit={handleSubmit}><Field label=\"Subject\" required error={errors.subject}><Input name=\"subject\" /></Field><Button type=\"submit\">Send</Button></Form>",
+          "imports": "import { Button, Field, Form, Input } from \"@sableui/react\""
         },
         {
           "label": "Validated on submit",
@@ -11736,7 +11798,7 @@
         {
           "name": "ref",
           "type": "Ref<MessageScrollerHandle>",
-          "description": "Imperative commands, not the DOM node: `scrollToBottom(opts)`, `scrollToTop(opts)`, `scrollToMessage(id, opts)` (returns false when the message is not rendered), `isFollowing()`, and `element` for the scrolling node itself."
+          "description": "Imperative commands, not the DOM node: `scrollToBottom(opts)`, `scrollToTop(opts)`, `scrollToMessage(id, opts)` (returns false when the message is not rendered), `isFollowing()`, and `element` for the scrolling node itself. `opts` is `ScrollCommandOptions`: `{ animate?: boolean }` (default true, and off whenever motion is), not the DOM's `behavior`."
         },
         {
           "name": "autoFollow",
@@ -12885,7 +12947,7 @@
         {
           "name": "actions",
           "type": "ReactNode",
-          "description": "Trailing actions aligned to the title row's end. They drop under the title when the row runs out of room, and the title wraps rather than truncating. A ghost or link Button at either end of the group bleeds by its own padding, so its label meets the content edge (the end on the title row, the start once wrapped); filled buttons keep their edge on the line. Direct children only."
+          "description": "Trailing actions aligned to the title row's end. They drop under the title when the title would have less than 20rem beside them (on a phone, nearly always), and the title wraps rather than truncating. A ghost or link Button at either end of the group bleeds by its own padding, so its label meets the content edge (the end on the title row, the start once wrapped); filled buttons keep their edge on the line. Direct children only."
         },
         {
           "name": "titleAs",
@@ -15967,7 +16029,7 @@
       "group": "Overlays",
       "register": "either",
       "path": "components/settings-menu",
-      "summary": "A compact trigger that states the current settings, over a menu of rows that change them. Each row shows its own value and opens a submenu.",
+      "summary": "A compact trigger that states the current settings, over a menu of rows that change them. Each row shows its own value and opens a submenu; with one setting, the menu opens straight to its options under the row's label.",
       "keywords": [
         "settings",
         "model picker",
@@ -16492,6 +16554,11 @@
         }
       ],
       "subcomponents": [
+        {
+          "name": "SidebarHeader",
+          "type": "div props",
+          "description": "The top of the rail, at least 64px tall. It holds SidebarBrand and may take a second row under it, such as a search field or a notifications button: give that row basis-full and the header grows to hold it instead of clipping."
+        },
         {
           "name": "SidebarBrand",
           "type": "{ mark: ReactNode; label: ReactNode; render?: useRender.RenderProp } + div props",
@@ -17883,7 +17950,7 @@
       "group": "Selection",
       "register": "either",
       "path": "components/switch",
-      "summary": "Binary on/off toggle for immediate-effect settings. Track fills with the primary tone when checked; the thumb slides on a spring-eased transform (mirrored in RTL).",
+      "summary": "Binary on/off toggle for immediate-effect settings. Track fills with the primary tone when checked; the thumb slides on a spring-eased transform (mirrored in RTL). The thumb is white in both states, like every physical toggle, and turns dark only on a near-white track (a dark mode's light primary). Themes can set --theme-switch-thumb-on.",
       "keywords": [
         "switch",
         "toggle setting",
@@ -17966,7 +18033,6 @@
       "tokensUsed": [
         "input",
         "primary",
-        "primary-foreground",
         "ring"
       ],
       "motion": [
@@ -23773,6 +23839,9 @@
         "render",
         "showLabel"
       ],
+      "BreadcrumbLink": [
+        "render"
+      ],
       "BreadcrumbSeparator": [
         "children"
       ],
@@ -23942,6 +24011,7 @@
         "onValueChange",
         "placeholder",
         "sendLabel",
+        "sendOn",
         "stopLabel",
         "value"
       ],
@@ -24213,7 +24283,8 @@
         "disabled",
         "hint",
         "icon",
-        "onSelect"
+        "onSelect",
+        "stacked"
       ],
       "CommandMenuPanel": [
         "children",
@@ -24351,7 +24422,11 @@
         "empty",
         "isRowSelected",
         "onRowClick",
-        "rowKey"
+        "onSelectedKeysChange",
+        "rowKey",
+        "rowSelectionLabel",
+        "selectAllLabel",
+        "selectedKeys"
       ],
       "DatePicker": [
         "className",
@@ -24536,6 +24611,7 @@
         "disabled",
         "error",
         "label",
+        "messages",
         "name",
         "orientation",
         "required",
@@ -24592,6 +24668,7 @@
       "Form": [
         "actionsRef",
         "errors",
+        "noValidate",
         "onFormSubmit",
         "validationMode"
       ],

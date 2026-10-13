@@ -227,6 +227,9 @@ Every build ends with the finish checklist at the top of this skill. Notes on it
   the smallest necessary addition, and include the inventory with the build's
   evidence so conformance is reviewable.
 
-Iterate on observed defects and recapture changed states. Contract checks cannot
-judge beauty. Deliver the result, the preset/revision used, the checks performed,
+Iterate on observed defects and recapture changed states. A defect inside a Sable
+component is patched, not restyled: `sable patch <Component> --reason … --repro …`,
+then the package manager's patch (`sable docs patching-a-component`). When `sable
+doctor` fails on a patch after an upgrade, re-run its repro on Sable's own files
+and keep or drop it. Contract checks cannot judge beauty. Deliver the result, the preset/revision used, the checks performed,
 and material limitations.

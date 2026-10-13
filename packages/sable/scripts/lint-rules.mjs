@@ -1039,6 +1039,37 @@ export function makeRules({ semanticTokens, motionTokens, labelContrast = null, 
 			},
 		},
 		{
+			id: "form-required-error",
+			/* CONSUMER-scoped. A support app set `error` on a required Field and
+			 * never saw it: Form validates every Field before it calls onSubmit, so
+			 * an empty one stopped the submit with the browser's wording and the
+			 * handler that sets `error` never ran. */
+			scope: "consumer",
+			since: "0.8.0",
+			file: true,
+			code: true,
+			why:
+				"A `required` Field with an `error` prop, inside a `Form` that validates for you. On submit Form checks every Field first, so an empty required one stops the submit with the browser's message (\"Please fill out this field.\") and your onSubmit, which would set `error`, never runs. Either let your code own validation, `<Form noValidate>` (onSubmit always runs and the Field shows your `error`), or let Form validate and word the message on the Field: `messages={{ valueMissing: \"Enter a subject.\" }}`.",
+			scan(text) {
+				const src = maskMarkupTemplates(text)
+				const out = []
+				// A boolean prop is on when written bare or as anything but `={false}`.
+				const flag = (attrs, name) => {
+					const m = new RegExp(`(?:^|\\s)${name}(?![\\w-])(\\s*=\\s*\\{\\s*false\\s*\\})?`).exec(attrs)
+					return Boolean(m) && !m[1]
+				}
+				for (const form of openingTags(src, /^Form$/)) {
+					if (flag(form.attrs, "noValidate")) continue
+					const { inner } = elementContent(src, form)
+					for (const field of openingTags(inner, /^Field$/)) {
+						if (!flag(field.attrs, "required") || !/(?:^|\s)error\s*=/.test(field.attrs)) continue
+						out.push({ index: form.end + 1 + field.index, match: "required Field with error inside a validating Form → <Form noValidate> or messages={{ valueMissing }}" })
+					}
+				}
+				return out
+			},
+		},
+		{
 			id: "hand-derived-surface",
 			/* CONSUMER-scoped. Mixing ink into a surface by hand is what the
 			 * relative-surface utilities compute — and the tell that the library
@@ -1229,7 +1260,7 @@ export function makeRules({ semanticTokens, motionTokens, labelContrast = null, 
 			file: true,
 			code: true,
 			why:
-				"A look-changing class on a Sable component (border*, bg-*, rounded*, ring-*, shadow-* on Button, Pill or Badge). Their appearance is set by variants — Button `variant` (floating for a control over content), Pill `appearance`/`size`, Badge `appearance`/`tone` — and an override fights the variant's own hover, selected and focus states. Use a real variant, or add one to the component. Layout classes (width, margin, flex, position) are fine.",
+				"A look-changing class on a Sable component (border*, bg-*, rounded*, ring-*, shadow-* on Button, Pill or Badge). Their appearance is set by variants — Button `variant` (floating for a control over content), Pill `appearance`/`size`, Badge `appearance`/`tone` — and an override fights the variant's own hover, selected and focus states. Use a real variant, or add one to the component. Layout classes (width, margin, flex, position) are fine. If the component is defective rather than missing a look, patch it with `sable patch <Component>` (recorded, and re-checked on every upgrade) instead of restyling it.",
 			scan(text) {
 				const out = []
 				for (const m of openingTags(text, /^(?:Button|Pill|Badge)$/)) {

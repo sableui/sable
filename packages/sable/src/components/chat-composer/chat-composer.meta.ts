@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const chatComposerMeta: ComponentMeta = {
 	name: "ChatComposer",
 	summary:
-		"The input half of a conversation: one surface holding attachments, an auto-growing field, and its controls. Enter sends, Shift+Enter breaks the line, and send becomes stop while a reply streams.",
+		"The input half of a conversation: one surface holding attachments, an auto-growing field, and its controls. Enter sends, Shift+Enter breaks the line (sendOn=\"mod-enter\" swaps them for long-form replies), and send becomes stop while a reply streams.",
 	status: "stable",
 	keywords: [
 		"chat input",
@@ -57,7 +57,7 @@ export const chatComposerMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description:
-					"Do not use it as a general multi-line input. That is `Textarea` — this one submits on Enter, which is wrong for any field inside a larger form.",
+					"Do not use it as a general multi-line input inside a larger form. That is `Textarea`. A standalone reply box that sends multi-paragraph messages (email, support replies) is this one with sendOn=\"mod-enter\".",
 			},
 			{
 				guidance: "dont",
@@ -136,6 +136,12 @@ export const chatComposerMeta: ComponentMeta = {
 			type: "string",
 			default: '"Send a message…"',
 			description: "Placeholder for the field.",
+		},
+		{
+			name: "sendOn",
+			type: '"enter" | "mod-enter"',
+			default: '"enter"',
+			description: "Which key sends. enter for chat (Shift+Enter breaks the line). mod-enter for long-form replies such as an email or a support answer: Enter breaks the line and Cmd/Ctrl+Enter sends, so a paragraph break never mails a draft. Say so in footer (\"Cmd+Enter to send\").",
 		},
 		{
 			name: "busy",

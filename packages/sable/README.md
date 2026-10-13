@@ -72,6 +72,8 @@ export default defineConfig({ resolve: { dedupe: ["react", "react-dom"] } })
 @source "../node_modules/@sableui/react/dist/**/*.{js,mjs}";
 ```
 
+That `@source` generates the classes of every Sable component, about 32 KB of CSS gzipped. Once the app is built, `npx sable sources --write src/sable-sources.css` writes `@source` lines for just the modules it imports (12 KB for an app using Card, Button and DataTable); `@import "./sable-sources.css";` in place of the line above. Re-run it after importing something new: `sable check` fails while the file is stale, since an unlisted component renders unstyled.
+
 **4. Fonts** — the default theme expects **Figtree** (sans) + **DM Mono** (mono). Each alternate preset declares its own families in its manifest (`registry.json → themes.available[].fonts`). Load whichever stacks you plan to use via `<link>` or `@font-face`; the theme manifests declare the stacks but ship no font files.
 
 **5. Providers + color mode / theme selection:**

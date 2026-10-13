@@ -375,9 +375,15 @@
 
 	/* The Switch knob when OFF: light in BOTH modes, like every physical toggle.
 	   It used to be `--background`, which in a dark theme is a near-black knob on
-	   a dark track (well under 3:1). When ON the knob takes `--primary-foreground`,
-	   the ink every theme already tunes against its primary fill. */
+	   a dark track (well under 3:1). */
 	--switch-thumb: var(--theme-switch-thumb, oklch(99% 0.002 90));
+	/* ON, the knob stays white too. It used to take `--primary-foreground`, the
+	   ink tuned for LABELS on the primary fill, so a mid-light brand colour that
+	   needs dark text gave a dark knob, which no switch has. A knob is a shape, not
+	   text: the track carries the state, and the knob only has to separate from
+	   it, which white does on any track short of near-white. So it turns dark
+	   only on a track lighter than L 0.9 (the near-white primary of a dark mode). */
+	--switch-thumb-on: var(--theme-switch-thumb-on, oklch(from var(--primary) clamp(0.25, calc((0.9 - l) * 1000), 0.99) 0.002 90));
 
 	/* The contact shadow under a knob: the Switch thumb, the Slider thumb, the
 	   ColorField handle. NOT the elevation ladder. `shadow-sm` is a surface's
@@ -1521,6 +1527,25 @@
    (sm 40 / md 48 / lg 64 / xl 80 / 2xl 96 rem) so they line up with the `lg:*`
    visibility utilities the app-shell components already use.
    ========================================================================== */
+
+/* Each element owns its breakpoint values. Custom properties inherit, so a
+   breakpoint a nested Grid or Col leaves unset read its ancestor's: a `cols={2}`
+   Grid inside `Columns count={{ lg: 12 }}` drew 12 tracks at lg. Resetting
+   them here makes an unset one invalid, so the fallback chain below runs on the
+   element itself; the values it was given are inline and win over this. */
+[data-sable-col] {
+	--col-span-base: initial; --col-span-sm: initial; --col-span-md: initial;
+	--col-span-lg: initial; --col-span-xl: initial; --col-span-2xl: initial;
+	--col-start-base: initial; --col-start-sm: initial; --col-start-md: initial;
+	--col-start-lg: initial; --col-start-xl: initial; --col-start-2xl: initial;
+}
+[data-sable-grid-cols] {
+	--cols-base: initial; --cols-sm: initial; --cols-md: initial;
+	--cols-lg: initial; --cols-xl: initial; --cols-2xl: initial;
+}
+[data-sable-split] {
+	--split-gap: initial;
+}
 
 /* `Col span={{ base, md, lg }}` / `start={…}` — each breakpoint resolves to the
    most specific value defined at or below it (mobile-first cascade). */

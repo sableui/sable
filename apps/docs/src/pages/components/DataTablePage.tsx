@@ -1,5 +1,6 @@
 import {
 	Badge,
+	Button,
 	Card,
 	CardContent,
 	CardFooter,
@@ -7,6 +8,7 @@ import {
 	dataTableMeta,
 	EmptyState,
 	Icon,
+	Toolbar,
 } from "@sableui/react"
 import { useState } from "react"
 import {
@@ -66,6 +68,7 @@ function formatDeployed(date: Date): string {
 
 export function DataTablePage() {
 	const [selectedId, setSelectedId] = useState<string>("dp_01")
+	const [checked, setChecked] = useState<Set<string | number>>(new Set())
 
 	return (
 		<>
@@ -115,7 +118,7 @@ export function DataTablePage() {
 
 			<Section
 				title="Row selection"
-				description="Click a row to select it."
+				description="Click a row to select it, for example to open it in a detail pane."
 			>
 				<Example className="block">
 					<Card>
@@ -143,6 +146,53 @@ export function DataTablePage() {
 						<CardFooter className="text-body-sm text-muted-foreground">
 							Selected: <span className="text-mono-caption">{selectedId}</span>
 						</CardFooter>
+					</Card>
+				</Example>
+			</Section>
+
+			<Section
+				title="Checkbox selection"
+				description="For bulk actions: a checkbox column, and a select-all box that acts on the rows shown and goes mixed when some are checked. Selection is yours to hold, by row key, so clear it when the rows shown change."
+			>
+				<Example className="block">
+					<Card>
+						{/* Mounted from the start, so a screen reader hears each change. */}
+						<span role="status" className="sr-only">
+							{checked.size ? `${checked.size} of ${deployments.length} selected` : ""}
+						</span>
+						{checked.size ? (
+							<Toolbar aria-label="Bulk actions" className="px-(--card-p) pt-4">
+								<span className="text-label-md">
+									{checked.size} of {deployments.length} selected
+								</span>
+								<Button size="sm" variant="secondary" onClick={() => setChecked(new Set())}>
+									Redeploy
+								</Button>
+							</Toolbar>
+						) : null}
+						<CardContent flush>
+							<DataTable
+								data={deployments}
+								rowKey={(row) => row.id}
+								selectedKeys={checked}
+								onSelectedKeysChange={setChecked}
+								rowSelectionLabel={(row) => `Select ${row.project}`}
+								selectAllLabel={(count) => `Select all ${count} deployments shown`}
+								columns={[
+									{ key: "project", header: "Project" },
+									{
+										key: "status",
+										header: "Status",
+										cell: (row) => (
+											<Badge appearance="plain" tone={statusTone(row.status)} dot>
+												{STATUS_LABEL[row.status]}
+											</Badge>
+										),
+									},
+									{ key: "duration", header: "Duration", align: "end" },
+								]}
+							/>
+						</CardContent>
 					</Card>
 				</Example>
 			</Section>

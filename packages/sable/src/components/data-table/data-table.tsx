@@ -4,6 +4,7 @@ import { type ReactNode, useMemo, useState } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
 import { Button } from "../button/button"
+import { Checkbox } from "../checkbox"
 import {
 	Table,
 	TableBody,
@@ -40,6 +41,8 @@ export interface DataTableColumn<Row> {
 	className?: string
 }
 
+export type DataTableRowKey = string | number
+
 export interface DataTableProps<Row> {
 	/** Column definitions, left to right. */
 	columns: DataTableColumn<Row>[]
@@ -49,8 +52,21 @@ export interface DataTableProps<Row> {
 	rowKey?: (row: Row, index: number) => string | number
 	/** Row click handler — makes rows pointer-interactive. */
 	onRowClick?: (row: Row) => void
-	/** Mark a row visually selected (`data-selected`). */
+	/** Mark a row visually selected (`data-selected`), e.g. the one open in a detail pane. */
 	isRowSelected?: (row: Row) => boolean
+	/**
+	 * The checked rows, by `rowKey`, for bulk actions. With `onSelectedKeysChange`
+	 * it adds a checkbox column and a select-all box in the header. Controlled:
+	 * when the rows shown change (a filter, another view), set the keys you want
+	 * kept — usually none.
+	 */
+	selectedKeys?: ReadonlySet<DataTableRowKey>
+	/** Called with the new set of checked keys. Its presence turns selection on. */
+	onSelectedKeysChange?: (keys: Set<DataTableRowKey>) => void
+	/** A row checkbox's accessible name. Name the row: `(t) => \`Select ${t.subject}\``. @default "Select row" */
+	rowSelectionLabel?: (row: Row) => string
+	/** The select-all checkbox's accessible name. @default (count) => `Select all ${count} shown` */
+	selectAllLabel?: (count: number) => string
 	/** Initial sort. */
 	defaultSort?: { key: string; direction: "asc" | "desc" }
 	/** Rendered (spanning all columns) when `data` is empty. @default "No results." */
@@ -63,7 +79,8 @@ export interface DataTableProps<Row> {
 /**
  * DataTable — a data-driven table over the Table primitives: a `columns` def + a
  * `data` array, with built-in client-side sorting (click a `sortable` header to
- * cycle asc → desc → none), optional row click / selection, and an empty state.
+ * cycle asc → desc → none), optional row click, checkbox selection for bulk
+ * actions (`selectedKeys` + `onSelectedKeysChange`), and an empty state.
  * For server-side data or paging, sort/page the `data` you pass in and pair it
  * with `Pagination`.
  *
@@ -83,6 +100,10 @@ export function DataTable<Row>({
 	rowKey,
 	onRowClick,
 	isRowSelected,
+	selectedKeys,
+	onSelectedKeysChange,
+	rowSelectionLabel = () => "Select row",
+	selectAllLabel = (count) => `Select all ${count} shown`,
 	defaultSort,
 	empty = "No results.",
 	caption,
@@ -118,11 +139,42 @@ export function DataTable<Row>({
 		})
 	}, [data, sort, columns])
 
+	const selectable = Boolean(onSelectedKeysChange)
+	// A row's key comes from its place in `data`, so it survives a re-sort.
+	const dataIndex = selectable ? new Map(data.map((row, i) => [row, i])) : null
+	const keyOf = (row: Row): DataTableRowKey => {
+		const i = dataIndex?.get(row) ?? 0
+		return rowKey ? rowKey(row, i) : i
+	}
+	const shownKeys = selectable ? rows.map(keyOf) : []
+	const checkedCount = selectable ? shownKeys.filter((k) => selectedKeys?.has(k)).length : 0
+	const allChecked = shownKeys.length > 0 && checkedCount === shownKeys.length
+	function setChecked(keys: DataTableRowKey[], checked: boolean) {
+		const next = new Set(selectedKeys)
+		for (const k of keys) {
+			if (checked) next.add(k)
+			else next.delete(k)
+		}
+		onSelectedKeysChange?.(next)
+	}
+
 	return (
 		<Table className={className}>
 			{caption ? <TableCaption>{caption}</TableCaption> : null}
 			<TableHeader>
 				<TableRow>
+					{selectable ? (
+						<TableHead className="w-0">
+							<Checkbox
+								aria-label={selectAllLabel(shownKeys.length)}
+								checked={allChecked}
+								indeterminate={checkedCount > 0 && !allChecked}
+								disabled={shownKeys.length === 0}
+								onCheckedChange={(checked) => setChecked(shownKeys, checked)}
+								className="align-middle"
+							/>
+						</TableHead>
+					) : null}
 					{columns.map((col) => {
 						const active = sort?.key === col.key
 						return (
@@ -176,7 +228,7 @@ export function DataTable<Row>({
 				{rows.length === 0 ? (
 					<TableRow>
 						<TableCell
-							colSpan={columns.length}
+							colSpan={columns.length + (selectable ? 1 : 0)}
 							// Plain text gets the breathing room; a composed node (an
 							// EmptyState) brings its own, and the cell's would double it.
 							className={cn(
@@ -188,10 +240,13 @@ export function DataTable<Row>({
 						</TableCell>
 					</TableRow>
 				) : (
-					rows.map((row, i) => (
+					rows.map((row, i) => {
+						const key = selectable ? keyOf(row) : i
+						const checked = selectable && Boolean(selectedKeys?.has(key))
+						return (
 						<TableRow
 							key={rowKey ? rowKey(row, i) : i}
-							data-selected={isRowSelected?.(row) ? "" : undefined}
+							data-selected={checked || isRowSelected?.(row) ? "" : undefined}
 							onClick={onRowClick ? () => onRowClick(row) : undefined}
 							// A clickable row is also a keyboard stop: Tab reaches it,
 							// Enter/Space activate it. Only when the row itself has focus,
@@ -213,6 +268,17 @@ export function DataTable<Row>({
 									: undefined
 							}
 						>
+							{selectable ? (
+								// A click on the box checks it; it never opens the row.
+								<TableCell className="w-0" onClick={(e) => e.stopPropagation()}>
+									<Checkbox
+										aria-label={rowSelectionLabel(row)}
+										checked={checked}
+										onCheckedChange={(next) => setChecked([key], next)}
+										className="align-middle"
+									/>
+								</TableCell>
+							) : null}
 							{columns.map((col) => (
 								<TableCell
 									key={col.key}
@@ -224,7 +290,8 @@ export function DataTable<Row>({
 								</TableCell>
 							))}
 						</TableRow>
-					))
+						)
+					})
 				)}
 			</TableBody>
 		</Table>

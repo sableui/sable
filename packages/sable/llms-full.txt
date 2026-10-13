@@ -1932,6 +1932,57 @@ Only label a record human when it reflects an actual human's stated judgment.
 
 ---
 
+# Task: patching a Sable component
+
+A Sable component has a defect that blocks your app, and the fix has not shipped.
+Don't restyle it from the outside with `className` (`component-restyle` flags
+that, and it fights the component's own states), and don't copy the component
+into the app (it imports Sable internals, and the copy drifts from every later
+fix). Patch the installed module and record why. Sable then re-checks the patch
+on every upgrade and tells you when to drop it.
+
+## Record it, then patch it
+
+```bash
+pnpm exec sable patch Card --reason "Row hover pokes past a flush card's corners" \
+  --repro "Hover the last row of the Tickets table at a 20px card radius"
+```
+
+The record goes in `.sable/patches.json`: the component, the files it covers,
+the Sable version, each file's hash as Sable shipped it, your reason and your
+repro. Commit it. The command prints the steps for your package manager:
+
+- **pnpm:** `pnpm patch @sableui/react@<version>`, edit the file in the folder
+  it prints, then `pnpm patch-commit <folder>`.
+- **Yarn 2+:** `yarn patch @sableui/react`, edit, then `yarn patch-commit -s <folder>`.
+- **npm or Yarn 1:** edit `node_modules/@sableui/react/<file>`, run
+  `npx patch-package @sableui/react`, and add `"postinstall": "patch-package"`.
+
+A component's patch covers its own modules (`dist/components/card/*.js`). When
+the defect is in a shared module, add it with `--file dist/lib/trim-label.js`.
+Keep the change as small as the defect. Then report it upstream (`--issue` keeps
+the link), so the library fix can replace the patch.
+
+## On every upgrade
+
+`sable doctor`, and so `sable check`, re-checks each recorded patch against the
+installed Sable:
+
+| State | Doctor | What to do |
+|---|---|---|
+| Same version, patch applied | passes | nothing |
+| Same version, not applied | warns | make the patch (the printed steps) |
+| Newer Sable changed a patched file | **fails**, citing the changelog entries that name the component | re-run the repro on Sable's own files. Fixed: `sable patch Card --drop` and remove the patch. Still broken: re-patch, then `sable patch Card --keep` |
+| Newer Sable left the file alone, patch carried over | passes | nothing |
+| Newer Sable left the file alone, patch lost | **fails** | re-apply it, then `--keep` |
+
+Nothing is kept or dropped silently. pnpm also stops an install whose patch
+names a version that is no longer installed; that is the same alert, earlier.
+
+`sable patch --list` shows every patch and its state.
+
+---
+
 # Task: reviewing a rendered design
 
 Review has two separate results: code conformance and observed design quality.
@@ -1944,6 +1995,11 @@ Save the surface brief, then capture the rendered route at a desktop width of at
 least 1024px and a mobile width of at most 480px. Record the actual viewport,
 route/state, supported color mode, and motion setting with each artifact. Inspect
 the whole route as well as its first viewport. Ensure fonts and media have loaded.
+Charts and other arrival motion draw when they scroll into view, so a full-page
+still taken with full motion shows the ones below the fold empty. Scroll the route
+through first and let the motion finish, or take that capture with
+`prefers-reduced-motion: reduce` emulated (everything then starts drawn). Don't
+report an undrawn chart as a defect without checking which happened.
 Also capture a route that sets a width cap, or goes fluid, at 1920px: a cap applies
 only once the viewport minus app chrome exceeds it, so at 1024–1440px `wide`,
 `full` and fluid usually look the same and the width decision never shows. Add
@@ -10774,7 +10830,7 @@ Use Breadcrumbs to show the user's location inside a hierarchy and provide light
 | Name | Type | Description |
 | --- | --- | --- |
 | BreadcrumbItem | ComponentPropsWithRef<'li'> | A single crumb slot (<li>) holding a link or the current page. |
-| BreadcrumbLink | ComponentPropsWithRef<'a'> | An interactive ancestor crumb (<a>). Muted by default, brightens to foreground on hover/focus. |
+| BreadcrumbLink | ComponentPropsWithRef<'a'> & { render?: useRender.RenderProp } | An interactive ancestor crumb (<a>). Muted by default, brightens to foreground on hover/focus. render composes another element with the crumb's styling, e.g. a router link: render={<Link to="/library" />}, so navigating stays in the app. |
 | BreadcrumbPage | ComponentPropsWithRef<'span'> | The current-page crumb (<span aria-current="page">). Non-interactive, full-contrast. |
 | BreadcrumbSeparator | ComponentPropsWithRef<'li'> + { children? } | Decorative divider (<li aria-hidden>) between crumbs. Defaults to a chevron-right icon; pass children to swap the glyph. |
 
@@ -11026,6 +11082,7 @@ Use Button when the user commits an action, submits a form, opens UI, or confirm
 ### Best practices
 
 - Do: Use a single primary button in a view or dense panel so the action hierarchy stays obvious.
+- Do: For a copy control, pair an icon Button with `useCopy(text, { timeout? })`. It takes the text when the hook is called and returns `{ copy, copied }`; `copy()` takes no argument, so pass the value the button copies to the hook, not to `copy`.
 - Do: Write labels as actions, such as "Save changes" or "Delete draft", instead of vague labels like "OK".
 - Do: Use loading with loadingLabel for async work so the action cannot double-fire and the state is announced.
 - Do: Put icons in iconStart / iconEnd rather than as children, so the button applies its optical padding. Start icons say what the action is (plus, share); end icons say where it goes (chevron-right, external).
@@ -11554,7 +11611,7 @@ import { Carousel } from "@sableui/react"
 
 **Status:** stable
 
-The input half of a conversation: one surface holding attachments, an auto-growing field, and its controls. Enter sends, Shift+Enter breaks the line, and send becomes stop while a reply streams.
+The input half of a conversation: one surface holding attachments, an auto-growing field, and its controls. Enter sends, Shift+Enter breaks the line (sendOn="mod-enter" swaps them for long-form replies), and send becomes stop while a reply streams.
 
 **Keywords:** chat input, composer, message input, prompt input, send message, ai chat, support chat, textarea
 
@@ -11571,7 +11628,7 @@ Pairs with MessageScroller to make a working chat. A single surface rather than 
 - Do: Building a docked agent panel inside a tool? Wrap the whole conversation — scroller, messages and composer — in `<Density value="compact">`. The entire set follows the workspace register from there: prose drops a tier, the rhythm tightens, and the controls come off the compact ladder. Do not hand-size it at the call site.
 - Don't: Do not clear a controlled composer for the user on send. Only the caller knows whether the send succeeded, and clearing on their behalf loses the message when it did not.
 - Don't: Do not add your own Enter-to-send handler on top. The built-in one already guards against firing mid-IME-composition, which is the line hand-rolled chat inputs miss.
-- Don't: Do not use it as a general multi-line input. That is `Textarea` — this one submits on Enter, which is wrong for any field inside a larger form.
+- Don't: Do not use it as a general multi-line input inside a larger form. That is `Textarea`. A standalone reply box that sends multi-paragraph messages (email, support replies) is this one with sendOn="mod-enter".
 - Don't: Do not override the field's type utility to make it match your transcript. The field and `Bubble` both read the same tier already, which is what stops a message changing size the moment it is sent — overriding one breaks that pairing.
 - Don't: Do not remove the height cap to let the field grow without limit. A pasted essay would push the conversation off the screen; past the cap it scrolls.
 
@@ -11593,6 +11650,7 @@ Pairs with MessageScroller to make a working chat. A single surface rather than 
 | onValueChange | (value: string) => void | — | Notified on every keystroke. Required when `value` is supplied. |
 | onSend | (value: string) => void | — | Called with the trimmed message. An uncontrolled composer clears itself afterwards; a controlled one is the caller's to clear. |
 | placeholder | string | "Send a message…" | Placeholder for the field. |
+| sendOn | "enter" \| "mod-enter" | "enter" | Which key sends. enter for chat (Shift+Enter breaks the line). mod-enter for long-form replies such as an email or a support answer: Enter breaks the line and Cmd/Ctrl+Enter sends, so a paragraph break never mails a draft. Say so in footer ("Cmd+Enter to send"). |
 | busy | boolean | false | A reply is streaming. Disables send, and swaps it for a stop control when `onStop` is supplied. |
 | onStop | () => void | — | Interrupt the in-flight reply. Supplying it turns send into stop while busy. |
 | disabled | boolean | false | Block sending entirely — over a limit, disconnected, read-only thread. Distinct from `busy`, which is temporary and offers a way out (stop). |
@@ -12379,7 +12437,7 @@ Use CommandMenu for global or contextual keyboard-driven actions: navigation, cr
 | useCommandMenuShortcut | (onShortcut: (event: KeyboardEvent) => void, key?: string \| false) => void | The page-wide ⌘K / Ctrl+K listener CommandMenuTrigger installs, for a palette with no visible trigger. Ignored while focus is in a text field, textarea, select or contenteditable (Ctrl+K belongs to the field there) except the palette's own input, so the callback may toggle. It calls preventDefault() on a match and skips an event already prevented, so two listeners on one page fire once. key defaults to "k"; false turns it off. Removed on unmount. |
 | CommandMenuPanel | { items?: CommandItem[]; query?: string; onQueryChange?: (query: string) => void; filter?: CommandFilter; listClassName?: string; placeholder?: string; emptyMessage?: string; title?: string; scope?: ReactNode; inputProps?: ComponentProps<'input'>; className?: string; children?: ReactNode } | The palette rendered in place: the same search header, filtered and grouped listbox, keyboard model and result-count live region, on a static card (border-border, bg-card, no shadow) instead of in a Dialog. Takes every CommandMenu prop except open, onOpenChange, finalFocus and description; className lands on the card, title names the listbox. Focus is not trapped and the input does not take focus on mount (inputProps.autoFocus opts in). Esc clears the query, and passes through once it is empty, so a Popover around the panel still closes. A chosen row runs its onSelect and the panel stays as it was. The page-wide shortcut does not fire from its input. |
 | CommandMenuGroup | { label: string; children } | A labelled group of command rows. |
-| CommandMenuItem | { onSelect?: () => void; icon?: string; detail?: ReactNode; hint?: ReactNode; disabled?: boolean; id?: string; children } | A selectable row. Self-filters by its text (unless the root was given a filter), runs onSelect, then closes the palette. detail is secondary text after the label; hint is the end-aligned trailing slot — a shortcut, a count, or a disabled row's reason. A disabled row stays listed, stays announced, and stays reachable by arrow key so its reason can be read, but is inert to Enter and to a click. |
+| CommandMenuItem | { onSelect?: () => void; icon?: string; detail?: ReactNode; stacked?: boolean; hint?: ReactNode; disabled?: boolean; id?: string; children } | A selectable row. Self-filters by its text (unless the root was given a filter), runs onSelect, then closes the palette. detail is secondary text after the label, or under it with stacked; hint is the end-aligned trailing slot — a shortcut, a count, or a disabled row's reason. A disabled row stays listed, stays announced, and stays reachable by arrow key so its reason can be read, but is inert to Enter and to a click. |
 
 ## Props
 
@@ -12389,7 +12447,7 @@ Use CommandMenu for global or contextual keyboard-driven actions: navigation, cr
 | inputProps | Omit<ComponentProps<'input'>, 'role' \| 'value' \| 'onChange' \| aria-*> | — | Extra props for the search input. `onKeyDown` runs BEFORE the palette's own handling and opts out of a key by calling preventDefault() — which is what makes a scope chip Backspace-dismissable. Running first is deliberate: Backspace happens not to be a key the palette claims today, so a plain passthrough would work until the palette grows a 'Backspace clears the query' affordance, at which point the consumer's behaviour breaks silently. The combobox wiring (role, aria relationships, controlled value) is not overridable; aria-label and className compose. |
 | open | boolean | — | Controlled open state of the palette. |
 | onOpenChange | (open: boolean) => void | — | Called on open/close (select, Esc, outside click). |
-| items | CommandItem[] | — | Data-driven commands ({ group, label, onSelect, id?, icon?, detail?, hint?, disabled? }). Ignored when children are provided. id is optional identity: filter is handed these same objects, so it is how a caller that ranks over its own richer model maps the array back onto it — and it becomes the row's DOM id (namespaced to the palette) and React key, so two rows may share a label. |
+| items | CommandItem[] | — | Data-driven commands ({ group, label, onSelect, id?, icon?, detail?, stacked?, hint?, disabled? }). stacked puts detail on its own line under the label, for results only their detail tells apart (two tickets with one subject); beside a long label an inline detail truncates first. Ignored when children are provided. id is optional identity: filter is handed these same objects, so it is how a caller that ranks over its own richer model maps the array back onto it — and it becomes the row's DOM id (namespaced to the palette) and React key, so two rows may share a label. |
 | query | string | — | Controlled query. Leave undefined to let the palette own it; either way it resets on close (a controlled caller gets onQueryChange('')). |
 | onQueryChange | (query: string) => void | — | Called on every query change. Required to control query, optional otherwise. |
 | filter | ((items: CommandItem[], query: string) => CommandItem[]) \| null | case-insensitive substring match on label | Replaces or disables the built-in match. A function ranks and filters items itself and its order is kept verbatim; null renders items exactly as given. Either also stops declarative CommandMenuItem children self-filtering. The query arrives raw — trimming and case are policy, and this is the prop that hands policy over. |
@@ -12690,7 +12748,11 @@ Use DataTable when a data array and column definition should render a sortable, 
 | data | Row[] | — | The rows to render. |
 | rowKey | (row, index) => string \| number | index | Stable React key per row. |
 | onRowClick | (row) => void | — | Row click handler — makes rows pointer-interactive. |
-| isRowSelected | (row) => boolean | — | Mark a row visually selected (data-selected). Derive it from a stable id (row.id === selectedId), not the row index, so selection survives re-sorts. |
+| isRowSelected | (row) => boolean | — | Mark a row visually selected (data-selected), e.g. the one open in a detail pane. Derive it from a stable id (row.id === selectedId), not the row index, so selection survives re-sorts. For checking several rows, use selectedKeys. |
+| selectedKeys | ReadonlySet<string \| number> | — | The checked rows, by rowKey, for bulk actions. With onSelectedKeysChange it adds a checkbox column (each box named by rowSelectionLabel) and a select-all box in the header that acts on the rows shown and goes mixed when some are checked. Checked rows get the selected fill. Controlled: when the rows shown change (a filter, another view), set the keys to keep, usually none. Needs rowKey. |
+| onSelectedKeysChange | (keys: Set<string \| number>) => void | — | Called with the new set of checked keys. Its presence turns selection on. A click on a box never fires onRowClick. |
+| rowSelectionLabel | (row) => string | () => "Select row" | A row checkbox's accessible name. Name the row, e.g. (t) => `Select ${t.subject}`, so a screen reader can tell the boxes apart. |
+| selectAllLabel | (count: number) => string | (count) => `Select all ${count} shown` | The select-all checkbox's accessible name; say what it acts on ("Select all 7 tickets shown"). |
 | defaultSort | { key: string; direction: "asc" \| "desc" } | — | Initial sort column + direction. |
 | empty | ReactNode | "No results." | Rendered spanning all columns when data is empty. Pass an EmptyState for the full treatment (icon, title, next step). |
 | caption | ReactNode | — | Bottom table caption. |
@@ -12711,6 +12773,34 @@ Use DataTable when a data array and column definition should render a sortable, 
 - Patterns: DashboardPage, ListDetailPage
 
 ## Examples
+
+### Checkbox selection with a bulk-action bar
+
+```tsx
+import { Button, DataTable, Stack, Toolbar } from "@sableui/react"
+
+const [selected, setSelected] = useState<Set<string | number>>(new Set())
+
+<Stack gap={2}>
+	{/* Mounted from the start, so a screen reader hears each change. */}
+	<span role="status" className="sr-only">{selected.size ? `${selected.size} of ${tickets.length} selected` : ""}</span>
+	{selected.size ? (
+		<Toolbar aria-label="Bulk actions">
+			<span className="text-label-md">{selected.size} of {tickets.length} selected</span>
+			<Button size="sm" variant="secondary" onClick={() => resolve(selected)}>Resolve</Button>
+		</Toolbar>
+	) : null}
+	<DataTable
+		data={tickets}
+		rowKey={(t) => t.id}
+		columns={columns}
+		selectedKeys={selected}
+		onSelectedKeysChange={setSelected}
+		rowSelectionLabel={(t) => `Select ${t.subject}`}
+		selectAllLabel={(n) => `Select all ${n} tickets shown`}
+	/>
+</Stack>
+```
 
 ### Sortable columns
 
@@ -13926,16 +14016,17 @@ Use Form and Field as the default wrapper for Sable form controls. Field owns th
 
 | Name | Type | Description |
 | --- | --- | --- |
-| Field | { label?: ReactNode; description?: ReactNode; error?: ReactNode; required?: boolean; disabled?: boolean; name?: string; validate?: (value, formValues) => string \| string[] \| null \| Promise<…>; validationMode?: "onSubmit" \| "onBlur" \| "onChange"; validationDebounceTime?: number; orientation?: "vertical" \| "horizontal"; className?: string; children: ReactElement } | Wraps a single control element (e.g. <Input />) on Base UI Field and wires label (htmlFor + aria-labelledby), helper text and error (aria-describedby), aria-invalid, and required onto it automatically. Base UI-backed controls (Input, Textarea, Select, Combobox, NumberField, Checkbox, Switch, Slider, OtpField…) register through context; the child is also cloned so plain elements keep the same wiring. error renders a destructive message and takes precedence; without it the slot shows Base UI's validation message when the field fails (native constraint, validate, or Form errors). required adds the native attribute plus a visual asterisk (defaults to false). disabled disables the control and dims the label. name keys the field in Form errors / onFormSubmit. validationMode overrides the Form's. orientation defaults to "vertical" (label → control); "horizontal" places control then label inline for a single checkbox / switch / radio — the control centres on the label's first line (it stays there when the label wraps) and description/error sit in the label's column. The root, label, description, error and control carry data-invalid / data-valid, data-touched, data-dirty, data-filled, data-focused and data-disabled for state styling. |
+| Field | { label?: ReactNode; description?: ReactNode; error?: ReactNode; required?: boolean; messages?: Partial<Record<"valueMissing" \| "typeMismatch" \| "patternMismatch" \| "tooShort" \| "tooLong" \| "rangeUnderflow" \| "rangeOverflow" \| "stepMismatch" \| "badInput", ReactNode>>; disabled?: boolean; name?: string; validate?: (value, formValues) => string \| string[] \| null \| Promise<…>; validationMode?: "onSubmit" \| "onBlur" \| "onChange"; validationDebounceTime?: number; orientation?: "vertical" \| "horizontal"; className?: string; children: ReactElement } | Wraps a single control element (e.g. <Input />) on Base UI Field and wires label (htmlFor + aria-labelledby), helper text and error (aria-describedby), aria-invalid, and required onto it automatically. Base UI-backed controls (Input, Textarea, Select, Combobox, NumberField, Checkbox, Switch, Slider, OtpField…) register through context; the child is also cloned so plain elements keep the same wiring. error renders a destructive message and takes precedence; without it the slot shows the field's messages entry for the native constraint that failed (messages={{ valueMissing: "Enter a subject." }}), else Base UI's validation message (the browser's wording for a native constraint, validate, or Form errors). required adds the native attribute plus a visual asterisk (defaults to false). disabled disables the control and dims the label. name keys the field in Form errors / onFormSubmit. validationMode overrides the Form's. orientation defaults to "vertical" (label → control); "horizontal" places control then label inline for a single checkbox / switch / radio — the control centres on the label's first line (it stays there when the label wraps) and description/error sit in the label's column. The root, label, description, error and control carry data-invalid / data-valid, data-touched, data-dirty, data-filled, data-focused and data-disabled for state styling. |
 
 ## Props
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| Form | { validationMode?: "onSubmit" \| "onBlur" \| "onChange"; errors?: Record<string, string \| string[]>; onFormSubmit?: (values, details) => void; actionsRef?: RefObject<Form.Actions> } + ComponentPropsWithRef<"form"> | — | A <form> laid out as a vertical column with comfortable field spacing (override with className, e.g. gap-4). On submit it validates every Field (native constraints plus Field validate), shows each message under its field, focuses the first invalid control, and only then calls onSubmit. validationMode defaults to "onSubmit" (then live re-validation on change). errors shows external (e.g. server) messages keyed by Field name and clears one when its field is edited. onFormSubmit receives the named Field values and prevents the native submit. A control outside any Field is still checked by the browser before onSubmit runs; pass noValidate to skip that. |
+| Form | { validationMode?: "onSubmit" \| "onBlur" \| "onChange"; errors?: Record<string, string \| string[]>; onFormSubmit?: (values, details) => void; actionsRef?: RefObject<Form.Actions> } + ComponentPropsWithRef<"form"> | — | A <form> laid out as a vertical column with comfortable field spacing (override with className, e.g. gap-4). On submit it validates every Field (native constraints plus Field validate), shows each message under its field, focuses the first invalid control, and only then calls onSubmit. validationMode defaults to "onSubmit" (then live re-validation on change). errors shows external (e.g. server) messages keyed by Field name and clears one when its field is edited. onFormSubmit receives the named Field values and prevents the native submit. A control outside any Field is still checked by the browser before onSubmit runs. Validating in your own code (react-hook-form, a schema, state)? Pass noValidate: onSubmit always runs and each Field shows the error you set; without it an empty required Field stops the submit before your handler can set that error. |
 | validationMode | "onSubmit" \| "onBlur" \| "onChange" | "onSubmit" | When Fields validate. After the first submit, fields re-check as the user edits. A Field's own validationMode wins. |
 | errors | Record<string, string \| string[]> | — | External (e.g. server) messages keyed by Field name, shown under that field. Each clears when its field is edited. |
 | onFormSubmit | (values: Record<string, unknown>, details) => void | — | Called with the named Field values after validation passes; prevents the native submit. |
+| noValidate | boolean | false | Your code owns validation: nothing is checked before onSubmit (neither the Fields nor the browser), so it always runs and each Field shows the error you pass. required Fields keep their asterisk and aria-required. validationMode, errors, onFormSubmit and actionsRef do nothing with it. |
 | actionsRef | RefObject<{ validate(name?: string): void }> | — | Imperative handle to validate every field, or one by name. |
 
 ## Tokens used
@@ -13970,6 +14061,22 @@ import { Field, Input } from "@sableui/react"
 import { Field, Input } from "@sableui/react"
 
 <Field label="Password" error="Must be at least 8 characters."><Input type="password" /></Field>
+```
+
+### Your own wording for a missing value
+
+```tsx
+import { Button, Field, Form, Input } from "@sableui/react"
+
+<Form onSubmit={handleSubmit}><Field label="Subject" required messages={{ valueMissing: "Enter a subject." }}><Input name="subject" /></Field><Button type="submit">Send</Button></Form>
+```
+
+### Validation in your own code
+
+```tsx
+import { Button, Field, Form, Input } from "@sableui/react"
+
+<Form noValidate onSubmit={handleSubmit}><Field label="Subject" required error={errors.subject}><Input name="subject" /></Field><Button type="submit">Send</Button></Form>
 ```
 
 ### Validated on submit
@@ -15320,7 +15427,7 @@ The scroll region a conversation lives in. It owns the scrolling and nothing els
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| ref | Ref<MessageScrollerHandle> | — | Imperative commands, not the DOM node: `scrollToBottom(opts)`, `scrollToTop(opts)`, `scrollToMessage(id, opts)` (returns false when the message is not rendered), `isFollowing()`, and `element` for the scrolling node itself. |
+| ref | Ref<MessageScrollerHandle> | — | Imperative commands, not the DOM node: `scrollToBottom(opts)`, `scrollToTop(opts)`, `scrollToMessage(id, opts)` (returns false when the message is not rendered), `isFollowing()`, and `element` for the scrolling node itself. `opts` is `ScrollCommandOptions`: `{ animate?: boolean }` (default true, and off whenever motion is), not the DOM's `behavior`. |
 | autoFollow | boolean | true | Keep the newest message in view as content arrives, until the reader scrolls away from the bottom. Set false for a transcript that must never move under the reader. |
 | followThreshold | number | 64 | Distance from the bottom, in px, that still counts as following. A band rather than a pixel, so a token arriving mid-frame does not flicker the state. |
 | onFollowChange | (following: boolean) => void | — | Notified when the viewport pins to, or releases from, the newest message. |
@@ -16013,7 +16120,7 @@ Use PageHeader to establish a page's title, supporting description, and primary 
 | title | ReactNode | — | The page title (renders an <h1>). |
 | description | ReactNode | — | Supporting copy beneath the title. |
 | back | ReactNode | — | Leading element before the title — typically a back control on drill-in routes. Keep it a ghost icon Button (size="icon", variant="ghost", aria-label="Back") so it stays quieter than the title. A ghost back control bleeds by its inset at the start, so its glyph lines up with the content edge below (Button bleed="none" opts out). |
-| actions | ReactNode | — | Trailing actions aligned to the title row's end. They drop under the title when the row runs out of room, and the title wraps rather than truncating. A ghost or link Button at either end of the group bleeds by its own padding, so its label meets the content edge (the end on the title row, the start once wrapped); filled buttons keep their edge on the line. Direct children only. |
+| actions | ReactNode | — | Trailing actions aligned to the title row's end. They drop under the title when the title would have less than 20rem beside them (on a phone, nearly always), and the title wraps rather than truncating. A ghost or link Button at either end of the group bleeds by its own padding, so its label meets the content edge (the end on the title row, the start once wrapped); filled buttons keep their edge on the line. Direct children only. |
 | titleAs | "h1" \| "h2" | "h1" | The title's heading element. Keep h1 — the route's one h1. Use h2 only when something above already owns the h1: a shell that renders the route title, or a page showing a PageHeader as an example. |
 
 ## Tokens used
@@ -18092,7 +18199,7 @@ import { Row, Separator } from "@sableui/react"
 
 **Status:** stable
 
-A compact trigger that states the current settings, over a menu of rows that change them. Each row shows its own value and opens a submenu.
+A compact trigger that states the current settings, over a menu of rows that change them. Each row shows its own value and opens a submenu; with one setting, the menu opens straight to its options under the row's label.
 
 **Keywords:** settings, model picker, model switcher, options menu, preferences, submenu, quality settings, ai chat
 
@@ -18432,6 +18539,7 @@ Use Sidebar for persistent desktop navigation or application chrome outside the 
 
 | Name | Type | Description |
 | --- | --- | --- |
+| SidebarHeader | div props | The top of the rail, at least 64px tall. It holds SidebarBrand and may take a second row under it, such as a search field or a notifications button: give that row basis-full and the header grows to hold it instead of clipping. |
 | SidebarBrand | { mark: ReactNode; label: ReactNode; render?: useRender.RenderProp } + div props | The brand row, inside SidebarHeader, on the same grid as SidebarItem: mark in the icons' 24px slot, label on the labels' column, so a logo lines up with the nav below it without copying the rail's inset numbers. Collapsed, it shows the mark alone (named by a string label). render={<Link to="/" />} makes it the home link. |
 | SidebarItem | { label: ReactNode; icon?: ReactNode; active?: boolean; badge?: ReactNode; render?: useRender.RenderProp } + button props | A single nav row. label is the row text (inline when expanded, in a hover tooltip when collapsed); icon is the leading icon node (the consumer swaps fill weight for the active state); active marks the current route (accent fill + aria-current="page"); badge is a trailing node (e.g. a count) pushed to the row end and hidden when collapsed; render composes another element, e.g. render={<Link to="/x" />}. |
 
@@ -19357,7 +19465,7 @@ import { StreamingText } from "@sableui/react"
 
 **Status:** stable
 
-Binary on/off toggle for immediate-effect settings. Track fills with the primary tone when checked; the thumb slides on a spring-eased transform (mirrored in RTL).
+Binary on/off toggle for immediate-effect settings. Track fills with the primary tone when checked; the thumb slides on a spring-eased transform (mirrored in RTL). The thumb is white in both states, like every physical toggle, and turns dark only on a near-white track (a dark mode's light primary). Themes can set --theme-switch-thumb-on.
 
 **Keywords:** switch, toggle setting, on off, form control
 
@@ -19387,7 +19495,7 @@ Use Switch for immediate on/off settings that take effect as a persistent prefer
 
 ## Tokens used
 
-`input`, `primary`, `primary-foreground`, `ring`
+`input`, `primary`, `ring`
 
 ## Motion
 

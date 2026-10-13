@@ -48,19 +48,31 @@ export function trimLabel(children: ReactNode): ReactNode {
 	if (children == null || typeof children === "boolean") return children
 	if (isValidElement(children)) return children
 
+	// Adjacent text is ONE label. JSX splits `All ({count})` into four children
+	// ("All (", 12, ")"), and wrapping each made four flex items, so the control's
+	// gap pulled them apart into "All ( 12 )". Runs of text and numbers join into
+	// one span; elements between them stay their own items.
+	const out: ReactNode[] = []
+	let run: (string | number)[] = []
 	let wrapped = false
-	const out = Children.map(children, (child, i) => {
-		if (typeof child !== "string" && typeof child !== "number") return child
+	const flush = () => {
+		if (!run.length) return
 		wrapped = true
-		// A key is required here because this branch returns a new element into a
-		// mapped list; React.Children.map prefixes its own key, but an explicit one
-		// keeps the identity stable if siblings reorder around it.
-		return (
-			<span className="sable-label-trim" key={`label-${i}`}>
-				{child}
-			</span>
+		out.push(
+			<span className="sable-label-trim" key={`label-${out.length}`}>
+				{run.join("")}
+			</span>,
 		)
-	})
+		run = []
+	}
+	for (const child of Children.toArray(children)) {
+		if (typeof child === "string" || typeof child === "number") run.push(child)
+		else {
+			flush()
+			out.push(child)
+		}
+	}
+	flush()
 	// Nothing textual to trim — hand back the original so we don't churn the tree.
 	return wrapped ? out : children
 }

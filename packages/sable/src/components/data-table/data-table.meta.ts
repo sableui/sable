@@ -108,7 +108,30 @@ export const dataTableMeta: ComponentMeta = {
 			name: "isRowSelected",
 			type: "(row) => boolean",
 			description:
-				"Mark a row visually selected (data-selected). Derive it from a stable id (row.id === selectedId), not the row index, so selection survives re-sorts.",
+				"Mark a row visually selected (data-selected), e.g. the one open in a detail pane. Derive it from a stable id (row.id === selectedId), not the row index, so selection survives re-sorts. For checking several rows, use selectedKeys.",
+		},
+		{
+			name: "selectedKeys",
+			type: "ReadonlySet<string | number>",
+			description:
+				"The checked rows, by rowKey, for bulk actions. With onSelectedKeysChange it adds a checkbox column (each box named by rowSelectionLabel) and a select-all box in the header that acts on the rows shown and goes mixed when some are checked. Checked rows get the selected fill. Controlled: when the rows shown change (a filter, another view), set the keys to keep, usually none. Needs rowKey.",
+		},
+		{
+			name: "onSelectedKeysChange",
+			type: "(keys: Set<string | number>) => void",
+			description: "Called with the new set of checked keys. Its presence turns selection on. A click on a box never fires onRowClick.",
+		},
+		{
+			name: "rowSelectionLabel",
+			type: "(row) => string",
+			default: '() => "Select row"',
+			description: "A row checkbox's accessible name. Name the row, e.g. (t) => `Select ${t.subject}`, so a screen reader can tell the boxes apart.",
+		},
+		{
+			name: "selectAllLabel",
+			type: "(count: number) => string",
+			default: '(count) => `Select all ${count} shown`',
+			description: "The select-all checkbox's accessible name; say what it acts on (\"Select all 7 tickets shown\").",
 		},
 		{
 			name: "defaultSort",
@@ -135,6 +158,10 @@ export const dataTableMeta: ComponentMeta = {
 		"Inherits the Table's scrollable frame and semantic <table>/<th>/<td> structure.",
 	],
 	examples: [
+		{
+			label: "Checkbox selection with a bulk-action bar",
+			code: "const [selected, setSelected] = useState<Set<string | number>>(new Set())\n\n<Stack gap={2}>\n\t{/* Mounted from the start, so a screen reader hears each change. */}\n\t<span role=\"status\" className=\"sr-only\">{selected.size ? `${selected.size} of ${tickets.length} selected` : \"\"}</span>\n\t{selected.size ? (\n\t\t<Toolbar aria-label=\"Bulk actions\">\n\t\t\t<span className=\"text-label-md\">{selected.size} of {tickets.length} selected</span>\n\t\t\t<Button size=\"sm\" variant=\"secondary\" onClick={() => resolve(selected)}>Resolve</Button>\n\t\t</Toolbar>\n\t) : null}\n\t<DataTable\n\t\tdata={tickets}\n\t\trowKey={(t) => t.id}\n\t\tcolumns={columns}\n\t\tselectedKeys={selected}\n\t\tonSelectedKeysChange={setSelected}\n\t\trowSelectionLabel={(t) => `Select ${t.subject}`}\n\t\tselectAllLabel={(n) => `Select all ${n} tickets shown`}\n\t/>\n</Stack>",
+		},
 		{
 			label: "Sortable columns",
 			code: '<DataTable data={users} columns={[{ key: "name", header: "Name", sortable: true }, { key: "role", header: "Role" }, { key: "joined", header: "Joined", sortable: true, sortValue: (u) => u.joinedAt, cell: (u) => formatDate(u.joinedAt) }]} />',

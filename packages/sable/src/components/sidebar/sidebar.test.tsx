@@ -69,6 +69,17 @@ describe("Sidebar / SidebarItem", () => {
 		expect(aside).toHaveAttribute("data-variant", "inline")
 	})
 
+	it("grows to hold a second row instead of clipping it at a fixed height", () => {
+		render(
+			<Sidebar variant="inline">
+				<SidebarHeader>S</SidebarHeader>
+			</Sidebar>,
+		)
+		const header = screen.getByText("S")
+		expect(header).toHaveClass("min-h-16", "flex-wrap")
+		expect(header).not.toHaveClass("h-16")
+	})
+
 	it("centres the header on the icon axis when collapsed", () => {
 		render(
 			<Sidebar collapsed variant="inline">

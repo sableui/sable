@@ -46,7 +46,8 @@ export function Toggle({ className, ...props }: ToggleProps) {
 						),
 				"data-[pressed]:bg-accent data-[pressed]:text-accent-foreground",
 				"disabled:pointer-events-none disabled:opacity-50",
-				"[&_svg]:shrink-0",
+				// An icon beside a label is spaced like Button's; without it they touched.
+				"gap-(--control-gap) [&_svg]:shrink-0",
 				className,
 			)}
 			{...props}

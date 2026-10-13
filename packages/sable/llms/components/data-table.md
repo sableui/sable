@@ -36,7 +36,11 @@ Use DataTable when a data array and column definition should render a sortable, 
 | data | Row[] | — | The rows to render. |
 | rowKey | (row, index) => string \| number | index | Stable React key per row. |
 | onRowClick | (row) => void | — | Row click handler — makes rows pointer-interactive. |
-| isRowSelected | (row) => boolean | — | Mark a row visually selected (data-selected). Derive it from a stable id (row.id === selectedId), not the row index, so selection survives re-sorts. |
+| isRowSelected | (row) => boolean | — | Mark a row visually selected (data-selected), e.g. the one open in a detail pane. Derive it from a stable id (row.id === selectedId), not the row index, so selection survives re-sorts. For checking several rows, use selectedKeys. |
+| selectedKeys | ReadonlySet<string \| number> | — | The checked rows, by rowKey, for bulk actions. With onSelectedKeysChange it adds a checkbox column (each box named by rowSelectionLabel) and a select-all box in the header that acts on the rows shown and goes mixed when some are checked. Checked rows get the selected fill. Controlled: when the rows shown change (a filter, another view), set the keys to keep, usually none. Needs rowKey. |
+| onSelectedKeysChange | (keys: Set<string \| number>) => void | — | Called with the new set of checked keys. Its presence turns selection on. A click on a box never fires onRowClick. |
+| rowSelectionLabel | (row) => string | () => "Select row" | A row checkbox's accessible name. Name the row, e.g. (t) => `Select ${t.subject}`, so a screen reader can tell the boxes apart. |
+| selectAllLabel | (count: number) => string | (count) => `Select all ${count} shown` | The select-all checkbox's accessible name; say what it acts on ("Select all 7 tickets shown"). |
 | defaultSort | { key: string; direction: "asc" \| "desc" } | — | Initial sort column + direction. |
 | empty | ReactNode | "No results." | Rendered spanning all columns when data is empty. Pass an EmptyState for the full treatment (icon, title, next step). |
 | caption | ReactNode | — | Bottom table caption. |
@@ -57,6 +61,34 @@ Use DataTable when a data array and column definition should render a sortable, 
 - Patterns: DashboardPage, ListDetailPage
 
 ## Examples
+
+### Checkbox selection with a bulk-action bar
+
+```tsx
+import { Button, DataTable, Stack, Toolbar } from "@sableui/react"
+
+const [selected, setSelected] = useState<Set<string | number>>(new Set())
+
+<Stack gap={2}>
+	{/* Mounted from the start, so a screen reader hears each change. */}
+	<span role="status" className="sr-only">{selected.size ? `${selected.size} of ${tickets.length} selected` : ""}</span>
+	{selected.size ? (
+		<Toolbar aria-label="Bulk actions">
+			<span className="text-label-md">{selected.size} of {tickets.length} selected</span>
+			<Button size="sm" variant="secondary" onClick={() => resolve(selected)}>Resolve</Button>
+		</Toolbar>
+	) : null}
+	<DataTable
+		data={tickets}
+		rowKey={(t) => t.id}
+		columns={columns}
+		selectedKeys={selected}
+		onSelectedKeysChange={setSelected}
+		rowSelectionLabel={(t) => `Select ${t.subject}`}
+		selectAllLabel={(n) => `Select all ${n} tickets shown`}
+	/>
+</Stack>
+```
 
 ### Sortable columns
 

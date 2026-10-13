@@ -1,5 +1,10 @@
 import type { IconComponent, IconWeight } from "reicon-react/createIcon"
 import { Pipette } from "reicon-react/icons/Pipette"
+import { AtSign } from "reicon-react/icons/AtSign"
+import { ChartBar } from "reicon-react/icons/ChartBar"
+import { Flag } from "reicon-react/icons/Flag"
+import { Paperclip } from "reicon-react/icons/Paperclip"
+import { Tag } from "reicon-react/icons/Tag"
 import { Key } from "reicon-react/icons/Key"
 import { Stop } from "reicon-react/icons/Stop"
 import { ThumbsDown } from "reicon-react/icons/ThumbsDown"
@@ -184,6 +189,13 @@ const ICONS: Record<string, IconComponent> = {
 	"volume-off": VolumeCross,
 	queue: Playlist,
 	music: MusicNote,
+	// Added when a support inbox had no glyph for labels, attachments, reports,
+	// priority or mentions, and stood in `layout` and `list` for them.
+	tag: Tag,
+	paperclip: Paperclip,
+	chart: ChartBar,
+	flag: Flag,
+	"at-sign": AtSign,
 }
 
 /** Sable's `variant` → Reicon's weight names. */

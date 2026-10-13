@@ -38,6 +38,11 @@ export const buttonMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
+					"For a copy control, pair an icon Button with `useCopy(text, { timeout? })`. It takes the text when the hook is called and returns `{ copy, copied }`; `copy()` takes no argument, so pass the value the button copies to the hook, not to `copy`.",
+			},
+			{
+				guidance: "do",
+				description:
 					"Write labels as actions, such as \"Save changes\" or \"Delete draft\", instead of vague labels like \"OK\".",
 			},
 			{

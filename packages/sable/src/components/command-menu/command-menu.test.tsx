@@ -823,3 +823,23 @@ describe("CommandMenuPanel — the palette in place", () => {
 		expect(results.violations).toEqual([])
 	})
 })
+
+describe("CommandMenu — stacked rows", () => {
+	it("puts a stacked item's detail on its own line under the label", () => {
+		renderWithProviders(
+			<CommandMenu
+				open
+				onOpenChange={() => {}}
+				items={[
+					{ group: "Tickets", label: "Refund not received", detail: "#4120 · Ada Lovelace", stacked: true, onSelect: () => {} },
+					{ group: "Tickets", label: "Refund not received", detail: "#4188 · Grace Hopper", onSelect: () => {} },
+				]}
+			/>,
+		)
+		const [stacked, inline] = screen.getAllByRole("option")
+		const detail = within(stacked).getByText("#4120 · Ada Lovelace")
+		expect(detail.parentElement).toHaveClass("flex-col")
+		expect(within(stacked).getByText("Refund not received").parentElement).toBe(detail.parentElement)
+		expect(within(inline).getByText("#4188 · Grace Hopper").parentElement).toBe(inline)
+	})
+})
