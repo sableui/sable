@@ -9,7 +9,7 @@
  *
  *   <route>/index.html  for every route the app renders: the same app shell
  *                       plus a real <title>, description, canonical URL, Open
- *                       Graph / Twitter meta, a `<link rel="alternate"
+ *                       Graph / Twitter meta (with the share image), a `<link rel="alternate"
  *                       type="text/markdown">` to the agent-readable twin, and
  *                       the twin itself rendered as plain HTML inside #root.
  *                       The app boots on top and replaces it.
@@ -58,6 +58,9 @@ const ORIGIN = site.origin.replace(/\/+$/, "")
 
 const escape = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
 const kebab = (name) => name.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase() // = componentSlug
+// Crawlers need the share image as an absolute URL.
+if (!existsSync(join(DIST, site.image.path.replace(/^\/+/, "")))) fail(`share image ${site.image.path} is not in dist — render it with scripts/render-og-image.mjs.`)
+const SHARE_IMAGE = `${ORIGIN}${site.image.path}`
 const urlFor = (route) => (route === "" ? `${ORIGIN}/` : `${ORIGIN}/${route}`)
 
 // ── The routes the app renders ────────────────────────────────────────────
@@ -232,11 +235,18 @@ function documentFor({ title, description, canonical, markdown, index, noscript,
 		`<meta property="og:title" content="${escape(title)}" />`,
 		`<meta property="og:description" content="${escape(description)}" />`,
 		canonical ? `<meta property="og:url" content="${canonical}" />` : null,
-		// No og:image yet: the site has no raster share image. With one, add
-		// og:image (+ width/height/alt) and switch the card to summary_large_image.
-		`<meta name="twitter:card" content="summary" />`,
+		// One share image for every page (og.html, rendered by
+		// scripts/render-og-image.mjs); each page keeps its own title and description.
+		`<meta property="og:image" content="${SHARE_IMAGE}" />`,
+		`<meta property="og:image:type" content="image/png" />`,
+		`<meta property="og:image:width" content="${site.image.width}" />`,
+		`<meta property="og:image:height" content="${site.image.height}" />`,
+		`<meta property="og:image:alt" content="${escape(site.image.alt)}" />`,
+		`<meta name="twitter:card" content="summary_large_image" />`,
 		`<meta name="twitter:title" content="${escape(title)}" />`,
 		`<meta name="twitter:description" content="${escape(description)}" />`,
+		`<meta name="twitter:image" content="${SHARE_IMAGE}" />`,
+		`<meta name="twitter:image:alt" content="${escape(site.image.alt)}" />`,
 		body ? PRERENDER_CSS : null,
 	]
 		.filter(Boolean)
