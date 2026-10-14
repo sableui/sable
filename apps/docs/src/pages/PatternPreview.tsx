@@ -1,5 +1,6 @@
 import { Spinner } from "@sableui/react"
-import { type ComponentType, lazy, Suspense } from "react"
+import { type ComponentType, Suspense } from "react"
+import { lazyRoute } from "../lib/lazy-route"
 
 /**
  * Bare full-page pattern renderer — no DocsShell. Served at `/preview/<slug>`
@@ -7,28 +8,28 @@ import { type ComponentType, lazy, Suspense } from "react"
  * skip links, #main-content) never nest inside the docs' own shell.
  */
 const previews: Record<string, ComponentType> = {
-	"dashboard-page": lazy(() =>
+	"dashboard-page": lazyRoute(() =>
 		import("@sableui/react/patterns").then((m) => ({ default: m.DashboardPage })),
 	),
-	"settings-page": lazy(() =>
+	"settings-page": lazyRoute(() =>
 		import("@sableui/react/patterns").then((m) => ({ default: m.SettingsPage })),
 	),
-	"auth-page": lazy(() =>
+	"auth-page": lazyRoute(() =>
 		import("@sableui/react/patterns").then((m) => ({ default: m.AuthPage })),
 	),
-	"list-detail-page": lazy(() =>
+	"list-detail-page": lazyRoute(() =>
 		import("@sableui/react/patterns").then((m) => ({ default: m.ListDetailPage })),
 	),
-	"feed-page": lazy(() =>
+	"feed-page": lazyRoute(() =>
 		import("@sableui/react/patterns").then((m) => ({ default: m.FeedPage })),
 	),
-	"landing-page": lazy(() =>
+	"landing-page": lazyRoute(() =>
 		import("@sableui/react/patterns").then((m) => ({ default: m.LandingPage })),
 	),
-	"brand-landing-page": lazy(() =>
+	"brand-landing-page": lazyRoute(() =>
 		import("@sableui/react/patterns").then((m) => ({ default: m.BrandLandingPage })),
 	),
-	"chat-panel": lazy(() =>
+	"chat-panel": lazyRoute(() =>
 		import("@sableui/react/patterns").then((m) => ({ default: m.ChatPanel })),
 	),
 }

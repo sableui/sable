@@ -77,7 +77,7 @@ for (const m of pagesBlock.matchAll(/["']?([a-z0-9-]+)["']?:\s*page\(\s*\(\)\s*=
 if (appPages.size < 50) fail(`parsed only ${appPages.size} routes from src/App.tsx — has the pages map changed shape?`)
 
 const previewSource = readFileSync(join(SRC, "pages", "PatternPreview.tsx"), "utf8")
-const previewSlugs = [...previewSource.matchAll(/^\t"([a-z0-9-]+)":\s*lazy\(/gm)].map((m) => m[1])
+const previewSlugs = [...previewSource.matchAll(/^\t"([a-z0-9-]+)":\s*lazy(?:Route)?\(/gm)].map((m) => m[1])
 const catalogPatterns = JSON.parse(readFileSync(join(SRC, "generated", "catalog-patterns.json"), "utf8"))
 for (const p of catalogPatterns) {
 	const slug = p.path.replace(/^patterns\//, "").replace(/\.tsx$/, "")

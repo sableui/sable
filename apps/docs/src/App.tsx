@@ -5,13 +5,15 @@ import {
 	componentSlug,
 	componentsInGroup,
 } from "@sableui/react"
-import { type ComponentType, lazy, Suspense, useEffect, useRef } from "react"
+import { type ComponentType, useEffect, useRef } from "react"
 import {
 	DocsShell,
 	type NavArea,
 	type NavSection,
 } from "./components/DocsShell"
 import { IntroCurtain, introPending } from "./components/IntroCurtain"
+import { RouteBoundary } from "./components/RouteErrorBoundary"
+import { lazyRoute } from "./lib/lazy-route"
 import { redirect, useRoute } from "./lib/router"
 import site from "./site-meta.json"
 
@@ -24,16 +26,16 @@ function page<T extends Record<string, ComponentType>>(
 	loader: () => Promise<T>,
 	name: keyof T,
 ): ComponentType {
-	return lazy(() =>
+	return lazyRoute(() =>
 		loader().then((m) => ({ default: m[name] as ComponentType })),
 	)
 }
 
-const PatternPreviewRoute = lazy(() =>
+const PatternPreviewRoute = lazyRoute(() =>
 	import("./pages/PatternPreview").then((m) => ({ default: m.PatternPreview })),
 )
 
-const CustomizeRoute = lazy(() =>
+const CustomizeRoute = lazyRoute(() =>
 	import("./pages/CustomizeCanvas").then((m) => ({ default: m.CustomizeCanvasPage })),
 )
 
@@ -613,9 +615,9 @@ export function App() {
 		// page) stands in for the spinner, so the intro starts from first paint.
 		return (
 			<DocsShell areas={areas} current={slug} bare title={site.homeTitle}>
-				<Suspense fallback={introPending() ? <IntroCurtain /> : <RouteFallback />}>
+				<RouteBoundary slug={slug} fallback={introPending() ? <IntroCurtain /> : <RouteFallback />}>
 					<Home />
-				</Suspense>
+				</RouteBoundary>
 			</DocsShell>
 		)
 	}
@@ -624,9 +626,9 @@ export function App() {
 	if (slug === "customize") {
 		return (
 			<DocsShell areas={areas} current={slug} max="full" title="Canvas — Sable">
-				<Suspense fallback={<RouteFallback />}>
+				<RouteBoundary slug={slug} fallback={<RouteFallback />}>
 					<CustomizeRoute />
-				</Suspense>
+				</RouteBoundary>
 			</DocsShell>
 		)
 	}
@@ -634,9 +636,9 @@ export function App() {
 	// (AppShell, skip links, #main-content) never nest inside the docs' own.
 	if (slug.startsWith("preview/")) {
 		return (
-			<Suspense fallback={<RouteFallback />}>
+			<RouteBoundary slug={slug} fallback={<RouteFallback />}>
 				<PatternPreviewRoute slug={slug.slice("preview/".length)} />
-			</Suspense>
+			</RouteBoundary>
 		)
 	}
 	// The retired Full builds page and its routes: builds are local now.
@@ -654,9 +656,9 @@ export function App() {
 	if (slug === "guidelines") {
 		return (
 			<DocsShell areas={areas} current={slug} max={width}>
-				<Suspense fallback={<RouteFallback />}>
+				<RouteBoundary slug={slug} fallback={<RouteFallback />}>
 					<GuidelinesRoute />
-				</Suspense>
+				</RouteBoundary>
 			</DocsShell>
 		)
 	}
@@ -681,17 +683,17 @@ export function App() {
 	if (!Page) {
 		return (
 			<DocsShell areas={areas} current={slug} max={width} title="Page not found — Sable">
-				<Suspense fallback={<RouteFallback />}>
+				<RouteBoundary slug={slug} fallback={<RouteFallback />}>
 					<NotFoundRoute />
-				</Suspense>
+				</RouteBoundary>
 			</DocsShell>
 		)
 	}
 	return (
 		<DocsShell areas={areas} current={slug} max={width}>
-			<Suspense fallback={<RouteFallback />}>
+			<RouteBoundary slug={slug} fallback={<RouteFallback />}>
 				<Page />
-			</Suspense>
+			</RouteBoundary>
 		</DocsShell>
 	)
 }

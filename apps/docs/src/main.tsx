@@ -4,6 +4,7 @@ import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import { App } from "./App"
 import "./app.css"
+import { RouteErrorBoundary } from "./components/RouteErrorBoundary"
 import { CustomizerProvider } from "./customizer/CustomizerProvider"
 import { ignorePasswordManagers } from "./lib/ignore-password-managers"
 import { ThemeProvider } from "./theme"
@@ -23,7 +24,10 @@ createRoot(rootEl).render(
 					    variables mapped to Sable tones in app.css, so code follows
 					    the theme and the Customize panel. */}
 					<CodeHighlightProvider highlight={(code) => <span dangerouslySetInnerHTML={{ __html: highlight(code) }} />}>
-						<App />
+						{/* The last resort: a throw outside any route (the shell itself) shows a message, not a blank page. */}
+						<RouteErrorBoundary>
+							<App />
+						</RouteErrorBoundary>
 					</CodeHighlightProvider>
 				</MotionProvider>
 			</CustomizerProvider>
