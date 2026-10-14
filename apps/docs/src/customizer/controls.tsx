@@ -613,12 +613,15 @@ export function PresetPicker({
 	value,
 	mode,
 	onChange,
+	onRemove,
 	footer,
 }: {
 	themes: readonly ThemeManifest[]
 	value: string
 	mode: "light" | "dark"
 	onChange: (id: string) => void
+	/** Removes a preset from the list; given only for the ones the person imported. */
+	onRemove?: (theme: ThemeManifest) => (() => void) | undefined
 	/** A row after the presets, inside the open list — where Import lives. */
 	footer?: ReactNode
 }) {
@@ -637,7 +640,13 @@ export function PresetPicker({
 			<DisclosurePickerPanel>
 				<DisclosurePickerList aria-label="Preset" value={value} onValueChange={onChange}>
 					{themes.map((theme) => (
-						<DisclosurePickerOption key={theme.id} value={theme.id} media={<ThemePreview theme={theme} mode={mode} size="sm" />}>
+						<DisclosurePickerOption
+							key={theme.id}
+							value={theme.id}
+							media={<ThemePreview theme={theme} mode={mode} size="sm" />}
+							onRemove={onRemove?.(theme)}
+							removeLabel={`Remove ${theme.label}`}
+						>
 							{theme.label}
 						</DisclosurePickerOption>
 					))}

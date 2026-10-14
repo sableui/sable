@@ -117,9 +117,9 @@ export const disclosurePickerMeta: ComponentMeta = {
 		},
 		{
 			name: "DisclosurePickerOption",
-			type: "{ value: string; children?: ReactNode; media?: ReactNode; note?: ReactNode; disabled?: boolean; textValue?: string }",
+			type: "{ value: string; children?: ReactNode; media?: ReactNode; note?: ReactNode; disabled?: boolean; textValue?: string; onRemove?: () => void; removeLabel?: string }",
 			description:
-				"One option row. `media` is a leading visual (a ThemePreview tile); `note` a muted trailing annotation — options without one show a check when chosen. `disabled` skips it for the keyboard and refuses the pick; `textValue` is what type-ahead matches when the name is not plain text.",
+				"One option row. `media` is a leading visual (a ThemePreview tile); `note` a muted trailing annotation — options without one show a check when chosen. `disabled` skips it for the keyboard and refuses the pick; `textValue` is what type-ahead matches when the name is not plain text. `onRemove` makes the option removable — for entries the person added (an imported preset, a saved font): a trash glyph at the row's end on hover or focus (always on touch), and Delete or Backspace on the focused row; removing never picks, and focus moves to a neighbour first. `removeLabel` is the glyph's tooltip.",
 		},
 		{ name: "DisclosurePickerEmpty", type: "{ children?: ReactNode }", description: "The no-match line, rendered in place of the list." },
 		{
@@ -135,6 +135,7 @@ export const disclosurePickerMeta: ComponentMeta = {
 		"Why a listbox and not a radio group: a radio group's checked state follows focus, so every arrow press would be a pick — wrong for a choice that opens a confirm, loads a font or resets settings. Base UI ships no standalone listbox (Select is popup-only, Combobox's inline list is focus-in-the-input, Composite is internal), so the keyboard model lives here.",
 		"Opening from the keyboard (Enter, Space, ArrowDown) moves focus into the panel: the search field when there is one, otherwise the chosen option (or the first). A pointer open focuses the search field on a fine pointer only, so touch does not raise the on-screen keyboard.",
 		"Escape closes the row without changing the value (clearing a query first) and returns focus to the trigger; a pick does the same. Focus is not pulled back when it has already moved on, e.g. to a confirm dialog the pick opened.",
+		"A removable option (onRemove) announces aria-keyshortcuts=\"Delete\"; Delete or Backspace removes it and focus moves to the next option (or the previous). The trash glyph is a pointer target only (aria-hidden, not focusable): an option's children are presentational, so a nested button would be unreachable by assistive tech anyway.",
 		"The panel animates with motion-disclosure, which is static under prefers-reduced-motion or MotionProvider off; the scroll that keeps the row in view is instant, never smooth.",
 	],
 	motion: [

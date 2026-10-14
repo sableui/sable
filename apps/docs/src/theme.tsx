@@ -13,7 +13,7 @@ export type ThemePreference = SableThemePreference
 export type Mode = SableColorMode
 
 const PRESETS_KEY = "sable-docs-presets"
-const PersonalPresets = createContext<{ presets: SablePreset[]; importPreset: (record: unknown) => SablePreset }>({ presets: [], importPreset: () => { throw new Error("Missing ThemeProvider") } })
+const PersonalPresets = createContext<{ presets: SablePreset[]; importPreset: (record: unknown) => SablePreset; removePreset: (id: string) => void }>({ presets: [], importPreset: () => { throw new Error("Missing ThemeProvider") }, removePreset: () => { throw new Error("Missing ThemeProvider") } })
 
 function storedPresets(): SablePreset[] {
 	try {
@@ -63,8 +63,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 		setPreference(preset.defaultMode)
 		return preset
 	}
+	// Only imported presets: the bundled ones are not stored here. Removing the
+	// active one falls back to Sable, as a stale stored ID does on load.
+	const removePreset = (id: string) => {
+		setPresets(current => current.filter(preset => preset.id !== id))
+		if (themeId === id) setThemeId("sable")
+	}
 	return (
-		<PersonalPresets.Provider value={{ presets, importPreset }}>
+		<PersonalPresets.Provider value={{ presets, importPreset, removePreset }}>
 			{presets.map(preset => <style key={`${preset.id}-${preset.revision}`}>{presetCss(preset)}</style>)}
 		<SableThemeProvider
 			preference={preference}

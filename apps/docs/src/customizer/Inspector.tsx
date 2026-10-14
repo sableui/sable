@@ -118,7 +118,7 @@ export function Inspector({
 	onClose?: () => void
 	floating?: boolean
 }) {
-	const { themeId, themes, mode, preference, setPreference, presets } = useTheme()
+	const { themeId, themes, mode, preference, setPreference, presets, removePreset } = useTheme()
 	const { look, setLook, reset, getShareUrl, isCustomized, requestPreset, pendingPreset, confirmPreset, cancelPreset, base } = useCustomizer()
 	const share = useCopy(getShareUrl())
 	const sharable = !presets.some((preset) => preset.id === themeId)
@@ -208,6 +208,14 @@ export function Inspector({
 				value={themeId}
 				mode={mode === "dark" ? "dark" : "light"}
 				onChange={requestPreset}
+				onRemove={(theme) =>
+					presets.some((preset) => preset.id === theme.id)
+						? () => {
+								removePreset(theme.id)
+								setImportStatus(`Removed ${theme.label}. Import its file again to bring it back.`)
+							}
+						: undefined
+				}
 				footer={<PresetImport onStatus={setImportStatus} />}
 			/>
 			<p role="status" className={cn("text-ui-body text-muted-foreground", !importStatus && "sr-only")}>

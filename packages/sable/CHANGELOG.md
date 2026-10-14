@@ -26,6 +26,13 @@ Vertical rhythm: spacing is measured from the type.
   (`gap-2`, was `gap-1`).
 - **Lists:** `sable-list` items are one step apart (were 6px), `sable-list-dl`
   rows two steps (were 12px).
+- **DisclosurePickerOption takes `onRemove`** (and `removeLabel`), for
+  options the person added: a trash glyph at the row's end on hover or focus,
+  and Delete or Backspace on the focused row. Removing never picks.
+- **sableui.com:** an imported preset can be removed from the Customize
+  panel's preset list. A page whose code fails to load (a tab opened before a
+  deploy) reloads onto the new deploy instead of going blank, and any page
+  that still fails says so with a Reload button.
 - **sableui.com:** Customize's Character pad moves the leading (Compact ↔
   Airy) and every gap follows; Advanced shows the line and step and its step
   anchor sets the step directly. Grid & layout shows the line and step live,

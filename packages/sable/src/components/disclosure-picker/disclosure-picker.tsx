@@ -590,6 +590,14 @@ export interface DisclosurePickerOptionProps
 	disabled?: boolean
 	/** What type-ahead matches, when the name is not plain text. @default the name's text */
 	textValue?: string
+	/**
+	 * Makes the option removable: a trash glyph at the row's end (on hover or
+	 * focus; always on touch) and Delete or Backspace on the focused row call it.
+	 * Focus moves to the next option first. Removing never picks.
+	 */
+	onRemove?: () => void
+	/** The remove glyph's tooltip. @default "Remove" */
+	removeLabel?: string
 	className?: string
 }
 
@@ -605,7 +613,10 @@ export function DisclosurePickerOption({
 	note,
 	disabled = false,
 	textValue,
+	onRemove,
+	removeLabel = "Remove",
 	className,
+	ref,
 	onClick,
 	...props
 }: DisclosurePickerOptionProps) {
@@ -613,12 +624,27 @@ export function DisclosurePickerOption({
 	if (!list) throw new Error("<DisclosurePickerOption> must be rendered inside <DisclosurePickerList>.")
 	const { size, pick } = list
 	const selected = list.value === value
+	const optionRef = useRef<HTMLDivElement | null>(null)
+	// Focus leaves for a neighbour before the row goes, so it is never dropped to <body>.
+	const remove = () => {
+		const option = optionRef.current
+		const options = [...(option?.closest('[role="listbox"]')?.querySelectorAll<HTMLElement>(ENABLED_OPTION) ?? [])]
+		const index = option ? options.indexOf(option) : -1
+		if (option?.contains(document.activeElement)) moveTo(options[index + 1] ?? options[index - 1])
+		onRemove?.()
+	}
 	return (
 		<div
 			{...props}
+			ref={(node: HTMLDivElement | null) => {
+				optionRef.current = node
+				if (typeof ref === "function") ref(node)
+				else if (ref) ref.current = node
+			}}
 			role="option"
 			aria-selected={selected}
 			aria-disabled={disabled || undefined}
+			aria-keyshortcuts={onRemove ? "Delete" : undefined}
 			data-value={value}
 			data-text-value={textValue}
 			data-selected={selected ? "" : undefined}
@@ -626,8 +652,18 @@ export function DisclosurePickerOption({
 				onClick?.(event)
 				if (!event.defaultPrevented && !disabled) pick(value)
 			}}
+			onKeyDown={
+				onRemove
+					? (event) => {
+							if (event.key !== "Delete" && event.key !== "Backspace") return
+							// Handled here, so the list's own keys (type-ahead) skip it.
+							event.preventDefault()
+							remove()
+						}
+					: undefined
+			}
 			className={cn(
-				"flex items-center gap-3 rounded-sm px-(--item-px) text-start motion-interactive",
+				"group/option flex items-center gap-3 rounded-sm px-(--item-px) text-start motion-interactive",
 				"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring aria-disabled:cursor-not-allowed aria-disabled:opacity-50",
 				size === "xs" ? "min-h-(--control-xs)" : "min-h-(--control-sm) py-1",
 				// Chosen: lifted out of the well, like a segmented control's knob.
@@ -645,6 +681,29 @@ export function DisclosurePickerOption({
 				<span className={cn("shrink-0 text-muted-foreground", size === "xs" ? "text-ui-sm" : "text-caption")}>{note}</span>
 			) : selected ? (
 				<Icon name="check" className="shrink-0 text-sm" />
+			) : null}
+			{onRemove ? (
+				// A pointer target, not a control: an option's children are presentational,
+				// so a nested button would be invisible to assistive tech. The keyboard
+				// path is Delete on the row, announced through aria-keyshortcuts.
+				// design-lint-disable-next-line clickable-static -- pointer twin of Delete on the focused option; a button cannot live inside role="option"
+				<span
+					aria-hidden="true"
+					title={removeLabel}
+					data-disclosure-picker-remove=""
+					onClick={(event) => {
+						// Prevented, so the row's own click does not pick it.
+						event.preventDefault()
+						remove()
+					}}
+					className={cn(
+						"-me-1 flex shrink-0 cursor-pointer items-center justify-center rounded-xs text-muted-foreground motion-interactive hover:text-destructive",
+						size === "xs" ? "size-5 text-xs" : "size-6 text-sm",
+						"opacity-0 group-hover/option:opacity-100 group-focus-visible/option:opacity-100 pointer-coarse:opacity-100",
+					)}
+				>
+					<Icon name="trash" />
+				</span>
 			) : null}
 		</div>
 	)

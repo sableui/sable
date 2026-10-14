@@ -347,6 +347,49 @@ describe("DisclosurePicker", () => {
 		expect(document.activeElement).toBe(getByRole("option", { name: /Poppy/ }))
 	})
 
+	it("removes an option from its glyph or with Delete, without picking it, and keeps focus in the list", () => {
+		function Removable({ onValueChange }: { onValueChange: (value: string) => void }) {
+			const [items, setItems] = useState(["Sable", "Kraken", "Ember"])
+			return (
+				<DisclosurePicker defaultOpen>
+					<DisclosurePickerTrigger>Preset</DisclosurePickerTrigger>
+					<DisclosurePickerPanel>
+						<DisclosurePickerList aria-label="Preset" value="Sable" onValueChange={onValueChange}>
+							{items.map((name) => (
+								<DisclosurePickerOption
+									key={name}
+									value={name}
+									removeLabel={`Remove ${name}`}
+									onRemove={name === "Sable" ? undefined : () => setItems((all) => all.filter((item) => item !== name))}
+								>
+									{name}
+								</DisclosurePickerOption>
+							))}
+						</DisclosurePickerList>
+					</DisclosurePickerPanel>
+				</DisclosurePicker>
+			)
+		}
+		const onValueChange = vi.fn()
+		const { getByRole, queryByRole, getByTitle, queryByTitle } = render(<Removable onValueChange={onValueChange} />)
+		// Only removable options announce the shortcut and draw the glyph.
+		expect(getByRole("option", { name: /Sable/ })).not.toHaveAttribute("aria-keyshortcuts")
+		expect(queryByTitle("Remove Sable")).toBeNull()
+		expect(getByRole("option", { name: "Kraken" })).toHaveAttribute("aria-keyshortcuts", "Delete")
+
+		fireEvent.click(getByTitle("Remove Ember"))
+		expect(queryByRole("option", { name: "Ember" })).toBeNull()
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		const kraken = getByRole("option", { name: "Kraken" })
+		kraken.focus()
+		fireEvent.keyDown(kraken, { key: "Delete" })
+		expect(queryByRole("option", { name: "Kraken" })).toBeNull()
+		expect(onValueChange).not.toHaveBeenCalled()
+		expect(document.activeElement).toBe(getByRole("option", { name: /Sable/ }))
+		expect(getByRole("button", { name: "Preset" })).toHaveAttribute("aria-expanded", "true")
+	})
+
 	it("lets a list it does not own close the row", () => {
 		function Foreign() {
 			const { close } = useDisclosurePicker()
