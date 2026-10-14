@@ -1,6 +1,6 @@
 {
 	"name": "@sableui/react",
-	"version": "0.9.1",
+	"version": "0.10.0",
 	"description": "Sable: themeable React components, layout patterns, and tools for coding agents.",
 	"type": "module",
 	"sideEffects": [
@@ -100,13 +100,13 @@
 		"typecheck": "tsc --noEmit",
 		"contrast:report": "node scripts/contrast-report.mjs",
 		"design-lint": "node scripts/design-lint.mjs",
-		"build:registry": "node scripts/build-registry.mjs && node scripts/build-ios-target.mjs",
-		"build:registry:check": "node scripts/build-registry.mjs --check && node scripts/build-ios-target.mjs --check",
+		"build:registry": "node scripts/build-palette.mjs && node scripts/build-registry.mjs && node scripts/build-ios-target.mjs",
+		"build:registry:check": "node scripts/build-palette.mjs --check && node scripts/build-registry.mjs --check && node scripts/build-ios-target.mjs --check",
 		"icons:brands": "node scripts/fetch-brand-icons.mjs",
 		"icons:brands:check": "node scripts/fetch-brand-icons.mjs --check",
 		"test": "vitest",
 		"test:run": "vitest run",
-		"build": "node scripts/build-registry.mjs && node scripts/build-ios-target.mjs && tsup && node scripts/copy-assets.mjs",
+		"build": "node scripts/build-palette.mjs && node scripts/build-registry.mjs && node scripts/build-ios-target.mjs && tsup && node scripts/copy-assets.mjs",
 		"grade": "node scripts/grade.mjs"
 	},
 	"files": [

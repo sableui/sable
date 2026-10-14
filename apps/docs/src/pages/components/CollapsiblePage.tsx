@@ -33,16 +33,16 @@ export function CollapsiblePage() {
 							className="group/collapsible"
 							render={
 								<Button variant="ghost">
-									What is permanent storage?
+									What happens when I archive?
 									<CollapsibleIndicator />
 								</Button>
 							}
 						/>
 						<CollapsiblePanel>
 							<p className="text-body-md text-muted-foreground pt-3">
-								Files are pinned to Arweave, a permaweb that stores data
-								permanently with a single up-front payment — no recurring hosting
-								fees.
+								Archived projects stay searchable and can be restored at any
+								time, but they stop counting toward your plan's project
+								limit.
 							</p>
 						</CollapsiblePanel>
 					</Collapsible>

@@ -93,7 +93,7 @@ export function FormPage() {
 			>
 				<Example>
 					<div className="flex w-full max-w-sm flex-col gap-3">
-						<Field label="Email me about new collectors" orientation="horizontal">
+						<Field label="Email me about new followers" orientation="horizontal">
 							<Checkbox />
 						</Field>
 						<Field label="Public profile" orientation="horizontal">
@@ -116,7 +116,7 @@ export function FormPage() {
 							<Input name="displayName" placeholder="ada" />
 						</Field>
 						<Field label="Bio" description="Shown on your public profile.">
-							<Textarea name="bio" rows={3} placeholder="Tell collectors who you are" />
+							<Textarea name="bio" rows={3} placeholder="Tell people who you are" />
 						</Field>
 						<Field label="Subscribe to the digest" orientation="horizontal">
 							<Checkbox name="digest" />

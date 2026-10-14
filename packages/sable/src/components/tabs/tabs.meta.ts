@@ -115,7 +115,7 @@ export const tabsMeta: ComponentMeta = {
 		},
 		{
 			label: "With a disabled tab",
-			code: '<Tabs defaultValue="overview"><TabsList><TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="holders" disabled>Holders</TabsTrigger></TabsList><TabsPanel value="overview">Overview content</TabsPanel></Tabs>',
+			code: '<Tabs defaultValue="overview"><TabsList><TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="billing" disabled>Billing</TabsTrigger></TabsList><TabsPanel value="overview">Overview content</TabsPanel></Tabs>',
 		},
 	],
 }

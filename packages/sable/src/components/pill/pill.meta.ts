@@ -66,6 +66,13 @@ export const pillMeta: ComponentMeta = {
 			description: "md sits on the density ladder's xs control height (28px); sm is 24px, for chips under or inside other content.",
 		},
 		{
+			name: "tone",
+			type: '"neutral" | "red" | "orange" | "yellow" | "green" | "teal" | "blue" | "purple" | "pink"',
+			default: '"neutral"',
+			description:
+				"neutral is the chip as described. A palette family colours it as a category, like the choices in a tag picker: a wash at rest, the solid family colour when selected. Painted from the theme's generated palette.",
+		},
+		{
 			name: "icon",
 			type: "ReactNode",
 			description:
@@ -76,8 +83,15 @@ export const pillMeta: ComponentMeta = {
 		appearance: ["solid", "outline"],
 		size: ["md", "sm"],
 		selected: ["true", "false"],
+		tone: ["neutral", "red", "orange", "yellow", "green", "teal", "blue", "purple", "pink"],
 	},
 	tokensUsed: [
+		"palette-wash",
+		"palette-wash-strong",
+		"palette-edge",
+		"palette-solid",
+		"palette-text",
+		"palette-solid-ink",
 		"secondary",
 		"secondary-foreground",
 		"accent",
@@ -95,8 +109,12 @@ export const pillMeta: ComponentMeta = {
 	],
 	examples: [
 		{
+			label: "Tag picker",
+			code: '<Row gap={1}><Pill tone="blue" selected onClick={() => {}}>Design</Pill><Pill tone="teal" onClick={() => {}}>Research</Pill><Pill tone="orange" onClick={() => {}}>Marketing</Pill></Row>',
+		},
+		{
 			label: "Filter row",
-			code: '<Row gap={1}><Pill selected onClick={() => {}}>All</Pill><Pill onClick={() => {}}>Editions</Pill><Pill onClick={() => {}}>Collectibles</Pill></Row>',
+			code: '<Row gap={1}><Pill selected onClick={() => {}}>All</Pill><Pill onClick={() => {}}>Projects</Pill><Pill onClick={() => {}}>Reports</Pill></Row>',
 		},
 		{
 			label: "Outline, small (reactions)",

@@ -34,7 +34,7 @@ export const TOAST_CONTROLS: PlaygroundControl[] = [
 		label: "Type",
 		description: "Which helper to call: toast(), toast.success(), toast.error()…",
 	},
-	{ prop: "title", kind: "text", options: [], initial: "Edition published", label: "Title" },
+	{ prop: "title", kind: "text", options: [], initial: "Report published", label: "Title" },
 	{
 		prop: "description",
 		kind: "text",

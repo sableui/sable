@@ -12,7 +12,7 @@ export const meterIndicatorVariants = cva(
 		variants: {
 			tone: {
 				primary: "bg-primary",
-				standard: "bg-tone-standard",
+				"3": "bg-tone-3",
 				success: "bg-success",
 				warning: "bg-tone-warning",
 				destructive: "bg-destructive",

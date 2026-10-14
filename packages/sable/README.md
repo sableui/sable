@@ -27,6 +27,18 @@ in Sable.
 
 A broad product component catalog, a fluid layout foundation, and a pluggable icon adapter — see [`registry.json`](./registry.json).
 
+## Colour
+
+Components paint roles (`bg-card`, `bg-primary`, `text-muted-foreground`), so a
+theme restyles everything at once. For colour beyond the roles, every theme also
+generates a palette: `neutral`, `red`, `orange`, `yellow`, `green`, `teal`,
+`blue`, `purple` and `pink` (50–950), plus a scale under every tone. The
+families lean toward the theme's brand, neutral is the theme's own page-to-ink
+ramp, and steps follow the mode, so `bg-blue-100 text-blue-800` reads in light and
+dark. Use it for tags, avatars, labels and illustration; Badge, Pill and StatusDot
+take a family as their tone (`<Badge tone="teal">`). Tailwind's other colour
+families are switched off. See DESIGN.md → Generated palette.
+
 ## Taste, style, and variety
 
 A project can keep its own visual atlas at `.sable/atlas/atlas.json`: annotated

@@ -31,24 +31,24 @@ export function PhonePage() {
 						<div className="flex flex-col gap-4 p-4">
 							<header className="flex flex-col gap-1">
 								<p className="text-label-md text-muted-foreground">For you</p>
-								<h2 className="text-title-lg">Editions</h2>
+								<h2 className="text-title-lg">New arrivals</h2>
 							</header>
 							<Card>
 								<CardHeader>
-									<CardTitle>Gold rush</CardTitle>
-									<CardDescription>Limited run of 100.</CardDescription>
+									<CardTitle>Linen throw</CardTitle>
+									<CardDescription>Washed linen, four colours.</CardDescription>
 								</CardHeader>
 								<CardContent className="text-body-sm text-muted-foreground">
-									0.5 SOL · 42 collected
+									$64.00 · 42 in stock
 								</CardContent>
 							</Card>
 							<Card>
 								<CardHeader>
-									<CardTitle>Night shift</CardTitle>
-									<CardDescription>Open edition.</CardDescription>
+									<CardTitle>Stoneware mug</CardTitle>
+									<CardDescription>Glazed by hand.</CardDescription>
 								</CardHeader>
 								<CardContent className="text-body-sm text-muted-foreground">
-									0.2 SOL · 318 collected
+									$28.00 · 318 sold
 								</CardContent>
 							</Card>
 						</div>
@@ -65,14 +65,14 @@ export function PhonePage() {
 						<div className="p-4">
 							<Card>
 								<CardHeader>
-									<CardTitle>Recent collects</CardTitle>
+									<CardTitle>Recent orders</CardTitle>
 								</CardHeader>
 								<CardList>
 									{Array.from({ length: 12 }, (_, i) => (
 										<Entity
-											key={`collect-${i + 1}`}
-											title={`Edition #${i + 1}`}
-											subtitle={`${(i + 1) * 3} collected`}
+											key={`order-${i + 1}`}
+											title={`Order ${1040 + i}`}
+											subtitle={`${(i % 4) + 1} items`}
 										/>
 									))}
 								</CardList>

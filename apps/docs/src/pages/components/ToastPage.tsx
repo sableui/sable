@@ -22,7 +22,7 @@ function BasicTrigger() {
 			onClick={() =>
 				toast.add({
 					title: "Post published",
-					description: "Your edition is live on Studio.",
+					description: "Your post is live on Studio.",
 				})
 			}
 		>
@@ -49,7 +49,7 @@ function VariantsTrigger() {
 					onClick={() =>
 						toast.add({
 							title: "Uploading…",
-							description: "Pinning your media to Arweave. This won't auto-dismiss.",
+							description: "Uploading your media. This won't auto-dismiss.",
 							timeout: 0,
 						})
 					}

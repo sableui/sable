@@ -7,10 +7,10 @@ import {
 	ledeFor,
 } from "../../components/docs-ui"
 
-const SOLANA_ADDRESS = "5J7sX2QpHt9vK4mNbR8wYcZ3dF6gH1jL0pA8xQpVnTu"
-const TX_SIGNATURE =
-	"4Vbp9hQwZk2mNcR8tLx3yF6gH1jL0pA8xQpVnTu5J7sX2QpHt9vK4mNbR8wYcZ3dF6gH1jL0pA8xQpVnTuZk2mN"
-const ETH_ADDRESS = "0xAbC1234567890dEf1234567890aBcDeF12345678"
+const API_KEY = "demo_key_7f3a9c2e5b8d1f4a6c0e9b3d7a2f5c8e1b4"
+const FILE_PATH =
+	"projects/northwind/reports/2026/q3/board-review/final/usage-by-team-and-region.csv"
+const COMMIT_HASH = "9f2c4e7a1b3d5f60c8e2a4b6d8f0e1c3a5b7d9f2"
 const SHORT = "abc123"
 
 const COPYABLE_CODE = `const { copy, copied } = useCopy(address)
@@ -49,9 +49,9 @@ export function MiddleTruncatePage() {
 			>
 				<Example>
 					<div className="flex flex-col gap-2">
-						<MiddleTruncate text={SOLANA_ADDRESS} />
-						<MiddleTruncate text={TX_SIGNATURE} />
-						<MiddleTruncate text={ETH_ADDRESS} />
+						<MiddleTruncate text={API_KEY} />
+						<MiddleTruncate text={FILE_PATH} />
+						<MiddleTruncate text={COMMIT_HASH} />
 					</div>
 				</Example>
 			</Section>
@@ -62,9 +62,9 @@ export function MiddleTruncatePage() {
 			>
 				<Example>
 					<div className="flex flex-col gap-2">
-						<MiddleTruncate text={ETH_ADDRESS} startChars={4} endChars={4} />
-						<MiddleTruncate text={SOLANA_ADDRESS} startChars={8} endChars={4} />
-						<MiddleTruncate text={TX_SIGNATURE} startChars={10} endChars={10} />
+						<MiddleTruncate text={COMMIT_HASH} startChars={4} endChars={4} />
+						<MiddleTruncate text={API_KEY} startChars={8} endChars={4} />
+						<MiddleTruncate text={FILE_PATH} startChars={10} endChars={10} />
 					</div>
 				</Example>
 			</Section>
@@ -74,7 +74,7 @@ export function MiddleTruncatePage() {
 				description="Truncation hides part of the value, so give people a way to take all of it."
 			>
 				<Example code={COPYABLE_CODE}>
-					<CopyableAddress address={SOLANA_ADDRESS} />
+					<CopyableAddress address={API_KEY} />
 				</Example>
 			</Section>
 

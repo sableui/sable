@@ -332,7 +332,7 @@ export function MotionPage() {
 						<span className="text-label-md text-muted-foreground">Shimmer</span>
 					</div>
 					<div className="flex flex-col items-center gap-2">
-						<StatusDot tone="standard" pulse />
+						<StatusDot tone="3" pulse />
 						<span className="text-label-md text-muted-foreground">Ping</span>
 					</div>
 				</Example>

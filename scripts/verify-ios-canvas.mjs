@@ -32,7 +32,7 @@ try {
     const layers = [...document.querySelectorAll('.native-tabbar > .pointer-events-none')]
     return layers.length === 2 && layers.every(el => Math.abs(el.getBoundingClientRect().bottom - bottom) < 1)
   }), 'Toolbar blur and tint extend through the home indicator safe area')
-  assert.match(await text(native), /Untitled \(gold rush\).*Mara Okafor/s, 'Same collection scene, in the native document')
+  assert.match(await text(native), /Linen throw blanket.*Northfield Home/s, 'Same product scene, in the native document')
   assert.equal(await native.evaluate(() => document.documentElement.scrollWidth), 402, 'Content fits the iPhone viewport')
   await button(native, 'Monthly')
   assert.match(await text(native), /\$20/, 'Billing scene responds')
@@ -91,7 +91,7 @@ try {
   const darkChrome = await checkChrome()
   await capture('canvas-ios-dark')
   await button(page, 'Web')
-  assert(await page.evaluate(() => [...document.querySelectorAll('button')].some(el => el.checkVisibility() && el.textContent === 'Collect')), 'Web scenes remain available')
+  assert(await page.evaluate(() => [...document.querySelectorAll('button')].some(el => el.checkVisibility() && el.textContent === 'Add to cart')), 'Web scenes remain available')
   await button(page, 'iOS')
   assert.match(await text(native), /\$20/, 'Platform switch preserves demo state')
   await page.setViewport({ width: 375, height: 900 })

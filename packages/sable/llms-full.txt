@@ -205,7 +205,7 @@ composes with `render`).
 
 ## How it works
 
-- Components reference **semantic tokens** (`bg-card`, `text-muted-foreground`, `bg-tone-edition`), never raw palette steps or inline colors. Text/icons on a tone fill use the theme-adaptive `text-tone-*-foreground` ink; scrims and media surfaces use `bg-overlay`/`text-overlay-foreground`. Positive/success states use the flat `--success` / `--success-foreground` token (mirrors `--destructive`; there is **no** `tone-success`). A theme = a CSS variable set; re-skinning never touches component code. App-level theme switching is first-class via `<SableThemeProvider>` and `useSableTheme()`.
+- Components reference **semantic tokens** (`bg-card`, `text-muted-foreground`, `bg-tone-1`), never raw palette steps or inline colors. Text/icons on a tone fill use the theme-adaptive `text-tone-*-foreground` ink; scrims and media surfaces use `bg-overlay`/`text-overlay-foreground`. Positive/success states use the flat `--success` / `--success-foreground` token (mirrors `--destructive`; there is **no** `tone-success`). A theme = a CSS variable set; re-skinning never touches component code. App-level theme switching is first-class via `<SableThemeProvider>` and `useSableTheme()`.
 - Typography is **paired utilities** (`text-heading-1`, `text-body-md`) bundling size+weight+line-height+tracking.
 - Layout is **fluid-first / no global max-width**: an edge-to-edge page with a fluid `--page-inset`, an 8px rhythm unit, a 12-col grid that folds, and opt-in per-region max-widths. Primitives: `Region`, `Page` (route shell = Region + Stack), `Bleed` (content-area-aware full-bleed, via container units), `SplitPane`, `Stack`/`Row`/`Center`, `Grid`/`Columns`/`Col`, `SafeArea`. `Columns count` / `Col span`+`start` / `Grid cols` accept **responsive breakpoint maps** (`{ base, md, lg }`).
 - `<Icon name="…">` resolves a semantic name through an injected `<IconProvider>`; with no provider it renders Reicon. Replace the set with IconProvider or extend it with composeIconSets(appExtras, reiconIconSet). Concrete imports stay in the shared adapter; never copy SVG paths into an app.
@@ -337,7 +337,10 @@ because the meta wins *whole* and silently discards the other.
 
 ## The hard rules
 
-1. **Semantic tokens only** — never hex/oklch, never a raw palette step.
+1. **Semantic tokens only** — never hex/oklch, never a raw palette step, not
+   even the generated palette's (`bg-blue-500`; that is for apps). A component
+   that takes a palette family as `tone` sets `data-palette` to it and paints
+   from the slots that fills (`bg-palette-wash text-palette-text`), as Badge does.
 2. **Paired typography utilities** — never `text-{size}` + `font-{weight}`.
 3. **`primitives/` is behaviour, `components/` is the public API.** Base UI is
    wrapped and re-exported; consumers import only from the root barrel.
@@ -715,6 +718,27 @@ intent, and what it gets confused with, is in
 
 Ink is never chosen independently of its surface: `bg-card text-card-foreground`,
 as a pair.
+
+### More colour: the generated palette
+
+When a page needs colour that is not a role (tags, avatars, project labels, a
+chart legend, illustration), reach for the generated palette, not hex and not a
+theme's own ramp. Every theme has `neutral`, `red`, `orange`, `yellow`,
+`green`, `teal`, `blue`, `purple` and `pink` (50–950), plus a scale under
+every tone (`tone-1-100`, `success-700`). Each family leans toward the brand, so
+the set belongs to the theme, and neutral is the theme's own page-to-ink ramp.
+
+- On a component, the family is the tone: `<Badge tone="teal">Research</Badge>`,
+  `<Pill tone="blue">`, `<StatusDot tone="pink" />`. A family is a category with
+  no meaning attached; a status is still `success`, `warning` or `destructive`.
+- On your own element, use the pairs: `bg-blue-100 text-blue-800` (a tag),
+  `text-blue-700` (text on the page), `bg-blue-700 text-blue-50` (a solid
+  fill), `border-blue-300` (a hairline). Steps follow the mode (a low step is
+  always near the page), so these need no `dark:`.
+- Surfaces, body text and actions still take roles. The palette never replaces
+  `bg-card` or `bg-primary`.
+
+The full reference is `llms/reference/token-intent.md` → Generated palette.
 
 ## The traps
 
@@ -1243,7 +1267,9 @@ loudest and least clearly ("invalid hook call").
 
 The most reliable signal that a conversion is real: the app's own CSS variable
 block shrinks to almost nothing. Anything that remains should be *domain* colour,
-not UI colour.
+not UI colour. Most domain colour has a home too: a tag or category colour maps
+to a palette family (`<Badge tone="blue">`, `bg-blue-100 text-blue-800`), which
+follows the theme where the app's own hex never did.
 
 Grep for orphaned references afterwards. A CSS variable that no longer exists
 resolves to nothing and the declaration is dropped — **silently**. A checkerboard
@@ -2529,6 +2555,10 @@ prints a complete starting record; the public `PRESET_TOKEN_NAMES` is authoritat
 Font stacks are requirements, not downloaded fonts. Declare matching stacks in
 the font metadata and tokens. Resolve internal palette variables before saving;
 portable presets may reference public Sable tokens, not private palette names.
+A preset does not carry the generated palette (`bg-blue-500` and the rest): it is
+computed from the preset's own primary, page and ink. `theme-palette-harmony`
+(0 keeps the families' own hues, 1 is the default lean toward the brand) is the
+one palette token a preset may set.
 The validator rejects unknown tokens and CSS that can escape its declaration.
 `sable preset --check` also holds labels on brand and status fills to 4.5:1 and APCA Lc 60
 and suggests a pair that reads; a preset may keep a pair deliberately through
@@ -3284,7 +3314,7 @@ The region is in the accessibility tree before its text changes, so the change i
 
 # AuthPage
 
-Split sign-in page: a form column (brand mark, heading, email + password, primary sign-in, passkey and wallet alternatives, sign-up switch, terms) beside a brand panel painted from the theme's tones with a featured release card. Below lg the panel drops away and the form is the whole screen.
+Split sign-in page: a form column (brand mark, heading, email + password, primary sign-in, passkey and email-link alternatives, sign-up switch, terms) beside a brand panel painted from the theme's tones with a customer story card. Below lg the panel drops away and the form is the whole screen.
 
 **Intent:** Reach for this for sign-in, sign-up, forgot-password, and any single-purpose one-column form route (invite accept, unsubscribe). Not for multi-section forms (use SettingsPage).
 
@@ -3295,14 +3325,14 @@ Split sign-in page: a form column (brand mark, heading, email + password, primar
 - The heading is `text-heading-1` in an h1 — it is the page outline, so it takes a heading tier, not a card title.
 - Brand mark, form and terms are a three-part column: mark pinned to the top, form vertically centred in the remaining space, terms pinned to the bottom.
 - Forgot password sits under the password field, right-aligned, before the submit button — so it comes right after the field in tab order. Field has no label-row action slot yet.
-- One primary action. Passkey and wallet are outline buttons under an `or` Separator; switching to sign-up is a quiet `link-underline` link.
+- One primary action. Passkey and email link are outline buttons under an `or` Separator; switching to sign-up is a quiet `link-underline` link.
 - Validation uses Field `validate` for product copy instead of the browser's generic required message. A rejected sign-in comes back through Form `errors` on the password field; the submit Button shows `loading` while the request is in flight.
 - The brand panel artwork is a mesh of the theme's decorative tones over `--primary`, so it re-paints for every theme and mode. The relative-colour `oklch(from var(--tone-*) …)` lift needs an `inline-color` disable with a reason.
 - The panel is `hidden lg:flex`: on a phone the form is the whole screen, with no decorative scroll above it.
 
 ## Accessibility
 
-- The route renders inside <main> with one h1; the brand panel is an <aside> labelled "Featured release".
+- The route renders inside <main> with one h1; the brand panel is an <aside> labelled "Customer story".
 - Field auto-wires labels, describedby, and invalid state onto the inputs; on submit, the first invalid field is focused.
 - Autocomplete attributes (`email webauthn`, `current-password`) keep password managers and passkey autofill working.
 - The Forgot password and Create one links use `hit-target` to meet the 44px touch floor without changing layout.
@@ -3333,7 +3363,7 @@ export function AuthPage() {
 						<Stack gap={1.5}>
 							<h1 className="text-heading-1">Welcome back</h1>
 							<p className="text-body-lg text-muted-foreground">
-								Sign in to collect new releases and manage your editions.
+								Sign in to pick up where you and your team left off.
 							</p>
 						</Stack>
 
@@ -3371,8 +3401,8 @@ export function AuthPage() {
 							<Button variant="outline" size="cta" className="w-full" iconStart={<Icon name="key" />}>
 								Sign in with a passkey
 							</Button>
-							<Button variant="outline" size="cta" className="w-full" iconStart={<Icon name="wallet" />}>
-								Connect a wallet
+							<Button variant="outline" size="cta" className="w-full" iconStart={<Icon name="mail" />}>
+								Email me a sign-in link
 							</Button>
 						</Stack>
 
@@ -3399,23 +3429,23 @@ export function AuthPage() {
 			</Region>
 
 			{/* The brand panel is decoration: on a phone the form is the whole screen. */}
-			<aside aria-label="Featured release" className="hidden p-3 lg:flex">
+			<aside aria-label="Customer story" className="hidden p-3 lg:flex">
 				{/* Art painted from the theme's tones over its brand, so it follows every look. */}
 				<GradientArt seed="Untitled (gold rush)" className="flex flex-1 flex-col justify-end rounded-xl p-8">
 					<Card className="max-w-md">
 						<CardContent>
 							<Stack gap={3}>
-								<Badge tone="edition" className="self-start">
-									Edition of 50
+								<Badge tone="1" className="self-start">
+									Customer story
 								</Badge>
 								<p className="text-title-lg">
-									“Every edition is a conversation with whoever holds it next.”
+									“We moved three teams over in a week, and nobody asked for the old tool back.”
 								</p>
 								<Entity
 									className="p-0"
 									leading={<Avatar variant="art" fallback="MO" />}
 									title="Mara Okafor"
-									subtitle="Untitled (gold rush), 2026"
+									subtitle="Head of Design, Northwind"
 								/>
 							</Stack>
 						</CardContent>
@@ -3476,7 +3506,7 @@ const spaces = [
 
 const routes = [
 	{ label: "Intake", state: "Open", tone: "info" as const },
-	{ label: "Review", state: "Live", tone: "edition" as const },
+	{ label: "Review", state: "Live", tone: "1" as const },
 	{ label: "Archive", state: "Safe", tone: "success" as const },
 ]
 
@@ -3654,7 +3684,7 @@ export function BrandLandingPage() {
 									<div className="flex items-center justify-between border-b border-border px-4 py-3">
 										<Row gap={1}>
 											<StatusDot tone="warning" />
-											<StatusDot tone="edition" />
+											<StatusDot tone="1" />
 											<StatusDot tone="success" />
 										</Row>
 										<span className="text-label-sm text-muted-foreground">Live workspace</span>
@@ -4247,18 +4277,18 @@ export function ChatPanel() {
 
 # DashboardPage
 
-App-shell creator dashboard: a branded Sidebar with an account footer (AppHeader + BottomNav below lg), a KPI row, an edge-to-edge editions table with sell-through Meters, and supporting payout, collector, release and activity cards — the default shape for an operator or analytics home route.
+App-shell admin dashboard: a branded Sidebar with an account footer (AppHeader + BottomNav below lg), a KPI row, an edge-to-edge accounts table with seat-usage Meters, and supporting payout, top-customer, release and activity cards — the default shape for an operator or analytics home route.
 
-**Intent:** Reach for this when a route's job is monitoring or managing many records (sales, orders, editions, posts) with a few headline numbers. Not for reading-focused routes (use FeedPage) or single-record routes (use ListDetailPage's detail side).
+**Intent:** Reach for this when a route's job is monitoring or managing many records (sales, orders, accounts, posts) with a few headline numbers. Not for reading-focused routes (use FeedPage) or single-record routes (use ListDetailPage's detail side).
 
 ## Notes
 
 - Region cap is `wide` (1280px): dashboards hold tables and multi-column grids, never a reading column.
-- Hierarchy runs headline → records → context: KPI row, then the primary table beside its two closest companions (payout, top collectors), then the lower-priority lists (upcoming, activity). Every row of the grid is filled so the route ends on content, not empty canvas.
+- Hierarchy runs headline → records → context: KPI row, then the primary table beside its two closest companions (payout, top customers), then the lower-priority lists (upcoming, activity). Every row of the grid is filled so the route ends on content, not empty canvas.
 - Stat cards: CardHeader carries the label (CardDescription) and the value; KPI values are `text-mono-xl` — the metric mono tier, tabular figures — never a heading tier. The trend Badge sits with its comparison note in CardContent, so the value keeps the full card width when the row folds to 2×2 on a phone.
 - Stat cards use an explicit cols map (2 → 4) — a 4-stat row must fold to 2×2, never strand an orphan the way auto-fit can.
 - The table runs flush to the card edges with `<CardContent flush>`, which hands the card's padding to the table (`--table-edge-px`), so the first and last columns line up with the CardHeader at any card density — never hand-set pl-6/pr-6. Numeric columns align end in mono; Table scrolls horizontally inside the card on narrow screens.
-- Sold / supply is a `Meter` (how full a known range is), not `Progress` (task progress). Status is `Badge appearance="plain" dot`, with the app's own states mapped to tones once at the top of the file.
+- Seats used / seats is a `Meter` (how full a known range is), not `Progress` (task progress). Status is `Badge appearance="plain" dot`, with the app's own states mapped to tones once at the top of the file.
 - Lists are Entity rows in CardList, inset to the card padding and divided by hairlines — never CardContent with hand-tuned px. A card that shares a grid row with a taller one becomes `flex flex-col` and pins its CardFooter with `mt-auto`.
 - Brand and account live in the Sidebar: SidebarHeader holds the mark + wordmark, SidebarFooter holds the signed-in Entity with an OverflowMenu. Sidebar rebinds the page ink tokens to its own, so the Entity and OverflowMenu read correctly even when a theme paints the rail dark on a light page.
 - The page has exactly one heading-1 (PageHeader); card titles are Title tier, not headings.
@@ -4270,7 +4300,7 @@ App-shell creator dashboard: a branded Sidebar with an account footer (AppHeader
 - AppShell provides the skip link and <main id="main-content"> landmark.
 - The active SidebarItem and BottomNavItem carry aria-current via `active`.
 - DataTable headers are real <th>; sortable columns are announced.
-- Each sell-through Meter has an aria-label naming the edition and aria-valuetext reading "184 of 250 sold".
+- Each seat-usage Meter has an aria-label naming the account and aria-valuetext reading "184 of 250 seats used".
 - Avatars beside a visible name use an empty alt so the name is not read twice.
 
 ## Source
@@ -4278,11 +4308,11 @@ App-shell creator dashboard: a branded Sidebar with an account footer (AppHeader
 ```tsx
 import { AppHeader, AppShell, Avatar, Badge, BottomNav, BottomNavItem, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, DataTable, Entity, Grid, Icon, MenuItem, MenuSeparator, Meter, NotificationBadge, OverflowMenu, Page, PageHeader, RelativeTime, Row, Sidebar, SidebarBrand, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav, Stack } from "@sableui/react"
 
-// Edition status → Badge tone. Sable has no status vocabulary of its own;
+// Account status → Badge tone. Sable has no status vocabulary of its own;
 // an app maps ITS states onto tones once, here, and every badge follows.
-const STATUS_TONE = { live: "success", scheduled: "info", "sold-out": "edition", closed: "neutral" } as const
-const STATUS_LABEL = { live: "Live", scheduled: "Scheduled", "sold-out": "Sold out", closed: "Closed" } as const
-type EditionStatus = keyof typeof STATUS_TONE
+const STATUS_TONE = { active: "success", onboarding: "info", full: "1", cancelled: "neutral" } as const
+const STATUS_LABEL = { active: "Active", onboarding: "Onboarding", full: "Seats full", cancelled: "Cancelled" } as const
+type AccountStatus = keyof typeof STATUS_TONE
 
 const MIN = 60 * 1000
 const HOUR = 60 * MIN
@@ -4295,54 +4325,54 @@ const shortDate = (offset: number) =>
 
 const stats = [
 	{ label: "Revenue", value: "$18,240", delta: "+8.2%", up: true, note: "vs. $16,857" },
-	{ label: "Collects", value: "1,284", delta: "+3.1%", up: true, note: "182 first-time" },
-	{ label: "Collectors", value: "312", delta: "+12.4%", up: true, note: "Best month yet" },
-	{ label: "Sell-through", value: "64%", delta: "−1.8%", up: false, note: "6 open editions" },
+	{ label: "Active seats", value: "1,284", delta: "+3.1%", up: true, note: "182 added" },
+	{ label: "Accounts", value: "312", delta: "+12.4%", up: true, note: "Best month yet" },
+	{ label: "Seat usage", value: "64%", delta: "−1.8%", up: false, note: "6 near their limit" },
 ]
 
-const editions = [
-	{ id: "ed_01", title: "Gold Rush", status: "live" as const, sold: 184, supply: 250, price: 48, released: -6 * DAY },
-	{ id: "ed_02", title: "Quiet Harbor", status: "sold-out" as const, sold: 100, supply: 100, price: 120, released: -19 * DAY },
-	{ id: "ed_03", title: "Dusk, no. 4", status: "live" as const, sold: 61, supply: 150, price: 64, released: -2 * DAY },
-	{ id: "ed_04", title: "Tidewater", status: "live" as const, sold: 212, supply: 300, price: 36, released: -27 * DAY },
-	{ id: "ed_05", title: "Salt Study", status: "closed" as const, sold: 38, supply: 75, price: 90, released: -44 * DAY },
-	{ id: "ed_06", title: "Paper Moon", status: "sold-out" as const, sold: 50, supply: 50, price: 220, released: -58 * DAY },
-	{ id: "ed_07", title: "Night Signal", status: "scheduled" as const, sold: 0, supply: 200, price: 56, released: 3 * DAY },
-	{ id: "ed_08", title: "Low Tide, Blue", status: "closed" as const, sold: 72, supply: 120, price: 42, released: -71 * DAY },
-	{ id: "ed_09", title: "Ember Field", status: "sold-out" as const, sold: 80, supply: 80, price: 140, released: -86 * DAY },
+const accounts = [
+	{ id: "ac_01", title: "Northwind", status: "active" as const, used: 184, seats: 250, price: 16, started: -6 * DAY },
+	{ id: "ac_02", title: "Harbor Labs", status: "full" as const, used: 100, seats: 100, price: 20, started: -19 * DAY },
+	{ id: "ac_03", title: "Brightline", status: "active" as const, used: 61, seats: 150, price: 16, started: -2 * DAY },
+	{ id: "ac_04", title: "Tidewater Co.", status: "active" as const, used: 212, seats: 300, price: 12, started: -27 * DAY },
+	{ id: "ac_05", title: "Saltworks", status: "cancelled" as const, used: 38, seats: 75, price: 20, started: -44 * DAY },
+	{ id: "ac_06", title: "Paper Moon", status: "full" as const, used: 50, seats: 50, price: 24, started: -58 * DAY },
+	{ id: "ac_07", title: "Signal Studio", status: "onboarding" as const, used: 0, seats: 200, price: 16, started: 3 * DAY },
+	{ id: "ac_08", title: "Bluewater", status: "cancelled" as const, used: 72, seats: 120, price: 12, started: -71 * DAY },
+	{ id: "ac_09", title: "Ember & Field", status: "full" as const, used: 80, seats: 80, price: 20, started: -86 * DAY },
 ]
-const editionCount = 24
+const accountCount = 312
 
 const payout = {
-	amount: 8214.6,
+	amount: 8862.64,
 	date: 5 * DAY,
 	lines: [
-		{ label: "Sales", value: 9127.33 },
-		{ label: "Platform fee (10%)", value: -912.73 },
+		{ label: "Subscriptions", value: 9127.33 },
+		{ label: "Processing (2.9%)", value: -264.69 },
 		{ label: "Deposits to", value: "Checking ••4821" },
 	],
 }
 
-const collectors = [
-	{ id: "co_01", name: "Nina Simone", handle: "@nina", initials: "NS", pieces: 14, spent: 1460 },
-	{ id: "co_02", name: "Grace Hopper", handle: "@grace", initials: "GH", pieces: 11, spent: 1128 },
-	{ id: "co_03", name: "Frida Kahlo", handle: "@frida", initials: "FK", pieces: 9, spent: 942 },
-	{ id: "co_04", name: "Mary Shelley", handle: "@mary", initials: "MS", pieces: 6, spent: 588 },
+const customers = [
+	{ id: "cu_01", name: "Northwind", handle: "northwind.io", initials: "NW", seats: 184, spent: 2944 },
+	{ id: "cu_02", name: "Tidewater Co.", handle: "tidewater.co", initials: "TC", seats: 212, spent: 2544 },
+	{ id: "cu_03", name: "Harbor Labs", handle: "harborlabs.com", initials: "HL", seats: 100, spent: 2000 },
+	{ id: "cu_04", name: "Ember & Field", handle: "emberfield.com", initials: "EF", seats: 80, spent: 1600 },
 ]
 
 const upcoming = [
-	{ id: "up_01", title: "Night Signal", detail: "Edition of 200 · $56", at: 3 * DAY },
-	{ id: "up_02", title: "Tidewater, second printing", detail: "Edition of 100 · $40", at: 12 * DAY },
-	{ id: "up_03", title: "Dusk, no. 5", detail: "Edition of 150 · $64", at: 26 * DAY },
-	{ id: "up_04", title: "Quiet Harbor, artist proofs", detail: "Edition of 10 · $480", at: 34 * DAY },
+	{ id: "up_01", title: "Version 2.4", detail: "Shared reports · All plans", at: 3 * DAY },
+	{ id: "up_02", title: "Audit log export", detail: "Business plan · Beta", at: 12 * DAY },
+	{ id: "up_03", title: "Version 2.5", detail: "Offline mode · All plans", at: 26 * DAY },
+	{ id: "up_04", title: "Usage-based billing", detail: "Studio and Business · Beta", at: 34 * DAY },
 ]
 
 const activity = [
-	{ id: "ac_01", who: "Nina Simone", initials: "NS", what: "collected Gold Rush · 185 of 250", when: 2 * MIN },
-	{ id: "ac_02", who: "Grace Hopper", initials: "GH", what: "collected Dusk, no. 4 · 61 of 150", when: 26 * MIN },
-	{ id: "ac_03", who: "Frida Kahlo", initials: "FK", what: "tipped $20 on Tidewater", when: 1 * HOUR },
-	{ id: "ac_04", who: "Mary Shelley", initials: "MS", what: "started following you", when: 3 * HOUR },
-	{ id: "ac_05", who: "Nina Simone", initials: "NS", what: "set a reminder for Night Signal", when: 6 * HOUR },
+	{ id: "ev_01", who: "Nina Simone", initials: "NS", what: "added 12 seats to Northwind · 184 of 250", when: 2 * MIN },
+	{ id: "ev_02", who: "Grace Hopper", initials: "GH", what: "upgraded Brightline to Studio", when: 26 * MIN },
+	{ id: "ev_03", who: "Frida Kahlo", initials: "FK", what: "paid invoice INV-0042 for Tidewater Co.", when: 1 * HOUR },
+	{ id: "ev_04", who: "Mary Shelley", initials: "MS", what: "joined the Harbor Labs workspace", when: 3 * HOUR },
+	{ id: "ev_05", who: "Nina Simone", initials: "NS", what: "booked onboarding for Signal Studio", when: 6 * HOUR },
 ]
 
 export function DashboardPage() {
@@ -4364,8 +4394,8 @@ export function DashboardPage() {
 			bottomNav={
 				<BottomNav aria-label="Primary">
 					<BottomNavItem icon={<Icon name="grid" />} label="Overview" showLabel active render={<a href="/" />} />
-					<BottomNavItem icon={<Icon name="image-stack" />} label="Editions" showLabel render={<a href="/editions" />} />
-					<BottomNavItem icon={<Icon name="user" />} label="Collectors" showLabel render={<a href="/collectors" />} />
+					<BottomNavItem icon={<Icon name="folder" />} label="Accounts" showLabel render={<a href="/accounts" />} />
+					<BottomNavItem icon={<Icon name="user" />} label="Customers" showLabel render={<a href="/customers" />} />
 					<BottomNavItem icon={<Icon name="bell" />} label="Activity" showLabel render={<a href="/activity" />} />
 					<BottomNavItem icon={<Icon name="gear" />} label="Settings" showLabel render={<a href="/settings" />} />
 				</BottomNav>
@@ -4377,8 +4407,8 @@ export function DashboardPage() {
 					</SidebarHeader>
 					<SidebarNav>
 						<SidebarItem icon={<Icon name="grid" />} label="Overview" active render={<a href="/" />} />
-						<SidebarItem icon={<Icon name="image-stack" />} label="Editions" render={<a href="/editions" />} />
-						<SidebarItem icon={<Icon name="user" />} label="Collectors" render={<a href="/collectors" />} />
+						<SidebarItem icon={<Icon name="folder" />} label="Accounts" render={<a href="/accounts" />} />
+						<SidebarItem icon={<Icon name="user" />} label="Customers" render={<a href="/customers" />} />
 						<SidebarItem
 							icon={<Icon name="bell" />}
 							label="Activity"
@@ -4409,7 +4439,7 @@ export function DashboardPage() {
 			<Page max="wide" gap={4} className="py-6">
 				<PageHeader
 					title="Overview"
-					description="Sales and collector activity for the last 30 days."
+					description="Revenue and account activity for the last 30 days."
 					actions={
 						<Row gap={2}>
 							<Button variant="outline">
@@ -4418,7 +4448,7 @@ export function DashboardPage() {
 							</Button>
 							<Button>
 								<Icon name="plus" />
-								New edition
+								New account
 							</Button>
 						</Row>
 					}
@@ -4448,43 +4478,43 @@ export function DashboardPage() {
 				<Grid cols={{ base: 1, xl: 3 }} gap={3}>
 					<Card className="flex flex-col xl:col-span-2">
 						<CardHeader>
-							<CardTitle>Editions</CardTitle>
-							<CardDescription>Sales across your releases, newest first.</CardDescription>
+							<CardTitle>Accounts</CardTitle>
+							<CardDescription>Seats across your customers, newest first.</CardDescription>
 						</CardHeader>
 						<CardContent flush className="mt-4 flex-1">
 							<DataTable
-								data={editions}
+								data={accounts}
 								rowKey={(row) => row.id}
-								defaultSort={{ key: "released", direction: "desc" }}
+								defaultSort={{ key: "started", direction: "desc" }}
 								columns={[
-									{ key: "title", header: "Edition", sortable: true, className: "text-label-md whitespace-nowrap" },
+									{ key: "title", header: "Account", sortable: true, className: "text-label-md whitespace-nowrap" },
 									{
 										key: "status",
 										header: "Status",
 										cell: (row) => (
-											<Badge appearance="plain" tone={STATUS_TONE[row.status as EditionStatus]} dot>
-												{STATUS_LABEL[row.status as EditionStatus]}
+											<Badge appearance="plain" tone={STATUS_TONE[row.status as AccountStatus]} dot>
+												{STATUS_LABEL[row.status as AccountStatus]}
 											</Badge>
 										),
 									},
 									{
-										key: "sold",
-										header: "Sold",
+										key: "used",
+										header: "Seats",
 										sortable: true,
-										sortValue: (row) => row.sold / row.supply,
+										sortValue: (row) => row.used / row.seats,
 										cell: (row) => (
 											<Row gap={3} align="center" className="min-w-40">
 												<Meter
-													value={row.sold}
-													max={row.supply}
+													value={row.used}
+													max={row.seats}
 													size="sm"
-													tone={row.sold === row.supply ? "success" : "primary"}
-													aria-label={`${row.title} sold`}
-													getAriaValueText={(_, v) => `${v} of ${row.supply} sold`}
+													tone={row.used === row.seats ? "success" : "primary"}
+													aria-label={`${row.title} seats used`}
+													getAriaValueText={(_, v) => `${v} of ${row.seats} seats used`}
 													className="flex-1"
 												/>
 												<span className="text-mono-caption whitespace-nowrap text-muted-foreground">
-													{row.sold}/{row.supply}
+													{row.used}/{row.seats}
 												</span>
 											</Row>
 										),
@@ -4494,21 +4524,21 @@ export function DashboardPage() {
 										header: "Revenue",
 										align: "end",
 										sortable: true,
-										sortValue: (row) => row.sold * row.price,
+										sortValue: (row) => row.used * row.price,
 										cell: (row) =>
-											row.sold > 0 ? (
-												<span className="text-mono-sm">{usd.format(row.sold * row.price)}</span>
+											row.used > 0 ? (
+												<span className="text-mono-sm">{usd.format(row.used * row.price)}</span>
 											) : (
 												<span className="text-mono-sm text-muted-foreground">—</span>
 											),
 									},
 									{
-										key: "released",
-										header: "Release",
+										key: "started",
+										header: "Started",
 										align: "end",
 										sortable: true,
 										cell: (row) => (
-											<span className="text-body-sm whitespace-nowrap text-muted-foreground">{shortDate(row.released)}</span>
+											<span className="text-body-sm whitespace-nowrap text-muted-foreground">{shortDate(row.started)}</span>
 										),
 									},
 								]}
@@ -4516,10 +4546,10 @@ export function DashboardPage() {
 						</CardContent>
 						<CardFooter className="justify-between">
 							<span className="text-caption text-muted-foreground">
-								Showing {editions.length} of {editionCount} editions
+								Showing {accounts.length} of {accountCount} accounts
 							</span>
-							<Button variant="ghost" size="sm" bleed="end" render={<a href="/editions" />}>
-								View all editions
+							<Button variant="ghost" size="sm" bleed="end" render={<a href="/accounts" />}>
+								View all accounts
 								<Icon name="arrow-right" />
 							</Button>
 						</CardFooter>
@@ -4550,21 +4580,21 @@ export function DashboardPage() {
 						</Card>
 						<Card>
 							<CardHeader>
-								<CardTitle>Top collectors</CardTitle>
+								<CardTitle>Top customers</CardTitle>
 								<CardDescription>By spend this month.</CardDescription>
 								<CardAction>
-									<Button variant="ghost" size="sm" render={<a href="/collectors" />}>
+									<Button variant="ghost" size="sm" render={<a href="/customers" />}>
 										View all
 									</Button>
 								</CardAction>
 							</CardHeader>
 							<CardList>
-								{collectors.map((person) => (
+								{customers.map((person) => (
 									<Entity
 										key={person.id}
 										leading={<Avatar variant="art" size="sm" fallback={person.initials} alt="" />}
 										title={person.name}
-										subtitle={`${person.handle} · ${person.pieces} pieces`}
+										subtitle={`${person.handle} · ${person.seats} seats`}
 										action={<span className="text-mono-sm">{usd.format(person.spent)}</span>}
 									/>
 								))}
@@ -4576,7 +4606,7 @@ export function DashboardPage() {
 					<Card className="flex flex-col">
 						<CardHeader>
 							<CardTitle>Upcoming releases</CardTitle>
-							<CardDescription>Scheduled to open to collectors.</CardDescription>
+							<CardDescription>Scheduled to ship to customers.</CardDescription>
 						</CardHeader>
 						<CardList>
 							{upcoming.map((release) => (
@@ -4589,7 +4619,7 @@ export function DashboardPage() {
 							))}
 						</CardList>
 						<CardFooter className="mt-auto">
-							<Button variant="outline" size="sm" render={<a href="/editions/new" />}>
+							<Button variant="outline" size="sm" render={<a href="/releases/new" />}>
 								<Icon name="calendar" />
 								Schedule a release
 							</Button>
@@ -4598,7 +4628,7 @@ export function DashboardPage() {
 					<Card className="xl:col-span-2">
 						<CardHeader>
 							<CardTitle>Activity</CardTitle>
-							<CardDescription>Collects, tips, and follows.</CardDescription>
+							<CardDescription>Seats, upgrades, and invoices.</CardDescription>
 							<CardAction>
 								<Button variant="ghost" size="sm" render={<a href="/activity" />}>
 									View all
@@ -4628,7 +4658,7 @@ export function DashboardPage() {
 
 # FeedPage
 
-Social reading feed with a side rail: a feed-width main column (composer, For you / Following Tabs, one Card per post, an edition drop with price, supply Meter and Collect, a Skeleton for the next page) beside a sticky rail of who-to-follow and upcoming drops that drops away below lg.
+Social reading feed with a side rail: a feed-width main column (composer, For you / Following Tabs, one Card per post, an event post with price, capacity Meter and Register, a Skeleton for the next page) beside a sticky rail of who-to-follow and upcoming events that drops away below lg.
 
 **Intent:** Reach for this for timelines, activity streams, and any reverse-chronological reading surface where people also act on what they read. Not for record management (DashboardPage) or side-by-side browsing (ListDetailPage).
 
@@ -4638,7 +4668,7 @@ Social reading feed with a side rail: a feed-width main column (composer, For yo
 - Feed scope is `Tabs` (underline, stretched to the column with `flex`): peer views of the same feed. The composer sits above them because posting applies to both.
 - The composer is a Card holding `Textarea autoResize` plus ghost icon Buttons and a secondary `Post` — not ChatComposer, which submits on Enter and is for conversations.
 - Each post is a Card: an Entity byline in a CardList (with an OverflowMenu for post actions), body copy, then media in an AspectBox at the asset's own ratio, inset with `rounded-concentric-lg/6` so its corners follow the card's in every theme.
-- An edition drop adds a `Badge appearance="overlay"` on the artwork, title and price, the one primary Button on the page (`Collect`), and a `Meter` for supply — collected against a known maximum is a level, not task progress.
+- An event post adds a `Badge appearance="overlay"` on the image, title and price, the one primary Button on the page (`Register`), and a `Meter` for capacity — seats taken against a known maximum is a level, not task progress.
 - Actions are ghost sm Buttons (icon + count) in a Row pulled out by the button's own padding (`-ms-3`) so the first icon sits on the text edge.
 - Loading the next page shows a Skeleton post in the shape the post will land in, above the explicit load-more Button in its `loading` state — predictable for keyboard and AT users, unlike infinite scroll.
 
@@ -4647,7 +4677,7 @@ Social reading feed with a side rail: a feed-width main column (composer, For yo
 - Each post is an <article>, so AT users can jump between posts; the rail is a labelled <aside> landmark.
 - Rail card titles render as h2 (CardTitle `render={<h2 />}`) under the page's one h1.
 - Icon-only buttons and every Follow / Remind button carry aria-labels naming their target; counts stay in the accessible name.
-- The supply Meter is role=meter with a getAriaValueText reading ("62 of 100 collected").
+- The capacity Meter is role=meter with a getAriaValueText reading ("28 of 40 seats taken").
 - The Skeleton card is aria-busy; the loading Button keeps its label ("Loading posts").
 
 ## Source
@@ -4664,7 +4694,7 @@ type Post = {
 	following: boolean
 	body: string
 	media?: { src: string; alt: string }
-	drop?: { title: string; price: string; collected: number; supply: number }
+	event?: { title: string; price: string; registered: number; capacity: number }
 	likes: number
 	comments: number
 }
@@ -4677,9 +4707,9 @@ const posts: Post[] = [
 		initials: "AL",
 		time: "2h",
 		following: true,
-		body: "Gold Rush is live. 100 signed prints, each paired with the on-chain original. Thank you for waiting.",
-		media: { src: "/media/edition-cover.svg", alt: "Gold Rush, a gold-leaf study in overlapping arcs" },
-		drop: { title: "Gold Rush", price: "$120", collected: 62, supply: 100 },
+		body: "Registration for the spring workshop is open. Two days of plotter drawing in a small group. See you there.",
+		media: { src: "/media/edition-cover.svg", alt: "Workshop poster, a gold-leaf study in overlapping arcs" },
+		event: { title: "Spring plotter workshop", price: "$120", registered: 28, capacity: 40 },
 		likes: 128,
 		comments: 24,
 	},
@@ -4702,7 +4732,7 @@ const posts: Post[] = [
 		initials: "NS",
 		time: "8h",
 		following: false,
-		body: "Collectors of Dusk, no. 3 — your unlockable score is now in your library. Headphones on for this one.",
+		body: "Thanks to everyone at the Dusk listening session — the full recording is now in your library. Headphones on.",
 		likes: 214,
 		comments: 31,
 	},
@@ -4714,8 +4744,8 @@ const suggestions = [
 ]
 
 const upcoming = [
-	{ id: "d_01", title: "Quiet Harbor", artist: "Mary Shelley", initials: "MS", date: "Sat, Oct 12" },
-	{ id: "d_02", title: "Dusk, no. 4", artist: "Nina Simone", initials: "NS", date: "Tue, Oct 15" },
+	{ id: "e_01", title: "Quiet Harbor talk", host: "Mary Shelley", initials: "MS", date: "Sat, Oct 12" },
+	{ id: "e_02", title: "Dusk, live", host: "Nina Simone", initials: "NS", date: "Tue, Oct 15" },
 ]
 
 const renderPost = (post: Post) => (
@@ -4741,35 +4771,35 @@ const renderPost = (post: Post) => (
 				{post.media ? (
 					<AspectBox ratio={16 / 9} className="overflow-hidden rounded-concentric-lg/6 bg-muted">
 						<img src={post.media.src} alt={post.media.alt} className="size-full object-cover" />
-						{post.drop ? (
+						{post.event ? (
 							<div className="absolute start-3 top-3">
 								<Badge appearance="overlay" size="sm" dot>
-									Live drop
+									Open now
 								</Badge>
 							</div>
 						) : null}
 					</AspectBox>
 				) : null}
-				{post.drop ? (
+				{post.event ? (
 					<Stack gap={1.5}>
 						<Row gap={2} align="center" justify="between">
 							<div className="min-w-0">
-								<p className="text-title-md text-foreground">{post.drop.title}</p>
+								<p className="text-title-md text-foreground">{post.event.title}</p>
 								<p className="text-body-sm text-muted-foreground">
-									{`${post.drop.price} · Edition of ${post.drop.supply}`}
+									{`${post.event.price} · ${post.event.capacity} seats`}
 								</p>
 							</div>
-							<Button>{`Collect for ${post.drop.price}`}</Button>
+							<Button>{`Register for ${post.event.price}`}</Button>
 						</Row>
 						<Meter
-							value={post.drop.collected}
-							max={post.drop.supply}
+							value={post.event.registered}
+							max={post.event.capacity}
 							size="sm"
-							getAriaValueText={(_, value) => `${value} of ${post.drop?.supply} collected`}
+							getAriaValueText={(_, value) => `${value} of ${post.event?.capacity} seats taken`}
 						>
 							<Row gap={2} align="center" justify="between" className="mb-2">
-								<MeterLabel>{`${post.drop.collected} collected`}</MeterLabel>
-								<MeterValue>{(_, value) => `${(post.drop?.supply ?? 0) - value} left`}</MeterValue>
+								<MeterLabel>{`${post.event.registered} registered`}</MeterLabel>
+								<MeterValue>{(_, value) => `${(post.event?.capacity ?? 0) - value} left`}</MeterValue>
 							</Row>
 							<MeterTrack />
 						</Meter>
@@ -4810,15 +4840,15 @@ export function FeedPage() {
 										autoResize
 										rows={2}
 										aria-label="New post"
-										placeholder="Share a process shot or an upcoming drop"
+										placeholder="Share a process shot or an upcoming event"
 									/>
 									<Row gap={1} align="center" justify="between">
 										<Row gap={0.5}>
 											<Button variant="ghost" size="icon-sm" aria-label="Add images">
 												<Icon name="image-stack" />
 											</Button>
-											<Button variant="ghost" size="icon-sm" aria-label="Attach an edition">
-												<Icon name="gem" />
+											<Button variant="ghost" size="icon-sm" aria-label="Add an event">
+												<Icon name="calendar" />
 											</Button>
 										</Row>
 										<Button variant="secondary" size="sm">
@@ -4885,17 +4915,17 @@ export function FeedPage() {
 						</Card>
 						<Card>
 							<CardHeader>
-								<CardTitle render={<h2 />}>Upcoming drops</CardTitle>
+								<CardTitle render={<h2 />}>Upcoming events</CardTitle>
 							</CardHeader>
 							<CardList>
-								{upcoming.map((drop) => (
+								{upcoming.map((event) => (
 									<Entity
-										key={drop.id}
-										leading={<Avatar variant="art" fallback={drop.initials} alt={drop.artist} />}
-										title={drop.title}
-										subtitle={`${drop.artist} · ${drop.date}`}
+										key={event.id}
+										leading={<Avatar variant="art" fallback={event.initials} alt={event.host} />}
+										title={event.title}
+										subtitle={`${event.host} · ${event.date}`}
 										action={
-											<Button variant="ghost" size="icon-sm" aria-label={`Remind me about ${drop.title}`}>
+											<Button variant="ghost" size="icon-sm" aria-label={`Remind me about ${event.title}`}>
 												<Icon name="bell" />
 											</Button>
 										}
@@ -5200,7 +5230,7 @@ export function LandingPage() {
 												<CardDescription>Team plan</CardDescription>
 											</CardHeader>
 											<CardContent>
-												<Meter value={64} tone="standard">
+												<Meter value={64} tone="3">
 													<Row justify="between" wrap className="mb-2">
 														<MeterLabel>Used</MeterLabel>
 														<MeterValue>{(_, value) => `${(value * 30).toLocaleString("en-US")} of 3,000`}</MeterValue>
@@ -5483,9 +5513,9 @@ const roleLabel: Record<Role, string> = {
 
 const roleSummary: Record<Role, string> = {
 	owner: "Full access, including payouts and billing. Transfer ownership in studio settings.",
-	admin: "Manages members, editions and payouts.",
-	editor: "Drafts, prices and releases editions.",
-	viewer: "Sees editions and sales, but can't change them.",
+	admin: "Manages members, projects and billing.",
+	editor: "Drafts, edits and publishes projects.",
+	viewer: "Sees projects and reports, but can't change them.",
 }
 
 type Activity = { id: string; icon: string; text: string; when: string }
@@ -5500,7 +5530,7 @@ type Member = {
 	handle?: string
 	joined?: string
 	lastActive?: string
-	editions?: number
+	projects?: number
 	invitedBy?: string
 	sent?: string
 	expires?: string
@@ -5513,40 +5543,40 @@ const seats = 10
 const initialMembers: Member[] = [
 	{
 		id: "u_01", name: "Ada Lovelace", handle: "@ada", email: "ada@atelier.art", initials: "AL", role: "owner", pending: false,
-		joined: "Mar 4, 2024", lastActive: "Online now", editions: 12,
+		joined: "Mar 4, 2024", lastActive: "Online now", projects: 12,
 		activity: [
-			{ id: "a1", icon: "gem", text: "Released Analytical Engine No. 3 — edition of 50", when: "2 hours ago" },
+			{ id: "a1", icon: "file", text: "Published the Analytical Engine No. 3 roadmap", when: "2 hours ago" },
 			{ id: "a2", icon: "mail", text: "Invited louise@bourgeois.studio as Editor", when: "2 days ago" },
 		],
 	},
 	{
 		id: "u_02", name: "Grace Hopper", handle: "@grace", email: "grace@atelier.art", initials: "GH", role: "admin", pending: false,
-		joined: "Mar 9, 2024", lastActive: "20 minutes ago", editions: 4,
+		joined: "Mar 9, 2024", lastActive: "20 minutes ago", projects: 4,
 		activity: [
 			{ id: "a1", icon: "user", text: "Changed Frida Kahlo's role to Viewer", when: "Yesterday" },
-			{ id: "a2", icon: "edit", text: "Updated pricing on First Compiler — edition of 10", when: "3 days ago" },
-			{ id: "a3", icon: "gem", text: "Released First Compiler — edition of 10", when: "Sep 28" },
+			{ id: "a2", icon: "edit", text: "Updated the budget on First Compiler", when: "3 days ago" },
+			{ id: "a3", icon: "file", text: "Created the First Compiler project", when: "Sep 28" },
 		],
 	},
 	{
 		id: "u_03", name: "Mary Shelley", handle: "@mary", email: "mary@atelier.art", initials: "MS", role: "editor", pending: false,
-		joined: "Jun 18, 2024", lastActive: "3 hours ago", editions: 7,
+		joined: "Jun 18, 2024", lastActive: "3 hours ago", projects: 7,
 		activity: [
 			{ id: "a1", icon: "calendar", text: "Scheduled Frankenstein Studies for Oct 14", when: "3 hours ago" },
-			{ id: "a2", icon: "gem", text: "Released The Last Man — edition of 25", when: "Sep 21" },
+			{ id: "a2", icon: "file", text: "Published The Last Man report", when: "Sep 21" },
 		],
 	},
 	{
 		id: "u_04", name: "Nina Simone", handle: "@nina", email: "nina@atelier.art", initials: "NS", role: "editor", pending: false,
-		joined: "Jan 12, 2025", lastActive: "Yesterday", editions: 3,
+		joined: "Jan 12, 2025", lastActive: "Yesterday", projects: 3,
 		activity: [
-			{ id: "a1", icon: "upload", text: "Uploaded artwork for Little Girl Blue", when: "Yesterday" },
-			{ id: "a2", icon: "gem", text: "Released Feeling Good — edition of 100", when: "Aug 30" },
+			{ id: "a1", icon: "upload", text: "Uploaded files for Little Girl Blue", when: "Yesterday" },
+			{ id: "a2", icon: "file", text: "Published the Feeling Good brief", when: "Aug 30" },
 		],
 	},
 	{
 		id: "u_05", name: "Frida Kahlo", handle: "@frida", email: "frida@atelier.art", initials: "FK", role: "viewer", pending: false,
-		joined: "Jul 2, 2025", lastActive: "4 days ago", editions: 0,
+		joined: "Jul 2, 2025", lastActive: "4 days ago", projects: 0,
 		activity: [{ id: "a1", icon: "comment", text: "Commented on the Las Dos Fridas draft", when: "4 days ago" }],
 	},
 	{
@@ -5779,8 +5809,8 @@ export function ListDetailPage() {
 														<dd className={selected.lastActive === "Online now" ? "text-success" : undefined}>
 															{selected.lastActive}
 														</dd>
-														<dt>Editions released</dt>
-														<dd>{selected.editions}</dd>
+														<dt>Projects owned</dt>
+														<dd>{selected.projects}</dd>
 													</dl>
 												)}
 											</div>
@@ -5833,7 +5863,7 @@ export function ListDetailPage() {
 									description={
 										selected.pending
 											? `${selected.email} won't be able to join with the link they were sent.`
-											: "They lose access to the studio right away. Editions they released stay on sale."
+											: "They lose access to the workspace right away. Projects they own stay with the team."
 									}
 									confirmLabel={selected.pending ? "Revoke invite" : "Remove member"}
 									onConfirm={() => remove(selected.id)}
@@ -5898,17 +5928,17 @@ const timezones = [
 ]
 
 const notifications = [
-	{ name: "notifyCollects", title: "New collects", description: "When someone collects your work", on: true },
-	{ name: "notifySoldOut", title: "Sold out", description: "When an edition sells its last copy", on: true },
-	{ name: "notifyFollowers", title: "New followers", description: "When a collector follows you", on: false },
-	{ name: "notifyDigest", title: "Weekly digest", description: "Sales and collectors, every Monday", on: true },
+	{ name: "notifyComments", title: "New comments", description: "When someone comments on your work", on: true },
+	{ name: "notifyInvoicePaid", title: "Invoice paid", description: "When a customer pays an invoice", on: true },
+	{ name: "notifyMembers", title: "New members", description: "When someone joins your workspace", on: false },
+	{ name: "notifyDigest", title: "Weekly digest", description: "Activity and usage, every Monday", on: true },
 	{ name: "notifyProduct", title: "Product updates", description: "New Atelier features", on: false },
 ]
 
 const payouts = [
 	{ label: "Next payout", value: "$1,284.60", note: "Friday, Oct 16" },
 	{ label: "Pending", value: "$412.00", note: "Clears in 7 days" },
-	{ label: "Paid this year", value: "$18,920.00", note: "Across 214 collects" },
+	{ label: "Paid this year", value: "$18,920.00", note: "Across 214 invoices" },
 ]
 
 export function SettingsPage() {
@@ -5933,8 +5963,8 @@ export function SettingsPage() {
 			bottomNav={
 				<BottomNav aria-label="Primary">
 					<BottomNavItem icon={<Icon name="grid" />} label="Overview" showLabel render={<a href="/" />} />
-					<BottomNavItem icon={<Icon name="image-stack" />} label="Editions" showLabel render={<a href="/editions" />} />
-					<BottomNavItem icon={<Icon name="user" />} label="Collectors" showLabel render={<a href="/collectors" />} />
+					<BottomNavItem icon={<Icon name="folder" />} label="Accounts" showLabel render={<a href="/accounts" />} />
+					<BottomNavItem icon={<Icon name="user" />} label="Customers" showLabel render={<a href="/customers" />} />
 					<BottomNavItem icon={<Icon name="bell" />} label="Activity" showLabel render={<a href="/activity" />} />
 					<BottomNavItem icon={<Icon name="gear" />} label="Settings" showLabel active render={<a href="/settings" />} />
 				</BottomNav>
@@ -5946,8 +5976,8 @@ export function SettingsPage() {
 					</SidebarHeader>
 					<SidebarNav>
 						<SidebarItem icon={<Icon name="grid" />} label="Overview" render={<a href="/" />} />
-						<SidebarItem icon={<Icon name="image-stack" />} label="Editions" render={<a href="/editions" />} />
-						<SidebarItem icon={<Icon name="user" />} label="Collectors" render={<a href="/collectors" />} />
+						<SidebarItem icon={<Icon name="folder" />} label="Accounts" render={<a href="/accounts" />} />
+						<SidebarItem icon={<Icon name="user" />} label="Customers" render={<a href="/customers" />} />
 						<SidebarItem
 							icon={<Icon name="bell" />}
 							label="Activity"
@@ -6001,7 +6031,7 @@ export function SettingsPage() {
 							<Card id="profile" className="scroll-mt-6">
 								<CardHeader>
 									<CardTitle render={<h2 />}>Profile</CardTitle>
-									<CardDescription>How collectors see you on Atelier.</CardDescription>
+									<CardDescription>How your team sees you on Atelier.</CardDescription>
 								</CardHeader>
 								{/* The one explicit save on the page: profile text is drafted, then
 								    committed. Toggles below apply the moment they change. */}
@@ -6032,14 +6062,14 @@ export function SettingsPage() {
 													<Input defaultValue="ada" autoComplete="username" spellCheck={false} />
 												</Field>
 											</Grid>
-											<Field label="Bio" name="bio" description="Shown on your profile and edition pages.">
+											<Field label="Bio" name="bio" description="Shown on your profile and in comments.">
 												<Textarea
 													rows={3}
-													defaultValue="Generative artist working in plotted ink and code. New editions of 25 to 100 every month."
+													defaultValue="Product designer working on tools for small teams. Writing about process every month."
 												/>
 											</Field>
 											<Grid cols={{ base: 1, sm: 2 }} gap={3}>
-												<Field label="Timezone" name="timezone" description="Release times use this zone.">
+												<Field label="Timezone" name="timezone" description="Due dates use this zone.">
 													<Select defaultValue="europe-london" items={timezones}>
 														<SelectTrigger />
 														<SelectContent>
@@ -6064,7 +6094,7 @@ export function SettingsPage() {
 								<CardHeader>
 									<CardTitle render={<h2 />}>Notifications</CardTitle>
 									<CardDescription>
-										Email updates about your editions. Changes save automatically.
+										Email updates about your projects. Changes save automatically.
 									</CardDescription>
 								</CardHeader>
 								<CardList>
@@ -6127,7 +6157,7 @@ export function SettingsPage() {
 									<Entity
 										leading={<Icon name="download" className="text-lg text-muted-foreground" />}
 										title="Export data"
-										subtitle="Editions, sales, and collectors"
+										subtitle="Projects, invoices, and members"
 										action={
 											<Button variant="outline" size="sm">
 												Export
@@ -6141,8 +6171,8 @@ export function SettingsPage() {
 								<CardHeader>
 									<CardTitle render={<h2 />}>Delete account</CardTitle>
 									<CardDescription>
-										Permanently remove your profile, editions, and sales history. Collectors keep
-										the editions they own.
+										Permanently remove your profile, projects, and billing history. Files you shared
+										stay with your team.
 									</CardDescription>
 								</CardHeader>
 								<CardFooter className="justify-end">
@@ -6159,7 +6189,7 @@ export function SettingsPage() {
 				open={deleteOpen}
 				onOpenChange={setDeleteOpen}
 				title="Delete your account?"
-				description="This permanently removes your profile, 12 editions, and sales history. Pending payouts are still sent. This can't be undone."
+				description="This permanently removes your profile, 12 projects, and billing history. Your final invoice is still sent. This can't be undone."
 				confirmLabel="Delete account"
 				confirmingLabel="Deleting…"
 				confirmText="ada"
@@ -6436,7 +6466,7 @@ A delete-account card: what deleting removes and what survives, one destructive 
 
 - Copied from the SettingsPage page shell's Delete account section.
 - The button never acts directly: it opens the modal, whose confirm stays disabled until the handle is typed.
-- The description says what is lost AND what is kept ("Collectors keep the editions they own"), which is what people want to know before they decide.
+- The description says what is lost AND what is kept ("Files you shared stay with your team"), which is what people want to know before they decide.
 
 ## Accessibility
 
@@ -6449,7 +6479,7 @@ A delete-account card: what deleting removes and what survives, one destructive 
 import { useState } from "react"
 import { Button, Card, CardDescription, CardFooter, CardHeader, CardTitle, cn, DestructiveActionModal } from "@sableui/react"
 
-const account = { handle: "ada", editions: 12 }
+const account = { handle: "ada", projects: 12 }
 
 export interface DangerZoneBlockProps {
 	className?: string
@@ -6467,7 +6497,7 @@ export function DangerZoneBlock({ className, framed = true, onDelete }: DangerZo
 				<CardHeader>
 					<CardTitle render={<h2 />}>Delete account</CardTitle>
 					<CardDescription>
-						Permanently remove your profile, editions, and sales history. Collectors keep the editions they own.
+						Permanently remove your profile, projects, and billing history. Files you shared stay with your team.
 					</CardDescription>
 				</CardHeader>
 				<CardFooter actions className="justify-end">
@@ -6480,7 +6510,7 @@ export function DangerZoneBlock({ className, framed = true, onDelete }: DangerZo
 				open={open}
 				onOpenChange={setOpen}
 				title="Delete your account?"
-				description={`This permanently removes your profile, ${account.editions} editions, and sales history. Pending payouts are still sent. This can't be undone.`}
+				description={`This permanently removes your profile, ${account.projects} projects, and billing history. Your final invoice is still sent. This can't be undone.`}
 				confirmLabel="Delete account"
 				confirmingLabel="Deleting…"
 				confirmText={account.handle}
@@ -6709,10 +6739,10 @@ const intro = {
 }
 
 const questions = [
-	{ q: "Is there a free plan?", a: "Yes. Starter is free forever for three live editions, with no fees on your first $1,000 in sales." },
+	{ q: "Is there a free plan?", a: "Yes. Starter is free forever for three active projects, with no card needed to sign up." },
 	{ q: "Can I change plans later?", a: "Any time. Upgrades apply immediately and are prorated; downgrades take effect at the end of the billing period." },
-	{ q: "Who owns the work I sell?", a: "You do. Collectors own the editions they buy, and you keep the rights to the work itself." },
-	{ q: "How do payouts work?", a: "Sales clear after seven days and are paid out every Friday to the account you connect in settings." },
+	{ q: "Who owns the data I add?", a: "You do. You can export everything in your workspace at any time, and we never sell it." },
+	{ q: "How does billing work?", a: "Plans are billed per seat at the start of each period, to the card or account you add in settings." },
 ]
 
 export interface FaqBlockProps {
@@ -6925,7 +6955,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, 
 
 const goals = [
 	{ goal: "Releases", progress: 82 },
-	{ goal: "Collectors", progress: 64 },
+	{ goal: "Customers", progress: 64 },
 	{ goal: "Revenue", progress: 91 },
 ]
 
@@ -7489,7 +7519,7 @@ An activity list: Entity rows with the actor's Avatar, who did what, and a compa
 import { Avatar, Card, CardList, cn, Entity, StatusDot } from "@sableui/react"
 
 const notifications = [
-	{ initials: "MO", name: "Mara Okafor", what: "collected your edition", when: "2m", unread: true },
+	{ initials: "MO", name: "Mara Okafor", what: "invited you to Q3 planning", when: "2m", unread: true },
 	{ initials: "SR", name: "Sam Rivera", what: "left a comment on Dusk", when: "1h", unread: false },
 ]
 
@@ -7766,32 +7796,32 @@ const tiers = [
 	{
 		id: "starter",
 		name: "Starter",
-		blurb: "For one person shipping their first editions.",
+		blurb: "For one person getting a first project going.",
 		monthly: 0,
 		yearly: 0,
 		cta: "Start for free",
 		featured: false,
-		features: ["3 live editions", "Collector profiles", "Community support"],
+		features: ["3 active projects", "Shared docs", "Community support"],
 	},
 	{
 		id: "studio",
 		name: "Studio",
-		blurb: "For working artists with a steady release schedule.",
+		blurb: "For small teams shipping on a steady schedule.",
 		monthly: 20,
 		yearly: 16,
 		cta: "Start free trial",
 		featured: true,
-		features: ["Unlimited editions", "Scheduled drops", "Sales analytics", "Priority support"],
+		features: ["Unlimited projects", "Scheduled reports", "Usage analytics", "Priority support"],
 	},
 	{
-		id: "collective",
-		name: "Collective",
-		blurb: "For galleries and teams releasing together.",
+		id: "business",
+		name: "Business",
+		blurb: "For companies running several teams at once.",
 		monthly: 48,
 		yearly: 40,
 		cta: "Talk to sales",
 		featured: false,
-		features: ["Everything in Studio", "Up to 10 seats", "Shared payouts", "Roles and approvals"],
+		features: ["Everything in Studio", "Up to 10 seats", "SSO and audit log", "Roles and approvals"],
 	},
 ]
 
@@ -7811,10 +7841,10 @@ export function PricingTableBlock({ className, onChoose }: PricingTableBlockProp
 			<Stack gap={10}>
 				<Stack gap={4} align="center" className="text-center">
 					<h2 id={titleId} className="text-balance text-heading-1">
-						Pricing that grows with your practice
+						Pricing that grows with your team
 					</h2>
 					<p className="max-w-(--measure-prose) text-body-lg text-muted-foreground">
-						Every plan includes unlimited collectors and no fees on your first $1,000 in sales.
+						Every plan includes unlimited guests, and you can switch plans at any time.
 					</p>
 					<ToggleGroup value={[period]} onValueChange={(v: unknown[]) => v[0] && setPeriod(v[0] as Period)} aria-label="Billing period">
 						<Toggle value="monthly">Monthly</Toggle>
@@ -7833,7 +7863,7 @@ export function PricingTableBlock({ className, onChoose }: PricingTableBlockProp
 								<CardDescription>{tier.blurb}</CardDescription>
 								{tier.featured ? (
 									<CardAction>
-										<Badge tone="edition" size="sm">
+										<Badge tone="1" size="sm">
 											Most popular
 										</Badge>
 									</CardAction>
@@ -7871,15 +7901,15 @@ export function PricingTableBlock({ className, onChoose }: PricingTableBlockProp
 
 # ProductCardBlock
 
-A product card: edge-to-edge artwork, title and maker, an edition Badge, and the price beside a single buy action.
+A product card: edge-to-edge product image, title and maker, a status Badge, and the price beside a single buy action.
 
-**Intent:** Reach for this for a product, edition or listing in a grid or a featured slot. For a row in a dense list, use an Entity with the image as `leading` instead.
+**Intent:** Reach for this for a product or listing in a grid or a featured slot. For a row in a dense list, use an Entity with the image as `leading` instead.
 
 **Block:** Commerce · card · designed for 16rem–20rem wide (fills its container up to the max)
 
 ## Notes
 
-- The artwork runs to the card's edges; the card clips it to its own corners (overflow-hidden).
+- The image runs to the card's edges; the card clips it to its own corners (overflow-hidden).
 - Prices are `text-mono-lg` — the metric mono tier with tabular figures — never a heading tier.
 - The placeholder art is painted from the palette's decorative tones so it follows the theme; swap it for the product image with real alt text.
 
@@ -7894,7 +7924,7 @@ A product card: edge-to-edge artwork, title and maker, an edition Badge, and the
 import { AspectBox, Badge, Button, Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle, cn, MediaImage } from "@sableui/react"
 
 // `image` is the product shot URL; left empty, it paints art seeded by the title.
-const product = { title: "Untitled (gold rush)", maker: "Mara Okafor", image: "", edition: "12 of 50", price: "0.42 SOL" }
+const product = { title: "Linen throw blanket", maker: "Northfield Home", image: "", badge: "New", price: "$64.00" }
 
 
 export interface ProductCardBlockProps {
@@ -7915,12 +7945,12 @@ export function ProductCardBlock({ className, framed = true, onCollect }: Produc
 				<CardTitle>{product.title}</CardTitle>
 				<CardDescription>{product.maker}</CardDescription>
 				<CardAction>
-					<Badge tone="edition">{product.edition}</Badge>
+					<Badge tone="1">{product.badge}</Badge>
 				</CardAction>
 			</CardHeader>
 			<CardFooter className="justify-between pt-4">
 				<span className="text-mono-lg">{product.price}</span>
-				<Button onClick={onCollect}>Collect</Button>
+				<Button onClick={onCollect}>Add to cart</Button>
 			</CardFooter>
 		</Card>
 	)
@@ -7958,7 +7988,7 @@ const profile = {
 	name: "Juno Avery",
 	initials: "JA",
 	handle: "@juno · Sound and light",
-	bio: "Field recordings, slowed down. New edition every full moon.",
+	bio: "Field recordings, slowed down. New track every full moon.",
 	stats: [
 		{ value: "128", label: "posts" },
 		{ value: "4.2k", label: "followers" },
@@ -8050,7 +8080,7 @@ const profile = {
 	name: "Ada Lovelace",
 	initials: "AL",
 	handle: "ada",
-	bio: "Generative artist working in plotted ink and code. New editions of 25 to 100 every month.",
+	bio: "Product designer working on tools for small teams. Writing about process every month.",
 	timezone: "europe-london",
 }
 
@@ -8075,7 +8105,7 @@ export function ProfileFormBlock({ className, framed = true, onSave }: ProfileFo
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-2xl", className)}>
 			<CardHeader>
 				<CardTitle render={<h2 />}>Profile</CardTitle>
-				<CardDescription>How collectors see you.</CardDescription>
+				<CardDescription>How your team sees you.</CardDescription>
 			</CardHeader>
 			{/* The one explicit save: profile text is drafted, then committed. */}
 			<Form
@@ -8109,7 +8139,7 @@ export function ProfileFormBlock({ className, framed = true, onSave }: ProfileFo
 								<Input defaultValue={profile.handle} autoComplete="username" spellCheck={false} />
 							</Field>
 						</Grid>
-						<Field label="Bio" name="bio" description="Shown on your profile and edition pages.">
+						<Field label="Bio" name="bio" description="Shown on your profile and in comments.">
 							<Textarea rows={3} defaultValue={profile.bio} />
 						</Field>
 						<Grid cols={{ base: 1, sm: 2 }} gap={3}>
@@ -8166,10 +8196,10 @@ import { Badge, Card, CardAction, CardContent, CardDescription, CardHeader, cn, 
 const revenue = { label: "Revenue this month", total: "$12,480", change: "+8.2%" }
 
 const segments = [
-	{ label: "Editions", value: 42, tone: "edition" },
-	{ label: "Collectibles", value: 27, tone: "collectible" },
-	{ label: "Standard", value: 19, tone: "standard" },
-	{ label: "Commissions", value: 12, tone: "info" },
+	{ label: "Direct", value: 42, tone: "1" },
+	{ label: "Partners", value: 27, tone: "2" },
+	{ label: "Referrals", value: 19, tone: "3" },
+	{ label: "Resellers", value: 12, tone: "info" },
 ] as const
 
 export interface RevenueBreakdownBlockProps {
@@ -8191,7 +8221,7 @@ export function RevenueBreakdownBlock({ className, framed = true }: RevenueBreak
 			</CardHeader>
 			<CardContent className="flex flex-col gap-4 pt-2">
 				<span className="text-mono-xl">{revenue.total}</span>
-				<SegmentedBar label="Revenue by type" segments={[...segments]} size="lg" />
+				<SegmentedBar label="Revenue by channel" segments={[...segments]} size="lg" />
 				{/* Two columns while each entry fits whole, one when they would not:
 				    sized in em, so a larger type or a narrower card drops to one.
 				    aria-hidden: the bar already reads every share aloud. */}
@@ -8486,9 +8516,9 @@ import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, cn, G
 
 const stats = [
 	{ label: "Revenue", value: "$18,240", delta: "+8.2%", up: true, note: "vs. $16,857" },
-	{ label: "Collects", value: "1,284", delta: "+3.1%", up: true, note: "182 first-time" },
-	{ label: "Collectors", value: "312", delta: "+12.4%", up: true, note: "Best month yet" },
-	{ label: "Sell-through", value: "64%", delta: "−1.8%", up: false, note: "6 open editions" },
+	{ label: "Orders", value: "1,284", delta: "+3.1%", up: true, note: "182 first-time" },
+	{ label: "New customers", value: "312", delta: "+12.4%", up: true, note: "Best month yet" },
+	{ label: "Conversion", value: "3.4%", delta: "−0.2%", up: false, note: "6 open trials" },
 ]
 
 export interface StatRowBlockProps {
@@ -8623,9 +8653,9 @@ import { useState, useId } from "react"
 import { Badge, Button, Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle, Checkbox, cn, Icon, Label } from "@sableui/react"
 
 const tasks = [
-	{ title: "Pick the cover type", tag: "Design", tone: "collectible", done: true },
+	{ title: "Pick the cover type", tag: "Design", tone: "2", done: true },
 	{ title: "Wire up checkout", tag: "Engineering", tone: "info", done: false },
-	{ title: "Draft launch post", tag: "Launch", tone: "edition", done: false },
+	{ title: "Draft launch post", tag: "Launch", tone: "1", done: false },
 ] as const
 
 export interface TaskListBlockProps {
@@ -8742,7 +8772,7 @@ export function TeamMembersBlock({ className, framed = true, onInvite, onMemberA
 						subtitle={m.email}
 						action={
 							<div className="flex items-center gap-2">
-								<Badge appearance={m.role === "Pending" ? "outline" : "plain"} tone={m.role === "Owner" ? "edition" : "neutral"} size="sm">
+								<Badge appearance={m.role === "Pending" ? "outline" : "plain"} tone={m.role === "Owner" ? "1" : "neutral"} size="sm">
 									{m.role}
 								</Badge>
 								{/* The owner is not managed from here; a placeholder keeps the column aligned. */}
@@ -9157,7 +9187,7 @@ export function VerifyCodeBlock({ className, framed = true, onVerify, onResend }
 
 A balance card: the balance in the metric mono tier, Send and Receive as an equal pair, and recent activity as Entity rows with signed amounts.
 
-**Intent:** Reach for this for a wallet, account balance or credits summary with its latest movements. For a full transaction history with filters, use a DataTable.
+**Intent:** Reach for this for an account balance, store credit or credits summary with its latest movements. For a full transaction history with filters, use a DataTable.
 
 **Block:** Commerce · card · designed for 18rem–20rem wide (fills its container up to the max)
 
@@ -9165,24 +9195,24 @@ A balance card: the balance in the metric mono tier, Send and Receive as an equa
 
 - The balance is CardTitle at `text-mono-xl` — tabular figures, never a heading tier — under its label as CardDescription.
 - Send is primary and Receive secondary, side by side at equal width: two directions of one action, with sending the riskier and more frequent.
-- Incoming amounts are `text-success`; outgoing stay muted rather than red, because a withdrawal is not an error.
+- Incoming amounts are `text-success`; outgoing stay muted rather than red, because a payout or refund is not an error.
 
 ## Accessibility
 
 - Each activity row's leading swatch is aria-hidden; the title and detail carry the meaning.
-- Amounts keep their sign in text (+0.80 / -1.50), so the direction does not depend on colour.
+- Amounts keep their sign in text (+49.00 / -850.00), so the direction does not depend on colour.
 
 ## Source
 
 ```tsx
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Entity, Icon } from "@sableui/react"
 
-const balance = "14.62 SOL"
+const balance = "$2,418.50"
 
 const activity = [
-	{ title: "Sold “Dusk, no. 4”", detail: "Edition · 2h ago", amount: "+0.80", tone: "edition" },
-	{ title: "Royalty", detail: "Collectible · Yesterday", amount: "+0.12", tone: "collectible" },
-	{ title: "Withdrawal", detail: "To Phantom · Mon", amount: "-1.50", tone: "standard" },
+	{ title: "Subscription", detail: "Team plan · 2h ago", amount: "+49.00", tone: "1" },
+	{ title: "Refund", detail: "Order 1042 · Yesterday", amount: "-24.00", tone: "2" },
+	{ title: "Payout", detail: "To checking · Mon", amount: "-850.00", tone: "3" },
 ]
 
 export interface WalletBlockProps {
@@ -9292,7 +9322,7 @@ import { PageHeader, Region } from "@sableui/react"
 ```tsx
 import { Card, CardHeader, CardTitle, Grid, Region } from "@sableui/react"
 
-<Region max="wide"><Grid minItemWidth="16rem"><Card><CardHeader><CardTitle>Revenue</CardTitle></CardHeader></Card><Card><CardHeader><CardTitle>Collects</CardTitle></CardHeader></Card></Grid></Region>
+<Region max="wide"><Grid minItemWidth="16rem"><Card><CardHeader><CardTitle>Revenue</CardTitle></CardHeader></Card><Card><CardHeader><CardTitle>Orders</CardTitle></CardHeader></Card></Grid></Region>
 ```
 
 ### Fluid workspace: the queue's table takes the extra width
@@ -9342,7 +9372,7 @@ Use Page as a route content shell that combines Region sizing with vertical rhyt
 ```tsx
 import { Card, CardContent, Page, PageHeader } from "@sableui/react"
 
-<Page as="main" max="feed"><PageHeader title="Home" description="Latest posts from artists you follow." /><Card><CardContent><p className="text-body-md">First post.</p></CardContent></Card></Page>
+<Page as="main" max="feed"><PageHeader title="Home" description="Latest posts from people you follow." /><Card><CardContent><p className="text-body-md">First post.</p></CardContent></Card></Page>
 ```
 
 ---
@@ -9413,7 +9443,7 @@ import { Card, CardDescription, CardHeader, Grid } from "@sableui/react"
 ```tsx
 import { Badge, Grid } from "@sableui/react"
 
-<Grid cols={{ base: 1, md: 2, lg: 4 }}><Badge appearance="plain" tone="standard" dot /><Badge appearance="plain" tone="warning" dot /><Badge appearance="plain" tone="neutral" dot /><Badge appearance="plain" tone="destructive" dot /></Grid>
+<Grid cols={{ base: 1, md: 2, lg: 4 }}><Badge appearance="plain" tone="3" dot /><Badge appearance="plain" tone="warning" dot /><Badge appearance="plain" tone="neutral" dot /><Badge appearance="plain" tone="destructive" dot /></Grid>
 ```
 
 ---
@@ -9752,7 +9782,7 @@ Use SplitPane for responsive two-pane layouts where a primary pane and supportin
 ```tsx
 import { AspectBox, Button, SplitPane, Stack } from "@sableui/react"
 
-<SplitPane ratio="2/1" primary={<AspectBox ratio={1}><img src={post.imageUrl} alt={post.title} className="size-full object-cover" /></AspectBox>} secondary={<Stack gap={2}><h1 className="text-heading-1">{post.title}</h1><p className="text-body-md text-muted-foreground">{post.description}</p><Button>Collect</Button></Stack>} />
+<SplitPane ratio="2/1" primary={<AspectBox ratio={1}><img src={post.imageUrl} alt={post.title} className="size-full object-cover" /></AspectBox>} secondary={<Stack gap={2}><h1 className="text-heading-1">{post.title}</h1><p className="text-body-md text-muted-foreground">{post.description}</p><Button>Add to cart</Button></Stack>} />
 ```
 
 ---
@@ -9915,7 +9945,7 @@ Use Accordion to reveal a vertical set of related sections while keeping the sur
 ```tsx
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from "@sableui/react"
 
-<Accordion defaultValue={["a"]}><AccordionItem value="a"><AccordionTrigger>Is it permanent?</AccordionTrigger><AccordionPanel>Yes — stored on Arweave.</AccordionPanel></AccordionItem><AccordionItem value="b"><AccordionTrigger>How much?</AccordionTrigger><AccordionPanel>A one-time mint fee.</AccordionPanel></AccordionItem></Accordion>
+<Accordion defaultValue={["a"]}><AccordionItem value="a"><AccordionTrigger>Can I cancel anytime?</AccordionTrigger><AccordionPanel>Yes — from billing settings.</AccordionPanel></AccordionItem><AccordionItem value="b"><AccordionTrigger>How much?</AccordionTrigger><AccordionPanel>$16 per seat each month.</AccordionPanel></AccordionItem></Accordion>
 ```
 
 ### Multiple open
@@ -9931,7 +9961,7 @@ import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from "@sab
 ```tsx
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger, Icon } from "@sableui/react"
 
-<Accordion defaultValue={["a"]}><AccordionItem value="a"><AccordionTrigger indicator={<Icon name="plus" className="text-xs text-muted-foreground transition-transform [[data-panel-open]_&]:rotate-45" />}>Is it permanent?</AccordionTrigger><AccordionPanel>Yes — stored on Arweave.</AccordionPanel></AccordionItem></Accordion>
+<Accordion defaultValue={["a"]}><AccordionItem value="a"><AccordionTrigger indicator={<Icon name="plus" className="text-xs text-muted-foreground transition-transform [[data-panel-open]_&]:rotate-45" />}>Can I cancel anytime?</AccordionTrigger><AccordionPanel>Yes — from billing settings.</AccordionPanel></AccordionItem></Accordion>
 ```
 
 ---
@@ -9961,7 +9991,7 @@ Use AppHeader for compact application chrome at the top of a screen, usually wit
 | --- | --- | --- | --- |
 | leading | ReactNode | — | Leading slot — back button, create action, or menu trigger. |
 | title | ReactNode | — | Center slot — brand wordmark or contextual page title. |
-| actions | ReactNode | — | Trailing slot — wallet trigger, action buttons. |
+| actions | ReactNode | — | Trailing slot — account menu, action buttons. |
 
 ## Tokens used
 
@@ -10083,7 +10113,7 @@ import { AppHeader, AppShell, Banner, BottomNav, BottomNavItem, Icon, PageHeader
 // <Link> = your router's link (react-router, next/link, @tanstack/router, …)
 
 <AppShell
-  banners={<Banner tone="warning">Network congested — mints may be slow.</Banner>}
+  banners={<Banner tone="warning">Sync is delayed — changes may be slow to appear.</Banner>}
   header={<AppHeader title="Studio" />}
   sidebar={
     <Sidebar>
@@ -10102,7 +10132,7 @@ import { AppHeader, AppShell, Banner, BottomNav, BottomNavItem, Icon, PageHeader
   }
 >
   <Region max="feed">
-    <PageHeader title="Home" description="Latest posts from artists you follow." />
+    <PageHeader title="Home" description="Latest posts from people you follow." />
   </Region>
 </AppShell>
 ```
@@ -10204,7 +10234,7 @@ Use AreaChart for volume over time — visitors, revenue, usage — where the fi
 
 ## Tokens used
 
-`tone-edition`, `tone-collectible`, `tone-standard`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
+`tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
 
 ## Motion
 
@@ -10563,7 +10593,7 @@ import { Avatar, Entity, StatusDot } from "@sableui/react"
 
 **Status:** stable
 
-Compact static label, set on two axes: appearance (soft, outline, solid, overlay on media, plain text) and tone (neutral or a semantic tone). An optional leading icon, or a status dot (with pulse) for state.
+Compact static label, set on two axes: appearance (soft, outline, solid, overlay on media, plain text) and tone (neutral, a semantic tone, or a palette family like blue for a category with no meaning attached). An optional leading icon, or a status dot (with pulse) for state.
 
 **Keywords:** badge, tag, label, status, metadata, chip, pill, tone, category
 
@@ -10574,7 +10604,7 @@ Use Badge for any short static label: metadata, categories, tone-coded labels, a
 ### Best practices
 
 - Do: Keep badge text short: one to three words or a compact count.
-- Do: Use tone variants when the badge carries meaning, such as success, warning, destructive, edition, or collectible.
+- Do: Use tone variants when the badge carries meaning, such as success, warning or destructive, or a decorative tone for a category or plan.
 - Do: Pair icons with text; the icon reinforces meaning but should not be the only cue.
 - Do: Choose appearance and tone separately: appearance is how loud it is (soft by default, solid for emphasis, overlay on images, plain for a status line); tone is what it means.
 - Don't: Use a Badge as a button. If it triggers an action, use Button, Toggle, or a menu item.
@@ -10593,7 +10623,7 @@ Use Badge for any short static label: metadata, categories, tone-coded labels, a
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
 | appearance | "soft" \| "outline" \| "solid" \| "overlay" \| "plain" | "soft" | How it is drawn. soft: a tinted fill (neutral is the secondary surface). outline: a hairline. solid: the tone at full strength (neutral is the inverted chip). overlay: legible on images — a dark scrim, or the solid tone. plain: no fill or padding, a status line. |
-| tone | "neutral" \| "standard" \| "collectible" \| "edition" \| "info" \| "success" \| "warning" \| "destructive" | "neutral" | What it means. Every appearance takes every tone. |
+| tone | "neutral" \| "1" \| "2" \| "3" \| "info" \| "success" \| "warning" \| "destructive" \| "red" \| "orange" \| "yellow" \| "green" \| "teal" \| "blue" \| "purple" \| "pink" | "neutral" | What it means. Every appearance takes every tone. The palette families (red … pink) are categories with no meaning attached — tags, labels, project colours — painted from the theme's generated palette, so they lean toward the brand and read in both modes. |
 | size | "sm" \| "md" | "md" | "sm" uses tighter padding + text-label-sm; "md" is the default look. |
 | icon | ReactNode | — | Optional leading glyph (e.g. <Icon name="lock" />), rendered before the children with the base gap. Ignored when dot is set. |
 | dot | boolean | false | A leading status dot in the badge's tone. With appearance="plain" it is a status line (● Ready). |
@@ -10602,12 +10632,12 @@ Use Badge for any short static label: metadata, categories, tone-coded labels, a
 ## Variants
 
 - **appearance**: soft, outline, solid, overlay, plain
-- **tone**: neutral, standard, collectible, edition, info, success, warning, destructive
+- **tone**: neutral, 1, 2, 3, info, success, warning, destructive, red, orange, yellow, green, teal, blue, purple, pink
 - **size**: sm, md
 
 ## Tokens used
 
-`secondary`, `secondary-foreground`, `border`, `foreground`, `background`, `muted`, `muted-foreground`, `tone-standard`, `tone-collectible`, `tone-edition`, `tone-info`, `success`, `tone-warning`, `destructive`, `overlay`, `overlay-foreground`, `tone-standard-foreground`, `tone-collectible-foreground`, `tone-edition-foreground`, `tone-info-foreground`, `success-foreground`, `tone-warning-foreground`, `destructive-foreground`
+`palette-wash`, `palette-wash-strong`, `palette-edge`, `palette-dot`, `palette-solid`, `palette-text`, `palette-solid-ink`, `secondary`, `secondary-foreground`, `border`, `foreground`, `background`, `muted`, `muted-foreground`, `tone-1`, `tone-2`, `tone-3`, `tone-info`, `success`, `tone-warning`, `destructive`, `overlay`, `overlay-foreground`, `tone-1-foreground`, `tone-2-foreground`, `tone-3-foreground`, `tone-info-foreground`, `success-foreground`, `tone-warning-foreground`, `destructive-foreground`
 
 ## Accessibility
 
@@ -10626,7 +10656,15 @@ Use Badge for any short static label: metadata, categories, tone-coded labels, a
 ```tsx
 import { Badge, Row } from "@sableui/react"
 
-<Row gap={1}><Badge tone="edition">Edition</Badge><Badge tone="collectible">Collectible</Badge><Badge tone="standard">Standard</Badge></Row>
+<Row gap={1}><Badge tone="1">Business</Badge><Badge tone="2">Studio</Badge><Badge tone="3">Starter</Badge></Row>
+```
+
+### Palette colours (categories)
+
+```tsx
+import { Badge, Row } from "@sableui/react"
+
+<Row gap={1}><Badge tone="blue">Design</Badge><Badge tone="teal">Research</Badge><Badge tone="orange">Marketing</Badge><Badge tone="pink" appearance="outline">Ops</Badge><Badge tone="purple" appearance="solid">Launch</Badge></Row>
 ```
 
 ### Solid
@@ -10666,7 +10704,7 @@ import { Badge } from "@sableui/react"
 ```tsx
 import { Badge, Icon, Row } from "@sableui/react"
 
-<Row gap={1}><Badge>12 editions</Badge><Badge appearance="outline">Open edition</Badge><Badge tone="info" icon={<Icon name="info" />}>Curated</Badge></Row>
+<Row gap={1}><Badge>12 projects</Badge><Badge appearance="outline">Draft</Badge><Badge tone="info" icon={<Icon name="info" />}>Curated</Badge></Row>
 ```
 
 ### Semantic state
@@ -10683,7 +10721,7 @@ import { Badge, Row } from "@sableui/react"
 
 **Status:** stable
 
-Full-width, page-level announcement bar. A tone (neutral, info, success, warning, edition, destructive) × an appearance (soft tint or loud solid fill), and an optional leading scope label. Centers its message, or — with a trailing action — switches to a leading-text + trailing-button layout. Optionally sticky and dismissible.
+Full-width, page-level announcement bar. A tone (neutral, info, success, warning, the decorative 1, destructive) × an appearance (soft tint or loud solid fill), and an optional leading scope label. Centers its message, or — with a trailing action — switches to a leading-text + trailing-button layout. Optionally sticky and dismissible.
 
 **Keywords:** banner, announcement, alert, status, message, warning, success, offline, sticky
 
@@ -10712,7 +10750,7 @@ Use Banner for page-level or app-level messages that affect the current experien
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| tone | "neutral" \| "info" \| "success" \| "warning" \| "edition" \| "destructive" | "neutral" | Neutral surface or a tone that encodes the announcement's intent (info / success / warning / edition / destructive). |
+| tone | "neutral" \| "info" \| "success" \| "warning" \| "1" \| "destructive" | "neutral" | Neutral surface or a tone that encodes the announcement's intent (info / success / warning / the decorative 1 / destructive). |
 | appearance | "soft" \| "solid" | "soft" | "soft" is a quiet tinted fill; "solid" is the full tone with its paired ink — for loud, can't-miss states (offline, chain-down, RPC errors). |
 | label | ReactNode | — | A short scope label ("Preview", "Staging", a project name) in a leading chip — a Badge that reads on soft and solid fills. |
 | action | ReactNode | — | A trailing action (e.g. a Button). Switches the bar to leading text + trailing action instead of centered text. |
@@ -10723,12 +10761,12 @@ Use Banner for page-level or app-level messages that affect the current experien
 
 ## Variants
 
-- **tone**: neutral, info, success, warning, edition, destructive
+- **tone**: neutral, info, success, warning, 1, destructive
 - **appearance**: soft, solid
 
 ## Tokens used
 
-`secondary`, `secondary-foreground`, `foreground`, `background`, `tone-info`, `tone-info-foreground`, `success`, `success-foreground`, `tone-warning`, `tone-warning-foreground`, `tone-edition`, `tone-edition-foreground`, `destructive`, `destructive-foreground`
+`secondary`, `secondary-foreground`, `foreground`, `background`, `tone-info`, `tone-info-foreground`, `success`, `success-foreground`, `tone-warning`, `tone-warning-foreground`, `tone-1`, `tone-1-foreground`, `destructive`, `destructive-foreground`
 
 ## Accessibility
 
@@ -10756,7 +10794,7 @@ import { Banner } from "@sableui/react"
 ```tsx
 import { Banner } from "@sableui/react"
 
-<Banner tone="destructive" appearance="solid" live="assertive">Blockchain unavailable. Collect and buy are temporarily disabled.</Banner>
+<Banner tone="destructive" appearance="solid" live="assertive">Payments are down. Checkout and upgrades are temporarily disabled.</Banner>
 ```
 
 ### Success
@@ -10788,7 +10826,7 @@ import { Banner } from "@sableui/react"
 ```tsx
 import { Banner, Button } from "@sableui/react"
 
-<Banner tone="warning" action={<Button variant="outline" size="sm">Reconnect</Button>}>Wallet connection paused.</Banner>
+<Banner tone="warning" action={<Button variant="outline" size="sm">Reconnect</Button>}>Calendar sync paused.</Banner>
 ```
 
 ### App-shell outage
@@ -10845,13 +10883,13 @@ Use BarChart to compare amounts across categories — the default chart for "how
 | stacked | boolean \| "expand" | false | Stack the series in one bar, or `"expand"` to show each category as 100%. Unstacked series sit side by side. |
 | labels | boolean \| "inside" | false | Print each bar's value at its end, or (`"inside"`, horizontal) the category name inside the bar as well. |
 | colorBy | "series" \| "index" | "series" | Colour by series, or give each category its own tone (one series). |
-| negativeTone | "edition" \| "collectible" \| "standard" \| "info" \| "warning" \| "primary" \| "neutral" \| "success" \| "destructive" | — | Colour negative values with this tone. |
+| negativeTone | "1" \| "2" \| "3" \| "info" \| "warning" \| "primary" \| "neutral" \| "success" \| "destructive" | — | Colour negative values with this tone. |
 | radius | number | 4 | Corner radius of each bar's far end, in px. Stacks round only the outer segment. |
 | barWidth | number | 24 | Maximum thickness of a bar, in px: the band's leftover is air, not a fatter bar. Raise it for a bolder presentation look. |
 
 ## Tokens used
 
-`tone-edition`, `tone-collectible`, `tone-standard`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
+`tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
 
 ## Motion
 
@@ -11083,7 +11121,7 @@ Use Breadcrumbs to show the user's location inside a hierarchy and provide light
 ```tsx
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, Breadcrumbs, BreadcrumbSeparator } from "@sableui/react"
 
-<Breadcrumbs><BreadcrumbItem><BreadcrumbLink href="/">Home</BreadcrumbLink></BreadcrumbItem><BreadcrumbSeparator /><BreadcrumbItem><BreadcrumbLink href="/library">Library</BreadcrumbLink></BreadcrumbItem><BreadcrumbSeparator /><BreadcrumbItem><BreadcrumbPage>Editions</BreadcrumbPage></BreadcrumbItem></Breadcrumbs>
+<Breadcrumbs><BreadcrumbItem><BreadcrumbLink href="/">Home</BreadcrumbLink></BreadcrumbItem><BreadcrumbSeparator /><BreadcrumbItem><BreadcrumbLink href="/library">Library</BreadcrumbLink></BreadcrumbItem><BreadcrumbSeparator /><BreadcrumbItem><BreadcrumbPage>Reports</BreadcrumbPage></BreadcrumbItem></Breadcrumbs>
 ```
 
 ### Custom separator
@@ -11378,7 +11416,7 @@ Use Button when the user commits an action, submits a form, opens UI, or confirm
 ```tsx
 import { Button } from "@sableui/react"
 
-<Button>Collect</Button>
+<Button>Save changes</Button>
 ```
 
 ### Secondary + ghost
@@ -11435,7 +11473,7 @@ import { Button, Row } from "@sableui/react"
 ```tsx
 import { Button, Row } from "@sableui/react"
 
-<Row gap={1}><Button variant="secondary">Cancel</Button><Button variant="destructive">Delete edition</Button></Row>
+<Row gap={1}><Button variant="secondary">Cancel</Button><Button variant="destructive">Delete project</Button></Row>
 ```
 
 ### Leading icon
@@ -11518,7 +11556,7 @@ import { Button } from "@sableui/react"
 ```tsx
 import { Banner, Button } from "@sableui/react"
 
-<Banner tone="warning" appearance="solid" action={<Button variant="on-color" size="sm">Reconnect</Button>}>Wallet connection paused.</Banner>
+<Banner tone="warning" appearance="solid" action={<Button variant="on-color" size="sm">Reconnect</Button>}>Calendar sync paused.</Banner>
 ```
 
 ---
@@ -11686,7 +11724,7 @@ Use Card for a discrete thing with its own boundary, such as one product, one no
 ```tsx
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@sableui/react"
 
-<Card><CardHeader><CardTitle>Edition</CardTitle><CardDescription>Limited run of 100.</CardDescription></CardHeader><CardContent><p className="text-body-md">Each collector receives a signed print and the on-chain edition.</p></CardContent></Card>
+<Card><CardHeader><CardTitle>Studio plan</CardTitle><CardDescription>Up to 10 seats.</CardDescription></CardHeader><CardContent><p className="text-body-md">Every seat gets unlimited projects and shared reports.</p></CardContent></Card>
 ```
 
 ### With a header action
@@ -11694,7 +11732,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@sabl
 ```tsx
 import { Button, Card, CardAction, CardContent, CardHeader, CardTitle, Icon } from "@sableui/react"
 
-<Card><CardHeader><CardTitle>Edition</CardTitle><CardAction><Button variant="ghost" size="icon-sm" aria-label="More"><Icon name="ellipsis" /></Button></CardAction></CardHeader><CardContent><p className="text-body-md text-muted-foreground">24 of 100 collected.</p></CardContent></Card>
+<Card><CardHeader><CardTitle>Seats</CardTitle><CardAction><Button variant="ghost" size="icon-sm" aria-label="More"><Icon name="ellipsis" /></Button></CardAction></CardHeader><CardContent><p className="text-body-md text-muted-foreground">24 of 100 seats in use.</p></CardContent></Card>
 ```
 
 ### Compact section panel
@@ -11710,7 +11748,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@sableui/react"
 ```tsx
 import { Badge, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@sableui/react"
 
-<Card><CardHeader><CardTitle>Midnight Archive</CardTitle><CardDescription>Edition #24 of 100</CardDescription><CardAction><Badge tone="edition">Edition</Badge></CardAction></CardHeader><CardContent><p className="text-body-sm text-muted-foreground">A signed print and token-gated download for collectors.</p></CardContent><CardFooter><Button size="sm">Collect</Button><Button size="sm" variant="ghost">Preview</Button></CardFooter></Card>
+<Card><CardHeader><CardTitle>Midnight Archive</CardTitle><CardDescription>Template · 24 pages</CardDescription><CardAction><Badge tone="1">New</Badge></CardAction></CardHeader><CardContent><p className="text-body-sm text-muted-foreground">A project template with a brief, a timeline and a review board.</p></CardContent><CardFooter><Button size="sm">Use template</Button><Button size="sm" variant="ghost">Preview</Button></CardFooter></Card>
 ```
 
 ### Whole card as a link
@@ -11726,7 +11764,7 @@ import { Card, CardContent, CardDescription, CardTitle, Icon } from "@sableui/re
 ```tsx
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@sableui/react"
 
-<Card density="compact"><CardHeader><CardTitle>Revenue</CardTitle><CardDescription>Last 30 days</CardDescription></CardHeader><CardContent><p className="text-heading-3">128.4 SOL</p><p className="text-body-sm text-success">+12.8% from previous period</p></CardContent></Card>
+<Card density="compact"><CardHeader><CardTitle>Revenue</CardTitle><CardDescription>Last 30 days</CardDescription></CardHeader><CardContent><p className="text-heading-3">$12,840</p><p className="text-body-sm text-success">+12.8% from previous period</p></CardContent></Card>
 ```
 
 ### List card
@@ -12094,17 +12132,17 @@ Use CheckboxCard when an option needs more visual weight, supporting text, or ic
 | title | ReactNode | — | The card's primary label (text-title-sm). |
 | description | ReactNode | — | Optional supporting copy beneath the title (text-body-sm, muted). |
 | icon | ReactNode | — | Optional glyph (a solid <Icon>) in the tone colour. Its presence switches to the two-dimensional card RadioCard uses — icon top-left, checkbox top-right, copy below — so the two cards match in one form. |
-| tone | "neutral" \| "standard" \| "collectible" \| "edition" \| "info" \| "warning" | "neutral" | Semantic colour the checked state carries across the border, checkbox box, and icon. |
+| tone | "neutral" \| "3" \| "2" \| "1" \| "info" \| "warning" | "neutral" | Semantic colour the checked state carries across the border, checkbox box, and icon. |
 | value | string | — | Names the card inside a group-owned CheckboxGroup: the card is checked when the group's value array includes it. Also the value submitted with a form. Inside a CheckboxGroup, `name` stands in for `value` when `value` is omitted. |
 | checked / onCheckedChange / defaultChecked / disabled | Base UI Checkbox.Root props | — | Standard checkbox state. Without a group-owned value, each card is independent — drive checked/onCheckedChange per item for multi-select. |
 
 ## Variants
 
-- **tone**: neutral, standard, collectible, edition, info, warning
+- **tone**: neutral, 3, 2, 1, info, warning
 
 ## Tokens used
 
-`input`, `card`, `ring`, `primary`, `primary-foreground`, `accent`, `foreground`, `muted-foreground`, `tone-standard`, `tone-standard-foreground`, `tone-collectible`, `tone-collectible-foreground`, `tone-edition`, `tone-edition-foreground`, `tone-info`, `tone-info-foreground`, `tone-warning`, `tone-warning-foreground`
+`input`, `card`, `ring`, `primary`, `primary-foreground`, `accent`, `foreground`, `muted-foreground`, `tone-3`, `tone-3-foreground`, `tone-2`, `tone-2-foreground`, `tone-1`, `tone-1-foreground`, `tone-info`, `tone-info-foreground`, `tone-warning`, `tone-warning-foreground`
 
 ## Accessibility
 
@@ -12140,7 +12178,7 @@ import { Checkbox, CheckboxCard, CheckboxGroup, Field } from "@sableui/react"
 ```tsx
 import { CheckboxCard } from "@sableui/react"
 
-<CheckboxCard title="Email me a receipt" description="Sent when the mint settles" checked={receipt} onCheckedChange={setReceipt} />
+<CheckboxCard title="Email me a receipt" description="Sent when the payment settles" checked={receipt} onCheckedChange={setReceipt} />
 ```
 
 ### Toned with description
@@ -12148,7 +12186,7 @@ import { CheckboxCard } from "@sableui/react"
 ```tsx
 import { CheckboxCard } from "@sableui/react"
 
-<CheckboxCard tone="edition" title="Editions" description="Sell as numbered NFT editions" defaultChecked />
+<CheckboxCard tone="1" title="Reports" description="Weekly usage reports by email" defaultChecked />
 ```
 
 ---
@@ -12234,7 +12272,7 @@ Use CodeBlock for multiline code samples that users may read, inspect, or copy.
 
 - Do: Give the snippet a filename, or a sentence of surrounding copy, when it helps readers and agents place it.
 - Do: Keep examples complete enough to teach the intended pattern.
-- Do: Wire highlighting once with CodeHighlightProvider and map token colors to semantic tone tokens (keywords → tone-edition, strings → success, comments → muted-foreground), so code follows the theme instead of a fixed palette.
+- Do: Wire highlighting once with CodeHighlightProvider and map token colors to semantic tone tokens (keywords → tone-1, strings → success, comments → muted-foreground), so code follows the theme instead of a fixed palette.
 - Don't: Do not put short inline identifiers in a CodeBlock; use Code for those.
 - Don't: Do not paste code with the indentation the surrounding file had. A block indented to sit inside your JSX shows the reader leading whitespace that is not part of the example.
 
@@ -12727,7 +12765,7 @@ import { CommandMenu, CommandMenuGroup, CommandMenuItem } from "@sableui/react"
 ```tsx
 import { CommandMenu, CommandMenuGroup, CommandMenuItem } from "@sableui/react"
 
-<CommandMenu open={open} onOpenChange={setOpen}><CommandMenuGroup label="Create"><CommandMenuItem icon="plus" onSelect={() => createPost()}>New post</CommandMenuItem><CommandMenuItem icon="sparkles" onSelect={() => createEdition()}>New edition</CommandMenuItem></CommandMenuGroup><CommandMenuGroup label="Navigation"><CommandMenuItem icon="home" onSelect={() => navigate("/")}>Home</CommandMenuItem><CommandMenuItem icon="gear" onSelect={() => navigate("/settings")}>Settings</CommandMenuItem></CommandMenuGroup></CommandMenu>
+<CommandMenu open={open} onOpenChange={setOpen}><CommandMenuGroup label="Create"><CommandMenuItem icon="plus" onSelect={() => createPost()}>New post</CommandMenuItem><CommandMenuItem icon="sparkles" onSelect={() => createProject()}>New project</CommandMenuItem></CommandMenuGroup><CommandMenuGroup label="Navigation"><CommandMenuItem icon="home" onSelect={() => navigate("/")}>Home</CommandMenuItem><CommandMenuItem icon="gear" onSelect={() => navigate("/settings")}>Settings</CommandMenuItem></CommandMenuGroup></CommandMenu>
 ```
 
 ### Consumer-owned ranking
@@ -12778,7 +12816,7 @@ useCommandMenuShortcut(() => setOpen((value) => !value))
 
 **Status:** stable
 
-Hover/focus-triggered rich preview card over Base UI PreviewCard. Reveals contextual content (a profile, an edition summary) from an inline anchor; 20rem-wide surface with delayed open and collision-aware positioning.
+Hover/focus-triggered rich preview card over Base UI PreviewCard. Reveals contextual content (a profile, a project summary) from an inline anchor; 20rem-wide surface with delayed open and collision-aware positioning.
 
 **Keywords:** context card, rich tooltip, hover card, preview
 
@@ -12837,7 +12875,7 @@ Use ContextCard to show richer contextual content near a trigger without taking 
 ```tsx
 import { Avatar, ContextCard, ContextCardContent, ContextCardTrigger, Entity } from "@sableui/react"
 
-<ContextCard><ContextCardTrigger render={<a href='/u/ada' className='text-title-sm underline-offset-2 hover:underline'>@ada</a>} /><ContextCardContent><Entity className='[--entity-px:0] [--entity-py:0]' leading={<Avatar fallback='AL' size='lg' />} title='Ada Lovelace' subtitle='@ada' /><p className='mt-3 text-body-sm text-muted-foreground'>Minting generative editions on Solana. Permanently on Arweave.</p></ContextCardContent></ContextCard>
+<ContextCard><ContextCardTrigger render={<a href='/u/ada' className='text-title-sm underline-offset-2 hover:underline'>@ada</a>} /><ContextCardContent><Entity className='[--entity-px:0] [--entity-py:0]' leading={<Avatar fallback='AL' size='lg' />} title='Ada Lovelace' subtitle='@ada' /><p className='mt-3 text-body-sm text-muted-foreground'>Product designer. Building tools for small teams.</p></ContextCardContent></ContextCard>
 ```
 
 ### With stat row
@@ -13323,7 +13361,7 @@ import { DestructiveActionModal } from "@sableui/react"
 ```tsx
 import { DestructiveActionModal, Note } from "@sableui/react"
 
-<DestructiveActionModal open={open} onOpenChange={setOpen} title='Delete this post?' confirmText='gold rush' confirmLabel='Delete forever' onConfirm={handleDelete}><Note tone='warning'>Collectors who minted this edition keep their copies.</Note></DestructiveActionModal>
+<DestructiveActionModal open={open} onOpenChange={setOpen} title='Delete this post?' confirmText='gold rush' confirmLabel='Delete forever' onConfirm={handleDelete}><Note tone='warning'>People you shared this post with lose access to it.</Note></DestructiveActionModal>
 ```
 
 ---
@@ -13437,7 +13475,7 @@ import { Button, Carousel, Dialog, DialogContent, DialogTrigger } from "@sableui
 ```tsx
 import { Button, Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@sableui/react"
 
-<Dialog><DialogTrigger render={<Button>Open</Button>} /><DialogContent><DialogHeader><DialogTitle>Edition details</DialogTitle><DialogDescription>A limited run of 100, stored permanently on Arweave.</DialogDescription></DialogHeader><DialogFooter><DialogClose render={<Button variant="secondary">Close</Button>} /><DialogClose render={<Button>Collect</Button>} /></DialogFooter></DialogContent></Dialog>
+<Dialog><DialogTrigger render={<Button>Open</Button>} /><DialogContent><DialogHeader><DialogTitle>Plan details</DialogTitle><DialogDescription>Up to 10 seats, billed monthly per seat.</DialogDescription></DialogHeader><DialogFooter><DialogClose render={<Button variant="secondary">Close</Button>} /><DialogClose render={<Button>Upgrade</Button>} /></DialogFooter></DialogContent></Dialog>
 ```
 
 ### Settings form
@@ -13453,7 +13491,7 @@ import { Button, Dialog, DialogClose, DialogContent, DialogDescription, DialogFo
 ```tsx
 import { AlertDialog, AlertDialogClose, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, Button } from "@sableui/react"
 
-<AlertDialog><AlertDialogTrigger render={<Button variant="destructive">Delete edition</Button>} /><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Delete edition?</AlertDialogTitle><AlertDialogDescription>This removes the edition and cannot be undone.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogClose render={<Button variant="secondary">Cancel</Button>} /><Button variant="destructive" onClick={deleteEdition}>Delete edition</Button></AlertDialogFooter></AlertDialogContent></AlertDialog>
+<AlertDialog><AlertDialogTrigger render={<Button variant="destructive">Delete project</Button>} /><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Delete project?</AlertDialogTitle><AlertDialogDescription>This removes the project and cannot be undone.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogClose render={<Button variant="secondary">Cancel</Button>} /><Button variant="destructive" onClick={deleteProject}>Delete project</Button></AlertDialogFooter></AlertDialogContent></AlertDialog>
 ```
 
 ---
@@ -13644,7 +13682,7 @@ Use EmptyState when a content area has no items, no search results, or no first-
 
 ### Best practices
 
-- Do: Explain what is empty in plain language, such as "No posts yet" or "No matching collectors".
+- Do: Explain what is empty in plain language, such as "No posts yet" or "No matching customers".
 - Do: Offer one next step when the user can recover, create, clear filters, or start setup.
 - Do: Keep the icon decorative and make the title carry the meaning.
 - Do: For a search or filter result, name the query back to the user and offer the way out, such as "No results for 'quarterly'" with a Clear filters action. An empty result that does not say what was searched leaves the user unsure whether the query or the data was wrong.
@@ -13717,7 +13755,7 @@ import { Button, EmptyState, Icon } from "@sableui/react"
 ```tsx
 import { Button, EmptyState, Icon, Row } from "@sableui/react"
 
-<EmptyState surface="card" icon={<Icon name="sparkles" />} title="Start your collection" description="Create a first edition, import an existing drop, or invite collaborators." action={<Row gap={1}><Button>Create edition</Button><Button variant="ghost">Import</Button></Row>} />
+<EmptyState surface="card" icon={<Icon name="sparkles" />} title="Start your first project" description="Create a project, import one from a file, or invite collaborators." action={<Row gap={1}><Button>Create project</Button><Button variant="ghost">Import</Button></Row>} />
 ```
 
 ### Page-level error
@@ -13733,7 +13771,7 @@ import { Button, EmptyState } from "@sableui/react"
 ```tsx
 import { Button, EmptyState } from "@sableui/react"
 
-<EmptyState tone="destructive" surface="card" title="Could not load this edition" description="Check your connection and try again." action={<Button variant="secondary">Retry</Button>} />
+<EmptyState tone="destructive" surface="card" title="Could not load this project" description="Check your connection and try again." action={<Button variant="secondary">Retry</Button>} />
 ```
 
 ### Empty table body
@@ -13741,7 +13779,7 @@ import { Button, EmptyState } from "@sableui/react"
 ```tsx
 import { DataTable, EmptyState } from "@sableui/react"
 
-<DataTable data={[]} columns={[{ key: "name", header: "Collector" }, { key: "status", header: "Status" }]} empty={<EmptyState title="No collectors yet" description="Collectors appear here after the first mint." />} />
+<DataTable data={[]} columns={[{ key: "name", header: "Customer" }, { key: "status", header: "Status" }]} empty={<EmptyState title="No customers yet" description="Customers appear here after the first order." />} />
 ```
 
 ---
@@ -14479,7 +14517,7 @@ Use GradientArt where a real image belongs but none exists yet, or where the ima
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
 | variant | "mesh" \| "grain" | "mesh" | mesh: soft spots of colour pulled together by gentle waves. grain: glowing light over deep corners with a printed texture. |
-| tones | ("info" \| "standard" \| "collectible" \| "edition" \| "warning")[] | — | Paint these `--tone-*` colours instead of the preset's art palette. Leave unset to follow the preset's art direction. |
+| tones | ("info" \| "3" \| "2" \| "1" \| "warning")[] | — | Paint these `--tone-*` colours instead of the preset's art palette. Leave unset to follow the preset's art direction. |
 | seed | string \| number | — | Fixes the composition: the same seed paints the same art in every theme. Pass a stable id. |
 | children | ReactNode | — | Rendered above the art — initials, a glyph, a short label. |
 | className | string | — | Size and shape: aspect, height, rounding. |
@@ -14490,7 +14528,7 @@ Use GradientArt where a real image belongs but none exists yet, or where the ima
 
 ## Tokens used
 
-`art-1`, `art-2`, `art-3`, `art-4`, `art-5`, `art-6`, `art-ground`, `art-warp`, `art-softness`, `art-grain`, `primary`, `tone-info`, `tone-standard`, `tone-collectible`, `tone-edition`, `tone-warning`
+`art-1`, `art-2`, `art-3`, `art-4`, `art-5`, `art-6`, `art-ground`, `art-warp`, `art-softness`, `art-grain`, `primary`, `tone-info`, `tone-3`, `tone-2`, `tone-1`, `tone-warning`
 
 ## Motion
 
@@ -14523,7 +14561,7 @@ import { GradientArt } from "@sableui/react"
 ```tsx
 import { GradientArt } from "@sableui/react"
 
-<GradientArt variant="grain" seed="juno" tones={["info", "edition"]} className="h-20 rounded-md" />
+<GradientArt variant="grain" seed="juno" tones={["info", "1"]} className="h-20 rounded-md" />
 ```
 
 ### Avatar with initials
@@ -14874,7 +14912,7 @@ import { Field, Input } from "@sableui/react"
 ```tsx
 import { Label } from "@sableui/react"
 
-<Label htmlFor="royalty" hint="A percentage of every resale, paid to you.">Royalty</Label>
+<Label htmlFor="discount" hint="Taken off every order this code is used on.">Discount</Label>
 ```
 
 ---
@@ -14926,7 +14964,7 @@ Use LineChart to compare how two or more measures change over the same sequence,
 
 ## Tokens used
 
-`tone-edition`, `tone-collectible`, `tone-standard`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
+`tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
 
 ## Motion
 
@@ -15833,7 +15871,7 @@ Use Meter to show a static measurement against a known maximum — storage used,
 | value | number | — | The current reading, between min and max. Required. |
 | min | number | 0 | The bottom of the range. |
 | max | number | 100 | The top of the range. |
-| tone | "primary" \| "standard" \| "success" \| "warning" \| "destructive" | "primary" | Fill colour, mapped to a semantic token. Choose it from your own thresholds. |
+| tone | "primary" \| "3" \| "success" \| "warning" \| "destructive" | "primary" | Fill colour, mapped to a semantic token. Choose it from your own thresholds. |
 | shape | "bar" \| "ring" | "bar" | bar is a horizontal track; ring is a circular gauge for a small, glanceable reading — the same value, min, max and tones. |
 | size | "sm" \| "md" \| "lg" | "md" | Ring diameter (40 / 64 / 96px at the default spacing; the centre value steps with it), or bar thickness on the same sm / md / lg rails as Progress. |
 | showValue | boolean | — | Print the value in the ring's centre (formatted like MeterValue). |
@@ -15844,7 +15882,7 @@ Use Meter to show a static measurement against a known maximum — storage used,
 
 ## Variants
 
-- **tone**: primary, standard, success, warning, destructive
+- **tone**: primary, 3, success, warning, destructive
 - **shape**: bar, ring
 - **size**: sm, md, lg
 
@@ -15953,12 +15991,12 @@ Use MiddleTruncate when both the beginning and end of a long identifier must rem
 
 ## Examples
 
-### Solana address
+### API key
 
 ```tsx
 import { MiddleTruncate } from "@sableui/react"
 
-<MiddleTruncate text="5J7sX2QpHt9vK4mNbR8wYcZ3dF6gH1jL0pA8xQpVnTu" />
+<MiddleTruncate text="demo_key_7f3a9c2e5b8d1f4a6c0e9b3d7a2f5c8e1b4" />
 ```
 
 ### Custom start/end counts
@@ -15966,7 +16004,7 @@ import { MiddleTruncate } from "@sableui/react"
 ```tsx
 import { MiddleTruncate } from "@sableui/react"
 
-<MiddleTruncate text="0xAbC1234567890dEf1234567890aBcDeF12345678" startChars={4} endChars={4} />
+<MiddleTruncate text="9f2c4e7a1b3d5f60c8e2a4b6d8f0e1c3a5b7d9f2" startChars={4} endChars={4} />
 ```
 
 ### Copyable value
@@ -15974,8 +16012,8 @@ import { MiddleTruncate } from "@sableui/react"
 ```tsx
 import { Button, Icon, MiddleTruncate, Row, useCopy } from "@sableui/react"
 
-const { copy, copied } = useCopy(address)
-<Row gap={1}><MiddleTruncate text={address} /><Button variant="ghost" size="icon-xs" aria-label="Copy address" onClick={copy}><Icon name={copied ? "check" : "copy"} /></Button></Row>
+const { copy, copied } = useCopy(commitHash)
+<Row gap={1}><MiddleTruncate text={commitHash} /><Button variant="ghost" size="icon-xs" aria-label="Copy commit hash" onClick={copy}><Icon name={copied ? "check" : "copy"} /></Button></Row>
 ```
 
 ---
@@ -16035,7 +16073,7 @@ Use Note for helpful supporting information that should sit near the relevant co
 ```tsx
 import { Note } from "@sableui/react"
 
-<Note tone="info">Editions mint on Solana mainnet.</Note>
+<Note tone="info">Reports refresh every hour.</Note>
 ```
 
 ### With title
@@ -16043,7 +16081,7 @@ import { Note } from "@sableui/react"
 ```tsx
 import { Note } from "@sableui/react"
 
-<Note tone="warning" title="Low balance">Top up SOL before minting.</Note>
+<Note tone="warning" title="Low balance">Add credits before your next export.</Note>
 ```
 
 ### Warning with a remedy, inside a dialog
@@ -16059,7 +16097,7 @@ import { Note } from "@sableui/react"
 ```tsx
 import { Note } from "@sableui/react"
 
-<Note tone="neutral" icon="lock">Pricing and supply cannot be changed after an edition is purchased.</Note>
+<Note tone="neutral" icon="lock">Pricing cannot be changed after an order is placed.</Note>
 ```
 
 ---
@@ -16543,7 +16581,7 @@ Use Pagination when a result set is split into discrete pages and the user needs
 ### Best practices
 
 - Do: Keep page state controlled by the parent route or data layer so URL, filters, and result fetches stay in sync.
-- Do: Use a specific label when multiple pagers appear on a page, such as "Collector pages".
+- Do: Use a specific label when multiple pagers appear on a page, such as "Customer pages".
 - Do: Reset to page 1 when filters or search terms materially change the result set.
 - Don't: Use Pagination for tiny lists where all items fit comfortably on one page.
 - Don't: Hide disabled previous/next buttons at the bounds; disabled controls make the current position clearer.
@@ -16609,7 +16647,7 @@ const [page, setPage] = useState(8)
 ```tsx
 import { DataTable, Pagination, Stack } from "@sableui/react"
 
-<Stack gap={2}><DataTable data={rows} columns={columns} rowKey={(row) => row.id} /><Pagination label="Collector pages" page={page} total={12} onPageChange={setPage} /></Stack>
+<Stack gap={2}><DataTable data={rows} columns={columns} rowKey={(row) => row.id} /><Pagination label="Customer pages" page={page} total={12} onPageChange={setPage} /></Stack>
 ```
 
 ### Server query state
@@ -16919,7 +16957,7 @@ Use Phone to frame a mobile product preview when the device context is useful.
 ```tsx
 import { Phone } from "@sableui/react"
 
-<Phone><div className="p-4"><h2 className="text-title-lg">Activity</h2><p className="text-body-sm text-muted-foreground">3 new collects today.</p></div></Phone>
+<Phone><div className="p-4"><h2 className="text-title-lg">Activity</h2><p className="text-body-sm text-muted-foreground">3 new orders today.</p></div></Phone>
 ```
 
 ### Mockup, not a responsive preview
@@ -16989,7 +17027,7 @@ Use PieChart for a share of one total across two to six categories — traffic s
 
 ## Tokens used
 
-`tone-edition`, `tone-collectible`, `tone-standard`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
+`tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
 
 ## Motion
 
@@ -17077,6 +17115,7 @@ Use Pill for a row of filters or choices a person clicks to narrow or toggle wha
 | selected | boolean | false | Marks the pill as chosen. Solid lifts onto the primary surface; outline takes a primary tint and soft primary edge. Sets aria-pressed. |
 | appearance | "solid" \| "outline" | "solid" | solid for a filter row; outline for quiet chips that annotate other content (a reaction under a message, a tag on a card), where a filled chip would compete with what it annotates. |
 | size | "md" \| "sm" | "md" | md sits on the density ladder's xs control height (28px); sm is 24px, for chips under or inside other content. |
+| tone | "neutral" \| "red" \| "orange" \| "yellow" \| "green" \| "teal" \| "blue" \| "purple" \| "pink" | "neutral" | neutral is the chip as described. A palette family colours it as a category, like the choices in a tag picker: a wash at rest, the solid family colour when selected. Painted from the theme's generated palette. |
 | icon | ReactNode | — | Optional leading glyph (e.g. <Icon name="lock" />), rendered before the children with the base gap. |
 
 ## Variants
@@ -17084,10 +17123,11 @@ Use Pill for a row of filters or choices a person clicks to narrow or toggle wha
 - **appearance**: solid, outline
 - **size**: md, sm
 - **selected**: true, false
+- **tone**: neutral, red, orange, yellow, green, teal, blue, purple, pink
 
 ## Tokens used
 
-`secondary`, `secondary-foreground`, `accent`, `accent-foreground`, `primary`, `primary-foreground`, `card`, `border`, `muted-foreground`, `foreground`
+`palette-wash`, `palette-wash-strong`, `palette-edge`, `palette-solid`, `palette-text`, `palette-solid-ink`, `secondary`, `secondary-foreground`, `accent`, `accent-foreground`, `primary`, `primary-foreground`, `card`, `border`, `muted-foreground`, `foreground`
 
 ## Accessibility
 
@@ -17100,12 +17140,20 @@ Use Pill for a row of filters or choices a person clicks to narrow or toggle wha
 
 ## Examples
 
+### Tag picker
+
+```tsx
+import { Pill, Row } from "@sableui/react"
+
+<Row gap={1}><Pill tone="blue" selected onClick={() => {}}>Design</Pill><Pill tone="teal" onClick={() => {}}>Research</Pill><Pill tone="orange" onClick={() => {}}>Marketing</Pill></Row>
+```
+
 ### Filter row
 
 ```tsx
 import { Pill, Row } from "@sableui/react"
 
-<Row gap={1}><Pill selected onClick={() => {}}>All</Pill><Pill onClick={() => {}}>Editions</Pill><Pill onClick={() => {}}>Collectibles</Pill></Row>
+<Row gap={1}><Pill selected onClick={() => {}}>All</Pill><Pill onClick={() => {}}>Projects</Pill><Pill onClick={() => {}}>Reports</Pill></Row>
 ```
 
 ### Outline, small (reactions)
@@ -17195,7 +17243,7 @@ Use Popover for anchored secondary content that needs more room than a tooltip b
 ```tsx
 import { Button, Popover, PopoverContent, PopoverDescription, PopoverTitle, PopoverTrigger } from "@sableui/react"
 
-<Popover><PopoverTrigger render={<Button variant="secondary">Details</Button>} /><PopoverContent><PopoverTitle>Edition details</PopoverTitle><PopoverDescription>A limited run of 100, stored permanently on Arweave.</PopoverDescription></PopoverContent></Popover>
+<Popover><PopoverTrigger render={<Button variant="secondary">Details</Button>} /><PopoverContent><PopoverTitle>Plan details</PopoverTitle><PopoverDescription>Up to 10 seats, billed monthly per seat.</PopoverDescription></PopoverContent></Popover>
 ```
 
 ### With close
@@ -17203,7 +17251,7 @@ import { Button, Popover, PopoverContent, PopoverDescription, PopoverTitle, Popo
 ```tsx
 import { Button, Popover, PopoverClose, PopoverContent, PopoverDescription, PopoverTitle, PopoverTrigger } from "@sableui/react"
 
-<Popover><PopoverTrigger render={<Button variant="secondary">Open</Button>} /><PopoverContent><PopoverTitle>Heads up</PopoverTitle><PopoverDescription>Collecting mints a compressed NFT to your wallet.</PopoverDescription><PopoverClose render={<Button size="sm">Got it</Button>} /></PopoverContent></Popover>
+<Popover><PopoverTrigger render={<Button variant="secondary">Open</Button>} /><PopoverContent><PopoverTitle>Heads up</PopoverTitle><PopoverDescription>Upgrading starts a new billing period today.</PopoverDescription><PopoverClose render={<Button size="sm">Got it</Button>} /></PopoverContent></Popover>
 ```
 
 ---
@@ -17353,7 +17401,7 @@ Use RadarChart to compare the shape of a profile across five to eight dimensions
 
 ## Tokens used
 
-`tone-edition`, `tone-collectible`, `tone-standard`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
+`tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
 
 ## Motion
 
@@ -17464,7 +17512,7 @@ Use RadialChart for progress toward goals (several rings), a single score or usa
 
 ## Tokens used
 
-`tone-edition`, `tone-collectible`, `tone-standard`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
+`tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
 
 ## Motion
 
@@ -17588,7 +17636,7 @@ import { Field, Fieldset, FieldsetContent, FieldsetLegend, Radio, RadioGroup } f
 	<FieldsetContent>
 		<RadioGroup defaultValue="standard">
 			<Field label="Standard" orientation="horizontal"><Radio value="standard" /></Field>
-			<Field label="Edition" orientation="horizontal"><Radio value="edition" /></Field>
+			<Field label="Poll" orientation="horizontal"><Radio value="poll" /></Field>
 		</RadioGroup>
 	</FieldsetContent>
 </Fieldset>
@@ -17604,7 +17652,7 @@ import { Field, Fieldset, FieldsetContent, FieldsetLegend, Radio, RadioGroup } f
 	<FieldsetContent>
 		<RadioGroup defaultValue="standard">
 			<Field label="Standard" orientation="horizontal"><Radio value="standard" /></Field>
-			<Field label="Edition" orientation="horizontal" disabled><Radio value="edition" /></Field>
+			<Field label="Poll" orientation="horizontal" disabled><Radio value="poll" /></Field>
 		</RadioGroup>
 	</FieldsetContent>
 </Fieldset>
@@ -17653,18 +17701,18 @@ Use RadioCard for visual choice cards when users compare a small set of named op
 | description | ReactNode | — | Optional supporting copy beneath the title (text-body-sm, muted). |
 | trailing | ReactNode | — | End-aligned on the title's line: a price, a delivery date, a count. The title takes the rest of the row. |
 | icon | ReactNode | — | Leading icon (e.g. a solid <Icon>). Its presence switches to the two-dimensional card — icon top-left, indicator top-right, copy below — and the glyph is rendered as a solid-fill icon in the tone colour. |
-| tone | "neutral" \| "standard" \| "collectible" \| "edition" \| "info" \| "warning" | "neutral" | Semantic colour the selected state carries across the border, radio, and icon glyph. Neutral uses the primary ring with a muted wash. |
+| tone | "neutral" \| "3" \| "2" \| "1" \| "info" \| "warning" | "neutral" | Semantic colour the selected state carries across the border, radio, and icon glyph. Neutral uses the primary ring with a muted wash. |
 | disabled | boolean | false | Dims the card and blocks selection. The group skips it during keyboard navigation. |
 | titleClassName | string | — | Merged onto the title span (default text-title-sm) — e.g. to tighten copy in a two-column layout. |
 | descriptionClassName | string | — | Merged onto the description span (default text-body-sm text-muted-foreground). |
 
 ## Variants
 
-- **tone**: neutral, standard, collectible, edition, info, warning
+- **tone**: neutral, 3, 2, 1, info, warning
 
 ## Tokens used
 
-`input`, `card`, `foreground`, `primary`, `muted`, `ring`, `muted-foreground`, `tone-standard`, `tone-collectible`, `tone-edition`, `tone-info`, `tone-warning`
+`input`, `card`, `foreground`, `primary`, `muted`, `ring`, `muted-foreground`, `tone-3`, `tone-2`, `tone-1`, `tone-info`, `tone-warning`
 
 ## Accessibility
 
@@ -17685,7 +17733,7 @@ Use RadioCard for visual choice cards when users compare a small set of named op
 ```tsx
 import { Icon, RadioCard, RadioGroup } from "@sableui/react"
 
-<RadioGroup defaultValue="post" className="grid sm:grid-cols-3"><RadioCard value="post" tone="standard" icon={<Icon name="plus" />} title="Standard" description="Share without minting" /><RadioCard value="collectible" tone="collectible" icon={<Icon name="gem" />} title="Collectible" description="Free to collect as NFT" /><RadioCard value="edition" tone="edition" icon={<Icon name="image-stack" />} title="Edition" description="Sell as NFT editions" /></RadioGroup>
+<RadioGroup defaultValue="starter" className="grid sm:grid-cols-3"><RadioCard value="starter" tone="3" icon={<Icon name="plus" />} title="Starter" description="Free for one person" /><RadioCard value="studio" tone="2" icon={<Icon name="gem" />} title="Studio" description="For small teams" /><RadioCard value="business" tone="1" icon={<Icon name="image-stack" />} title="Business" description="SSO and audit log" /></RadioGroup>
 ```
 
 ### Plan picker (plain)
@@ -17831,7 +17879,7 @@ Use Scroller to create a contained overflow region for content that naturally ex
 ```tsx
 import { Scroller } from "@sableui/react"
 
-<Scroller label="Editions" className="h-64"><ul className="space-y-2 p-4">{items.map((item) => (<li key={item.id} className="text-body-sm">{item.title}</li>))}</ul></Scroller>
+<Scroller label="Projects" className="h-64"><ul className="space-y-2 p-4">{items.map((item) => (<li key={item.id} className="text-body-sm">{item.title}</li>))}</ul></Scroller>
 ```
 
 ### Capped, scrolls past the cap
@@ -18034,7 +18082,7 @@ import { SearchInput } from "@sableui/react"
 ```tsx
 import { Field, SearchInput } from "@sableui/react"
 
-<Field label="Search posts"><SearchInput defaultValue="editions" className="max-w-80" /></Field>
+<Field label="Search posts"><SearchInput defaultValue="roadmap" className="max-w-80" /></Field>
 ```
 
 ### Disabled
@@ -18232,11 +18280,11 @@ Use SegmentedBar when a stat card or row needs to show how a total divides into 
 ## Variants
 
 - **size**: sm, md, lg
-- **tone**: edition, collectible, standard, info, primary, neutral, success, warning, destructive
+- **tone**: 1, 2, 3, info, primary, neutral, success, warning, destructive
 
 ## Tokens used
 
-`tone-edition`, `tone-collectible`, `tone-standard`, `tone-info`, `primary`, `muted-foreground`, `success`, `tone-warning`, `destructive`
+`tone-1`, `tone-2`, `tone-3`, `tone-info`, `primary`, `muted-foreground`, `success`, `tone-warning`, `destructive`
 
 ## Motion
 
@@ -18247,7 +18295,7 @@ Use SegmentedBar when a stat card or row needs to show how a total divides into 
 
 ## Accessibility
 
-- Rendered role=img with an aria-label built from `label` and each segment's share ("Revenue by type: Editions 42%, Collectibles 27%"), so the whole breakdown is read in one stop.
+- Rendered role=img with an aria-label built from `label` and each segment's share ("Revenue by channel: Direct 42%, Partners 27%"), so the whole breakdown is read in one stop.
 - Colour alone does not identify a segment: always show a legend with each segment's label beside the bar.
 
 ## Related
@@ -18263,13 +18311,13 @@ Use SegmentedBar when a stat card or row needs to show how a total divides into 
 import { SegmentedBar, Stack, StatusDot } from "@sableui/react"
 
 const sales = [
-	{ label: "Editions", value: 42, tone: "edition" },
-	{ label: "Collectibles", value: 27, tone: "collectible" },
-	{ label: "Standard", value: 19, tone: "standard" },
+	{ label: "Direct", value: 42, tone: "1" },
+	{ label: "Partners", value: 27, tone: "2" },
+	{ label: "Referrals", value: 19, tone: "3" },
 ] as const
 
 <Stack gap={3}>
-	<SegmentedBar label="Revenue by type" segments={[...sales]} size="lg" />
+	<SegmentedBar label="Revenue by channel" segments={[...sales]} size="lg" />
 	<ul className="flex flex-col gap-1.5">
 		{sales.map((s) => (
 			<li key={s.label} className="flex items-center gap-2 text-body-sm">
@@ -18395,7 +18443,7 @@ import { SelectContent, SelectGroup, SelectGroupLabel, SelectItem } from "@sable
 ```tsx
 import { Field, Select, SelectContent, SelectItem, SelectTrigger } from "@sableui/react"
 
-<Field label="Default visibility" description="Controls how new editions appear."><Select defaultValue="public"><SelectTrigger placeholder="Choose visibility" /><SelectContent><SelectItem value="public">Public</SelectItem><SelectItem value="private">Private</SelectItem><SelectItem value="unlisted">Unlisted</SelectItem></SelectContent></Select></Field>
+<Field label="Default visibility" description="Controls how new projects appear."><Select defaultValue="public"><SelectTrigger placeholder="Choose visibility" /><SelectContent><SelectItem value="public">Public</SelectItem><SelectItem value="private">Private</SelectItem><SelectItem value="unlisted">Unlisted</SelectItem></SelectContent></Select></Field>
 ```
 
 ### Rich item labels
@@ -18403,7 +18451,7 @@ import { Field, Select, SelectContent, SelectItem, SelectTrigger } from "@sableu
 ```tsx
 import { Badge, Select, SelectContent, SelectItem, SelectTrigger } from "@sableui/react"
 
-<Select defaultValue="edition" items={[{ value: "edition", label: "Edition" }, { value: "collectible", label: "Collectible" }]}><SelectTrigger /><SelectContent><SelectItem value="edition" label="Edition"><span className="flex items-center gap-2"><Badge tone="edition">Edition</Badge><span>Edition drop</span></span></SelectItem><SelectItem value="collectible" label="Collectible"><span className="flex items-center gap-2"><Badge tone="collectible">Collectible</Badge><span>Collectible</span></span></SelectItem></SelectContent></Select>
+<Select defaultValue="business" items={[{ value: "business", label: "Business" }, { value: "studio", label: "Studio" }]}><SelectTrigger /><SelectContent><SelectItem value="business" label="Business"><span className="flex items-center gap-2"><Badge tone="1">Business</Badge><span>Business plan</span></span></SelectItem><SelectItem value="studio" label="Studio"><span className="flex items-center gap-2"><Badge tone="2">Studio</Badge><span>Studio</span></span></SelectItem></SelectContent></Select>
 ```
 
 ---
@@ -18728,7 +18776,7 @@ import { Button, Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, Shee
 ```tsx
 import { Button, Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@sableui/react"
 
-<Sheet><SheetTrigger render={<Button variant="secondary">Details</Button>} /><SheetContent side="bottom"><SheetHeader><SheetTitle>Edition details</SheetTitle></SheetHeader><SheetFooter><SheetClose render={<Button variant="secondary">Close</Button>} /></SheetFooter></SheetContent></Sheet>
+<Sheet><SheetTrigger render={<Button variant="secondary">Details</Button>} /><SheetContent side="bottom"><SheetHeader><SheetTitle>Order details</SheetTitle></SheetHeader><SheetFooter><SheetClose render={<Button variant="secondary">Close</Button>} /></SheetFooter></SheetContent></Sheet>
 ```
 
 ---
@@ -18864,7 +18912,7 @@ Use Sidebar for persistent desktop navigation or application chrome outside the 
 import { Icon, NotificationBadge, Sidebar, SidebarBrand, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav } from "@sableui/react"
 // <Link> = your router's link (react-router, next/link, @tanstack/router, …)
 
-<Sidebar><SidebarHeader><SidebarBrand mark={<Icon name="music" variant="solid" />} label="Undertow" render={<Link to="/" />} /></SidebarHeader><SidebarNav><SidebarItem icon={<Icon name="bell" />} label="Notifications" badge={<NotificationBadge count={3} />} render={<Link to="/notifications" />} /></SidebarNav><SidebarFooter>{wallet}</SidebarFooter></Sidebar>
+<Sidebar><SidebarHeader><SidebarBrand mark={<Icon name="music" variant="solid" />} label="Undertow" render={<Link to="/" />} /></SidebarHeader><SidebarNav><SidebarItem icon={<Icon name="bell" />} label="Notifications" badge={<NotificationBadge count={3} />} render={<Link to="/notifications" />} /></SidebarNav><SidebarFooter>{account}</SidebarFooter></Sidebar>
 ```
 
 ### Collapsible (icon rail)
@@ -18973,7 +19021,7 @@ import { SideNav, SideNavGroup, SideNavItem } from "@sableui/react"
 import { SideNav, SideNavItem } from "@sableui/react"
 // <Link> = your router's link (react-router, next/link, @tanstack/router, …)
 
-<SideNav size="lg"><SideNavItem label="Profile" active render={<Link to="/settings/profile" />} /><SideNavItem label="Wallets" render={<Link to="/settings/wallets" />} /><SideNavItem label="Security" render={<Link to="/settings/security" />} /></SideNav>
+<SideNav size="lg"><SideNavItem label="Profile" active render={<Link to="/settings/profile" />} /><SideNavItem label="Billing" render={<Link to="/settings/billing" />} /><SideNavItem label="Security" render={<Link to="/settings/security" />} /></SideNav>
 ```
 
 ### Inside Sidebar chrome
@@ -19216,7 +19264,7 @@ Use Sparkline next to a number to show where it has been — a KPI's last 30 day
 | data | number[] | — | The values, oldest first. |
 | label | string | — | What the line tracks ("Revenue, last 30 days"). The spoken summary adds the first and last values, low and high. |
 | variant | "line" \| "area" \| "bar" | "line" | A line, a line over a soft fill, or columns. |
-| tone | "edition" \| "collectible" \| "standard" \| "info" \| "warning" \| "primary" \| "neutral" \| "success" \| "destructive" | "primary" | Colour by role. |
+| tone | "1" \| "2" \| "3" \| "info" \| "warning" \| "primary" \| "neutral" \| "success" \| "destructive" | "primary" | Colour by role. |
 | className | string | "h-8 w-24" | Sizes it; the drawing stretches to fit. |
 | animate | boolean | true | Draw on (or rise) when it scrolls into view. |
 | locale | string | runtime locale | BCP 47 locale for default number and date formatting. |
@@ -19227,7 +19275,7 @@ Use Sparkline next to a number to show where it has been — a KPI's last 30 day
 
 ## Tokens used
 
-`primary`, `tone-edition`, `tone-collectible`, `tone-standard`, `tone-info`, `tone-warning`, `muted-foreground`, `success`, `destructive`
+`primary`, `tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `muted-foreground`, `success`, `destructive`
 
 ## Motion
 
@@ -19358,7 +19406,7 @@ import { Spinner } from "@sableui/react"
 ```tsx
 import { Button } from "@sableui/react"
 
-<Button loading>Collecting</Button>
+<Button loading>Saving</Button>
 ```
 
 ---
@@ -19487,18 +19535,18 @@ Use StatusDot as a compact visual state cue next to text, avatars, rows, or labe
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| tone | "neutral" \| "standard" \| "success" \| "warning" \| "info" \| "edition" \| "collectible" \| "destructive" | "neutral" | Semantic color of the dot. |
+| tone | "neutral" \| "1" \| "2" \| "3" \| "success" \| "warning" \| "info" \| "destructive" \| "red" \| "orange" \| "yellow" \| "green" \| "teal" \| "blue" \| "purple" \| "pink" | "neutral" | Semantic color of the dot, or a palette family (red … pink) for a category legend. |
 | size | "sm" \| "md" \| "lg" | "md" | Dot diameter. |
 | pulse | boolean | false | Wrap the dot in an animated ping ring to signal a live state. |
 
 ## Variants
 
-- **tone**: neutral, standard, success, warning, info, edition, collectible, destructive
+- **tone**: neutral, 1, 2, 3, success, warning, info, destructive, red, orange, yellow, green, teal, blue, purple, pink
 - **size**: sm, md, lg
 
 ## Tokens used
 
-`muted-foreground`, `tone-standard`, `success`, `tone-warning`, `tone-info`, `tone-edition`, `tone-collectible`, `destructive`
+`palette-dot`, `muted-foreground`, `tone-3`, `success`, `tone-warning`, `tone-info`, `tone-1`, `tone-2`, `destructive`
 
 ## Accessibility
 
@@ -19517,7 +19565,7 @@ Use StatusDot as a compact visual state cue next to text, avatars, rows, or labe
 ```tsx
 import { Row, StatusDot } from "@sableui/react"
 
-<Row gap={2}><StatusDot tone="standard" /><StatusDot tone="info" /><StatusDot tone="warning" /><StatusDot tone="destructive" /></Row>
+<Row gap={2}><StatusDot tone="3" /><StatusDot tone="info" /><StatusDot tone="warning" /><StatusDot tone="destructive" /></Row>
 ```
 
 ### With label — use Badge
@@ -19902,25 +19950,25 @@ Use Table for structured data with consistent columns and rows. Use DataTable wh
 
 ## Examples
 
-### Collectors
+### Orders
 
 ```tsx
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@sableui/react"
 
 <Table>
-	<TableCaption>Recent collectors</TableCaption>
+	<TableCaption>Recent orders</TableCaption>
 	<TableHeader>
 		<TableRow>
-			<TableHead>Collector</TableHead>
-			<TableHead>Edition</TableHead>
+			<TableHead>Customer</TableHead>
+			<TableHead>Order</TableHead>
 			<TableHead>Paid</TableHead>
 		</TableRow>
 	</TableHeader>
 	<TableBody>
 		<TableRow>
 			<TableCell>@nova</TableCell>
-			<TableCell>#012</TableCell>
-			<TableCell>0.5 SOL</TableCell>
+			<TableCell>1042</TableCell>
+			<TableCell>$48.00</TableCell>
 		</TableRow>
 	</TableBody>
 </Table>
@@ -19939,7 +19987,7 @@ import { Avatar, Badge, Button, Row, Table, TableBody, TableCaption, TableCell, 
 ```tsx
 import { Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@sableui/react"
 
-<Card><CardHeader><CardTitle>Collectors</CardTitle></CardHeader><CardContent flush><Table><TableHeader><TableRow><TableHead>Collector</TableHead><TableHead>Paid</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell>@nova</TableCell><TableCell>0.5 SOL</TableCell></TableRow></TableBody></Table></CardContent></Card>
+<Card><CardHeader><CardTitle>Customers</CardTitle></CardHeader><CardContent flush><Table><TableHeader><TableRow><TableHead>Customer</TableHead><TableHead>Paid</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell>@nova</TableCell><TableCell>$48.00</TableCell></TableRow></TableBody></Table></CardContent></Card>
 ```
 
 ### Summary footer
@@ -19947,7 +19995,7 @@ import { Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, 
 ```tsx
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@sableui/react"
 
-<Table><TableHeader><TableRow><TableHead>Item</TableHead><TableHead className="text-end">Amount</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell>Primary sale</TableCell><TableCell className="text-end">42 SOL</TableCell></TableRow></TableBody><TableFooter><TableRow><TableCell>Total</TableCell><TableCell className="text-end">42 SOL</TableCell></TableRow></TableFooter></Table>
+<Table><TableHeader><TableRow><TableHead>Item</TableHead><TableHead className="text-end">Amount</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell>Studio plan</TableCell><TableCell className="text-end">$192.00</TableCell></TableRow></TableBody><TableFooter><TableRow><TableCell>Total</TableCell><TableCell className="text-end">$192.00</TableCell></TableRow></TableFooter></Table>
 ```
 
 ---
@@ -20034,7 +20082,7 @@ import { Tabs, TabsList, TabsPanel, TabsTrigger } from "@sableui/react"
 ```tsx
 import { Tabs, TabsList, TabsPanel, TabsTrigger } from "@sableui/react"
 
-<Tabs defaultValue="overview"><TabsList><TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="holders" disabled>Holders</TabsTrigger></TabsList><TabsPanel value="overview">Overview content</TabsPanel></Tabs>
+<Tabs defaultValue="overview"><TabsList><TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="billing" disabled>Billing</TabsTrigger></TabsList><TabsPanel value="overview">Overview content</TabsPanel></Tabs>
 ```
 
 ---
@@ -20101,7 +20149,7 @@ import { Textarea } from "@sableui/react"
 ```tsx
 import { Textarea } from "@sableui/react"
 
-<Textarea rows={6} placeholder="Tell the story behind this edition…" />
+<Textarea rows={6} placeholder="Tell your team what this project is for…" />
 ```
 
 ### Auto-resize
@@ -20125,7 +20173,7 @@ import { Textarea } from "@sableui/react"
 ```tsx
 import { Textarea } from "@sableui/react"
 
-<Textarea disabled defaultValue="Captions lock once the edition is minted." />
+<Textarea disabled defaultValue="Notes lock once the invoice is sent." />
 ```
 
 ---
@@ -20542,7 +20590,7 @@ toast.promise(publish(), { loading: "Publishing…", success: "Published", error
 ```tsx
 import { toast } from "@sableui/react"
 
-const id = toast.loading("Pinning to Arweave…"); /* later */ toast.update(id, { title: "Pinned", type: "success", timeout: 4000 })
+const id = toast.loading("Uploading report…"); /* later */ toast.update(id, { title: "Uploaded", type: "success", timeout: 4000 })
 ```
 
 ### Custom toast markup (composed parts)
@@ -20924,7 +20972,7 @@ Use Tooltip for brief nonessential hints tied to a specific control or piece of 
 ```tsx
 import { Button, Icon, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@sableui/react"
 
-<TooltipProvider><Tooltip><TooltipTrigger render={<Button variant="ghost" size="icon-sm" aria-label="Info"><Icon name="info" /></Button>} /><TooltipContent>Stored permanently on Arweave.</TooltipContent></Tooltip></TooltipProvider>
+<TooltipProvider><Tooltip><TooltipTrigger render={<Button variant="ghost" size="icon-sm" aria-label="Info"><Icon name="info" /></Button>} /><TooltipContent>Saved to your workspace.</TooltipContent></Tooltip></TooltipProvider>
 ```
 
 ### Sides
@@ -20940,7 +20988,7 @@ import { Button, Tooltip, TooltipContent, TooltipTrigger } from "@sableui/react"
 ```tsx
 import { Button, Icon, SimpleTooltip } from "@sableui/react"
 
-<SimpleTooltip content="Stored permanently on Arweave."><Button variant="ghost" size="icon-sm" aria-label="Info"><Icon name="info" /></Button></SimpleTooltip>
+<SimpleTooltip content="Saved to your workspace."><Button variant="ghost" size="icon-sm" aria-label="Info"><Icon name="info" /></Button></SimpleTooltip>
 ```
 
 ---
@@ -21437,23 +21485,23 @@ Which token to reach for, and what it is most often confused with. Generated fro
     - **Not** `tone-info`. Success asserts an outcome; info asserts a fact. 'Saved' is success, '3 items' is info.
 - **`success-foreground`** — Ink paired with `success`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `success`. Use them as a pair — `bg-success text-success-foreground` — so a theme can retune the surface and the ink together.
     - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
-- **`tone-standard`** — Domain tone: the baseline classification in a set. Part of the `tone-*` family, which exists so a product can classify content without inventing colours per feature. *Use for:* The default category of a classified item — the one that means 'nothing special'.
+- **`tone-3`** — Extra colour 3: the third, and usually the quietest, category in a classified set. *Use for:* A third category, or the baseline one that means 'nothing special'.
     - **Not** `muted`. A tone is *semantic classification* that a reader is meant to decode; `muted` is de-emphasis. If a legend would help the user, it is a tone.
-- **`tone-collectible`** — Domain tone: a scarce or owned item. *Use for:* Marking an item as collectible/owned in a classified set.
-    - **Not** `primary`. A tone classifies the *thing*; primary drives an *action*. A collectible badge is not a button.
-- **`tone-edition`** — Domain tone: an edition or release. *Use for:* Marking editioned content in a classified set.
-    - **Not** `tone-collectible`. Distinct classifications must stay visually distinct.
+- **`tone-2`** — Extra colour 2: the second category in a classified set. *Use for:* A second category, distinct from tone-1, in a badge, dot, card or chart.
+    - **Not** `tone-1`. Distinct categories must stay visually distinct.
+- **`tone-1`** — Extra colour 1, the lead of the three a theme defines beyond its status colours. The numbered tones exist so a product can classify content (categories, plans, series) without inventing colours per feature; the product decides what each one means. *Use for:* The most prominent category in a classified set, or the first series of a chart.
+    - **Not** `primary`. A tone classifies the *thing*; primary drives an *action*. A category badge is not a button.
 - **`tone-info`** — Domain tone: neutral, factual information. *Use for:* An informational note or banner, a neutral count, a 'did you know' surface.
     - **Not** `success`. Info states a fact; success states an outcome. Also not `primary` — an info banner is not an action.
 - **`tone-warning`** — Domain tone: proceed with care, nothing is broken yet. *Use for:* A caution banner, a nearing-limit indicator, a soloed/overridden state in a tool.
     - **Not** `destructive`. Warning is *advisory*; destructive is *consequential*. If nothing is lost by continuing, it is a warning.
 - **`highlight`** — A marker on content the user is meant to notice — search hits, diffs, annotations. *Use for:* Highlighting matched text, a changed line, a called-out passage.
     - **Not** `accent`. `accent` is UI state that follows the pointer or selection; `highlight` marks the *content* and persists independently of interaction.
-- **`tone-standard-foreground`** — Ink paired with `tone-standard`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `tone-standard`. Use them as a pair — `bg-tone-standard text-tone-standard-foreground` — so a theme can retune the surface and the ink together.
+- **`tone-3-foreground`** — Ink paired with `tone-3`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `tone-3`. Use them as a pair — `bg-tone-3 text-tone-3-foreground` — so a theme can retune the surface and the ink together.
     - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
-- **`tone-collectible-foreground`** — Ink paired with `tone-collectible`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `tone-collectible`. Use them as a pair — `bg-tone-collectible text-tone-collectible-foreground` — so a theme can retune the surface and the ink together.
+- **`tone-2-foreground`** — Ink paired with `tone-2`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `tone-2`. Use them as a pair — `bg-tone-2 text-tone-2-foreground` — so a theme can retune the surface and the ink together.
     - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
-- **`tone-edition-foreground`** — Ink paired with `tone-edition`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `tone-edition`. Use them as a pair — `bg-tone-edition text-tone-edition-foreground` — so a theme can retune the surface and the ink together.
+- **`tone-1-foreground`** — Ink paired with `tone-1`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `tone-1`. Use them as a pair — `bg-tone-1 text-tone-1-foreground` — so a theme can retune the surface and the ink together.
     - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
 - **`tone-info-foreground`** — Ink paired with `tone-info`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `tone-info`. Use them as a pair — `bg-tone-info text-tone-info-foreground` — so a theme can retune the surface and the ink together.
     - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
@@ -21724,6 +21772,20 @@ Which token to reach for, and what it is most often confused with. Generated fro
 - **`border-floating`** — The edge of a floating surface. Fainter than `border`: the shadow carries the elevation. *Use for:* Every floating surface — popover, menu, select, tooltip, dialog, sheet, toast, a floating panel — as `border-border-floating` or `ring-border-floating`, together with `bg-popover` and a `shadow-md`+ shadow. Derived for every theme (a faint alpha of the foreground); a theme may tune it with `--theme-border-floating`.
     - **Not** `border`. A full hairline plus a shadow stacks into a heavy outline around anything that floats. `border` is for resting edges: inputs, cards, badges.
 
+### Generated palette
+
+More colour for apps, generated from the active theme: neutral and eight hue families, plus a 50–950 scale under every tone. Each family keeps its hue and leans toward the brand (half the gap, at most 15°; --theme-palette-harmony scales it, 0 = own hues). Neutral is the theme's --background mixed toward its --foreground. Steps follow the mode: low steps sit near the page and high ones far from it in light and dark alike, so a pair needs no dark: variant. For decorative and categorical colour (tags, avatars, labels, legends, illustration); surfaces, text and actions take roles. Components never name a step.
+
+- **Families:** `neutral`, `red`, `orange`, `yellow`, `green`, `teal`, `blue`, `purple`, `pink`, each 50–950.
+- **Tone scales:** `tone-1-*`, `tone-2-*`, `tone-3-*`, `tone-info-*`, `tone-warning-*`, `success-*`, `destructive-*`; step 500 is the tone itself.
+- **Use as:** bg-blue-100, text-blue-800, border-neutral-200, bg-tone-1-100 — or var(--teal-500). Tailwind's other families (slate, gray, zinc, stone, amber, lime, emerald, cyan, sky, indigo, violet, fuchsia, rose) are switched off.
+- **tag / label:** bg-<family>-100 text-<family>-800 (held to 4.5:1 in every theme and mode)
+- **text on the page:** text-<family>-700
+- **solid fill:** bg-<family>-700 text-<family>-50
+- **hairline:** border-<family>-300
+- **Components:** Badge, Pill and StatusDot take a family as tone (tone="blue"): a category with no meaning attached.
+- **Slots:** data-palette="<family>" on an element fills these from that family, so one set of classes paints any family: bg-palette-wash text-palette-text.
+
 ---
 
 ## Utilities
@@ -21829,7 +21891,7 @@ The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, wh
     - `<ol className="sable-list-numbered"><li>Install</li><li>Import the styles</li></ol>`
 - **`sable-list-dl`** — Label/value pairs on a native `<dl>`: muted label-tier `<dt>`s and body-tier `<dd>`s on a baseline-aligned two-column grid; long values wrap inside their column. Colour a status value with a `text-*` utility on its `<dd>`. *Use for:* Read-only details: an order summary, a record's metadata, a settings summary, profile stats.
     - **Instead of** A grid of `<div>`s (screen readers lose the term/value pairing), or Table for a single record. For editable values use Form and Field.
-    - `<dl className="sable-list-dl"><dt>Network</dt><dd>Solana</dd><dt>Status</dt><dd className="text-success">Active</dd></dl>`
+    - `<dl className="sable-list-dl"><dt>Plan</dt><dd>Studio</dd><dt>Status</dt><dd className="text-success">Active</dd></dl>`
 - **`sable-list-dl-2`** — Two label/value pairs a row once the nearest `@container` ancestor is at least 28rem wide. Add to `sable-list-dl`. *Use for:* A compact metadata block in a wide card or panel. Put `@container` on a parent so it measures the room it actually has.
     - **Instead of** A viewport breakpoint, which gives a narrow card on a wide screen four columns it cannot fit.
     - `<div className="@container"><dl className="sable-list-dl sable-list-dl-2">…</dl></div>`

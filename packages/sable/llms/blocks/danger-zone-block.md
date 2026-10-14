@@ -10,7 +10,7 @@ A delete-account card: what deleting removes and what survives, one destructive 
 
 - Copied from the SettingsPage page shell's Delete account section.
 - The button never acts directly: it opens the modal, whose confirm stays disabled until the handle is typed.
-- The description says what is lost AND what is kept ("Collectors keep the editions they own"), which is what people want to know before they decide.
+- The description says what is lost AND what is kept ("Files you shared stay with your team"), which is what people want to know before they decide.
 
 ## Accessibility
 
@@ -23,7 +23,7 @@ A delete-account card: what deleting removes and what survives, one destructive 
 import { useState } from "react"
 import { Button, Card, CardDescription, CardFooter, CardHeader, CardTitle, cn, DestructiveActionModal } from "@sableui/react"
 
-const account = { handle: "ada", editions: 12 }
+const account = { handle: "ada", projects: 12 }
 
 export interface DangerZoneBlockProps {
 	className?: string
@@ -41,7 +41,7 @@ export function DangerZoneBlock({ className, framed = true, onDelete }: DangerZo
 				<CardHeader>
 					<CardTitle render={<h2 />}>Delete account</CardTitle>
 					<CardDescription>
-						Permanently remove your profile, editions, and sales history. Collectors keep the editions they own.
+						Permanently remove your profile, projects, and billing history. Files you shared stay with your team.
 					</CardDescription>
 				</CardHeader>
 				<CardFooter actions className="justify-end">
@@ -54,7 +54,7 @@ export function DangerZoneBlock({ className, framed = true, onDelete }: DangerZo
 				open={open}
 				onOpenChange={setOpen}
 				title="Delete your account?"
-				description={`This permanently removes your profile, ${account.editions} editions, and sales history. Pending payouts are still sent. This can't be undone.`}
+				description={`This permanently removes your profile, ${account.projects} projects, and billing history. Your final invoice is still sent. This can't be undone.`}
 				confirmLabel="Delete account"
 				confirmingLabel="Deleting…"
 				confirmText={account.handle}

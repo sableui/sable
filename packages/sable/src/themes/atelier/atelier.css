@@ -2,7 +2,7 @@
    Mono Editorial — a Sable theme, developed from reference analysis.
 
    Components must reference the SEMANTIC tokens (--background, --primary,
-   --tone-edition, …), never any palette ramp directly. See themes/_contract.ts.
+   --tone-1, …), never any palette ramp directly. See themes/_contract.ts.
    ========================================================================== */
 
 [data-sable-theme="atelier"] {
@@ -115,17 +115,17 @@
 	--success: oklch(50% 0.10 173);
 	--success-text: oklch(50% 0.10 173);
 	--success-foreground: #ffffff;
-	--tone-standard: oklch(45% 0 0);
-	--tone-collectible: oklch(46% 0.11 300);
-	--tone-edition: oklch(46% 0.09 173);
+	--tone-3: oklch(45% 0 0);
+	--tone-2: oklch(46% 0.11 300);
+	--tone-1: oklch(46% 0.09 173);
 	--tone-info: oklch(47% 0.10 250);
 	--tone-info-text: oklch(47% 0.10 250);
 	--tone-warning: oklch(52% 0.12 52);
 	--tone-warning-text: oklch(52% 0.12 52);
 	--highlight: oklch(93% 0 0);
-	--tone-standard-foreground: #ffffff;
-	--tone-collectible-foreground: #ffffff;
-	--tone-edition-foreground: #ffffff;
+	--tone-3-foreground: #ffffff;
+	--tone-2-foreground: #ffffff;
+	--tone-1-foreground: #ffffff;
 	--tone-info-foreground: #ffffff;
 	--tone-warning-foreground: #ffffff;
 	--highlight-foreground: #000000;
@@ -198,17 +198,17 @@
 	--success: oklch(74% 0.12 173);
 	--success-text: oklch(74% 0.12 173);
 	--success-foreground: oklch(13% 0 0);
-	--tone-standard: oklch(80% 0 0);
-	--tone-collectible: oklch(76% 0.12 300);
-	--tone-edition: oklch(76% 0.10 173);
+	--tone-3: oklch(80% 0 0);
+	--tone-2: oklch(76% 0.12 300);
+	--tone-1: oklch(76% 0.10 173);
 	--tone-info: oklch(76% 0.10 250);
 	--tone-info-text: oklch(76% 0.10 250);
 	--tone-warning: oklch(80% 0.13 52);
 	--tone-warning-text: oklch(80% 0.13 52);
 	--highlight: oklch(26% 0 0);
-	--tone-standard-foreground: oklch(13% 0 0);
-	--tone-collectible-foreground: oklch(13% 0 0);
-	--tone-edition-foreground: oklch(13% 0 0);
+	--tone-3-foreground: oklch(13% 0 0);
+	--tone-2-foreground: oklch(13% 0 0);
+	--tone-1-foreground: oklch(13% 0 0);
 	--tone-info-foreground: oklch(13% 0 0);
 	--tone-warning-foreground: oklch(13% 0 0);
 	--highlight-foreground: #ffffff;

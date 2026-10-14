@@ -49,7 +49,7 @@ export interface LabelProps
  * for a dotted-underline label that reveals help text in a tooltip.
  *
  *   <Label htmlFor="email">Email</Label>
- *   <Label htmlFor="royalty" hint="A percentage of every resale, paid to you.">Royalty</Label>
+ *   <Label htmlFor="discount" hint="Taken off every order this code is used on.">Discount</Label>
  */
 export function Label({
 	size,

@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-Hover/focus-triggered rich preview card over Base UI PreviewCard. Reveals contextual content (a profile, an edition summary) from an inline anchor; 20rem-wide surface with delayed open and collision-aware positioning.
+Hover/focus-triggered rich preview card over Base UI PreviewCard. Reveals contextual content (a profile, a project summary) from an inline anchor; 20rem-wide surface with delayed open and collision-aware positioning.
 
 **Keywords:** context card, rich tooltip, hover card, preview
 
@@ -61,7 +61,7 @@ Use ContextCard to show richer contextual content near a trigger without taking 
 ```tsx
 import { Avatar, ContextCard, ContextCardContent, ContextCardTrigger, Entity } from "@sableui/react"
 
-<ContextCard><ContextCardTrigger render={<a href='/u/ada' className='text-title-sm underline-offset-2 hover:underline'>@ada</a>} /><ContextCardContent><Entity className='[--entity-px:0] [--entity-py:0]' leading={<Avatar fallback='AL' size='lg' />} title='Ada Lovelace' subtitle='@ada' /><p className='mt-3 text-body-sm text-muted-foreground'>Minting generative editions on Solana. Permanently on Arweave.</p></ContextCardContent></ContextCard>
+<ContextCard><ContextCardTrigger render={<a href='/u/ada' className='text-title-sm underline-offset-2 hover:underline'>@ada</a>} /><ContextCardContent><Entity className='[--entity-px:0] [--entity-py:0]' leading={<Avatar fallback='AL' size='lg' />} title='Ada Lovelace' subtitle='@ada' /><p className='mt-3 text-body-sm text-muted-foreground'>Product designer. Building tools for small teams.</p></ContextCardContent></ContextCard>
 ```
 
 ### With stat row

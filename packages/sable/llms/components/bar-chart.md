@@ -42,13 +42,13 @@ Use BarChart to compare amounts across categories — the default chart for "how
 | stacked | boolean \| "expand" | false | Stack the series in one bar, or `"expand"` to show each category as 100%. Unstacked series sit side by side. |
 | labels | boolean \| "inside" | false | Print each bar's value at its end, or (`"inside"`, horizontal) the category name inside the bar as well. |
 | colorBy | "series" \| "index" | "series" | Colour by series, or give each category its own tone (one series). |
-| negativeTone | "edition" \| "collectible" \| "standard" \| "info" \| "warning" \| "primary" \| "neutral" \| "success" \| "destructive" | — | Colour negative values with this tone. |
+| negativeTone | "1" \| "2" \| "3" \| "info" \| "warning" \| "primary" \| "neutral" \| "success" \| "destructive" | — | Colour negative values with this tone. |
 | radius | number | 4 | Corner radius of each bar's far end, in px. Stacks round only the outer segment. |
 | barWidth | number | 24 | Maximum thickness of a bar, in px: the band's leftover is air, not a fatter bar. Raise it for a bolder presentation look. |
 
 ## Tokens used
 
-`tone-edition`, `tone-collectible`, `tone-standard`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
+`tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
 
 ## Motion
 

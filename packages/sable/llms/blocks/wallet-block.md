@@ -2,7 +2,7 @@
 
 A balance card: the balance in the metric mono tier, Send and Receive as an equal pair, and recent activity as Entity rows with signed amounts.
 
-**Intent:** Reach for this for a wallet, account balance or credits summary with its latest movements. For a full transaction history with filters, use a DataTable.
+**Intent:** Reach for this for an account balance, store credit or credits summary with its latest movements. For a full transaction history with filters, use a DataTable.
 
 **Block:** Commerce · card · designed for 18rem–20rem wide (fills its container up to the max)
 
@@ -10,24 +10,24 @@ A balance card: the balance in the metric mono tier, Send and Receive as an equa
 
 - The balance is CardTitle at `text-mono-xl` — tabular figures, never a heading tier — under its label as CardDescription.
 - Send is primary and Receive secondary, side by side at equal width: two directions of one action, with sending the riskier and more frequent.
-- Incoming amounts are `text-success`; outgoing stay muted rather than red, because a withdrawal is not an error.
+- Incoming amounts are `text-success`; outgoing stay muted rather than red, because a payout or refund is not an error.
 
 ## Accessibility
 
 - Each activity row's leading swatch is aria-hidden; the title and detail carry the meaning.
-- Amounts keep their sign in text (+0.80 / -1.50), so the direction does not depend on colour.
+- Amounts keep their sign in text (+49.00 / -850.00), so the direction does not depend on colour.
 
 ## Source
 
 ```tsx
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Entity, Icon } from "@sableui/react"
 
-const balance = "14.62 SOL"
+const balance = "$2,418.50"
 
 const activity = [
-	{ title: "Sold “Dusk, no. 4”", detail: "Edition · 2h ago", amount: "+0.80", tone: "edition" },
-	{ title: "Royalty", detail: "Collectible · Yesterday", amount: "+0.12", tone: "collectible" },
-	{ title: "Withdrawal", detail: "To Phantom · Mon", amount: "-1.50", tone: "standard" },
+	{ title: "Subscription", detail: "Team plan · 2h ago", amount: "+49.00", tone: "1" },
+	{ title: "Refund", detail: "Order 1042 · Yesterday", amount: "-24.00", tone: "2" },
+	{ title: "Payout", detail: "To checking · Mon", amount: "-850.00", tone: "3" },
 ]
 
 export interface WalletBlockProps {

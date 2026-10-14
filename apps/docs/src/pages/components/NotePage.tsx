@@ -21,14 +21,14 @@ export function NotePage() {
 			>
 				<Example className="flex-col items-stretch">
 					<Note tone="info">
-						Editions mint on Solana mainnet via Helius RPC.
+						Reports refresh every hour from your connected sources.
 					</Note>
 					<Note tone="warning">
-						Your SOL balance is low. Top up before minting.
+						Your credit balance is low. Top up before exporting.
 					</Note>
-					<Note tone="success">Purchase confirmed and the cNFT is in your wallet.</Note>
+					<Note tone="success">Payment confirmed and the receipt is in your inbox.</Note>
 					<Note tone="destructive">
-						The transaction failed on-chain and was not submitted again.
+						The payment was declined and was not submitted again.
 					</Note>
 					<Note tone="neutral">
 						Drafts are saved locally until you publish them.
@@ -42,10 +42,10 @@ export function NotePage() {
 			>
 				<Example className="flex-col items-stretch">
 					<Note tone="warning" title="Low balance">
-						Add SOL to cover the mint fee, or enable the fee subsidy.
+						Add credits to cover the export, or switch to a paid plan.
 					</Note>
-					<Note tone="success" title="Minted">
-						Your edition is live and collectible by anyone with the link.
+					<Note tone="success" title="Published">
+						Your report is live and viewable by anyone with the link.
 					</Note>
 				</Example>
 			</Section>
@@ -66,10 +66,10 @@ export function NotePage() {
 					</Note>
 					<Note
 						tone="info"
-						title="Fee subsidy available"
+						title="Free exports available"
 						action={{ label: "Read the docs", href: "/note" }}
 					>
-						Editions under 100 supply can mint without a SOL balance.
+						Reports under 100 rows can export without any credits.
 					</Note>
 					<Note
 						tone="destructive"

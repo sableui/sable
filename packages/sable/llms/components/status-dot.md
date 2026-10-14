@@ -28,18 +28,18 @@ Use StatusDot as a compact visual state cue next to text, avatars, rows, or labe
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| tone | "neutral" \| "standard" \| "success" \| "warning" \| "info" \| "edition" \| "collectible" \| "destructive" | "neutral" | Semantic color of the dot. |
+| tone | "neutral" \| "1" \| "2" \| "3" \| "success" \| "warning" \| "info" \| "destructive" \| "red" \| "orange" \| "yellow" \| "green" \| "teal" \| "blue" \| "purple" \| "pink" | "neutral" | Semantic color of the dot, or a palette family (red … pink) for a category legend. |
 | size | "sm" \| "md" \| "lg" | "md" | Dot diameter. |
 | pulse | boolean | false | Wrap the dot in an animated ping ring to signal a live state. |
 
 ## Variants
 
-- **tone**: neutral, standard, success, warning, info, edition, collectible, destructive
+- **tone**: neutral, 1, 2, 3, success, warning, info, destructive, red, orange, yellow, green, teal, blue, purple, pink
 - **size**: sm, md, lg
 
 ## Tokens used
 
-`muted-foreground`, `tone-standard`, `success`, `tone-warning`, `tone-info`, `tone-edition`, `tone-collectible`, `destructive`
+`palette-dot`, `muted-foreground`, `tone-3`, `success`, `tone-warning`, `tone-info`, `tone-1`, `tone-2`, `destructive`
 
 ## Accessibility
 
@@ -58,7 +58,7 @@ Use StatusDot as a compact visual state cue next to text, avatars, rows, or labe
 ```tsx
 import { Row, StatusDot } from "@sableui/react"
 
-<Row gap={2}><StatusDot tone="standard" /><StatusDot tone="info" /><StatusDot tone="warning" /><StatusDot tone="destructive" /></Row>
+<Row gap={2}><StatusDot tone="3" /><StatusDot tone="info" /><StatusDot tone="warning" /><StatusDot tone="destructive" /></Row>
 ```
 
 ### With label — use Badge

@@ -74,7 +74,7 @@ describe("static contract and design review remain separate", () => {
 		const dir = makeFixture()
 		const registry = JSON.parse(readFileSync(join(ROOT, "registry.json"), "utf8"))
 		const pattern = registry.patterns.items.find((item: { name: string }) => item.name === "DashboardPage")
-		writeFileSync(join(dir, "Surface.tsx"), `${pattern.code}\nconst defect = <div className="bg-red-500" />`)
+		writeFileSync(join(dir, "Surface.tsx"), `${pattern.code}\nconst defect = <div className="bg-lime-500" />`)
 		const report = run(dir, ["Surface.tsx"]).data
 		expect(report.conformance.mean).toBeGreaterThan(0.8)
 		expect(report.contract.status).toBe("fail")

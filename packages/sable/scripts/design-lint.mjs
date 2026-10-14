@@ -59,6 +59,8 @@ const META_TOKENS = new Set([
 	...readArray(contractSrc, "DERIVED_EDGE_TOKENS"),
 	// Art direction (GradientArt): optional-with-derivation, like the surfaces.
 	...readArray(contractSrc, "ART_TOKENS"),
+	// The palette slots Badge, Pill and StatusDot paint a family from.
+	...readArray(contractSrc, "PALETTE_SLOT_TOKENS"),
 ])
 /* The rule table itself lives in ./lint-rules.mjs, shared with the `sable-lint`
    bin that consumers run against their own app. Ten of the eleven rules are about

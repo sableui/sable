@@ -28,14 +28,13 @@ const display: Spec[] = [
 ]
 const heading: Spec[] = [
 	{ name: "Heading 1", cls: "text-heading-1", meta: "36 · 600", sample: "Discover new work" },
-	{ name: "Heading 2", cls: "text-heading-2", meta: "28 · 600", sample: "Recently collected" },
-	{ name: "Heading 3", cls: "text-heading-3", meta: "22 · 600", sample: "Pricing & royalties" },
+	{ name: "Heading 2", cls: "text-heading-2", meta: "28 · 600", sample: "Recently viewed" },
+	{ name: "Heading 3", cls: "text-heading-3", meta: "22 · 600", sample: "Pricing & billing" },
 	{ name: "Heading 4", cls: "text-heading-4", meta: "18 · 600", sample: "Notification preferences" },
 ]
 const title: Spec[] = [
 	{ name: "Title LG", cls: "text-title-lg", meta: "16 · 600", sample: "Untitled (gold rush)" },
-	// design-lint-disable-next-line inline-color -- "#042" is an edition NUMBER in a type-tier sample string, not a colour
-	{ name: "Title SM", cls: "text-title-sm", meta: "14 · 600", sample: "Edition #042" },
+	{ name: "Title SM", cls: "text-title-sm", meta: "14 · 600", sample: "Invoice INV-0042" },
 ]
 const body: Spec[] = [
 	{
@@ -65,15 +64,15 @@ const body: Spec[] = [
 	},
 ]
 const label: Spec[] = [
-	{ name: "Label LG", cls: "text-label-lg", meta: "14 · 600", sample: "Collect edition" },
-	{ name: "Label MD", cls: "text-label-md", meta: "12 · 600", sample: "12 collectors" },
+	{ name: "Label LG", cls: "text-label-lg", meta: "14 · 600", sample: "Upgrade plan" },
+	{ name: "Label MD", cls: "text-label-md", meta: "12 · 600", sample: "12 members" },
 	{ name: "Label XS", cls: "text-label-xs", meta: "11 · 600", sample: "Trending now" },
 	{ name: "Caption", cls: "text-caption", meta: "12 · 400", sample: "Posted 2 hours ago" },
 ]
 const mono: Spec[] = [
-	{ name: "Mono MD", cls: "text-mono-md", meta: "13 · 400 · tabular", sample: "5J7s…8xQp · 0xab12cd34" },
-	{ name: "Mono Caption", cls: "text-mono-caption", meta: "12 · 400 · tabular", sample: "b4c1…9f2e · 341 ms · 0.0021 SOL" },
-	{ name: "Mono SM", cls: "text-mono-sm", meta: "11 · 500 · tabular", sample: "tx_5J7s8xQp" },
+	{ name: "Mono MD", cls: "text-mono-md", meta: "13 · 400 · tabular", sample: "5J7s…8xQp · ab12cd34" },
+	{ name: "Mono Caption", cls: "text-mono-caption", meta: "12 · 400 · tabular", sample: "b4c1…9f2e · 341 ms · $0.0021" },
+	{ name: "Mono SM", cls: "text-mono-sm", meta: "11 · 500 · tabular", sample: "req_5J7s8xQp" },
 ]
 
 export function TypographyPage() {
@@ -173,7 +172,7 @@ export function TypographyPage() {
   <dl className="sable-list-dl sable-list-dl-2">
     <dt>Posts</dt><dd>128</dd>
     <dt>Followers</dt><dd>4.2k</dd>
-    <dt>Editions</dt><dd>12</dd>
+    <dt>Projects</dt><dd>12</dd>
     <dt>Joined</dt><dd>March 2024</dd>
   </dl>
 </div>`}
@@ -184,7 +183,7 @@ export function TypographyPage() {
 							<dd>128</dd>
 							<dt>Followers</dt>
 							<dd>4.2k</dd>
-							<dt>Editions</dt>
+							<dt>Projects</dt>
 							<dd>12</dd>
 							<dt>Joined</dt>
 							<dd>March 2024</dd>

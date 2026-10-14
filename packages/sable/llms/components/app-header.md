@@ -23,7 +23,7 @@ Use AppHeader for compact application chrome at the top of a screen, usually wit
 | --- | --- | --- | --- |
 | leading | ReactNode | — | Leading slot — back button, create action, or menu trigger. |
 | title | ReactNode | — | Center slot — brand wordmark or contextual page title. |
-| actions | ReactNode | — | Trailing slot — wallet trigger, action buttons. |
+| actions | ReactNode | — | Trailing slot — account menu, action buttons. |
 
 ## Tokens used
 

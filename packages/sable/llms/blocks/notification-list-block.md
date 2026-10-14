@@ -23,7 +23,7 @@ An activity list: Entity rows with the actor's Avatar, who did what, and a compa
 import { Avatar, Card, CardList, cn, Entity, StatusDot } from "@sableui/react"
 
 const notifications = [
-	{ initials: "MO", name: "Mara Okafor", what: "collected your edition", when: "2m", unread: true },
+	{ initials: "MO", name: "Mara Okafor", what: "invited you to Q3 planning", when: "2m", unread: true },
 	{ initials: "SR", name: "Sam Rivera", what: "left a comment on Dusk", when: "1h", unread: false },
 ]
 

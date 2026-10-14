@@ -72,7 +72,7 @@ import { AppHeader, AppShell, Banner, BottomNav, BottomNavItem, Icon, PageHeader
 // <Link> = your router's link (react-router, next/link, @tanstack/router, …)
 
 <AppShell
-  banners={<Banner tone="warning">Network congested — mints may be slow.</Banner>}
+  banners={<Banner tone="warning">Sync is delayed — changes may be slow to appear.</Banner>}
   header={<AppHeader title="Studio" />}
   sidebar={
     <Sidebar>
@@ -91,7 +91,7 @@ import { AppHeader, AppShell, Banner, BottomNav, BottomNavItem, Icon, PageHeader
   }
 >
   <Region max="feed">
-    <PageHeader title="Home" description="Latest posts from artists you follow." />
+    <PageHeader title="Home" description="Latest posts from people you follow." />
   </Region>
 </AppShell>
 ```

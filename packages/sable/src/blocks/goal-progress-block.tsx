@@ -5,7 +5,7 @@ import { cn } from "../lib/cn"
 // ---block-code---
 const goals = [
 	{ goal: "Releases", progress: 82 },
-	{ goal: "Collectors", progress: 64 },
+	{ goal: "Customers", progress: 64 },
 	{ goal: "Revenue", progress: 91 },
 ]
 

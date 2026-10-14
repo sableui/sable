@@ -16,23 +16,23 @@ export const checkboxCardToneClasses = {
 		check: "text-primary-foreground",
 		glyph: "text-foreground",
 	},
-	standard: {
-		card: SELECTION_CARD_CHECKED.standard,
-		box: "group-data-[checked]:border-tone-standard group-data-[checked]:bg-tone-standard group-data-[indeterminate]:border-tone-standard group-data-[indeterminate]:bg-tone-standard",
-		check: "text-tone-standard-foreground",
-		glyph: "text-tone-standard",
+	"3": {
+		card: SELECTION_CARD_CHECKED["3"],
+		box: "group-data-[checked]:border-tone-3 group-data-[checked]:bg-tone-3 group-data-[indeterminate]:border-tone-3 group-data-[indeterminate]:bg-tone-3",
+		check: "text-tone-3-foreground",
+		glyph: "text-tone-3",
 	},
-	collectible: {
-		card: SELECTION_CARD_CHECKED.collectible,
-		box: "group-data-[checked]:border-tone-collectible group-data-[checked]:bg-tone-collectible group-data-[indeterminate]:border-tone-collectible group-data-[indeterminate]:bg-tone-collectible",
-		check: "text-tone-collectible-foreground",
-		glyph: "text-tone-collectible",
+	"2": {
+		card: SELECTION_CARD_CHECKED["2"],
+		box: "group-data-[checked]:border-tone-2 group-data-[checked]:bg-tone-2 group-data-[indeterminate]:border-tone-2 group-data-[indeterminate]:bg-tone-2",
+		check: "text-tone-2-foreground",
+		glyph: "text-tone-2",
 	},
-	edition: {
-		card: SELECTION_CARD_CHECKED.edition,
-		box: "group-data-[checked]:border-tone-edition group-data-[checked]:bg-tone-edition group-data-[indeterminate]:border-tone-edition group-data-[indeterminate]:bg-tone-edition",
-		check: "text-tone-edition-foreground",
-		glyph: "text-tone-edition",
+	"1": {
+		card: SELECTION_CARD_CHECKED["1"],
+		box: "group-data-[checked]:border-tone-1 group-data-[checked]:bg-tone-1 group-data-[indeterminate]:border-tone-1 group-data-[indeterminate]:bg-tone-1",
+		check: "text-tone-1-foreground",
+		glyph: "text-tone-1",
 	},
 	info: {
 		card: SELECTION_CARD_CHECKED.info,

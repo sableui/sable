@@ -50,7 +50,7 @@ import { PageHeader, Region } from "@sableui/react"
 ```tsx
 import { Card, CardHeader, CardTitle, Grid, Region } from "@sableui/react"
 
-<Region max="wide"><Grid minItemWidth="16rem"><Card><CardHeader><CardTitle>Revenue</CardTitle></CardHeader></Card><Card><CardHeader><CardTitle>Collects</CardTitle></CardHeader></Card></Grid></Region>
+<Region max="wide"><Grid minItemWidth="16rem"><Card><CardHeader><CardTitle>Revenue</CardTitle></CardHeader></Card><Card><CardHeader><CardTitle>Orders</CardTitle></CardHeader></Card></Grid></Region>
 ```
 
 ### Fluid workspace: the queue's table takes the extra width

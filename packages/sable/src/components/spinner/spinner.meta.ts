@@ -113,7 +113,7 @@ export const spinnerMeta: ComponentMeta = {
 		},
 		{
 			label: "Inside a button (Button owns it — use loading)",
-			code: '<Button loading>Collecting</Button>',
+			code: '<Button loading>Saving</Button>',
 		},
 	],
 }

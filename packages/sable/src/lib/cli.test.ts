@@ -127,7 +127,7 @@ describe("pattern skeletons", () => {
 		expect(tree).toContain("sidebar:")
 		// …and none of the demo fixtures the real source carries.
 		expect(tree).not.toContain("Revenue")
-		expect(tree).not.toContain("Gold Rush")
+		expect(tree).not.toContain("Northwind")
 	})
 
 	it("never invents a prop out of a closing tag", () => {

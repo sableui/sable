@@ -15,7 +15,7 @@
 	   fixed palette: code re-colours with the theme, light/dark, and the
 	   Customize panel like everything else. Punctuation and comments recede to
 	   muted ink so the names carry the reading. */
-	--sh-keyword: var(--tone-edition);
+	--sh-keyword: var(--tone-1);
 	--sh-entity: var(--tone-info);
 	--sh-class: var(--tone-info);
 	--sh-property: var(--tone-warning);

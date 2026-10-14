@@ -29,12 +29,12 @@ export function NumberFieldPage() {
 				description="Inside a field, with a label and helper text."
 			>
 				<Example
-					code={`<Field label="Quantity" description="How many editions to mint.">
+					code={`<Field label="Quantity" description="How many seats to add.">
 	<NumberField min={1} max={100} defaultValue={1} />
 </Field>`}
 				>
 					<div className="w-full max-w-60">
-						<Field label="Quantity" description="How many editions to mint.">
+						<Field label="Quantity" description="How many seats to add.">
 							<NumberField min={1} max={100} defaultValue={1} />
 						</Field>
 					</div>

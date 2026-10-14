@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-Full-width, page-level announcement bar. A tone (neutral, info, success, warning, edition, destructive) × an appearance (soft tint or loud solid fill), and an optional leading scope label. Centers its message, or — with a trailing action — switches to a leading-text + trailing-button layout. Optionally sticky and dismissible.
+Full-width, page-level announcement bar. A tone (neutral, info, success, warning, the decorative 1, destructive) × an appearance (soft tint or loud solid fill), and an optional leading scope label. Centers its message, or — with a trailing action — switches to a leading-text + trailing-button layout. Optionally sticky and dismissible.
 
 **Keywords:** banner, announcement, alert, status, message, warning, success, offline, sticky
 
@@ -31,7 +31,7 @@ Use Banner for page-level or app-level messages that affect the current experien
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| tone | "neutral" \| "info" \| "success" \| "warning" \| "edition" \| "destructive" | "neutral" | Neutral surface or a tone that encodes the announcement's intent (info / success / warning / edition / destructive). |
+| tone | "neutral" \| "info" \| "success" \| "warning" \| "1" \| "destructive" | "neutral" | Neutral surface or a tone that encodes the announcement's intent (info / success / warning / the decorative 1 / destructive). |
 | appearance | "soft" \| "solid" | "soft" | "soft" is a quiet tinted fill; "solid" is the full tone with its paired ink — for loud, can't-miss states (offline, chain-down, RPC errors). |
 | label | ReactNode | — | A short scope label ("Preview", "Staging", a project name) in a leading chip — a Badge that reads on soft and solid fills. |
 | action | ReactNode | — | A trailing action (e.g. a Button). Switches the bar to leading text + trailing action instead of centered text. |
@@ -42,12 +42,12 @@ Use Banner for page-level or app-level messages that affect the current experien
 
 ## Variants
 
-- **tone**: neutral, info, success, warning, edition, destructive
+- **tone**: neutral, info, success, warning, 1, destructive
 - **appearance**: soft, solid
 
 ## Tokens used
 
-`secondary`, `secondary-foreground`, `foreground`, `background`, `tone-info`, `tone-info-foreground`, `success`, `success-foreground`, `tone-warning`, `tone-warning-foreground`, `tone-edition`, `tone-edition-foreground`, `destructive`, `destructive-foreground`
+`secondary`, `secondary-foreground`, `foreground`, `background`, `tone-info`, `tone-info-foreground`, `success`, `success-foreground`, `tone-warning`, `tone-warning-foreground`, `tone-1`, `tone-1-foreground`, `destructive`, `destructive-foreground`
 
 ## Accessibility
 
@@ -75,7 +75,7 @@ import { Banner } from "@sableui/react"
 ```tsx
 import { Banner } from "@sableui/react"
 
-<Banner tone="destructive" appearance="solid" live="assertive">Blockchain unavailable. Collect and buy are temporarily disabled.</Banner>
+<Banner tone="destructive" appearance="solid" live="assertive">Payments are down. Checkout and upgrades are temporarily disabled.</Banner>
 ```
 
 ### Success
@@ -107,7 +107,7 @@ import { Banner } from "@sableui/react"
 ```tsx
 import { Banner, Button } from "@sableui/react"
 
-<Banner tone="warning" action={<Button variant="outline" size="sm">Reconnect</Button>}>Wallet connection paused.</Banner>
+<Banner tone="warning" action={<Button variant="outline" size="sm">Reconnect</Button>}>Calendar sync paused.</Banner>
 ```
 
 ### App-shell outage

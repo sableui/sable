@@ -39,17 +39,17 @@ export function CardPage() {
 				<Example className="!block">
 					<Card className="max-w-sm">
 						<CardHeader>
-							<Badge tone="edition">Edition</Badge>
-							<CardTitle>Untitled (gold rush)</CardTitle>
+							<Badge tone="1">New</Badge>
+							<CardTitle>Linen throw blanket</CardTitle>
 							<CardDescription>
-								Limited run of 100. Stored permanently on Arweave.
+								Washed linen, in four colours. Ships in two days.
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="text-body-md text-muted-foreground">
-							0.5 SOL · 42 collected
+							$64.00 · 42 in stock
 						</CardContent>
 						<CardFooter>
-							<Button size="sm">Collect</Button>
+							<Button size="sm">Add to cart</Button>
 							<Button size="sm" variant="ghost">
 								Details
 							</Button>

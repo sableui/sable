@@ -1,6 +1,7 @@
 import type { VariantProps } from "class-variance-authority"
 import type { ComponentPropsWithRef, ReactNode } from "react"
 import { cn } from "../../lib/cn"
+import { isPaletteColor } from "../../lib/palette"
 import { trimLabel } from "../../lib/trim-label"
 import { pillVariants } from "./pill.variants"
 
@@ -22,14 +23,16 @@ export interface PillProps
  * `appearance="outline"` is the quiet chip for choices that annotate other
  * content (a reaction, a tag on a card); `size="sm"` puts it on the xs control
  * height. Use these rather than restyling a Pill with classes — an override is
- * a look that exists nowhere else in the system.
+ * a look that exists nowhere else in the system. `tone="blue"` (any palette
+ * family) colours the chip as a category, like a tag picker's choices.
  */
-export function Pill({ selected = false, appearance, size, icon, className, children, type, ...props }: PillProps) {
+export function Pill({ selected = false, appearance, size, tone, icon, className, children, type, ...props }: PillProps) {
 	return (
 		<button
 			type={type ?? "button"}
 			aria-pressed={selected}
-			className={cn(pillVariants({ appearance, size, selected }), className)}
+			data-palette={isPaletteColor(tone) ? tone : undefined}
+			className={cn(pillVariants({ appearance, size, selected, tone }), className)}
 			{...props}
 		>
 			{icon}

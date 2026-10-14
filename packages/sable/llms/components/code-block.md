@@ -14,7 +14,7 @@ Use CodeBlock for multiline code samples that users may read, inspect, or copy.
 
 - Do: Give the snippet a filename, or a sentence of surrounding copy, when it helps readers and agents place it.
 - Do: Keep examples complete enough to teach the intended pattern.
-- Do: Wire highlighting once with CodeHighlightProvider and map token colors to semantic tone tokens (keywords → tone-edition, strings → success, comments → muted-foreground), so code follows the theme instead of a fixed palette.
+- Do: Wire highlighting once with CodeHighlightProvider and map token colors to semantic tone tokens (keywords → tone-1, strings → success, comments → muted-foreground), so code follows the theme instead of a fixed palette.
 - Don't: Do not put short inline identifiers in a CodeBlock; use Code for those.
 - Don't: Do not paste code with the indentation the surrounding file had. A block indented to sit inside your JSX shows the reader leading whitespace that is not part of the example.
 

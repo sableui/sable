@@ -24,9 +24,9 @@ import { useState, useId } from "react"
 import { Badge, Button, Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle, Checkbox, cn, Icon, Label } from "@sableui/react"
 
 const tasks = [
-	{ title: "Pick the cover type", tag: "Design", tone: "collectible", done: true },
+	{ title: "Pick the cover type", tag: "Design", tone: "2", done: true },
 	{ title: "Wire up checkout", tag: "Engineering", tone: "info", done: false },
-	{ title: "Draft launch post", tag: "Launch", tone: "edition", done: false },
+	{ title: "Draft launch post", tag: "Launch", tone: "1", done: false },
 ] as const
 
 export interface TaskListBlockProps {

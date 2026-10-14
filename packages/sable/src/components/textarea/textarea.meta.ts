@@ -103,7 +103,7 @@ export const textareaMeta: ComponentMeta = {
 		},
 		{
 			label: "With rows",
-			code: '<Textarea rows={6} placeholder="Tell the story behind this edition…" />',
+			code: '<Textarea rows={6} placeholder="Tell your team what this project is for…" />',
 		},
 		{
 			label: "Auto-resize",
@@ -115,7 +115,7 @@ export const textareaMeta: ComponentMeta = {
 		},
 		{
 			label: "Disabled",
-			code: '<Textarea disabled defaultValue="Captions lock once the edition is minted." />',
+			code: '<Textarea disabled defaultValue="Notes lock once the invoice is sent." />',
 		},
 	],
 }

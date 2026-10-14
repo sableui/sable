@@ -741,7 +741,7 @@ describe("theme contrast", () => {
 				const vars = resolveVars(cssFor(themeId), appearance)
 				const page = surfaceOf("background", vars)
 				if (!page) continue
-				for (const tone of ["standard", "collectible", "edition", "info", "warning"]) {
+				for (const tone of ["1", "2", "3", "info", "warning"]) {
 					const value = resolve(`--tone-${tone}`, vars)
 					if (!value) continue
 					const ratio = contrastRatio(painted(value, page), page.rgb)
@@ -961,15 +961,15 @@ describe("theme contrast", () => {
 	 * existing one can only improve.
 	 *
 	 * Sable and Prism are not in the same league as the rest. Their
-	 * `--tone-collectible` (`oklch(72% 0.225 285)`) misses the blue primary by 0.41
+	 * `--tone-2` (`oklch(72% 0.225 285)`) misses the blue primary by 0.41
 	 * in linear light — a 41% overshoot, not a rounding artefact — so what renders
 	 * is a materially different colour from the one authored, and the token's whole
-	 * job is to stay visually distinct from `tone-edition`. Everything else sits
+	 * job is to stay visually distinct from `tone-1`. Everything else sits
 	 * under 0.09, which clips to a barely-perceptible chroma shift.
 	 */
 	const GAMUT_BASELINE: Record<string, number> = {
 		sable: 0.4121, // Same palette as the existing neutral default; no new exemption.
-		prism: 0.4121, // --tone-collectible: oklch(72% 0.225 285)
+		prism: 0.4121, // --tone-2: oklch(72% 0.225 285)
 		ember: 0.082, // --ember-100: oklch(94% 0.045 32.9)
 		meridian: 0.032, // --meridian-ember-50: oklch(97% 0.02 30)
 		verdant: 0.018, // --success: oklch(50% 0.11 173)

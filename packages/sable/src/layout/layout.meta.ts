@@ -59,7 +59,7 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 			},
 			{
 				label: "Dashboard region (capped at wide)",
-				code: '<Region max="wide"><Grid minItemWidth="16rem"><Card><CardHeader><CardTitle>Revenue</CardTitle></CardHeader></Card><Card><CardHeader><CardTitle>Collects</CardTitle></CardHeader></Card></Grid></Region>',
+				code: '<Region max="wide"><Grid minItemWidth="16rem"><Card><CardHeader><CardTitle>Revenue</CardTitle></CardHeader></Card><Card><CardHeader><CardTitle>Orders</CardTitle></CardHeader></Card></Grid></Region>',
 			},
 			{
 				label: "Fluid workspace: the queue's table takes the extra width",
@@ -96,7 +96,7 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 		examples: [
 			{
 				label: "Feed route",
-				code: '<Page as="main" max="feed"><PageHeader title="Home" description="Latest posts from artists you follow." /><Card><CardContent><p className="text-body-md">First post.</p></CardContent></Card></Page>',
+				code: '<Page as="main" max="feed"><PageHeader title="Home" description="Latest posts from people you follow." /><Card><CardContent><p className="text-body-md">First post.</p></CardContent></Card></Page>',
 			},
 		],
 	},
@@ -149,7 +149,7 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 			},
 			{
 				label: "Responsive fixed columns",
-				code: '<Grid cols={{ base: 1, md: 2, lg: 4 }}><Badge appearance="plain" tone="standard" dot /><Badge appearance="plain" tone="warning" dot /><Badge appearance="plain" tone="neutral" dot /><Badge appearance="plain" tone="destructive" dot /></Grid>',
+				code: '<Grid cols={{ base: 1, md: 2, lg: 4 }}><Badge appearance="plain" tone="3" dot /><Badge appearance="plain" tone="warning" dot /><Badge appearance="plain" tone="neutral" dot /><Badge appearance="plain" tone="destructive" dot /></Grid>',
 			},
 		],
 	},
@@ -389,7 +389,7 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 		examples: [
 			{
 				label: "Media + detail",
-				code: '<SplitPane ratio="2/1" primary={<AspectBox ratio={1}><img src={post.imageUrl} alt={post.title} className="size-full object-cover" /></AspectBox>} secondary={<Stack gap={2}><h1 className="text-heading-1">{post.title}</h1><p className="text-body-md text-muted-foreground">{post.description}</p><Button>Collect</Button></Stack>} />',
+				code: '<SplitPane ratio="2/1" primary={<AspectBox ratio={1}><img src={post.imageUrl} alt={post.title} className="size-full object-cover" /></AspectBox>} secondary={<Stack gap={2}><h1 className="text-heading-1">{post.title}</h1><p className="text-body-md text-muted-foreground">{post.description}</p><Button>Add to cart</Button></Stack>} />',
 			},
 		],
 	},

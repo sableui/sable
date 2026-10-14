@@ -72,7 +72,7 @@ import { SearchInput } from "@sableui/react"
 ```tsx
 import { Field, SearchInput } from "@sableui/react"
 
-<Field label="Search posts"><SearchInput defaultValue="editions" className="max-w-80" /></Field>
+<Field label="Search posts"><SearchInput defaultValue="roadmap" className="max-w-80" /></Field>
 ```
 
 ### Disabled

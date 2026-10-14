@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const badgeMeta: ComponentMeta = {
 	name: "Badge",
 	summary:
-		"Compact static label, set on two axes: appearance (soft, outline, solid, overlay on media, plain text) and tone (neutral or a semantic tone). An optional leading icon, or a status dot (with pulse) for state.",
+		"Compact static label, set on two axes: appearance (soft, outline, solid, overlay on media, plain text) and tone (neutral, a semantic tone, or a palette family like blue for a category with no meaning attached). An optional leading icon, or a status dot (with pulse) for state.",
 	keywords: [
 		"badge",
 		"tag",
@@ -27,7 +27,7 @@ export const badgeMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
-					"Use tone variants when the badge carries meaning, such as success, warning, destructive, edition, or collectible.",
+					"Use tone variants when the badge carries meaning, such as success, warning or destructive, or a decorative tone for a category or plan.",
 			},
 			{
 				guidance: "do",
@@ -86,9 +86,9 @@ export const badgeMeta: ComponentMeta = {
 		},
 		{
 			name: "tone",
-			type: '"neutral" | "standard" | "collectible" | "edition" | "info" | "success" | "warning" | "destructive"',
+			type: '"neutral" | "1" | "2" | "3" | "info" | "success" | "warning" | "destructive" | "red" | "orange" | "yellow" | "green" | "teal" | "blue" | "purple" | "pink"',
 			default: '"neutral"',
-			description: "What it means. Every appearance takes every tone.",
+			description: "What it means. Every appearance takes every tone. The palette families (red … pink) are categories with no meaning attached — tags, labels, project colours — painted from the theme's generated palette, so they lean toward the brand and read in both modes.",
 		},
 		{
 			name: "size",
@@ -118,10 +118,17 @@ export const badgeMeta: ComponentMeta = {
 	],
 	variants: {
 		appearance: ["soft", "outline", "solid", "overlay", "plain"],
-		tone: ["neutral", "standard", "collectible", "edition", "info", "success", "warning", "destructive"],
+		tone: ["neutral", "1", "2", "3", "info", "success", "warning", "destructive", "red", "orange", "yellow", "green", "teal", "blue", "purple", "pink"],
 		size: ["sm", "md"],
 	},
 	tokensUsed: [
+		"palette-wash",
+		"palette-wash-strong",
+		"palette-edge",
+		"palette-dot",
+		"palette-solid",
+		"palette-text",
+		"palette-solid-ink",
 		"secondary",
 		"secondary-foreground",
 		"border",
@@ -129,18 +136,18 @@ export const badgeMeta: ComponentMeta = {
 		"background",
 		"muted",
 		"muted-foreground",
-		"tone-standard",
-		"tone-collectible",
-		"tone-edition",
+		"tone-1",
+		"tone-2",
+		"tone-3",
 		"tone-info",
 		"success",
 		"tone-warning",
 		"destructive",
 		"overlay",
 		"overlay-foreground",
-		"tone-standard-foreground",
-		"tone-collectible-foreground",
-		"tone-edition-foreground",
+		"tone-1-foreground",
+		"tone-2-foreground",
+		"tone-3-foreground",
 		"tone-info-foreground",
 		"success-foreground",
 		"tone-warning-foreground",
@@ -153,7 +160,11 @@ export const badgeMeta: ComponentMeta = {
 	examples: [
 		{
 			label: "Tones",
-			code: '<Row gap={1}><Badge tone="edition">Edition</Badge><Badge tone="collectible">Collectible</Badge><Badge tone="standard">Standard</Badge></Row>',
+			code: '<Row gap={1}><Badge tone="1">Business</Badge><Badge tone="2">Studio</Badge><Badge tone="3">Starter</Badge></Row>',
+		},
+		{
+			label: "Palette colours (categories)",
+			code: '<Row gap={1}><Badge tone="blue">Design</Badge><Badge tone="teal">Research</Badge><Badge tone="orange">Marketing</Badge><Badge tone="pink" appearance="outline">Ops</Badge><Badge tone="purple" appearance="solid">Launch</Badge></Row>',
 		},
 		{
 			label: "Solid",
@@ -173,7 +184,7 @@ export const badgeMeta: ComponentMeta = {
 		},
 		{
 			label: "Metadata row",
-			code: '<Row gap={1}><Badge>12 editions</Badge><Badge appearance="outline">Open edition</Badge><Badge tone="info" icon={<Icon name="info" />}>Curated</Badge></Row>',
+			code: '<Row gap={1}><Badge>12 projects</Badge><Badge appearance="outline">Draft</Badge><Badge tone="info" icon={<Icon name="info" />}>Curated</Badge></Row>',
 		},
 		{
 			label: "Semantic state",

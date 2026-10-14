@@ -25,15 +25,15 @@ export function BannerPage() {
 			>
 				<Example
 					className="flex-col items-stretch gap-3"
-					code={`<Banner tone="neutral">We just shipped a new editions experience.</Banner>
+					code={`<Banner tone="neutral">We just shipped a new reports experience.</Banner>
 <Banner tone="info">Maintenance window tonight at 02:00 UTC.</Banner>
 <Banner tone="success">Your payout is on its way.</Banner>
 <Banner tone="warning">Your session expires soon — save your work.</Banner>
-<Banner tone="edition">Limited drop live now — only 50 editions remain.</Banner>
+<Banner tone="1">Spring sale on now — 20% off every annual plan.</Banner>
 <Banner tone="destructive">Payments are failing. We're on it.</Banner>`}
 				>
 					<Banner tone="neutral">
-						We just shipped a new editions experience.
+						We just shipped a new reports experience.
 					</Banner>
 					<Banner tone="info">
 						Maintenance window tonight at 02:00 UTC.
@@ -42,8 +42,8 @@ export function BannerPage() {
 					<Banner tone="warning">
 						Your session expires soon — save your work.
 					</Banner>
-					<Banner tone="edition">
-						Limited drop live now — only 50 editions remain.
+					<Banner tone="1">
+						Spring sale on now — 20% off every annual plan.
 					</Banner>
 					<Banner tone="destructive">
 						Payments are failing. We're on it.

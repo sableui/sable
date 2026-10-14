@@ -28,7 +28,7 @@ export function SeparatorPage() {
 						<p className="text-body-md mb-3">Standard post</p>
 						<Separator />
 						<p className="text-body-md mt-3 text-muted-foreground">
-							A limited edition, minted on collect.
+							Shared with your team, open to comments.
 						</p>
 					</div>
 				</Example>

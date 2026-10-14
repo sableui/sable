@@ -485,7 +485,7 @@ export const UTILITY_DOCS: UtilityDoc[] = [
 			"Label/value pairs on a native `<dl>`: muted label-tier `<dt>`s and body-tier `<dd>`s on a baseline-aligned two-column grid; long values wrap inside their column. Colour a status value with a `text-*` utility on its `<dd>`.",
 		whenToUse: "Read-only details: an order summary, a record's metadata, a settings summary, profile stats.",
 		insteadOf: "A grid of `<div>`s (screen readers lose the term/value pairing), or Table for a single record. For editable values use Form and Field.",
-		example: `<dl className="sable-list-dl"><dt>Network</dt><dd>Solana</dd><dt>Status</dt><dd className="text-success">Active</dd></dl>`,
+		example: `<dl className="sable-list-dl"><dt>Plan</dt><dd>Studio</dd><dt>Status</dt><dd className="text-success">Active</dd></dl>`,
 		keywords: ["description list", "definition list", "dl", "key value", "metadata", "details", "label value"],
 		pairsWith: ["sable-list-dl-2"],
 	},

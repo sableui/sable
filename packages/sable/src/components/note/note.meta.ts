@@ -101,11 +101,11 @@ export const noteMeta: ComponentMeta = {
 	examples: [
 		{
 			label: "Info",
-			code: "<Note tone=\"info\">Editions mint on Solana mainnet.</Note>",
+			code: "<Note tone=\"info\">Reports refresh every hour.</Note>",
 		},
 		{
 			label: "With title",
-			code: '<Note tone="warning" title="Low balance">Top up SOL before minting.</Note>',
+			code: '<Note tone="warning" title="Low balance">Add credits before your next export.</Note>',
 		},
 		{
 			label: "Warning with a remedy, inside a dialog",
@@ -113,7 +113,7 @@ export const noteMeta: ComponentMeta = {
 		},
 		{
 			label: "Custom icon",
-			code: '<Note tone="neutral" icon="lock">Pricing and supply cannot be changed after an edition is purchased.</Note>',
+			code: '<Note tone="neutral" icon="lock">Pricing cannot be changed after an order is placed.</Note>',
 		},
 	],
 }

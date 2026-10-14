@@ -1,4 +1,5 @@
 import { cva } from "class-variance-authority"
+import { PALETTE_COLORS } from "../../lib/palette"
 
 /**
  * A chip someone clicks. Two appearances, two sizes, one `selected` state each:
@@ -50,6 +51,20 @@ export const pillVariants = cva(
 				true: "",
 				false: "",
 			},
+			// `neutral` is the chip as described above. A palette family is a
+			// category colour (a tag someone picks): the chip paints from the slots
+			// its data-palette scope fills, so no step is named here.
+			tone: {
+				neutral: "",
+				red: "",
+				orange: "",
+				yellow: "",
+				green: "",
+				teal: "",
+				blue: "",
+				purple: "",
+				pink: "",
+			},
 		},
 		compoundVariants: [
 			{ appearance: "solid", selected: true, class: "bg-primary text-primary-foreground hover:bg-primary" },
@@ -70,11 +85,17 @@ export const pillVariants = cva(
 				// surface (sable-surface-interactive), not a fixed accent fill.
 				class: "border-border text-muted-foreground sable-surface-interactive",
 			},
+			// After the neutral looks, so cn's merge lets these win.
+			{ appearance: "solid", selected: false, tone: [...PALETTE_COLORS], class: "bg-palette-wash text-palette-text hover:bg-palette-wash-strong hover:text-palette-text" },
+			{ appearance: "solid", selected: true, tone: [...PALETTE_COLORS], class: "bg-palette-solid text-palette-solid-ink hover:bg-palette-solid" },
+			{ appearance: "outline", selected: false, tone: [...PALETTE_COLORS], class: "border-palette-edge text-palette-text" },
+			{ appearance: "outline", selected: true, tone: [...PALETTE_COLORS], class: "border-palette-edge bg-palette-wash text-palette-text hover:bg-palette-wash-strong" },
 		],
 		defaultVariants: {
 			appearance: "solid",
 			size: "md",
 			selected: false,
+			tone: "neutral",
 		},
 	},
 )

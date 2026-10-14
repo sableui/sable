@@ -34,11 +34,11 @@ import {
 import { Grid, Page, Row, Stack } from "../layout"
 
 // ---pattern-code---
-// Edition status → Badge tone. Sable has no status vocabulary of its own;
+// Account status → Badge tone. Sable has no status vocabulary of its own;
 // an app maps ITS states onto tones once, here, and every badge follows.
-const STATUS_TONE = { live: "success", scheduled: "info", "sold-out": "edition", closed: "neutral" } as const
-const STATUS_LABEL = { live: "Live", scheduled: "Scheduled", "sold-out": "Sold out", closed: "Closed" } as const
-type EditionStatus = keyof typeof STATUS_TONE
+const STATUS_TONE = { active: "success", onboarding: "info", full: "1", cancelled: "neutral" } as const
+const STATUS_LABEL = { active: "Active", onboarding: "Onboarding", full: "Seats full", cancelled: "Cancelled" } as const
+type AccountStatus = keyof typeof STATUS_TONE
 
 const MIN = 60 * 1000
 const HOUR = 60 * MIN
@@ -51,54 +51,54 @@ const shortDate = (offset: number) =>
 
 const stats = [
 	{ label: "Revenue", value: "$18,240", delta: "+8.2%", up: true, note: "vs. $16,857" },
-	{ label: "Collects", value: "1,284", delta: "+3.1%", up: true, note: "182 first-time" },
-	{ label: "Collectors", value: "312", delta: "+12.4%", up: true, note: "Best month yet" },
-	{ label: "Sell-through", value: "64%", delta: "−1.8%", up: false, note: "6 open editions" },
+	{ label: "Active seats", value: "1,284", delta: "+3.1%", up: true, note: "182 added" },
+	{ label: "Accounts", value: "312", delta: "+12.4%", up: true, note: "Best month yet" },
+	{ label: "Seat usage", value: "64%", delta: "−1.8%", up: false, note: "6 near their limit" },
 ]
 
-const editions = [
-	{ id: "ed_01", title: "Gold Rush", status: "live" as const, sold: 184, supply: 250, price: 48, released: -6 * DAY },
-	{ id: "ed_02", title: "Quiet Harbor", status: "sold-out" as const, sold: 100, supply: 100, price: 120, released: -19 * DAY },
-	{ id: "ed_03", title: "Dusk, no. 4", status: "live" as const, sold: 61, supply: 150, price: 64, released: -2 * DAY },
-	{ id: "ed_04", title: "Tidewater", status: "live" as const, sold: 212, supply: 300, price: 36, released: -27 * DAY },
-	{ id: "ed_05", title: "Salt Study", status: "closed" as const, sold: 38, supply: 75, price: 90, released: -44 * DAY },
-	{ id: "ed_06", title: "Paper Moon", status: "sold-out" as const, sold: 50, supply: 50, price: 220, released: -58 * DAY },
-	{ id: "ed_07", title: "Night Signal", status: "scheduled" as const, sold: 0, supply: 200, price: 56, released: 3 * DAY },
-	{ id: "ed_08", title: "Low Tide, Blue", status: "closed" as const, sold: 72, supply: 120, price: 42, released: -71 * DAY },
-	{ id: "ed_09", title: "Ember Field", status: "sold-out" as const, sold: 80, supply: 80, price: 140, released: -86 * DAY },
+const accounts = [
+	{ id: "ac_01", title: "Northwind", status: "active" as const, used: 184, seats: 250, price: 16, started: -6 * DAY },
+	{ id: "ac_02", title: "Harbor Labs", status: "full" as const, used: 100, seats: 100, price: 20, started: -19 * DAY },
+	{ id: "ac_03", title: "Brightline", status: "active" as const, used: 61, seats: 150, price: 16, started: -2 * DAY },
+	{ id: "ac_04", title: "Tidewater Co.", status: "active" as const, used: 212, seats: 300, price: 12, started: -27 * DAY },
+	{ id: "ac_05", title: "Saltworks", status: "cancelled" as const, used: 38, seats: 75, price: 20, started: -44 * DAY },
+	{ id: "ac_06", title: "Paper Moon", status: "full" as const, used: 50, seats: 50, price: 24, started: -58 * DAY },
+	{ id: "ac_07", title: "Signal Studio", status: "onboarding" as const, used: 0, seats: 200, price: 16, started: 3 * DAY },
+	{ id: "ac_08", title: "Bluewater", status: "cancelled" as const, used: 72, seats: 120, price: 12, started: -71 * DAY },
+	{ id: "ac_09", title: "Ember & Field", status: "full" as const, used: 80, seats: 80, price: 20, started: -86 * DAY },
 ]
-const editionCount = 24
+const accountCount = 312
 
 const payout = {
-	amount: 8214.6,
+	amount: 8862.64,
 	date: 5 * DAY,
 	lines: [
-		{ label: "Sales", value: 9127.33 },
-		{ label: "Platform fee (10%)", value: -912.73 },
+		{ label: "Subscriptions", value: 9127.33 },
+		{ label: "Processing (2.9%)", value: -264.69 },
 		{ label: "Deposits to", value: "Checking ••4821" },
 	],
 }
 
-const collectors = [
-	{ id: "co_01", name: "Nina Simone", handle: "@nina", initials: "NS", pieces: 14, spent: 1460 },
-	{ id: "co_02", name: "Grace Hopper", handle: "@grace", initials: "GH", pieces: 11, spent: 1128 },
-	{ id: "co_03", name: "Frida Kahlo", handle: "@frida", initials: "FK", pieces: 9, spent: 942 },
-	{ id: "co_04", name: "Mary Shelley", handle: "@mary", initials: "MS", pieces: 6, spent: 588 },
+const customers = [
+	{ id: "cu_01", name: "Northwind", handle: "northwind.io", initials: "NW", seats: 184, spent: 2944 },
+	{ id: "cu_02", name: "Tidewater Co.", handle: "tidewater.co", initials: "TC", seats: 212, spent: 2544 },
+	{ id: "cu_03", name: "Harbor Labs", handle: "harborlabs.com", initials: "HL", seats: 100, spent: 2000 },
+	{ id: "cu_04", name: "Ember & Field", handle: "emberfield.com", initials: "EF", seats: 80, spent: 1600 },
 ]
 
 const upcoming = [
-	{ id: "up_01", title: "Night Signal", detail: "Edition of 200 · $56", at: 3 * DAY },
-	{ id: "up_02", title: "Tidewater, second printing", detail: "Edition of 100 · $40", at: 12 * DAY },
-	{ id: "up_03", title: "Dusk, no. 5", detail: "Edition of 150 · $64", at: 26 * DAY },
-	{ id: "up_04", title: "Quiet Harbor, artist proofs", detail: "Edition of 10 · $480", at: 34 * DAY },
+	{ id: "up_01", title: "Version 2.4", detail: "Shared reports · All plans", at: 3 * DAY },
+	{ id: "up_02", title: "Audit log export", detail: "Business plan · Beta", at: 12 * DAY },
+	{ id: "up_03", title: "Version 2.5", detail: "Offline mode · All plans", at: 26 * DAY },
+	{ id: "up_04", title: "Usage-based billing", detail: "Studio and Business · Beta", at: 34 * DAY },
 ]
 
 const activity = [
-	{ id: "ac_01", who: "Nina Simone", initials: "NS", what: "collected Gold Rush · 185 of 250", when: 2 * MIN },
-	{ id: "ac_02", who: "Grace Hopper", initials: "GH", what: "collected Dusk, no. 4 · 61 of 150", when: 26 * MIN },
-	{ id: "ac_03", who: "Frida Kahlo", initials: "FK", what: "tipped $20 on Tidewater", when: 1 * HOUR },
-	{ id: "ac_04", who: "Mary Shelley", initials: "MS", what: "started following you", when: 3 * HOUR },
-	{ id: "ac_05", who: "Nina Simone", initials: "NS", what: "set a reminder for Night Signal", when: 6 * HOUR },
+	{ id: "ev_01", who: "Nina Simone", initials: "NS", what: "added 12 seats to Northwind · 184 of 250", when: 2 * MIN },
+	{ id: "ev_02", who: "Grace Hopper", initials: "GH", what: "upgraded Brightline to Studio", when: 26 * MIN },
+	{ id: "ev_03", who: "Frida Kahlo", initials: "FK", what: "paid invoice INV-0042 for Tidewater Co.", when: 1 * HOUR },
+	{ id: "ev_04", who: "Mary Shelley", initials: "MS", what: "joined the Harbor Labs workspace", when: 3 * HOUR },
+	{ id: "ev_05", who: "Nina Simone", initials: "NS", what: "booked onboarding for Signal Studio", when: 6 * HOUR },
 ]
 
 export function DashboardPage() {
@@ -120,8 +120,8 @@ export function DashboardPage() {
 			bottomNav={
 				<BottomNav aria-label="Primary">
 					<BottomNavItem icon={<Icon name="grid" />} label="Overview" showLabel active render={<a href="/" />} />
-					<BottomNavItem icon={<Icon name="image-stack" />} label="Editions" showLabel render={<a href="/editions" />} />
-					<BottomNavItem icon={<Icon name="user" />} label="Collectors" showLabel render={<a href="/collectors" />} />
+					<BottomNavItem icon={<Icon name="folder" />} label="Accounts" showLabel render={<a href="/accounts" />} />
+					<BottomNavItem icon={<Icon name="user" />} label="Customers" showLabel render={<a href="/customers" />} />
 					<BottomNavItem icon={<Icon name="bell" />} label="Activity" showLabel render={<a href="/activity" />} />
 					<BottomNavItem icon={<Icon name="gear" />} label="Settings" showLabel render={<a href="/settings" />} />
 				</BottomNav>
@@ -133,8 +133,8 @@ export function DashboardPage() {
 					</SidebarHeader>
 					<SidebarNav>
 						<SidebarItem icon={<Icon name="grid" />} label="Overview" active render={<a href="/" />} />
-						<SidebarItem icon={<Icon name="image-stack" />} label="Editions" render={<a href="/editions" />} />
-						<SidebarItem icon={<Icon name="user" />} label="Collectors" render={<a href="/collectors" />} />
+						<SidebarItem icon={<Icon name="folder" />} label="Accounts" render={<a href="/accounts" />} />
+						<SidebarItem icon={<Icon name="user" />} label="Customers" render={<a href="/customers" />} />
 						<SidebarItem
 							icon={<Icon name="bell" />}
 							label="Activity"
@@ -165,7 +165,7 @@ export function DashboardPage() {
 			<Page max="wide" gap={4} className="py-6">
 				<PageHeader
 					title="Overview"
-					description="Sales and collector activity for the last 30 days."
+					description="Revenue and account activity for the last 30 days."
 					actions={
 						<Row gap={2}>
 							<Button variant="outline">
@@ -174,7 +174,7 @@ export function DashboardPage() {
 							</Button>
 							<Button>
 								<Icon name="plus" />
-								New edition
+								New account
 							</Button>
 						</Row>
 					}
@@ -204,43 +204,43 @@ export function DashboardPage() {
 				<Grid cols={{ base: 1, xl: 3 }} gap={3}>
 					<Card className="flex flex-col xl:col-span-2">
 						<CardHeader>
-							<CardTitle>Editions</CardTitle>
-							<CardDescription>Sales across your releases, newest first.</CardDescription>
+							<CardTitle>Accounts</CardTitle>
+							<CardDescription>Seats across your customers, newest first.</CardDescription>
 						</CardHeader>
 						<CardContent flush className="mt-4 flex-1">
 							<DataTable
-								data={editions}
+								data={accounts}
 								rowKey={(row) => row.id}
-								defaultSort={{ key: "released", direction: "desc" }}
+								defaultSort={{ key: "started", direction: "desc" }}
 								columns={[
-									{ key: "title", header: "Edition", sortable: true, className: "text-label-md whitespace-nowrap" },
+									{ key: "title", header: "Account", sortable: true, className: "text-label-md whitespace-nowrap" },
 									{
 										key: "status",
 										header: "Status",
 										cell: (row) => (
-											<Badge appearance="plain" tone={STATUS_TONE[row.status as EditionStatus]} dot>
-												{STATUS_LABEL[row.status as EditionStatus]}
+											<Badge appearance="plain" tone={STATUS_TONE[row.status as AccountStatus]} dot>
+												{STATUS_LABEL[row.status as AccountStatus]}
 											</Badge>
 										),
 									},
 									{
-										key: "sold",
-										header: "Sold",
+										key: "used",
+										header: "Seats",
 										sortable: true,
-										sortValue: (row) => row.sold / row.supply,
+										sortValue: (row) => row.used / row.seats,
 										cell: (row) => (
 											<Row gap={3} align="center" className="min-w-40">
 												<Meter
-													value={row.sold}
-													max={row.supply}
+													value={row.used}
+													max={row.seats}
 													size="sm"
-													tone={row.sold === row.supply ? "success" : "primary"}
-													aria-label={`${row.title} sold`}
-													getAriaValueText={(_, v) => `${v} of ${row.supply} sold`}
+													tone={row.used === row.seats ? "success" : "primary"}
+													aria-label={`${row.title} seats used`}
+													getAriaValueText={(_, v) => `${v} of ${row.seats} seats used`}
 													className="flex-1"
 												/>
 												<span className="text-mono-caption whitespace-nowrap text-muted-foreground">
-													{row.sold}/{row.supply}
+													{row.used}/{row.seats}
 												</span>
 											</Row>
 										),
@@ -250,21 +250,21 @@ export function DashboardPage() {
 										header: "Revenue",
 										align: "end",
 										sortable: true,
-										sortValue: (row) => row.sold * row.price,
+										sortValue: (row) => row.used * row.price,
 										cell: (row) =>
-											row.sold > 0 ? (
-												<span className="text-mono-sm">{usd.format(row.sold * row.price)}</span>
+											row.used > 0 ? (
+												<span className="text-mono-sm">{usd.format(row.used * row.price)}</span>
 											) : (
 												<span className="text-mono-sm text-muted-foreground">—</span>
 											),
 									},
 									{
-										key: "released",
-										header: "Release",
+										key: "started",
+										header: "Started",
 										align: "end",
 										sortable: true,
 										cell: (row) => (
-											<span className="text-body-sm whitespace-nowrap text-muted-foreground">{shortDate(row.released)}</span>
+											<span className="text-body-sm whitespace-nowrap text-muted-foreground">{shortDate(row.started)}</span>
 										),
 									},
 								]}
@@ -272,10 +272,10 @@ export function DashboardPage() {
 						</CardContent>
 						<CardFooter className="justify-between">
 							<span className="text-caption text-muted-foreground">
-								Showing {editions.length} of {editionCount} editions
+								Showing {accounts.length} of {accountCount} accounts
 							</span>
-							<Button variant="ghost" size="sm" bleed="end" render={<a href="/editions" />}>
-								View all editions
+							<Button variant="ghost" size="sm" bleed="end" render={<a href="/accounts" />}>
+								View all accounts
 								<Icon name="arrow-right" />
 							</Button>
 						</CardFooter>
@@ -306,21 +306,21 @@ export function DashboardPage() {
 						</Card>
 						<Card>
 							<CardHeader>
-								<CardTitle>Top collectors</CardTitle>
+								<CardTitle>Top customers</CardTitle>
 								<CardDescription>By spend this month.</CardDescription>
 								<CardAction>
-									<Button variant="ghost" size="sm" render={<a href="/collectors" />}>
+									<Button variant="ghost" size="sm" render={<a href="/customers" />}>
 										View all
 									</Button>
 								</CardAction>
 							</CardHeader>
 							<CardList>
-								{collectors.map((person) => (
+								{customers.map((person) => (
 									<Entity
 										key={person.id}
 										leading={<Avatar variant="art" size="sm" fallback={person.initials} alt="" />}
 										title={person.name}
-										subtitle={`${person.handle} · ${person.pieces} pieces`}
+										subtitle={`${person.handle} · ${person.seats} seats`}
 										action={<span className="text-mono-sm">{usd.format(person.spent)}</span>}
 									/>
 								))}
@@ -332,7 +332,7 @@ export function DashboardPage() {
 					<Card className="flex flex-col">
 						<CardHeader>
 							<CardTitle>Upcoming releases</CardTitle>
-							<CardDescription>Scheduled to open to collectors.</CardDescription>
+							<CardDescription>Scheduled to ship to customers.</CardDescription>
 						</CardHeader>
 						<CardList>
 							{upcoming.map((release) => (
@@ -345,7 +345,7 @@ export function DashboardPage() {
 							))}
 						</CardList>
 						<CardFooter className="mt-auto">
-							<Button variant="outline" size="sm" render={<a href="/editions/new" />}>
+							<Button variant="outline" size="sm" render={<a href="/releases/new" />}>
 								<Icon name="calendar" />
 								Schedule a release
 							</Button>
@@ -354,7 +354,7 @@ export function DashboardPage() {
 					<Card className="xl:col-span-2">
 						<CardHeader>
 							<CardTitle>Activity</CardTitle>
-							<CardDescription>Collects, tips, and follows.</CardDescription>
+							<CardDescription>Seats, upgrades, and invoices.</CardDescription>
 							<CardAction>
 								<Button variant="ghost" size="sm" render={<a href="/activity" />}>
 									View all

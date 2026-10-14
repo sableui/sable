@@ -1,6 +1,7 @@
 import type { VariantProps } from "class-variance-authority"
 import type { ComponentPropsWithRef } from "react"
 import { cn } from "../../lib/cn"
+import { isPaletteColor } from "../../lib/palette"
 import { statusDotVariants } from "./status-dot.variants"
 
 export interface StatusDotProps
@@ -22,11 +23,13 @@ export function StatusDot({
 	...props
 }: StatusDotProps) {
 	const dot = statusDotVariants({ tone, size })
+	const palette = isPaletteColor(tone) ? tone : undefined
 
 	if (pulse) {
 		return (
 			<span
 				aria-hidden="true"
+				data-palette={palette}
 				className={cn("relative inline-flex shrink-0", className)}
 				{...props}
 			>
@@ -41,6 +44,6 @@ export function StatusDot({
 		)
 	}
 
-	return <span aria-hidden="true" className={cn(dot, className)} {...props} />
+	return <span aria-hidden="true" data-palette={palette} className={cn(dot, className)} {...props} />
 }
 StatusDot.displayName = "StatusDot"

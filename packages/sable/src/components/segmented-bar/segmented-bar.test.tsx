@@ -6,17 +6,17 @@ describe("SegmentedBar", () => {
 	it("is one image named by its label and every segment's share", () => {
 		render(
 			<SegmentedBar
-				label="Revenue by type"
+				label="Revenue by channel"
 				locale="en-US"
 				segments={[
-					{ label: "Editions", value: 42 },
-					{ label: "Collectibles", value: 27 },
-					{ label: "Standard", value: 31 },
+					{ label: "Direct", value: 42 },
+					{ label: "Partners", value: 27 },
+					{ label: "Referrals", value: 31 },
 				]}
 			/>,
 		)
 		expect(screen.getByRole("img").getAttribute("aria-label")).toBe(
-			"Revenue by type: Editions 42%, Collectibles 27%, Standard 31%",
+			"Revenue by channel: Direct 42%, Partners 27%, Referrals 31%",
 		)
 	})
 
@@ -48,7 +48,7 @@ describe("SegmentedBar", () => {
 			/>,
 		)
 		const [a, b] = container.querySelectorAll("[data-slot=segmented-bar-segment]")
-		expect(a.className).toContain("bg-tone-edition")
+		expect(a.className).toContain("bg-tone-1")
 		expect(b.className).toContain("bg-destructive")
 	})
 })

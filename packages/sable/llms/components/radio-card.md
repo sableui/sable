@@ -39,18 +39,18 @@ Use RadioCard for visual choice cards when users compare a small set of named op
 | description | ReactNode | — | Optional supporting copy beneath the title (text-body-sm, muted). |
 | trailing | ReactNode | — | End-aligned on the title's line: a price, a delivery date, a count. The title takes the rest of the row. |
 | icon | ReactNode | — | Leading icon (e.g. a solid <Icon>). Its presence switches to the two-dimensional card — icon top-left, indicator top-right, copy below — and the glyph is rendered as a solid-fill icon in the tone colour. |
-| tone | "neutral" \| "standard" \| "collectible" \| "edition" \| "info" \| "warning" | "neutral" | Semantic colour the selected state carries across the border, radio, and icon glyph. Neutral uses the primary ring with a muted wash. |
+| tone | "neutral" \| "3" \| "2" \| "1" \| "info" \| "warning" | "neutral" | Semantic colour the selected state carries across the border, radio, and icon glyph. Neutral uses the primary ring with a muted wash. |
 | disabled | boolean | false | Dims the card and blocks selection. The group skips it during keyboard navigation. |
 | titleClassName | string | — | Merged onto the title span (default text-title-sm) — e.g. to tighten copy in a two-column layout. |
 | descriptionClassName | string | — | Merged onto the description span (default text-body-sm text-muted-foreground). |
 
 ## Variants
 
-- **tone**: neutral, standard, collectible, edition, info, warning
+- **tone**: neutral, 3, 2, 1, info, warning
 
 ## Tokens used
 
-`input`, `card`, `foreground`, `primary`, `muted`, `ring`, `muted-foreground`, `tone-standard`, `tone-collectible`, `tone-edition`, `tone-info`, `tone-warning`
+`input`, `card`, `foreground`, `primary`, `muted`, `ring`, `muted-foreground`, `tone-3`, `tone-2`, `tone-1`, `tone-info`, `tone-warning`
 
 ## Accessibility
 
@@ -71,7 +71,7 @@ Use RadioCard for visual choice cards when users compare a small set of named op
 ```tsx
 import { Icon, RadioCard, RadioGroup } from "@sableui/react"
 
-<RadioGroup defaultValue="post" className="grid sm:grid-cols-3"><RadioCard value="post" tone="standard" icon={<Icon name="plus" />} title="Standard" description="Share without minting" /><RadioCard value="collectible" tone="collectible" icon={<Icon name="gem" />} title="Collectible" description="Free to collect as NFT" /><RadioCard value="edition" tone="edition" icon={<Icon name="image-stack" />} title="Edition" description="Sell as NFT editions" /></RadioGroup>
+<RadioGroup defaultValue="starter" className="grid sm:grid-cols-3"><RadioCard value="starter" tone="3" icon={<Icon name="plus" />} title="Starter" description="Free for one person" /><RadioCard value="studio" tone="2" icon={<Icon name="gem" />} title="Studio" description="For small teams" /><RadioCard value="business" tone="1" icon={<Icon name="image-stack" />} title="Business" description="SSO and audit log" /></RadioGroup>
 ```
 
 ### Plan picker (plain)

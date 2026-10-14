@@ -35,7 +35,9 @@ loudest and least clearly ("invalid hook call").
 
 The most reliable signal that a conversion is real: the app's own CSS variable
 block shrinks to almost nothing. Anything that remains should be *domain* colour,
-not UI colour.
+not UI colour. Most domain colour has a home too: a tag or category colour maps
+to a palette family (`<Badge tone="blue">`, `bg-blue-100 text-blue-800`), which
+follows the theme where the app's own hex never did.
 
 Grep for orphaned references afterwards. A CSS variable that no longer exists
 resolves to nothing and the declaration is dropped — **silently**. A checkerboard

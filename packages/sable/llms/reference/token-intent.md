@@ -50,23 +50,23 @@ Which token to reach for, and what it is most often confused with. Generated fro
     - **Not** `tone-info`. Success asserts an outcome; info asserts a fact. 'Saved' is success, '3 items' is info.
 - **`success-foreground`** — Ink paired with `success`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `success`. Use them as a pair — `bg-success text-success-foreground` — so a theme can retune the surface and the ink together.
     - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
-- **`tone-standard`** — Domain tone: the baseline classification in a set. Part of the `tone-*` family, which exists so a product can classify content without inventing colours per feature. *Use for:* The default category of a classified item — the one that means 'nothing special'.
+- **`tone-3`** — Extra colour 3: the third, and usually the quietest, category in a classified set. *Use for:* A third category, or the baseline one that means 'nothing special'.
     - **Not** `muted`. A tone is *semantic classification* that a reader is meant to decode; `muted` is de-emphasis. If a legend would help the user, it is a tone.
-- **`tone-collectible`** — Domain tone: a scarce or owned item. *Use for:* Marking an item as collectible/owned in a classified set.
-    - **Not** `primary`. A tone classifies the *thing*; primary drives an *action*. A collectible badge is not a button.
-- **`tone-edition`** — Domain tone: an edition or release. *Use for:* Marking editioned content in a classified set.
-    - **Not** `tone-collectible`. Distinct classifications must stay visually distinct.
+- **`tone-2`** — Extra colour 2: the second category in a classified set. *Use for:* A second category, distinct from tone-1, in a badge, dot, card or chart.
+    - **Not** `tone-1`. Distinct categories must stay visually distinct.
+- **`tone-1`** — Extra colour 1, the lead of the three a theme defines beyond its status colours. The numbered tones exist so a product can classify content (categories, plans, series) without inventing colours per feature; the product decides what each one means. *Use for:* The most prominent category in a classified set, or the first series of a chart.
+    - **Not** `primary`. A tone classifies the *thing*; primary drives an *action*. A category badge is not a button.
 - **`tone-info`** — Domain tone: neutral, factual information. *Use for:* An informational note or banner, a neutral count, a 'did you know' surface.
     - **Not** `success`. Info states a fact; success states an outcome. Also not `primary` — an info banner is not an action.
 - **`tone-warning`** — Domain tone: proceed with care, nothing is broken yet. *Use for:* A caution banner, a nearing-limit indicator, a soloed/overridden state in a tool.
     - **Not** `destructive`. Warning is *advisory*; destructive is *consequential*. If nothing is lost by continuing, it is a warning.
 - **`highlight`** — A marker on content the user is meant to notice — search hits, diffs, annotations. *Use for:* Highlighting matched text, a changed line, a called-out passage.
     - **Not** `accent`. `accent` is UI state that follows the pointer or selection; `highlight` marks the *content* and persists independently of interaction.
-- **`tone-standard-foreground`** — Ink paired with `tone-standard`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `tone-standard`. Use them as a pair — `bg-tone-standard text-tone-standard-foreground` — so a theme can retune the surface and the ink together.
+- **`tone-3-foreground`** — Ink paired with `tone-3`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `tone-3`. Use them as a pair — `bg-tone-3 text-tone-3-foreground` — so a theme can retune the surface and the ink together.
     - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
-- **`tone-collectible-foreground`** — Ink paired with `tone-collectible`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `tone-collectible`. Use them as a pair — `bg-tone-collectible text-tone-collectible-foreground` — so a theme can retune the surface and the ink together.
+- **`tone-2-foreground`** — Ink paired with `tone-2`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `tone-2`. Use them as a pair — `bg-tone-2 text-tone-2-foreground` — so a theme can retune the surface and the ink together.
     - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
-- **`tone-edition-foreground`** — Ink paired with `tone-edition`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `tone-edition`. Use them as a pair — `bg-tone-edition text-tone-edition-foreground` — so a theme can retune the surface and the ink together.
+- **`tone-1-foreground`** — Ink paired with `tone-1`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `tone-1`. Use them as a pair — `bg-tone-1 text-tone-1-foreground` — so a theme can retune the surface and the ink together.
     - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
 - **`tone-info-foreground`** — Ink paired with `tone-info`. Evaluate the rendered contrast together; never choose it independently. *Use for:* Whenever the background is `tone-info`. Use them as a pair — `bg-tone-info text-tone-info-foreground` — so a theme can retune the surface and the ink together.
     - **Not** `foreground`. That is the ink for `background` only; on any other surface it is a contrast gamble that happens to pass in the default theme and fails in another.
@@ -336,3 +336,17 @@ Which token to reach for, and what it is most often confused with. Generated fro
     - **Not** `hairline`, when the line would otherwise disappear against what it bounds.
 - **`border-floating`** — The edge of a floating surface. Fainter than `border`: the shadow carries the elevation. *Use for:* Every floating surface — popover, menu, select, tooltip, dialog, sheet, toast, a floating panel — as `border-border-floating` or `ring-border-floating`, together with `bg-popover` and a `shadow-md`+ shadow. Derived for every theme (a faint alpha of the foreground); a theme may tune it with `--theme-border-floating`.
     - **Not** `border`. A full hairline plus a shadow stacks into a heavy outline around anything that floats. `border` is for resting edges: inputs, cards, badges.
+
+### Generated palette
+
+More colour for apps, generated from the active theme: neutral and eight hue families, plus a 50–950 scale under every tone. Each family keeps its hue and leans toward the brand (half the gap, at most 15°; --theme-palette-harmony scales it, 0 = own hues). Neutral is the theme's --background mixed toward its --foreground. Steps follow the mode: low steps sit near the page and high ones far from it in light and dark alike, so a pair needs no dark: variant. For decorative and categorical colour (tags, avatars, labels, legends, illustration); surfaces, text and actions take roles. Components never name a step.
+
+- **Families:** `neutral`, `red`, `orange`, `yellow`, `green`, `teal`, `blue`, `purple`, `pink`, each 50–950.
+- **Tone scales:** `tone-1-*`, `tone-2-*`, `tone-3-*`, `tone-info-*`, `tone-warning-*`, `success-*`, `destructive-*`; step 500 is the tone itself.
+- **Use as:** bg-blue-100, text-blue-800, border-neutral-200, bg-tone-1-100 — or var(--teal-500). Tailwind's other families (slate, gray, zinc, stone, amber, lime, emerald, cyan, sky, indigo, violet, fuchsia, rose) are switched off.
+- **tag / label:** bg-<family>-100 text-<family>-800 (held to 4.5:1 in every theme and mode)
+- **text on the page:** text-<family>-700
+- **solid fill:** bg-<family>-700 text-<family>-50
+- **hairline:** border-<family>-300
+- **Components:** Badge, Pill and StatusDot take a family as tone (tone="blue"): a category with no meaning attached.
+- **Slots:** data-palette="<family>" on an element fills these from that family, so one set of classes paints any family: bg-palette-wash text-palette-text.

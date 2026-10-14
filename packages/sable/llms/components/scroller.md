@@ -60,7 +60,7 @@ Use Scroller to create a contained overflow region for content that naturally ex
 ```tsx
 import { Scroller } from "@sableui/react"
 
-<Scroller label="Editions" className="h-64"><ul className="space-y-2 p-4">{items.map((item) => (<li key={item.id} className="text-body-sm">{item.title}</li>))}</ul></Scroller>
+<Scroller label="Projects" className="h-64"><ul className="space-y-2 p-4">{items.map((item) => (<li key={item.id} className="text-body-sm">{item.title}</li>))}</ul></Scroller>
 ```
 
 ### Capped, scrolls past the cap

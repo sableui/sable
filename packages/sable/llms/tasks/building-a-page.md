@@ -119,6 +119,27 @@ intent, and what it gets confused with, is in
 Ink is never chosen independently of its surface: `bg-card text-card-foreground`,
 as a pair.
 
+### More colour: the generated palette
+
+When a page needs colour that is not a role (tags, avatars, project labels, a
+chart legend, illustration), reach for the generated palette, not hex and not a
+theme's own ramp. Every theme has `neutral`, `red`, `orange`, `yellow`,
+`green`, `teal`, `blue`, `purple` and `pink` (50–950), plus a scale under
+every tone (`tone-1-100`, `success-700`). Each family leans toward the brand, so
+the set belongs to the theme, and neutral is the theme's own page-to-ink ramp.
+
+- On a component, the family is the tone: `<Badge tone="teal">Research</Badge>`,
+  `<Pill tone="blue">`, `<StatusDot tone="pink" />`. A family is a category with
+  no meaning attached; a status is still `success`, `warning` or `destructive`.
+- On your own element, use the pairs: `bg-blue-100 text-blue-800` (a tag),
+  `text-blue-700` (text on the page), `bg-blue-700 text-blue-50` (a solid
+  fill), `border-blue-300` (a hairline). Steps follow the mode (a low step is
+  always near the page), so these need no `dark:`.
+- Surfaces, body text and actions still take roles. The palette never replaces
+  `bg-card` or `bg-primary`.
+
+The full reference is `llms/reference/token-intent.md` → Generated palette.
+
 ## The traps
 
 - **A `Card` is a container, not a heading or a landmark.** If its title is the

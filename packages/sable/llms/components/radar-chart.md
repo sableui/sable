@@ -42,7 +42,7 @@ Use RadarChart to compare the shape of a profile across five to eight dimensions
 
 ## Tokens used
 
-`tone-edition`, `tone-collectible`, `tone-standard`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
+`tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
 
 ## Motion
 

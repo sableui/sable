@@ -27,7 +27,7 @@ export function DatePickerPage() {
 	const [date, setDate] = useState<Date>()
 	const [scheduled, setScheduled] = useState<Date>()
 	const [when, setWhen] = useState<Date>()
-	const [drop, setDrop] = useState<Date>()
+	const [launch, setLaunch] = useState<Date>()
 
 	return (
 		<>
@@ -82,21 +82,21 @@ export function DatePickerPage() {
 			</Section>
 
 			<Section
-				title="Scheduled drop"
+				title="Scheduled launch"
 				description="Past days are disabled, the first pick lands at noon, and minutes step by 15."
 			>
 				<Example className="flex-col items-start gap-3">
 					<DatePicker
 						granularity="minute"
-						value={drop}
-						onValueChange={setDrop}
+						value={launch}
+						onValueChange={setLaunch}
 						minDate={new Date()}
 						defaultTime="12:00"
 						minuteStep={15}
-						placeholder="Schedule the drop"
+						placeholder="Schedule the launch"
 					/>
 					<p className="text-body-sm text-muted-foreground">
-						{drop ? `Drops: ${drop.toLocaleString()}` : "No drop scheduled."}
+						{launch ? `Launches: ${launch.toLocaleString()}` : "No launch scheduled."}
 					</p>
 				</Example>
 			</Section>

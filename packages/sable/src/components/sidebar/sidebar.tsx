@@ -68,7 +68,7 @@ const SIDEBAR_VARIANT = {
  *     <SidebarNav>
  *       <SidebarItem icon={<Icon name="home" />} label="Home" active render={<Link to="/" />} />
  *     </SidebarNav>
- *     <SidebarFooter>{walletTrigger}</SidebarFooter>
+ *     <SidebarFooter>{accountMenu}</SidebarFooter>
  *   </Sidebar>
  *
  * Width is the `--sidebar-width` token (16rem), or `--sidebar-width-collapsed`

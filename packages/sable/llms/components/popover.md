@@ -67,7 +67,7 @@ Use Popover for anchored secondary content that needs more room than a tooltip b
 ```tsx
 import { Button, Popover, PopoverContent, PopoverDescription, PopoverTitle, PopoverTrigger } from "@sableui/react"
 
-<Popover><PopoverTrigger render={<Button variant="secondary">Details</Button>} /><PopoverContent><PopoverTitle>Edition details</PopoverTitle><PopoverDescription>A limited run of 100, stored permanently on Arweave.</PopoverDescription></PopoverContent></Popover>
+<Popover><PopoverTrigger render={<Button variant="secondary">Details</Button>} /><PopoverContent><PopoverTitle>Plan details</PopoverTitle><PopoverDescription>Up to 10 seats, billed monthly per seat.</PopoverDescription></PopoverContent></Popover>
 ```
 
 ### With close
@@ -75,5 +75,5 @@ import { Button, Popover, PopoverContent, PopoverDescription, PopoverTitle, Popo
 ```tsx
 import { Button, Popover, PopoverClose, PopoverContent, PopoverDescription, PopoverTitle, PopoverTrigger } from "@sableui/react"
 
-<Popover><PopoverTrigger render={<Button variant="secondary">Open</Button>} /><PopoverContent><PopoverTitle>Heads up</PopoverTitle><PopoverDescription>Collecting mints a compressed NFT to your wallet.</PopoverDescription><PopoverClose render={<Button size="sm">Got it</Button>} /></PopoverContent></Popover>
+<Popover><PopoverTrigger render={<Button variant="secondary">Open</Button>} /><PopoverContent><PopoverTitle>Heads up</PopoverTitle><PopoverDescription>Upgrading starts a new billing period today.</PopoverDescription><PopoverClose render={<Button size="sm">Got it</Button>} /></PopoverContent></Popover>
 ```

@@ -60,7 +60,7 @@ import { Textarea } from "@sableui/react"
 ```tsx
 import { Textarea } from "@sableui/react"
 
-<Textarea rows={6} placeholder="Tell the story behind this edition…" />
+<Textarea rows={6} placeholder="Tell your team what this project is for…" />
 ```
 
 ### Auto-resize
@@ -84,5 +84,5 @@ import { Textarea } from "@sableui/react"
 ```tsx
 import { Textarea } from "@sableui/react"
 
-<Textarea disabled defaultValue="Captions lock once the edition is minted." />
+<Textarea disabled defaultValue="Notes lock once the invoice is sent." />
 ```

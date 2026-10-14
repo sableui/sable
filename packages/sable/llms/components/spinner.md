@@ -83,5 +83,5 @@ import { Spinner } from "@sableui/react"
 ```tsx
 import { Button } from "@sableui/react"
 
-<Button loading>Collecting</Button>
+<Button loading>Saving</Button>
 ```

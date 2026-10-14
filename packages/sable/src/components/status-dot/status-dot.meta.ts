@@ -62,9 +62,9 @@ export const statusDotMeta: ComponentMeta = {
 	props: [
 		{
 			name: "tone",
-			type: '"neutral" | "standard" | "success" | "warning" | "info" | "edition" | "collectible" | "destructive"',
+			type: '"neutral" | "1" | "2" | "3" | "success" | "warning" | "info" | "destructive" | "red" | "orange" | "yellow" | "green" | "teal" | "blue" | "purple" | "pink"',
 			default: '"neutral"',
-			description: "Semantic color of the dot.",
+			description: "Semantic color of the dot, or a palette family (red … pink) for a category legend.",
 		},
 		{
 			name: "size",
@@ -80,26 +80,18 @@ export const statusDotMeta: ComponentMeta = {
 		},
 	],
 	variants: {
-		tone: [
-			"neutral",
-			"standard",
-			"success",
-			"warning",
-			"info",
-			"edition",
-			"collectible",
-			"destructive",
-		],
+		tone: ["neutral", "1", "2", "3", "success", "warning", "info", "destructive", "red", "orange", "yellow", "green", "teal", "blue", "purple", "pink"],
 		size: ["sm", "md", "lg"],
 	},
 	tokensUsed: [
+		"palette-dot",
 		"muted-foreground",
-		"tone-standard",
+		"tone-3",
 		"success",
 		"tone-warning",
 		"tone-info",
-		"tone-edition",
-		"tone-collectible",
+		"tone-1",
+		"tone-2",
 		"destructive",
 	],
 	a11y: [
@@ -109,7 +101,7 @@ export const statusDotMeta: ComponentMeta = {
 	examples: [
 		{
 			label: "Tones",
-			code: '<Row gap={2}><StatusDot tone="standard" /><StatusDot tone="info" /><StatusDot tone="warning" /><StatusDot tone="destructive" /></Row>',
+			code: '<Row gap={2}><StatusDot tone="3" /><StatusDot tone="info" /><StatusDot tone="warning" /><StatusDot tone="destructive" /></Row>',
 		},
 		{
 			label: "With label — use Badge",

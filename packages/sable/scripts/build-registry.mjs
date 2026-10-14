@@ -32,6 +32,8 @@ import { fileURLToPath, pathToFileURL } from "node:url"
 import { motionNamesFromRegistry, readContractArray } from "./read-contract.mjs"
 import { readLessons } from "./design-memory.mjs"
 import { collectPropSurface } from "./prop-surface.mjs"
+// No imports of its own, so Node runs it directly (type stripping).
+import { PALETTE_COLORS, PALETTE_SCALES, PALETTE_SLOTS, PALETTE_STEPS, PALETTE_TONES } from "../src/lib/palette.ts"
 
 /**
  * Every read in this file goes through here, and the `\r` strip is the whole
@@ -1575,6 +1577,30 @@ if (undocumented.length) {
 	process.exit(1)
 }
 
+/* The generated palette is not themed token by token, so it has no per-name
+ * intent; it is documented once, as a system (src/lib/palette.ts). */
+documentedTokens.palette = {
+	about:
+		"More colour for apps, generated from the active theme: neutral and eight hue families, plus a 50–950 scale under every tone. Each family keeps its hue and leans toward the brand (half the gap, at most 15°; --theme-palette-harmony scales it, 0 = own hues). Neutral is the theme's --background mixed toward its --foreground. Steps follow the mode: low steps sit near the page and high ones far from it in light and dark alike, so a pair needs no dark: variant. For decorative and categorical colour (tags, avatars, labels, legends, illustration); surfaces, text and actions take roles. Components never name a step.",
+	families: ["neutral", ...PALETTE_COLORS],
+	toneScales: [...PALETTE_TONES],
+	steps: [...PALETTE_STEPS],
+	utilities:
+		"bg-blue-100, text-blue-800, border-neutral-200, bg-tone-1-100 — or var(--teal-500). Tailwind's other families (slate, gray, zinc, stone, amber, lime, emerald, cyan, sky, indigo, violet, fuchsia, rose) are switched off.",
+	pairs: {
+		"tag / label": "bg-<family>-100 text-<family>-800 (held to 4.5:1 in every theme and mode)",
+		"text on the page": "text-<family>-700",
+		"solid fill": "bg-<family>-700 text-<family>-50",
+		hairline: "border-<family>-300",
+	},
+	components: 'Badge, Pill and StatusDot take a family as tone (tone="blue"): a category with no meaning attached.',
+	slots: {
+		about: 'data-palette="<family>" on an element fills these from that family, so one set of classes paints any family: bg-palette-wash text-palette-text.',
+		names: Object.fromEntries(Object.entries(PALETTE_SLOTS).map(([slot, step]) => [`palette-${slot}`, step])),
+	},
+	scales: [...PALETTE_SCALES],
+}
+
 const mirrors = [
 	...foundations.map((f) => ({
 		kind: "foundations",
@@ -1641,7 +1667,8 @@ for (const { dir } of metaFiles) {
 	for (const axisMatch of src.matchAll(/\n\t{2,3}([a-zA-Z]+): \{\n([\s\S]*?)\n\t{2,3}\},/g)) {
 		const axis = axisMatch[1]
 		if (["variants", "defaultVariants", "compoundVariants"].includes(axis)) continue
-		const keys = [...axisMatch[2].matchAll(/^\s*"?([a-zA-Z][\w-]*)"?:/gm)].map((m) => m[1])
+		// Quoted keys may start with a digit: the numbered tones are "1" / "2" / "3".
+		const keys = [...axisMatch[2].matchAll(/^\s*(?:"([\w-]+)"|([a-zA-Z][\w-]*)):/gm)].map((m) => m[1] ?? m[2])
 		if (keys.length === 0) continue
 		const declared = entry.variants?.[axis]
 		if (!declared) continue // axis not advertised at all — a separate judgement call
@@ -1899,6 +1926,21 @@ function llmsTokenIntent() {
 		}
 		lines.push("")
 	}
+	const palette = documentedTokens.palette
+	const code = (name) => `\`${name}\``
+	lines.push(
+		"### Generated palette",
+		"",
+		palette.about,
+		"",
+		`- **Families:** ${palette.families.map(code).join(", ")}, each ${palette.steps[0]}–${palette.steps.at(-1)}.`,
+		`- **Tone scales:** ${palette.toneScales.map((name) => code(`${name}-*`)).join(", ")}; step 500 is the tone itself.`,
+		`- **Use as:** ${palette.utilities}`,
+		...Object.entries(palette.pairs).map(([use, pair]) => `- **${use}:** ${pair}`),
+		`- **Components:** ${palette.components}`,
+		`- **Slots:** ${palette.slots.about}`,
+		"",
+	)
 	return lines.join("\n").trimEnd()
 }
 

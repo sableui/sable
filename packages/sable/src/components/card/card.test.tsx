@@ -218,7 +218,7 @@ describe("CardAction optical alignment", () => {
 		render(
 			<Card>
 				<CardHeader>
-					<CardTitle>Top collectors</CardTitle>
+					<CardTitle>Top customers</CardTitle>
 					<CardAction>
 						<Button variant="ghost" size="sm">
 							View all

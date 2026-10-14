@@ -40,7 +40,7 @@ export function OverflowMenuPage() {
 				title="With leading icons"
 			>
 				<Example>
-					<OverflowMenu label="Edition actions">
+					<OverflowMenu label="Project actions">
 						<MenuItem>
 							<Icon name="check" className="text-sm" />
 							Mark as read

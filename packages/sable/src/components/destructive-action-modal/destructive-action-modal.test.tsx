@@ -29,11 +29,11 @@ describe("DestructiveActionModal", () => {
 	it("renders a children body slot between the header and footer", () => {
 		renderWithProviders(
 			<Harness onConfirm={() => {}}>
-				<p>Collectors keep their copies.</p>
+				<p>Shared copies stay with your team.</p>
 			</Harness>,
 		)
 		expect(
-			screen.getByText("Collectors keep their copies."),
+			screen.getByText("Shared copies stay with your team."),
 		).toBeInTheDocument()
 	})
 

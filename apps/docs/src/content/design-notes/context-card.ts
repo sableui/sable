@@ -1,7 +1,7 @@
 import type { DesignNotes } from "."
 
 export default {
-	intro: "A rich preview that appears when you hover or focus a link, like a profile or an edition summary.",
+	intro: "A rich preview that appears when you hover or focus a link, like a profile or a project summary.",
 	do: [
 		"Keep it read-only. The link it opens from is the action.",
 		"Keep the content short: a name, a line or two, a few stats.",

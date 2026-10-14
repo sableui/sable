@@ -10,7 +10,7 @@
    does not load the font files (load them via <link> or @font-face in your app).
 
    Components must reference the SEMANTIC tokens (--background, --primary,
-   --tone-edition, …), never the palette steps below. See themes/_contract.ts.
+   --tone-1, …), never the palette steps below. See themes/_contract.ts.
    ========================================================================== */
 
 :root,
@@ -215,9 +215,9 @@
 	--azure-radiance-950: oklch(16% 0.075 250);
 
 	/* Dark-tuned tone values (boosted chroma; activated via .dark below) */
-	--tone-edition-dark: oklch(62% 0.295 318);
-	--tone-collectible-dark: oklch(72% 0.225 285);
-	--tone-standard-dark: oklch(78% 0.205 168);
+	--tone-1-dark: oklch(62% 0.295 318);
+	--tone-2-dark: oklch(72% 0.225 285);
+	--tone-3-dark: oklch(78% 0.205 168);
 	--tone-info-dark: oklch(76% 0.165 235);
 	--tone-warning-dark: oklch(82% 0.165 65);
 	/* A labelled fill: dropped to where white reads (4.8:1, Lc 72) rather than
@@ -265,9 +265,9 @@
 	--ring: var(--zinc-500);
 
 	/* Tones — light (all clear WCAG AA on white) */
-	--tone-standard: var(--caribbean-green-600);
-	--tone-collectible: var(--blue-gem-600);
-	--tone-edition: var(--purple-heart-700);
+	--tone-3: var(--caribbean-green-600);
+	--tone-2: var(--blue-gem-600);
+	--tone-1: var(--purple-heart-700);
 	--tone-warning: var(--flush-orange-700);
 	--tone-warning-text: var(--flush-orange-700);
 	--tone-info: var(--azure-radiance-600);
@@ -276,9 +276,9 @@
 
 	/* Tone ink — light mode the tone fills resolve to dark 600/700 steps, so the
 	   legible ink on them is the light neutral. (Flips to dark ink under .dark.) */
-	--tone-standard-foreground: var(--zinc-50);
-	--tone-collectible-foreground: var(--zinc-50);
-	--tone-edition-foreground: var(--zinc-50);
+	--tone-3-foreground: var(--zinc-50);
+	--tone-2-foreground: var(--zinc-50);
+	--tone-1-foreground: var(--zinc-50);
 	--tone-warning-foreground: var(--zinc-50);
 	--tone-info-foreground: var(--zinc-50);
 	--highlight-foreground: var(--zinc-50);
@@ -447,9 +447,9 @@
 	--ring: var(--zinc-500);
 
 	/* Tones — dark-tuned (boosted chroma for vibrancy on the dark canvas) */
-	--tone-standard: var(--tone-standard-dark);
-	--tone-collectible: var(--tone-collectible-dark);
-	--tone-edition: var(--tone-edition-dark);
+	--tone-3: var(--tone-3-dark);
+	--tone-2: var(--tone-2-dark);
+	--tone-1: var(--tone-1-dark);
 	--tone-warning: var(--tone-warning-dark);
 	--tone-warning-text: var(--tone-warning-dark);
 	--tone-info: var(--tone-info-dark);
@@ -459,9 +459,9 @@
 	/* Tone ink — dark mode the tone fills resolve to lighter dark-tuned values,
 	   so the legible ink flips to the dark neutral. (--overlay* repeat the :root
 	   values verbatim — a dark scrim is the same in both modes.) */
-	--tone-standard-foreground: var(--zinc-950);
-	--tone-collectible-foreground: var(--zinc-950);
-	--tone-edition-foreground: var(--zinc-950);
+	--tone-3-foreground: var(--zinc-950);
+	--tone-2-foreground: var(--zinc-950);
+	--tone-1-foreground: var(--zinc-950);
 	--tone-warning-foreground: var(--zinc-950);
 	--tone-info-foreground: var(--zinc-950);
 	--highlight-foreground: var(--zinc-50);

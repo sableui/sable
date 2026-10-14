@@ -64,5 +64,5 @@ import { Card, CardDescription, CardHeader, Grid } from "@sableui/react"
 ```tsx
 import { Badge, Grid } from "@sableui/react"
 
-<Grid cols={{ base: 1, md: 2, lg: 4 }}><Badge appearance="plain" tone="standard" dot /><Badge appearance="plain" tone="warning" dot /><Badge appearance="plain" tone="neutral" dot /><Badge appearance="plain" tone="destructive" dot /></Grid>
+<Grid cols={{ base: 1, md: 2, lg: 4 }}><Badge appearance="plain" tone="3" dot /><Badge appearance="plain" tone="warning" dot /><Badge appearance="plain" tone="neutral" dot /><Badge appearance="plain" tone="destructive" dot /></Grid>
 ```

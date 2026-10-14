@@ -5,12 +5,12 @@ import { Icon } from "../icon"
 import { cn } from "../lib/cn"
 
 // ---block-code---
-const balance = "14.62 SOL"
+const balance = "$2,418.50"
 
 const activity = [
-	{ title: "Sold “Dusk, no. 4”", detail: "Edition · 2h ago", amount: "+0.80", tone: "edition" },
-	{ title: "Royalty", detail: "Collectible · Yesterday", amount: "+0.12", tone: "collectible" },
-	{ title: "Withdrawal", detail: "To Phantom · Mon", amount: "-1.50", tone: "standard" },
+	{ title: "Subscription", detail: "Team plan · 2h ago", amount: "+49.00", tone: "1" },
+	{ title: "Refund", detail: "Order 1042 · Yesterday", amount: "-24.00", tone: "2" },
+	{ title: "Payout", detail: "To checking · Mon", amount: "-850.00", tone: "3" },
 ]
 
 export interface WalletBlockProps {

@@ -54,21 +54,21 @@ describe("Radio in a horizontal Field", () => {
 				<Field label="Standard" orientation="horizontal">
 					<Radio value="standard" />
 				</Field>
-				<Field label="Edition" orientation="horizontal">
-					<Radio value="edition" />
+				<Field label="Poll" orientation="horizontal">
+					<Radio value="poll" />
 				</Field>
-				<Field label="Collectible" orientation="horizontal" disabled>
-					<Radio value="collectible" />
+				<Field label="Event" orientation="horizontal" disabled>
+					<Radio value="event" />
 				</Field>
 			</RadioGroup>,
 		)
-		const edition = screen.getByRole("radio", { name: "Edition" })
-		await user.click(screen.getByText("Edition"))
-		expect(edition).toHaveAttribute("aria-checked", "true")
+		const poll = screen.getByRole("radio", { name: "Poll" })
+		await user.click(screen.getByText("Poll"))
+		expect(poll).toHaveAttribute("aria-checked", "true")
 		expect(screen.getByRole("radio", { name: "Standard" })).toHaveAttribute("aria-checked", "false")
-		const collectible = screen.getByRole("radio", { name: "Collectible" })
-		expect(collectible).toBeDisabled()
-		await user.click(screen.getByText("Collectible"))
-		expect(collectible).toHaveAttribute("aria-checked", "false")
+		const event = screen.getByRole("radio", { name: "Event" })
+		expect(event).toBeDisabled()
+		await user.click(screen.getByText("Event"))
+		expect(event).toHaveAttribute("aria-checked", "false")
 	})
 })

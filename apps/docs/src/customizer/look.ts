@@ -53,6 +53,12 @@ export interface Look {
 	 * 100 (the edge of each status's band). null = the palette's default.
 	 */
 	statusLean: number | null
+	/**
+	 * How far the generated palette's families (bg-blue-500 …) lean toward the
+	 * brand, as a percent of the default lean: 0 keeps their own hues, 200
+	 * doubles the pull. null = the preset's own (--theme-palette-harmony, else 1).
+	 */
+	harmony: number | null
 	/** Brand hue in degrees, from the swatch strip. null = the preset's own colors. */
 	hue: number | null
 	/** An exact brand colour (hex), from the picker. Wins over `hue`. */
@@ -104,6 +110,7 @@ export const DEFAULT_LOOK: Look = {
 	depth: null,
 	shadows: "theme",
 	statusLean: null,
+	harmony: null,
 	hue: null,
 	brand: null,
 	palette: "preset",
@@ -395,7 +402,7 @@ export function statusLeanFor(look: Look): number {
 
 /**
  * Keep a decorative hue out of the status colours' territory. A generated
- * "edition" tone that lands within ~25° of destructive red reads as an error;
+ * decorative tone that lands within ~25° of destructive red reads as an error;
  * one near success green reads as a confirmation. Push it to the near edge of
  * the exclusion zone so it stays as close to its scheme position as it can.
  */
@@ -413,18 +420,18 @@ function clearOfStatus(hue: number, statusHues: readonly number[]): number {
 	return norm(hue)
 }
 
-const DECORATIVE_TONES = ["tone-info", "tone-edition", "tone-collectible", "tone-standard"] as const
+const DECORATIVE_TONES = ["tone-info", "tone-1", "tone-2", "tone-3"] as const
 
 /**
  * Brand-only steps: an even lightness ramp, darkest to lightest, in the order
- * the tones usually stack (edition → collectible → standard → info). Chroma
+ * the tones usually stack (1 → 2 → 3 → info). Chroma
  * eases off a little toward the light end so the ramp stays one family
  * instead of one shade dropping out as grey.
  */
 const MONO_STEPS: Record<string, { dl: number; c: number }> = {
-	"tone-edition": { dl: -0.12, c: 1 },
-	"tone-collectible": { dl: -0.04, c: 0.95 },
-	"tone-standard": { dl: 0.04, c: 0.85 },
+	"tone-1": { dl: -0.12, c: 1 },
+	"tone-2": { dl: -0.04, c: 0.95 },
+	"tone-3": { dl: 0.04, c: 0.85 },
 	"tone-info": { dl: 0.12, c: 0.75 },
 }
 
@@ -438,8 +445,8 @@ function monoTone(brand: Oklch, step: { dl: number; c: number }, mode: "light" |
 
 /** Hue offsets from the brand for each decorative tone. */
 const SCHEMES: Record<"analogous" | "triadic", Record<string, number>> = {
-	analogous: { "tone-info": 30, "tone-edition": -30, "tone-collectible": 60, "tone-standard": -60 },
-	triadic: { "tone-info": 120, "tone-edition": -120, "tone-collectible": 180, "tone-standard": 60 },
+	analogous: { "tone-info": 30, "tone-1": -30, "tone-2": 60, "tone-3": -60 },
+	triadic: { "tone-info": 120, "tone-1": -120, "tone-2": 180, "tone-3": 60 },
 }
 
 /** The two label inks, carrying the fill's hue. */
@@ -902,7 +909,9 @@ function darkCovering(light: string[], dark: string[], base: ThemeBase): string[
 export function toCss(look: Look, base: ThemeBase, themeId: string): string {
 	const light = colorDecls(look, base, "light")
 	// Shadows differ per mode, like colours, and are always written for both.
-	const root = [...shapeDecls(look, base), ...light, ...shadowDecls(look, base, "light")]
+	// The palette's lean is one number for both modes; palette.css reads it on every scope.
+	const harmony = look.harmony != null ? [`--theme-palette-harmony: ${round(look.harmony / 100, 0.01)};`] : []
+	const root = [...shapeDecls(look, base), ...harmony, ...light, ...shadowDecls(look, base, "light")]
 	const dark = [...darkCovering(light, colorDecls(look, base, "dark"), base), ...shadowDecls(look, base, "dark")]
 
 	const header = [
@@ -950,7 +959,7 @@ export function decodeLook(value: string | null | undefined): Look {
 }
 
 const isNumeric = (key: keyof Look) =>
-	key === "bold" || key === "airy" || key === "corners" || key === "depth" || key === "hue" || key === "statusLean" || (ANCHOR_KEYS as readonly string[]).includes(key)
+	key === "bold" || key === "airy" || key === "corners" || key === "depth" || key === "hue" || key === "statusLean" || key === "harmony" || (ANCHOR_KEYS as readonly string[]).includes(key)
 
 function sanitizeLook(parsed: Record<string, unknown>): Look {
 	const look: Record<string, unknown> = { ...DEFAULT_LOOK }

@@ -23,7 +23,7 @@ function BasicDemo() {
 				open={open}
 				onOpenChange={setOpen}
 				title="Delete post?"
-				description="This permanently removes the post and its on-chain metadata link. This cannot be undone."
+				description="This permanently removes the post and all of its comments. This cannot be undone."
 				onConfirm={() => {
 					// In a real app, fire the delete mutation here.
 				}}

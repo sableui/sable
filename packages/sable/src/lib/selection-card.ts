@@ -35,15 +35,15 @@ export const SELECTION_CARD_TILE_HEAD = "flex w-full items-start justify-between
 /** The icon glyph in a tile. */
 export const SELECTION_CARD_GLYPH = "shrink-0 text-2xl leading-none motion-interactive"
 
-export const SELECTION_CARD_TONES = ["neutral", "standard", "collectible", "edition", "info", "warning"] as const
+export const SELECTION_CARD_TONES = ["neutral", "3", "2", "1", "info", "warning"] as const
 export type SelectionCardTone = (typeof SELECTION_CARD_TONES)[number]
 
 /** The checked ring per tone (neutral also takes a muted wash). */
 export const SELECTION_CARD_CHECKED: Record<SelectionCardTone, string> = {
 	neutral: "data-[checked]:border-transparent data-[checked]:ring-[1.5px] data-[checked]:ring-inset data-[checked]:ring-primary data-[checked]:bg-muted",
-	standard: "data-[checked]:border-transparent data-[checked]:ring-[1.5px] data-[checked]:ring-inset data-[checked]:ring-tone-standard",
-	collectible: "data-[checked]:border-transparent data-[checked]:ring-[1.5px] data-[checked]:ring-inset data-[checked]:ring-tone-collectible",
-	edition: "data-[checked]:border-transparent data-[checked]:ring-[1.5px] data-[checked]:ring-inset data-[checked]:ring-tone-edition",
+	"3": "data-[checked]:border-transparent data-[checked]:ring-[1.5px] data-[checked]:ring-inset data-[checked]:ring-tone-3",
+	"2": "data-[checked]:border-transparent data-[checked]:ring-[1.5px] data-[checked]:ring-inset data-[checked]:ring-tone-2",
+	"1": "data-[checked]:border-transparent data-[checked]:ring-[1.5px] data-[checked]:ring-inset data-[checked]:ring-tone-1",
 	info: "data-[checked]:border-transparent data-[checked]:ring-[1.5px] data-[checked]:ring-inset data-[checked]:ring-tone-info",
 	warning: "data-[checked]:border-transparent data-[checked]:ring-[1.5px] data-[checked]:ring-inset data-[checked]:ring-tone-warning",
 }

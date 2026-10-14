@@ -7,7 +7,7 @@ import {
 	ledeFor,
 } from "../../components/docs-ui"
 
-const ITEMS = Array.from({ length: 24 }, (_, i) => `Edition #${i + 1}`)
+const ITEMS = Array.from({ length: 24 }, (_, i) => `Project ${i + 1}`)
 const TAGS = [
 	"Photography",
 	"Generative",
@@ -35,13 +35,13 @@ export function ScrollerPage() {
 				description="The edges fade only where there is more to scroll."
 			>
 				<Example
-					code={`<Scroller label="Editions" className="h-64 w-full max-w-sm rounded-lg border border-border">
+					code={`<Scroller label="Projects" className="h-64 w-full max-w-sm rounded-lg border border-border">
   <div className="divide-y divide-border">
     {items.map((item) => <Entity key={item} title={item} />)}
   </div>
 </Scroller>`}
 				>
-					<Scroller label="Editions" className="h-64 w-full max-w-sm rounded-lg border border-border">
+					<Scroller label="Projects" className="h-64 w-full max-w-sm rounded-lg border border-border">
 						<div className="divide-y divide-border">
 							{ITEMS.map((item) => <Entity key={item} title={item} />)}
 						</div>
@@ -54,24 +54,24 @@ export function ScrollerPage() {
 				description="The box hugs a short list and only scrolls once content passes the cap."
 			>
 				<Example
-					code={`<Scroller label="All editions" className="max-h-64 w-full max-w-xs rounded-lg border border-border">
+					code={`<Scroller label="All projects" className="max-h-64 w-full max-w-xs rounded-lg border border-border">
   <div className="divide-y divide-border">
     {items.map((item) => <Entity key={item} title={item} />)}
   </div>
 </Scroller>
-<Scroller label="Recent editions" className="max-h-64 w-full max-w-xs rounded-lg border border-border">
+<Scroller label="Recent projects" className="max-h-64 w-full max-w-xs rounded-lg border border-border">
   <div className="divide-y divide-border">
     {items.slice(0, 3).map((item) => <Entity key={item} title={item} />)}
   </div>
 </Scroller>`}
 				>
 					<div className="flex w-full flex-col items-start gap-4 sm:flex-row">
-						<Scroller label="All editions" className="max-h-64 w-full max-w-xs rounded-lg border border-border">
+						<Scroller label="All projects" className="max-h-64 w-full max-w-xs rounded-lg border border-border">
 							<div className="divide-y divide-border">
 								{ITEMS.map((item) => <Entity key={item} title={item} />)}
 							</div>
 						</Scroller>
-						<Scroller label="Recent editions" className="max-h-64 w-full max-w-xs rounded-lg border border-border">
+						<Scroller label="Recent projects" className="max-h-64 w-full max-w-xs rounded-lg border border-border">
 							<div className="divide-y divide-border">
 								{ITEMS.slice(0, 3).map((item) => <Entity key={item} title={item} />)}
 							</div>

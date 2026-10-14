@@ -13,14 +13,32 @@ describe("Badge", () => {
 	it("sets appearance and tone independently", () => {
 		render(
 			<>
-				<Badge tone="edition">Soft</Badge>
-				<Badge appearance="outline" tone="edition">Outline</Badge>
-				<Badge appearance="solid" tone="edition">Solid</Badge>
+				<Badge tone="1">Soft</Badge>
+				<Badge appearance="outline" tone="1">Outline</Badge>
+				<Badge appearance="solid" tone="1">Solid</Badge>
 			</>,
 		)
-		expect((screen.getByText("Soft").closest(".rounded-full") as HTMLElement).className).toContain("bg-tone-edition/15")
-		expect((screen.getByText("Outline").closest(".rounded-full") as HTMLElement).className).toContain("border-tone-edition/50")
-		expect((screen.getByText("Solid").closest(".rounded-full") as HTMLElement).className).toContain("text-tone-edition-foreground")
+		expect((screen.getByText("Soft").closest(".rounded-full") as HTMLElement).className).toContain("bg-tone-1/15")
+		expect((screen.getByText("Outline").closest(".rounded-full") as HTMLElement).className).toContain("border-tone-1/50")
+		expect((screen.getByText("Solid").closest(".rounded-full") as HTMLElement).className).toContain("text-tone-1-foreground")
+	})
+
+	it("paints a palette family from its slots, in place of the neutral look", () => {
+		render(
+			<>
+				<Badge tone="teal">Research</Badge>
+				<Badge tone="pink" appearance="solid" dot>
+					Launch
+				</Badge>
+			</>,
+		)
+		const soft = screen.getByText("Research").closest(".rounded-full") as HTMLElement
+		expect(soft.dataset.palette).toBe("teal")
+		expect(soft.className).toContain("bg-palette-wash")
+		expect(soft.className).not.toContain("bg-secondary")
+		const solid = screen.getByText("Launch").closest(".rounded-full") as HTMLElement
+		expect(solid.className).toContain("bg-palette-solid")
+		expect(solid.querySelector("[aria-hidden]")?.className).toContain("bg-palette-dot")
 	})
 
 	it("draws on media with overlay", () => {

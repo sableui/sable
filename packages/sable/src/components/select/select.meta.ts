@@ -198,11 +198,11 @@ export const selectMeta: ComponentMeta = {
 		},
 		{
 			label: "Inside Field",
-			code: '<Field label="Default visibility" description="Controls how new editions appear."><Select defaultValue="public"><SelectTrigger placeholder="Choose visibility" /><SelectContent><SelectItem value="public">Public</SelectItem><SelectItem value="private">Private</SelectItem><SelectItem value="unlisted">Unlisted</SelectItem></SelectContent></Select></Field>',
+			code: '<Field label="Default visibility" description="Controls how new projects appear."><Select defaultValue="public"><SelectTrigger placeholder="Choose visibility" /><SelectContent><SelectItem value="public">Public</SelectItem><SelectItem value="private">Private</SelectItem><SelectItem value="unlisted">Unlisted</SelectItem></SelectContent></Select></Field>',
 		},
 		{
 			label: "Rich item labels",
-			code: '<Select defaultValue="edition" items={[{ value: "edition", label: "Edition" }, { value: "collectible", label: "Collectible" }]}><SelectTrigger /><SelectContent><SelectItem value="edition" label="Edition"><span className="flex items-center gap-2"><Badge tone="edition">Edition</Badge><span>Edition drop</span></span></SelectItem><SelectItem value="collectible" label="Collectible"><span className="flex items-center gap-2"><Badge tone="collectible">Collectible</Badge><span>Collectible</span></span></SelectItem></SelectContent></Select>',
+			code: '<Select defaultValue="business" items={[{ value: "business", label: "Business" }, { value: "studio", label: "Studio" }]}><SelectTrigger /><SelectContent><SelectItem value="business" label="Business"><span className="flex items-center gap-2"><Badge tone="1">Business</Badge><span>Business plan</span></span></SelectItem><SelectItem value="studio" label="Studio"><span className="flex items-center gap-2"><Badge tone="2">Studio</Badge><span>Studio</span></span></SelectItem></SelectContent></Select>',
 		},
 	],
 }

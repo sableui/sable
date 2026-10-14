@@ -265,7 +265,7 @@ export const toastMeta: ComponentMeta = {
 		},
 		{
 			label: "Persistent loading, updated in place",
-			code: 'const id = toast.loading("Pinning to Arweave…"); /* later */ toast.update(id, { title: "Pinned", type: "success", timeout: 4000 })',
+			code: 'const id = toast.loading("Uploading report…"); /* later */ toast.update(id, { title: "Uploaded", type: "success", timeout: 4000 })',
 		},
 		{
 			label: "Custom toast markup (composed parts)",

@@ -97,14 +97,14 @@ export function CheckboxPage() {
 					code={`<Field label="Remember this device" orientation="horizontal">
 	<Checkbox defaultChecked />
 </Field>
-<Field label="Email me about new drops" orientation="horizontal">
+<Field label="Email me about new releases" orientation="horizontal">
 	<Checkbox />
 </Field>`}
 				>
 					<Field label="Remember this device" orientation="horizontal">
 						<Checkbox defaultChecked />
 					</Field>
-					<Field label="Email me about new drops" orientation="horizontal">
+					<Field label="Email me about new releases" orientation="horizontal">
 						<Checkbox />
 					</Field>
 				</Example>

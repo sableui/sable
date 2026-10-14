@@ -81,7 +81,10 @@ because the meta wins *whole* and silently discards the other.
 
 ## The hard rules
 
-1. **Semantic tokens only** — never hex/oklch, never a raw palette step.
+1. **Semantic tokens only** — never hex/oklch, never a raw palette step, not
+   even the generated palette's (`bg-blue-500`; that is for apps). A component
+   that takes a palette family as `tone` sets `data-palette` to it and paints
+   from the slots that fills (`bg-palette-wash text-palette-text`), as Badge does.
 2. **Paired typography utilities** — never `text-{size}` + `font-{weight}`.
 3. **`primitives/` is behaviour, `components/` is the public API.** Base UI is
    wrapped and re-exported; consumers import only from the root barrel.

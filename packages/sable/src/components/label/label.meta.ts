@@ -95,7 +95,7 @@ export const labelMeta: ComponentMeta = {
 		},
 		{
 			label: "With hint",
-			code: '<Label htmlFor="royalty" hint="A percentage of every resale, paid to you.">Royalty</Label>',
+			code: '<Label htmlFor="discount" hint="Taken off every order this code is used on.">Discount</Label>',
 		},
 	],
 }

@@ -25,6 +25,14 @@
  * both linters zero-dependency.
  */
 
+const STEP = "(?:50|100|200|300|400|500|600|700|800|900|950)"
+/** Every family Tailwind ships, whether or not Sable generates it. */
+const TAILWIND_FAMILIES = ["slate", "gray", "grey", "zinc", "neutral", "stone", "red", "orange", "amber", "yellow", "lime", "green", "emerald", "teal", "cyan", "sky", "blue", "indigo", "violet", "purple", "fuchsia", "pink", "rose"]
+/** The tones that get a generated scale — keep in step with PALETTE_TONES in src/lib/palette.ts. */
+const PALETTE_TONE_SCALES = ["tone-1", "tone-2", "tone-3", "tone-info", "tone-warning", "success", "destructive"]
+/** Everything src/palette.css generates — keep in step with PALETTE_SCALES in src/lib/palette.ts. */
+export const PALETTE_SCALES = ["neutral", "red", "orange", "yellow", "green", "teal", "blue", "purple", "pink", ...PALETTE_TONE_SCALES]
+
 /** Utility prefixes that take a colour token. */
 export const COLOR_PREFIX =
 	"(?:bg|text|border|fill|stroke|ring|ring-offset|from|to|via|decoration|outline|divide|caret|accent|shadow)"
@@ -442,21 +450,34 @@ export function makeRules({ semanticTokens, motionTokens, labelContrast = null, 
 		{
 			id: "inline-color",
 			scope: "both",
-			why: "Inline oklch()/hex color. Use a semantic token (bg-card, text-tone-edition-foreground, bg-overlay…). Literal colors belong only in a theme file.",
+			why: "Inline oklch()/hex color. Use a semantic token (bg-card, text-tone-1-foreground, bg-overlay…). Literal colors belong only in a theme file.",
 			regex: /oklch\s*\(|#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\b/g,
 		},
 		{
 			id: "palette-ref",
-			scope: "both",
-			why: "Raw palette-step reference (e.g. --zinc-950, text-(--purple-heart-700), border-orange-500). Palette steps are theme-internal — name a semantic token instead. After the tone-foreground + overlay tokens, this rule has ZERO sanctioned exceptions.",
+			scope: "package",
+			why: "Palette-step reference (e.g. --zinc-950, text-(--purple-heart-700), border-orange-500, bg-tone-1-100) in a component. A component paints roles only, so it re-themes with the role; the generated palette is for apps. After the tone-foreground + overlay tokens, this rule has ZERO sanctioned exceptions.",
 			// Two shapes, and the second is the one that got away. A CSS var ending in
 			// a ramp step catches `--zinc-950`; a bare Tailwind palette utility catches
 			// `border-orange-500`, which is what actually shipped in a consumer app for
 			// weeks. Semantic/layout/motion tokens never end in a numeric step, so both
 			// halves are theme-agnostic.
 			regex: new RegExp(
-				"--[a-zA-Z][\\w-]*-(?:50|100|200|300|400|500|600|700|800|900|950)\\b" +
-					`|\\b${COLOR_PREFIX}-(?:slate|gray|grey|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(?:50|100|200|300|400|500|600|700|800|900|950)\\b`,
+				`--[a-zA-Z][\\w-]*-${STEP}\\b` +
+					`|\\b${COLOR_PREFIX}-(?:${[...TAILWIND_FAMILIES, ...PALETTE_TONE_SCALES].join("|")})-${STEP}\\b`,
+				"g",
+			),
+		},
+		{
+			id: "palette-ref",
+			scope: "consumer",
+			why: "Palette step that does not follow the theme (e.g. --zinc-950, text-(--purple-heart-700), bg-lime-500). Sable generates neutral, red, orange, yellow, green, teal, blue, purple and pink, plus a scale under every tone (bg-tone-1-100), all from the active theme — use one of those for decorative or categorical colour, and a semantic token for surfaces, text and actions. A theme's own ramps are internal, and Tailwind's other families are switched off.",
+			// The generated palette (src/lib/palette.ts) is themed, so an app may use
+			// it; anything else ending in a step is a theme's internal ramp or a
+			// Tailwind family Sable switched off, and paints nothing or the wrong thing.
+			regex: new RegExp(
+				`--(?!(?:${PALETTE_SCALES.join("|")})-${STEP}\\b)[a-zA-Z][\\w-]*-${STEP}\\b` +
+					`|\\b${COLOR_PREFIX}-(?:${TAILWIND_FAMILIES.filter((name) => !PALETTE_SCALES.includes(name)).join("|")})-${STEP}\\b`,
 				"g",
 			),
 		},

@@ -1,7 +1,7 @@
 import {
 	SEMANTIC_TOKENS, MOTION_TOKENS, RADIUS_TOKENS, TYPE_SCALE_TOKENS,
 	TYPE_REFINEMENT_TOKENS, TYPE_OVERLINE_TOKENS, DENSITY_TOKENS, RHYTHM_TOKENS,
-	LAYERING_TOKENS, WORKSPACE_SURFACE_TOKENS, DERIVED_EDGE_TOKENS, TYPE_UI_TOKENS, ART_TOKENS,
+	LAYERING_TOKENS, WORKSPACE_SURFACE_TOKENS, DERIVED_EDGE_TOKENS, TYPE_UI_TOKENS, ART_TOKENS, PALETTE_TOKENS,
 	type ThemeManifest,
 } from "../themes/_contract"
 import { LABEL_CONTRAST_RULE, LABELLED_FILLS, checkLabelledFills, type LabelFinding } from "../themes/contrast"
@@ -28,6 +28,7 @@ export const PRESET_TOKEN_NAMES: readonly string[] = [...new Set([
 	...DERIVED_EDGE_TOKENS.map(name => `theme-${name}`),
 	// Art direction: optional hooks — a preset without them paints the default art.
 	...ART_TOKENS.map(name => `theme-${name}`),
+	...PALETTE_TOKENS.map(name => `theme-${name}`),
 	...WORKSPACE_SURFACE_TOKENS, ...DERIVED_EDGE_TOKENS,
 	...RADIUS_TOKENS, ...MOTION_TOKENS, ...TYPE_SCALE_TOKENS,
 	...TYPE_REFINEMENT_TOKENS, ...TYPE_OVERLINE_TOKENS, ...DENSITY_TOKENS, ...RHYTHM_TOKENS,
@@ -86,10 +87,30 @@ const STATUS_TEXT_FROM_FILL = {
 	"tone-info-text": "tone-info",
 } as const
 
-/** A copy of `input` with any missing status text token filled from its fill, per mode. */
+/**
+ * The extra tones were named for one product (edition, collectible, standard)
+ * until 0.10, when they became numbered. A preset saved before then is read
+ * under the new names, its own `var(--tone-…)` references included.
+ */
+const TONE_RENAMES: [RegExp, string][] = [
+	[/\btone-edition\b/g, "tone-1"],
+	[/\btone-collectible\b/g, "tone-2"],
+	[/\btone-standard\b/g, "tone-3"],
+]
+const renameTones = (name: string) => TONE_RENAMES.reduce((out, [from, to]) => out.replace(from, to), name)
+
+/**
+ * A copy of `input` under the current token names, with any missing status
+ * text token filled from its fill, per mode.
+ */
 function upgradePreset(input: unknown): unknown {
 	if (!record(input) || !record(input.tokens)) return input
-	const tokens = input.tokens
+	const tokens: Record<string, unknown> = { ...input.tokens }
+	for (const group of ["shared", "light", "dark"] as const) {
+		const values = tokens[group]
+		if (!record(values)) continue
+		tokens[group] = Object.fromEntries(Object.entries(values).map(([name, value]) => [renameTones(name), typeof value === "string" ? renameTones(value) : value]))
+	}
 	const shared = record(tokens.shared) ? tokens.shared : {}
 	const upgraded: Record<string, unknown> = { ...tokens }
 	for (const mode of ["light", "dark"] as const) {

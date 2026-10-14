@@ -11,7 +11,7 @@ export const dangerZoneBlockMeta: BlockMeta = {
 	notes: [
 		"Copied from the SettingsPage page shell's Delete account section.",
 		"The button never acts directly: it opens the modal, whose confirm stays disabled until the handle is typed.",
-		"The description says what is lost AND what is kept (\"Collectors keep the editions they own\"), which is what people want to know before they decide.",
+		"The description says what is lost AND what is kept (\"Files you shared stay with your team\"), which is what people want to know before they decide.",
 	],
 	a11y: [
 		"DestructiveActionModal is an alertdialog: focus opens on Cancel and the backdrop does not dismiss it.",

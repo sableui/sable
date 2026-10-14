@@ -12,7 +12,7 @@ import { cn } from "../../lib/cn"
  *     <BreadcrumbSeparator />
  *     <BreadcrumbItem><BreadcrumbLink href="/library">Library</BreadcrumbLink></BreadcrumbItem>
  *     <BreadcrumbSeparator />
- *     <BreadcrumbItem><BreadcrumbPage>Editions</BreadcrumbPage></BreadcrumbItem>
+ *     <BreadcrumbItem><BreadcrumbPage>Reports</BreadcrumbPage></BreadcrumbItem>
  *   </Breadcrumbs>
  *
  * The trail is a single horizontal row; the final crumb is the current page

@@ -58,8 +58,8 @@ export function PageHeaderPage() {
 			<Icon name="chevron-left" />
 		</Button>
 	}
-	title="Edition details"
-	description="Untitled (gold rush) — limited run of 100."
+	title="Project details"
+	description="Q3 planning — shared with 12 people."
 	actions={<Button variant="outline">Share</Button>}
 />`}
 				>
@@ -70,8 +70,8 @@ export function PageHeaderPage() {
 								<Icon name="chevron-left" />
 							</Button>
 						}
-						title="Edition details"
-						description="Untitled (gold rush) — limited run of 100."
+						title="Project details"
+						description="Q3 planning — shared with 12 people."
 						actions={<Button variant="outline">Share</Button>}
 					/>
 				</Example>

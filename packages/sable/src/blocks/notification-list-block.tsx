@@ -6,7 +6,7 @@ import { cn } from "../lib/cn"
 
 // ---block-code---
 const notifications = [
-	{ initials: "MO", name: "Mara Okafor", what: "collected your edition", when: "2m", unread: true },
+	{ initials: "MO", name: "Mara Okafor", what: "invited you to Q3 planning", when: "2m", unread: true },
 	{ initials: "SR", name: "Sam Rivera", what: "left a comment on Dusk", when: "1h", unread: false },
 ]
 

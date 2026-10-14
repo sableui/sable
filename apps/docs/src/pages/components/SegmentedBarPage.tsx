@@ -9,10 +9,10 @@ import {
 } from "../../components/docs-ui"
 
 const SALES = [
-	{ label: "Editions", value: 42, tone: "edition" },
-	{ label: "Collectibles", value: 27, tone: "collectible" },
-	{ label: "Standard", value: 19, tone: "standard" },
-	{ label: "Commissions", value: 12, tone: "info" },
+	{ label: "Direct", value: 42, tone: "1" },
+	{ label: "Partners", value: 27, tone: "2" },
+	{ label: "Referrals", value: 19, tone: "3" },
+	{ label: "Resellers", value: 12, tone: "info" },
 ] as const
 
 export function SegmentedBarPage() {
@@ -25,7 +25,7 @@ export function SegmentedBarPage() {
 			<Section title="With a legend" description="Colour picks out a segment; the legend's label and share are what a reader compares.">
 				<Example>
 					<div className="flex w-full max-w-xs flex-col gap-3">
-						<SegmentedBar label="Revenue by type" segments={[...SALES]} size="lg" />
+						<SegmentedBar label="Revenue by channel" segments={[...SALES]} size="lg" />
 						{/* aria-hidden: the bar already reads every share aloud. */}
 						<ul aria-hidden className="flex flex-col gap-1.5">
 							{SALES.map((s) => (

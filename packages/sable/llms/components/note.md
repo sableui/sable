@@ -53,7 +53,7 @@ Use Note for helpful supporting information that should sit near the relevant co
 ```tsx
 import { Note } from "@sableui/react"
 
-<Note tone="info">Editions mint on Solana mainnet.</Note>
+<Note tone="info">Reports refresh every hour.</Note>
 ```
 
 ### With title
@@ -61,7 +61,7 @@ import { Note } from "@sableui/react"
 ```tsx
 import { Note } from "@sableui/react"
 
-<Note tone="warning" title="Low balance">Top up SOL before minting.</Note>
+<Note tone="warning" title="Low balance">Add credits before your next export.</Note>
 ```
 
 ### Warning with a remedy, inside a dialog
@@ -77,5 +77,5 @@ import { Note } from "@sableui/react"
 ```tsx
 import { Note } from "@sableui/react"
 
-<Note tone="neutral" icon="lock">Pricing and supply cannot be changed after an edition is purchased.</Note>
+<Note tone="neutral" icon="lock">Pricing cannot be changed after an order is placed.</Note>
 ```

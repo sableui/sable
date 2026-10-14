@@ -13,7 +13,7 @@ import { useAnchoredDensity } from "../../lib/density"
  *   <TooltipProvider>
  *     <Tooltip>
  *       <TooltipTrigger render={<Button variant="ghost">?</Button>} />
- *       <TooltipContent>Stored permanently on Arweave.</TooltipContent>
+ *       <TooltipContent>Saved to your workspace.</TooltipContent>
  *     </Tooltip>
  *   </TooltipProvider>
  */
@@ -106,7 +106,7 @@ type SimpleTooltipProps = Omit<ComponentProps<typeof Base.Root>, "children"> & {
 /**
  * Shorthand tooltip for the common case — no Trigger/Content boilerplate:
  *
- *   <SimpleTooltip content="Stored on Arweave">
+ *   <SimpleTooltip content="Saved to your workspace">
  *     <Button variant="ghost">?</Button>
  *   </SimpleTooltip>
  *

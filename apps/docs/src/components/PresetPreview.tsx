@@ -1,5 +1,5 @@
 import { cn } from "@sableui/react"
-import { CollectScene } from "../pages/CustomizeCanvas"
+import { ProductScene } from "../pages/CustomizeCanvas"
 
 /**
  * The same object rendered inside one preset, as shipped. A preset's selectors
@@ -12,7 +12,7 @@ import { CollectScene } from "../pages/CustomizeCanvas"
 export function PresetPreview({ id, dark, className }: { id: string; dark: boolean; className?: string }) {
 	return (
 		<div data-sable-theme={id} data-preset-preview="" className={cn("grid overflow-hidden rounded-lg bg-background font-sans text-foreground", dark && "dark", className)}>
-			<CollectScene />
+			<ProductScene />
 		</div>
 	)
 }

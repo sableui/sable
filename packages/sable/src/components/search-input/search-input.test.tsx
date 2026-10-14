@@ -19,10 +19,10 @@ describe("SearchInput", () => {
 	it("shows and clears an uncontrolled defaultValue", () => {
 		const onValueChange = vi.fn()
 		const { getByRole, queryByRole } = render(
-			<SearchInput defaultValue="editions" onValueChange={onValueChange} />,
+			<SearchInput defaultValue="roadmap" onValueChange={onValueChange} />,
 		)
 		const input = getByRole("searchbox") as HTMLInputElement
-		expect(input.value).toBe("editions")
+		expect(input.value).toBe("roadmap")
 		fireEvent.click(getByRole("button", { name: "Clear search" }))
 		expect(input.value).toBe("")
 		expect(onValueChange).toHaveBeenCalledWith("")

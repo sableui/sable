@@ -66,17 +66,17 @@ export function CheckboxCardPage() {
 				<Example>
 					<CheckboxGroup className="w-full max-w-[360px]">
 						<CheckboxCard
-							tone="edition"
+							tone="1"
 							icon={<Icon name="gem" />}
-							title="Editions"
-							description="Sell as numbered NFT editions"
+							title="Reports"
+							description="Weekly usage reports by email"
 							defaultChecked
 						/>
 						<CheckboxCard
-							tone="collectible"
+							tone="2"
 							icon={<Icon name="sparkles" />}
-							title="Collectibles"
-							description="One-of-one, free to mint"
+							title="Mentions"
+							description="When someone tags you in a comment"
 							defaultChecked
 						/>
 						<CheckboxCard
@@ -90,10 +90,10 @@ export function CheckboxCardPage() {
 			</Section>
 
 			<Section title="Disabled">
-				<Example code='<CheckboxCard title="Legacy minting" description="No longer available" disabled />'>
+				<Example code='<CheckboxCard title="Legacy exports" description="No longer available" disabled />'>
 					<div className="w-full max-w-[360px]">
 						<CheckboxCard
-							title="Legacy minting"
+							title="Legacy exports"
 							description="No longer available"
 							disabled
 						/>

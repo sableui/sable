@@ -83,7 +83,7 @@ export const radioCardMeta: ComponentMeta = {
 		},
 		{
 			name: "tone",
-			type: '"neutral" | "standard" | "collectible" | "edition" | "info" | "warning"',
+			type: '"neutral" | "3" | "2" | "1" | "info" | "warning"',
 			default: '"neutral"',
 			description:
 				"Semantic colour the selected state carries across the border, radio, and icon glyph. Neutral uses the primary ring with a muted wash.",
@@ -117,7 +117,7 @@ export const radioCardMeta: ComponentMeta = {
 		},
 	],
 	variants: {
-		tone: ["neutral", "standard", "collectible", "edition", "info", "warning"],
+		tone: ["neutral", "3", "2", "1", "info", "warning"],
 	},
 	tokensUsed: [
 		"input",
@@ -127,9 +127,9 @@ export const radioCardMeta: ComponentMeta = {
 		"muted",
 		"ring",
 		"muted-foreground",
-		"tone-standard",
-		"tone-collectible",
-		"tone-edition",
+		"tone-3",
+		"tone-2",
+		"tone-1",
 		"tone-info",
 		"tone-warning",
 	],
@@ -143,7 +143,7 @@ export const radioCardMeta: ComponentMeta = {
 	examples: [
 		{
 			label: "Post type (tone + icon)",
-			code: '<RadioGroup defaultValue="post" className="grid sm:grid-cols-3"><RadioCard value="post" tone="standard" icon={<Icon name="plus" />} title="Standard" description="Share without minting" /><RadioCard value="collectible" tone="collectible" icon={<Icon name="gem" />} title="Collectible" description="Free to collect as NFT" /><RadioCard value="edition" tone="edition" icon={<Icon name="image-stack" />} title="Edition" description="Sell as NFT editions" /></RadioGroup>',
+			code: '<RadioGroup defaultValue="starter" className="grid sm:grid-cols-3"><RadioCard value="starter" tone="3" icon={<Icon name="plus" />} title="Starter" description="Free for one person" /><RadioCard value="studio" tone="2" icon={<Icon name="gem" />} title="Studio" description="For small teams" /><RadioCard value="business" tone="1" icon={<Icon name="image-stack" />} title="Business" description="SSO and audit log" /></RadioGroup>',
 		},
 		{
 			label: "Plan picker (plain)",

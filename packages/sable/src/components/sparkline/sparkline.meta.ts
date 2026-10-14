@@ -61,7 +61,7 @@ export const sparklineMeta: ComponentMeta = {
 		},
 		{
 			name: "tone",
-			type: "\"edition\" | \"collectible\" | \"standard\" | \"info\" | \"warning\" | \"primary\" | \"neutral\" | \"success\" | \"destructive\"",
+			type: "\"1\" | \"2\" | \"3\" | \"info\" | \"warning\" | \"primary\" | \"neutral\" | \"success\" | \"destructive\"",
 			default: "\"primary\"",
 			description: "Colour by role."
 		},
@@ -93,9 +93,9 @@ export const sparklineMeta: ComponentMeta = {
 	},
 	tokensUsed: [
 		"primary",
-		"tone-edition",
-		"tone-collectible",
-		"tone-standard",
+		"tone-1",
+		"tone-2",
+		"tone-3",
 		"tone-info",
 		"tone-warning",
 		"muted-foreground",

@@ -3,7 +3,7 @@ import { cva } from "class-variance-authority"
 /**
  * Pill-shaped by default, label-lg typography. Neutral tiers only here — primary is
  * the inverted neutral (one per screen), secondary the default workhorse, ghost for
- * tertiary actions. Tone-filled action buttons (collect/buy) land in a later pass.
+ * tertiary actions. Tone-filled action buttons (buy/upgrade) land in a later pass.
  *
  * Corner radius reads `--button-radius` (a dedicated, OPTIONAL, mode-independent CSS
  * var — not part of the `RADIUS_TOKENS` contract in `themes/_contract.ts`), falling

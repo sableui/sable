@@ -17,9 +17,9 @@ import {
  * to prevent.
  */
 const TONES = [
-	"bg-tone-standard text-tone-standard-foreground",
-	"bg-tone-collectible text-tone-collectible-foreground",
-	"bg-tone-edition text-tone-edition-foreground",
+	"bg-tone-3 text-tone-3-foreground",
+	"bg-tone-2 text-tone-2-foreground",
+	"bg-tone-1 text-tone-1-foreground",
 	"bg-tone-info text-tone-info-foreground",
 	"bg-tone-warning text-tone-warning-foreground",
 ]

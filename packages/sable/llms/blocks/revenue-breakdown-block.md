@@ -25,10 +25,10 @@ import { Badge, Card, CardAction, CardContent, CardDescription, CardHeader, cn, 
 const revenue = { label: "Revenue this month", total: "$12,480", change: "+8.2%" }
 
 const segments = [
-	{ label: "Editions", value: 42, tone: "edition" },
-	{ label: "Collectibles", value: 27, tone: "collectible" },
-	{ label: "Standard", value: 19, tone: "standard" },
-	{ label: "Commissions", value: 12, tone: "info" },
+	{ label: "Direct", value: 42, tone: "1" },
+	{ label: "Partners", value: 27, tone: "2" },
+	{ label: "Referrals", value: 19, tone: "3" },
+	{ label: "Resellers", value: 12, tone: "info" },
 ] as const
 
 export interface RevenueBreakdownBlockProps {
@@ -50,7 +50,7 @@ export function RevenueBreakdownBlock({ className, framed = true }: RevenueBreak
 			</CardHeader>
 			<CardContent className="flex flex-col gap-4 pt-2">
 				<span className="text-mono-xl">{revenue.total}</span>
-				<SegmentedBar label="Revenue by type" segments={[...segments]} size="lg" />
+				<SegmentedBar label="Revenue by channel" segments={[...segments]} size="lg" />
 				{/* Two columns while each entry fits whole, one when they would not:
 				    sized in em, so a larger type or a narrower card drops to one.
 				    aria-hidden: the bar already reads every share aloud. */}

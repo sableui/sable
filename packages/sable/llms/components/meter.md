@@ -43,7 +43,7 @@ Use Meter to show a static measurement against a known maximum — storage used,
 | value | number | — | The current reading, between min and max. Required. |
 | min | number | 0 | The bottom of the range. |
 | max | number | 100 | The top of the range. |
-| tone | "primary" \| "standard" \| "success" \| "warning" \| "destructive" | "primary" | Fill colour, mapped to a semantic token. Choose it from your own thresholds. |
+| tone | "primary" \| "3" \| "success" \| "warning" \| "destructive" | "primary" | Fill colour, mapped to a semantic token. Choose it from your own thresholds. |
 | shape | "bar" \| "ring" | "bar" | bar is a horizontal track; ring is a circular gauge for a small, glanceable reading — the same value, min, max and tones. |
 | size | "sm" \| "md" \| "lg" | "md" | Ring diameter (40 / 64 / 96px at the default spacing; the centre value steps with it), or bar thickness on the same sm / md / lg rails as Progress. |
 | showValue | boolean | — | Print the value in the ring's centre (formatted like MeterValue). |
@@ -54,7 +54,7 @@ Use Meter to show a static measurement against a known maximum — storage used,
 
 ## Variants
 
-- **tone**: primary, standard, success, warning, destructive
+- **tone**: primary, 3, success, warning, destructive
 - **shape**: bar, ring
 - **size**: sm, md, lg
 

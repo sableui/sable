@@ -63,7 +63,7 @@ import { Field, Fieldset, FieldsetContent, FieldsetLegend, Radio, RadioGroup } f
 	<FieldsetContent>
 		<RadioGroup defaultValue="standard">
 			<Field label="Standard" orientation="horizontal"><Radio value="standard" /></Field>
-			<Field label="Edition" orientation="horizontal"><Radio value="edition" /></Field>
+			<Field label="Poll" orientation="horizontal"><Radio value="poll" /></Field>
 		</RadioGroup>
 	</FieldsetContent>
 </Fieldset>
@@ -79,7 +79,7 @@ import { Field, Fieldset, FieldsetContent, FieldsetLegend, Radio, RadioGroup } f
 	<FieldsetContent>
 		<RadioGroup defaultValue="standard">
 			<Field label="Standard" orientation="horizontal"><Radio value="standard" /></Field>
-			<Field label="Edition" orientation="horizontal" disabled><Radio value="edition" /></Field>
+			<Field label="Poll" orientation="horizontal" disabled><Radio value="poll" /></Field>
 		</RadioGroup>
 	</FieldsetContent>
 </Fieldset>

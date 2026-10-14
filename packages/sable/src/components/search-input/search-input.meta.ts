@@ -120,7 +120,7 @@ export const searchInputMeta: ComponentMeta = {
 		},
 		{
 			label: "Uncontrolled, sized as a whole",
-			code: '<Field label="Search posts"><SearchInput defaultValue="editions" className="max-w-80" /></Field>',
+			code: '<Field label="Search posts"><SearchInput defaultValue="roadmap" className="max-w-80" /></Field>',
 		},
 		{
 			label: "Disabled",

@@ -35,17 +35,17 @@ export function SheetPage() {
 						<SheetTrigger render={<Button>Open sheet</Button>} />
 						<SheetContent>
 							<SheetHeader>
-								<SheetTitle>Edition details</SheetTitle>
+								<SheetTitle>Plan details</SheetTitle>
 								<SheetDescription>
-									A limited run of 100, stored permanently on Arweave.
+									Up to 10 seats, billed monthly per seat.
 								</SheetDescription>
 							</SheetHeader>
 							<p className="text-body-md text-muted-foreground">
-								Collecting mints a compressed NFT to your wallet.
+								Upgrading starts a new billing period today.
 							</p>
 							<SheetFooter>
 								<SheetClose render={<Button variant="secondary">Cancel</Button>} />
-								<SheetClose render={<Button>Collect</Button>} />
+								<SheetClose render={<Button>Upgrade</Button>} />
 							</SheetFooter>
 						</SheetContent>
 					</Sheet>

@@ -36,12 +36,12 @@ Use MiddleTruncate when both the beginning and end of a long identifier must rem
 
 ## Examples
 
-### Solana address
+### API key
 
 ```tsx
 import { MiddleTruncate } from "@sableui/react"
 
-<MiddleTruncate text="5J7sX2QpHt9vK4mNbR8wYcZ3dF6gH1jL0pA8xQpVnTu" />
+<MiddleTruncate text="demo_key_7f3a9c2e5b8d1f4a6c0e9b3d7a2f5c8e1b4" />
 ```
 
 ### Custom start/end counts
@@ -49,7 +49,7 @@ import { MiddleTruncate } from "@sableui/react"
 ```tsx
 import { MiddleTruncate } from "@sableui/react"
 
-<MiddleTruncate text="0xAbC1234567890dEf1234567890aBcDeF12345678" startChars={4} endChars={4} />
+<MiddleTruncate text="9f2c4e7a1b3d5f60c8e2a4b6d8f0e1c3a5b7d9f2" startChars={4} endChars={4} />
 ```
 
 ### Copyable value
@@ -57,6 +57,6 @@ import { MiddleTruncate } from "@sableui/react"
 ```tsx
 import { Button, Icon, MiddleTruncate, Row, useCopy } from "@sableui/react"
 
-const { copy, copied } = useCopy(address)
-<Row gap={1}><MiddleTruncate text={address} /><Button variant="ghost" size="icon-xs" aria-label="Copy address" onClick={copy}><Icon name={copied ? "check" : "copy"} /></Button></Row>
+const { copy, copied } = useCopy(commitHash)
+<Row gap={1}><MiddleTruncate text={commitHash} /><Button variant="ghost" size="icon-xs" aria-label="Copy commit hash" onClick={copy}><Icon name={copied ? "check" : "copy"} /></Button></Row>
 ```

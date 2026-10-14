@@ -35,5 +35,5 @@ Use Page as a route content shell that combines Region sizing with vertical rhyt
 ```tsx
 import { Card, CardContent, Page, PageHeader } from "@sableui/react"
 
-<Page as="main" max="feed"><PageHeader title="Home" description="Latest posts from artists you follow." /><Card><CardContent><p className="text-body-md">First post.</p></CardContent></Card></Page>
+<Page as="main" max="feed"><PageHeader title="Home" description="Latest posts from people you follow." /><Card><CardContent><p className="text-body-md">First post.</p></CardContent></Card></Page>
 ```

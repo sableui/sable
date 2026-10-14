@@ -37,7 +37,7 @@ export function BottomNavPage() {
 								<div className="flex-1 p-4">
 									<h2 className="text-title-lg">Activity</h2>
 									<p className="text-body-sm text-muted-foreground">
-										3 new collects today.
+										3 new orders today.
 									</p>
 								</div>
 								<BottomNav className={DEMO_OVERRIDES}>

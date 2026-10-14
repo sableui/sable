@@ -26,7 +26,7 @@ export interface SegmentedBarProps
 }
 
 /** The order segments take when they name no tone: the palette's decorative set first. */
-export const SEGMENTED_BAR_TONES: readonly SegmentedBarTone[] = ["edition", "collectible", "standard", "info", "primary", "neutral"]
+export const SEGMENTED_BAR_TONES: readonly SegmentedBarTone[] = ["1", "2", "3", "info", "primary", "neutral"]
 
 /**
  * One bar split into the parts of a whole — revenue by type, storage by kind,
@@ -36,7 +36,7 @@ export const SEGMENTED_BAR_TONES: readonly SegmentedBarTone[] = ["edition", "col
  * it, in a table — depends on the card.
  *
  * The bar is one image to assistive tech, named by `label` and every
- * segment's share ("Revenue by type: Editions 42%, Collectibles 27%, …"), so a
+ * segment's share ("Revenue by channel: Direct 42%, Partners 27%, …"), so a
  * legend that repeats it visually can stay out of the accessible reading.
  */
 export function SegmentedBar({ segments, label, locale, size, className, ...props }: SegmentedBarProps) {

@@ -91,7 +91,7 @@ export const meterMeta: ComponentMeta = {
 		},
 		{
 			name: "tone",
-			type: '"primary" | "standard" | "success" | "warning" | "destructive"',
+			type: '"primary" | "3" | "success" | "warning" | "destructive"',
 			default: '"primary"',
 			description: "Fill colour, mapped to a semantic token. Choose it from your own thresholds.",
 		},
@@ -157,7 +157,7 @@ export const meterMeta: ComponentMeta = {
 		},
 	],
 	variants: {
-		tone: ["primary", "standard", "success", "warning", "destructive"],
+		tone: ["primary", "3", "success", "warning", "destructive"],
 		shape: ["bar", "ring"],
 		size: ["sm", "md", "lg"],
 	},

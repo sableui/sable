@@ -13,7 +13,7 @@ Use Pagination when a result set is split into discrete pages and the user needs
 ### Best practices
 
 - Do: Keep page state controlled by the parent route or data layer so URL, filters, and result fetches stay in sync.
-- Do: Use a specific label when multiple pagers appear on a page, such as "Collector pages".
+- Do: Use a specific label when multiple pagers appear on a page, such as "Customer pages".
 - Do: Reset to page 1 when filters or search terms materially change the result set.
 - Don't: Use Pagination for tiny lists where all items fit comfortably on one page.
 - Don't: Hide disabled previous/next buttons at the bounds; disabled controls make the current position clearer.
@@ -79,7 +79,7 @@ const [page, setPage] = useState(8)
 ```tsx
 import { DataTable, Pagination, Stack } from "@sableui/react"
 
-<Stack gap={2}><DataTable data={rows} columns={columns} rowKey={(row) => row.id} /><Pagination label="Collector pages" page={page} total={12} onPageChange={setPage} /></Stack>
+<Stack gap={2}><DataTable data={rows} columns={columns} rowKey={(row) => row.id} /><Pagination label="Customer pages" page={page} total={12} onPageChange={setPage} /></Stack>
 ```
 
 ### Server query state

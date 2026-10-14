@@ -28,46 +28,43 @@ export function TablePage() {
 			<PageHeader eyebrow="Components" title="Table" lede={ledeFor(tableMeta)} />
 
 			<Section
-				title="Collectors"
+				title="Orders"
 				description="A header, rows with one selected, and a caption. Flush in a card, the first and last columns line up with the card's padding. Wide tables scroll sideways."
 			>
 				<Example>
 					<Card className="w-full overflow-hidden">
 						<CardContent flush>
 							<Table>
-								<TableCaption>Recent collectors of this edition.</TableCaption>
+								<TableCaption>Recent orders this week.</TableCaption>
 								<TableHeader>
 									<TableRow>
-										<TableHead>Collector</TableHead>
-										<TableHead>Edition</TableHead>
+										<TableHead>Customer</TableHead>
+										<TableHead>Order</TableHead>
 										<TableHead>Paid</TableHead>
-										<TableHead>Collected</TableHead>
+										<TableHead>Placed</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
 									<TableRow>
 										<TableCell className="text-foreground">@nova</TableCell>
-										{/* design-lint-disable-next-line inline-color -- "#012" is an edition number in sample table data, not a colour */}
-										<TableCell>#012</TableCell>
-										<TableCell>0.5 SOL</TableCell>
+										<TableCell>1042</TableCell>
+										<TableCell>$48.00</TableCell>
 										<TableCell className="text-muted-foreground">
 											<RelativeTime date={now - 2 * HOUR} />
 										</TableCell>
 									</TableRow>
 									<TableRow data-selected>
 										<TableCell className="text-foreground">@orbit</TableCell>
-										{/* design-lint-disable-next-line inline-color -- "#011" is an edition number in sample table data, not a colour */}
-										<TableCell>#011</TableCell>
-										<TableCell>0.5 SOL</TableCell>
+										<TableCell>1041</TableCell>
+										<TableCell>$120.00</TableCell>
 										<TableCell className="text-muted-foreground">
 											<RelativeTime date={now - 5 * HOUR} />
 										</TableCell>
 									</TableRow>
 									<TableRow>
 										<TableCell className="text-foreground">@meridian</TableCell>
-										{/* design-lint-disable-next-line inline-color -- "#010" is an edition number in sample table data, not a colour */}
-										<TableCell>#010</TableCell>
-										<TableCell>0.5 SOL</TableCell>
+										<TableCell>1040</TableCell>
+										<TableCell>$36.00</TableCell>
 										<TableCell className="text-muted-foreground">
 											<RelativeTime date={now - 24 * HOUR} />
 										</TableCell>

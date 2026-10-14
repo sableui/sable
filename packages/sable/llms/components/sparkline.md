@@ -24,7 +24,7 @@ Use Sparkline next to a number to show where it has been — a KPI's last 30 day
 | data | number[] | — | The values, oldest first. |
 | label | string | — | What the line tracks ("Revenue, last 30 days"). The spoken summary adds the first and last values, low and high. |
 | variant | "line" \| "area" \| "bar" | "line" | A line, a line over a soft fill, or columns. |
-| tone | "edition" \| "collectible" \| "standard" \| "info" \| "warning" \| "primary" \| "neutral" \| "success" \| "destructive" | "primary" | Colour by role. |
+| tone | "1" \| "2" \| "3" \| "info" \| "warning" \| "primary" \| "neutral" \| "success" \| "destructive" | "primary" | Colour by role. |
 | className | string | "h-8 w-24" | Sizes it; the drawing stretches to fit. |
 | animate | boolean | true | Draw on (or rise) when it scrolls into view. |
 | locale | string | runtime locale | BCP 47 locale for default number and date formatting. |
@@ -35,7 +35,7 @@ Use Sparkline next to a number to show where it has been — a KPI's last 30 day
 
 ## Tokens used
 
-`primary`, `tone-edition`, `tone-collectible`, `tone-standard`, `tone-info`, `tone-warning`, `muted-foreground`, `success`, `destructive`
+`primary`, `tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `muted-foreground`, `success`, `destructive`
 
 ## Motion
 

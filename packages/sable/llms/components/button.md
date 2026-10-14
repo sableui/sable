@@ -88,7 +88,7 @@ Use Button when the user commits an action, submits a form, opens UI, or confirm
 ```tsx
 import { Button } from "@sableui/react"
 
-<Button>Collect</Button>
+<Button>Save changes</Button>
 ```
 
 ### Secondary + ghost
@@ -145,7 +145,7 @@ import { Button, Row } from "@sableui/react"
 ```tsx
 import { Button, Row } from "@sableui/react"
 
-<Row gap={1}><Button variant="secondary">Cancel</Button><Button variant="destructive">Delete edition</Button></Row>
+<Row gap={1}><Button variant="secondary">Cancel</Button><Button variant="destructive">Delete project</Button></Row>
 ```
 
 ### Leading icon
@@ -228,5 +228,5 @@ import { Button } from "@sableui/react"
 ```tsx
 import { Banner, Button } from "@sableui/react"
 
-<Banner tone="warning" appearance="solid" action={<Button variant="on-color" size="sm">Reconnect</Button>}>Wallet connection paused.</Banner>
+<Banner tone="warning" appearance="solid" action={<Button variant="on-color" size="sm">Reconnect</Button>}>Calendar sync paused.</Banner>
 ```

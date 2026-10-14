@@ -32,11 +32,11 @@ export function TextareaPage() {
 				title="Rows"
 				description="Size it to the amount of text you expect."
 			>
-				<Example code={`<Textarea rows={6} placeholder="Tell the story behind this edition…" />`}>
+				<Example code={`<Textarea rows={6} placeholder="Tell your team what this project is for…" />`}>
 					<Textarea
 						className="max-w-md"
 						rows={6}
-						placeholder="Tell the story behind this edition…"
+						placeholder="Tell your team what this project is for…"
 					/>
 				</Example>
 			</Section>
@@ -47,7 +47,7 @@ export function TextareaPage() {
 			>
 				<Example
 					code={`<Textarea aria-invalid defaultValue="This caption is too long for the post." />
-<Textarea disabled defaultValue="Captions lock once the edition is minted." />`}
+<Textarea disabled defaultValue="Notes lock once the invoice is sent." />`}
 				>
 					<Textarea
 						className="max-w-md"
@@ -57,7 +57,7 @@ export function TextareaPage() {
 					<Textarea
 						className="max-w-md"
 						disabled
-						defaultValue="Captions lock once the edition is minted."
+						defaultValue="Notes lock once the invoice is sent."
 					/>
 				</Example>
 			</Section>

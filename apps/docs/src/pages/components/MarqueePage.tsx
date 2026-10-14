@@ -8,14 +8,14 @@ import {
 } from "../../components/docs-ui"
 
 const TAGS = [
-	"Solana",
-	"Editions",
-	"Collectibles",
-	"Arweave",
-	"cNFTs",
-	"Anchor",
-	"Metaplex",
-	"Helius",
+	"Design",
+	"Projects",
+	"Reports",
+	"Billing",
+	"Teams",
+	"Analytics",
+	"Exports",
+	"Webhooks",
 ]
 
 export function MarqueePage() {

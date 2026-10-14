@@ -31,7 +31,7 @@ const spaces = [
 
 const routes = [
 	{ label: "Intake", state: "Open", tone: "info" as const },
-	{ label: "Review", state: "Live", tone: "edition" as const },
+	{ label: "Review", state: "Live", tone: "1" as const },
 	{ label: "Archive", state: "Safe", tone: "success" as const },
 ]
 
@@ -209,7 +209,7 @@ export function BrandLandingPage() {
 									<div className="flex items-center justify-between border-b border-border px-4 py-3">
 										<Row gap={1}>
 											<StatusDot tone="warning" />
-											<StatusDot tone="edition" />
+											<StatusDot tone="1" />
 											<StatusDot tone="success" />
 										</Row>
 										<span className="text-label-sm text-muted-foreground">Live workspace</span>

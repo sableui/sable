@@ -47,7 +47,7 @@ export const gradientArtMeta: ComponentMeta = {
 		{ name: "variant", type: '"mesh" | "grain"', default: '"mesh"', description: "mesh: soft spots of colour pulled together by gentle waves. grain: glowing light over deep corners with a printed texture." },
 		{
 			name: "tones",
-			type: '("info" | "standard" | "collectible" | "edition" | "warning")[]',
+			type: '("info" | "3" | "2" | "1" | "warning")[]',
 			description: "Paint these `--tone-*` colours instead of the preset's art palette. Leave unset to follow the preset's art direction.",
 		},
 		{ name: "seed", type: "string | number", description: "Fixes the composition: the same seed paints the same art in every theme. Pass a stable id." },
@@ -55,7 +55,7 @@ export const gradientArtMeta: ComponentMeta = {
 		{ name: "className", type: "string", description: "Size and shape: aspect, height, rounding." },
 	],
 	variants: { variant: ["mesh", "grain"] },
-	tokensUsed: ["art-1", "art-2", "art-3", "art-4", "art-5", "art-6", "art-ground", "art-warp", "art-softness", "art-grain", "primary", "tone-info", "tone-standard", "tone-collectible", "tone-edition", "tone-warning"],
+	tokensUsed: ["art-1", "art-2", "art-3", "art-4", "art-5", "art-6", "art-ground", "art-warp", "art-softness", "art-grain", "primary", "tone-info", "tone-3", "tone-2", "tone-1", "tone-warning"],
 	motion: [
 		{
 			slot: "arrival",
@@ -78,7 +78,7 @@ export const gradientArtMeta: ComponentMeta = {
 	],
 	examples: [
 		{ label: "Product cover", code: '<GradientArt seed="Untitled (gold rush)" className="aspect-[4/3] rounded-lg" />' },
-		{ label: "Grain banner", code: '<GradientArt variant="grain" seed="juno" tones={["info", "edition"]} className="h-20 rounded-md" />' },
+		{ label: "Grain banner", code: '<GradientArt variant="grain" seed="juno" tones={["info", "1"]} className="h-20 rounded-md" />' },
 		{
 			label: "Avatar with initials",
 			code: '<GradientArt seed="Mara Okafor" className="grid size-10 place-items-center rounded-full text-label-md text-overlay-foreground">MO</GradientArt>',

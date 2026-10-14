@@ -33,12 +33,12 @@ export function PopoverPage() {
 				<Example>
 					<Popover>
 						<PopoverTrigger
-							render={<Button variant="secondary">Edition details</Button>}
+							render={<Button variant="secondary">Plan details</Button>}
 						/>
 						<PopoverContent>
-							<PopoverTitle>Edition details</PopoverTitle>
+							<PopoverTitle>Plan details</PopoverTitle>
 							<PopoverDescription>
-								A limited run of 100, stored permanently on Arweave.
+								Up to 10 seats, billed monthly per seat.
 							</PopoverDescription>
 						</PopoverContent>
 					</Popover>
@@ -55,7 +55,7 @@ export function PopoverPage() {
 						<PopoverContent>
 							<PopoverTitle>Heads up</PopoverTitle>
 							<PopoverDescription>
-								Collecting mints a compressed NFT to your wallet.
+								Upgrading starts a new billing period today.
 							</PopoverDescription>
 							<div className="mt-4 flex justify-end">
 								<PopoverClose render={<Button size="sm">Got it</Button>} />
@@ -130,11 +130,11 @@ export function PopoverPage() {
 			>
 				<Example>
 					<Popover>
-						<PopoverTrigger render={<Button>Collect</Button>} />
+						<PopoverTrigger render={<Button>Upgrade</Button>} />
 						<PopoverContent>
-							<PopoverTitle>Collect this edition</PopoverTitle>
+							<PopoverTitle>Upgrade to Studio</PopoverTitle>
 							<PopoverDescription>
-								Mints a compressed NFT to your wallet.
+								Adds unlimited projects for your team.
 							</PopoverDescription>
 							<PopoverArrow />
 						</PopoverContent>

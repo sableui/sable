@@ -63,25 +63,25 @@ Use Table for structured data with consistent columns and rows. Use DataTable wh
 
 ## Examples
 
-### Collectors
+### Orders
 
 ```tsx
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@sableui/react"
 
 <Table>
-	<TableCaption>Recent collectors</TableCaption>
+	<TableCaption>Recent orders</TableCaption>
 	<TableHeader>
 		<TableRow>
-			<TableHead>Collector</TableHead>
-			<TableHead>Edition</TableHead>
+			<TableHead>Customer</TableHead>
+			<TableHead>Order</TableHead>
 			<TableHead>Paid</TableHead>
 		</TableRow>
 	</TableHeader>
 	<TableBody>
 		<TableRow>
 			<TableCell>@nova</TableCell>
-			<TableCell>#012</TableCell>
-			<TableCell>0.5 SOL</TableCell>
+			<TableCell>1042</TableCell>
+			<TableCell>$48.00</TableCell>
 		</TableRow>
 	</TableBody>
 </Table>
@@ -100,7 +100,7 @@ import { Avatar, Badge, Button, Row, Table, TableBody, TableCaption, TableCell, 
 ```tsx
 import { Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@sableui/react"
 
-<Card><CardHeader><CardTitle>Collectors</CardTitle></CardHeader><CardContent flush><Table><TableHeader><TableRow><TableHead>Collector</TableHead><TableHead>Paid</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell>@nova</TableCell><TableCell>0.5 SOL</TableCell></TableRow></TableBody></Table></CardContent></Card>
+<Card><CardHeader><CardTitle>Customers</CardTitle></CardHeader><CardContent flush><Table><TableHeader><TableRow><TableHead>Customer</TableHead><TableHead>Paid</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell>@nova</TableCell><TableCell>$48.00</TableCell></TableRow></TableBody></Table></CardContent></Card>
 ```
 
 ### Summary footer
@@ -108,5 +108,5 @@ import { Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, 
 ```tsx
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@sableui/react"
 
-<Table><TableHeader><TableRow><TableHead>Item</TableHead><TableHead className="text-end">Amount</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell>Primary sale</TableCell><TableCell className="text-end">42 SOL</TableCell></TableRow></TableBody><TableFooter><TableRow><TableCell>Total</TableCell><TableCell className="text-end">42 SOL</TableCell></TableRow></TableFooter></Table>
+<Table><TableHeader><TableRow><TableHead>Item</TableHead><TableHead className="text-end">Amount</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell>Studio plan</TableCell><TableCell className="text-end">$192.00</TableCell></TableRow></TableBody><TableFooter><TableRow><TableCell>Total</TableCell><TableCell className="text-end">$192.00</TableCell></TableRow></TableFooter></Table>
 ```

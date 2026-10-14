@@ -155,23 +155,23 @@ const SEMANTIC_BASES: Record<string, TokenDoc> = {
 		insteadOf:
 			"`tone-info`. Success asserts an outcome; info asserts a fact. 'Saved' is success, '3 items' is info.",
 	},
-	"tone-standard": {
+	"tone-1": {
 		intent:
-			"Domain tone: the baseline classification in a set. Part of the `tone-*` family, which exists so a product can classify content without inventing colours per feature.",
-		whenToUse: "The default category of a classified item — the one that means 'nothing special'.",
+			"Extra colour 1, the lead of the three a theme defines beyond its status colours. The numbered tones exist so a product can classify content (categories, plans, series) without inventing colours per feature; the product decides what each one means.",
+		whenToUse: "The most prominent category in a classified set, or the first series of a chart.",
+		insteadOf:
+			"`primary`. A tone classifies the *thing*; primary drives an *action*. A category badge is not a button.",
+	},
+	"tone-2": {
+		intent: "Extra colour 2: the second category in a classified set.",
+		whenToUse: "A second category, distinct from tone-1, in a badge, dot, card or chart.",
+		insteadOf: "`tone-1`. Distinct categories must stay visually distinct.",
+	},
+	"tone-3": {
+		intent: "Extra colour 3: the third, and usually the quietest, category in a classified set.",
+		whenToUse: "A third category, or the baseline one that means 'nothing special'.",
 		insteadOf:
 			"`muted`. A tone is *semantic classification* that a reader is meant to decode; `muted` is de-emphasis. If a legend would help the user, it is a tone.",
-	},
-	"tone-collectible": {
-		intent: "Domain tone: a scarce or owned item.",
-		whenToUse: "Marking an item as collectible/owned in a classified set.",
-		insteadOf:
-			"`primary`. A tone classifies the *thing*; primary drives an *action*. A collectible badge is not a button.",
-	},
-	"tone-edition": {
-		intent: "Domain tone: an edition or release.",
-		whenToUse: "Marking editioned content in a classified set.",
-		insteadOf: "`tone-collectible`. Distinct classifications must stay visually distinct.",
 	},
 	"tone-info": {
 		intent: "Domain tone: neutral, factual information.",
@@ -641,9 +641,9 @@ export const TOKEN_DOCS: Record<string, TokenDoc> = {
 			"accent",
 			"destructive",
 			"success",
-			"tone-standard",
-			"tone-collectible",
-			"tone-edition",
+			"tone-3",
+			"tone-2",
+			"tone-1",
 			"tone-info",
 			"tone-warning",
 			"highlight",

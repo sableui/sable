@@ -26,7 +26,7 @@ describe("Note action", () => {
 
 	it("renders an href remedy as a link with the chevron", () => {
 		const { getByRole, container } = render(
-			<Note action={{ label: "Read the docs", href: "/docs" }}>Editions mint on mainnet.</Note>,
+			<Note action={{ label: "Read the docs", href: "/docs" }}>Reports refresh every hour.</Note>,
 		)
 		const link = getByRole("link", { name: /Read the docs/ })
 		expect(link).toHaveAttribute("href", "/docs")

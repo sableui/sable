@@ -92,14 +92,14 @@ export function ButtonPage() {
 				description="One primary per area. Everything else steps down."
 			>
 				<Example
-					code={`<Button>Collect</Button>
+					code={`<Button>Publish</Button>
 <Button variant="secondary">Cancel</Button>
 <Button variant="ghost">Skip</Button>
 <Button variant="outline">Outline</Button>
 <Button variant="destructive">Delete</Button>
 <Button variant="link">Learn more</Button>`}
 				>
-					<Button>Collect</Button>
+					<Button>Publish</Button>
 					<Button variant="secondary">Cancel</Button>
 					<Button variant="ghost">Skip</Button>
 					<Button variant="outline">Outline</Button>

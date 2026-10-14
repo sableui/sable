@@ -139,7 +139,7 @@ export const sideNavMeta: ComponentMeta = {
 		},
 		{
 			label: "Chrome-weight rail (size=lg)",
-			code: '<SideNav size="lg"><SideNavItem label="Profile" active render={<Link to="/settings/profile" />} /><SideNavItem label="Wallets" render={<Link to="/settings/wallets" />} /><SideNavItem label="Security" render={<Link to="/settings/security" />} /></SideNav>',
+			code: '<SideNav size="lg"><SideNavItem label="Profile" active render={<Link to="/settings/profile" />} /><SideNavItem label="Billing" render={<Link to="/settings/billing" />} /><SideNavItem label="Security" render={<Link to="/settings/security" />} /></SideNav>',
 		},
 		{
 			label: "Inside Sidebar chrome",

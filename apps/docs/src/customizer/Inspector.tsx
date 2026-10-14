@@ -253,6 +253,15 @@ export function Inspector({
 				<PropertyRow stacked label="Neutrals">
 					<Segmented label="Neutrals" value={look.neutrals} onChange={(next) => setLook({ neutrals: next })} options={neutrals} />
 				</PropertyRow>
+				{/* How far the generated families (bg-blue-500 …) lean toward the brand.
+				    The slider's middle is the default lean: 0 keeps their own hues, the
+				    far end doubles the pull. Double-click resets. */}
+				<LookSlider
+					label="Harmony"
+					value={look.harmony == null ? null : look.harmony / 2}
+					valueText={(value) => (value == null ? "Theme" : value === 0 ? "Own hues" : `${Math.round(value * 2)}%`)}
+					onChange={(value) => setLook({ harmony: value == null ? null : Math.round(value * 2) })}
+				/>
 			</Section>
 			<Section title="Shape">
 				<ShapePreview radius={radius} shadow={shadowPreview} />
@@ -322,9 +331,12 @@ export function Inspector({
 						<AnchorField label="Status lean" prefix="S" suffix="%" min={0} max={100} value={look.statusLean} measured={DEFAULT_STATUS_LEAN[look.palette]} onChange={(statusLean) => setLook({ statusLean })} />
 					</PropertyPair>
 				) : null}
-				<PropertyRow label="Neutrals">
-					<ChromeSelect label="Neutrals" value={look.neutrals} onChange={(next) => setLook({ neutrals: next })} options={neutrals} className="w-36" />
-				</PropertyRow>
+				{/* Harmony: how far the generated families (bg-blue-500 …) lean toward
+				    the brand. 0 keeps their own hues; 100 is the default; 200 doubles it. */}
+				<PropertyPair labels={["Neutrals", <AnchorCaption key="harmony" label="Harmony" set={look.harmony != null} onReset={() => setLook({ harmony: null })} />]}>
+					<ChromeSelect label="Neutrals" value={look.neutrals} onChange={(next) => setLook({ neutrals: next })} options={neutrals} />
+					<AnchorField label="Palette harmony" prefix="H" suffix="%" min={0} max={200} value={look.harmony} measured={100} onChange={(harmony) => setLook({ harmony })} />
+				</PropertyPair>
 			</Section>
 			<Section title="Corners">
 				<PropertyPair labels={[<AnchorCaption label="Medium radius" set={look.radiusBase != null} onReset={() => setLook({ radiusBase: null })} />, "Buttons"]}>

@@ -21,23 +21,23 @@ export const radioCardToneClasses = {
 		dot: "bg-primary",
 		glyph: "text-foreground",
 	},
-	standard: {
-		card: SELECTION_CARD_CHECKED.standard,
-		marker: "group-data-[checked]:border-tone-standard",
-		dot: "bg-tone-standard",
-		glyph: "text-tone-standard",
+	"3": {
+		card: SELECTION_CARD_CHECKED["3"],
+		marker: "group-data-[checked]:border-tone-3",
+		dot: "bg-tone-3",
+		glyph: "text-tone-3",
 	},
-	collectible: {
-		card: SELECTION_CARD_CHECKED.collectible,
-		marker: "group-data-[checked]:border-tone-collectible",
-		dot: "bg-tone-collectible",
-		glyph: "text-tone-collectible",
+	"2": {
+		card: SELECTION_CARD_CHECKED["2"],
+		marker: "group-data-[checked]:border-tone-2",
+		dot: "bg-tone-2",
+		glyph: "text-tone-2",
 	},
-	edition: {
-		card: SELECTION_CARD_CHECKED.edition,
-		marker: "group-data-[checked]:border-tone-edition",
-		dot: "bg-tone-edition",
-		glyph: "text-tone-edition",
+	"1": {
+		card: SELECTION_CARD_CHECKED["1"],
+		marker: "group-data-[checked]:border-tone-1",
+		dot: "bg-tone-1",
+		glyph: "text-tone-1",
 	},
 	info: {
 		card: SELECTION_CARD_CHECKED.info,

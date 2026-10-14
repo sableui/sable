@@ -41,7 +41,7 @@ export function TooltipPage() {
 								</Button>
 							}
 						/>
-						<TooltipContent>Stored permanently on Arweave.</TooltipContent>
+						<TooltipContent>Saved to your workspace.</TooltipContent>
 					</Tooltip>
 
 					<Tooltip>
@@ -86,9 +86,9 @@ export function TooltipPage() {
 			>
 				<Example>
 					<Tooltip>
-						<TooltipTrigger render={<Button>Collect</Button>} />
+						<TooltipTrigger render={<Button>Publish</Button>} />
 						<TooltipContent>
-							Mints a compressed NFT to your wallet.
+							Shares this report with your team.
 							<TooltipArrow />
 						</TooltipContent>
 					</Tooltip>

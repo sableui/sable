@@ -104,7 +104,7 @@ toast.promise(publish(), { loading: "Publishing…", success: "Published", error
 ```tsx
 import { toast } from "@sableui/react"
 
-const id = toast.loading("Pinning to Arweave…"); /* later */ toast.update(id, { title: "Pinned", type: "success", timeout: 4000 })
+const id = toast.loading("Uploading report…"); /* later */ toast.update(id, { title: "Uploaded", type: "success", timeout: 4000 })
 ```
 
 ### Custom toast markup (composed parts)

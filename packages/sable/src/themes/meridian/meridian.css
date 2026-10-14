@@ -2,7 +2,7 @@
    Meridian — a Sable theme, developed from reference analysis.
 
    Components must reference the SEMANTIC tokens (--background, --primary,
-   --tone-edition, …), never any palette ramp directly. See themes/_contract.ts.
+   --tone-1, …), never any palette ramp directly. See themes/_contract.ts.
    ========================================================================== */
 
 /* Scoped to [data-sable-theme="meridian"]; no bare :root fallback (base owns the default). */
@@ -148,9 +148,9 @@
 	--success: oklch(43% 0.1 165);
 	--success-text: oklch(43% 0.1 165);
 	--success-foreground: oklch(94.6% 0.0083 91.48);
-	--tone-standard: oklch(40% 0.07 130);
-	--tone-collectible: oklch(46% 0.14 285);
-	--tone-edition: oklch(45% 0.15 309);
+	--tone-3: oklch(40% 0.07 130);
+	--tone-2: oklch(46% 0.14 285);
+	--tone-1: oklch(45% 0.15 309);
 	--tone-info: oklch(48% 0.13 250);
 	--tone-info-text: oklch(48% 0.13 250);
 	--tone-warning: oklch(50% 0.12 52);
@@ -161,9 +161,9 @@
 	   same hue, deep enough for 5.2:1. A theme-local token: Meridian's art
 	   direction is the only one that sets its accent as type. */
 	--meridian-ember-ink: oklch(52% 0.19 31.5);
-	--tone-standard-foreground: oklch(94.6% 0.0083 91.48);
-	--tone-collectible-foreground: oklch(94.6% 0.0083 91.48);
-	--tone-edition-foreground: oklch(94.6% 0.0083 91.48);
+	--tone-3-foreground: oklch(94.6% 0.0083 91.48);
+	--tone-2-foreground: oklch(94.6% 0.0083 91.48);
+	--tone-1-foreground: oklch(94.6% 0.0083 91.48);
 	--tone-info-foreground: oklch(94.6% 0.0083 91.48);
 	--tone-warning-foreground: oklch(94.6% 0.0083 91.48);
 	--highlight-foreground: oklch(99% 0.004 91.5);
@@ -241,18 +241,18 @@
 	--success: oklch(75.5% 0.12 165);
 	--success-text: oklch(75.5% 0.12 165);
 	--success-foreground: oklch(22.46% 0.0094 107.13);
-	--tone-standard: oklch(70% 0.09 130);
-	--tone-collectible: oklch(70% 0.12 285);
-	--tone-edition: oklch(68% 0.14 309);
+	--tone-3: oklch(70% 0.09 130);
+	--tone-2: oklch(70% 0.12 285);
+	--tone-1: oklch(68% 0.14 309);
 	--tone-info: oklch(76.5% 0.11 250);
 	--tone-info-text: oklch(76.5% 0.11 250);
 	--tone-warning: oklch(78% 0.13 60);
 	--tone-warning-text: oklch(78% 0.13 60);
 	--highlight: oklch(57.5% 0.2 31.5);
 	--meridian-ember-ink: oklch(72% 0.17 33); /* 6.4:1 on the dark ground */
-	--tone-standard-foreground: oklch(22.46% 0.0094 107.13);
-	--tone-collectible-foreground: oklch(22.46% 0.0094 107.13);
-	--tone-edition-foreground: oklch(22.46% 0.0094 107.13);
+	--tone-3-foreground: oklch(22.46% 0.0094 107.13);
+	--tone-2-foreground: oklch(22.46% 0.0094 107.13);
+	--tone-1-foreground: oklch(22.46% 0.0094 107.13);
 	--tone-info-foreground: oklch(22.46% 0.0094 107.13);
 	--tone-warning-foreground: oklch(22.46% 0.0094 107.13);
 	--highlight-foreground: oklch(99% 0.004 91.5);

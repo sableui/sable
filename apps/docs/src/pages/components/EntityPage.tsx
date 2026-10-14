@@ -45,7 +45,7 @@ export function EntityPage() {
 							leading={<Avatar fallback="AL" alt="Ada Lovelace" />}
 							title="Ada Lovelace"
 							subtitle="Online"
-							action={<StatusDot tone="standard" />}
+							action={<StatusDot tone="3" />}
 						/>
 						<Entity
 							leading={<Avatar fallback="GH" alt="Grace Hopper" />}

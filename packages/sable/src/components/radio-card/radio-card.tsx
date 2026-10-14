@@ -22,13 +22,13 @@ import { type RadioCardTone, radioCardToneClasses } from "./radio-card.variants"
  * arrow-key navigation, ARIA radiogroup/radio wiring, form integration, and the
  * data-[checked] / data-disabled state attributes. We own the visual surface.
  *
- *   <RadioGroup defaultValue="collectible" className="grid sm:grid-cols-3">
- *     <RadioCard value="post" tone="standard" icon={<Icon name="plus" />}
- *       title="Standard" description="Share without minting" />
- *     <RadioCard value="collectible" tone="collectible" icon={<Icon name="gem" />}
- *       title="Collectible" description="Free to collect as NFT" />
- *     <RadioCard value="edition" tone="edition" icon={<Icon name="image-stack" />}
- *       title="Edition" description="Sell as NFT editions" />
+ *   <RadioGroup defaultValue="studio" className="grid sm:grid-cols-3">
+ *     <RadioCard value="post" tone="3" icon={<Icon name="plus" />}
+ *       title="Starter" description="Free for one person" />
+ *     <RadioCard value="studio" tone="2" icon={<Icon name="gem" />}
+ *       title="Studio" description="For small teams" />
+ *     <RadioCard value="business" tone="1" icon={<Icon name="image-stack" />}
+ *       title="Business" description="SSO and audit log" />
  *   </RadioGroup>
  *
  * Controlled via value + onValueChange; uncontrolled via defaultValue.

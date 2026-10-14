@@ -1,4 +1,5 @@
 import { cva } from "class-variance-authority"
+import { PALETTE_COLORS, type PaletteColor } from "../../lib/palette"
 
 /**
  * A badge is two independent choices: how it is DRAWN (`appearance`) and what
@@ -18,68 +19,90 @@ import { cva } from "class-variance-authority"
  *             ("● Ready"). Neutral and the calm tones keep the body ink;
  *             destructive turns the label itself.
  */
-export const BADGE_TONES = ["neutral", "standard", "collectible", "edition", "info", "success", "warning", "destructive"] as const
+export const BADGE_TONES = ["neutral", "1", "2", "3", "info", "success", "warning", "destructive", ...PALETTE_COLORS] as const
 export type BadgeTone = (typeof BADGE_TONES)[number]
 export const BADGE_APPEARANCES = ["soft", "outline", "solid", "overlay", "plain"] as const
 export type BadgeAppearance = (typeof BADGE_APPEARANCES)[number]
 
+/**
+ * A palette family (`tone="blue"`) is a category with no meaning attached: a
+ * tag, a label, a project colour. Badge sets `data-palette` to the family, and
+ * these paint from the slots that fills (palette.css), so the classes are the
+ * same for every family and no step is named here. Soft is a wash with deep
+ * ink, outline an edge with the same ink, solid the deep step with page-side
+ * ink; each pair is held to 4.5:1 in every theme and mode (palette.test.ts).
+ */
+const FAMILY: Record<BadgeAppearance, string> = {
+	soft: "bg-palette-wash text-palette-text",
+	outline: "border border-palette-edge text-palette-text",
+	solid: "bg-palette-solid text-palette-solid-ink",
+	overlay: "bg-palette-solid text-palette-solid-ink",
+	plain: "text-foreground",
+}
+const families = (appearance: BadgeAppearance) => Object.fromEntries(PALETTE_COLORS.map((color) => [color, FAMILY[appearance]])) as Record<PaletteColor, string>
+
 const MATRIX: Record<BadgeAppearance, Record<BadgeTone, string>> = {
 	// The ink is the tone pulled a quarter of the way to the page's own ink. The
 	// raw tone clears 4.5:1 on the page, but on its own 15% wash it did not
-	// (light info 4.2:1, dark edition 3.6:1, most of Verdant's tones ~4.1:1).
+	// (light info 4.2:1, dark tone 1 3.6:1, most of Verdant's tones ~4.1:1).
 	// Mixing toward --foreground moves it AWAY from the wash in both modes and
 	// every theme, and keeps the hue. Status tones mix from their -text token,
 	// not the fill: dark fills now sit low enough for a white label, and ink
 	// mixed from them fell under 4.5:1 (Meridian dark destructive, 3.8:1).
 	soft: {
 		neutral: "bg-secondary text-secondary-foreground",
-		standard: "bg-tone-standard/15 text-[color-mix(in_oklch,var(--tone-standard)_75%,var(--foreground))]",
-		collectible: "bg-tone-collectible/15 text-[color-mix(in_oklch,var(--tone-collectible)_75%,var(--foreground))]",
-		edition: "bg-tone-edition/15 text-[color-mix(in_oklch,var(--tone-edition)_75%,var(--foreground))]",
+		"3": "bg-tone-3/15 text-[color-mix(in_oklch,var(--tone-3)_75%,var(--foreground))]",
+		"2": "bg-tone-2/15 text-[color-mix(in_oklch,var(--tone-2)_75%,var(--foreground))]",
+		"1": "bg-tone-1/15 text-[color-mix(in_oklch,var(--tone-1)_75%,var(--foreground))]",
 		info: "bg-tone-info/15 text-[color-mix(in_oklch,var(--tone-info-text)_75%,var(--foreground))]",
 		success: "bg-success/15 text-[color-mix(in_oklch,var(--success-text)_75%,var(--foreground))]",
 		warning: "bg-tone-warning/15 text-[color-mix(in_oklch,var(--tone-warning-text)_75%,var(--foreground))]",
 		destructive: "bg-destructive/15 text-[color-mix(in_oklch,var(--destructive-text)_75%,var(--foreground))]",
+		...families("soft"),
 	},
 	outline: {
 		neutral: "border border-border text-foreground",
-		standard: "border border-tone-standard/50 text-tone-standard",
-		collectible: "border border-tone-collectible/50 text-tone-collectible",
-		edition: "border border-tone-edition/50 text-tone-edition",
+		"3": "border border-tone-3/50 text-tone-3",
+		"2": "border border-tone-2/50 text-tone-2",
+		"1": "border border-tone-1/50 text-tone-1",
 		info: "border border-tone-info/50 text-tone-info",
 		success: "border border-success/50 text-success",
 		warning: "border border-tone-warning/50 text-tone-warning",
 		destructive: "border border-destructive/50 text-destructive",
+		...families("outline"),
 	},
 	solid: {
 		neutral: "bg-foreground text-background",
-		standard: "bg-tone-standard text-tone-standard-foreground",
-		collectible: "bg-tone-collectible text-tone-collectible-foreground",
-		edition: "bg-tone-edition text-tone-edition-foreground",
+		"3": "bg-tone-3 text-tone-3-foreground",
+		"2": "bg-tone-2 text-tone-2-foreground",
+		"1": "bg-tone-1 text-tone-1-foreground",
 		info: "bg-tone-info text-tone-info-foreground",
 		success: "bg-success text-success-foreground",
 		warning: "bg-tone-warning text-tone-warning-foreground",
 		destructive: "bg-destructive text-destructive-foreground",
+		...families("solid"),
 	},
 	overlay: {
 		neutral: "bg-overlay/85 text-overlay-foreground",
-		standard: "bg-tone-standard text-tone-standard-foreground",
-		collectible: "bg-tone-collectible text-tone-collectible-foreground",
-		edition: "bg-tone-edition text-tone-edition-foreground",
+		"3": "bg-tone-3 text-tone-3-foreground",
+		"2": "bg-tone-2 text-tone-2-foreground",
+		"1": "bg-tone-1 text-tone-1-foreground",
 		info: "bg-tone-info text-tone-info-foreground",
 		success: "bg-success text-success-foreground",
 		warning: "bg-tone-warning text-tone-warning-foreground",
 		destructive: "bg-destructive text-destructive-foreground",
+		...families("overlay"),
 	},
 	plain: {
 		neutral: "text-muted-foreground",
-		standard: "text-foreground",
-		collectible: "text-foreground",
-		edition: "text-foreground",
+		"3": "text-foreground",
+		"2": "text-foreground",
+		"1": "text-foreground",
 		info: "text-foreground",
 		success: "text-foreground",
 		warning: "text-foreground",
 		destructive: "text-destructive",
+		...families("plain"),
 	},
 }
 
@@ -97,7 +120,7 @@ export const badgeVariants = cva(
 				overlay: "gap-1 border border-transparent",
 				plain: "gap-1.5",
 			},
-			tone: { neutral: "", standard: "", collectible: "", edition: "", info: "", success: "", warning: "", destructive: "" },
+			tone: { neutral: "", "1": "", "2": "", "3": "", info: "", success: "", warning: "", destructive: "", red: "", orange: "", yellow: "", green: "", teal: "", blue: "", purple: "", pink: "" },
 			size: {
 				sm: "text-label-sm",
 				md: "text-label-md",

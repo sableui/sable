@@ -107,7 +107,7 @@ import { Button, Carousel, Dialog, DialogContent, DialogTrigger } from "@sableui
 ```tsx
 import { Button, Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@sableui/react"
 
-<Dialog><DialogTrigger render={<Button>Open</Button>} /><DialogContent><DialogHeader><DialogTitle>Edition details</DialogTitle><DialogDescription>A limited run of 100, stored permanently on Arweave.</DialogDescription></DialogHeader><DialogFooter><DialogClose render={<Button variant="secondary">Close</Button>} /><DialogClose render={<Button>Collect</Button>} /></DialogFooter></DialogContent></Dialog>
+<Dialog><DialogTrigger render={<Button>Open</Button>} /><DialogContent><DialogHeader><DialogTitle>Plan details</DialogTitle><DialogDescription>Up to 10 seats, billed monthly per seat.</DialogDescription></DialogHeader><DialogFooter><DialogClose render={<Button variant="secondary">Close</Button>} /><DialogClose render={<Button>Upgrade</Button>} /></DialogFooter></DialogContent></Dialog>
 ```
 
 ### Settings form
@@ -123,5 +123,5 @@ import { Button, Dialog, DialogClose, DialogContent, DialogDescription, DialogFo
 ```tsx
 import { AlertDialog, AlertDialogClose, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, Button } from "@sableui/react"
 
-<AlertDialog><AlertDialogTrigger render={<Button variant="destructive">Delete edition</Button>} /><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Delete edition?</AlertDialogTitle><AlertDialogDescription>This removes the edition and cannot be undone.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogClose render={<Button variant="secondary">Cancel</Button>} /><Button variant="destructive" onClick={deleteEdition}>Delete edition</Button></AlertDialogFooter></AlertDialogContent></AlertDialog>
+<AlertDialog><AlertDialogTrigger render={<Button variant="destructive">Delete project</Button>} /><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Delete project?</AlertDialogTitle><AlertDialogDescription>This removes the project and cannot be undone.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogClose render={<Button variant="secondary">Cancel</Button>} /><Button variant="destructive" onClick={deleteProject}>Delete project</Button></AlertDialogFooter></AlertDialogContent></AlertDialog>
 ```

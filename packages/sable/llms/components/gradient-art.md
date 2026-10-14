@@ -24,7 +24,7 @@ Use GradientArt where a real image belongs but none exists yet, or where the ima
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
 | variant | "mesh" \| "grain" | "mesh" | mesh: soft spots of colour pulled together by gentle waves. grain: glowing light over deep corners with a printed texture. |
-| tones | ("info" \| "standard" \| "collectible" \| "edition" \| "warning")[] | — | Paint these `--tone-*` colours instead of the preset's art palette. Leave unset to follow the preset's art direction. |
+| tones | ("info" \| "3" \| "2" \| "1" \| "warning")[] | — | Paint these `--tone-*` colours instead of the preset's art palette. Leave unset to follow the preset's art direction. |
 | seed | string \| number | — | Fixes the composition: the same seed paints the same art in every theme. Pass a stable id. |
 | children | ReactNode | — | Rendered above the art — initials, a glyph, a short label. |
 | className | string | — | Size and shape: aspect, height, rounding. |
@@ -35,7 +35,7 @@ Use GradientArt where a real image belongs but none exists yet, or where the ima
 
 ## Tokens used
 
-`art-1`, `art-2`, `art-3`, `art-4`, `art-5`, `art-6`, `art-ground`, `art-warp`, `art-softness`, `art-grain`, `primary`, `tone-info`, `tone-standard`, `tone-collectible`, `tone-edition`, `tone-warning`
+`art-1`, `art-2`, `art-3`, `art-4`, `art-5`, `art-6`, `art-ground`, `art-warp`, `art-softness`, `art-grain`, `primary`, `tone-info`, `tone-3`, `tone-2`, `tone-1`, `tone-warning`
 
 ## Motion
 
@@ -68,7 +68,7 @@ import { GradientArt } from "@sableui/react"
 ```tsx
 import { GradientArt } from "@sableui/react"
 
-<GradientArt variant="grain" seed="juno" tones={["info", "edition"]} className="h-20 rounded-md" />
+<GradientArt variant="grain" seed="juno" tones={["info", "1"]} className="h-20 rounded-md" />
 ```
 
 ### Avatar with initials

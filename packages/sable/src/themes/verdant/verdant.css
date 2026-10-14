@@ -2,7 +2,7 @@
    Verdant — a Sable theme, developed from reference analysis.
 
    Components must reference the SEMANTIC tokens (--background, --primary,
-   --tone-edition, …), never any palette ramp directly. See themes/_contract.ts.
+   --tone-1, …), never any palette ramp directly. See themes/_contract.ts.
    ========================================================================== */
 
 [data-sable-theme="verdant"] {
@@ -116,12 +116,12 @@
 	--success: oklch(50% 0.11 173);
 	--success-text: oklch(50% 0.11 173);
 	--success-foreground: oklch(98.6% 0.004 106);
-	--tone-standard: oklch(49% 0.018 175);
-	--tone-standard-foreground: oklch(98.6% 0.004 106);
-	--tone-collectible: oklch(45% 0.07 175);
-	--tone-collectible-foreground: oklch(98.6% 0.004 106);
-	--tone-edition: oklch(50% 0.11 173);
-	--tone-edition-foreground: oklch(98.6% 0.004 106);
+	--tone-3: oklch(49% 0.018 175);
+	--tone-3-foreground: oklch(98.6% 0.004 106);
+	--tone-2: oklch(45% 0.07 175);
+	--tone-2-foreground: oklch(98.6% 0.004 106);
+	--tone-1: oklch(50% 0.11 173);
+	--tone-1-foreground: oklch(98.6% 0.004 106);
 	--tone-info: oklch(51% 0.12 250);
 	--tone-info-text: oklch(51% 0.12 250);
 	--tone-info-foreground: oklch(98.6% 0.004 106);
@@ -197,12 +197,12 @@
 	--success: oklch(74% 0.13 173);
 	--success-text: oklch(74% 0.13 173);
 	--success-foreground: oklch(16% 0.03 175);
-	--tone-standard: oklch(72% 0.015 175);
-	--tone-standard-foreground: oklch(16% 0.03 175);
-	--tone-collectible: oklch(74% 0.09 175);
-	--tone-collectible-foreground: oklch(16% 0.03 175);
-	--tone-edition: oklch(76% 0.12 173);
-	--tone-edition-foreground: oklch(16% 0.03 175);
+	--tone-3: oklch(72% 0.015 175);
+	--tone-3-foreground: oklch(16% 0.03 175);
+	--tone-2: oklch(74% 0.09 175);
+	--tone-2-foreground: oklch(16% 0.03 175);
+	--tone-1: oklch(76% 0.12 173);
+	--tone-1-foreground: oklch(16% 0.03 175);
 	--tone-info: oklch(76% 0.11 250);
 	--tone-info-text: oklch(76% 0.11 250);
 	--tone-info-foreground: oklch(16% 0.03 175);
@@ -233,12 +233,12 @@
 [data-sable-theme="verdant"],
 [data-sable-theme="verdant"] .dark,
 [data-sable-theme="verdant"] .light {
-	--theme-art-1: oklch(from var(--tone-edition) 0.76 0.15 h);
+	--theme-art-1: oklch(from var(--tone-1) 0.76 0.15 h);
 	--theme-art-2: oklch(from var(--tone-warning) 0.76 0.16 h);
 	--theme-art-3: oklch(0.66 0.24 355);
 	--theme-art-4: oklch(from var(--tone-info) 0.62 0.17 h);
 	--theme-art-5: oklch(0.8 0.19 140);
-	--theme-art-ground: oklch(from var(--tone-collectible) 0.24 0.05 h);
+	--theme-art-ground: oklch(from var(--tone-2) 0.24 0.05 h);
 	--theme-art-warp: 0.9;
 	--theme-art-softness: 0.62;
 	--theme-art-grain: 0;

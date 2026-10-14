@@ -26,7 +26,7 @@ export const paginationMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
-					"Use a specific label when multiple pagers appear on a page, such as \"Collector pages\".",
+					"Use a specific label when multiple pagers appear on a page, such as \"Customer pages\".",
 			},
 			{
 				guidance: "do",
@@ -142,7 +142,7 @@ export const paginationMeta: ComponentMeta = {
 		},
 		{
 			label: "Table results footer",
-			code: '<Stack gap={2}><DataTable data={rows} columns={columns} rowKey={(row) => row.id} /><Pagination label="Collector pages" page={page} total={12} onPageChange={setPage} /></Stack>',
+			code: '<Stack gap={2}><DataTable data={rows} columns={columns} rowKey={(row) => row.id} /><Pagination label="Customer pages" page={page} total={12} onPageChange={setPage} /></Stack>',
 		},
 		{
 			label: "Server query state",

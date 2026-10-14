@@ -136,8 +136,8 @@ export const tableMeta: ComponentMeta = {
 	],
 	examples: [
 		{
-			label: "Collectors",
-			code: '<Table>\n\t<TableCaption>Recent collectors</TableCaption>\n\t<TableHeader>\n\t\t<TableRow>\n\t\t\t<TableHead>Collector</TableHead>\n\t\t\t<TableHead>Edition</TableHead>\n\t\t\t<TableHead>Paid</TableHead>\n\t\t</TableRow>\n\t</TableHeader>\n\t<TableBody>\n\t\t<TableRow>\n\t\t\t<TableCell>@nova</TableCell>\n\t\t\t<TableCell>#012</TableCell>\n\t\t\t<TableCell>0.5 SOL</TableCell>\n\t\t</TableRow>\n\t</TableBody>\n</Table>',
+			label: "Orders",
+			code: '<Table>\n\t<TableCaption>Recent orders</TableCaption>\n\t<TableHeader>\n\t\t<TableRow>\n\t\t\t<TableHead>Customer</TableHead>\n\t\t\t<TableHead>Order</TableHead>\n\t\t\t<TableHead>Paid</TableHead>\n\t\t</TableRow>\n\t</TableHeader>\n\t<TableBody>\n\t\t<TableRow>\n\t\t\t<TableCell>@nova</TableCell>\n\t\t\t<TableCell>1042</TableCell>\n\t\t\t<TableCell>$48.00</TableCell>\n\t\t</TableRow>\n\t</TableBody>\n</Table>',
 		},
 		{
 			label: "Rich status cells",
@@ -145,11 +145,11 @@ export const tableMeta: ComponentMeta = {
 		},
 		{
 			label: "Flush in a card",
-			code: '<Card><CardHeader><CardTitle>Collectors</CardTitle></CardHeader><CardContent flush><Table><TableHeader><TableRow><TableHead>Collector</TableHead><TableHead>Paid</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell>@nova</TableCell><TableCell>0.5 SOL</TableCell></TableRow></TableBody></Table></CardContent></Card>',
+			code: '<Card><CardHeader><CardTitle>Customers</CardTitle></CardHeader><CardContent flush><Table><TableHeader><TableRow><TableHead>Customer</TableHead><TableHead>Paid</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell>@nova</TableCell><TableCell>$48.00</TableCell></TableRow></TableBody></Table></CardContent></Card>',
 		},
 		{
 			label: "Summary footer",
-			code: '<Table><TableHeader><TableRow><TableHead>Item</TableHead><TableHead className="text-end">Amount</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell>Primary sale</TableCell><TableCell className="text-end">42 SOL</TableCell></TableRow></TableBody><TableFooter><TableRow><TableCell>Total</TableCell><TableCell className="text-end">42 SOL</TableCell></TableRow></TableFooter></Table>',
+			code: '<Table><TableHeader><TableRow><TableHead>Item</TableHead><TableHead className="text-end">Amount</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell>Studio plan</TableCell><TableCell className="text-end">$192.00</TableCell></TableRow></TableBody><TableFooter><TableRow><TableCell>Total</TableCell><TableCell className="text-end">$192.00</TableCell></TableRow></TableFooter></Table>',
 		},
 	],
 }

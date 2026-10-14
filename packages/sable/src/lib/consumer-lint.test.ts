@@ -83,7 +83,7 @@ describe("sable-lint bin", () => {
 		// directory. A named file is linted as given.
 		// Its own folder: the other tests lint the whole shared temp folder.
 		const own = mkdtempSync(join(tmpdir(), "sable-lint-file-"))
-		writeFileSync(join(own, "one.tsx"), `export const A = () => <div className="border-orange-500" />`)
+		writeFileSync(join(own, "one.tsx"), `export const A = () => <div className="border-lime-500" />`)
 		let out = ""
 		let code = 0
 		try {
@@ -99,14 +99,21 @@ describe("sable-lint bin", () => {
 		rmSync(own, { recursive: true, force: true })
 	})
 
-	it("catches the drift that actually shipped to a consumer", () => {
-		// `border-orange-500` shipped in a converted app for weeks. The package
-		// linter would never have seen it, and the consumer had no way to run one —
-		// they hand-grepped. This is that exact string.
-		const r = lint(`export const A = () => <div className="border-orange-500" />`)
+	it("catches palette steps that do not follow the theme", () => {
+		// `border-orange-500` shipped in a converted app for weeks, painting stock
+		// Tailwind orange under every theme. Orange is generated from the theme now,
+		// so it is fine; a theme's internal ramp and the families Sable switched off
+		// are what still paint the wrong thing (or nothing).
+		const r = lint(`export const A = () => <div className="border-lime-500 text-(--purple-heart-700)" />`)
 		expect(r.code).toBe(1)
 		expect(r.out).toContain("palette-ref")
-		expect(r.out).toContain("border-orange-500")
+		expect(r.out).toContain("border-lime-500")
+		expect(r.out).toContain("--purple-heart-700")
+	})
+
+	it("lets an app use the generated palette", () => {
+		const r = lint(`export const A = () => <div className="border-orange-500 bg-blue-100 text-blue-800 bg-tone-1-100 text-(--neutral-700)" />`)
+		expect(r.out).not.toContain("palette-ref")
 	})
 
 	it("passes clean code that uses semantic tokens", () => {

@@ -252,8 +252,8 @@ function show(
  *
  *   toast.success("Saved")
  *   toast.error("Upload failed", { description: err.message })
- *   const id = toast.loading("Pinning to Arweave…")
- *   toast.update(id, { title: "Pinned", type: "success", timeout: 4000 })
+ *   const id = toast.loading("Uploading report…")
+ *   toast.update(id, { title: "Uploaded", type: "success", timeout: 4000 })
  *   toast.promise(save(), { loading: "Saving…", success: "Saved", error: "Failed" })
  */
 export const toast: ToastApi = Object.assign(

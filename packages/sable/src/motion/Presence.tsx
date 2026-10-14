@@ -43,7 +43,7 @@ export interface PresenceProps {
  * mount/unmount with no animation). The child must accept a `ref`.
  *
  *   <Presence show={open}>
- *     <Banner>Heads up — mint window closes soon.</Banner>
+ *     <Banner>Heads up — your trial ends soon.</Banner>
  *   </Presence>
  */
 export function Presence({

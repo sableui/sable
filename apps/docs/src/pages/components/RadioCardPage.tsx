@@ -28,7 +28,7 @@ export function RadioCardPage() {
 				description="An icon gives the richer card; a tone colours the selected state."
 			>
 				<Example
-					code={`const [postType, setPostType] = useState("post")\n<RadioGroup value={postType} onValueChange={setPostType} className="grid w-full max-w-[760px] sm:grid-cols-3">\n  <RadioCard value="post" tone="standard" icon={<Icon name="plus" />}\n    title="Standard" description="Publish to the main feed" />\n  <RadioCard value="collectible" tone="collectible" icon={<Icon name="gem" />}\n    title="Featured" description="Pin for the campaign" />\n  <RadioCard value="edition" tone="edition" icon={<Icon name="image-stack" />}\n    title="Collection" description="Group with related work" />\n</RadioGroup>`}
+					code={`const [postType, setPostType] = useState("post")\n<RadioGroup value={postType} onValueChange={setPostType} className="grid w-full max-w-[760px] sm:grid-cols-3">\n  <RadioCard value="post" tone="3" icon={<Icon name="plus" />}\n    title="Standard" description="Publish to the main feed" />\n  <RadioCard value="featured" tone="2" icon={<Icon name="gem" />}\n    title="Featured" description="Pin for the campaign" />\n  <RadioCard value="collection" tone="1" icon={<Icon name="image-stack" />}\n    title="Collection" description="Group with related work" />\n</RadioGroup>`}
 				>
 					<RadioGroup
 						value={postType}
@@ -37,21 +37,21 @@ export function RadioCardPage() {
 					>
 						<RadioCard
 							value="post"
-							tone="standard"
+							tone="3"
 							icon={<Icon name="plus" />}
 							title="Standard"
 							description="Publish to the main feed"
 						/>
 						<RadioCard
-							value="collectible"
-							tone="collectible"
+							value="featured"
+							tone="2"
 							icon={<Icon name="gem" />}
 							title="Featured"
 							description="Pin for the campaign"
 						/>
 						<RadioCard
-							value="edition"
-							tone="edition"
+							value="collection"
+							tone="1"
 							icon={<Icon name="image-stack" />}
 							title="Collection"
 							description="Group with related work"

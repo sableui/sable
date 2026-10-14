@@ -34,9 +34,9 @@ describe("GradientArt", () => {
 	})
 
 	it("paints only the tones it is given", () => {
-		const { container } = renderWithProviders(<GradientArt tones={["edition"]} />)
+		const { container } = renderWithProviders(<GradientArt tones={["1"]} />)
 		const background = root(container).style.background
-		expect(background).toContain("var(--tone-edition)")
+		expect(background).toContain("var(--tone-1)")
 		expect(background).not.toContain("var(--tone-info)")
 	})
 

@@ -63,7 +63,7 @@ export function FieldsetPage() {
 				<Example
 					code={`<Fieldset disabled>
 	<FieldsetLegend>Payout schedule</FieldsetLegend>
-	<FieldsetDescription>Connect a wallet to change when you are paid.</FieldsetDescription>
+	<FieldsetDescription>Add a bank account to change when you are paid.</FieldsetDescription>
 	<FieldsetContent>
 		<RadioGroup defaultValue="weekly">
 			<Field label="Weekly" orientation="horizontal"><Radio value="weekly" /></Field>
@@ -77,7 +77,7 @@ export function FieldsetPage() {
 				>
 					<Fieldset disabled className="w-full max-w-md">
 						<FieldsetLegend>Payout schedule</FieldsetLegend>
-						<FieldsetDescription>Connect a wallet to change when you are paid.</FieldsetDescription>
+						<FieldsetDescription>Add a bank account to change when you are paid.</FieldsetDescription>
 						<FieldsetContent>
 							<RadioGroup defaultValue="weekly">
 								<Field label="Weekly" orientation="horizontal"><Radio value="weekly" /></Field>

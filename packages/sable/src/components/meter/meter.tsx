@@ -8,7 +8,7 @@ import {
 	meterTrackVariants,
 } from "./meter.variants"
 
-export type MeterTone = "primary" | "standard" | "success" | "warning" | "destructive"
+export type MeterTone = "primary" | "3" | "success" | "warning" | "destructive"
 
 export type MeterSize = "sm" | "md" | "lg"
 
@@ -41,7 +41,7 @@ type RootProps = Omit<ComponentProps<typeof Base.Root>, "className"> & {
 
 const RING_TONE_STROKE: Record<MeterTone, string> = {
 	primary: "var(--primary)",
-	standard: "var(--tone-standard)",
+	"3": "var(--tone-3)",
 	success: "var(--success)",
 	warning: "var(--tone-warning)",
 	destructive: "var(--destructive)",

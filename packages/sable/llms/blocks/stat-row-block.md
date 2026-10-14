@@ -25,9 +25,9 @@ import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, cn, G
 
 const stats = [
 	{ label: "Revenue", value: "$18,240", delta: "+8.2%", up: true, note: "vs. $16,857" },
-	{ label: "Collects", value: "1,284", delta: "+3.1%", up: true, note: "182 first-time" },
-	{ label: "Collectors", value: "312", delta: "+12.4%", up: true, note: "Best month yet" },
-	{ label: "Sell-through", value: "64%", delta: "−1.8%", up: false, note: "6 open editions" },
+	{ label: "Orders", value: "1,284", delta: "+3.1%", up: true, note: "182 first-time" },
+	{ label: "New customers", value: "312", delta: "+12.4%", up: true, note: "Best month yet" },
+	{ label: "Conversion", value: "3.4%", delta: "−0.2%", up: false, note: "6 open trials" },
 ]
 
 export interface StatRowBlockProps {

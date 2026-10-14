@@ -2,14 +2,14 @@ import type { ReactNode } from "react"
 
 /**
  * A series colour by role. The decorative tones lead — a chart names
- * categories (desktop / mobile, editions / collectibles), not good and bad —
+ * categories (desktop / mobile, plans / channels), not good and bad —
  * and they follow the active theme and Customize → Color → Palette. The
  * status tones are for a series that IS a judgement (errors, warnings).
  */
 export type ChartTone =
-	| "edition"
-	| "collectible"
-	| "standard"
+	| "1"
+	| "2"
+	| "3"
 	| "info"
 	| "warning"
 	| "primary"
@@ -35,9 +35,9 @@ export function chartColor(index: number): string {
 }
 
 const TONE_VAR: Record<ChartTone, string> = {
-	edition: "var(--tone-edition)",
-	collectible: "var(--tone-collectible)",
-	standard: "var(--tone-standard)",
+	"1": "var(--tone-1)",
+	"2": "var(--tone-2)",
+	"3": "var(--tone-3)",
 	info: "var(--tone-info)",
 	warning: "var(--tone-warning)",
 	primary: "var(--primary)",
@@ -51,7 +51,7 @@ const TONE_VAR: Record<ChartTone, string> = {
  * (`tone: "success"`), not for default series (see chartColor). Tones are
  * tuned to be legible as TEXT (dark, restrained); a plotted mark keeps the hue
  * but is lifted into the chart lightness band with a chroma floor, so a quiet
- * tone (a slate "standard") still reads as colour rather than grey.
+ * tone (a slate "3") still reads as colour rather than grey.
  */
 export function toneColor(tone: ChartTone): string {
 	// design-lint-disable-next-line inline-color -- relative colour derived from the theme's own token, so it follows every look

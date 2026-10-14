@@ -1,4 +1,4 @@
-import { Badge, StatusDot, statusDotMeta } from "@sableui/react"
+import { Badge, PALETTE_COLORS, StatusDot, statusDotMeta } from "@sableui/react"
 import {
 	ComponentPlayground,
 	Example,
@@ -23,13 +23,23 @@ export function StatusDotPage() {
 				<Example>
 					<div className="flex items-center gap-4">
 						<StatusDot tone="neutral" />
-						<StatusDot tone="standard" />
+						<StatusDot tone="3" />
 						<StatusDot tone="success" />
 						<StatusDot tone="info" />
 						<StatusDot tone="warning" />
-						<StatusDot tone="edition" />
-						<StatusDot tone="collectible" />
+						<StatusDot tone="1" />
+						<StatusDot tone="2" />
 						<StatusDot tone="destructive" />
+					</div>
+				</Example>
+			</Section>
+
+			<Section title="Palette colours" description="A palette family is a category colour, for a legend or a tag list. Pair each dot with its label.">
+				<Example code={`<StatusDot tone="blue" /> <StatusDot tone="teal" /> …`}>
+					<div className="flex items-center gap-4">
+						{PALETTE_COLORS.map((color) => (
+							<StatusDot key={color} tone={color} />
+						))}
 					</div>
 				</Example>
 			</Section>
@@ -37,9 +47,9 @@ export function StatusDotPage() {
 			<Section title="Sizes">
 				<Example>
 					<div className="flex items-center gap-4">
-						<StatusDot tone="standard" size="sm" />
-						<StatusDot tone="standard" size="md" />
-						<StatusDot tone="standard" size="lg" />
+						<StatusDot tone="3" size="sm" />
+						<StatusDot tone="3" size="md" />
+						<StatusDot tone="3" size="lg" />
 					</div>
 				</Example>
 			</Section>
@@ -50,7 +60,7 @@ export function StatusDotPage() {
 			>
 				<Example>
 					<div className="flex items-center gap-4">
-						<StatusDot tone="standard" pulse />
+						<StatusDot tone="3" pulse />
 						<StatusDot tone="info" pulse size="lg" />
 						<StatusDot tone="destructive" pulse />
 					</div>

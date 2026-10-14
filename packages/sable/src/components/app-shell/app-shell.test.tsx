@@ -116,12 +116,12 @@ describe("AppHeader", () => {
 			<AppHeader
 				leading={<button type="button">back</button>}
 				title="Notifications"
-				actions={<button type="button">wallet</button>}
+				actions={<button type="button">account</button>}
 			/>,
 		)
 		expect(screen.getByText("back")).toBeInTheDocument()
 		expect(screen.getByText("Notifications")).toBeInTheDocument()
-		expect(screen.getByText("wallet")).toBeInTheDocument()
+		expect(screen.getByText("account")).toBeInTheDocument()
 	})
 })
 

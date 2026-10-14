@@ -46,7 +46,7 @@ Use Phone to frame a mobile product preview when the device context is useful.
 ```tsx
 import { Phone } from "@sableui/react"
 
-<Phone><div className="p-4"><h2 className="text-title-lg">Activity</h2><p className="text-body-sm text-muted-foreground">3 new collects today.</p></div></Phone>
+<Phone><div className="p-4"><h2 className="text-title-lg">Activity</h2><p className="text-body-sm text-muted-foreground">3 new orders today.</p></div></Phone>
 ```
 
 ### Mockup, not a responsive preview

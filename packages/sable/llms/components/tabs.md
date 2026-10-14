@@ -80,5 +80,5 @@ import { Tabs, TabsList, TabsPanel, TabsTrigger } from "@sableui/react"
 ```tsx
 import { Tabs, TabsList, TabsPanel, TabsTrigger } from "@sableui/react"
 
-<Tabs defaultValue="overview"><TabsList><TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="holders" disabled>Holders</TabsTrigger></TabsList><TabsPanel value="overview">Overview content</TabsPanel></Tabs>
+<Tabs defaultValue="overview"><TabsList><TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="billing" disabled>Billing</TabsTrigger></TabsList><TabsPanel value="overview">Overview content</TabsPanel></Tabs>
 ```

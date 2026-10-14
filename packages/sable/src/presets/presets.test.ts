@@ -60,6 +60,23 @@ describe("portable Sable presets", () => {
 		// The input is not rewritten in place.
 		expect(preset.tokens.dark["destructive-text"]).toBeUndefined()
 	})
+	it("reads a preset saved before 0.10 under the numbered tone names", () => {
+		const preset = fixture()
+		for (const mode of ["light", "dark"] as const) {
+			for (const [from, to] of [["tone-edition", "tone-1"], ["tone-collectible", "tone-2"], ["tone-standard", "tone-3"]]) {
+				for (const suffix of ["", "-foreground"]) {
+					preset.tokens[mode][`${from}${suffix}`] = preset.tokens[mode][`${to}${suffix}`]
+					delete preset.tokens[mode][`${to}${suffix}`]
+				}
+			}
+		}
+		preset.tokens.dark.highlight = "var(--tone-edition)"
+		expect(validatePreset(preset)).toEqual([])
+		const parsed = parsePreset(preset)
+		expect(parsed.tokens.dark["tone-1"]).toBe("oklch(20% 0 0)")
+		expect(parsed.tokens.dark["tone-edition"]).toBeUndefined()
+		expect(presetCss(preset)).toContain("--highlight: var(--tone-1);")
+	})
 	it("requires both complete semantic modes and refuses unknown library tokens", () => {
 		const preset = fixture()
 		delete preset.tokens.dark.foreground

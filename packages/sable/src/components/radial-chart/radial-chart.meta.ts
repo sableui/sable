@@ -157,9 +157,9 @@ export const radialChartMeta: ComponentMeta = {
 		}
 	],
 	tokensUsed: [
-		"tone-edition",
-		"tone-collectible",
-		"tone-standard",
+		"tone-1",
+		"tone-2",
+		"tone-3",
 		"tone-info",
 		"tone-warning",
 		"primary",

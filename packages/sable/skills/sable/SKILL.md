@@ -157,7 +157,11 @@ The installed catalog and guides are authoritative for API and token names.
      your own from parts; that is not a gap and needs no apology. Apps on Sable
      should not all look alike.
 2. Resolve styling in this order: Sable component/variant, Sable utility or recipe,
-   semantic token, then app-owned CSS for a genuinely uncovered need. Retrieve
+   semantic token, then app-owned CSS for a genuinely uncovered need. Colour
+   beyond the roles (tags, avatars, labels, legends) comes from the generated
+   palette, which follows the theme: a family as a component's tone
+   (`<Badge tone="teal">`) or the pairs `bg-blue-100 text-blue-800`; never hex or
+   a theme's own ramp (`sable token palette`). Retrieve
    `sable utility <name>` and `sable token <group>` rather than guessing names.
    Use paired typography, spacing steps, density/control ladders, relative surfaces,
    concentric geometry, scroll policies, and supported motion recipes.

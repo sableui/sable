@@ -58,7 +58,7 @@ export function EmptyStatePage() {
 
 			<Section title="Error card" description="surface=&quot;card&quot; for a block that failed to load within a page.">
 				<Example
-					code={`<EmptyState tone="destructive" surface="card" title="Could not load this edition"
+					code={`<EmptyState tone="destructive" surface="card" title="Could not load this project"
   description="Check your connection and try again."
   action={<Button variant="secondary">Retry</Button>} />`}
 				>
@@ -66,7 +66,7 @@ export function EmptyStatePage() {
 						tone="destructive"
 						surface="card"
 						className="max-w-sm"
-						title="Could not load this edition"
+						title="Could not load this project"
 						description="Check your connection and try again."
 						action={<Button variant="secondary">Retry</Button>}
 					/>

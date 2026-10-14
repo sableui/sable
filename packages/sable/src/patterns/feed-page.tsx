@@ -23,7 +23,7 @@ type Post = {
 	following: boolean
 	body: string
 	media?: { src: string; alt: string }
-	drop?: { title: string; price: string; collected: number; supply: number }
+	event?: { title: string; price: string; registered: number; capacity: number }
 	likes: number
 	comments: number
 }
@@ -36,9 +36,9 @@ const posts: Post[] = [
 		initials: "AL",
 		time: "2h",
 		following: true,
-		body: "Gold Rush is live. 100 signed prints, each paired with the on-chain original. Thank you for waiting.",
-		media: { src: "/media/edition-cover.svg", alt: "Gold Rush, a gold-leaf study in overlapping arcs" },
-		drop: { title: "Gold Rush", price: "$120", collected: 62, supply: 100 },
+		body: "Registration for the spring workshop is open. Two days of plotter drawing in a small group. See you there.",
+		media: { src: "/media/edition-cover.svg", alt: "Workshop poster, a gold-leaf study in overlapping arcs" },
+		event: { title: "Spring plotter workshop", price: "$120", registered: 28, capacity: 40 },
 		likes: 128,
 		comments: 24,
 	},
@@ -61,7 +61,7 @@ const posts: Post[] = [
 		initials: "NS",
 		time: "8h",
 		following: false,
-		body: "Collectors of Dusk, no. 3 — your unlockable score is now in your library. Headphones on for this one.",
+		body: "Thanks to everyone at the Dusk listening session — the full recording is now in your library. Headphones on.",
 		likes: 214,
 		comments: 31,
 	},
@@ -73,8 +73,8 @@ const suggestions = [
 ]
 
 const upcoming = [
-	{ id: "d_01", title: "Quiet Harbor", artist: "Mary Shelley", initials: "MS", date: "Sat, Oct 12" },
-	{ id: "d_02", title: "Dusk, no. 4", artist: "Nina Simone", initials: "NS", date: "Tue, Oct 15" },
+	{ id: "e_01", title: "Quiet Harbor talk", host: "Mary Shelley", initials: "MS", date: "Sat, Oct 12" },
+	{ id: "e_02", title: "Dusk, live", host: "Nina Simone", initials: "NS", date: "Tue, Oct 15" },
 ]
 
 const renderPost = (post: Post) => (
@@ -100,35 +100,35 @@ const renderPost = (post: Post) => (
 				{post.media ? (
 					<AspectBox ratio={16 / 9} className="overflow-hidden rounded-concentric-lg/6 bg-muted">
 						<img src={post.media.src} alt={post.media.alt} className="size-full object-cover" />
-						{post.drop ? (
+						{post.event ? (
 							<div className="absolute start-3 top-3">
 								<Badge appearance="overlay" size="sm" dot>
-									Live drop
+									Open now
 								</Badge>
 							</div>
 						) : null}
 					</AspectBox>
 				) : null}
-				{post.drop ? (
+				{post.event ? (
 					<Stack gap={1.5}>
 						<Row gap={2} align="center" justify="between">
 							<div className="min-w-0">
-								<p className="text-title-md text-foreground">{post.drop.title}</p>
+								<p className="text-title-md text-foreground">{post.event.title}</p>
 								<p className="text-body-sm text-muted-foreground">
-									{`${post.drop.price} · Edition of ${post.drop.supply}`}
+									{`${post.event.price} · ${post.event.capacity} seats`}
 								</p>
 							</div>
-							<Button>{`Collect for ${post.drop.price}`}</Button>
+							<Button>{`Register for ${post.event.price}`}</Button>
 						</Row>
 						<Meter
-							value={post.drop.collected}
-							max={post.drop.supply}
+							value={post.event.registered}
+							max={post.event.capacity}
 							size="sm"
-							getAriaValueText={(_, value) => `${value} of ${post.drop?.supply} collected`}
+							getAriaValueText={(_, value) => `${value} of ${post.event?.capacity} seats taken`}
 						>
 							<Row gap={2} align="center" justify="between" className="mb-2">
-								<MeterLabel>{`${post.drop.collected} collected`}</MeterLabel>
-								<MeterValue>{(_, value) => `${(post.drop?.supply ?? 0) - value} left`}</MeterValue>
+								<MeterLabel>{`${post.event.registered} registered`}</MeterLabel>
+								<MeterValue>{(_, value) => `${(post.event?.capacity ?? 0) - value} left`}</MeterValue>
 							</Row>
 							<MeterTrack />
 						</Meter>
@@ -169,15 +169,15 @@ export function FeedPage() {
 										autoResize
 										rows={2}
 										aria-label="New post"
-										placeholder="Share a process shot or an upcoming drop"
+										placeholder="Share a process shot or an upcoming event"
 									/>
 									<Row gap={1} align="center" justify="between">
 										<Row gap={0.5}>
 											<Button variant="ghost" size="icon-sm" aria-label="Add images">
 												<Icon name="image-stack" />
 											</Button>
-											<Button variant="ghost" size="icon-sm" aria-label="Attach an edition">
-												<Icon name="gem" />
+											<Button variant="ghost" size="icon-sm" aria-label="Add an event">
+												<Icon name="calendar" />
 											</Button>
 										</Row>
 										<Button variant="secondary" size="sm">
@@ -244,17 +244,17 @@ export function FeedPage() {
 						</Card>
 						<Card>
 							<CardHeader>
-								<CardTitle render={<h2 />}>Upcoming drops</CardTitle>
+								<CardTitle render={<h2 />}>Upcoming events</CardTitle>
 							</CardHeader>
 							<CardList>
-								{upcoming.map((drop) => (
+								{upcoming.map((event) => (
 									<Entity
-										key={drop.id}
-										leading={<Avatar variant="art" fallback={drop.initials} alt={drop.artist} />}
-										title={drop.title}
-										subtitle={`${drop.artist} · ${drop.date}`}
+										key={event.id}
+										leading={<Avatar variant="art" fallback={event.initials} alt={event.host} />}
+										title={event.title}
+										subtitle={`${event.host} · ${event.date}`}
 										action={
-											<Button variant="ghost" size="icon-sm" aria-label={`Remind me about ${drop.title}`}>
+											<Button variant="ghost" size="icon-sm" aria-label={`Remind me about ${event.title}`}>
 												<Icon name="bell" />
 											</Button>
 										}

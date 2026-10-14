@@ -101,7 +101,7 @@ The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, wh
     - `<ol className="sable-list-numbered"><li>Install</li><li>Import the styles</li></ol>`
 - **`sable-list-dl`** — Label/value pairs on a native `<dl>`: muted label-tier `<dt>`s and body-tier `<dd>`s on a baseline-aligned two-column grid; long values wrap inside their column. Colour a status value with a `text-*` utility on its `<dd>`. *Use for:* Read-only details: an order summary, a record's metadata, a settings summary, profile stats.
     - **Instead of** A grid of `<div>`s (screen readers lose the term/value pairing), or Table for a single record. For editable values use Form and Field.
-    - `<dl className="sable-list-dl"><dt>Network</dt><dd>Solana</dd><dt>Status</dt><dd className="text-success">Active</dd></dl>`
+    - `<dl className="sable-list-dl"><dt>Plan</dt><dd>Studio</dd><dt>Status</dt><dd className="text-success">Active</dd></dl>`
 - **`sable-list-dl-2`** — Two label/value pairs a row once the nearest `@container` ancestor is at least 28rem wide. Add to `sable-list-dl`. *Use for:* A compact metadata block in a wide card or panel. Put `@container` on a parent so it measures the room it actually has.
     - **Instead of** A viewport breakpoint, which gives a narrow card on a wide screen four columns it cannot fit.
     - `<div className="@container"><dl className="sable-list-dl sable-list-dl-2">…</dl></div>`

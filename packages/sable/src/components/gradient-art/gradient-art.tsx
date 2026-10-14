@@ -7,7 +7,7 @@ import { cn } from "../../lib/cn"
 import type { ArtVariant, Rgba } from "./renderer"
 
 /** The decorative tones art can be painted from — the palette's `--tone-*` family. */
-export type ArtTone = "info" | "standard" | "collectible" | "edition" | "warning"
+export type ArtTone = "info" | "3" | "2" | "1" | "warning"
 
 /**
  * The theme's art palette (ART_TOKENS): each preset paints its own — Ember's

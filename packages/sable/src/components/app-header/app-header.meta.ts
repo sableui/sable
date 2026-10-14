@@ -53,7 +53,7 @@ export const appHeaderMeta: ComponentMeta = {
 		{
 			name: "actions",
 			type: "ReactNode",
-			description: "Trailing slot — wallet trigger, action buttons.",
+			description: "Trailing slot — account menu, action buttons.",
 		},
 	],
 	a11y: [

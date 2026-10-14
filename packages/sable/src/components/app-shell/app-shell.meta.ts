@@ -155,7 +155,7 @@ export const appShellMeta: ComponentMeta = {
 		{
 			label: "Full frame",
 			code: `<AppShell
-  banners={<Banner tone="warning">Network congested — mints may be slow.</Banner>}
+  banners={<Banner tone="warning">Sync is delayed — changes may be slow to appear.</Banner>}
   header={<AppHeader title="Studio" />}
   sidebar={
     <Sidebar>
@@ -174,7 +174,7 @@ export const appShellMeta: ComponentMeta = {
   }
 >
   <Region max="feed">
-    <PageHeader title="Home" description="Latest posts from artists you follow." />
+    <PageHeader title="Home" description="Latest posts from people you follow." />
   </Region>
 </AppShell>`,
 		},

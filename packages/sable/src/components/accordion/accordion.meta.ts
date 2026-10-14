@@ -147,7 +147,7 @@ export const accordionMeta: ComponentMeta = {
 	examples: [
 		{
 			label: "Single (default)",
-			code: '<Accordion defaultValue={["a"]}><AccordionItem value="a"><AccordionTrigger>Is it permanent?</AccordionTrigger><AccordionPanel>Yes — stored on Arweave.</AccordionPanel></AccordionItem><AccordionItem value="b"><AccordionTrigger>How much?</AccordionTrigger><AccordionPanel>A one-time mint fee.</AccordionPanel></AccordionItem></Accordion>',
+			code: '<Accordion defaultValue={["a"]}><AccordionItem value="a"><AccordionTrigger>Can I cancel anytime?</AccordionTrigger><AccordionPanel>Yes — from billing settings.</AccordionPanel></AccordionItem><AccordionItem value="b"><AccordionTrigger>How much?</AccordionTrigger><AccordionPanel>$16 per seat each month.</AccordionPanel></AccordionItem></Accordion>',
 		},
 		{
 			label: "Multiple open",
@@ -155,7 +155,7 @@ export const accordionMeta: ComponentMeta = {
 		},
 		{
 			label: "Custom indicator (plus-becomes-×)",
-			code: '<Accordion defaultValue={["a"]}><AccordionItem value="a"><AccordionTrigger indicator={<Icon name="plus" className="text-xs text-muted-foreground transition-transform [[data-panel-open]_&]:rotate-45" />}>Is it permanent?</AccordionTrigger><AccordionPanel>Yes — stored on Arweave.</AccordionPanel></AccordionItem></Accordion>',
+			code: '<Accordion defaultValue={["a"]}><AccordionItem value="a"><AccordionTrigger indicator={<Icon name="plus" className="text-xs text-muted-foreground transition-transform [[data-panel-open]_&]:rotate-45" />}>Can I cancel anytime?</AccordionTrigger><AccordionPanel>Yes — from billing settings.</AccordionPanel></AccordionItem></Accordion>',
 		},
 	],
 }

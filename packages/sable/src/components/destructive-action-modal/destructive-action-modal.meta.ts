@@ -134,7 +134,7 @@ export const destructiveActionModalMeta: ComponentMeta = {
 		},
 		{
 			label: "Body slot + type-to-confirm",
-			code: "<DestructiveActionModal open={open} onOpenChange={setOpen} title='Delete this post?' confirmText='gold rush' confirmLabel='Delete forever' onConfirm={handleDelete}><Note tone='warning'>Collectors who minted this edition keep their copies.</Note></DestructiveActionModal>",
+			code: "<DestructiveActionModal open={open} onOpenChange={setOpen} title='Delete this post?' confirmText='gold rush' confirmLabel='Delete forever' onConfirm={handleDelete}><Note tone='warning'>People you shared this post with lose access to it.</Note></DestructiveActionModal>",
 		},
 	],
 }

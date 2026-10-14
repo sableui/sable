@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const bannerMeta: ComponentMeta = {
 	name: "Banner",
 	summary:
-		"Full-width, page-level announcement bar. A tone (neutral, info, success, warning, edition, destructive) × an appearance (soft tint or loud solid fill), and an optional leading scope label. Centers its message, or — with a trailing action — switches to a leading-text + trailing-button layout. Optionally sticky and dismissible.",
+		"Full-width, page-level announcement bar. A tone (neutral, info, success, warning, the decorative 1, destructive) × an appearance (soft tint or loud solid fill), and an optional leading scope label. Centers its message, or — with a trailing action — switches to a leading-text + trailing-button layout. Optionally sticky and dismissible.",
 	keywords: [
 		"banner",
 		"announcement",
@@ -79,10 +79,10 @@ export const bannerMeta: ComponentMeta = {
 	props: [
 		{
 			name: "tone",
-			type: '"neutral" | "info" | "success" | "warning" | "edition" | "destructive"',
+			type: '"neutral" | "info" | "success" | "warning" | "1" | "destructive"',
 			default: '"neutral"',
 			description:
-				"Neutral surface or a tone that encodes the announcement's intent (info / success / warning / edition / destructive).",
+				"Neutral surface or a tone that encodes the announcement's intent (info / success / warning / the decorative 1 / destructive).",
 		},
 		{
 			name: "appearance",
@@ -130,7 +130,7 @@ export const bannerMeta: ComponentMeta = {
 		},
 	],
 	variants: {
-		tone: ["neutral", "info", "success", "warning", "edition", "destructive"],
+		tone: ["neutral", "info", "success", "warning", "1", "destructive"],
 		appearance: ["soft", "solid"],
 	},
 	tokensUsed: [
@@ -144,8 +144,8 @@ export const bannerMeta: ComponentMeta = {
 		"success-foreground",
 		"tone-warning",
 		"tone-warning-foreground",
-		"tone-edition",
-		"tone-edition-foreground",
+		"tone-1",
+		"tone-1-foreground",
 		"destructive",
 		"destructive-foreground",
 	],
@@ -161,7 +161,7 @@ export const bannerMeta: ComponentMeta = {
 		},
 		{
 			label: "Solid (loud)",
-			code: '<Banner tone="destructive" appearance="solid" live="assertive">Blockchain unavailable. Collect and buy are temporarily disabled.</Banner>',
+			code: '<Banner tone="destructive" appearance="solid" live="assertive">Payments are down. Checkout and upgrades are temporarily disabled.</Banner>',
 		},
 		{
 			label: "Success",
@@ -177,7 +177,7 @@ export const bannerMeta: ComponentMeta = {
 		},
 		{
 			label: "Recoverable warning",
-			code: '<Banner tone="warning" action={<Button variant="outline" size="sm">Reconnect</Button>}>Wallet connection paused.</Banner>',
+			code: '<Banner tone="warning" action={<Button variant="outline" size="sm">Reconnect</Button>}>Calendar sync paused.</Banner>',
 		},
 		{
 			label: "App-shell outage",

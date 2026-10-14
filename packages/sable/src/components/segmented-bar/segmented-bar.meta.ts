@@ -65,12 +65,12 @@ export const segmentedBarMeta: ComponentMeta = {
 	],
 	variants: {
 		size: ["sm", "md", "lg"],
-		tone: ["edition", "collectible", "standard", "info", "primary", "neutral", "success", "warning", "destructive"],
+		tone: ["1", "2", "3", "info", "primary", "neutral", "success", "warning", "destructive"],
 	},
 	tokensUsed: [
-		"tone-edition",
-		"tone-collectible",
-		"tone-standard",
+		"tone-1",
+		"tone-2",
+		"tone-3",
 		"tone-info",
 		"primary",
 		"muted-foreground",
@@ -95,13 +95,13 @@ export const segmentedBarMeta: ComponentMeta = {
 		{ slot: "activity", recipe: "none", part: "SegmentedBar", why: "No indeterminate state — an unknown breakdown is not drawn." },
 	],
 	a11y: [
-		"Rendered role=img with an aria-label built from `label` and each segment's share (\"Revenue by type: Editions 42%, Collectibles 27%\"), so the whole breakdown is read in one stop.",
+		"Rendered role=img with an aria-label built from `label` and each segment's share (\"Revenue by channel: Direct 42%, Partners 27%\"), so the whole breakdown is read in one stop.",
 		"Colour alone does not identify a segment: always show a legend with each segment's label beside the bar.",
 	],
 	examples: [
 		{
 			label: "With a legend",
-			code: 'const sales = [\n\t{ label: "Editions", value: 42, tone: "edition" },\n\t{ label: "Collectibles", value: 27, tone: "collectible" },\n\t{ label: "Standard", value: 19, tone: "standard" },\n] as const\n\n<Stack gap={3}>\n\t<SegmentedBar label="Revenue by type" segments={[...sales]} size="lg" />\n\t<ul className="flex flex-col gap-1.5">\n\t\t{sales.map((s) => (\n\t\t\t<li key={s.label} className="flex items-center gap-2 text-body-sm">\n\t\t\t\t<StatusDot tone={s.tone} />\n\t\t\t\t<span className="flex-1 text-muted-foreground">{s.label}</span>\n\t\t\t\t<span className="text-mono-caption">{s.value}%</span>\n\t\t\t</li>\n\t\t))}\n\t</ul>\n</Stack>',
+			code: 'const sales = [\n\t{ label: "Direct", value: 42, tone: "1" },\n\t{ label: "Partners", value: 27, tone: "2" },\n\t{ label: "Referrals", value: 19, tone: "3" },\n] as const\n\n<Stack gap={3}>\n\t<SegmentedBar label="Revenue by channel" segments={[...sales]} size="lg" />\n\t<ul className="flex flex-col gap-1.5">\n\t\t{sales.map((s) => (\n\t\t\t<li key={s.label} className="flex items-center gap-2 text-body-sm">\n\t\t\t\t<StatusDot tone={s.tone} />\n\t\t\t\t<span className="flex-1 text-muted-foreground">{s.label}</span>\n\t\t\t\t<span className="text-mono-caption">{s.value}%</span>\n\t\t\t</li>\n\t\t))}\n\t</ul>\n</Stack>',
 		},
 		{
 			label: "Test results — status tones",

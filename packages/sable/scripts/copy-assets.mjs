@@ -14,6 +14,7 @@ const packageRoot = fileURLToPath(new URL("../", import.meta.url))
 
 const assets = [
 	["src/styles.css", "dist/styles.css"],
+	["src/palette.css", "dist/palette.css"],
 	// The opt-in aggregate of the bundled alternates. Ships even though most
 	// apps never import it: it is 4 @import lines, and omitting it would make
 	// `@sableui/react/themes.css` a 404 for the apps that do.

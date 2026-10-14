@@ -37,5 +37,5 @@ Use SplitPane for responsive two-pane layouts where a primary pane and supportin
 ```tsx
 import { AspectBox, Button, SplitPane, Stack } from "@sableui/react"
 
-<SplitPane ratio="2/1" primary={<AspectBox ratio={1}><img src={post.imageUrl} alt={post.title} className="size-full object-cover" /></AspectBox>} secondary={<Stack gap={2}><h1 className="text-heading-1">{post.title}</h1><p className="text-body-md text-muted-foreground">{post.description}</p><Button>Collect</Button></Stack>} />
+<SplitPane ratio="2/1" primary={<AspectBox ratio={1}><img src={post.imageUrl} alt={post.title} className="size-full object-cover" /></AspectBox>} secondary={<Stack gap={2}><h1 className="text-heading-1">{post.title}</h1><p className="text-body-md text-muted-foreground">{post.description}</p><Button>Add to cart</Button></Stack>} />
 ```

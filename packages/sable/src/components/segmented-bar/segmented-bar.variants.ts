@@ -11,9 +11,9 @@ export const segmentedBarSegmentVariants = cva(
 	{
 		variants: {
 			tone: {
-				edition: "bg-tone-edition",
-				collectible: "bg-tone-collectible",
-				standard: "bg-tone-standard",
+				"1": "bg-tone-1",
+				"2": "bg-tone-2",
+				"3": "bg-tone-3",
 				info: "bg-tone-info",
 				primary: "bg-primary",
 				neutral: "bg-muted-foreground",
@@ -23,7 +23,7 @@ export const segmentedBarSegmentVariants = cva(
 			},
 		},
 		defaultVariants: {
-			tone: "standard",
+			tone: "3",
 		},
 	},
 )

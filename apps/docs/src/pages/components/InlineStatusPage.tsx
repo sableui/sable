@@ -26,7 +26,7 @@ export function InlineStatusPage() {
 				<Example>
 					<Stack gap={1.5}>
 						<InlineStatus tone="neutral">Draft saved locally.</InlineStatus>
-						<InlineStatus tone="info">Editions mint on Solana mainnet.</InlineStatus>
+						<InlineStatus tone="info">Reports refresh every hour.</InlineStatus>
 						<InlineStatus tone="success">Top-up confirmed.</InlineStatus>
 						<InlineStatus tone="warning">Gas is elevated right now.</InlineStatus>
 						<InlineStatus tone="destructive">Insufficient balance.</InlineStatus>

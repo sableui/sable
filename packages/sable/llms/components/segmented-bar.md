@@ -36,11 +36,11 @@ Use SegmentedBar when a stat card or row needs to show how a total divides into 
 ## Variants
 
 - **size**: sm, md, lg
-- **tone**: edition, collectible, standard, info, primary, neutral, success, warning, destructive
+- **tone**: 1, 2, 3, info, primary, neutral, success, warning, destructive
 
 ## Tokens used
 
-`tone-edition`, `tone-collectible`, `tone-standard`, `tone-info`, `primary`, `muted-foreground`, `success`, `tone-warning`, `destructive`
+`tone-1`, `tone-2`, `tone-3`, `tone-info`, `primary`, `muted-foreground`, `success`, `tone-warning`, `destructive`
 
 ## Motion
 
@@ -51,7 +51,7 @@ Use SegmentedBar when a stat card or row needs to show how a total divides into 
 
 ## Accessibility
 
-- Rendered role=img with an aria-label built from `label` and each segment's share ("Revenue by type: Editions 42%, Collectibles 27%"), so the whole breakdown is read in one stop.
+- Rendered role=img with an aria-label built from `label` and each segment's share ("Revenue by channel: Direct 42%, Partners 27%"), so the whole breakdown is read in one stop.
 - Colour alone does not identify a segment: always show a legend with each segment's label beside the bar.
 
 ## Related
@@ -67,13 +67,13 @@ Use SegmentedBar when a stat card or row needs to show how a total divides into 
 import { SegmentedBar, Stack, StatusDot } from "@sableui/react"
 
 const sales = [
-	{ label: "Editions", value: 42, tone: "edition" },
-	{ label: "Collectibles", value: 27, tone: "collectible" },
-	{ label: "Standard", value: 19, tone: "standard" },
+	{ label: "Direct", value: 42, tone: "1" },
+	{ label: "Partners", value: 27, tone: "2" },
+	{ label: "Referrals", value: 19, tone: "3" },
 ] as const
 
 <Stack gap={3}>
-	<SegmentedBar label="Revenue by type" segments={[...sales]} size="lg" />
+	<SegmentedBar label="Revenue by channel" segments={[...sales]} size="lg" />
 	<ul className="flex flex-col gap-1.5">
 		{sales.map((s) => (
 			<li key={s.label} className="flex items-center gap-2 text-body-sm">

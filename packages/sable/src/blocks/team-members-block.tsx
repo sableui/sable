@@ -46,7 +46,7 @@ export function TeamMembersBlock({ className, framed = true, onInvite, onMemberA
 						subtitle={m.email}
 						action={
 							<div className="flex items-center gap-2">
-								<Badge appearance={m.role === "Pending" ? "outline" : "plain"} tone={m.role === "Owner" ? "edition" : "neutral"} size="sm">
+								<Badge appearance={m.role === "Pending" ? "outline" : "plain"} tone={m.role === "Owner" ? "1" : "neutral"} size="sm">
 									{m.role}
 								</Badge>
 								{/* The owner is not managed from here; a placeholder keeps the column aligned. */}

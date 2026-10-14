@@ -2,7 +2,7 @@
 // Components, primitives, layout, and icon adapter are re-exported here as they land.
 // Keep this the single public entry; never deep-import internals from consumer apps.
 
-export const SABLE_UI_VERSION = "0.9.1" as const
+export const SABLE_UI_VERSION = "0.10.0" as const
 
 // Foundations
 export * from "./lib/cn"
@@ -44,6 +44,7 @@ export {
 	RHYTHM_TOKENS,
 	WORKSPACE_SURFACE_TOKENS,
 	ART_TOKENS,
+	PALETTE_TOKENS,
 	TYPE_UI_TOKENS,
 } from "./themes/_contract"
 export type {
@@ -234,3 +235,6 @@ export { PresentationProvider, usePresentation, type Presentation } from "./lib/
 export { useScrollActivity } from "./lib/use-scroll-activity"
 export { useCopy, type UseCopyOptions, type UseCopyResult } from "./lib/use-copy"
 export { STATUS_TONES, STATUS_TONE_ICON, type StatusTone } from "./lib/status-tone"
+// The generated palette's names, for UIs that list or pick from it (a tag
+// colour picker, a docs swatch book). The colours themselves are CSS.
+export { PALETTE_COLORS, PALETTE_FAMILIES, PALETTE_SCALES, PALETTE_STEPS, PALETTE_TONES, isPaletteColor, type PaletteColor, type PaletteFamily, type PaletteStep } from "./lib/palette"

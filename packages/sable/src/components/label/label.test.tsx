@@ -21,8 +21,8 @@ describe("Label", () => {
 	})
 
 	it("adds a focusable dotted-underline affordance when hint is set", () => {
-		renderWithProviders(<Label hint="A cut of every resale.">Royalty</Label>)
-		const label = screen.getByText("Royalty")
+		renderWithProviders(<Label hint="Taken off every order.">Discount</Label>)
+		const label = screen.getByText("Discount")
 		expect(label).toHaveAttribute("tabindex", "0")
 		expect(label.className).toContain("border-dotted")
 		expect(label.className).toContain("cursor-help")

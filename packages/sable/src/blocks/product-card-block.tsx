@@ -7,7 +7,7 @@ import { cn } from "../lib/cn"
 
 // ---block-code---
 // `image` is the product shot URL; left empty, it paints art seeded by the title.
-const product = { title: "Untitled (gold rush)", maker: "Mara Okafor", image: "", edition: "12 of 50", price: "0.42 SOL" }
+const product = { title: "Linen throw blanket", maker: "Northfield Home", image: "", badge: "New", price: "$64.00" }
 
 
 export interface ProductCardBlockProps {
@@ -28,12 +28,12 @@ export function ProductCardBlock({ className, framed = true, onCollect }: Produc
 				<CardTitle>{product.title}</CardTitle>
 				<CardDescription>{product.maker}</CardDescription>
 				<CardAction>
-					<Badge tone="edition">{product.edition}</Badge>
+					<Badge tone="1">{product.badge}</Badge>
 				</CardAction>
 			</CardHeader>
 			<CardFooter className="justify-between pt-4">
 				<span className="text-mono-lg">{product.price}</span>
-				<Button onClick={onCollect}>Collect</Button>
+				<Button onClick={onCollect}>Add to cart</Button>
 			</CardFooter>
 		</Card>
 	)

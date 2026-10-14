@@ -147,7 +147,7 @@ export const tooltipMeta: ComponentMeta = {
 	examples: [
 		{
 			label: "Basic",
-			code: '<TooltipProvider><Tooltip><TooltipTrigger render={<Button variant="ghost" size="icon-sm" aria-label="Info"><Icon name="info" /></Button>} /><TooltipContent>Stored permanently on Arweave.</TooltipContent></Tooltip></TooltipProvider>',
+			code: '<TooltipProvider><Tooltip><TooltipTrigger render={<Button variant="ghost" size="icon-sm" aria-label="Info"><Icon name="info" /></Button>} /><TooltipContent>Saved to your workspace.</TooltipContent></Tooltip></TooltipProvider>',
 		},
 		{
 			label: "Sides",
@@ -155,7 +155,7 @@ export const tooltipMeta: ComponentMeta = {
 		},
 		{
 			label: "Shorthand (SimpleTooltip)",
-			code: '<SimpleTooltip content="Stored permanently on Arweave."><Button variant="ghost" size="icon-sm" aria-label="Info"><Icon name="info" /></Button></SimpleTooltip>',
+			code: '<SimpleTooltip content="Saved to your workspace."><Button variant="ghost" size="icon-sm" aria-label="Info"><Icon name="info" /></Button></SimpleTooltip>',
 		},
 	],
 }

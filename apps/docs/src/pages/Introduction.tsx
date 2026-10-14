@@ -7,7 +7,7 @@ import { hrefFor } from "../lib/router"
 import { useCustomizer } from "../customizer/CustomizerProvider"
 import { useTheme } from "../theme"
 import {
-	BillingScene, ChatScene, CollectScene, EventScene, NowPlayingScene,
+	BillingScene, ChatScene, ProductScene, EventScene, NowPlayingScene,
 	ProfileScene, SettingsScene, StatScene, TasksScene,
 } from "./CustomizeCanvas"
 
@@ -18,7 +18,7 @@ import {
  * between home and docs changes the page, never the chrome.
  */
 
-const SCENES = [BillingScene, CollectScene, StatScene, NowPlayingScene, SettingsScene, ChatScene, ProfileScene, TasksScene, EventScene]
+const SCENES = [BillingScene, ProductScene, StatScene, NowPlayingScene, SettingsScene, ChatScene, ProfileScene, TasksScene, EventScene]
 
 /** A duration scaled by the active --motion-scale, as every Sable duration is
  *  — the Customize motion slider slows or speeds the intro too. */

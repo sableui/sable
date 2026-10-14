@@ -106,7 +106,7 @@ export const scrollerMeta: ComponentMeta = {
 	examples: [
 		{
 			label: "Vertical with overflow",
-			code: '<Scroller label="Editions" className="h-64"><ul className="space-y-2 p-4">{items.map((item) => (<li key={item.id} className="text-body-sm">{item.title}</li>))}</ul></Scroller>',
+			code: '<Scroller label="Projects" className="h-64"><ul className="space-y-2 p-4">{items.map((item) => (<li key={item.id} className="text-body-sm">{item.title}</li>))}</ul></Scroller>',
 		},
 		{
 			label: "Capped, scrolls past the cap",

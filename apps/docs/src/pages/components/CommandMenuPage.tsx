@@ -165,9 +165,9 @@ export function CommandMenuPage() {
 							</CommandMenuItem>
 							<CommandMenuItem
 								icon="gem"
-								onSelect={() => console.log("new-edition")}
+								onSelect={() => console.log("new-project")}
 							>
-								New edition
+								New project
 							</CommandMenuItem>
 							<CommandMenuItem
 								icon="logout"

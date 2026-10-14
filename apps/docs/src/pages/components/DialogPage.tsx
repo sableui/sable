@@ -31,9 +31,9 @@ import {
 
 /** Each fill with its own paired ink — a tone's -foreground is tuned to that fill only. */
 const TONES = [
-	"bg-tone-standard text-tone-standard-foreground",
-	"bg-tone-collectible text-tone-collectible-foreground",
-	"bg-tone-edition text-tone-edition-foreground",
+	"bg-tone-3 text-tone-3-foreground",
+	"bg-tone-2 text-tone-2-foreground",
+	"bg-tone-1 text-tone-1-foreground",
 	"bg-tone-info text-tone-info-foreground",
 	"bg-tone-warning text-tone-warning-foreground",
 ]
@@ -61,17 +61,17 @@ export function DialogPage() {
 						<DialogTrigger render={<Button>Open dialog</Button>} />
 						<DialogContent>
 							<DialogHeader>
-								<DialogTitle>Edition details</DialogTitle>
+								<DialogTitle>Plan details</DialogTitle>
 								<DialogDescription>
-									A limited run of 100, stored permanently on Arweave.
+									Up to 10 seats, billed monthly per seat.
 								</DialogDescription>
 							</DialogHeader>
 							<p className="text-body-md text-muted-foreground">
-								Collecting mints a compressed NFT to your wallet.
+								Upgrading starts a new billing period today.
 							</p>
 							<DialogFooter>
 								<DialogClose render={<Button variant="secondary">Close</Button>} />
-								<DialogClose render={<Button>Collect</Button>} />
+								<DialogClose render={<Button>Upgrade</Button>} />
 							</DialogFooter>
 						</DialogContent>
 					</Dialog>

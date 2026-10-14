@@ -286,7 +286,7 @@ export const commandMenuMeta: ComponentMeta = {
 		},
 		{
 			label: "Grouped launcher",
-			code: '<CommandMenu open={open} onOpenChange={setOpen}><CommandMenuGroup label="Create"><CommandMenuItem icon="plus" onSelect={() => createPost()}>New post</CommandMenuItem><CommandMenuItem icon="sparkles" onSelect={() => createEdition()}>New edition</CommandMenuItem></CommandMenuGroup><CommandMenuGroup label="Navigation"><CommandMenuItem icon="home" onSelect={() => navigate("/")}>Home</CommandMenuItem><CommandMenuItem icon="gear" onSelect={() => navigate("/settings")}>Settings</CommandMenuItem></CommandMenuGroup></CommandMenu>',
+			code: '<CommandMenu open={open} onOpenChange={setOpen}><CommandMenuGroup label="Create"><CommandMenuItem icon="plus" onSelect={() => createPost()}>New post</CommandMenuItem><CommandMenuItem icon="sparkles" onSelect={() => createProject()}>New project</CommandMenuItem></CommandMenuGroup><CommandMenuGroup label="Navigation"><CommandMenuItem icon="home" onSelect={() => navigate("/")}>Home</CommandMenuItem><CommandMenuItem icon="gear" onSelect={() => navigate("/settings")}>Settings</CommandMenuItem></CommandMenuGroup></CommandMenu>',
 		},
 		{
 			label: "Consumer-owned ranking",

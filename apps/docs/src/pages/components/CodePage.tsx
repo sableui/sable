@@ -30,7 +30,7 @@ export function CodePage() {
 			>
 				<Example>
 					<p className="text-body-md text-foreground">
-						The accent token is <Code>--tone-edition</Code> and the path alias{" "}
+						The accent token is <Code>--tone-1</Code> and the path alias{" "}
 						<Code>@/</Code> maps to <Code>./src/</Code>.
 					</p>
 				</Example>

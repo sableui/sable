@@ -72,5 +72,5 @@ import { DestructiveActionModal } from "@sableui/react"
 ```tsx
 import { DestructiveActionModal, Note } from "@sableui/react"
 
-<DestructiveActionModal open={open} onOpenChange={setOpen} title='Delete this post?' confirmText='gold rush' confirmLabel='Delete forever' onConfirm={handleDelete}><Note tone='warning'>Collectors who minted this edition keep their copies.</Note></DestructiveActionModal>
+<DestructiveActionModal open={open} onOpenChange={setOpen} title='Delete this post?' confirmText='gold rush' confirmLabel='Delete forever' onConfirm={handleDelete}><Note tone='warning'>People you shared this post with lose access to it.</Note></DestructiveActionModal>
 ```

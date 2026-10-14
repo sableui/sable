@@ -10,12 +10,12 @@ import { cn } from "../../lib/cn"
  *
  *   <Accordion defaultValue={["faq-1"]}>
  *     <AccordionItem value="faq-1">
- *       <AccordionTrigger>Is it permanent?</AccordionTrigger>
- *       <AccordionPanel>Yes — stored on Arweave.</AccordionPanel>
+ *       <AccordionTrigger>Can I cancel anytime?</AccordionTrigger>
+ *       <AccordionPanel>Yes — from billing settings.</AccordionPanel>
  *     </AccordionItem>
  *     <AccordionItem value="faq-2">
  *       <AccordionTrigger>How much does it cost?</AccordionTrigger>
- *       <AccordionPanel>A one-time mint fee.</AccordionPanel>
+ *       <AccordionPanel>$16 per seat each month.</AccordionPanel>
  *     </AccordionItem>
  *   </Accordion>
  *

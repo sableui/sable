@@ -282,7 +282,7 @@ export function LandingPage() {
 												<CardDescription>Team plan</CardDescription>
 											</CardHeader>
 											<CardContent>
-												<Meter value={64} tone="standard">
+												<Meter value={64} tone="3">
 													<Row justify="between" wrap className="mb-2">
 														<MeterLabel>Used</MeterLabel>
 														<MeterValue>{(_, value) => `${(value * 30).toLocaleString("en-US")} of 3,000`}</MeterValue>

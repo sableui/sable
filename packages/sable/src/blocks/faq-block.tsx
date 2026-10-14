@@ -11,10 +11,10 @@ const intro = {
 }
 
 const questions = [
-	{ q: "Is there a free plan?", a: "Yes. Starter is free forever for three live editions, with no fees on your first $1,000 in sales." },
+	{ q: "Is there a free plan?", a: "Yes. Starter is free forever for three active projects, with no card needed to sign up." },
 	{ q: "Can I change plans later?", a: "Any time. Upgrades apply immediately and are prorated; downgrades take effect at the end of the billing period." },
-	{ q: "Who owns the work I sell?", a: "You do. Collectors own the editions they buy, and you keep the rights to the work itself." },
-	{ q: "How do payouts work?", a: "Sales clear after seven days and are paid out every Friday to the account you connect in settings." },
+	{ q: "Who owns the data I add?", a: "You do. You can export everything in your workspace at any time, and we never sell it." },
+	{ q: "How does billing work?", a: "Plans are billed per seat at the start of each period, to the card or account you add in settings." },
 ]
 
 export interface FaqBlockProps {

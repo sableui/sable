@@ -1,6 +1,5 @@
-import { cn, Grid } from "@sableui/react"
+import { Grid, PALETTE_SCALES, PALETTE_STEPS, PALETTE_TONES, Stack } from "@sableui/react"
 import { InlineCode, PageHeader, Section } from "../components/docs-ui"
-import { useTheme } from "../theme"
 
 const semantic = [
 	{ name: "background", desc: "App canvas" },
@@ -16,39 +15,28 @@ const semantic = [
 	{ name: "ring", desc: "Focus ring" },
 ]
 
-const palettesByTheme = {
-	sable: [
-		"zinc",
-		"purple-heart",
-		"blue-gem",
-		"caribbean-green",
-		"azure-radiance",
-		"flush-orange",
-		"torch-red",
-	],
-	// Sable and Meridian expose palette ramps; other featured presets use semantic tokens.
-	meridian: ["meridian-ember"],
-} as const
-const ramp = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950]
+/** Neutral and the hue families: everything generated that is not a tone's own scale. */
+const families = PALETTE_SCALES.filter((name) => !(PALETTE_TONES as readonly string[]).includes(name))
+const hasScale = (token: string) => (PALETTE_TONES as readonly string[]).includes(token)
 
 const tones = [
 	{
-		name: "tone-standard",
-		foreground: "tone-standard-foreground",
-		label: "Standard",
-		desc: "Default item signal",
+		name: "tone-1",
+		foreground: "tone-1-foreground",
+		label: "Tone 1",
+		desc: "Lead extra color",
 	},
 	{
-		name: "tone-collectible",
-		foreground: "tone-collectible-foreground",
-		label: "Collectible",
-		desc: "Collectible / entity signal",
+		name: "tone-2",
+		foreground: "tone-2-foreground",
+		label: "Tone 2",
+		desc: "Second extra color",
 	},
 	{
-		name: "tone-edition",
-		foreground: "tone-edition-foreground",
-		label: "Edition",
-		desc: "Edition / premium signal",
+		name: "tone-3",
+		foreground: "tone-3-foreground",
+		label: "Tone 3",
+		desc: "Third extra color",
 	},
 	{
 		name: "tone-info",
@@ -82,11 +70,22 @@ const tones = [
 	},
 ]
 
-function palettesForTheme(themeId: string) {
-	if (themeId === "meridian") return palettesByTheme.meridian
-	if (themeId === "sable") return palettesByTheme.sable
-	// Other featured presets declare semantic tokens without named palette ramps.
-	return []
+/** One generated scale, 50 → 950, as the active theme and mode paint it. */
+function Scale({ name, labels = false }: { name: string; labels?: boolean }) {
+	return (
+		<Grid cols={11} gap={0.25}>
+			{PALETTE_STEPS.map((step) => (
+				<div key={step} className="flex min-w-0 flex-col gap-1">
+					<div
+						className="h-7 rounded-sm"
+						style={{ background: `var(--${name}-${step})` }}
+						title={`--${name}-${step}`}
+					/>
+					{labels ? <span className="text-mono-sm text-center text-muted-foreground">{step}</span> : null}
+				</div>
+			))}
+		</Grid>
+	)
 }
 
 function SemanticSwatch({ name, desc }: { name: string; desc: string }) {
@@ -121,10 +120,6 @@ function SemanticSwatch({ name, desc }: { name: string; desc: string }) {
 }
 
 export function ColorsPage() {
-	const { mode, themeId } = useTheme()
-	const palettes = palettesForTheme(themeId)
-	const scoped = mode === "dark" ? "dark" : undefined
-
 	return (
 		<>
 			<PageHeader
@@ -146,60 +141,51 @@ export function ColorsPage() {
 
 			<Section
 				title="Tones"
-				description="Color that carries meaning: status, feedback and highlight."
+				description="Three extra colors a theme defines for categories, badges and chart series, then the colors that carry meaning: status, feedback and highlight. Each comes with a 50–950 scale built around it, so bg-tone-1-100 is a wash of tone 1 and step 500 is the tone itself."
 			>
-				<Grid
-					cols={{ base: 1, sm: 2, lg: 4 }}
-					gap={1.5}
-					className={scoped}
-					data-sable-theme={themeId}
-				>
+				{/* Inherits from <html>, unscoped: re-declaring the preset here would
+				    shadow the customizer's :root overrides and freeze the tones. */}
+				<Grid cols={{ base: 1, sm: 2, lg: 4 }} gap={1.5}>
 					{tones.map((t) => (
-						<div
-							key={t.name}
-							className="flex min-h-36 flex-col justify-between rounded-xl border border-border/40 p-4"
-							style={{
-								background: `var(--${t.name})`,
-								color: `var(--${t.foreground})`,
-							}}
-						>
-							<div>
-								<p className="text-title-sm">{t.label}</p>
-								<p className="text-body-sm opacity-80">{t.desc}</p>
+						<Stack key={t.name} gap={1}>
+							<div
+								className="flex min-h-36 flex-col justify-between rounded-xl border border-border/40 p-4"
+								style={{
+									background: `var(--${t.name})`,
+									color: `var(--${t.foreground})`,
+								}}
+							>
+								<div>
+									<p className="text-title-sm">{t.label}</p>
+									<p className="text-body-sm opacity-80">{t.desc}</p>
+								</div>
+								<p className="text-display-lg">Aa</p>
 							</div>
-							<p className="text-display-lg">Aa</p>
-						</div>
+							{hasScale(t.name) ? <Scale name={t.name} /> : null}
+						</Stack>
 					))}
 				</Grid>
 			</Section>
 
-			{palettes.length ? (
-				<Section
-					title="Palette"
-					description="The raw scales this theme builds its roles from."
-				>
-					<div className={cn("space-y-6", scoped)} data-sable-theme={themeId}>
-						{palettes.map((p) => (
-							<div key={p}>
-								<p className="text-title-sm mb-2">{p}</p>
-								<Grid cols={{ base: 6, sm: 11 }} gap={0.75}>
-									{ramp.map((step) => (
-										<div key={step} className="flex flex-col gap-1.5">
-											<div
-												className="aspect-square rounded-md border border-border/30"
-												style={{ background: `var(--${p}-${step})` }}
-											/>
-											<span className="text-mono-sm text-center text-muted-foreground">
-												{step}
-											</span>
-										</div>
-									))}
-								</Grid>
-							</div>
-						))}
-					</div>
-				</Section>
-			) : null}
+			<Section
+				title="Palette"
+				description="More color for tags, avatars, labels and illustration, generated from this theme. Each family keeps its own hue and leans a little toward the brand, so the whole set sits with it; neutral is the theme's own page and ink. Steps follow the mode: a low step is always near the page and a high one always far from it, so bg-blue-100 with text-blue-800 reads in light and dark alike."
+			>
+				<Stack gap={3}>
+					{families.map((name) => (
+						<Stack key={name} gap={1}>
+							<p className="text-title-sm">{name}</p>
+							<Scale name={name} labels />
+						</Stack>
+					))}
+					<p className="text-body-sm text-muted-foreground">
+						Use them as utilities (<InlineCode>bg-blue-100</InlineCode>, <InlineCode>text-pink-700</InlineCode>,{" "}
+						<InlineCode>border-neutral-200</InlineCode>) or variables (<InlineCode>var(--teal-500)</InlineCode>). Surfaces, text and
+						actions still take roles. A theme sets how far the families lean with <InlineCode>--theme-palette-harmony</InlineCode>: 0
+						keeps their own hues, 1 is the default.
+					</p>
+				</Stack>
+			</Section>
 		</>
 	)
 }

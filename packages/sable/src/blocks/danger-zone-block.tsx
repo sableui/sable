@@ -5,7 +5,7 @@ import { DestructiveActionModal } from "../components/destructive-action-modal"
 import { cn } from "../lib/cn"
 
 // ---block-code---
-const account = { handle: "ada", editions: 12 }
+const account = { handle: "ada", projects: 12 }
 
 export interface DangerZoneBlockProps {
 	className?: string
@@ -23,7 +23,7 @@ export function DangerZoneBlock({ className, framed = true, onDelete }: DangerZo
 				<CardHeader>
 					<CardTitle render={<h2 />}>Delete account</CardTitle>
 					<CardDescription>
-						Permanently remove your profile, editions, and sales history. Collectors keep the editions they own.
+						Permanently remove your profile, projects, and billing history. Files you shared stay with your team.
 					</CardDescription>
 				</CardHeader>
 				<CardFooter actions className="justify-end">
@@ -36,7 +36,7 @@ export function DangerZoneBlock({ className, framed = true, onDelete }: DangerZo
 				open={open}
 				onOpenChange={setOpen}
 				title="Delete your account?"
-				description={`This permanently removes your profile, ${account.editions} editions, and sales history. Pending payouts are still sent. This can't be undone.`}
+				description={`This permanently removes your profile, ${account.projects} projects, and billing history. Your final invoice is still sent. This can't be undone.`}
 				confirmLabel="Delete account"
 				confirmingLabel="Deleting…"
 				confirmText={account.handle}

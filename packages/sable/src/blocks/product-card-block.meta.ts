@@ -5,11 +5,11 @@ export const productCardBlockMeta: BlockMeta = {
 	family: "Commerce",
 	kind: "card",
 	width: { min: "16rem", max: "20rem" },
-	summary: "A product card: edge-to-edge artwork, title and maker, an edition Badge, and the price beside a single buy action.",
+	summary: "A product card: edge-to-edge product image, title and maker, a status Badge, and the price beside a single buy action.",
 	intent:
-		"Reach for this for a product, edition or listing in a grid or a featured slot. For a row in a dense list, use an Entity with the image as `leading` instead.",
+		"Reach for this for a product or listing in a grid or a featured slot. For a row in a dense list, use an Entity with the image as `leading` instead.",
 	notes: [
-		"The artwork runs to the card's edges; the card clips it to its own corners (overflow-hidden).",
+		"The image runs to the card's edges; the card clips it to its own corners (overflow-hidden).",
 		"Prices are `text-mono-lg` — the metric mono tier with tabular figures — never a heading tier.",
 		"The placeholder art is painted from the palette's decorative tones so it follows the theme; swap it for the product image with real alt text.",
 	],

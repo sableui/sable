@@ -66,7 +66,7 @@ function Stage({ children, className }: { children: ReactNode; className?: strin
  */
 const SCENE = "max-w-[var(--scene-max,20rem)]"
 
-export function CollectScene() {
+export function ProductScene() {
 	return <Stage><ProductCardBlock className={SCENE} /></Stage>
 }
 
@@ -176,7 +176,7 @@ function ThemeCanvas() {
 		// (16 spacing units, which density scales), so a card is never squeezed
 		// below the width it is built for.
 		<Grid minItemWidth="calc(20rem + var(--spacing) * 16)" gap="calc(var(--spacing) * 4)">
-			<CollectScene />
+			<ProductScene />
 			<BillingScene />
 			<NowPlayingScene />
 			<StatScene />

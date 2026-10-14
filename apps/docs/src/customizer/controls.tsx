@@ -401,7 +401,7 @@ export const depthText = (depth: number | null) =>
 const PALETTE_GROUPS = [
 	{ name: "Ground", tokens: ["background", "muted", "foreground"] },
 	{ name: "Brand", tokens: ["primary", "highlight"] },
-	{ name: "Tones", tokens: ["tone-info", "tone-standard", "tone-collectible", "tone-edition"] },
+	{ name: "Tones", tokens: ["tone-info", "tone-3", "tone-2", "tone-1"] },
 	{ name: "Status", tokens: ["success", "tone-warning", "destructive"] },
 ] as const
 

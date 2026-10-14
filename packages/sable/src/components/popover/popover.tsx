@@ -15,8 +15,8 @@ import { useAnchoredDensity } from "../../lib/density"
  *   <Popover>
  *     <PopoverTrigger render={<Button variant="secondary">Open</Button>} />
  *     <PopoverContent>
- *       <PopoverTitle>Edition details</PopoverTitle>
- *       <PopoverDescription>Stored permanently on Arweave.</PopoverDescription>
+ *       <PopoverTitle>Plan details</PopoverTitle>
+ *       <PopoverDescription>Billed monthly, per seat.</PopoverDescription>
  *       <PopoverClose render={<Button variant="ghost" size="sm">Close</Button>} />
  *     </PopoverContent>
  *   </Popover>

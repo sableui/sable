@@ -63,7 +63,7 @@ Use Breadcrumbs to show the user's location inside a hierarchy and provide light
 ```tsx
 import { BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, Breadcrumbs, BreadcrumbSeparator } from "@sableui/react"
 
-<Breadcrumbs><BreadcrumbItem><BreadcrumbLink href="/">Home</BreadcrumbLink></BreadcrumbItem><BreadcrumbSeparator /><BreadcrumbItem><BreadcrumbLink href="/library">Library</BreadcrumbLink></BreadcrumbItem><BreadcrumbSeparator /><BreadcrumbItem><BreadcrumbPage>Editions</BreadcrumbPage></BreadcrumbItem></Breadcrumbs>
+<Breadcrumbs><BreadcrumbItem><BreadcrumbLink href="/">Home</BreadcrumbLink></BreadcrumbItem><BreadcrumbSeparator /><BreadcrumbItem><BreadcrumbLink href="/library">Library</BreadcrumbLink></BreadcrumbItem><BreadcrumbSeparator /><BreadcrumbItem><BreadcrumbPage>Reports</BreadcrumbPage></BreadcrumbItem></Breadcrumbs>
 ```
 
 ### Custom separator

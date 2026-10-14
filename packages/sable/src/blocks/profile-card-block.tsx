@@ -11,7 +11,7 @@ const profile = {
 	name: "Juno Avery",
 	initials: "JA",
 	handle: "@juno · Sound and light",
-	bio: "Field recordings, slowed down. New edition every full moon.",
+	bio: "Field recordings, slowed down. New track every full moon.",
 	stats: [
 		{ value: "128", label: "posts" },
 		{ value: "4.2k", label: "followers" },

@@ -1,5 +1,6 @@
 import type { ComponentPropsWithRef, ReactNode } from "react"
 import { cn } from "../../lib/cn"
+import { isPaletteColor } from "../../lib/palette"
 import { trimLabel } from "../../lib/trim-label"
 import { StatusDot } from "../status-dot"
 import { type BadgeAppearance, type BadgeTone, badgeVariants } from "./badge.variants"
@@ -7,7 +8,10 @@ import { type BadgeAppearance, type BadgeTone, badgeVariants } from "./badge.var
 export interface BadgeProps extends ComponentPropsWithRef<"span"> {
 	/** How it is drawn: soft fill, outline, solid, on media, or plain text. @default "soft" */
 	appearance?: BadgeAppearance
-	/** What it means. @default "neutral" */
+	/**
+	 * What it means — or, for a palette family (`red` … `pink`), a category
+	 * with no meaning attached: a tag, a label, a project colour. @default "neutral"
+	 */
 	tone?: BadgeTone
 	/** @default "md" */
 	size?: "sm" | "md"
@@ -27,9 +31,10 @@ export interface BadgeProps extends ComponentPropsWithRef<"span"> {
  * Pill; for an unread count on an icon, NotificationBadge.
  *
  *   <Badge>Draft</Badge>
- *   <Badge tone="edition">12 of 50</Badge>
+ *   <Badge tone="1">12 of 50</Badge>
  *   <Badge appearance="overlay">0:42</Badge>
  *   <Badge appearance="plain" tone="success" dot>Ready</Badge>
+ *   <Badge tone="teal">Design</Badge>
  */
 export function Badge({
 	appearance = "soft",
@@ -43,7 +48,11 @@ export function Badge({
 	...props
 }: BadgeProps) {
 	return (
-		<span className={cn(badgeVariants({ appearance, tone, size }), "[&_svg]:shrink-0", className)} {...props}>
+		<span
+			data-palette={isPaletteColor(tone) ? tone : undefined}
+			className={cn(badgeVariants({ appearance, tone, size }), "[&_svg]:shrink-0", className)}
+			{...props}
+		>
 			{dot ? <StatusDot tone={tone} pulse={pulse} size={size === "sm" ? "sm" : "md"} /> : icon}
 			{trimLabel(children)}
 		</span>

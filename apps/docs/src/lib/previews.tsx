@@ -247,7 +247,7 @@ export interface PreviewEntry {
 export const PREVIEWS: Record<string, PreviewEntry> = {
 	button: {
 		meta: buttonMeta,
-		text: "Collect",
+		text: "Publish",
 		only: ["variant", "size", "loading"],
 		slots: [
 			{ prop: "iconStart", label: "Leading icon", element: <Icon name="plus" />, source: '<Icon name="plus" />' },
@@ -280,14 +280,14 @@ export const PREVIEWS: Record<string, PreviewEntry> = {
 	},
 	badge: {
 		meta: badgeMeta,
-		text: "Edition",
+		text: "New",
 		render: (values, text) => (
 			<Badge {...as<ComponentProps<typeof Badge>>(values)}>{text}</Badge>
 		),
 	},
 	pill: {
 		meta: pillMeta,
-		text: "Solana",
+		text: "Design",
 		render: (values, text) => (
 			<Pill {...as<ComponentProps<typeof Pill>>(values)}>{text}</Pill>
 		),
@@ -342,7 +342,7 @@ export const PREVIEWS: Record<string, PreviewEntry> = {
 	},
 	note: {
 		meta: noteMeta,
-		text: "Editions mint on Solana mainnet.",
+		text: "Reports refresh every hour.",
 		only: ["tone"],
 		stageClassName: "block",
 		render: (values, text) => (
@@ -429,12 +429,12 @@ export const PREVIEWS: Record<string, PreviewEntry> = {
 		render: (values) => (
 			<Card {...as<ComponentProps<typeof Card>>(values)}>
 				<CardHeader>
-					<CardTitle>Edition</CardTitle>
-					<CardDescription>Limited run of 100.</CardDescription>
+					<CardTitle>Studio plan</CardTitle>
+					<CardDescription>Up to 10 seats.</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<p className="text-body-md">
-						Each collector receives a signed print and the on-chain edition.
+						Every seat gets unlimited projects and shared reports.
 					</p>
 				</CardContent>
 			</Card>
@@ -588,17 +588,17 @@ export const PREVIEWS: Record<string, PreviewEntry> = {
 		render: (values) => {
 			const props = as<Omit<ComponentProps<typeof RadioCard>, "value">>(values)
 			return (
-				<RadioGroup defaultValue="collectible" className="grid w-full max-w-md gap-3 sm:grid-cols-2">
+				<RadioGroup defaultValue="featured" className="grid w-full max-w-md gap-3 sm:grid-cols-2">
 					<RadioCard {...props} value="post" icon={<Icon name="plus" />} title="Standard" description="Publish to the feed" />
-					<RadioCard {...props} value="collectible" icon={<Icon name="gem" />} title="Featured" description="Pin for the campaign" />
+					<RadioCard {...props} value="featured" icon={<Icon name="gem" />} title="Featured" description="Pin for the campaign" />
 				</RadioGroup>
 			)
 		},
 		snippet: (values) => {
 			const a = attrs(radioCardMeta, values, ["tone", "disabled"])
-			return `<RadioGroup defaultValue="collectible">
+			return `<RadioGroup defaultValue="featured">
 	<RadioCard${a} value="post" title="Standard" description="Publish to the feed" />
-	<RadioCard${a} value="collectible" title="Featured" description="Pin for the campaign" />
+	<RadioCard${a} value="featured" title="Featured" description="Pin for the campaign" />
 </RadioGroup>`
 		},
 	},
@@ -742,12 +742,12 @@ export const PREVIEWS: Record<string, PreviewEntry> = {
 				<SheetTrigger render={<Button>Open sheet</Button>} />
 				<SheetContent side={values.side as "right" | "left" | "top" | "bottom"}>
 					<SheetHeader>
-						<SheetTitle>Edition details</SheetTitle>
-						<SheetDescription>A limited run of 100, stored permanently on Arweave.</SheetDescription>
+						<SheetTitle>Plan details</SheetTitle>
+						<SheetDescription>Up to 10 seats, billed monthly per seat.</SheetDescription>
 					</SheetHeader>
 					<SheetFooter>
 						<SheetClose render={<Button variant="secondary">Cancel</Button>} />
-						<SheetClose render={<Button>Collect</Button>} />
+						<SheetClose render={<Button>Upgrade</Button>} />
 					</SheetFooter>
 				</SheetContent>
 			</Sheet>
@@ -756,12 +756,12 @@ export const PREVIEWS: Record<string, PreviewEntry> = {
 	<SheetTrigger render={<Button>Open sheet</Button>} />
 	<SheetContent${attrs(sheetMeta, values, ["side"])}>
 		<SheetHeader>
-			<SheetTitle>Edition details</SheetTitle>
-			<SheetDescription>A limited run of 100.</SheetDescription>
+			<SheetTitle>Plan details</SheetTitle>
+			<SheetDescription>Up to 10 seats.</SheetDescription>
 		</SheetHeader>
 		<SheetFooter>
 			<SheetClose render={<Button variant="secondary">Cancel</Button>} />
-			<SheetClose render={<Button>Collect</Button>} />
+			<SheetClose render={<Button>Upgrade</Button>} />
 		</SheetFooter>
 	</SheetContent>
 </Sheet>`,
@@ -774,12 +774,12 @@ export const PREVIEWS: Record<string, PreviewEntry> = {
 				<DialogTrigger render={<Button>Open dialog</Button>} />
 				<DialogContent size={values.size as "default" | "fullscreen"}>
 					<DialogHeader>
-						<DialogTitle>Edition details</DialogTitle>
-						<DialogDescription>A limited run of 100, stored permanently on Arweave.</DialogDescription>
+						<DialogTitle>Plan details</DialogTitle>
+						<DialogDescription>Up to 10 seats, billed monthly per seat.</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
 						<DialogClose render={<Button variant="secondary">Close</Button>} />
-						<DialogClose render={<Button>Collect</Button>} />
+						<DialogClose render={<Button>Upgrade</Button>} />
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
@@ -788,12 +788,12 @@ export const PREVIEWS: Record<string, PreviewEntry> = {
 	<DialogTrigger render={<Button>Open dialog</Button>} />
 	<DialogContent${attrs(dialogMeta, values, ["size"])}>
 		<DialogHeader>
-			<DialogTitle>Edition details</DialogTitle>
-			<DialogDescription>A limited run of 100.</DialogDescription>
+			<DialogTitle>Plan details</DialogTitle>
+			<DialogDescription>Up to 10 seats.</DialogDescription>
 		</DialogHeader>
 		<DialogFooter>
 			<DialogClose render={<Button variant="secondary">Close</Button>} />
-			<DialogClose render={<Button>Collect</Button>} />
+			<DialogClose render={<Button>Upgrade</Button>} />
 		</DialogFooter>
 	</DialogContent>
 </Dialog>`,

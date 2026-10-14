@@ -45,9 +45,9 @@ const roleLabel: Record<Role, string> = {
 
 const roleSummary: Record<Role, string> = {
 	owner: "Full access, including payouts and billing. Transfer ownership in studio settings.",
-	admin: "Manages members, editions and payouts.",
-	editor: "Drafts, prices and releases editions.",
-	viewer: "Sees editions and sales, but can't change them.",
+	admin: "Manages members, projects and billing.",
+	editor: "Drafts, edits and publishes projects.",
+	viewer: "Sees projects and reports, but can't change them.",
 }
 
 type Activity = { id: string; icon: string; text: string; when: string }
@@ -62,7 +62,7 @@ type Member = {
 	handle?: string
 	joined?: string
 	lastActive?: string
-	editions?: number
+	projects?: number
 	invitedBy?: string
 	sent?: string
 	expires?: string
@@ -75,40 +75,40 @@ const seats = 10
 const initialMembers: Member[] = [
 	{
 		id: "u_01", name: "Ada Lovelace", handle: "@ada", email: "ada@atelier.art", initials: "AL", role: "owner", pending: false,
-		joined: "Mar 4, 2024", lastActive: "Online now", editions: 12,
+		joined: "Mar 4, 2024", lastActive: "Online now", projects: 12,
 		activity: [
-			{ id: "a1", icon: "gem", text: "Released Analytical Engine No. 3 — edition of 50", when: "2 hours ago" },
+			{ id: "a1", icon: "file", text: "Published the Analytical Engine No. 3 roadmap", when: "2 hours ago" },
 			{ id: "a2", icon: "mail", text: "Invited louise@bourgeois.studio as Editor", when: "2 days ago" },
 		],
 	},
 	{
 		id: "u_02", name: "Grace Hopper", handle: "@grace", email: "grace@atelier.art", initials: "GH", role: "admin", pending: false,
-		joined: "Mar 9, 2024", lastActive: "20 minutes ago", editions: 4,
+		joined: "Mar 9, 2024", lastActive: "20 minutes ago", projects: 4,
 		activity: [
 			{ id: "a1", icon: "user", text: "Changed Frida Kahlo's role to Viewer", when: "Yesterday" },
-			{ id: "a2", icon: "edit", text: "Updated pricing on First Compiler — edition of 10", when: "3 days ago" },
-			{ id: "a3", icon: "gem", text: "Released First Compiler — edition of 10", when: "Sep 28" },
+			{ id: "a2", icon: "edit", text: "Updated the budget on First Compiler", when: "3 days ago" },
+			{ id: "a3", icon: "file", text: "Created the First Compiler project", when: "Sep 28" },
 		],
 	},
 	{
 		id: "u_03", name: "Mary Shelley", handle: "@mary", email: "mary@atelier.art", initials: "MS", role: "editor", pending: false,
-		joined: "Jun 18, 2024", lastActive: "3 hours ago", editions: 7,
+		joined: "Jun 18, 2024", lastActive: "3 hours ago", projects: 7,
 		activity: [
 			{ id: "a1", icon: "calendar", text: "Scheduled Frankenstein Studies for Oct 14", when: "3 hours ago" },
-			{ id: "a2", icon: "gem", text: "Released The Last Man — edition of 25", when: "Sep 21" },
+			{ id: "a2", icon: "file", text: "Published The Last Man report", when: "Sep 21" },
 		],
 	},
 	{
 		id: "u_04", name: "Nina Simone", handle: "@nina", email: "nina@atelier.art", initials: "NS", role: "editor", pending: false,
-		joined: "Jan 12, 2025", lastActive: "Yesterday", editions: 3,
+		joined: "Jan 12, 2025", lastActive: "Yesterday", projects: 3,
 		activity: [
-			{ id: "a1", icon: "upload", text: "Uploaded artwork for Little Girl Blue", when: "Yesterday" },
-			{ id: "a2", icon: "gem", text: "Released Feeling Good — edition of 100", when: "Aug 30" },
+			{ id: "a1", icon: "upload", text: "Uploaded files for Little Girl Blue", when: "Yesterday" },
+			{ id: "a2", icon: "file", text: "Published the Feeling Good brief", when: "Aug 30" },
 		],
 	},
 	{
 		id: "u_05", name: "Frida Kahlo", handle: "@frida", email: "frida@atelier.art", initials: "FK", role: "viewer", pending: false,
-		joined: "Jul 2, 2025", lastActive: "4 days ago", editions: 0,
+		joined: "Jul 2, 2025", lastActive: "4 days ago", projects: 0,
 		activity: [{ id: "a1", icon: "comment", text: "Commented on the Las Dos Fridas draft", when: "4 days ago" }],
 	},
 	{
@@ -341,8 +341,8 @@ export function ListDetailPage() {
 														<dd className={selected.lastActive === "Online now" ? "text-success" : undefined}>
 															{selected.lastActive}
 														</dd>
-														<dt>Editions released</dt>
-														<dd>{selected.editions}</dd>
+														<dt>Projects owned</dt>
+														<dd>{selected.projects}</dd>
 													</dl>
 												)}
 											</div>
@@ -395,7 +395,7 @@ export function ListDetailPage() {
 									description={
 										selected.pending
 											? `${selected.email} won't be able to join with the link they were sent.`
-											: "They lose access to the studio right away. Editions they released stay on sale."
+											: "They lose access to the workspace right away. Projects they own stay with the team."
 									}
 									confirmLabel={selected.pending ? "Revoke invite" : "Remove member"}
 									onConfirm={() => remove(selected.id)}

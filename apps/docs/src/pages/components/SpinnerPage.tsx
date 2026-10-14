@@ -54,8 +54,8 @@ export function SpinnerPage() {
 				title="In a button"
 				description="Button's loading prop shows the spinner, matched to the label color, and disables the button."
 			>
-				<Example code="<Button loading>Collecting</Button>">
-					<Button loading>Collecting</Button>
+				<Example code="<Button loading>Saving</Button>">
+					<Button loading>Saving</Button>
 				</Example>
 			</Section>
 

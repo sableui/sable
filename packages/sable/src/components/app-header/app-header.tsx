@@ -7,7 +7,7 @@ export interface AppHeaderProps
 	leading?: ReactNode
 	/** Center slot — the brand wordmark or the contextual page title. */
 	title?: ReactNode
-	/** Trailing slot — wallet trigger, action buttons. */
+	/** Trailing slot — account menu, action buttons. */
 	actions?: ReactNode
 }
 
@@ -17,7 +17,7 @@ export interface AppHeaderProps
  * into the top safe-area (notch). A 3-column grid keeps the center title
  * optically centered regardless of the leading/trailing slot widths.
  *
- *   <AppHeader leading={<BackButton />} title="Notifications" actions={<WalletTrigger />} />
+ *   <AppHeader leading={<BackButton />} title="Notifications" actions={<AccountMenu />} />
  */
 export function AppHeader({
 	leading,

@@ -12,7 +12,7 @@ import { RADIO_DOT, RADIO_RING } from "../../lib/selection-card"
  *
  *   <RadioGroup defaultValue="standard">
  *     <Field label="Standard" orientation="horizontal"><Radio value="standard" /></Field>
- *     <Field label="Edition" orientation="horizontal"><Radio value="edition" /></Field>
+ *     <Field label="Poll" orientation="horizontal"><Radio value="poll" /></Field>
  *   </RadioGroup>
  *
  * Controlled via value + onValueChange; uncontrolled via defaultValue. Give each

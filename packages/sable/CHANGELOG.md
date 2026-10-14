@@ -1,6 +1,60 @@
 # What's new
 
-## Unreleased
+## 0.10.0
+
+A palette generated from the theme, numbered extra tones, and sample content that isn't a marketplace.
+
+- **New: a generated palette for every theme.** Nine families (`neutral`,
+  `red`, `orange`, `yellow`, `green`, `teal`, `blue`, `purple`, `pink`), each
+  50–950, plus a scale under every tone (`tone-1`…`3`, `tone-info`,
+  `tone-warning`, `success`, `destructive`; step 500 is the tone). They come
+  as utilities (`bg-blue-100`, `text-tone-1-700`) and variables. Each family
+  keeps its hue and leans toward the brand (half the gap, at most 15°), and
+  neutral is the theme's own page mixed toward its ink. It's all CSS computed
+  from the theme's tokens, so presets, customizer looks and an app's own
+  `--primary` carry into it. Steps follow the mode: `bg-blue-100
+  text-blue-800` reads in light and dark. `--theme-palette-harmony` (new
+  `PALETTE_TOKENS`, accepted in presets) sets how far the families lean, and
+  `PALETTE_COLORS`, `PALETTE_SCALES` and `PALETTE_STEPS` export the names.
+  See DESIGN.md → Generated palette.
+- **New: Badge, Pill and StatusDot take a palette family as `tone`.** For
+  a category with no meaning attached (a tag, a label, a project colour):
+  `<Badge tone="teal">Research</Badge>` or `<Pill tone="blue" selected>`.
+  Badge draws a family in every appearance. A Pill rests on the family's
+  wash and turns solid when selected. They paint from new `palette-*` slots
+  that `data-palette="<family>"` fills (`PALETTE_SLOT_TOKENS`), so no
+  component names a step, and an app can use the same hook. The
+  `sable token palette` command and `llms/reference/token-intent.md`
+  document the palette for agents.
+- **sableui.com's Customize panel has a Harmony control:** how far the
+  generated families lean toward the brand, from 0% to 200%. It's exported
+  as `--theme-palette-harmony`.
+- **Breaking: Tailwind's other colour families are switched off**, and
+  `neutral`, `red` and the rest now paint the theme's palette, not
+  Tailwind's. `slate`, `gray`, `zinc`, `stone`, `amber`, `lime`, `emerald`,
+  `cyan`, `sky`, `indigo`, `violet`, `fuchsia` and `rose` generate nothing.
+  `sable-lint`'s `palette-ref` now allows the generated palette in apps and
+  still flags theme-internal ramps and the switched-off families. Components
+  still use roles only.
+
+- **Breaking: `edition`, `collectible` and `standard` are now tones `1`,
+  `2` and `3`.** They were named for one product. They are the three extra
+  colours a theme defines beyond its status colours, and the product decides
+  what each means. Rename tokens `--tone-edition` → `--tone-1`,
+  `--tone-collectible` → `--tone-2` and `--tone-standard` → `--tone-3`, with
+  their `-foreground` and `-dark` partners and utilities (`bg-tone-1`,
+  `text-tone-1-foreground`). Rename the `tone` prop values the same way
+  (`tone="edition"` → `tone="1"`) on Badge, Banner, StatusDot, Meter,
+  SegmentedBar, CheckboxCard, RadioCard, GradientArt's `tones` and the chart
+  series. Tone 1 is the lead: the strongest of the three, and the first in a
+  chart's default cycle. Saved presets that use the old names are read under
+  the new ones, so they keep working.
+- **Blocks, patterns and examples use generic content.** The demo data was
+  written for an art marketplace (editions, collectors, mints, SOL prices).
+  It is now an ordinary SaaS workspace and store. Only copy changed.
+- **sableui.com's Color page follows the customizer.** Its tone swatches
+  re-declared the preset on themselves, so a customized brand never reached
+  them.
 
 Vertical rhythm: spacing is measured from the type.
 

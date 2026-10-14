@@ -49,7 +49,7 @@ export function DimensionsPage() {
 								{step}
 							</code>
 							<div
-								className="h-4 rounded-xs bg-tone-edition"
+								className="h-4 rounded-xs bg-tone-1"
 								style={{ width: px }}
 							/>
 							<span className="text-body-sm text-muted-foreground">{px}</span>

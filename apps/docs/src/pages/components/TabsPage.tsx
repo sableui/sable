@@ -21,21 +21,21 @@ export function TabsPage() {
 						<TabsList>
 							<TabsTrigger value="overview">Overview</TabsTrigger>
 							<TabsTrigger value="activity">Activity</TabsTrigger>
-							<TabsTrigger value="holders">Holders</TabsTrigger>
+							<TabsTrigger value="members">Members</TabsTrigger>
 						</TabsList>
 						<TabsPanel value="overview">
 							<p className="text-body-md text-muted-foreground">
-								A limited run of 100, stored permanently on Arweave.
+								A shared project for the Q3 launch, due in October.
 							</p>
 						</TabsPanel>
 						<TabsPanel value="activity">
 							<p className="text-body-md text-muted-foreground">
-								Recent mints, transfers, and sales appear here.
+								Recent edits, comments, and uploads appear here.
 							</p>
 						</TabsPanel>
-						<TabsPanel value="holders">
+						<TabsPanel value="members">
 							<p className="text-body-md text-muted-foreground">
-								Every wallet that currently holds an edition.
+								Everyone who can view or edit this project.
 							</p>
 						</TabsPanel>
 					</Tabs>
@@ -72,18 +72,18 @@ export function TabsPage() {
 						<TabsList>
 							<TabsTrigger value="overview">Overview</TabsTrigger>
 							<TabsTrigger value="comments">Comments</TabsTrigger>
-							<TabsTrigger value="offers" disabled>
-								Offers
+							<TabsTrigger value="billing" disabled>
+								Billing
 							</TabsTrigger>
 						</TabsList>
 						<TabsPanel value="overview">
 							<p className="text-body-md text-muted-foreground">
-								Offers are disabled until the mint window opens.
+								Billing is disabled until an admin turns it on.
 							</p>
 						</TabsPanel>
 						<TabsPanel value="comments">
 							<p className="text-body-md text-muted-foreground">
-								Be the first to comment on this drop.
+								Be the first to comment on this project.
 							</p>
 						</TabsPanel>
 					</Tabs>

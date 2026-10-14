@@ -9,7 +9,7 @@ import { useAnchoredDensity } from "../../lib/density"
  * ContextCard — a themed rich hover/preview card over Base UI's PreviewCard
  * (hover/focus open with delay, collision-aware positioning, Esc/outside
  * dismissal, ARIA wiring all come from Base UI). Unlike Tooltip it holds rich,
- * non-interactive context (a profile, an edition summary) and opens on hover or
+ * non-interactive context (a profile, a project summary) and opens on hover or
  * focus of an inline anchor. Compose:
  *
  *   <ContextCard>

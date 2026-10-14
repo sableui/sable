@@ -50,8 +50,8 @@ export function ContextCardPage() {
 									subtitle="@ada"
 								/>
 								<p className="mt-3 text-body-sm text-muted-foreground">
-									Minting generative editions on Solana. Stored permanently on
-									Arweave.
+									Product designer. Building calm tools for small
+									teams.
 								</p>
 							</ContextCardContent>
 						</ContextCard>{" "}
@@ -86,7 +86,7 @@ export function ContextCardPage() {
 									subtitle="@nyx"
 								/>
 								<p className="mt-3 text-body-sm text-muted-foreground">
-									Sound artist. Edition drops every full moon.
+									Sound artist. New track every full moon.
 								</p>
 								<div className="@container mt-4 border-t border-border pt-3">
 									<dl className="sable-list-dl sable-list-dl-2">
@@ -130,7 +130,7 @@ export function ContextCardPage() {
 									subtitle="@orb"
 								/>
 								<p className="mt-3 text-body-sm text-muted-foreground">
-									Worldbuilding one collectible at a time.
+									Worldbuilding one short story at a time.
 								</p>
 							</ContextCardContent>
 						</ContextCard>{" "}

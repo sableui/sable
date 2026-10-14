@@ -30,8 +30,8 @@ export function RadioPage() {
 	<FieldsetContent>
 		<RadioGroup defaultValue="standard">
 			<Field label="Standard" orientation="horizontal"><Radio value="standard" /></Field>
-			<Field label="Collectible" orientation="horizontal"><Radio value="collectible" /></Field>
-			<Field label="Edition" orientation="horizontal"><Radio value="edition" /></Field>
+			<Field label="Event" orientation="horizontal"><Radio value="event" /></Field>
+			<Field label="Poll" orientation="horizontal"><Radio value="poll" /></Field>
 		</RadioGroup>
 	</FieldsetContent>
 </Fieldset>`}
@@ -41,8 +41,8 @@ export function RadioPage() {
 						<FieldsetContent>
 							<RadioGroup defaultValue="standard">
 								<Field label="Standard" orientation="horizontal"><Radio value="standard" /></Field>
-								<Field label="Collectible" orientation="horizontal"><Radio value="collectible" /></Field>
-								<Field label="Edition" orientation="horizontal"><Radio value="edition" /></Field>
+								<Field label="Event" orientation="horizontal"><Radio value="event" /></Field>
+								<Field label="Poll" orientation="horizontal"><Radio value="poll" /></Field>
 							</RadioGroup>
 						</FieldsetContent>
 					</Fieldset>
@@ -59,7 +59,7 @@ export function RadioPage() {
 	<FieldsetContent>
 		<RadioGroup defaultValue="standard">
 			<Field label="Standard" orientation="horizontal"><Radio value="standard" /></Field>
-			<Field label="Edition" orientation="horizontal" disabled><Radio value="edition" /></Field>
+			<Field label="Poll" orientation="horizontal" disabled><Radio value="poll" /></Field>
 		</RadioGroup>
 	</FieldsetContent>
 </Fieldset>`}
@@ -69,7 +69,7 @@ export function RadioPage() {
 						<FieldsetContent>
 							<RadioGroup defaultValue="standard">
 								<Field label="Standard" orientation="horizontal"><Radio value="standard" /></Field>
-								<Field label="Edition" orientation="horizontal" disabled><Radio value="edition" /></Field>
+								<Field label="Poll" orientation="horizontal" disabled><Radio value="poll" /></Field>
 							</RadioGroup>
 						</FieldsetContent>
 					</Fieldset>
@@ -85,7 +85,7 @@ export function RadioPage() {
 	<FieldsetLegend>Visibility</FieldsetLegend>
 	<FieldsetContent>
 		<RadioGroup defaultValue="public">
-			<Field label="Public" description="Anyone with the link can view and collect." orientation="horizontal"><Radio value="public" /></Field>
+			<Field label="Public" description="Anyone with the link can view and comment." orientation="horizontal"><Radio value="public" /></Field>
 			<Field label="Unlisted" description="Only people you share it with can find it." orientation="horizontal"><Radio value="unlisted" /></Field>
 		</RadioGroup>
 	</FieldsetContent>
@@ -95,7 +95,7 @@ export function RadioPage() {
 						<FieldsetLegend>Visibility</FieldsetLegend>
 						<FieldsetContent>
 							<RadioGroup defaultValue="public">
-								<Field label="Public" description="Anyone with the link can view and collect." orientation="horizontal"><Radio value="public" /></Field>
+								<Field label="Public" description="Anyone with the link can view and comment." orientation="horizontal"><Radio value="public" /></Field>
 								<Field label="Unlisted" description="Only people you share it with can find it." orientation="horizontal"><Radio value="unlisted" /></Field>
 							</RadioGroup>
 						</FieldsetContent>

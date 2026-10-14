@@ -104,7 +104,7 @@ export const breadcrumbsMeta: ComponentMeta = {
 	examples: [
 		{
 			label: "Three-level trail",
-			code: '<Breadcrumbs><BreadcrumbItem><BreadcrumbLink href="/">Home</BreadcrumbLink></BreadcrumbItem><BreadcrumbSeparator /><BreadcrumbItem><BreadcrumbLink href="/library">Library</BreadcrumbLink></BreadcrumbItem><BreadcrumbSeparator /><BreadcrumbItem><BreadcrumbPage>Editions</BreadcrumbPage></BreadcrumbItem></Breadcrumbs>',
+			code: '<Breadcrumbs><BreadcrumbItem><BreadcrumbLink href="/">Home</BreadcrumbLink></BreadcrumbItem><BreadcrumbSeparator /><BreadcrumbItem><BreadcrumbLink href="/library">Library</BreadcrumbLink></BreadcrumbItem><BreadcrumbSeparator /><BreadcrumbItem><BreadcrumbPage>Reports</BreadcrumbPage></BreadcrumbItem></Breadcrumbs>',
 		},
 		{
 			label: "Custom separator",

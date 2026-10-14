@@ -38,7 +38,7 @@ export function BreadcrumbsPage() {
 						</BreadcrumbItem>
 						<BreadcrumbSeparator />
 						<BreadcrumbItem>
-							<BreadcrumbPage>Editions</BreadcrumbPage>
+							<BreadcrumbPage>Reports</BreadcrumbPage>
 						</BreadcrumbItem>
 					</Breadcrumbs>
 				</Example>

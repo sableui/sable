@@ -73,7 +73,7 @@ Use Tooltip for brief nonessential hints tied to a specific control or piece of 
 ```tsx
 import { Button, Icon, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@sableui/react"
 
-<TooltipProvider><Tooltip><TooltipTrigger render={<Button variant="ghost" size="icon-sm" aria-label="Info"><Icon name="info" /></Button>} /><TooltipContent>Stored permanently on Arweave.</TooltipContent></Tooltip></TooltipProvider>
+<TooltipProvider><Tooltip><TooltipTrigger render={<Button variant="ghost" size="icon-sm" aria-label="Info"><Icon name="info" /></Button>} /><TooltipContent>Saved to your workspace.</TooltipContent></Tooltip></TooltipProvider>
 ```
 
 ### Sides
@@ -89,5 +89,5 @@ import { Button, Tooltip, TooltipContent, TooltipTrigger } from "@sableui/react"
 ```tsx
 import { Button, Icon, SimpleTooltip } from "@sableui/react"
 
-<SimpleTooltip content="Stored permanently on Arweave."><Button variant="ghost" size="icon-sm" aria-label="Info"><Icon name="info" /></Button></SimpleTooltip>
+<SimpleTooltip content="Saved to your workspace."><Button variant="ghost" size="icon-sm" aria-label="Info"><Icon name="info" /></Button></SimpleTooltip>
 ```

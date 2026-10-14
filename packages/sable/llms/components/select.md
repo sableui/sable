@@ -94,7 +94,7 @@ import { SelectContent, SelectGroup, SelectGroupLabel, SelectItem } from "@sable
 ```tsx
 import { Field, Select, SelectContent, SelectItem, SelectTrigger } from "@sableui/react"
 
-<Field label="Default visibility" description="Controls how new editions appear."><Select defaultValue="public"><SelectTrigger placeholder="Choose visibility" /><SelectContent><SelectItem value="public">Public</SelectItem><SelectItem value="private">Private</SelectItem><SelectItem value="unlisted">Unlisted</SelectItem></SelectContent></Select></Field>
+<Field label="Default visibility" description="Controls how new projects appear."><Select defaultValue="public"><SelectTrigger placeholder="Choose visibility" /><SelectContent><SelectItem value="public">Public</SelectItem><SelectItem value="private">Private</SelectItem><SelectItem value="unlisted">Unlisted</SelectItem></SelectContent></Select></Field>
 ```
 
 ### Rich item labels
@@ -102,5 +102,5 @@ import { Field, Select, SelectContent, SelectItem, SelectTrigger } from "@sableu
 ```tsx
 import { Badge, Select, SelectContent, SelectItem, SelectTrigger } from "@sableui/react"
 
-<Select defaultValue="edition" items={[{ value: "edition", label: "Edition" }, { value: "collectible", label: "Collectible" }]}><SelectTrigger /><SelectContent><SelectItem value="edition" label="Edition"><span className="flex items-center gap-2"><Badge tone="edition">Edition</Badge><span>Edition drop</span></span></SelectItem><SelectItem value="collectible" label="Collectible"><span className="flex items-center gap-2"><Badge tone="collectible">Collectible</Badge><span>Collectible</span></span></SelectItem></SelectContent></Select>
+<Select defaultValue="business" items={[{ value: "business", label: "Business" }, { value: "studio", label: "Studio" }]}><SelectTrigger /><SelectContent><SelectItem value="business" label="Business"><span className="flex items-center gap-2"><Badge tone="1">Business</Badge><span>Business plan</span></span></SelectItem><SelectItem value="studio" label="Studio"><span className="flex items-center gap-2"><Badge tone="2">Studio</Badge><span>Studio</span></span></SelectItem></SelectContent></Select>
 ```

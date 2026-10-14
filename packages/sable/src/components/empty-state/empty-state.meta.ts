@@ -20,7 +20,7 @@ export const emptyStateMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
-					"Explain what is empty in plain language, such as \"No posts yet\" or \"No matching collectors\".",
+					"Explain what is empty in plain language, such as \"No posts yet\" or \"No matching customers\".",
 			},
 			{
 				guidance: "do",
@@ -152,7 +152,7 @@ export const emptyStateMeta: ComponentMeta = {
 		},
 		{
 			label: "First-run setup",
-			code: '<EmptyState surface="card" icon={<Icon name="sparkles" />} title="Start your collection" description="Create a first edition, import an existing drop, or invite collaborators." action={<Row gap={1}><Button>Create edition</Button><Button variant="ghost">Import</Button></Row>} />',
+			code: '<EmptyState surface="card" icon={<Icon name="sparkles" />} title="Start your first project" description="Create a project, import one from a file, or invite collaborators." action={<Row gap={1}><Button>Create project</Button><Button variant="ghost">Import</Button></Row>} />',
 		},
 		{
 			label: "Page-level error",
@@ -160,11 +160,11 @@ export const emptyStateMeta: ComponentMeta = {
 		},
 		{
 			label: "Error card",
-			code: '<EmptyState tone="destructive" surface="card" title="Could not load this edition" description="Check your connection and try again." action={<Button variant="secondary">Retry</Button>} />',
+			code: '<EmptyState tone="destructive" surface="card" title="Could not load this project" description="Check your connection and try again." action={<Button variant="secondary">Retry</Button>} />',
 		},
 		{
 			label: "Empty table body",
-			code: '<DataTable data={[]} columns={[{ key: "name", header: "Collector" }, { key: "status", header: "Status" }]} empty={<EmptyState title="No collectors yet" description="Collectors appear here after the first mint." />} />',
+			code: '<DataTable data={[]} columns={[{ key: "name", header: "Customer" }, { key: "status", header: "Status" }]} empty={<EmptyState title="No customers yet" description="Customers appear here after the first order." />} />',
 		},
 	],
 }

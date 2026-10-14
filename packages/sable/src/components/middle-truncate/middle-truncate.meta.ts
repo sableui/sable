@@ -61,16 +61,16 @@ export const middleTruncateMeta: ComponentMeta = {
 	],
 	examples: [
 		{
-			label: "Solana address",
-			code: '<MiddleTruncate text="5J7sX2QpHt9vK4mNbR8wYcZ3dF6gH1jL0pA8xQpVnTu" />',
+			label: "API key",
+			code: '<MiddleTruncate text="demo_key_7f3a9c2e5b8d1f4a6c0e9b3d7a2f5c8e1b4" />',
 		},
 		{
 			label: "Custom start/end counts",
-			code: '<MiddleTruncate text="0xAbC1234567890dEf1234567890aBcDeF12345678" startChars={4} endChars={4} />',
+			code: '<MiddleTruncate text="9f2c4e7a1b3d5f60c8e2a4b6d8f0e1c3a5b7d9f2" startChars={4} endChars={4} />',
 		},
 		{
 			label: "Copyable value",
-			code: 'const { copy, copied } = useCopy(address)\n<Row gap={1}><MiddleTruncate text={address} /><Button variant="ghost" size="icon-xs" aria-label="Copy address" onClick={copy}><Icon name={copied ? "check" : "copy"} /></Button></Row>',
+			code: 'const { copy, copied } = useCopy(commitHash)\n<Row gap={1}><MiddleTruncate text={commitHash} /><Button variant="ghost" size="icon-xs" aria-label="Copy commit hash" onClick={copy}><Icon name={copied ? "check" : "copy"} /></Button></Row>',
 		},
 	],
 }

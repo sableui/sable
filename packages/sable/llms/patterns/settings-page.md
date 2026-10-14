@@ -46,17 +46,17 @@ const timezones = [
 ]
 
 const notifications = [
-	{ name: "notifyCollects", title: "New collects", description: "When someone collects your work", on: true },
-	{ name: "notifySoldOut", title: "Sold out", description: "When an edition sells its last copy", on: true },
-	{ name: "notifyFollowers", title: "New followers", description: "When a collector follows you", on: false },
-	{ name: "notifyDigest", title: "Weekly digest", description: "Sales and collectors, every Monday", on: true },
+	{ name: "notifyComments", title: "New comments", description: "When someone comments on your work", on: true },
+	{ name: "notifyInvoicePaid", title: "Invoice paid", description: "When a customer pays an invoice", on: true },
+	{ name: "notifyMembers", title: "New members", description: "When someone joins your workspace", on: false },
+	{ name: "notifyDigest", title: "Weekly digest", description: "Activity and usage, every Monday", on: true },
 	{ name: "notifyProduct", title: "Product updates", description: "New Atelier features", on: false },
 ]
 
 const payouts = [
 	{ label: "Next payout", value: "$1,284.60", note: "Friday, Oct 16" },
 	{ label: "Pending", value: "$412.00", note: "Clears in 7 days" },
-	{ label: "Paid this year", value: "$18,920.00", note: "Across 214 collects" },
+	{ label: "Paid this year", value: "$18,920.00", note: "Across 214 invoices" },
 ]
 
 export function SettingsPage() {
@@ -81,8 +81,8 @@ export function SettingsPage() {
 			bottomNav={
 				<BottomNav aria-label="Primary">
 					<BottomNavItem icon={<Icon name="grid" />} label="Overview" showLabel render={<a href="/" />} />
-					<BottomNavItem icon={<Icon name="image-stack" />} label="Editions" showLabel render={<a href="/editions" />} />
-					<BottomNavItem icon={<Icon name="user" />} label="Collectors" showLabel render={<a href="/collectors" />} />
+					<BottomNavItem icon={<Icon name="folder" />} label="Accounts" showLabel render={<a href="/accounts" />} />
+					<BottomNavItem icon={<Icon name="user" />} label="Customers" showLabel render={<a href="/customers" />} />
 					<BottomNavItem icon={<Icon name="bell" />} label="Activity" showLabel render={<a href="/activity" />} />
 					<BottomNavItem icon={<Icon name="gear" />} label="Settings" showLabel active render={<a href="/settings" />} />
 				</BottomNav>
@@ -94,8 +94,8 @@ export function SettingsPage() {
 					</SidebarHeader>
 					<SidebarNav>
 						<SidebarItem icon={<Icon name="grid" />} label="Overview" render={<a href="/" />} />
-						<SidebarItem icon={<Icon name="image-stack" />} label="Editions" render={<a href="/editions" />} />
-						<SidebarItem icon={<Icon name="user" />} label="Collectors" render={<a href="/collectors" />} />
+						<SidebarItem icon={<Icon name="folder" />} label="Accounts" render={<a href="/accounts" />} />
+						<SidebarItem icon={<Icon name="user" />} label="Customers" render={<a href="/customers" />} />
 						<SidebarItem
 							icon={<Icon name="bell" />}
 							label="Activity"
@@ -149,7 +149,7 @@ export function SettingsPage() {
 							<Card id="profile" className="scroll-mt-6">
 								<CardHeader>
 									<CardTitle render={<h2 />}>Profile</CardTitle>
-									<CardDescription>How collectors see you on Atelier.</CardDescription>
+									<CardDescription>How your team sees you on Atelier.</CardDescription>
 								</CardHeader>
 								{/* The one explicit save on the page: profile text is drafted, then
 								    committed. Toggles below apply the moment they change. */}
@@ -180,14 +180,14 @@ export function SettingsPage() {
 													<Input defaultValue="ada" autoComplete="username" spellCheck={false} />
 												</Field>
 											</Grid>
-											<Field label="Bio" name="bio" description="Shown on your profile and edition pages.">
+											<Field label="Bio" name="bio" description="Shown on your profile and in comments.">
 												<Textarea
 													rows={3}
-													defaultValue="Generative artist working in plotted ink and code. New editions of 25 to 100 every month."
+													defaultValue="Product designer working on tools for small teams. Writing about process every month."
 												/>
 											</Field>
 											<Grid cols={{ base: 1, sm: 2 }} gap={3}>
-												<Field label="Timezone" name="timezone" description="Release times use this zone.">
+												<Field label="Timezone" name="timezone" description="Due dates use this zone.">
 													<Select defaultValue="europe-london" items={timezones}>
 														<SelectTrigger />
 														<SelectContent>
@@ -212,7 +212,7 @@ export function SettingsPage() {
 								<CardHeader>
 									<CardTitle render={<h2 />}>Notifications</CardTitle>
 									<CardDescription>
-										Email updates about your editions. Changes save automatically.
+										Email updates about your projects. Changes save automatically.
 									</CardDescription>
 								</CardHeader>
 								<CardList>
@@ -275,7 +275,7 @@ export function SettingsPage() {
 									<Entity
 										leading={<Icon name="download" className="text-lg text-muted-foreground" />}
 										title="Export data"
-										subtitle="Editions, sales, and collectors"
+										subtitle="Projects, invoices, and members"
 										action={
 											<Button variant="outline" size="sm">
 												Export
@@ -289,8 +289,8 @@ export function SettingsPage() {
 								<CardHeader>
 									<CardTitle render={<h2 />}>Delete account</CardTitle>
 									<CardDescription>
-										Permanently remove your profile, editions, and sales history. Collectors keep
-										the editions they own.
+										Permanently remove your profile, projects, and billing history. Files you shared
+										stay with your team.
 									</CardDescription>
 								</CardHeader>
 								<CardFooter className="justify-end">
@@ -307,7 +307,7 @@ export function SettingsPage() {
 				open={deleteOpen}
 				onOpenChange={setDeleteOpen}
 				title="Delete your account?"
-				description="This permanently removes your profile, 12 editions, and sales history. Pending payouts are still sent. This can't be undone."
+				description="This permanently removes your profile, 12 projects, and billing history. Your final invoice is still sent. This can't be undone."
 				confirmLabel="Delete account"
 				confirmingLabel="Deleting…"
 				confirmText="ada"

@@ -35,8 +35,8 @@ export function BrowserPage() {
 					<Browser url="studio.example/explore">
 						<div className="space-y-6 p-8">
 							<SablePageHeader
-								title="New editions"
-								description="Fresh drops from artists you follow."
+								title="New arrivals"
+								description="Fresh from the makers you follow."
 								actions={
 									<Button size="sm" iconStart={<Icon name="plus" />}>
 										Create
@@ -46,22 +46,22 @@ export function BrowserPage() {
 							<div className="grid gap-4 sm:grid-cols-2">
 								<Card>
 									<CardHeader>
-										<Badge tone="edition">Edition</Badge>
-										<CardTitle>Untitled (gold rush)</CardTitle>
-										<CardDescription>Limited run of 100.</CardDescription>
+										<Badge tone="1">New</Badge>
+										<CardTitle>Linen throw blanket</CardTitle>
+										<CardDescription>Washed linen, four colours.</CardDescription>
 									</CardHeader>
 									<CardContent>
-										<CardDescription>0.5 SOL &middot; 42 collected</CardDescription>
+										<CardDescription>$64.00 &middot; 42 in stock</CardDescription>
 									</CardContent>
 								</Card>
 								<Card>
 									<CardHeader>
-										<Badge tone="collectible">Collectible</Badge>
-										<CardTitle>Quiet harbor</CardTitle>
-										<CardDescription>One of one, on-chain.</CardDescription>
+										<Badge tone="2">Bestseller</Badge>
+										<CardTitle>Stoneware mug</CardTitle>
+										<CardDescription>Glazed by hand.</CardDescription>
 									</CardHeader>
 									<CardContent>
-										<CardDescription>1.2 SOL &middot; reserved</CardDescription>
+										<CardDescription>$28.00 &middot; pre-order</CardDescription>
 									</CardContent>
 								</Card>
 							</div>
@@ -76,12 +76,12 @@ export function BrowserPage() {
 			>
 				<Example className="!block">
 					<div className="space-y-6">
-						<Browser url="studio.example/u/satoshi">
+						<Browser url="studio.example/u/sam">
 							<div className="p-3">
 								<Entity
-									leading={<Avatar fallback="SA" alt="satoshi" />}
-									title="satoshi"
-									subtitle="128 posts · 12k collectors"
+									leading={<Avatar fallback="SA" alt="sam" />}
+									title="sam"
+									subtitle="128 posts · 12k followers"
 								/>
 							</div>
 						</Browser>

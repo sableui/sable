@@ -28,7 +28,7 @@ export const codeBlockMeta: ComponentMeta = {
 			},
 			{
 				guidance: "do",
-				description: "Wire highlighting once with CodeHighlightProvider and map token colors to semantic tone tokens (keywords → tone-edition, strings → success, comments → muted-foreground), so code follows the theme instead of a fixed palette.",
+				description: "Wire highlighting once with CodeHighlightProvider and map token colors to semantic tone tokens (keywords → tone-1, strings → success, comments → muted-foreground), so code follows the theme instead of a fixed palette.",
 			},
 			{
 				guidance: "dont",

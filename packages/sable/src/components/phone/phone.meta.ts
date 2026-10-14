@@ -69,7 +69,7 @@ export const phoneMeta: ComponentMeta = {
 	examples: [
 		{
 			label: "Framing a mobile layout",
-			code: '<Phone><div className="p-4"><h2 className="text-title-lg">Activity</h2><p className="text-body-sm text-muted-foreground">3 new collects today.</p></div></Phone>',
+			code: '<Phone><div className="p-4"><h2 className="text-title-lg">Activity</h2><p className="text-body-sm text-muted-foreground">3 new orders today.</p></div></Phone>',
 		},
 		{
 			label: "Mockup, not a responsive preview",

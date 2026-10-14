@@ -40,17 +40,17 @@ Use CheckboxCard when an option needs more visual weight, supporting text, or ic
 | title | ReactNode | — | The card's primary label (text-title-sm). |
 | description | ReactNode | — | Optional supporting copy beneath the title (text-body-sm, muted). |
 | icon | ReactNode | — | Optional glyph (a solid <Icon>) in the tone colour. Its presence switches to the two-dimensional card RadioCard uses — icon top-left, checkbox top-right, copy below — so the two cards match in one form. |
-| tone | "neutral" \| "standard" \| "collectible" \| "edition" \| "info" \| "warning" | "neutral" | Semantic colour the checked state carries across the border, checkbox box, and icon. |
+| tone | "neutral" \| "3" \| "2" \| "1" \| "info" \| "warning" | "neutral" | Semantic colour the checked state carries across the border, checkbox box, and icon. |
 | value | string | — | Names the card inside a group-owned CheckboxGroup: the card is checked when the group's value array includes it. Also the value submitted with a form. Inside a CheckboxGroup, `name` stands in for `value` when `value` is omitted. |
 | checked / onCheckedChange / defaultChecked / disabled | Base UI Checkbox.Root props | — | Standard checkbox state. Without a group-owned value, each card is independent — drive checked/onCheckedChange per item for multi-select. |
 
 ## Variants
 
-- **tone**: neutral, standard, collectible, edition, info, warning
+- **tone**: neutral, 3, 2, 1, info, warning
 
 ## Tokens used
 
-`input`, `card`, `ring`, `primary`, `primary-foreground`, `accent`, `foreground`, `muted-foreground`, `tone-standard`, `tone-standard-foreground`, `tone-collectible`, `tone-collectible-foreground`, `tone-edition`, `tone-edition-foreground`, `tone-info`, `tone-info-foreground`, `tone-warning`, `tone-warning-foreground`
+`input`, `card`, `ring`, `primary`, `primary-foreground`, `accent`, `foreground`, `muted-foreground`, `tone-3`, `tone-3-foreground`, `tone-2`, `tone-2-foreground`, `tone-1`, `tone-1-foreground`, `tone-info`, `tone-info-foreground`, `tone-warning`, `tone-warning-foreground`
 
 ## Accessibility
 
@@ -86,7 +86,7 @@ import { Checkbox, CheckboxCard, CheckboxGroup, Field } from "@sableui/react"
 ```tsx
 import { CheckboxCard } from "@sableui/react"
 
-<CheckboxCard title="Email me a receipt" description="Sent when the mint settles" checked={receipt} onCheckedChange={setReceipt} />
+<CheckboxCard title="Email me a receipt" description="Sent when the payment settles" checked={receipt} onCheckedChange={setReceipt} />
 ```
 
 ### Toned with description
@@ -94,5 +94,5 @@ import { CheckboxCard } from "@sableui/react"
 ```tsx
 import { CheckboxCard } from "@sableui/react"
 
-<CheckboxCard tone="edition" title="Editions" description="Sell as numbered NFT editions" defaultChecked />
+<CheckboxCard tone="1" title="Reports" description="Weekly usage reports by email" defaultChecked />
 ```

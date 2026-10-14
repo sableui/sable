@@ -13,7 +13,7 @@ const profile = {
 	name: "Ada Lovelace",
 	initials: "AL",
 	handle: "ada",
-	bio: "Generative artist working in plotted ink and code. New editions of 25 to 100 every month.",
+	bio: "Product designer working on tools for small teams. Writing about process every month.",
 	timezone: "europe-london",
 }
 
@@ -38,7 +38,7 @@ export function ProfileFormBlock({ className, framed = true, onSave }: ProfileFo
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-2xl", className)}>
 			<CardHeader>
 				<CardTitle render={<h2 />}>Profile</CardTitle>
-				<CardDescription>How collectors see you.</CardDescription>
+				<CardDescription>How your team sees you.</CardDescription>
 			</CardHeader>
 			{/* The one explicit save: profile text is drafted, then committed. */}
 			<Form
@@ -72,7 +72,7 @@ export function ProfileFormBlock({ className, framed = true, onSave }: ProfileFo
 								<Input defaultValue={profile.handle} autoComplete="username" spellCheck={false} />
 							</Field>
 						</Grid>
-						<Field label="Bio" name="bio" description="Shown on your profile and edition pages.">
+						<Field label="Bio" name="bio" description="Shown on your profile and in comments.">
 							<Textarea rows={3} defaultValue={profile.bio} />
 						</Field>
 						<Grid cols={{ base: 1, sm: 2 }} gap={3}>

@@ -9,8 +9,8 @@ import {
 } from "../../components/docs-ui"
 
 const POST_TYPES = [
-	"Editions",
-	"Collectibles",
+	"Projects",
+	"Reports",
 	"Standard posts",
 	"Messages",
 	"Profiles",
@@ -18,7 +18,7 @@ const POST_TYPES = [
 
 export function SearchInputPage() {
 	const [query, setQuery] = useState("")
-	const [filtered, setFiltered] = useState("editions")
+	const [filtered, setFiltered] = useState("reports")
 
 	const matches = POST_TYPES.filter((type) =>
 		type.toLowerCase().includes(filtered.toLowerCase()),
@@ -82,12 +82,12 @@ export function SearchInputPage() {
 				description="With a default value the field tracks its own text, and the X still clears it."
 			>
 				<Example
-					code={`<Field label="Search collectors" className="w-full max-w-80">
-  <SearchInput defaultValue="Morgan" placeholder="Search collectors" />
+					code={`<Field label="Search customers" className="w-full max-w-80">
+  <SearchInput defaultValue="Morgan" placeholder="Search customers" />
 </Field>`}
 				>
-					<Field label="Search collectors" className="w-full max-w-80">
-						<SearchInput defaultValue="Morgan" placeholder="Search collectors" />
+					<Field label="Search customers" className="w-full max-w-80">
+						<SearchInput defaultValue="Morgan" placeholder="Search customers" />
 					</Field>
 				</Example>
 			</Section>

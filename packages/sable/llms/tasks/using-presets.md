@@ -17,6 +17,10 @@ prints a complete starting record; the public `PRESET_TOKEN_NAMES` is authoritat
 Font stacks are requirements, not downloaded fonts. Declare matching stacks in
 the font metadata and tokens. Resolve internal palette variables before saving;
 portable presets may reference public Sable tokens, not private palette names.
+A preset does not carry the generated palette (`bg-blue-500` and the rest): it is
+computed from the preset's own primary, page and ink. `theme-palette-harmony`
+(0 keeps the families' own hues, 1 is the default lean toward the brand) is the
+one palette token a preset may set.
 The validator rejects unknown tokens and CSS that can escape its declaration.
 `sable preset --check` also holds labels on brand and status fills to 4.5:1 and APCA Lc 60
 and suggests a pair that reads; a preset may keep a pair deliberately through

@@ -8,7 +8,7 @@ import {
 	BillingScene,
 	CanvasContent,
 	ChatScene,
-	CollectScene,
+	ProductScene,
 	EventScene,
 	FeedbackScene,
 	InviteScene,
@@ -94,8 +94,8 @@ function TryIt({ onFeedback, onActivity }: { onFeedback: () => void; onActivity:
 						interactive
 						density="comfortable"
 						onSelect={() => {
-							const id = toast.info("Mara collected “Dusk, no. 4”", {
-								description: "Edition 3 of 25 · just now",
+							const id = toast.info("Mara ordered “Linen throw blanket”", {
+								description: "Order 1042 · just now",
 								// An action doesn't dismiss on its own; View both closes it and goes there.
 								actionProps: {
 									children: "View",
@@ -157,7 +157,7 @@ function CanvasApp() {
 								<p className="px-(--ios-inset) pb-4 text-body-md text-muted-foreground">Art, memberships, and a little activity.</p>
 								<TryIt onFeedback={() => setFeedback(true)} onActivity={() => setTab("activity")} />
 								<Scenes>
-									<CollectScene />
+									<ProductScene />
 									<NowPlayingScene />
 									<ProfileScene />
 									<BillingScene />

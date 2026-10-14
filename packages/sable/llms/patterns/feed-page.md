@@ -1,6 +1,6 @@
 # FeedPage
 
-Social reading feed with a side rail: a feed-width main column (composer, For you / Following Tabs, one Card per post, an edition drop with price, supply Meter and Collect, a Skeleton for the next page) beside a sticky rail of who-to-follow and upcoming drops that drops away below lg.
+Social reading feed with a side rail: a feed-width main column (composer, For you / Following Tabs, one Card per post, an event post with price, capacity Meter and Register, a Skeleton for the next page) beside a sticky rail of who-to-follow and upcoming events that drops away below lg.
 
 **Intent:** Reach for this for timelines, activity streams, and any reverse-chronological reading surface where people also act on what they read. Not for record management (DashboardPage) or side-by-side browsing (ListDetailPage).
 
@@ -10,7 +10,7 @@ Social reading feed with a side rail: a feed-width main column (composer, For yo
 - Feed scope is `Tabs` (underline, stretched to the column with `flex`): peer views of the same feed. The composer sits above them because posting applies to both.
 - The composer is a Card holding `Textarea autoResize` plus ghost icon Buttons and a secondary `Post` — not ChatComposer, which submits on Enter and is for conversations.
 - Each post is a Card: an Entity byline in a CardList (with an OverflowMenu for post actions), body copy, then media in an AspectBox at the asset's own ratio, inset with `rounded-concentric-lg/6` so its corners follow the card's in every theme.
-- An edition drop adds a `Badge appearance="overlay"` on the artwork, title and price, the one primary Button on the page (`Collect`), and a `Meter` for supply — collected against a known maximum is a level, not task progress.
+- An event post adds a `Badge appearance="overlay"` on the image, title and price, the one primary Button on the page (`Register`), and a `Meter` for capacity — seats taken against a known maximum is a level, not task progress.
 - Actions are ghost sm Buttons (icon + count) in a Row pulled out by the button's own padding (`-ms-3`) so the first icon sits on the text edge.
 - Loading the next page shows a Skeleton post in the shape the post will land in, above the explicit load-more Button in its `loading` state — predictable for keyboard and AT users, unlike infinite scroll.
 
@@ -19,7 +19,7 @@ Social reading feed with a side rail: a feed-width main column (composer, For yo
 - Each post is an <article>, so AT users can jump between posts; the rail is a labelled <aside> landmark.
 - Rail card titles render as h2 (CardTitle `render={<h2 />}`) under the page's one h1.
 - Icon-only buttons and every Follow / Remind button carry aria-labels naming their target; counts stay in the accessible name.
-- The supply Meter is role=meter with a getAriaValueText reading ("62 of 100 collected").
+- The capacity Meter is role=meter with a getAriaValueText reading ("28 of 40 seats taken").
 - The Skeleton card is aria-busy; the loading Button keeps its label ("Loading posts").
 
 ## Source
@@ -36,7 +36,7 @@ type Post = {
 	following: boolean
 	body: string
 	media?: { src: string; alt: string }
-	drop?: { title: string; price: string; collected: number; supply: number }
+	event?: { title: string; price: string; registered: number; capacity: number }
 	likes: number
 	comments: number
 }
@@ -49,9 +49,9 @@ const posts: Post[] = [
 		initials: "AL",
 		time: "2h",
 		following: true,
-		body: "Gold Rush is live. 100 signed prints, each paired with the on-chain original. Thank you for waiting.",
-		media: { src: "/media/edition-cover.svg", alt: "Gold Rush, a gold-leaf study in overlapping arcs" },
-		drop: { title: "Gold Rush", price: "$120", collected: 62, supply: 100 },
+		body: "Registration for the spring workshop is open. Two days of plotter drawing in a small group. See you there.",
+		media: { src: "/media/edition-cover.svg", alt: "Workshop poster, a gold-leaf study in overlapping arcs" },
+		event: { title: "Spring plotter workshop", price: "$120", registered: 28, capacity: 40 },
 		likes: 128,
 		comments: 24,
 	},
@@ -74,7 +74,7 @@ const posts: Post[] = [
 		initials: "NS",
 		time: "8h",
 		following: false,
-		body: "Collectors of Dusk, no. 3 — your unlockable score is now in your library. Headphones on for this one.",
+		body: "Thanks to everyone at the Dusk listening session — the full recording is now in your library. Headphones on.",
 		likes: 214,
 		comments: 31,
 	},
@@ -86,8 +86,8 @@ const suggestions = [
 ]
 
 const upcoming = [
-	{ id: "d_01", title: "Quiet Harbor", artist: "Mary Shelley", initials: "MS", date: "Sat, Oct 12" },
-	{ id: "d_02", title: "Dusk, no. 4", artist: "Nina Simone", initials: "NS", date: "Tue, Oct 15" },
+	{ id: "e_01", title: "Quiet Harbor talk", host: "Mary Shelley", initials: "MS", date: "Sat, Oct 12" },
+	{ id: "e_02", title: "Dusk, live", host: "Nina Simone", initials: "NS", date: "Tue, Oct 15" },
 ]
 
 const renderPost = (post: Post) => (
@@ -113,35 +113,35 @@ const renderPost = (post: Post) => (
 				{post.media ? (
 					<AspectBox ratio={16 / 9} className="overflow-hidden rounded-concentric-lg/6 bg-muted">
 						<img src={post.media.src} alt={post.media.alt} className="size-full object-cover" />
-						{post.drop ? (
+						{post.event ? (
 							<div className="absolute start-3 top-3">
 								<Badge appearance="overlay" size="sm" dot>
-									Live drop
+									Open now
 								</Badge>
 							</div>
 						) : null}
 					</AspectBox>
 				) : null}
-				{post.drop ? (
+				{post.event ? (
 					<Stack gap={1.5}>
 						<Row gap={2} align="center" justify="between">
 							<div className="min-w-0">
-								<p className="text-title-md text-foreground">{post.drop.title}</p>
+								<p className="text-title-md text-foreground">{post.event.title}</p>
 								<p className="text-body-sm text-muted-foreground">
-									{`${post.drop.price} · Edition of ${post.drop.supply}`}
+									{`${post.event.price} · ${post.event.capacity} seats`}
 								</p>
 							</div>
-							<Button>{`Collect for ${post.drop.price}`}</Button>
+							<Button>{`Register for ${post.event.price}`}</Button>
 						</Row>
 						<Meter
-							value={post.drop.collected}
-							max={post.drop.supply}
+							value={post.event.registered}
+							max={post.event.capacity}
 							size="sm"
-							getAriaValueText={(_, value) => `${value} of ${post.drop?.supply} collected`}
+							getAriaValueText={(_, value) => `${value} of ${post.event?.capacity} seats taken`}
 						>
 							<Row gap={2} align="center" justify="between" className="mb-2">
-								<MeterLabel>{`${post.drop.collected} collected`}</MeterLabel>
-								<MeterValue>{(_, value) => `${(post.drop?.supply ?? 0) - value} left`}</MeterValue>
+								<MeterLabel>{`${post.event.registered} registered`}</MeterLabel>
+								<MeterValue>{(_, value) => `${(post.event?.capacity ?? 0) - value} left`}</MeterValue>
 							</Row>
 							<MeterTrack />
 						</Meter>
@@ -182,15 +182,15 @@ export function FeedPage() {
 										autoResize
 										rows={2}
 										aria-label="New post"
-										placeholder="Share a process shot or an upcoming drop"
+										placeholder="Share a process shot or an upcoming event"
 									/>
 									<Row gap={1} align="center" justify="between">
 										<Row gap={0.5}>
 											<Button variant="ghost" size="icon-sm" aria-label="Add images">
 												<Icon name="image-stack" />
 											</Button>
-											<Button variant="ghost" size="icon-sm" aria-label="Attach an edition">
-												<Icon name="gem" />
+											<Button variant="ghost" size="icon-sm" aria-label="Add an event">
+												<Icon name="calendar" />
 											</Button>
 										</Row>
 										<Button variant="secondary" size="sm">
@@ -257,17 +257,17 @@ export function FeedPage() {
 						</Card>
 						<Card>
 							<CardHeader>
-								<CardTitle render={<h2 />}>Upcoming drops</CardTitle>
+								<CardTitle render={<h2 />}>Upcoming events</CardTitle>
 							</CardHeader>
 							<CardList>
-								{upcoming.map((drop) => (
+								{upcoming.map((event) => (
 									<Entity
-										key={drop.id}
-										leading={<Avatar variant="art" fallback={drop.initials} alt={drop.artist} />}
-										title={drop.title}
-										subtitle={`${drop.artist} · ${drop.date}`}
+										key={event.id}
+										leading={<Avatar variant="art" fallback={event.initials} alt={event.host} />}
+										title={event.title}
+										subtitle={`${event.host} · ${event.date}`}
 										action={
-											<Button variant="ghost" size="icon-sm" aria-label={`Remind me about ${drop.title}`}>
+											<Button variant="ghost" size="icon-sm" aria-label={`Remind me about ${event.title}`}>
 												<Icon name="bell" />
 											</Button>
 										}

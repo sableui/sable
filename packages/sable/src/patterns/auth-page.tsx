@@ -32,7 +32,7 @@ export function AuthPage() {
 						<Stack gap={1.5}>
 							<h1 className="text-heading-1">Welcome back</h1>
 							<p className="text-body-lg text-muted-foreground">
-								Sign in to collect new releases and manage your editions.
+								Sign in to pick up where you and your team left off.
 							</p>
 						</Stack>
 
@@ -70,8 +70,8 @@ export function AuthPage() {
 							<Button variant="outline" size="cta" className="w-full" iconStart={<Icon name="key" />}>
 								Sign in with a passkey
 							</Button>
-							<Button variant="outline" size="cta" className="w-full" iconStart={<Icon name="wallet" />}>
-								Connect a wallet
+							<Button variant="outline" size="cta" className="w-full" iconStart={<Icon name="mail" />}>
+								Email me a sign-in link
 							</Button>
 						</Stack>
 
@@ -98,23 +98,23 @@ export function AuthPage() {
 			</Region>
 
 			{/* The brand panel is decoration: on a phone the form is the whole screen. */}
-			<aside aria-label="Featured release" className="hidden p-3 lg:flex">
+			<aside aria-label="Customer story" className="hidden p-3 lg:flex">
 				{/* Art painted from the theme's tones over its brand, so it follows every look. */}
 				<GradientArt seed="Untitled (gold rush)" className="flex flex-1 flex-col justify-end rounded-xl p-8">
 					<Card className="max-w-md">
 						<CardContent>
 							<Stack gap={3}>
-								<Badge tone="edition" className="self-start">
-									Edition of 50
+								<Badge tone="1" className="self-start">
+									Customer story
 								</Badge>
 								<p className="text-title-lg">
-									“Every edition is a conversation with whoever holds it next.”
+									“We moved three teams over in a week, and nobody asked for the old tool back.”
 								</p>
 								<Entity
 									className="p-0"
 									leading={<Avatar variant="art" fallback="MO" />}
 									title="Mara Okafor"
-									subtitle="Untitled (gold rush), 2026"
+									subtitle="Head of Design, Northwind"
 								/>
 							</Stack>
 						</CardContent>

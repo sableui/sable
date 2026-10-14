@@ -83,10 +83,10 @@ describe("controls that adopted it", () => {
 	})
 
 	it("Button wraps a plain label", () => {
-		render(<Button>Collect</Button>)
+		render(<Button>Publish</Button>)
 		expect(
 			screen.getByRole("button").querySelector(".sable-label-trim")?.textContent,
-		).toBe("Collect")
+		).toBe("Publish")
 	})
 
 	it("Button keeps the Spinner separate from the label while loading", () => {

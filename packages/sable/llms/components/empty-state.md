@@ -12,7 +12,7 @@ Use EmptyState when a content area has no items, no search results, or no first-
 
 ### Best practices
 
-- Do: Explain what is empty in plain language, such as "No posts yet" or "No matching collectors".
+- Do: Explain what is empty in plain language, such as "No posts yet" or "No matching customers".
 - Do: Offer one next step when the user can recover, create, clear filters, or start setup.
 - Do: Keep the icon decorative and make the title carry the meaning.
 - Do: For a search or filter result, name the query back to the user and offer the way out, such as "No results for 'quarterly'" with a Clear filters action. An empty result that does not say what was searched leaves the user unsure whether the query or the data was wrong.
@@ -85,7 +85,7 @@ import { Button, EmptyState, Icon } from "@sableui/react"
 ```tsx
 import { Button, EmptyState, Icon, Row } from "@sableui/react"
 
-<EmptyState surface="card" icon={<Icon name="sparkles" />} title="Start your collection" description="Create a first edition, import an existing drop, or invite collaborators." action={<Row gap={1}><Button>Create edition</Button><Button variant="ghost">Import</Button></Row>} />
+<EmptyState surface="card" icon={<Icon name="sparkles" />} title="Start your first project" description="Create a project, import one from a file, or invite collaborators." action={<Row gap={1}><Button>Create project</Button><Button variant="ghost">Import</Button></Row>} />
 ```
 
 ### Page-level error
@@ -101,7 +101,7 @@ import { Button, EmptyState } from "@sableui/react"
 ```tsx
 import { Button, EmptyState } from "@sableui/react"
 
-<EmptyState tone="destructive" surface="card" title="Could not load this edition" description="Check your connection and try again." action={<Button variant="secondary">Retry</Button>} />
+<EmptyState tone="destructive" surface="card" title="Could not load this project" description="Check your connection and try again." action={<Button variant="secondary">Retry</Button>} />
 ```
 
 ### Empty table body
@@ -109,5 +109,5 @@ import { Button, EmptyState } from "@sableui/react"
 ```tsx
 import { DataTable, EmptyState } from "@sableui/react"
 
-<DataTable data={[]} columns={[{ key: "name", header: "Collector" }, { key: "status", header: "Status" }]} empty={<EmptyState title="No collectors yet" description="Collectors appear here after the first mint." />} />
+<DataTable data={[]} columns={[{ key: "name", header: "Customer" }, { key: "status", header: "Status" }]} empty={<EmptyState title="No customers yet" description="Customers appear here after the first order." />} />
 ```

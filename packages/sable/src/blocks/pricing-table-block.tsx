@@ -12,32 +12,32 @@ const tiers = [
 	{
 		id: "starter",
 		name: "Starter",
-		blurb: "For one person shipping their first editions.",
+		blurb: "For one person getting a first project going.",
 		monthly: 0,
 		yearly: 0,
 		cta: "Start for free",
 		featured: false,
-		features: ["3 live editions", "Collector profiles", "Community support"],
+		features: ["3 active projects", "Shared docs", "Community support"],
 	},
 	{
 		id: "studio",
 		name: "Studio",
-		blurb: "For working artists with a steady release schedule.",
+		blurb: "For small teams shipping on a steady schedule.",
 		monthly: 20,
 		yearly: 16,
 		cta: "Start free trial",
 		featured: true,
-		features: ["Unlimited editions", "Scheduled drops", "Sales analytics", "Priority support"],
+		features: ["Unlimited projects", "Scheduled reports", "Usage analytics", "Priority support"],
 	},
 	{
-		id: "collective",
-		name: "Collective",
-		blurb: "For galleries and teams releasing together.",
+		id: "business",
+		name: "Business",
+		blurb: "For companies running several teams at once.",
 		monthly: 48,
 		yearly: 40,
 		cta: "Talk to sales",
 		featured: false,
-		features: ["Everything in Studio", "Up to 10 seats", "Shared payouts", "Roles and approvals"],
+		features: ["Everything in Studio", "Up to 10 seats", "SSO and audit log", "Roles and approvals"],
 	},
 ]
 
@@ -57,10 +57,10 @@ export function PricingTableBlock({ className, onChoose }: PricingTableBlockProp
 			<Stack gap={10}>
 				<Stack gap={4} align="center" className="text-center">
 					<h2 id={titleId} className="text-balance text-heading-1">
-						Pricing that grows with your practice
+						Pricing that grows with your team
 					</h2>
 					<p className="max-w-(--measure-prose) text-body-lg text-muted-foreground">
-						Every plan includes unlimited collectors and no fees on your first $1,000 in sales.
+						Every plan includes unlimited guests, and you can switch plans at any time.
 					</p>
 					<ToggleGroup value={[period]} onValueChange={(v: unknown[]) => v[0] && setPeriod(v[0] as Period)} aria-label="Billing period">
 						<Toggle value="monthly">Monthly</Toggle>
@@ -79,7 +79,7 @@ export function PricingTableBlock({ className, onChoose }: PricingTableBlockProp
 								<CardDescription>{tier.blurb}</CardDescription>
 								{tier.featured ? (
 									<CardAction>
-										<Badge tone="edition" size="sm">
+										<Badge tone="1" size="sm">
 											Most popular
 										</Badge>
 									</CardAction>

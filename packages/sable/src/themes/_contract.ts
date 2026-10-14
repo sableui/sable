@@ -41,25 +41,25 @@ export const SEMANTIC_TOKENS = [
 	"destructive",
 	"destructive-foreground",
 	// Success — the positive-state counterpart to destructive (mirrors it 1:1).
-	// Backed by caribbean-green; a SEPARATE token from the `tone-standard`
+	// Backed by caribbean-green; a SEPARATE token from the `tone-3`
 	// post-type so success-as-state can be retuned without moving the post tone.
 	"success",
 	"success-foreground",
 	// Tones (semantic — carry meaning, not decoration)
-	"tone-standard",
-	"tone-collectible",
-	"tone-edition",
+	"tone-3",
+	"tone-2",
+	"tone-1",
 	"tone-info",
 	"tone-warning",
 	"highlight",
 	// Tone ink — the legible text/icon color ON a tone fill. Theme-adaptive:
 	// because a tone fill flips lightness with the mode (dark 600/700 in light
 	// mode, lighter dark-tuned values in dark mode), its ink must flip too. These
-	// let a component write `text-tone-edition-foreground` — an intent token with
+	// let a component write `text-tone-1-foreground` — an intent token with
 	// no palette name and no `dark:` variant — instead of naming palette steps.
-	"tone-standard-foreground",
-	"tone-collectible-foreground",
-	"tone-edition-foreground",
+	"tone-3-foreground",
+	"tone-2-foreground",
+	"tone-1-foreground",
 	"tone-info-foreground",
 	"tone-warning-foreground",
 	"highlight-foreground",
@@ -471,6 +471,34 @@ export const ART_TOKENS = [
 ] as const
 
 export type ArtToken = (typeof ART_TOKENS)[number]
+
+/**
+ * The generated palette's one hook (src/lib/palette.ts). A theme sets it as
+ * `--theme-palette-harmony`; it is optional, and derived like the art tokens.
+ *
+ * - `palette-harmony` is how far the colour families lean toward the brand:
+ *   0 keeps their own hues, 1 (the default) is half the gap capped at 15°, and
+ *   2 doubles it, for a theme that wants every colour to read as its own.
+ */
+export const PALETTE_TOKENS = ["palette-harmony"] as const
+
+export type PaletteToken = (typeof PALETTE_TOKENS)[number]
+
+/**
+ * The slots a `data-palette="<family>"` scope fills from the generated palette
+ * (src/lib/palette.ts → PALETTE_SLOTS), so Badge, Pill and StatusDot paint any
+ * family with `bg-palette-wash text-palette-text` and never name a step. Derived,
+ * not themed: a theme does not set these, and a preset may not.
+ */
+export const PALETTE_SLOT_TOKENS = [
+	"palette-wash",
+	"palette-wash-strong",
+	"palette-edge",
+	"palette-dot",
+	"palette-solid",
+	"palette-text",
+	"palette-solid-ink",
+] as const
 
 /**
  * Derived edges — like the workspace surfaces, every theme gets them from

@@ -82,7 +82,7 @@ export const checkboxCardMeta: ComponentMeta = {
 		},
 		{
 			name: "tone",
-			type: '"neutral" | "standard" | "collectible" | "edition" | "info" | "warning"',
+			type: '"neutral" | "3" | "2" | "1" | "info" | "warning"',
 			default: '"neutral"',
 			description:
 				"Semantic colour the checked state carries across the border, checkbox box, and icon.",
@@ -109,7 +109,7 @@ export const checkboxCardMeta: ComponentMeta = {
 		},
 	],
 	variants: {
-		tone: ["neutral", "standard", "collectible", "edition", "info", "warning"],
+		tone: ["neutral", "3", "2", "1", "info", "warning"],
 	},
 	tokensUsed: [
 		"input",
@@ -120,12 +120,12 @@ export const checkboxCardMeta: ComponentMeta = {
 		"accent",
 		"foreground",
 		"muted-foreground",
-		"tone-standard",
-		"tone-standard-foreground",
-		"tone-collectible",
-		"tone-collectible-foreground",
-		"tone-edition",
-		"tone-edition-foreground",
+		"tone-3",
+		"tone-3-foreground",
+		"tone-2",
+		"tone-2-foreground",
+		"tone-1",
+		"tone-1-foreground",
 		"tone-info",
 		"tone-info-foreground",
 		"tone-warning",
@@ -148,11 +148,11 @@ export const checkboxCardMeta: ComponentMeta = {
 		},
 		{
 			label: "A single independent card",
-			code: '<CheckboxCard title="Email me a receipt" description="Sent when the mint settles" checked={receipt} onCheckedChange={setReceipt} />',
+			code: '<CheckboxCard title="Email me a receipt" description="Sent when the payment settles" checked={receipt} onCheckedChange={setReceipt} />',
 		},
 		{
 			label: "Toned with description",
-			code: '<CheckboxCard tone="edition" title="Editions" description="Sell as numbered NFT editions" defaultChecked />',
+			code: '<CheckboxCard tone="1" title="Reports" description="Weekly usage reports by email" defaultChecked />',
 		},
 	],
 }

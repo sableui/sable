@@ -22,12 +22,12 @@ export function LabelPage() {
 				<Example
 					code={`<Stack gap={1}>
 	<Label htmlFor="display-name">Display name</Label>
-	<Input id="display-name" placeholder="satoshi" />
+	<Input id="display-name" placeholder="sam" />
 </Stack>`}
 				>
 					<Stack gap={1}>
 						<Label htmlFor="display-name">Display name</Label>
-						<Input id="display-name" placeholder="satoshi" />
+						<Input id="display-name" placeholder="sam" />
 					</Stack>
 				</Example>
 			</Section>
@@ -38,15 +38,15 @@ export function LabelPage() {
 			>
 				<Example
 					code={`<Stack gap={1}>
-	<Label htmlFor="royalty" hint="A percentage of every resale, paid to you.">Royalty</Label>
-	<Input id="royalty" placeholder="5%" />
+	<Label htmlFor="discount" hint="Taken off every order this code is used on.">Discount</Label>
+	<Input id="discount" placeholder="10%" />
 </Stack>`}
 				>
 					<Stack gap={1}>
-						<Label htmlFor="royalty" hint="A percentage of every resale, paid to you.">
-							Royalty
+						<Label htmlFor="discount" hint="Taken off every order this code is used on.">
+							Discount
 						</Label>
-						<Input id="royalty" placeholder="5%" />
+						<Input id="discount" placeholder="10%" />
 					</Stack>
 				</Example>
 			</Section>
@@ -56,12 +56,12 @@ export function LabelPage() {
 				description="In a form, Field renders the label and dims it with its disabled control."
 			>
 				<Example
-					code={`<Field label="Wallet address" disabled>
-	<Input placeholder="Connect a wallet first" />
+					code={`<Field label="Billing email" disabled>
+	<Input placeholder="Add a payment method first" />
 </Field>`}
 				>
-					<Field label="Wallet address" disabled>
-						<Input placeholder="Connect a wallet first" />
+					<Field label="Billing email" disabled>
+						<Input placeholder="Add a payment method first" />
 					</Field>
 				</Example>
 			</Section>

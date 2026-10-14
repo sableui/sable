@@ -258,7 +258,7 @@ export const buttonMeta: ComponentMeta = {
 		"loading sets aria-busy and disables activation (disabled on a native button, aria-disabled on a render element) so the action can't double-fire.",
 	],
 	examples: [
-		{ label: "Primary", code: '<Button>Collect</Button>' },
+		{ label: "Primary", code: '<Button>Save changes</Button>' },
 		{
 			label: "Secondary + ghost",
 			code: '<Row gap={1}><Button variant="secondary">Cancel</Button><Button variant="ghost">Skip</Button></Row>',
@@ -285,7 +285,7 @@ export const buttonMeta: ComponentMeta = {
 		},
 		{
 			label: "Destructive with confirmation copy",
-			code: '<Row gap={1}><Button variant="secondary">Cancel</Button><Button variant="destructive">Delete edition</Button></Row>',
+			code: '<Row gap={1}><Button variant="secondary">Cancel</Button><Button variant="destructive">Delete project</Button></Row>',
 		},
 		{
 			label: "Leading icon",
@@ -328,7 +328,7 @@ export const buttonMeta: ComponentMeta = {
 		},
 		{
 			label: "Action in a solid Banner",
-			code: '<Banner tone="warning" appearance="solid" action={<Button variant="on-color" size="sm">Reconnect</Button>}>Wallet connection paused.</Banner>',
+			code: '<Banner tone="warning" appearance="solid" action={<Button variant="on-color" size="sm">Reconnect</Button>}>Calendar sync paused.</Banner>',
 		},
 	],
 }

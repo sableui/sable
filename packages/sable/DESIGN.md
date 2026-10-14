@@ -54,7 +54,7 @@ Three layers, outermost is what components use:
 | Layer | Example | Who uses it |
 |---|---|---|
 | **Palette** (theme-internal) | `--purple-heart-700`, `--zinc-950` | Only the theme CSS. Never components. |
-| **Semantic** (the contract) | `--primary`, `--card`, `--muted-foreground`, `--tone-edition`, `--ring` | **Components** (via `bg-*`/`text-*` utilities). |
+| **Semantic** (the contract) | `--primary`, `--card`, `--muted-foreground`, `--tone-1`, `--ring` | **Components** (via `bg-*`/`text-*` utilities). |
 | **Component** (local) | a cva variant string | Inside one component. |
 
 `themes/_contract.ts` enumerates the semantic tokens every theme must define. The default (Sable) palette is authored in **OKLCH** for perceptually-uniform ramps, locked hue, gamut-safe chroma, and dark-mode vibrancy.
@@ -62,9 +62,9 @@ Three layers, outermost is what components use:
 ### Semantic tokens (the contract)
 
 Surfaces & text: `background`, `foreground`, `card`, `card-foreground`, `popover`, `popover-foreground`, `muted`, `muted-foreground`, `border`, `input`, `ring`.
-Actions: `primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `accent`, `accent-foreground`, `destructive`, `destructive-foreground`, `success`, `success-foreground`. (`success` is the positive-state counterpart to `destructive` — a **flat** semantic token backed by caribbean-green; it is deliberately separate from the `tone-standard` post-type, and there is no `tone-success`.)
-Tones (semantic, carry meaning): `tone-standard`, `tone-collectible`, `tone-edition`, `tone-info`, `tone-warning`, `highlight`.
-Tone ink (legible text/icon on a tone fill, theme-adaptive): `tone-standard-foreground`, `tone-collectible-foreground`, `tone-edition-foreground`, `tone-info-foreground`, `tone-warning-foreground`, `highlight-foreground`.
+Actions: `primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `accent`, `accent-foreground`, `destructive`, `destructive-foreground`, `success`, `success-foreground`. (`success` is the positive-state counterpart to `destructive` — a **flat** semantic token backed by caribbean-green; it is deliberately separate from the numbered tones, and there is no `tone-success`.)
+Tones (semantic, carry meaning): `tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `highlight`.
+Tone ink (legible text/icon on a tone fill, theme-adaptive): `tone-1-foreground`, `tone-2-foreground`, `tone-3-foreground`, `tone-info-foreground`, `tone-warning-foreground`, `highlight-foreground`.
 Overlay (fixed dark surface over content — scrims, media letterbox, pills on imagery): `overlay`, `overlay-foreground`.
 Sidebar set: `sidebar`, `sidebar-foreground`, `sidebar-primary(-foreground)`, `sidebar-accent(-foreground)`, `sidebar-border`, `sidebar-ring`.
 
@@ -72,11 +72,24 @@ Sidebar set: `sidebar`, `sidebar-foreground`, `sidebar-primary(-foreground)`, `s
 
 ### Tone system
 
-Tones encode meaning, not decoration. Choose item categories for your product:
-- `tone-standard` — the default item category.
-- `tone-collectible` — a distinct item or collection category.
-- `tone-edition` — a limited edition or premium category.
+Tones encode meaning, not decoration. Beyond the status colours, a theme defines three extra colours, numbered so the product, not the library, decides what each means (plans, categories, series):
+- `tone-1` — the lead extra colour: the most prominent category, and chart series 1.
+- `tone-2` — a second, visually distinct category.
+- `tone-3` — a third category, usually the quietest: the baseline that means "nothing special".
 Plus `tone-info`, `tone-warning`, and `highlight` (selection). Dark mode uses dedicated, higher-chroma values so tones stay vivid on a near-black canvas. Text/icons ON a tone fill use the matching `tone-*-foreground` ink — a theme-adaptive intent token that flips lightness with the fill (light ink over the dark 600/700 fills in light mode; dark ink over the lighter dark-tuned fills in dark mode). A component never names a palette step for this; there is no longer a "media-overlay palette exception."
+
+### Generated palette
+
+Roles are the contract, and roles are not enough for a product: tags, avatars, labels and illustration need more colours than three tones. Raw Tailwind steps ignored the theme, so they were banned outright. Sable now generates a palette from whatever theme is painting (`src/lib/palette.ts`, written to `palette.css`):
+
+- **Nine families:** `neutral`, `red`, `orange`, `yellow`, `green`, `teal`, `blue`, `purple` and `pink`, each 50–950, as Tailwind utilities (`bg-blue-100`, `text-pink-700`) and variables (`--teal-500`). Tailwind's other families are switched off.
+- **The lean.** A family keeps its own hue and leans toward the brand by half the gap, at most 15°, and only as far as the brand has colour (an ink-black primary pulls nothing). It's Material 3's harmonize, and the same lean the customizer gives status colours. `--theme-palette-harmony` scales it: 0 keeps the families' own hues, 2 doubles the pull.
+- **Neutral** is the theme's own `--background` mixed toward its `--foreground`, so it carries the surfaces' tint.
+- **Tone scales.** Every tone (tone-1…3, info, warning, success, destructive) gets a scale anchored on itself: step 500 is the tone, so `bg-tone-1-100` is its wash.
+- **Steps follow the mode.** A low step is always near the page and a high step always far from it, so a pair like `bg-blue-100 text-blue-800` reads in both modes with no `dark:`.
+- **Held, not hoped.** It's all relative-colour CSS computed where it is declared, so a preset, a customizer look or an app's `--primary` carries into it with no regeneration. Chroma is fitted under sRGB across the whole lean (piecewise, a knot every 5°), and `palette.test.ts` evaluates the shipped CSS for every built-in theme and mode: in gamut, steadily away from the page, `700` readable on the page, `800` readable on its own `100`, and neighbouring families apart.
+
+Components never name a step. They paint roles, which is what lets a theme restyle them. Where a component takes a family (Badge, Pill and StatusDot accept `tone="blue"`, a category with no meaning attached), it sets `data-palette` to the family and paints from the slots that fills: `palette-wash` (100), `palette-wash-strong` (200), `palette-edge` (300), `palette-dot` (500), `palette-solid` (700), `palette-text` (800) and `palette-solid-ink` (50). The classes are the same for every family, and each ink-on-fill pair is held to 4.5:1. An app can use `data-palette` the same way.
 
 **Status-tone vocabulary.** Every status-signaling component (StatusDot, Badge with `dot`, Note, Banner, InlineStatus, EmptyState) takes one canonical severity set on its `tone` prop: **`neutral` · `info` · `success` · `warning` · `destructive`** — exported as `STATUS_TONES` / `StatusTone`, with one icon per tone in `STATUS_TONE_ICON`. There is no `error` alias anywhere: use `destructive`. A state label (live, failed, draft) is `<Badge appearance="plain" tone="…" dot>`; map domain states (`ready`, `building`, `failed`, …) to tones once in the app. Consumers can therefore feed one app-level tone straight into any of these components without a translation shim; new status-flavored components must accept the canonical five (`tone-vocabulary.test.ts` holds this).
 
@@ -497,7 +510,7 @@ The rules above are not honor-system. **`design-lint`** (`scripts/design-lint.mj
 | Rule id | Catches |
 |---|---|
 | `inline-color` | inline `oklch()` / hex literals |
-| `palette-ref` | raw palette-step refs (`--zinc-950`, `text-(--purple-heart-700)`) — **zero sanctioned exceptions** since the tone-foreground + overlay tokens landed |
+| `palette-ref` | palette-step refs. In a component, any of them (`--zinc-950`, `bg-blue-500`, `bg-tone-1-100`) — **zero sanctioned exceptions** since the tone-foreground + overlay tokens landed. In an app, only the ones that do not follow the theme: a theme's internal ramps and the Tailwind families Sable switches off (`bg-lime-500`) |
 | `raw-black-white` | `bg-black` / `text-white` etc. (use `overlay` / `overlay-foreground` or a semantic token) |
 | `transition-colors` | bare `transition-colors` (use the `motion-interactive` recipe) |
 | `transition-all` | `transition-all` / `transition: all` — it animates every property, including ones you never meant to move, and blocks the browser from optimizing. Name the properties, or use the recipe |
@@ -552,7 +565,7 @@ Not every removal is a regression; check for an **equivalent replacement** befor
 - Inline `oklch()`/hex or raw palette steps in components. *(CI-enforced: `inline-color`, `palette-ref`.)*
 - Decomposing paired typography utilities. *(CI-enforced: `decomposed-type`.)*
 - Pure `#000`/`#fff` (use `zinc-950`/`zinc-50`, or `overlay`/`overlay-foreground` for scrims). *(CI-enforced: `raw-black-white`.)*
-- In the Sable theme, purple/brand for primary CTAs (brand = editions + selection only). A different theme chooses its action palette through the semantic pair.
+- In the Sable theme, purple/brand for primary CTAs (brand = tone-1 + selection only). A different theme chooses its action palette through the semantic pair.
 - Gradient text, side-stripe borders, nested cards, mixed radii.
 - Concrete icon-package imports scattered through components. Reicon is an opt-in set behind the shared adapter; the app's IconProvider supplies it or a replacement.
 - A global page max-width (use opt-in region caps).

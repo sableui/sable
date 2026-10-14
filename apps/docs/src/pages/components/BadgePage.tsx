@@ -1,4 +1,4 @@
-import { BADGE_TONES, Badge, GradientArt, badgeMeta } from "@sableui/react"
+import { BADGE_TONES, Badge, GradientArt, PALETTE_COLORS, badgeMeta } from "@sableui/react"
 import {
 	ComponentPlayground,
 	Example,
@@ -8,15 +8,30 @@ import {
 	ledeFor,
 } from "../../components/docs-ui"
 
-const LABEL: Record<(typeof BADGE_TONES)[number], string> = {
+/** The tones that carry meaning; the palette families get their own section. */
+const MEANING = BADGE_TONES.filter((tone) => !(PALETTE_COLORS as readonly string[]).includes(tone))
+
+const LABEL: Partial<Record<(typeof BADGE_TONES)[number], string>> = {
 	neutral: "Neutral",
-	standard: "Standard",
-	collectible: "Collectible",
-	edition: "Edition",
+	"1": "Tone 1",
+	"2": "Tone 2",
+	"3": "Tone 3",
 	info: "Info",
 	success: "Live",
 	warning: "Pending",
 	destructive: "Failed",
+}
+
+/** Sample categories for the palette families. */
+const CATEGORY: Record<(typeof PALETTE_COLORS)[number], string> = {
+	red: "Urgent",
+	orange: "Marketing",
+	yellow: "Review",
+	green: "Finance",
+	teal: "Research",
+	blue: "Design",
+	purple: "Launch",
+	pink: "Community",
 }
 
 export function BadgePage() {
@@ -32,17 +47,42 @@ export function BadgePage() {
 			>
 				<Example
 					className="flex-col items-stretch gap-3"
-					code={`<Badge tone="edition">Edition</Badge>                       {/* soft, the default */}
-<Badge appearance="outline" tone="edition">Edition</Badge>
-<Badge appearance="solid" tone="edition">Edition</Badge>`}
+					code={`<Badge tone="1">New</Badge>                       {/* soft, the default */}
+<Badge appearance="outline" tone="1">New</Badge>
+<Badge appearance="solid" tone="1">New</Badge>`}
 				>
 					{(["soft", "outline", "solid"] as const).map((appearance) => (
 						<div key={appearance} className="grid grid-cols-[--spacing(20)_1fr] items-center gap-3">
 							<code className="text-mono-caption text-muted-foreground">{appearance}</code>
 							<div className="flex flex-wrap gap-2">
-								{BADGE_TONES.map((tone) => (
+								{MEANING.map((tone) => (
 									<Badge key={tone} appearance={appearance} tone={tone}>
 										{LABEL[tone]}
+									</Badge>
+								))}
+							</div>
+						</div>
+					))}
+				</Example>
+			</Section>
+
+			<Section
+				title="Palette colours"
+				description="For a category with no meaning attached (a tag, a label, a project colour), use a palette family as the tone. It paints from the theme's generated palette, so it leans toward the brand and reads in light and dark."
+			>
+				<Example
+					className="flex-col items-stretch gap-3"
+					code={`<Badge tone="blue">Design</Badge>
+<Badge appearance="outline" tone="teal">Research</Badge>
+<Badge appearance="solid" tone="purple">Launch</Badge>`}
+				>
+					{(["soft", "outline", "solid"] as const).map((appearance) => (
+						<div key={appearance} className="grid grid-cols-[--spacing(20)_1fr] items-center gap-3">
+							<code className="text-mono-caption text-muted-foreground">{appearance}</code>
+							<div className="flex flex-wrap gap-2">
+								{PALETTE_COLORS.map((color) => (
+									<Badge key={color} appearance={appearance} tone={color}>
+										{CATEGORY[color]}
 									</Badge>
 								))}
 							</div>
@@ -54,12 +94,12 @@ export function BadgePage() {
 			<Section title="On media" description="appearance=&quot;overlay&quot; stays legible over any image: a dark scrim, or the solid tone.">
 				<Example
 					code={`<Badge appearance="overlay">3 images</Badge>
-<Badge appearance="overlay" tone="edition">Edition</Badge>`}
+<Badge appearance="overlay" tone="1">New</Badge>`}
 				>
 					{/* A stand-in for artwork: the theme's own tones, so it is busy in every preset. */}
 					<GradientArt seed="On media" className="flex aspect-[4/3] w-64 items-end gap-1.5 rounded-lg p-3">
 						<Badge appearance="overlay">3 images</Badge>
-						<Badge appearance="overlay" tone="edition">Edition</Badge>
+						<Badge appearance="overlay" tone="1">New</Badge>
 					</GradientArt>
 				</Example>
 			</Section>

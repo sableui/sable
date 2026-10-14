@@ -230,7 +230,7 @@ describe("sRGB gamut", () => {
 	})
 
 	it("detects a colour OKLCH can name and sRGB cannot show", () => {
-		// A real shipped value: Sable's `--tone-collectible`. Blue overshoots by
+		// A real shipped value: Sable's `--tone-2`. Blue overshoots by
 		// 0.41 in linear light, so the browser clips it and renders a colour the
 		// theme never authored.
 		const outside = oklchToLinearRgb(0.72, 0.225, 285)

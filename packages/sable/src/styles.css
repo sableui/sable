@@ -35,6 +35,11 @@
    to check. */
 @import "./themes/sable/sable.css";
 
+/* The palette: nine colour families and a scale under every tone, generated
+   from whatever theme is painting (bg-blue-500, text-tone-1-700,
+   border-neutral-200). Generated; see src/lib/palette.ts. */
+@import "./palette.css";
+
 /* Scan the package for utility classes (path is relative to THIS file). Covers
    both workspace source (.ts/.tsx next to this file in src/) and the compiled
    dist (.js next to the copied styles.css), so the same file works in both. */
@@ -95,18 +100,18 @@
 	--color-sidebar-ring: var(--sidebar-ring);
 
 	/* Post-type tones + highlight (semantic — carry meaning) */
-	--color-tone-standard: var(--tone-standard);
-	--color-tone-collectible: var(--tone-collectible);
-	--color-tone-edition: var(--tone-edition);
+	--color-tone-3: var(--tone-3);
+	--color-tone-2: var(--tone-2);
+	--color-tone-1: var(--tone-1);
 	--color-tone-warning: var(--tone-warning);
 	--color-tone-info: var(--tone-info);
 	--color-highlight: var(--highlight);
 
 	/* Tone ink — theme-adaptive legible text/icon color ON a tone fill, so a
-	   component writes `text-tone-edition-foreground` (no palette name, no dark:). */
-	--color-tone-standard-foreground: var(--tone-standard-foreground);
-	--color-tone-collectible-foreground: var(--tone-collectible-foreground);
-	--color-tone-edition-foreground: var(--tone-edition-foreground);
+	   component writes `text-tone-1-foreground` (no palette name, no dark:). */
+	--color-tone-3-foreground: var(--tone-3-foreground);
+	--color-tone-2-foreground: var(--tone-2-foreground);
+	--color-tone-1-foreground: var(--tone-1-foreground);
 	--color-tone-warning-foreground: var(--tone-warning-foreground);
 	--color-tone-info-foreground: var(--tone-info-foreground);
 	/* Status text: a status colour drawn on a surface. Tailwind resolves each
@@ -404,9 +409,9 @@
    neutral (black/white buttons): then the art must keep the brand, or Ember's
    embers go grey. Set the hook to the brand wherever --primary stops being it. */
 	--art-1: var(--theme-art-1, oklch(from var(--tone-info) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h));
-	--art-2: var(--theme-art-2, oklch(from var(--tone-collectible) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h));
-	--art-3: var(--theme-art-3, oklch(from var(--tone-edition) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h));
-	--art-4: var(--theme-art-4, oklch(from var(--tone-standard) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h));
+	--art-2: var(--theme-art-2, oklch(from var(--tone-2) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h));
+	--art-3: var(--theme-art-3, oklch(from var(--tone-1) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h));
+	--art-4: var(--theme-art-4, oklch(from var(--tone-3) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h));
 	--art-5: var(--theme-art-5, transparent);
 	--art-6: var(--theme-art-6, transparent);
 	--art-ground: var(--theme-art-ground, color-mix(in oklab, var(--theme-art-brand, var(--primary)) 55%, oklch(from var(--tone-info) 0.3 c h)));

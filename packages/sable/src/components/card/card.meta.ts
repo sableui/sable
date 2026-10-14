@@ -201,11 +201,11 @@ export const cardMeta: ComponentMeta = {
 	examples: [
 		{
 			label: "With parts",
-			code: '<Card><CardHeader><CardTitle>Edition</CardTitle><CardDescription>Limited run of 100.</CardDescription></CardHeader><CardContent><p className="text-body-md">Each collector receives a signed print and the on-chain edition.</p></CardContent></Card>',
+			code: '<Card><CardHeader><CardTitle>Studio plan</CardTitle><CardDescription>Up to 10 seats.</CardDescription></CardHeader><CardContent><p className="text-body-md">Every seat gets unlimited projects and shared reports.</p></CardContent></Card>',
 		},
 		{
 			label: "With a header action",
-			code: '<Card><CardHeader><CardTitle>Edition</CardTitle><CardAction><Button variant="ghost" size="icon-sm" aria-label="More"><Icon name="ellipsis" /></Button></CardAction></CardHeader><CardContent><p className="text-body-md text-muted-foreground">24 of 100 collected.</p></CardContent></Card>',
+			code: '<Card><CardHeader><CardTitle>Seats</CardTitle><CardAction><Button variant="ghost" size="icon-sm" aria-label="More"><Icon name="ellipsis" /></Button></CardAction></CardHeader><CardContent><p className="text-body-md text-muted-foreground">24 of 100 seats in use.</p></CardContent></Card>',
 		},
 		{
 			label: "Compact section panel",
@@ -213,7 +213,7 @@ export const cardMeta: ComponentMeta = {
 		},
 		{
 			label: "Product card with actions",
-			code: '<Card><CardHeader><CardTitle>Midnight Archive</CardTitle><CardDescription>Edition #24 of 100</CardDescription><CardAction><Badge tone="edition">Edition</Badge></CardAction></CardHeader><CardContent><p className="text-body-sm text-muted-foreground">A signed print and token-gated download for collectors.</p></CardContent><CardFooter><Button size="sm">Collect</Button><Button size="sm" variant="ghost">Preview</Button></CardFooter></Card>',
+			code: '<Card><CardHeader><CardTitle>Midnight Archive</CardTitle><CardDescription>Template · 24 pages</CardDescription><CardAction><Badge tone="1">New</Badge></CardAction></CardHeader><CardContent><p className="text-body-sm text-muted-foreground">A project template with a brief, a timeline and a review board.</p></CardContent><CardFooter><Button size="sm">Use template</Button><Button size="sm" variant="ghost">Preview</Button></CardFooter></Card>',
 		},
 		{
 			label: "Whole card as a link",
@@ -221,7 +221,7 @@ export const cardMeta: ComponentMeta = {
 		},
 		{
 			label: "Metric card",
-			code: '<Card density="compact"><CardHeader><CardTitle>Revenue</CardTitle><CardDescription>Last 30 days</CardDescription></CardHeader><CardContent><p className="text-heading-3">128.4 SOL</p><p className="text-body-sm text-success">+12.8% from previous period</p></CardContent></Card>',
+			code: '<Card density="compact"><CardHeader><CardTitle>Revenue</CardTitle><CardDescription>Last 30 days</CardDescription></CardHeader><CardContent><p className="text-heading-3">$12,840</p><p className="text-body-sm text-success">+12.8% from previous period</p></CardContent></Card>',
 		},
 		{
 			label: "List card",

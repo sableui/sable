@@ -84,7 +84,7 @@ import { SideNav, SideNavGroup, SideNavItem } from "@sableui/react"
 import { SideNav, SideNavItem } from "@sableui/react"
 // <Link> = your router's link (react-router, next/link, @tanstack/router, …)
 
-<SideNav size="lg"><SideNavItem label="Profile" active render={<Link to="/settings/profile" />} /><SideNavItem label="Wallets" render={<Link to="/settings/wallets" />} /><SideNavItem label="Security" render={<Link to="/settings/security" />} /></SideNav>
+<SideNav size="lg"><SideNavItem label="Profile" active render={<Link to="/settings/profile" />} /><SideNavItem label="Billing" render={<Link to="/settings/billing" />} /><SideNavItem label="Security" render={<Link to="/settings/security" />} /></SideNav>
 ```
 
 ### Inside Sidebar chrome
