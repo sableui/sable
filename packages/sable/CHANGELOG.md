@@ -1,5 +1,34 @@
 # What's new
 
+## 0.9.1
+
+Fixes from a review of 0.9.0.
+
+- **Stacked toasts stay on screen beside an open Sheet.** Moving a bottom stack
+  to the top left stacked toasts hanging from the top edge, off the screen.
+  They now re-anchor with the stack. A top Sheet also sends a top stack to the
+  bottom.
+- **Toasts clear a Sheet of any width.** A side Sheet publishes its real width
+  (`--sable-sheet-right-w` / `--sable-sheet-left-w`) while open, so one widened
+  with `className` is cleared too.
+- **Form no longer takes focus back after a slow submit** if the person has
+  moved to something outside the form. It also keeps looking for a few frames,
+  for errors set in a transition or an action that render late.
+- **A loading Button refuses Enter and Space in its own `onKeyDown`** as well
+  as clicks, so a menu trigger rendered as a busy Button stays shut. Tab still
+  moves on.
+- **Stepper's phone layout follows each step's status.** A flow driven by
+  `status`, or one that has finished, kept the wrong title or none.
+- **`sable check` only warns about the whole-package `@source`.** A
+  single-module `@source` or an `@source not` exclusion no longer reads as one.
+- **CommandMenu's clear button is out of the tab order** and doesn't take
+  focus from the field when pressed. Esc still clears from the field.
+- **sableui.com** shows the 0.9 additions: plain Fieldset, RadioCard and Field
+  `trailing`, the MediaTile product tile, CommandMenu `leading`, async Button,
+  the Stepper on a phone, SkipLink, toasts beside a Sheet, and a note on each
+  reference layout. Build with Sable, Blocks and Page shells say they are
+  starting points.
+
 ## 0.9.0
 
 A storefront built on 0.8.2 (and the same brief on shadcn) found the seams

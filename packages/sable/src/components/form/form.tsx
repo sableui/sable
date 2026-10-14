@@ -13,6 +13,7 @@ import {
 	useRef,
 } from "react"
 import { cn } from "../../lib/cn"
+import { isPromise } from "../../lib/is-promise"
 import { Label } from "../label"
 
 export interface FormProps extends Omit<ComponentPropsWithRef<"form">, "onSubmit"> {
@@ -144,33 +145,38 @@ export function Form({
 }
 Form.displayName = "Form"
 
-const isPromise = (value: unknown): value is Promise<unknown> =>
-	typeof (value as Promise<unknown> | undefined)?.then === "function"
+/** Frames to keep looking for an error: one set in a transition or an action commits later than the next paint. */
+const SETTLE_FRAMES = 10
 
 /**
  * Errors the app sets itself (each Field's `error`) render after its handler
  * returns, so Base UI's focus-first-invalid, which runs inside the submit, never
  * sees them. Once the handler (or its promise) is done and React has painted,
  * focus the first control a Field marked invalid, unless focus is already on
- * one.
+ * one, or the user has moved on to something outside the form while it waited.
  */
 function afterSubmit(form: HTMLFormElement, result: unknown) {
-	const focus = () =>
+	const attempt = (framesLeft: number) =>
 		requestAnimationFrame(() => {
 			if (!form.isConnected) return
 			const active = document.activeElement
+			// Typing in the header search during a slow submit: leave them there.
+			if (active && active !== document.body && !form.contains(active)) return
 			if (active && form.contains(active) && active.getAttribute("aria-invalid") === "true") return
 			const first = [...form.querySelectorAll<HTMLElement>('[aria-invalid="true"]')].find(
 				(el) => !(el instanceof HTMLInputElement && el.type === "hidden") && !el.closest("[aria-hidden='true'],[inert]"),
 			)
-			if (!first) return
+			if (!first) {
+				if (framesLeft > 0) attempt(framesLeft - 1)
+				return
+			}
 			first.focus()
 			if (first instanceof HTMLInputElement && /^(?:text|search|email|tel|url|password|number)?$/.test(first.type)) {
 				first.select()
 			}
 		})
-	if (isPromise(result)) result.finally(focus)
-	else focus()
+	if (isPromise(result)) result.finally(() => attempt(SETTLE_FRAMES))
+	else attempt(SETTLE_FRAMES)
 }
 
 /** The native constraint flags of `ValidityState` a Field can word itself. */

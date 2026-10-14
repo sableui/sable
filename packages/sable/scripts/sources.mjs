@@ -195,7 +195,10 @@ export function sourcesCss(pkgRoot, root, outFile) {
  * that component unstyled, silently — so it fails. A whole-package @source is
  * correct, just heavy, so it only gets a note.
  */
-const WHOLE_DIST = /@source[^;]*(?:@sableui\/react|packages\/sable)\/dist(?:\/\*\*)?[^;]*;/
+// The whole-package scan only: `dist`, `dist/` or a `dist/**` glob. A single
+// module (`dist/components/chart/chart.js`, a lazy route's) and an exclusion
+// (`@source not …`) are deliberate and trim nothing away.
+const WHOLE_DIST = /@source\s+(?!not\b)["'][^"']*(?:@sableui\/react|packages\/sable)\/dist\/?(?:\*\*(?:\/[^"']*)?)?["']/
 
 export function sourcesCheck(pkgRoot, root, cssFiles) {
 	const generated = cssFiles.find((f) => f.text.includes(SOURCES_MARKER))

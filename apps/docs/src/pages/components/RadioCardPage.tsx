@@ -138,6 +138,19 @@ export function RadioCardPage() {
 				</Example>
 			</Section>
 
+			<Section
+				title="A trailing value"
+				description="trailing sits at the end of the title's line, for a price, a delivery date or a count. The title takes the rest of the row."
+			>
+				<Example>
+					<RadioGroup defaultValue="standard" className="flex w-full max-w-md flex-col gap-2">
+						<RadioCard value="standard" title="Standard" description="3–5 working days" trailing="Free" />
+						<RadioCard value="express" title="Express" description="Next working day" trailing="$12.00" />
+						<RadioCard value="pickup" title="Pick up in store" description="Ready in 2 hours" trailing="Free" />
+					</RadioGroup>
+				</Example>
+			</Section>
+
 			<MetaFooter meta={radioCardMeta} />
 		</>
 	)

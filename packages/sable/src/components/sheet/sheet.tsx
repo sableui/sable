@@ -113,7 +113,27 @@ export function SheetContent({
 	}, [reportSide, resolvedSide])
 
 	const popupRef = useRef<HTMLDivElement>(null)
-	const mergedRef = useMemo(() => mergeRefs(popupRef, ref), [ref])
+	// The popup mounts when the sheet opens, after this component, so its width
+	// is followed through state rather than read from the ref at mount.
+	const [popup, setPopup] = useState<HTMLDivElement | null>(null)
+	const mergedRef = useMemo(() => mergeRefs(popupRef, ref, setPopup), [ref])
+
+	// A toast stack on this sheet's edge moves beside it (styles.css). It needs
+	// the sheet's real width, which a className can change, so a side sheet
+	// publishes it on <html> while it is mounted.
+	useIsomorphicLayoutEffect(() => {
+		if (!popup || (resolvedSide !== "left" && resolvedSide !== "right")) return
+		const root = document.documentElement
+		const name = `--sable-sheet-${resolvedSide}-w`
+		const publish = () => root.style.setProperty(name, `${popup.offsetWidth}px`)
+		publish()
+		const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(publish)
+		observer?.observe(popup)
+		return () => {
+			observer?.disconnect()
+			root.style.removeProperty(name)
+		}
+	}, [popup, resolvedSide])
 
 	return (
 		<SheetPortal>

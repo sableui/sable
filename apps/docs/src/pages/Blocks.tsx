@@ -53,7 +53,7 @@ export function BlocksPage() {
 			<PageHeader
 				eyebrow="Components"
 				title="Blocks"
-				lede="Ready-made pieces of a page, built from Sable components. Copy one into your app and change its content to make it yours."
+				lede="Ready-made pieces of a page, built from Sable components. They are starting points, not requirements: use one when its layout fits your product, change it freely, or compose your own from the same parts."
 			/>
 
 			<p className="mb-12 max-w-(--measure-prose) text-body-md text-muted-foreground text-pretty">

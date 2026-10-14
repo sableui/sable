@@ -110,3 +110,24 @@ describe("Stepper — narrow", () => {
 		expect(screen.getByRole("list")).toHaveClass("@container/stepper")
 	})
 })
+
+describe("Stepper — narrow, by status", () => {
+	it("keeps the title of the step whose own status is current", () => {
+		renderWithProviders(
+			<Stepper aria-label="Order">
+				<StepperItem title="Placed" status="complete" />
+				<StepperItem title="Packed" status="current" />
+				<StepperItem title="Shipped" status="upcoming" />
+			</Stepper>,
+		)
+		expect(screen.getByText("Packed").parentElement).not.toHaveClass("@max-md/stepper:sr-only")
+		expect(screen.getByText("Placed").parentElement).toHaveClass("@max-md/stepper:sr-only")
+	})
+
+	it("keeps every title when no step is current (a finished flow)", () => {
+		renderWithProviders(<Checkout current={3} />)
+		for (const title of ["Cart", "Shipping", "Payment"]) {
+			expect(screen.getByText(title).parentElement).not.toHaveClass("@max-md/stepper:sr-only")
+		}
+	})
+})

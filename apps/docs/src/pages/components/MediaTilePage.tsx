@@ -128,6 +128,37 @@ export function MediaTilePage() {
 			</Section>
 
 			<Section
+				title="Product tile"
+				description="meta holds the lines under the subtitle: a price beside its sale price, a count of finishes, a status. srcSet and sizes pass responsive covers to the image. If your shop's tile wants a different layout, compose it from AspectBox, MediaImage and Badge instead."
+			>
+				<Example>
+					<Grid minItemWidth="12rem" gap={4} className="w-full">
+						{[
+							{ name: "Oak lounge chair", material: "Solid oak, wool", price: "$1,240", was: "$1,450", finishes: 3, isNew: true },
+							{ name: "Brass pendant", material: "Spun brass", price: "$380", finishes: 2, isNew: false },
+							{ name: "Linen sofa", material: "Washed linen", price: "$2,900", finishes: 5, isNew: false },
+						].map((p) => (
+							<MediaTile
+								key={p.name}
+								aspect={4 / 5}
+								title={p.name}
+								subtitle={p.material}
+								href={`#${p.name}`}
+								badge={p.isNew ? <Badge appearance="overlay">New</Badge> : undefined}
+								meta={
+									<>
+										<span className="text-foreground">{p.price}</span>
+										{p.was ? <span className="line-through">{p.was}</span> : null}
+										<span>{p.finishes} finishes</span>
+									</>
+								}
+							/>
+						))}
+					</Grid>
+				</Example>
+			</Section>
+
+			<Section
 				title="Why not a Card link"
 				description="A card rendered as a link cannot hold the artist link or the play button: interactive content cannot nest, browsers re-parent the inner one, and a screen reader reads the whole card as one long link. MediaTile makes the title the link and stretches it over the tile instead."
 			>

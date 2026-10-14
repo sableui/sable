@@ -284,6 +284,17 @@ export function ButtonPage() {
 				</Example>
 			</Section>
 
+			<Section
+				title="An async action"
+				description="Return a promise from onClick and the button shows loading until it settles, ignoring presses meanwhile, from the first click on. It keeps focus throughout, so a sheet the action opens can return focus to it."
+			>
+				<Example
+					code={`<Button onClick={() => addToCart(product)}>Add to cart</Button>`}
+				>
+					<Button onClick={() => new Promise((resolve) => setTimeout(resolve, 1200))}>Add to cart</Button>
+				</Example>
+			</Section>
+
 			<MetaFooter meta={buttonMeta} />
 		</>
 	)

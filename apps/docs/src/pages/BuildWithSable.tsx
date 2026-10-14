@@ -9,6 +9,9 @@ export function BuildWithSablePage() {
 			<CodeBlock code="$sable build a portfolio for a furniture designer, with projects, process notes, and a contact form" />
 			<p className="mt-4 text-body-md text-muted-foreground">Use $sable in Codex or /sable in Claude Code and Cursor. The same four modes work across these agents.</p>
 		</Section>
+		<Section title="Your product keeps its own design" description="Sable fixes behaviour, not layout. Controls, fields, overlays and anything with focus or keyboard handling always come from Sable. Parts such as Card, Entity, AspectBox and Badge are composed freely. Blocks, page shells and compositions such as MediaTile are references: your agent uses one when its layout fits the brief and composes its own from parts when it doesn't.">
+			<p className="text-body-md text-muted-foreground">Each brief names the product's signature surfaces, the one to three places its identity lives, like a shop's product card and search. Those are designed from the brief's direction; the rest takes Sable's defaults. Two shops built on Sable should not look alike.</p>
+		</Section>
 		<Section title="Develop a preset from inspiration" description="Bring images, websites, or a description. Inspire studies useful visual decisions and develops a reusable preset with a component preview. Its typography, surfaces, spacing, and design notes can guide many different products.">
 			<CodeBlock code="$sable inspire these references into a warm, compact preset for a ceramics brand" />
 		</Section>
@@ -22,7 +25,7 @@ export function BuildWithSablePage() {
 		</Section>
 		<Section title="Keep the skill and library together" description="Setup installs small agent entry files that read the workflow from your installed package. Updating Sable brings updated components, contracts, guides, and skill instructions together. Your project keeps its own presets and preferences.">
 			<CodeBlock code={'pnpm exec sable setup --agent\npnpm update @sableui/react --latest\npnpm exec sable setup --agent --update'} />
-			<p className="mt-4 text-body-md text-muted-foreground">Every build must retrieve Sable's component contracts, use its supported variants and tokens, run design lint, and inspect the working result. Your agent should report a library gap instead of recreating an available control.</p>
+			<p className="mt-4 text-body-md text-muted-foreground">Every build must retrieve Sable's component contracts, use its supported variants and tokens, run design lint, and inspect the working result. Your agent should report a library gap instead of recreating an available control, and is free to design its own layouts from Sable's parts.</p>
 			<Button className="mt-4" variant="secondary" render={<a href={hrefFor("getting-started")} />}>Install and set up</Button>
 		</Section>
 	</>

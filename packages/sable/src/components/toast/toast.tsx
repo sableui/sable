@@ -338,6 +338,9 @@ export function ToastRoot({ className, ...props }: RootProps) {
 	const { position, stacked } = useContext(ToastViewportContext)
 	return (
 		<Base.Root
+			// styles.css re-anchors a stacked toast when an open Sheet moves its stack
+			// to the other edge.
+			data-sable-toast-stacked={stacked ? "" : undefined}
 			className={cn(
 				"flex w-full gap-3 rounded-md border border-border-floating bg-popover p-4 text-popover-foreground shadow-xl",
 				stacked ? [STACKED_ROOT, STACKED_EDGE[edgeOf(position)]] : ENTER_MOTION[position],

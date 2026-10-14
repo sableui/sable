@@ -34,6 +34,8 @@ interface StepContextValue {
 	orientation: StepperOrientation
 	indicator: StepperIndicator
 	statusLabels: Record<StepStatus, string>
+	/** Whether any step resolves to `current`; with none, compact mode keeps every title. */
+	hasCurrent: boolean
 }
 
 const StepContext = createContext<StepContextValue | null>(null)
@@ -97,6 +99,10 @@ export function Stepper({
 }: StepperProps) {
 	const items = Children.toArray(children).filter(isValidElement)
 	const labels = { ...DEFAULT_STATUS_LABELS, ...statusLabels }
+	const hasCurrent = items.some((child, index) => {
+		const own = (child.props as { status?: StepStatus }).status
+		return (own ?? (index < current ? "complete" : index === current ? "current" : "upcoming")) === "current"
+	})
 	return (
 		<ol
 			data-orientation={orientation}
@@ -120,6 +126,7 @@ export function Stepper({
 						orientation,
 						indicator,
 						statusLabels: labels,
+						hasCurrent,
 					}}
 				>
 					{child}
@@ -168,6 +175,7 @@ export function StepperItem({
 	const isLast = index === count - 1
 	const isCurrent = index === current
 	const statusLabel = (ctx?.statusLabels ?? DEFAULT_STATUS_LABELS)[status]
+	const hasCurrent = ctx?.hasCurrent ?? true
 
 	const body = (
 		<>
@@ -195,7 +203,10 @@ export function StepperItem({
 					// Narrow and horizontal: three two-word titles wrapped under their
 					// connectors at 390px. The current step keeps its title; the rest
 					// are discs on screen and full titles to a screen reader.
-					orientation === "horizontal" && !isCurrent && "@max-md/stepper:sr-only",
+					// Keyed on the resolved status, not the index: a flow driven by each
+					// step's `status`, or finished (`current` past the end), still keeps
+					// the right title, or every title when no step is current.
+					orientation === "horizontal" && status !== "current" && hasCurrent && "@max-md/stepper:sr-only",
 				)}
 			>
 				<span

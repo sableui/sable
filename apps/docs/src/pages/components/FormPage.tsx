@@ -128,6 +128,35 @@ export function FormPage() {
 				</Example>
 			</Section>
 
+			<Section
+				title="Something at the end of the row"
+				description="trailing puts an action beside a control (a promo code's Apply button) or a value at the end of a checkbox's label (a filter's count). The control or label takes the rest of the row."
+			>
+				<Example>
+					<div className="flex w-full max-w-sm flex-col gap-6">
+						<Field label="Promo code" trailing={<Button variant="secondary">Apply</Button>}>
+							<Input autoCapitalize="characters" />
+						</Field>
+						<div className="flex flex-col gap-1">
+							<Field label="Oak" orientation="horizontal" trailing={<span className="text-body-sm text-muted-foreground">12</span>}>
+								<Checkbox />
+							</Field>
+							<Field label="Walnut" orientation="horizontal" trailing={<span className="text-body-sm text-muted-foreground">7</span>}>
+								<Checkbox />
+							</Field>
+						</div>
+					</div>
+				</Example>
+			</Section>
+
+			<Section title="Focus after your own validation">
+				<p className="max-w-(--measure-prose) text-body-md text-muted-foreground">
+					When your onSubmit (or the promise it returns) sets errors on Fields, the first invalid control takes focus, as
+					it does for Form's own checks. If the person has moved to something outside the form while a slow submit ran,
+					focus stays where they put it.
+				</p>
+			</Section>
+
 			<MetaFooter meta={formMeta} />
 		</>
 	)

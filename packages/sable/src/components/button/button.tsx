@@ -1,6 +1,7 @@
 import type { VariantProps } from "class-variance-authority"
 import {
 	type ComponentPropsWithRef,
+	type KeyboardEvent,
 	type MouseEvent,
 	type ReactNode,
 	useContext,
@@ -9,6 +10,7 @@ import {
 } from "react"
 import { useRender } from "@base-ui/react/use-render"
 import { cn } from "../../lib/cn"
+import { isPromise } from "../../lib/is-promise"
 import { useTypeTier } from "../../lib/density"
 import { StackedActionsContext } from "../../lib/presentation"
 import { trimLabel } from "../../lib/trim-label"
@@ -125,6 +127,7 @@ export function Button({
 	disabled,
 	children,
 	onClick,
+	onKeyDown,
 	...props
 }: ButtonProps) {
 	const tier = useTypeTier()
@@ -136,22 +139,34 @@ export function Button({
 	const [pending, setPending] = useState(false)
 	const pendingRef = useRef(false)
 	const busy = loading || pending
+	const refusing = () => busy || pendingRef.current || (!isNativeButton && disabled === true)
 	const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-		if (busy || pendingRef.current || (!isNativeButton && disabled)) {
+		if (refusing()) {
 			// Keyboard activation still reaches a button with aria-disabled (the
 			// pointer does not), and so does a form's implicit submit: refuse both.
 			event.preventDefault()
 			return
 		}
 		const result = onClick?.(event)
-		if (typeof (result as Promise<unknown> | undefined)?.then === "function") {
+		if (isPromise(result)) {
 			pendingRef.current = true
 			setPending(true)
-			;(result as Promise<unknown>).finally(() => {
+			result.finally(() => {
 				pendingRef.current = false
 				setPending(false)
 			})
 		}
+	}
+	// Native `disabled` used to stop every handler. aria-disabled stops only the
+	// pointer (by CSS), so the activating keys are refused here too: a menu
+	// trigger rendered as a busy Button opens on Enter in its own onKeyDown. Tab
+	// and every other key pass through, so focus can still leave.
+	const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+		if ((event.key === "Enter" || event.key === " ") && refusing()) {
+			event.preventDefault()
+			return
+		}
+		onKeyDown?.(event)
 	}
 	// Text labels are wrapped so `text-box-trim` has an element to act on — the
 	// property is inert on this flex container. Icons and the Spinner stay their
@@ -220,6 +235,7 @@ export function Button({
 			),
 			children: content,
 			onClick: handleClick,
+			onKeyDown: handleKeyDown,
 			...(resolvedBleed ? { "data-bleed": resolvedBleed } : null),
 			...(busy ? { "aria-busy": true } : null),
 			// A busy native button stays focusable: aria-disabled, with presses

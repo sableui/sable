@@ -84,4 +84,16 @@ describe("sable sources", () => {
 		expect(check).toMatchObject({ status: "warn", name: "css:sources" })
 		expect(check.detail).toContain("trims nothing")
 	})
+
+	it("does not take a single-module @source or an exclusion for the whole package", () => {
+		put(app, "src/App.tsx", 'import { Card } from "@sableui/react"\n')
+		const { css } = sourcesCss(pkg, app, "src/sable-sources.css")
+		const generated = { path: join(app, "src/sable-sources.css"), text: css }
+		const extra = {
+			path: join(app, "src/routes.css"),
+			text: '@source "../node_modules/@sableui/react/dist/components/tabs/tabs.js";\n@source not "../node_modules/@sableui/react/dist/blocks";',
+		}
+		const [check] = sourcesCheck(pkg, app, [extra, generated])
+		expect(check.status).not.toBe("warn")
+	})
 })

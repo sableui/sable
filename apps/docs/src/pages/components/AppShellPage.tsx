@@ -1,5 +1,6 @@
 import { appShellMeta, Button, Icon } from "@sableui/react"
 import {
+	InlineCode,
 	MetaFooter,
 	PageHeader,
 	Section,
@@ -37,6 +38,17 @@ export function AppShellPage() {
 						See all page shells
 					</Button>
 				</div>
+			</Section>
+
+			<Section
+				title="SkipLink without AppShell"
+				description="AppShell renders a skip link to #main-content. A layout of your own, such as a storefront with a top header, takes the same link from SkipLink."
+			>
+				<p className="max-w-(--measure-prose) text-body-md text-muted-foreground">
+					Put <InlineCode>{"<SkipLink />"}</InlineCode> first in the body and give your{" "}
+					<InlineCode>{"<main>"}</InlineCode> <InlineCode>id="main-content"</InlineCode> and{" "}
+					<InlineCode>{"tabIndex={-1}"}</InlineCode>. It stays hidden until it is focused.
+				</p>
 			</Section>
 
 			<MetaFooter meta={appShellMeta} />

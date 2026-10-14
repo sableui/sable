@@ -138,6 +138,21 @@ export function StepperPage() {
 				</Example>
 			</Section>
 
+			<Section
+				title="On a phone"
+				description="A horizontal stepper narrower than 28rem compacts itself: every disc stays, only the current step keeps its title on screen, and the other titles stay for screen readers. No breakpoint code is needed. The frame below is 22rem wide."
+			>
+				<Example>
+					<div className="w-88 max-w-full">
+						<Stepper current={1} aria-label="Checkout progress">
+							<StepperItem title="Shipping details" />
+							<StepperItem title="Delivery method" />
+							<StepperItem title="Review order" />
+						</Stepper>
+					</div>
+				</Example>
+			</Section>
+
 			<MetaFooter meta={stepperMeta} />
 		</>
 	)

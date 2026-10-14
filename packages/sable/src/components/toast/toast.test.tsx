@@ -278,3 +278,13 @@ describe("useToast().add persistence", () => {
 		expect((await screen.findByTestId("probe")).getAttribute("data-timeout")).toBe("4000")
 	})
 })
+
+describe("stacked, beside an open Sheet", () => {
+	it("marks stacked toasts so styles.css can re-anchor them when the stack moves edge", async () => {
+		renderWithProviders(<ToastProvider timeout={0} stacked position="bottom-right" />)
+		toast("Added to cart")
+		const row = (await screen.findByText("Added to cart")).closest("[role=dialog]") as HTMLElement
+		expect(row).toHaveAttribute("data-sable-toast-stacked")
+		expect(row.closest("[data-sable-toast-viewport]")).toHaveAttribute("data-position", "bottom-right")
+	})
+})

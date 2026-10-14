@@ -7,6 +7,7 @@ import {
 	CommandMenuPanel,
 	CommandMenuTrigger,
 	commandMenuMeta,
+	GradientArt,
 	Kbd,
 } from "@sableui/react";
 import { useState } from "react";
@@ -230,6 +231,36 @@ export function CommandMenuPage() {
 						className="w-full max-w-sm"
 						placeholder="Type a command…"
 						items={INLINE_ITEMS}
+					/>
+				</Example>
+			</Section>
+
+			<Section
+				title="Your own leading visual"
+				description="leading takes any node in place of an icon: a product thumbnail, an Avatar. Pair it with stacked for a second line. The field shows a clear button once there is a query."
+			>
+				<Example
+					code={`<CommandMenuPanel
+  className="w-full max-w-sm"
+  placeholder="Search the shop…"
+  items={products.map((p) => ({
+    group: "Products",
+    label: p.name,
+    detail: p.price,
+    stacked: true,
+    leading: <img src={p.thumb} alt="" className="size-8 rounded-xs object-cover" />,
+    onSelect: () => open(p),
+  }))}
+/>`}
+				>
+					<CommandMenuPanel
+						className="w-full max-w-sm"
+						placeholder="Search the shop…"
+						items={[
+							{ group: "Products", label: "Oak lounge chair", detail: "$1,240", stacked: true, leading: <GradientArt seed="oak" aria-hidden className="size-8 rounded-xs" />, onSelect: () => {} },
+							{ group: "Products", label: "Brass pendant", detail: "$380", stacked: true, leading: <GradientArt seed="brass" aria-hidden className="size-8 rounded-xs" />, onSelect: () => {} },
+							{ group: "Products", label: "Linen sofa", detail: "$2,900", stacked: true, leading: <GradientArt seed="linen" aria-hidden className="size-8 rounded-xs" />, onSelect: () => {} },
+						]}
 					/>
 				</Example>
 			</Section>

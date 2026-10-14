@@ -295,6 +295,71 @@ describe("Form validation", () => {
 	})
 })
 
+describe("Form — focus after the app's own validation", () => {
+	// One act per frame, so React commits between them as it would in a browser.
+	const frames = async (n: number) => {
+		for (let i = 0; i < n; i++) {
+			await act(() => new Promise((resolve) => requestAnimationFrame(() => resolve(null))))
+		}
+	}
+
+	it("leaves focus alone when the user moved outside the form while it waited", async () => {
+		let settle: () => void = () => {}
+		function Signup() {
+			const [error, setError] = useState<string>()
+			return (
+				<>
+					<input aria-label="Header search" />
+					<Form
+						onSubmit={(event) => {
+							event.preventDefault()
+							return new Promise<void>((resolve) => {
+								settle = () => {
+									setError("Already taken.")
+									resolve()
+								}
+							})
+						}}
+					>
+						<Field label="Email" error={error}><Input defaultValue="a@b.co" /></Field>
+						<button type="submit">Sign up</button>
+					</Form>
+				</>
+			)
+		}
+		render(<Signup />)
+		fireEvent.click(screen.getByRole("button", { name: "Sign up" }))
+		const search = screen.getByLabelText("Header search")
+		search.focus()
+		await act(async () => settle())
+		await frames(3)
+		expect(document.activeElement).toBe(search)
+	})
+
+	it("finds an error that renders a few frames after the handler settles", async () => {
+		function Late() {
+			const [error, setError] = useState<string>()
+			return (
+				<Form
+					noValidate
+					onSubmit={(event) => {
+						event.preventDefault()
+						// Committed later than the next paint, as a transition can be.
+						requestAnimationFrame(() => requestAnimationFrame(() => setError("Required.")))
+					}}
+				>
+					<Field label="Name" error={error}><Input /></Field>
+					<button type="submit">Save</button>
+				</Form>
+			)
+		}
+		render(<Late />)
+		fireEvent.click(screen.getByRole("button", { name: "Save" }))
+		await frames(6)
+		expect(document.activeElement).toBe(screen.getByLabelText("Name"))
+	})
+})
+
 describe("Field root and slots", () => {
 	it("forwards data-* and other props to the root", () => {
 		const { container } = render(

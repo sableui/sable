@@ -38,7 +38,7 @@ export function PatternsPage() {
 			<PageHeader
 				eyebrow="Components"
 				title="Page shells"
-				lede="Ready-made layouts for common pages. Open one to see it full size."
+				lede="Ready-made layouts for common pages, to use when one fits your product's structure. Open one to see it full size."
 			/>
 
 			<Grid cols={{ base: 1, sm: 2 }} gap={[5, 3]}>

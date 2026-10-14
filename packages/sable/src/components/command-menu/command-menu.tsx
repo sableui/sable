@@ -571,6 +571,11 @@ function CommandMenuBody({
 						variant="ghost"
 						size="icon-xs"
 						aria-label="Clear search"
+						// Off the tab order (Esc clears from the field), and it never takes
+						// focus from the field on press, so a panel that reacts to the
+						// field's blur does not see one.
+						tabIndex={-1}
+						onMouseDown={(event) => event.preventDefault()}
 						className="-my-1 text-muted-foreground hover:text-foreground"
 						onClick={() => {
 							setQuery("");

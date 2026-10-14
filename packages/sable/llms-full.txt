@@ -1040,6 +1040,10 @@ for each recognizable element with `sable search "<need>" --json`; inspect the
 matching `component <Name> --props` and `--examples` before implementation.
 Use Sable's composed anatomy and supported variants. A hand-built button, field,
 menu, dialog, table, or card that imitates a shipped component violates the contract.
+That binds behaviour and parts, not layouts. Results marked ◇ (patterns, blocks,
+and compositions such as MediaTile) are references: use one when its layout fits
+the brief, otherwise compose your own from Sable's parts. The brief's signature
+surfaces, where the product's identity lives, are designed from its direction.
 
 Resolve styling through component variants, documented utilities/recipes, then
 semantic tokens. App-owned CSS handles uncovered content and composition; it

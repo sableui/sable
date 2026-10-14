@@ -6,6 +6,7 @@ import {
 	CollapsiblePanel,
 	CollapsibleTrigger,
 	Icon,
+	Note,
 	PageHeader as SablePageHeader,
 	SectionHeader,
 	Tabs,
@@ -406,6 +407,16 @@ export function MetaFooter({ meta }: { meta: ComponentMeta }) {
 
 	return (
 		<>
+			{resolvedMeta.composition ? (
+				<Section title="A reference layout">
+					<Note tone="info" className="max-w-(--measure-prose)">
+						{componentLabel(meta.name)} is a designed arrangement, not a behaviour. Use it when its layout fits your
+						product. When it doesn't, compose your own from {resolvedMeta.composition}: that is the intended path, not a
+						workaround.
+					</Note>
+				</Section>
+			) : null}
+
 			{dos.length || donts.length ? (
 				<Section title="Do's and don'ts">
 					<div className="overflow-hidden rounded-xl border border-border bg-background">

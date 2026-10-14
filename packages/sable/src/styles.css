@@ -1549,15 +1549,23 @@
 
 /* Toasts keep clear of an open Sheet's actions. A right sheet's pinned footer
    (Check out) sat under a bottom-right toast, and its close button under a
-   top-right one. Where there is room, the stack moves beside the sheet (both are
-   w-95); on a narrower screen a bottom stack moves to the top, away from the
-   footer. A bottom sheet sends a bottom stack to the top at any width. */
+   top-right one.
+   - Where there is room, a stack on the sheet's side moves beside it. The sheet
+     publishes its real width (--sable-sheet-right-w / -left-w) while mounted.
+   - On a narrower screen the sheet leaves no room beside it. A bottom stack
+     moves to the top, off the footer's actions; a top stack stays, over the
+     header.
+   - A bottom sheet sends a bottom stack to the top, a top sheet sends a top
+     stack to the bottom, at any width.
+   A stack that moves to the other edge re-anchors its stacked toasts too: they
+   hang from the viewport's edge and grow away from it, so a bottom-anchored
+   deck at the top would grow off the screen. */
 @media (width >= 52rem) {
 	:root:has([data-sable-sheet="right"][data-open]) [data-sable-toast-viewport][data-position$="right"] {
-		right: calc(min(var(--spacing) * 95, 90vw) + var(--spacing) * 4);
+		right: calc(var(--sable-sheet-right-w, min(var(--spacing) * 95, 90vw)) + var(--spacing) * 4);
 	}
 	:root:has([data-sable-sheet="left"][data-open]) [data-sable-toast-viewport][data-position$="left"] {
-		left: calc(min(var(--spacing) * 95, 90vw) + var(--spacing) * 4);
+		left: calc(var(--sable-sheet-left-w, min(var(--spacing) * 95, 90vw)) + var(--spacing) * 4);
 	}
 }
 @media (width < 52rem) {
@@ -1566,10 +1574,45 @@
 		top: calc(var(--spacing) * 4);
 		bottom: auto;
 	}
+	:root:has([data-sable-sheet="right"][data-open]) [data-sable-toast-viewport][data-position="bottom-right"] [data-sable-toast-stacked],
+	:root:has([data-sable-sheet="left"][data-open]) [data-sable-toast-viewport][data-position="bottom-left"] [data-sable-toast-stacked] {
+		top: 0;
+		bottom: auto;
+		transform-origin: top;
+		--toast-dir: 1;
+		&::after {
+			top: 100%;
+			bottom: auto;
+		}
+	}
 }
 :root:has([data-sable-sheet="bottom"][data-open]) [data-sable-toast-viewport][data-position^="bottom"] {
 	top: calc(var(--spacing) * 4);
 	bottom: auto;
+	& [data-sable-toast-stacked] {
+		top: 0;
+		bottom: auto;
+		transform-origin: top;
+		--toast-dir: 1;
+		&::after {
+			top: 100%;
+			bottom: auto;
+		}
+	}
+}
+:root:has([data-sable-sheet="top"][data-open]) [data-sable-toast-viewport][data-position^="top"] {
+	top: auto;
+	bottom: calc(var(--spacing) * 4);
+	& [data-sable-toast-stacked] {
+		top: auto;
+		bottom: 0;
+		transform-origin: bottom;
+		--toast-dir: -1;
+		&::after {
+			top: auto;
+			bottom: 100%;
+		}
+	}
 }
 
 /* `Col span={{ base, md, lg }}` / `start={…}` — each breakpoint resolves to the

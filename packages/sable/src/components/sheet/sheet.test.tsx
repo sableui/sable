@@ -255,3 +255,25 @@ describe("Sheet", () => {
 		expect(footer.dataset.actions).toBe("row")
 	})
 })
+
+describe("Sheet — what toasts read", () => {
+	it("marks its side and publishes its width on <html> while open, then removes it", () => {
+		function Harness() {
+			const [open, setOpen] = useState(true)
+			return (
+				<>
+					<button type="button" onClick={() => setOpen(false)}>Close it</button>
+					<Sheet open={open} onOpenChange={setOpen}>
+						<SheetContent side="right">
+							<SheetTitle>Cart</SheetTitle>
+						</SheetContent>
+					</Sheet>
+				</>
+			)
+		}
+		render(<Harness />)
+		expect(screen.getByRole("dialog")).toHaveAttribute("data-sable-sheet", "right")
+		// jsdom has no layout, so the width is 0px, but it is published.
+		expect(document.documentElement.style.getPropertyValue("--sable-sheet-right-w")).toBe("0px")
+	})
+})

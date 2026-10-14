@@ -170,6 +170,14 @@ export function ToastPage() {
 					</Example>
 				</Section>
 
+				<Section title="Beside an open Sheet">
+					<p className="max-w-(--measure-prose) text-body-md text-muted-foreground">
+						A stack on the same edge as an open Sheet moves out of the way of its actions: beside the sheet where there is
+						room, and on a narrow screen from the bottom to the top, off the sheet's footer. A bottom sheet sends bottom
+						toasts to the top, and a top sheet sends top toasts to the bottom.
+					</p>
+				</Section>
+
 				<MetaFooter meta={toastMeta} />
 			</ToastProviderControl.Provider>
 		</ToastProvider>

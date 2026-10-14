@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs"
 import { resolve } from "node:path"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
-import { act, renderWithProviders, screen } from "../../test/render"
+import { act, fireEvent, renderWithProviders, screen } from "../../test/render"
 import { themeIds } from "../../themes"
 import {
 	CONTRAST_FLOOR,
@@ -75,6 +75,21 @@ describe("Button", () => {
 		screen.getByRole("button").focus()
 		await user.keyboard("{Enter} ")
 		expect(onClick).not.toHaveBeenCalled()
+	})
+
+	it("refuses Enter and Space in its own onKeyDown while loading, and lets Tab through", () => {
+		const onKeyDown = vi.fn()
+		renderWithProviders(
+			<Button loading onKeyDown={onKeyDown}>
+				Open
+			</Button>,
+		)
+		const btn = screen.getByRole("button")
+		fireEvent.keyDown(btn, { key: "Enter" })
+		fireEvent.keyDown(btn, { key: " " })
+		expect(onKeyDown).not.toHaveBeenCalled()
+		fireEvent.keyDown(btn, { key: "Tab" })
+		expect(onKeyDown).toHaveBeenCalledTimes(1)
 	})
 
 	it("does not submit its form while loading", () => {

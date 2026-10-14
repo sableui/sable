@@ -9,6 +9,7 @@ import {
 	FieldsetLegend,
 	fieldsetMeta,
 	Radio,
+	RadioCard,
 	RadioGroup,
 } from "@sableui/react"
 import {
@@ -104,6 +105,21 @@ export function FieldsetPage() {
 								<Field label="Never" orientation="horizontal"><Radio value="never" /></Field>
 							</RadioGroup>
 						</FieldsetContent>
+					</Fieldset>
+				</Example>
+			</Section>
+
+			<Section
+				title="Plain: a name without a box"
+				description="The plain variant keeps the grouping and the legend and drops the card, so a radio group inside a form that is already framed still has its shared name."
+			>
+				<Example>
+					<Fieldset variant="plain" className="w-full max-w-md">
+						<FieldsetLegend>Delivery</FieldsetLegend>
+						<RadioGroup defaultValue="standard" className="flex flex-col gap-2">
+							<RadioCard value="standard" title="Standard" description="3–5 working days" trailing="Free" />
+							<RadioCard value="express" title="Express" description="Next working day" trailing="$12.00" />
+						</RadioGroup>
 					</Fieldset>
 				</Example>
 			</Section>
