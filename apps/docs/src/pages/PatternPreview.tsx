@@ -1,5 +1,5 @@
-import { Spinner } from "@sableui/react"
 import { type ComponentType, Suspense } from "react"
+import { PreviewSkeleton } from "../components/RouteSkeleton"
 import { lazyRoute } from "../lib/lazy-route"
 
 /**
@@ -44,13 +44,7 @@ export function PatternPreview({ slug }: { slug: string }) {
 		)
 	}
 	return (
-		<Suspense
-			fallback={
-				<div className="flex min-h-dvh items-center justify-center">
-					<Spinner />
-				</div>
-			}
-		>
+		<Suspense fallback={<PreviewSkeleton />}>
 			<Preview />
 		</Suspense>
 	)

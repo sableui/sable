@@ -1,6 +1,5 @@
 import {
 	COMPONENT_GROUPS,
-	Spinner,
 	componentLabel,
 	componentSlug,
 	componentsInGroup,
@@ -13,6 +12,7 @@ import {
 } from "./components/DocsShell"
 import { IntroCurtain, introPending } from "./components/IntroCurtain"
 import { RouteBoundary } from "./components/RouteErrorBoundary"
+import { CanvasSkeleton, DocPageSkeleton, HomeSkeleton, PreviewSkeleton } from "./components/RouteSkeleton"
 import { lazyRoute } from "./lib/lazy-route"
 import { redirect, useRoute } from "./lib/router"
 import site from "./site-meta.json"
@@ -570,14 +570,6 @@ const pages: Record<string, ComponentType> = {
 	),
 }
 
-function RouteFallback() {
-	return (
-		<div className="flex min-h-[50vh] items-center justify-center">
-			<Spinner />
-		</div>
-	)
-}
-
 /** Replace the current URL after render — redirecting during render would
  * update the router's state mid-render. */
 function Redirect({ to }: { to: string }) {
@@ -612,10 +604,10 @@ export function App() {
 		const Home = pages.introduction
 		// The same shell as every docs page, so the header never jumps. While
 		// the homepage code loads, the intro's opening frame (the S on a blank
-		// page) stands in for the spinner, so the intro starts from first paint.
+		// page) stands in for the skeleton, so the intro starts from first paint.
 		return (
 			<DocsShell areas={areas} current={slug} bare title={site.homeTitle}>
-				<RouteBoundary slug={slug} fallback={introPending() ? <IntroCurtain /> : <RouteFallback />}>
+				<RouteBoundary slug={slug} fallback={introPending() ? <IntroCurtain /> : <HomeSkeleton />}>
 					<Home />
 				</RouteBoundary>
 			</DocsShell>
@@ -626,7 +618,7 @@ export function App() {
 	if (slug === "customize") {
 		return (
 			<DocsShell areas={areas} current={slug} max="full" title="Canvas — Sable">
-				<RouteBoundary slug={slug} fallback={<RouteFallback />}>
+				<RouteBoundary slug={slug} fallback={<CanvasSkeleton />}>
 					<CustomizeRoute />
 				</RouteBoundary>
 			</DocsShell>
@@ -636,7 +628,7 @@ export function App() {
 	// (AppShell, skip links, #main-content) never nest inside the docs' own.
 	if (slug.startsWith("preview/")) {
 		return (
-			<RouteBoundary slug={slug} fallback={<RouteFallback />}>
+			<RouteBoundary slug={slug} fallback={<PreviewSkeleton />}>
 				<PatternPreviewRoute slug={slug.slice("preview/".length)} />
 			</RouteBoundary>
 		)
@@ -656,7 +648,7 @@ export function App() {
 	if (slug === "guidelines") {
 		return (
 			<DocsShell areas={areas} current={slug} max={width}>
-				<RouteBoundary slug={slug} fallback={<RouteFallback />}>
+				<RouteBoundary slug={slug} fallback={<DocPageSkeleton />}>
 					<GuidelinesRoute />
 				</RouteBoundary>
 			</DocsShell>
@@ -683,7 +675,7 @@ export function App() {
 	if (!Page) {
 		return (
 			<DocsShell areas={areas} current={slug} max={width} title="Page not found — Sable">
-				<RouteBoundary slug={slug} fallback={<RouteFallback />}>
+				<RouteBoundary slug={slug} fallback={<DocPageSkeleton />}>
 					<NotFoundRoute />
 				</RouteBoundary>
 			</DocsShell>
@@ -691,7 +683,7 @@ export function App() {
 	}
 	return (
 		<DocsShell areas={areas} current={slug} max={width}>
-			<RouteBoundary slug={slug} fallback={<RouteFallback />}>
+			<RouteBoundary slug={slug} fallback={<DocPageSkeleton />}>
 				<Page />
 			</RouteBoundary>
 		</DocsShell>

@@ -33,6 +33,9 @@ Vertical rhythm: spacing is measured from the type.
   panel's preset list. A page whose code fails to load (a tab opened before a
   deploy) reloads onto the new deploy instead of going blank, and any page
   that still fails says so with a Reload button.
+- **sableui.com:** pages load into a Skeleton of their own layout (the
+  header, the first section, the canvas grid, the homepage hero) instead of a
+  centred spinner, so the content lands where the placeholder stood.
 - **sableui.com:** Customize's Character pad moves the leading (Compact ↔
   Airy) and every gap follows; Advanced shows the line and step and its step
   anchor sets the step directly. Grid & layout shows the line and step live,
