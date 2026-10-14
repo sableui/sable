@@ -668,6 +668,25 @@ Pick each route's `max` by what the person mainly does on it:
   (a copy in `light` or `dark` wins over it); keep the role names and change
   the values.
 
+## Columns and rhythm
+
+- **Flex or grid.** One direction is `Stack` (column) or `Row` (row). Content
+  that has to line up across rows *and* columns is `Grid`/`Columns`. A card's
+  single column is a `Stack`, never a one-track grid.
+- **Columns are a choice per route.** Record it in the brief next to the width:
+  which content spans which of the 12 columns, and where it folds
+  (`<Col span={{ base: 12, lg: 8 }}>`). The grid does not fold on its own. A
+  route that is one reading measure has no columns, and the brief says so.
+- **Vertical space is measured in lines.** The baseline is one line of body
+  text split into steps (8px at the default type). Gap numbers on `Stack`/
+  `Row`/`Grid` are steps; in Tailwind, even steps (`gap-4`, `py-6`, `mt-12`)
+  are whole steps and odd ones (`py-3`, `gap-5`) are half a step. Title to
+  description is one step, between groups one to two lines, between sections
+  three or more.
+- **It is a rhythm, not a lock.** A card with a button or a code block is as
+  tall as its content. Keep the spacing between blocks in steps and let
+  components be; never pad or nudge them to pin text to lines.
+
 ## Typography: pick the tier by ROLE, not by size
 
 | tier | for | not |
@@ -2825,9 +2844,9 @@ muted-foreground is contrast-tested on every surface; a 60% alpha is not.
 
 # Spacing & sizing
 
-One 4px scale governs every gap, inset and size, and space is assigned by role. Controls read a height ladder that a density scope can retune all at once.
+One scale, derived from the type: the baseline is one line of body text, split into steps every gap, inset and line height lands on. Space is assigned by role. Controls read a height ladder that a density scope can retune all at once.
 
-**4px base · 8px rhythm · 3 roles · 1 control ladder**
+**Baseline from the type · 8px steps · 3 roles · 1 control ladder**
 
 ## Spacing by role
 
@@ -2836,8 +2855,8 @@ Steps below 2 (8px) are optical correction only.
 | Name | Value | Use |
 |---|---|---|
 | `Inset  p-4` | 16px | Padding inside a surface. p-3 for a dense card, px-3 py-2 for a row. |
-| `Stack, within a group  gap-1.5 – gap-2` | 6–8px | Label to field, title to description. |
-| `Stack, between groups  gap-4 – gap-6` | 16–24px | Field to field, card to card. |
+| `Stack, within a group  gap-2` | 1 step · 8px | Label to field, title to description. |
+| `Stack, between groups  gap-4 – gap-6` | 2–3 steps · 16–24px | Field to field, card to card. |
 | `Stack, between sections  gap-12+` | 48px+ | Major regions of a page. |
 | `Inline  gap-2 – gap-3` | 8–12px | Icon to label, control to control. |
 
@@ -2863,8 +2882,8 @@ Comfortable values; data-density="compact" (or <Density>) redefines every step f
 
 ## Rules
 
-1. **Every margin, padding and gap is a step on the 4px scale.** Off-scale values break the rhythm that lets adjacent components line up without coordination.
-2. **Padding, gaps and insets in a component sit on the spacing scale: a step (p-4, gap-2) or --spacing(n) inside an arbitrary value (p-[var(--card-p,--spacing(6))]).** The density (Character) control works by retuning --spacing, so anything on the scale moves with it. A literal p-[1.5rem] or padding: "12px" stays put while everything around it tightens. Keep fixed rem/px for what must not scale: a 1px hairline, a ring width. *Enforced by design-lint: fixed-spacing (library source).*
+1. **Every margin, padding and gap is a step on the scale, and vertical space between blocks is whole baseline steps: an even Tailwind step (2, 4, 6, 8, 12) or a Stack/Row/Grid gap number.** The baseline is one line of body text split into steps; line heights round to it. An odd step (3, 5) is half a baseline step. It is a rhythm to keep, not a grid to force: components stay as tall as their content.
+2. **Padding, gaps and insets in a component sit on the spacing scale: a step (p-4, gap-2) or --spacing(n) inside an arbitrary value (p-[var(--card-p,--spacing(6))]).** --spacing derives from the baseline step and the density (Character) control moves the leading it comes from, so anything on the scale moves with it. A literal p-[1.5rem] or padding: "12px" stays put while everything around it tightens. Keep fixed rem/px for what must not scale: a 1px hairline, a ring width. *Enforced by design-lint: fixed-spacing (library source).*
 3. **Related things sit closer than unrelated things.** Proximity groups content without a divider line. Use space first; reach for a border only when space is not enough.
 4. **Space lives on the container (gap), not on children (margins).** gap survives reordering, conditional children and RTL; per-child margins do not.
 5. **Control heights read the --control-* ladder.** A density scope retunes every control at once. A hardcoded height has to be found and overridden by hand. *Enforced by sable-lint: raw-control-height.*
@@ -2902,7 +2921,7 @@ Every control, menu and popup inside retunes, including portaled overlays.
 <Stack gap={3}> between groups (24px), <Stack gap={1}> inside a group (8px)
 ```
 
-Two spacing steps do the work of every divider, with less ink. Stack's numeric gap counts --rhythm-unit — two spacing steps — so it follows the density control like every other spacing value.
+Spacing steps do the work of every divider, with less ink. Stack's numeric gap counts --rhythm-unit — one baseline step — so it follows the type and the density control like every other spacing value.
 
 **Related:** `sable docs shape` · `sable docs typography` · `sable docs building-a-tool` · `sable token layout`
 
@@ -4029,7 +4048,7 @@ export function ChatPanel() {
 				render={<section aria-labelledby="chat-title" />}
 				className="flex h-[calc(100dvh_-_--spacing(12))] flex-col overflow-hidden"
 			>
-				<CardHeader className="border-b border-border pb-(--card-p)">
+				<CardHeader className="pb-(--card-p) shadow-[inset_0_-1px_0_var(--border)]">
 					{/* CardTitle carries the type; the h1 inside it is the page heading. */}
 					<CardTitle>
 						<h1 id="chat-title">Scroll behaviour</h1>
@@ -4168,7 +4187,7 @@ export function ChatPanel() {
 					</Message>
 				</MessageScroller>
 
-				<CardFooter className="border-t border-border pt-(--card-p)">
+				<CardFooter className="pt-(--card-p) shadow-[inset_0_1px_0_var(--border)]">
 					<ChatComposer
 						className="flex-1"
 						placeholder="Ask a follow-up…"
@@ -7807,7 +7826,7 @@ export function PricingTableBlock({ className, onChoose }: PricingTableBlockProp
 						<Card
 							key={tier.id}
 							render={<article />}
-							className={cn("flex flex-col", tier.featured && "border-primary ring-1 ring-primary")}
+							className={cn("flex flex-col", tier.featured && "outline-primary ring-1 ring-primary")}
 						>
 							<CardHeader>
 								<CardTitle render={<h3 />}>{tier.name}</CardTitle>
@@ -21540,11 +21559,11 @@ Which token to reach for, and what it is most often confused with. Generated fro
 
 ### layout (11)
 
-- **`rhythm-unit`** — The vertical rhythm base — two spacing steps (8px at the default scale). Every vertical measure is a multiple of it, and it follows the density control with the spacing scale. *Use for:* Through `Stack`/`Row`/`Grid` gap numbers, which are rhythm units rather than pixels. A gap of 2 is 16px at the default scale, and grows or tightens with density.
+- **`rhythm-unit`** — The vertical rhythm base — one baseline step (8px at the default scale). Every vertical measure is a multiple of it, and it follows the type and the density control. *Use for:* Through `Stack`/`Row`/`Grid` gap numbers, which are rhythm units rather than pixels. A gap of 2 is 16px at the default scale, and grows or tightens with density.
     - **Not** arbitrary vertical spacing. The rhythm is what makes unrelated sections of a page feel like one document.
 - **`grid-columns`** — The column count of the content grid — 12. *Use for:* `Grid`/`Columns`, WITHIN a region, for genuinely multi-column content.
     - **Not** using a column span as the page's reading width. A span is not a measure — see `measure-prose`.
-- **`grid-gutter`** — The gap between grid columns. *Use for:* `Grid`/`Columns` spacing.
+- **`grid-gutter`** — The gap between grid columns and rows — 2 baseline steps on phones, 3 on desktop, snapped to the step. *Use for:* `Grid`/`Columns` spacing.
 - **`page-inset`** — The page's outer breathing room, left and right. *Use for:* The gutter between content and the viewport edge, at every breakpoint.
     - **Not** a global max-width. Sable caps width per REGION by role, never once for the whole page.
 - **`measure-prose`** — The maximum comfortable line length for prose, in `ch`. *Use for:* Any long-form text column.

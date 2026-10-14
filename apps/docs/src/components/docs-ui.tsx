@@ -43,8 +43,11 @@ export function PageHeader({
 		// only set the measure, the space below, and a page-sized lede.
 		<SablePageHeader
 			title={title}
-			description={lede ? <span className="text-body-md text-pretty">{lede}</span> : undefined}
-			className="mb-12 max-w-(--measure-prose) gap-3 pb-0 text-body-md"
+			description={lede}
+			// The lede is set on the header's own paragraph, not a span of another
+			// size inside it: two sizes in one line box make the line taller than
+			// its line height.
+			className="mb-12 max-w-(--measure-prose) gap-2 pb-0 text-body-md [&>p]:text-body-md [&>p]:text-pretty"
 			data-eyebrow={eyebrow ? "" : undefined}
 		/>
 	)
@@ -66,8 +69,8 @@ export function Section({
 			<SectionHeader
 				size="sm"
 				title={title}
-				description={description ? <span className="text-body-md">{description}</span> : undefined}
-				className="mb-5 max-w-(--measure-prose)"
+				description={description}
+				className="mb-6 max-w-(--measure-prose) [&>p]:text-body-md"
 			/>
 			{/* Stacked with one gap, so consecutive examples never touch. Example
 			    applies its className to the stage INSIDE its frame, so a margin

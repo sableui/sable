@@ -45,7 +45,7 @@ export function PageHeader({
 	...props
 }: PageHeaderProps) {
 	return (
-		<div className={cn("flex flex-col gap-1 pb-4", className)} {...props}>
+		<div className={cn("flex flex-col gap-2 pb-4", className)} {...props}>
 			<HeadingRow
 				as={Title}
 				title={title}

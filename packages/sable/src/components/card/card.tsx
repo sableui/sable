@@ -6,7 +6,7 @@ import { cn } from "../../lib/cn"
 import { CardDepthContext, StackedActionsContext, usePresentation } from "../../lib/presentation"
 
 export interface CardProps extends ComponentPropsWithRef<"div"> {
-	/** "default" = raised surface (bg-card + border + soft shadow). "flat" = transparent. */
+	/** "default" = raised surface (bg-card + edge + soft shadow). "flat" = transparent. */
 	variant?: "default" | "flat"
 	/**
 	 * Padding scale for the Header/Content/Footer parts. "comfortable" = p-6 (the
@@ -54,9 +54,9 @@ const DENSITY_PAD: Record<NonNullable<CardProps["density"]>, string> = {
  * lurching, not as a press. The hover and ring carry the response.
  */
 const INTERACTIVE_BASE =
-	"[&:is(a[href],button)]:motion-interactive [&:is(a[href],button)]:cursor-pointer [&:is(button)]:w-full [&:is(button)]:text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+	"[&:is(a[href],button)]:motion-interactive [&:is(a[href],button)]:cursor-pointer [&:is(button)]:w-full [&:is(button)]:text-start focus-visible:ring-2 focus-visible:ring-ring"
 const INTERACTIVE_HOVER: Record<NonNullable<CardProps["variant"]>, string> = {
-	default: "[&:is(a[href],button)]:hover:border-border-strong [&:is(a[href],button)]:hover:shadow-md",
+	default: "[&:is(a[href],button)]:hover:outline-border-strong [&:is(a[href],button)]:hover:shadow-md",
 	flat: "[&:is(a[href],button)]:hover:bg-muted",
 }
 
@@ -91,9 +91,15 @@ export function Card({
 				// sable-frame — at Sable's paddings the subtraction runs to ~0, and a
 				// near-square box inside a rounded card reads as another system.
 				// A field or panel inside reads it (ChatComposer does).
-				"[--card-inner-radius:max(var(--radius-sm),calc(var(--radius-lg)-var(--card-p)-1px))]",
+				"[--card-inner-radius:max(var(--radius-sm),calc(var(--radius-lg)-var(--card-p)))]",
 				// Declares its surface so sable-well / sable-surface-interactive inside derive from the card.
-				variant === "default" && "border border-border bg-card shadow-sm [--sable-surface-bg:var(--card)]",
+				// The edge is an outline drawn 1px INSIDE the box, not a border: it
+				// takes no space, so the card's padding is whole baseline steps and
+				// its content starts on the rhythm instead of a pixel below it. It
+				// paints above the card's in-flow content (a flush table's row fill);
+				// a positioned child with a fill of its own would cover it, which no
+				// card part has. DESIGN.md → Vertical rhythm.
+				variant === "default" && "outline-1 -outline-offset-1 outline-border bg-card shadow-sm [--sable-surface-bg:var(--card)]",
 				// A CardList or a flush CardContent (an edge-to-edge Table) runs its
 				// rows to the card's edges, and a row's hover fill or a TableFooter's
 				// tint would otherwise poke square corners out past the card's
@@ -266,12 +272,15 @@ export function CardList({
 		<div
 			data-slot="card-list"
 			className={cn(
-				"flex flex-col divide-y divide-border [--entity-radius:0px] [--entity-px:var(--card-p,--spacing(6))] [--entity-py:calc(var(--card-p,--spacing(6))/2)]",
+				"flex flex-col [--entity-radius:0px] [--entity-px:var(--card-p,--spacing(6))] [--entity-py:calc(var(--card-p,--spacing(6))/2)]",
 				// Between rows the half padding is enough (each side of a hairline
 				// gets it); against the card's own edge the first and last rows take
 				// the full card padding, so the list is inset like every other card.
 				"*:first:pt-[var(--card-p,--spacing(6))] *:last:pb-[var(--card-p,--spacing(6))]",
-				"[[data-slot=card-header]+&]:mt-[calc(var(--card-p,--spacing(6))/2)] [[data-slot=card-header]+&]:border-t [[data-slot=card-header]+&]:border-border",
+				// Hairlines between rows are inset shadows, not borders: a 1px border
+				// per row pushed every row below it a pixel further off the rhythm.
+				"[&>*+*]:shadow-[inset_0_1px_0_var(--border)]",
+				"[[data-slot=card-header]+&]:mt-[calc(var(--card-p,--spacing(6))/2)] [[data-slot=card-header]+&>*:first-child]:shadow-[inset_0_1px_0_var(--border)]",
 				className,
 			)}
 			{...props}
@@ -321,7 +330,7 @@ export function CardFooter({
 			className={cn(
 				"flex items-center gap-2 p-[var(--card-p,--spacing(6))] pt-0",
 				"[[data-slot=card-header]+&]:pt-[var(--card-p,--spacing(6))]",
-				"[:is([data-slot=card-list],[data-slot=card-content][data-flush])+&]:border-t [:is([data-slot=card-list],[data-slot=card-content][data-flush])+&]:border-border [:is([data-slot=card-list],[data-slot=card-content][data-flush])+&]:pt-[var(--card-p,--spacing(6))]",
+				"[:is([data-slot=card-list],[data-slot=card-content][data-flush])+&]:shadow-[inset_0_1px_0_var(--border)] [:is([data-slot=card-list],[data-slot=card-content][data-flush])+&]:pt-[var(--card-p,--spacing(6))]",
 				className,
 				stacked && "mt-auto flex-col-reverse items-stretch justify-start",
 			)}

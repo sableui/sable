@@ -173,11 +173,11 @@ Which token to reach for, and what it is most often confused with. Generated fro
 
 ### layout (11)
 
-- **`rhythm-unit`** — The vertical rhythm base — two spacing steps (8px at the default scale). Every vertical measure is a multiple of it, and it follows the density control with the spacing scale. *Use for:* Through `Stack`/`Row`/`Grid` gap numbers, which are rhythm units rather than pixels. A gap of 2 is 16px at the default scale, and grows or tightens with density.
+- **`rhythm-unit`** — The vertical rhythm base — one baseline step (8px at the default scale). Every vertical measure is a multiple of it, and it follows the type and the density control. *Use for:* Through `Stack`/`Row`/`Grid` gap numbers, which are rhythm units rather than pixels. A gap of 2 is 16px at the default scale, and grows or tightens with density.
     - **Not** arbitrary vertical spacing. The rhythm is what makes unrelated sections of a page feel like one document.
 - **`grid-columns`** — The column count of the content grid — 12. *Use for:* `Grid`/`Columns`, WITHIN a region, for genuinely multi-column content.
     - **Not** using a column span as the page's reading width. A span is not a measure — see `measure-prose`.
-- **`grid-gutter`** — The gap between grid columns. *Use for:* `Grid`/`Columns` spacing.
+- **`grid-gutter`** — The gap between grid columns and rows — 2 baseline steps on phones, 3 on desktop, snapped to the step. *Use for:* `Grid`/`Columns` spacing.
 - **`page-inset`** — The page's outer breathing room, left and right. *Use for:* The gutter between content and the viewport edge, at every breakpoint.
     - **Not** a global max-width. Sable caps width per REGION by role, never once for the whole page.
 - **`measure-prose`** — The maximum comfortable line length for prose, in `ch`. *Use for:* Any long-form text column.

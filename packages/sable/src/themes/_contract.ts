@@ -286,6 +286,22 @@ export const TYPE_OVERLINE_TOKENS = [
 export type TypeOverlineToken = (typeof TYPE_OVERLINE_TOKENS)[number]
 
 /**
+ * Vertical rhythm hooks (mode-independent). The baseline itself is DERIVED in
+ * styles.css from the body text (size × leading), never set: a theme shapes it
+ * by how open it sets its reading text and how finely it divides a line.
+ *
+ * - `theme-leading-scale` — a multiple of the reading tiers' leading. Below 1
+ *   is a denser theme, above 1 an airier one; the step and every gap follow.
+ * - `theme-baseline-split` — steps per line. 3 (thirds) by default; 2 reads
+ *   calmer and more editorial.
+ *
+ * See DESIGN.md → Vertical rhythm.
+ */
+export const RHYTHM_TOKENS = ["theme-leading-scale", "theme-baseline-split"] as const
+
+export type RhythmToken = (typeof RHYTHM_TOKENS)[number]
+
+/**
  * Density tokens (mode-independent) — the control ladder every sized component
  * renders from.
  *

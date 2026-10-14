@@ -68,7 +68,7 @@ export function SectionHeader({
 }: SectionHeaderProps) {
 	const generatedId = useId()
 	return (
-		<div data-slot="section-header" className={cn("flex flex-col gap-1", className)} {...props}>
+		<div data-slot="section-header" className={cn("flex flex-col gap-2", className)} {...props}>
 			<HeadingRow
 				as={titleAs}
 				title={title}

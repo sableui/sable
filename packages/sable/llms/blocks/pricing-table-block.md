@@ -87,7 +87,7 @@ export function PricingTableBlock({ className, onChoose }: PricingTableBlockProp
 						<Card
 							key={tier.id}
 							render={<article />}
-							className={cn("flex flex-col", tier.featured && "border-primary ring-1 ring-primary")}
+							className={cn("flex flex-col", tier.featured && "outline-primary ring-1 ring-primary")}
 						>
 							<CardHeader>
 								<CardTitle render={<h3 />}>{tier.name}</CardTitle>

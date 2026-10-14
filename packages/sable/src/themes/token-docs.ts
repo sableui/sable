@@ -529,8 +529,33 @@ const TEXT_TIERS: Record<string, TokenDoc> = {
 }
 
 const LAYOUT: Record<string, TokenDoc> = {
+	baseline: {
+		intent: "One line of body text — body size × leading, rounded to divide evenly. The unit the page is set in, the way a printed page is measured in lines.",
+		whenToUse:
+			"Thinking about vertical space in lines: a group is ½–1 line apart, sections 2–3 lines. Read it; never set it — it derives from the type.",
+		insteadOf: "a fixed pixel grid. A design with larger type gets a larger baseline, and its gaps grow with it.",
+		pairsWith: ["baseline-step", "baseline-split", "leading-scale"],
+	},
+	"baseline-step": {
+		intent: "The baseline divided into `baseline-split` equal steps — 8px at Sable's 15/24 body. Line heights round to it and the spacing scale is half of it.",
+		whenToUse:
+			"Indirectly, through `Stack`/`Row`/`Grid` gap numbers (one step each) and even Tailwind spacing steps (`p-4` is two steps). Spacing between blocks is whole steps of it.",
+		insteadOf: "`rhythm-unit`, which is the same length today; the step is the source and the rhythm unit follows it.",
+	},
+	"baseline-split": {
+		intent: "How many steps one baseline divides into. A theme picks it through `--theme-baseline-split`; thirds by default.",
+		whenToUse:
+			"In a theme, rarely: halves (2) read calmer and more editorial. Finer than thirds stops giving structure unless every value is chosen by eye.",
+	},
+	"leading-scale": {
+		intent: "How open the reading text is set, as a multiple of each reading tier's leading. Compact ↔ Airy in the customizer; a theme sets `--theme-leading-scale`.",
+		whenToUse:
+			"To make a theme denser or airier as a whole. More leading is a longer line, so a larger step, so every gap grows with the text it spaces.",
+		insteadOf:
+			"setting `--spacing` by hand. That moves the spacing away from the type, and the gaps stop landing on the lines.",
+	},
 	"rhythm-unit": {
-		intent: "The vertical rhythm base — two spacing steps (8px at the default scale). Every vertical measure is a multiple of it, and it follows the density control with the spacing scale.",
+		intent: "The vertical rhythm base — one baseline step (8px at the default scale). Every vertical measure is a multiple of it, and it follows the type and the density control.",
 		whenToUse:
 			"Through `Stack`/`Row`/`Grid` gap numbers, which are rhythm units rather than pixels. A gap of 2 is 16px at the default scale, and grows or tightens with density.",
 		insteadOf:
@@ -542,7 +567,10 @@ const LAYOUT: Record<string, TokenDoc> = {
 		insteadOf:
 			"using a column span as the page's reading width. A span is not a measure — see `measure-prose`.",
 	},
-	"grid-gutter": { intent: "The gap between grid columns.", whenToUse: "`Grid`/`Columns` spacing." },
+	"grid-gutter": {
+		intent: "The gap between grid columns and rows — 2 baseline steps on phones, 3 on desktop, snapped to the step.",
+		whenToUse: "`Grid`/`Columns` spacing.",
+	},
 	"page-inset": {
 		intent: "The page's outer breathing room, left and right.",
 		whenToUse: "The gutter between content and the viewport edge, at every breakpoint.",
@@ -665,6 +693,8 @@ const ALIASES: Record<string, string> = {
 	lg: "theme-radius-lg",
 	xl: "theme-radius-xl",
 	full: "theme-radius-full",
+	"theme-leading-scale": "leading-scale",
+	"theme-baseline-split": "baseline-split",
 }
 
 /**

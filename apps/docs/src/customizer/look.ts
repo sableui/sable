@@ -796,23 +796,31 @@ function shapeDecls(look: Look, base: ThemeBase): string[] {
 		)
 	}
 
-	// Compact ↔ Airy: controls, spacing and type move together, so density is
+	// Compact ↔ Airy: controls, leading and type move together, so density is
 	// one gesture instead of three settings that can contradict each other.
 	// An anchor replaces the airy factor for its own domain only.
+	//
+	// Spacing is not set here. It derives from the baseline — one line of body
+	// text, split into steps (styles.css → Vertical rhythm) — so Airy opens the
+	// LEADING, the line grows, and every gap grows with the text it spaces.
+	// Setting --spacing directly is what used to pull the gaps off the lines.
 	const t = look.airy != null ? look.airy / 100 : 0.5
 	const airy = look.airy != null
 	const mdControl = toPx(base.control.md, base.rootPx)
 	const controls = look.controlBase != null && mdControl ? look.controlBase / mdControl : airy ? around1(t, 0.8, 1.25) : null
-	const spacing = look.spacingBase != null ? look.spacingBase / 8 : airy ? around1(t, 0.75, 1.4) : null
 	if (controls != null) {
 		for (const step of CONTROL_STEPS) {
 			const value = base.control[step]
 			if (value) out.push(`--control-${step}: ${scaleLength(value, controls)};`)
 		}
 	}
-	if (spacing != null) {
-		out.push(`--spacing: ${round(0.25 * spacing)}rem;`)
-		out.push(`--control-gap: ${round(8 * spacing, 0.5)}px;`, `--item-px: ${round(8 * spacing, 0.5)}px;`, `--item-gap: ${round(8 * spacing, 0.5)}px;`)
+	// The step anchor pins the step itself, in whole px; line heights and the
+	// spacing scale follow it, and the line is the step times the split.
+	if (look.spacingBase != null) out.push(`--baseline-step: ${Math.max(2, Math.round(look.spacingBase))}px;`)
+	else if (airy) out.push(`--leading-scale: calc(var(--theme-leading-scale, 1) * ${around1(t, 0.9, 1.1).toFixed(2)});`)
+	if (look.spacingBase != null || airy) {
+		// One step each, wherever the step lands.
+		out.push("--control-gap: calc(var(--spacing) * 2);", "--item-px: calc(var(--spacing) * 2);", "--item-gap: calc(var(--spacing) * 2);")
 	}
 	if (look.typeBase != null || look.typeRatio != null) {
 		// Each tier keeps its position on the preset's scale (its log-distance
@@ -905,7 +913,7 @@ export function toCss(look: Look, base: ThemeBase, themeId: string): string {
 			return url ? `   Fonts: add to <head>
    <link rel="stylesheet" href="${url}">` : null
 		})(),
-		look.airy != null || look.spacingBase != null ? "   Spacing: --spacing rescales every Tailwind spacing utility, app-wide." : null,
+		look.airy != null || look.spacingBase != null ? "   Rhythm: the baseline step sets --spacing, so this rescales every Tailwind spacing utility, app-wide." : null,
 		"*/",
 	]
 		.filter(Boolean)

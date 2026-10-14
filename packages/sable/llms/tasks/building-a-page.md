@@ -71,6 +71,25 @@ Pick each route's `max` by what the person mainly does on it:
   (a copy in `light` or `dark` wins over it); keep the role names and change
   the values.
 
+## Columns and rhythm
+
+- **Flex or grid.** One direction is `Stack` (column) or `Row` (row). Content
+  that has to line up across rows *and* columns is `Grid`/`Columns`. A card's
+  single column is a `Stack`, never a one-track grid.
+- **Columns are a choice per route.** Record it in the brief next to the width:
+  which content spans which of the 12 columns, and where it folds
+  (`<Col span={{ base: 12, lg: 8 }}>`). The grid does not fold on its own. A
+  route that is one reading measure has no columns, and the brief says so.
+- **Vertical space is measured in lines.** The baseline is one line of body
+  text split into steps (8px at the default type). Gap numbers on `Stack`/
+  `Row`/`Grid` are steps; in Tailwind, even steps (`gap-4`, `py-6`, `mt-12`)
+  are whole steps and odd ones (`py-3`, `gap-5`) are half a step. Title to
+  description is one step, between groups one to two lines, between sections
+  three or more.
+- **It is a rhythm, not a lock.** A card with a button or a code block is as
+  tall as its content. Keep the spacing between blocks in steps and let
+  components be; never pad or nudge them to pin text to lines.
+
 ## Typography: pick the tier by ROLE, not by size
 
 | tier | for | not |

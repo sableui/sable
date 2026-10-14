@@ -305,13 +305,9 @@
 	   Layout tokens (mode-independent) — see DESIGN.md → Grid & layout.
 	   Fluid-first: no global max-width; max-width is opt-in per region.
 	   ---------------------------------------------------------------------- */
-	/* Two spacing steps — 8px at the default scale — so every Stack/Row/Grid
-	   gap number follows the density ("Character") control with the rest of
-	   the spacing scale instead of staying a fixed 8px beside it. */
-	--rhythm-unit: calc(var(--spacing) * 2);
+	/* --rhythm-unit and --grid-gutter are contract, not theme: they derive from
+	   the baseline step in styles.css → Vertical rhythm. */
 	--grid-columns: 12;
-	/* Inter-column gutter: 16px on phones, easing to 24px on desktop. */
-	--grid-gutter: clamp(1rem, 0.8rem + 1vw, 1.5rem);
 	/* Page margin (outer inset): 16px → 32px, fluid. */
 	--page-inset: clamp(16px, 4vw, 32px);
 

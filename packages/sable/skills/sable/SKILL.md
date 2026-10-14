@@ -164,7 +164,12 @@ The installed catalog and guides are authoritative for API and token names.
 3. Inspect a relevant `sable pattern <Name> --skeleton` and layout contracts when
    composing a page. Reuse a pattern when its information architecture fits;
    otherwise compose an original layout from Sable primitives. Do not force a
-   dashboard or marketing shell onto a different product brief.
+   dashboard or marketing shell onto a different product brief. Structure: one
+   direction is `Stack`/`Row` (flex); content that lines up across rows and
+   columns is `Grid`/`Columns`; width is a `Region`. Measure vertical space in
+   baseline steps (`sable docs spacing`): `Stack`/`Row`/`Grid` gap numbers, even
+   Tailwind steps between blocks, paired type tiers. It is a rhythm to keep, not
+   a grid to force: never pad or nudge components to pin text to lines.
 4. Put identity in app-owned theme tokens, composition, and assets. Component
    `className` is for layout; fill, edges, corners, ink, and interaction appearance
    come from supported variants. Do not override controls to imitate a reference.
@@ -181,7 +186,9 @@ The installed catalog and guides are authoritative for API and token names.
 Save a short brief in the project's existing design location: audience, primary
 task, content, constraints, selected identity, and meaningful states, plus each
 route's width (a Region `max`, or fluid) and why, chosen by what the person does
-there (`sable docs building-a-page`). Name the product's signature surfaces: the
+there (`sable docs building-a-page`), and its column structure: which content
+spans which of the 12 columns at which breakpoint, or "one measure, no columns".
+A grid is a choice per route, not a requirement; stating it is. Name the product's signature surfaces: the
 one to three places its identity lives (a shop's product card and search, a music
 app's player and album tile). Design those from the brief's direction first,
 composing Sable's parts and behaviour; take a Sable reference for one only when

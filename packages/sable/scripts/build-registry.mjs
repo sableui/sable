@@ -763,7 +763,8 @@ const layoutPrimitives = {
 		"The 12-column grid (Grid/Columns) is used WITHIN a region, for genuinely multi-column content. Never use a column span as the page's reading width.",
 		"App chrome is not on the grid: Sidebar and rails are fixed-width chrome outside the content grid.",
 		"Measure ≠ width: cap text line-length (prose, in ch) independently of a region's layout width.",
-		"Every vertical measure is a multiple of --rhythm-unit (8px); Stack/Row gap numbers are rhythm units, not pixels.",
+		"One direction is flex (Stack, Row); content that must line up across rows AND columns is Grid/Columns; width is a Region. A card's single column stacks with Stack, not a one-track grid.",
+		"Vertical space is set in lines: the baseline is one line of body text, split into steps (thirds by default, 8px at 15/24). Line heights round to the step, Stack/Row/Grid gap numbers are steps, and even Tailwind spacing steps (p-4 = two steps) stay on it. A rhythm to keep, not a grid to force: components are as tall as their content.",
 	],
 	primitives: layoutMod.layoutPrimitiveMetas.map((m) => toEntry(m, "layout")),
 }

@@ -1,12 +1,10 @@
 import {
-	Button,
 	ColorField,
 	DisclosurePicker,
 	DisclosurePickerList,
 	DisclosurePickerOption,
 	DisclosurePickerPanel,
 	DisclosurePickerTrigger,
-	Icon,
 	Input,
 	PropertyRow,
 	Select,
@@ -456,21 +454,6 @@ export function PalettePreview() {
 
 /* ── Section reset ────────────────────────────────────────────────────────── */
 
-/**
- * The one way back for a section, in its header's action slot. It appears only
- * when the section differs from the preset, so it doubles as the signal that
- * it does.
- */
-export function SectionReset({ label, onReset }: { label: string; onReset: () => void }) {
-	return (
-		<ChromeTip label={`Reset ${label.toLowerCase()}`}>
-			<Button variant="ghost" size="icon-xs" aria-label={`Reset ${label.toLowerCase()}`} onClick={onReset} className="-me-1 text-muted-foreground">
-				<Icon name="refresh" />
-			</Button>
-		</ChromeTip>
-	)
-}
-
 /* ── Select ───────────────────────────────────────────────────────────────── */
 
 /**
@@ -630,11 +613,14 @@ export function PresetPicker({
 	value,
 	mode,
 	onChange,
+	footer,
 }: {
 	themes: readonly ThemeManifest[]
 	value: string
 	mode: "light" | "dark"
 	onChange: (id: string) => void
+	/** A row after the presets, inside the open list — where Import lives. */
+	footer?: ReactNode
 }) {
 	const [open, setOpen] = useState(false)
 	const current = themes.find((theme) => theme.id === value)
@@ -656,6 +642,7 @@ export function PresetPicker({
 						</DisclosurePickerOption>
 					))}
 				</DisclosurePickerList>
+				{footer}
 			</DisclosurePickerPanel>
 		</DisclosurePicker>
 	)

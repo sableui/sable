@@ -1,4 +1,4 @@
-import { Button, CodeBlock, Icon, Input, Label, Textarea } from "@sableui/react"
+import { Button, CodeBlock, Icon, Input, Label, Textarea, useDisclosurePicker } from "@sableui/react"
 import { type SablePreset, presetCss } from "@sableui/react/presets"
 import { useEffect, useId, useRef, useState } from "react"
 import { useTheme } from "../theme"
@@ -88,23 +88,24 @@ export function PresetExchange() {
 /**
  * Import a preset file — usually one an agent made with `$sable inspire` — to
  * preview and tune it on real components. It becomes a preset to start from,
- * so it sits with the preset cards, not with Export.
+ * so it is the last row of the preset list, not a button in Export or in a
+ * section header. Picking a file closes the list.
  */
 export function PresetImport({ onStatus }: { onStatus: (status: string) => void }) {
 	const { importPreset } = useTheme()
 	const { reset } = useCustomizer()
+	const { close } = useDisclosurePicker()
 	const input = useRef<HTMLInputElement>(null)
 	return (
 		<>
-			{/* At the section header's scale: an action beside a title, not a second title. */}
-			<Button variant="ghost" size="xs" onClick={() => input.current?.click()} className="-me-1.5 text-ui-md text-muted-foreground">
-				<Icon name="upload" />
-				Import
+			<Button variant="ghost" size="sm" iconStart={<Icon name="upload" />} onClick={() => input.current?.click()} className="w-full justify-start text-muted-foreground">
+				Import preset file…
 			</Button>
 			<input ref={input} type="file" accept=".json,application/json" hidden aria-label="Import a preset" onChange={async event => {
 				const file = event.target.files?.[0]
 				event.target.value = ""
 				if (!file) return
+				close()
 				try {
 					if (file.size > 512 * 1024) throw new Error("Choose a preset JSON file smaller than 512 KB.")
 					const preset = importPreset(JSON.parse(await file.text()))

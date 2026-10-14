@@ -14,6 +14,7 @@ import {
 } from "@sableui/react"
 import type { ReactNode } from "react"
 import { InlineCode, PageHeader, Section } from "../components/docs-ui"
+import { useMeasured } from "../customizer/Readouts"
 
 function Box({ children }: { children: ReactNode }) {
 	return (
@@ -32,18 +33,46 @@ const widths = [
 	{ name: "full", px: 1536, token: "--region-full" },
 ]
 
+const RHYTHM_ROWS = [
+	{ label: "Baseline", short: "Line", token: "--baseline" },
+	{ label: "Baseline step", short: "Step", token: "--baseline-step" },
+]
+
+/** The line and its steps, measured live, so a Character drag shows them move. */
+function RhythmSteps() {
+	const [line, step] = useMeasured(RHYTHM_ROWS)
+	return (
+		<Stack gap={2}>
+			<p className="text-body-sm text-muted-foreground">
+				Line <span className="text-mono-sm text-foreground">{line ?? "—"}px</span> · step{" "}
+				<span className="text-mono-sm text-foreground">{step ?? "—"}px</span>
+			</p>
+			<Stack gap={1}>
+				{[1, 2, 3, 6].map((n) => (
+					<div key={n} className="flex items-center gap-3">
+						<div className="rounded-sm bg-foreground/80" style={{ height: "var(--baseline-step)", width: `calc(var(--baseline-step) * ${n * 4})` }} />
+						<span className="text-mono-sm text-muted-foreground">
+							{n} {n === 1 ? "step" : "steps"}
+						</span>
+					</div>
+				))}
+			</Stack>
+		</Stack>
+	)
+}
+
 export function GridLayoutPage() {
 	return (
 		<>
 			<PageHeader
 				eyebrow="Foundations"
 				title="Grid & layout"
-				lede="Pages run edge to edge with a margin that grows with the window. Everything inside lines up to a 12-column grid and an 8px rhythm."
+				lede="Pages run edge to edge with a margin that grows with the window. Multi-column content lines up to a 12-column grid, and vertical space is measured in lines of body text."
 			/>
 
 			<Section
 				title="The column grid"
-				description="Twelve columns that fold to 6, 4, 2 and 1 as the screen narrows."
+				description="Twelve columns, used inside a region for content that has to line up across rows. They fold where you say: pass a breakpoint map, like cols={{ base: 1, md: 6, lg: 12 }}."
 			>
 				<div className="relative min-h-[160px] overflow-hidden rounded-lg border border-border bg-card">
 					<GridOverlay inset={false} />
@@ -243,16 +272,11 @@ export function GridLayoutPage() {
 				</div>
 			</Section>
 
-			<Section title="Vertical rhythm" description="Vertical spacing steps in 8px.">
-				<Stack gap={1}>
-					{[6, 5, 4, 3].map((w) => (
-						<div
-							key={w}
-							className="h-2 rounded-sm bg-foreground/80"
-							style={{ width: `${w * 10}%` }}
-						/>
-					))}
-				</Stack>
+			<Section
+				title="Vertical rhythm"
+				description="Spacing is measured from the type. One line of body text is the baseline, split into three steps; line heights round to a step and the spacing scale is half of one, so gaps and text grow together. Compact ↔ Airy in Customize changes the leading, and everything follows."
+			>
+				<RhythmSteps />
 			</Section>
 		</>
 	)

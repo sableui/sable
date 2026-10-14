@@ -86,7 +86,7 @@ export function ChatPanel() {
 				render={<section aria-labelledby="chat-title" />}
 				className="flex h-[calc(100dvh_-_--spacing(12))] flex-col overflow-hidden"
 			>
-				<CardHeader className="border-b border-border pb-(--card-p)">
+				<CardHeader className="pb-(--card-p) shadow-[inset_0_-1px_0_var(--border)]">
 					{/* CardTitle carries the type; the h1 inside it is the page heading. */}
 					<CardTitle>
 						<h1 id="chat-title">Scroll behaviour</h1>
@@ -225,7 +225,7 @@ export function ChatPanel() {
 					</Message>
 				</MessageScroller>
 
-				<CardFooter className="border-t border-border pt-(--card-p)">
+				<CardFooter className="pt-(--card-p) shadow-[inset_0_1px_0_var(--border)]">
 					<ChatComposer
 						className="flex-1"
 						placeholder="Ask a follow-up…"

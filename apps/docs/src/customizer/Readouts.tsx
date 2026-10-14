@@ -183,6 +183,8 @@ export const CONTROL_ROWS: Row[] = [
 ]
 
 export const SPACING_ROWS: Row[] = [
+	{ label: "Baseline — one line of body text", short: "Line", token: "--baseline" },
+	{ label: "Baseline step — what line heights and gaps land on", short: "Step", token: "--baseline-step" },
 	{ label: "Gap between controls", short: "Gap", token: "--control-gap" },
 	{ label: "Row padding", short: "Pad", token: "--item-px" },
 	{ label: "Gap inside a row", short: "Inner", token: "--item-gap" },
@@ -210,7 +212,7 @@ export const MOTION_ROWS: Row[] = [
 export const ANCHOR_ROWS: Row[] = [
 	{ label: "Body", short: "Body", type: "text-body-md" },
 	{ label: "Medium control", short: "M", token: "--control-md" },
-	{ label: "Row padding", short: "Pad", token: "--item-px" },
+	{ label: "Baseline step", short: "Step", token: "--baseline-step" },
 	{ label: "Medium radius", short: "M", token: "--radius-md" },
 	{ label: "Base duration", short: "Base", token: "--motion-duration-base", kind: "time" },
 ]

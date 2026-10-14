@@ -53,7 +53,7 @@ describe("Card render", () => {
 		expect(link.className).toContain("focus-visible:ring-2")
 		expect(link.className).toContain("[&:is(a[href],button)]:motion-interactive")
 		expect(link.className).toContain(
-			"[&:is(a[href],button)]:hover:border-border-strong",
+			"[&:is(a[href],button)]:hover:outline-border-strong",
 		)
 		expect(link.style.getPropertyValue("--card-p")).toBe("calc(var(--spacing) * 4)")
 	})

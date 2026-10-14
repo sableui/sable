@@ -1,8 +1,8 @@
 # Spacing & sizing
 
-One 4px scale governs every gap, inset and size, and space is assigned by role. Controls read a height ladder that a density scope can retune all at once.
+One scale, derived from the type: the baseline is one line of body text, split into steps every gap, inset and line height lands on. Space is assigned by role. Controls read a height ladder that a density scope can retune all at once.
 
-**4px base · 8px rhythm · 3 roles · 1 control ladder**
+**Baseline from the type · 8px steps · 3 roles · 1 control ladder**
 
 ## Spacing by role
 
@@ -11,8 +11,8 @@ Steps below 2 (8px) are optical correction only.
 | Name | Value | Use |
 |---|---|---|
 | `Inset  p-4` | 16px | Padding inside a surface. p-3 for a dense card, px-3 py-2 for a row. |
-| `Stack, within a group  gap-1.5 – gap-2` | 6–8px | Label to field, title to description. |
-| `Stack, between groups  gap-4 – gap-6` | 16–24px | Field to field, card to card. |
+| `Stack, within a group  gap-2` | 1 step · 8px | Label to field, title to description. |
+| `Stack, between groups  gap-4 – gap-6` | 2–3 steps · 16–24px | Field to field, card to card. |
 | `Stack, between sections  gap-12+` | 48px+ | Major regions of a page. |
 | `Inline  gap-2 – gap-3` | 8–12px | Icon to label, control to control. |
 
@@ -38,8 +38,8 @@ Comfortable values; data-density="compact" (or <Density>) redefines every step f
 
 ## Rules
 
-1. **Every margin, padding and gap is a step on the 4px scale.** Off-scale values break the rhythm that lets adjacent components line up without coordination.
-2. **Padding, gaps and insets in a component sit on the spacing scale: a step (p-4, gap-2) or --spacing(n) inside an arbitrary value (p-[var(--card-p,--spacing(6))]).** The density (Character) control works by retuning --spacing, so anything on the scale moves with it. A literal p-[1.5rem] or padding: "12px" stays put while everything around it tightens. Keep fixed rem/px for what must not scale: a 1px hairline, a ring width. *Enforced by design-lint: fixed-spacing (library source).*
+1. **Every margin, padding and gap is a step on the scale, and vertical space between blocks is whole baseline steps: an even Tailwind step (2, 4, 6, 8, 12) or a Stack/Row/Grid gap number.** The baseline is one line of body text split into steps; line heights round to it. An odd step (3, 5) is half a baseline step. It is a rhythm to keep, not a grid to force: components stay as tall as their content.
+2. **Padding, gaps and insets in a component sit on the spacing scale: a step (p-4, gap-2) or --spacing(n) inside an arbitrary value (p-[var(--card-p,--spacing(6))]).** --spacing derives from the baseline step and the density (Character) control moves the leading it comes from, so anything on the scale moves with it. A literal p-[1.5rem] or padding: "12px" stays put while everything around it tightens. Keep fixed rem/px for what must not scale: a 1px hairline, a ring width. *Enforced by design-lint: fixed-spacing (library source).*
 3. **Related things sit closer than unrelated things.** Proximity groups content without a divider line. Use space first; reach for a border only when space is not enough.
 4. **Space lives on the container (gap), not on children (margins).** gap survives reordering, conditional children and RTL; per-child margins do not.
 5. **Control heights read the --control-* ladder.** A density scope retunes every control at once. A hardcoded height has to be found and overridden by hand. *Enforced by sable-lint: raw-control-height.*
@@ -77,6 +77,6 @@ Every control, menu and popup inside retunes, including portaled overlays.
 <Stack gap={3}> between groups (24px), <Stack gap={1}> inside a group (8px)
 ```
 
-Two spacing steps do the work of every divider, with less ink. Stack's numeric gap counts --rhythm-unit — two spacing steps — so it follows the density control like every other spacing value.
+Spacing steps do the work of every divider, with less ink. Stack's numeric gap counts --rhythm-unit — one baseline step — so it follows the type and the density control like every other spacing value.
 
 **Related:** `sable docs shape` · `sable docs typography` · `sable docs building-a-tool` · `sable token layout`

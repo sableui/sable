@@ -1,5 +1,36 @@
 # What's new
 
+## Unreleased
+
+Vertical rhythm: spacing is measured from the type.
+
+- **The baseline comes from the type.** `--baseline` is one line of body
+  text (size × leading) and `--baseline-step` divides it into thirds, 8px at
+  the default 15/24. Line heights round to the step (they rounded to 0.25rem),
+  and `--spacing` is half a step, which at Sable's defaults is exactly the
+  0.25rem it was, so the default theme does not move. `--rhythm-unit` is one
+  step and `--grid-gutter` is 2 or 3 steps, snapped. It is a rhythm, not a
+  lock: nothing pins text to lines. See DESIGN.md → Vertical rhythm.
+- **A theme picks how open its text is and how finely a line divides:**
+  `--theme-leading-scale` and `--theme-baseline-split` (new `RHYTHM_TOKENS`,
+  accepted in presets). **Breaking (visual):** Prism and Poppy set
+  `--spacing` by hand; they now set a leading scale instead, so their gaps
+  follow their type. Prism's body is 16/21 on a 7px step, Poppy's 15/27 on
+  9px. A preset that sets `--spacing` still works, but its gaps no longer
+  follow its type.
+- **Card's edge and row rules take no space.** The edge is an inset outline
+  and CardList / CardFooter rules are inset shadows, so the padding is whole
+  steps. A Card `className` that set `border-*` colours should set
+  `outline-*` instead (the pricing table's featured tier does).
+- **Section and page headers:** the title-to-description gap is one step
+  (`gap-2`, was `gap-1`).
+- **Lists:** `sable-list` items are one step apart (were 6px), `sable-list-dl`
+  rows two steps (were 12px).
+- **sableui.com:** Customize's Character pad moves the leading (Compact ↔
+  Airy) and every gap follows; Advanced shows the line and step and its step
+  anchor sets the step directly. Grid & layout shows the line and step live,
+  and no longer claims the grid folds 12 → 6 → 4 → 2 → 1 by itself.
+
 ## 0.9.1
 
 Fixes from a review of 0.9.0.

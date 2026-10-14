@@ -122,7 +122,10 @@
 	--motion-ease-spring: cubic-bezier(0.34, 1.35, 0.5, 1);
 	--motion-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 	--motion-ease-linear: linear;
-	--spacing: 0.22rem;
+	/* Precise: set tighter than the default, so the baseline step is 7px
+	   (16px body on a 21px line) and every gap tightens with the text — the
+	   0.22rem spacing this theme used to set by hand, now on rhythm. */
+	--theme-leading-scale: 0.86;
 	--theme-button-radius: 4px;
 	--button-radius: var(--theme-button-radius);
 	--type-body-md-size: 1rem;

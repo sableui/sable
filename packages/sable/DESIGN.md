@@ -309,7 +309,7 @@ Default theme families: **Figtree** (sans) + **DM Mono** (mono). Two weights per
 
 ## Spacing
 
-One scale, built on a **4px base** with an **8px rhythm**. Every margin, padding, and gap is a step on it — never a hand-picked px value — so vertical and horizontal rhythm stay locked together system-wide. Spacing, not borders, is the primary tool for grouping: **related things sit closer than unrelated things** (proximity does the work a divider line otherwise would).
+One scale, built on the **baseline**: one line of body text, split into steps (see *Vertical rhythm* below — 8px at the default 15/24 body, with Tailwind's spacing step half of it). Every margin, padding, and gap is a step on it — never a hand-picked px value — so vertical and horizontal rhythm stay locked together system-wide. Spacing, not borders, is the primary tool for grouping: **related things sit closer than unrelated things** (proximity does the work a divider line otherwise would).
 
 **The scale** (Tailwind's spacing utilities; the steps Sable actually leans on):
 `0` · `0.5` 2 (hairline / optical nudge) · `1` 4 · `1.5` 6 · `2` 8 (**the base rhythm unit**) · `3` 12 · `4` 16 (default control padding / gap) · `5` 20 · `6` 24 (group separation) · `8` 32 · `10` 40 · `12` 48 (sub-sections) · `16` 64 · `24` 96 (major sections). Steps below `2` are for optical correction only.
@@ -319,7 +319,8 @@ One scale, built on a **4px base** with an **8px rhythm**. Every margin, padding
 - **Stack** — vertical gap *between* blocks, the dominant rhythm: tight within a group (`gap-1.5`–`gap-2`), looser between groups (`gap-4`–`gap-6`), generous between sections (`gap-12`+).
 - **Inline** — horizontal gap between siblings (icon↔label, label↔control): `gap-2`–`gap-3`.
 - **Density** — a compact surface drops one step (inset `p-3`, stack `gap-1.5`); a spacious one adds one. Move in whole steps, never a custom px.
-- **On the scale, so density follows.** The docs' density ("Character") control and a consumer's override retune `--spacing`; every step and every `--spacing(n)` moves with it. A component's padding, gap or inset written as a literal (`p-[1.5rem]`, `padding: "12px"`) is the one measure that stays put. Even derived geometry sits on the scale: `popup-inset` floors at `--spacing(1)`, `sable-frame` pads `--spacing(4)`, Card's `--card-p` is `--spacing(6)` / `--spacing(4)`. Fixed units are for what must not scale (a 1px hairline, a ring width). *(CI-enforced in the package: `fixed-spacing`.)* Layout primitives follow too: `--rhythm-unit` is two spacing steps, so a `Stack`/`Row`/`Grid`/`Page` gap number moves with density like everything else.
+- **On the scale, so density follows.** `--spacing` derives from the baseline step, and the docs' density ("Character") control moves the leading the step comes from; every step and every `--spacing(n)` moves with it. A component's padding, gap or inset written as a literal (`p-[1.5rem]`, `padding: "12px"`) is the one measure that stays put. Even derived geometry sits on the scale: `popup-inset` floors at `--spacing(1)`, `sable-frame` pads `--spacing(4)`, Card's `--card-p` is `--spacing(6)` / `--spacing(4)`. Fixed units are for what must not scale (a 1px hairline, a ring width). *(CI-enforced in the package: `fixed-spacing`.)* Layout primitives follow too: `--rhythm-unit` is one baseline step (two spacing steps), so a `Stack`/`Row`/`Grid`/`Page` gap number moves with density like everything else.
+- **Vertical space in even steps, by habit.** With thirds, an even Tailwind step (`2`, `4`, `6`, `8`, `12`) is whole baseline steps; an odd one (`3`, `5`) is a half step. Inside a control it does not matter; between blocks prefer even steps.
 
 **Don't** invent off-scale values (`p-[15px]`), simulate a `gap` with per-child margins, or hang layout spacing on a text node (put it on the container).
 
@@ -342,7 +343,9 @@ The same 4px scale governs **sizes**, so controls, icons, and avatars all land o
 
 ## Grid & layout (fluid-first, no global max-width)
 
-Sable's layout foundation is deliberately fluid: **edge-to-edge, with a fluid page inset** rather than a centered fixed-width column. It keeps the surviving grid discipline — register every element to a column edge and an 8px (two spacing steps) vertical rhythm, cap the reading measure — while letting the canvas breathe across viewports and native shells.
+Sable's layout foundation is deliberately fluid: **edge-to-edge, with a fluid page inset** rather than a centered fixed-width column. It keeps the surviving grid discipline — register every element to a column edge and to the baseline rhythm, cap the reading measure — while letting the canvas breathe across viewports and native shells.
+
+**Flex or grid.** One direction is flex — `Stack` (column) and `Row` (row). Content that must line up across rows *and* columns is `Grid`/`Columns`. Width is a `Region`. A card's single column stacks with `Stack`, not a one-track grid (a grid track sizes to its widest min-content child). Grids are a tool for structure, not a requirement: a route with one reading measure needs no columns, and says so in its brief.
 
 **The doctrine — two roles, never conflated:**
 1. **A page's width is a `Region`** — a centered, opt-in, purpose-named cap. Pick by ROLE, not size.
@@ -351,9 +354,9 @@ Sable's layout foundation is deliberately fluid: **edge-to-edge, with a fluid pa
 4. **Measure ≠ width.** Cap text line-length (`prose`, in `ch`) independently of a region's layout width — a 1280px dashboard can still hold a 65ch reading column.
 
 **Layout tokens:**
-- `--rhythm-unit: 8px` — the relaxed baseline; every vertical measure is a multiple.
-- `--grid-columns: 12` — the proportioning resource; folds 12 → 6 → 4 → 2 → 1.
-- `--grid-gutter: clamp(1rem, …, 1.5rem)` — column gap, fluid 16 → 24px.
+- `--rhythm-unit` — one baseline step (8px at the default type); every vertical measure is a multiple. Derived, never set: see *Vertical rhythm*.
+- `--grid-columns: 12` — the proportioning resource. It does not fold on its own: pass a breakpoint map where the layout should change (`cols={{ base: 1, md: 6, lg: 12 }}`, `span={{ base: 12, lg: 8 }}`).
+- `--grid-gutter` — column and row gap: 2 baseline steps on phones, 3 on desktop, snapped to the step.
 - `--page-inset: clamp(16px, 4vw, 32px)` — fluid page margin; honors `env(safe-area-inset-*)`.
 
 **Content-width scale** — opt-in per `Region` (`max="…"`), named by purpose (**not** page-global):
@@ -374,6 +377,29 @@ Sable's layout foundation is deliberately fluid: **edge-to-edge, with a fluid pa
 `Columns count`, `Col span`/`start`, and `Grid cols` accept either a number **or a responsive breakpoint map** (`{ base, sm, md, lg, xl, "2xl" }`) — resolved mobile-first by the stylesheet, so a grid can thin to fewer columns on small screens without the consumer's Tailwind scanning a class.
 
 Breakpoints are content-driven: sm 640 / md 768 / lg 1024 / xl 1280 / 2xl 1536. Keep reading + focus order logical; survive 400% zoom.
+
+## Vertical rhythm
+
+The page is set in **lines**, the way print is. The unit is one line of body text — body size × leading, `--baseline` — divided into equal **steps**, `--baseline-step`, that vertical space is measured in. It is derived, never set: a design with larger type has a larger line, and its gaps grow with it.
+
+```
+--baseline-step = round(body size × body leading × --leading-scale ÷ --baseline-split, 1px)
+--baseline      = --baseline-step × --baseline-split
+--spacing       = --baseline-step ÷ 2        (so p-4 is two steps)
+line-height     = round(tier ratio × 1em, --baseline-step)
+```
+
+At Sable's defaults (15px body on 1.55) that is a 24px line in 8px thirds, and `--spacing` comes out at exactly Tailwind's 0.25rem — nothing moved until the type does. On the docs' 14px root it is 21px in 7px steps.
+
+**What a theme chooses.** `--theme-baseline-split` — steps per line, thirds by default; halves read calmer and more editorial, and finer than thirds stops giving structure unless every value is chosen by eye. `--theme-leading-scale` — how open the reading text is set; Prism sets 0.86 (a 7px step), Poppy 1.1 (a 9px step). Density *is* leading: the customizer's Compact ↔ Airy moves `--leading-scale`, the line grows, and every gap, gutter and control gap follows. Setting `--spacing` by hand pulls the gaps off the lines.
+
+**A rhythm, not a lock.** The baseline is where spacing *comes from*, not a grid every letter is forced onto. Line heights are whole steps and the spacing scale is in steps, so a page built from Sable's tiers and gaps falls into a steady rhythm on its own. It is not enforced past that: content-sized things (a card with a 40px button, a code block, a demo stage) are as tall as they are, and pinning every baseline to a line on a responsive page breaks layouts rather than calming them.
+
+**Habits that keep the rhythm:**
+- Vertical space between blocks in even Tailwind steps (`gap-2`, `gap-4`, `py-6`, `mt-12`) or `Stack`/`Row`/`Grid` gap numbers. An odd step is half a baseline step — fine inside a control, a small drift between blocks.
+- Title to description one step; between groups one to two lines; between sections three or more.
+- A container's edge takes no space where it can: Card's edge is an inset outline and its row rules are inset shadows, so its padding stays whole steps.
+- One type size per line of text: a span of another tier inside a paragraph makes the line taller than its line height.
 
 ## Shape & borders
 

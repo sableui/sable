@@ -11,7 +11,6 @@ import {
 	HueStrip,
 	LookSlider,
 	PalettePreview,
-	SectionReset,
 	Segmented,
 	ShapePreview,
 	cornersText,
@@ -19,7 +18,7 @@ import {
 } from "./controls"
 import { FontPicker } from "./FontPicker"
 import { ANCHOR_ROWS, AnchorCaption, AnchorField, CONTROL_ROWS, MOTION_ROWS, MeasuredLadder, RADIUS_ROWS, SPACING_ROWS, ShadowSteps, TYPE_ROWS, useMeasured } from "./Readouts"
-import { DEFAULT_STATUS_LEAN, type Look, brandFor, cornerRadius, presetTypeRatio, shadowLadder, toPx } from "./look"
+import { DEFAULT_STATUS_LEAN, brandFor, cornerRadius, presetTypeRatio, shadowLadder, toPx } from "./look"
 import { definingDrop, describeStep, formatShadow, ladderAngle } from "./shadow"
 import { oklchToHex } from "./color"
 import { PresetExchange, PresetImport } from "./PresetExchange"
@@ -28,26 +27,6 @@ const ADVANCED_KEY = "sable-docs-customize-advanced"
 
 type Role = "primary" | "secondary" | "mono"
 const FONT_FIELD = { primary: "sans", secondary: "display", mono: "mono" } as const
-
-/*
- * What each section's reset hands back. A section's reset shows only while
- * one of its fields differs from these, so they double as "is touched".
- */
-const SHADOW_ANCHORS = { shadowAngle: null, shadowDistance: null, shadowBlur: null, shadowOpacity: null } as const
-const RESETS = {
-	character: { bold: null, airy: null, typeBase: null, typeRatio: null, controlBase: null, spacingBase: null },
-	color: { hue: null, brand: null, palette: "preset", primary: "brand", neutrals: "theme", statusLean: null },
-	shape: { corners: null, radiusBase: null, buttons: "theme", depth: null, shadows: "theme", ...SHADOW_ANCHORS },
-	fonts: { sans: "theme", display: "theme", mono: "theme" },
-	motion: { motion: "default", motionBase: null },
-	// Advanced splits the same fields along the lines a tool's inspector does.
-	type: { sans: "theme", display: "theme", mono: "theme", typeBase: null, typeRatio: null, bold: null },
-	layout: { airy: null, controlBase: null, spacingBase: null },
-	corners: { corners: null, radiusBase: null, buttons: "theme" },
-	shadow: { depth: null, shadows: "theme", ...SHADOW_ANCHORS },
-} as const satisfies Record<string, Partial<Look>>
-
-const touched = (look: Look, patch: Partial<Look>) => Object.entries(patch).some(([key, value]) => look[key as keyof Look] !== value)
 
 const PALETTES = [
 	{ value: "preset", label: "Brand" },
@@ -100,9 +79,9 @@ const MODES = [
  * a hairline and a title, never a card. Its header carries the section's
  * reset while there is something to reset, or a standing action.
  */
-function Section({ title, reset, action, children }: { title: string; reset?: false | (() => void); action?: ReactNode; children: ReactNode }) {
+function Section({ title, children }: { title: string; children: ReactNode }) {
 	return (
-		<PanelSection title={title} action={reset ? <SectionReset label={title} onReset={reset} /> : action}>
+		<PanelSection title={title}>
 			{children}
 		</PanelSection>
 	)
@@ -202,7 +181,6 @@ export function Inspector({
 				] as const
 			).map(([label, short, step]) => ({ label, short, shadow: formatShadow(step), value: describeStep(step) }))
 		: []
-	const resetFor = (key: keyof typeof RESETS) => (touched(look, RESETS[key]) ? () => setLook(RESETS[key]) : false)
 	const neutrals = hasBrand ? [...NEUTRALS, TINTED] : NEUTRALS
 	const weight = look.bold == null ? "preset" : look.bold < 34 ? "500" : look.bold > 66 ? "700" : "600"
 	const setWeight = (w: string) => setLook({ bold: w === "preset" ? null : w === "500" ? 16 : w === "600" ? 50 : 84 })
@@ -224,8 +202,14 @@ export function Inspector({
 	// Choosing a preset starts over (see CustomizerProvider.requestPreset); the
 	// confirm lives here because this panel is where the changes are.
 	const presetSection = (
-		<Section title="Preset" action={<PresetImport onStatus={setImportStatus} />}>
-			<PresetPicker themes={themes} value={themeId} mode={mode === "dark" ? "dark" : "light"} onChange={requestPreset} />
+		<Section title="Preset">
+			<PresetPicker
+				themes={themes}
+				value={themeId}
+				mode={mode === "dark" ? "dark" : "light"}
+				onChange={requestPreset}
+				footer={<PresetImport onStatus={setImportStatus} />}
+			/>
 			<p role="status" className={cn("text-ui-body text-muted-foreground", !importStatus && "sr-only")}>
 				{importStatus}
 			</p>
@@ -235,7 +219,7 @@ export function Inspector({
 	const simple = (
 		<>
 			{presetSection}
-			<Section title="Character" reset={resetFor("character")}>
+			<Section title="Character">
 				{/* The pad is a gesture across type, controls and spacing at once; it
 				    hands those domains back from any exact anchors set in Advanced. */}
 				<CharacterPad
@@ -244,7 +228,7 @@ export function Inspector({
 					onChange={(patch) => setLook({ ...patch, typeBase: null, typeRatio: null, controlBase: null, spacingBase: null })}
 				/>
 			</Section>
-			<Section title="Color" reset={resetFor("color")}>
+			<Section title="Color">
 				<HueStrip hue={look.brand ? null : look.hue} onChange={(hue) => setLook({ hue, brand: null })} />
 				<BrandColorInput value={brandHex} fallback={presetPrimary} onChange={(hex) => setLook({ brand: hex })} />
 				<PalettePreview />
@@ -262,7 +246,7 @@ export function Inspector({
 					<Segmented label="Neutrals" value={look.neutrals} onChange={(next) => setLook({ neutrals: next })} options={neutrals} />
 				</PropertyRow>
 			</Section>
-			<Section title="Shape" reset={resetFor("shape")}>
+			<Section title="Shape">
 				<ShapePreview radius={radius} shadow={shadowPreview} />
 				{/* Each slider is a gesture over its whole domain; it hands that domain
 				    back from any exact numbers set in Advanced. The light angle is not
@@ -281,10 +265,10 @@ export function Inspector({
 					<Segmented label="Shadow style" value={look.shadows} onChange={(shadows) => setLook({ shadows })} options={SHADOWS} />
 				</PropertyRow>
 			</Section>
-			<Section title="Typography" reset={resetFor("fonts")}>
+			<Section title="Typography">
 				{fonts("md")}
 			</Section>
-			<Section title="Motion" reset={resetFor("motion")}>
+			<Section title="Motion">
 				<Segmented label="Motion" value={look.motion} onChange={(motion) => setLook({ motion, motionBase: null })} options={MOTIONS} />
 			</Section>
 		</>
@@ -293,7 +277,7 @@ export function Inspector({
 	const advancedView = (
 		<>
 			{presetSection}
-			<Section title="Typography" reset={resetFor("type")}>
+			<Section title="Typography">
 				{fonts("xs")}
 				<PropertyPair labels={[<AnchorCaption label="Body size" set={look.typeBase != null} onReset={() => setLook({ typeBase: null })} />, <AnchorCaption label="Scale ratio" set={look.typeRatio != null} onReset={() => setLook({ typeRatio: null })} />]}>
 					<AnchorField label="Body size" prefix="B" min={11} max={22} step={0.5} value={look.typeBase} measured={live[0]} onChange={(typeBase) => setLook({ typeBase })} />
@@ -304,15 +288,15 @@ export function Inspector({
 				</PropertyRow>
 				<MeasuredLadder rows={TYPE_ROWS} />
 			</Section>
-			<Section title="Layout" reset={resetFor("layout")}>
-				<PropertyPair labels={[<AnchorCaption label="Control height" set={look.controlBase != null} onReset={() => setLook({ controlBase: null })} />, <AnchorCaption label="Row padding" set={look.spacingBase != null} onReset={() => setLook({ spacingBase: null })} />]}>
+			<Section title="Layout">
+				<PropertyPair labels={[<AnchorCaption label="Control height" set={look.controlBase != null} onReset={() => setLook({ controlBase: null })} />, <AnchorCaption label="Baseline step" set={look.spacingBase != null} onReset={() => setLook({ spacingBase: null })} />]}>
 					<AnchorField label="Medium control height" prefix="H" min={28} max={60} value={look.controlBase} measured={live[1]} onChange={(controlBase) => setLook({ controlBase })} />
-					<AnchorField label="Row padding" prefix="P" min={4} max={16} step={0.5} value={look.spacingBase} measured={live[2]} onChange={(spacingBase) => setLook({ spacingBase })} />
+					<AnchorField label="Baseline step" prefix="S" min={4} max={16} value={look.spacingBase} measured={live[2]} onChange={(spacingBase) => setLook({ spacingBase })} />
 				</PropertyPair>
 				<MeasuredLadder caption="Controls" rows={CONTROL_ROWS} />
 				<MeasuredLadder caption="Spacing" rows={SPACING_ROWS} />
 			</Section>
-			<Section title="Color" reset={resetFor("color")}>
+			<Section title="Color">
 				<HueStrip size="sm" hue={look.brand ? null : look.hue} onChange={(hue) => setLook({ hue, brand: null })} />
 				<BrandColorInput size="xs" value={brandHex} fallback={presetPrimary} onChange={(hex) => setLook({ brand: hex })} />
 				<PalettePreview />
@@ -334,14 +318,14 @@ export function Inspector({
 					<ChromeSelect label="Neutrals" value={look.neutrals} onChange={(next) => setLook({ neutrals: next })} options={neutrals} className="w-36" />
 				</PropertyRow>
 			</Section>
-			<Section title="Corners" reset={resetFor("corners")}>
+			<Section title="Corners">
 				<PropertyPair labels={[<AnchorCaption label="Medium radius" set={look.radiusBase != null} onReset={() => setLook({ radiusBase: null })} />, "Buttons"]}>
 					<AnchorField label="Medium radius" prefix="R" min={0} max={18} value={look.radiusBase} measured={live[3]} onChange={(radiusBase) => setLook({ radiusBase })} />
 					<ChromeSelect label="Button shape" value={look.buttons} onChange={(buttons) => setLook({ buttons })} options={BUTTONS} />
 				</PropertyPair>
 				<MeasuredLadder rows={RADIUS_ROWS} />
 			</Section>
-			<Section title="Shadow" reset={resetFor("shadow")}>
+			<Section title="Shadow">
 				<PropertyRow label="Style">
 					<ChromeSelect label="Shadow style" value={look.shadows} onChange={(shadows) => setLook({ shadows })} options={SHADOWS} className="w-36" />
 				</PropertyRow>
@@ -358,7 +342,7 @@ export function Inspector({
 				<ShadowSteps steps={shadowSteps} />
 				<p className="text-ui-body text-muted-foreground">Set on the largest step; the others follow. Opacity is light mode's; dark keeps its own in proportion.</p>
 			</Section>
-			<Section title="Motion" reset={resetFor("motion")}>
+			<Section title="Motion">
 				<PropertyPair labels={["Speed", <AnchorCaption label="Base duration" set={look.motionBase != null} onReset={() => setLook({ motionBase: null })} />]}>
 					<ChromeSelect label="Motion speed" value={look.motion} onChange={(motion) => setLook({ motion, motionBase: null })} options={MOTIONS} />
 					<AnchorField label="Base duration" prefix="T" suffix="ms" min={0} max={600} step={10} value={look.motionBase} measured={live[4]} onChange={(motionBase) => setLook({ motionBase })} />

@@ -4,16 +4,16 @@ const spacing: Foundation = {
 	slug: "spacing",
 	title: "Spacing & sizing",
 	summary:
-		"One 4px scale governs every gap, inset and size, and space is assigned by role. Controls read a height ladder that a density scope can retune all at once.",
-	headline: "4px base · 8px rhythm · 3 roles · 1 control ladder",
+		"One scale, derived from the type: the baseline is one line of body text, split into steps every gap, inset and line height lands on. Space is assigned by role. Controls read a height ladder that a density scope can retune all at once.",
+	headline: "Baseline from the type · 8px steps · 3 roles · 1 control ladder",
 	vocabularies: [
 		{
 			title: "Spacing by role",
 			note: "Steps below 2 (8px) are optical correction only.",
 			terms: [
 				{ name: "Inset  p-4", value: "16px", use: "Padding inside a surface. p-3 for a dense card, px-3 py-2 for a row." },
-				{ name: "Stack, within a group  gap-1.5 – gap-2", value: "6–8px", use: "Label to field, title to description." },
-				{ name: "Stack, between groups  gap-4 – gap-6", value: "16–24px", use: "Field to field, card to card." },
+				{ name: "Stack, within a group  gap-2", value: "1 step · 8px", use: "Label to field, title to description." },
+				{ name: "Stack, between groups  gap-4 – gap-6", value: "2–3 steps · 16–24px", use: "Field to field, card to card." },
 				{ name: "Stack, between sections  gap-12+", value: "48px+", use: "Major regions of a page." },
 				{ name: "Inline  gap-2 – gap-3", value: "8–12px", use: "Icon to label, control to control." },
 			],
@@ -40,12 +40,12 @@ const spacing: Foundation = {
 	],
 	rules: [
 		{
-			rule: "Every margin, padding and gap is a step on the 4px scale.",
-			why: "Off-scale values break the rhythm that lets adjacent components line up without coordination.",
+			rule: "Every margin, padding and gap is a step on the scale, and vertical space between blocks is whole baseline steps: an even Tailwind step (2, 4, 6, 8, 12) or a Stack/Row/Grid gap number.",
+			why: "The baseline is one line of body text split into steps; line heights round to it. An odd step (3, 5) is half a baseline step. It is a rhythm to keep, not a grid to force: components stay as tall as their content.",
 		},
 		{
 			rule: "Padding, gaps and insets in a component sit on the spacing scale: a step (p-4, gap-2) or --spacing(n) inside an arbitrary value (p-[var(--card-p,--spacing(6))]).",
-			why: "The density (Character) control works by retuning --spacing, so anything on the scale moves with it. A literal p-[1.5rem] or padding: \"12px\" stays put while everything around it tightens. Keep fixed rem/px for what must not scale: a 1px hairline, a ring width.",
+			why: "--spacing derives from the baseline step and the density (Character) control moves the leading it comes from, so anything on the scale moves with it. A literal p-[1.5rem] or padding: \"12px\" stays put while everything around it tightens. Keep fixed rem/px for what must not scale: a 1px hairline, a ring width.",
 			enforcedBy: "design-lint: fixed-spacing (library source)",
 		},
 		{
@@ -112,7 +112,7 @@ const spacing: Foundation = {
 			title: "Grouping by space",
 			before: '<Separator /> between every field',
 			after: '<Stack gap={3}> between groups (24px), <Stack gap={1}> inside a group (8px)',
-			why: "Two spacing steps do the work of every divider, with less ink. Stack's numeric gap counts --rhythm-unit — two spacing steps — so it follows the density control like every other spacing value.",
+			why: "Spacing steps do the work of every divider, with less ink. Stack's numeric gap counts --rhythm-unit — one baseline step — so it follows the type and the density control like every other spacing value.",
 		},
 	],
 	related: ["shape", "typography", "sable docs building-a-tool", "sable token layout"],

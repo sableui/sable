@@ -132,7 +132,7 @@ const CHROME_RESET = `
 	--control-gap: 8px; --item-px: 8px; --item-gap: 8px;
 }
 [data-canvas-chrome] {
-	--spacing: 0.25rem;
+	--spacing: 0.25rem; --baseline-step: 0.25rem; --leading-scale: 1;
 	--theme-radius-xs: 4px; --theme-radius-sm: 8px; --theme-radius-md: 12px; --theme-radius-lg: 16px; --theme-radius-xl: 20px;
 	--font-sans: "Figtree", system-ui, sans-serif; --font-mono: "DM Mono", ui-monospace, monospace; --font-display: var(--font-sans);
 	--type-title-sm-size: 0.875rem; --type-title-lg-size: 1rem; --type-body-sm-size: 0.8125rem; --type-body-md-size: 0.9375rem;

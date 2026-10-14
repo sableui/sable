@@ -258,7 +258,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 ### Foundations (7) — the rules for type, space, shape, surfaces, motion, scrolling and accessibility (registry.json → foundations; `sable docs <slug>`)
 
 - **Typography** — 6 families · 8 everyday tiers · 2 text colors · 1 utility per text node. Type is a closed vocabulary of paired utilities. → [`llms/foundations/typography.md`](./llms/foundations/typography.md)
-- **Spacing & sizing** — 4px base · 8px rhythm · 3 roles · 1 control ladder. One 4px scale governs every gap, inset and size, and space is assigned by role. → [`llms/foundations/spacing.md`](./llms/foundations/spacing.md)
+- **Spacing & sizing** — Baseline from the type · 8px steps · 3 roles · 1 control ladder. One scale, derived from the type: the baseline is one line of body text, split into steps every gap, inset and line height lands on. → [`llms/foundations/spacing.md`](./llms/foundations/spacing.md)
 - **Shape** — 7 radius steps · concentric nesting · 1 edge treatment per boundary. Radius signals what something is: tight on containers, full on actions. → [`llms/foundations/shape.md`](./llms/foundations/shape.md)
 - **Surfaces & elevation** — 4 surface tokens · 5 elevation roles · 1 shadow per surface · 1 layer scale. Depth is a step up the surface ladder, chosen by how transient a surface is. → [`llms/foundations/surfaces.md`](./llms/foundations/surfaces.md)
 - **Motion** — 4 slots · 3 speeds · enter-only overshoot · 1 kill switch. Motion explains a change: where something came from, what responded, and that work is happening. → [`llms/foundations/motion.md`](./llms/foundations/motion.md)
