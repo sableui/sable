@@ -29,3 +29,7 @@ apps/docs/tsconfig.consumer.json
 references/**/*.tsx
 .vercel
 .env*.local
+
+# The Sable skill's per-project design state (presets, lessons, preferences).
+# In an app it is committed; in the library repo it is personal working data.
+.sable/
