@@ -141,7 +141,7 @@ export function ColorsPage() {
 
 			<Section
 				title="Tones"
-				description="Three extra colors a theme defines for categories, badges and chart series, then the colors that carry meaning: status, feedback and highlight. Each comes with a 50–950 scale built around it, so bg-tone-1-100 is a wash of tone 1 and step 500 is the tone itself."
+				description="Three extra colors a theme defines for categories, badges and chart series, then the colors that carry meaning: status, feedback and highlight. Each comes with a 50–950 scale on one ladder of depths, so bg-tone-1-100 is a wash of tone 1 at the same depth as every other tone's 100. The tone itself sits on whichever step is nearest its own lightness."
 			>
 				{/* Inherits from <html>, unscoped: re-declaring the preset here would
 				    shadow the customizer's :root overrides and freeze the tones. */}

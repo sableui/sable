@@ -23100,7 +23100,7 @@ Which token to reach for, and what it is most often confused with. Generated fro
 More colour for apps, generated from the active theme: neutral and eight hue families, plus a 50–950 scale under every tone. Each family keeps its hue and leans toward the brand (half the gap, at most 15°; --theme-palette-harmony scales it, 0 = own hues). Neutral is the theme's --background mixed toward its --foreground. Steps follow the mode: low steps sit near the page and high ones far from it in light and dark alike, so a pair needs no dark: variant. For decorative and categorical colour (tags, avatars, labels, legends, illustration); surfaces, text and actions take roles. Components never name a step.
 
 - **Families:** `neutral`, `red`, `orange`, `yellow`, `green`, `teal`, `blue`, `purple`, `pink`, each 50–950.
-- **Tone scales:** `tone-1-*`, `tone-2-*`, `tone-3-*`, `tone-info-*`, `tone-warning-*`, `success-*`, `destructive-*`; step 500 is the tone itself.
+- **Tone scales:** `tone-1-*`, `tone-2-*`, `tone-3-*`, `tone-info-*`, `tone-warning-*`, `success-*`, `destructive-*`; one ladder of depths shared by every tone, with the tone exactly on the step nearest its own lightness (500 for a mid tone, 800 for a light status colour in dark mode). Use the tone token itself for the tone.
 - **Use as:** bg-blue-100, text-blue-800, border-neutral-200, bg-tone-1-100 — or var(--teal-500). Tailwind's other families (slate, gray, zinc, stone, amber, lime, emerald, cyan, sky, indigo, violet, fuchsia, rose) are switched off.
 - **tag / label:** bg-<family>-100 text-<family>-800 (held to 4.5:1 in every theme and mode)
 - **text on the page:** text-<family>-700

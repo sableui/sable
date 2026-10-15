@@ -1,5 +1,34 @@
 # What's new
 
+## 0.13.0
+
+Tone scales that keep their steps apart, whatever the tone.
+
+- **Breaking: tone scales are one ladder, and the tone sits on its nearest
+  step.** Every tone scale (`tone-1-*` … `tone-3-*`, `tone-info-*`,
+  `tone-warning-*`, `success-*`, `destructive-*`) now uses one shared
+  ladder of depths per mode, so `bg-tone-1-100` and `bg-success-100` are
+  the same depth. The tone lands exactly on the step nearest its own
+  lightness, not always on 500. Before, a tone near one end of the range
+  squeezed five steps into the little room left past it: in dark mode,
+  light status colours (Poppy, Prism) had 600–950 almost
+  indistinguishable, and deep tones in light mode crowded 800–950. Now the
+  steps either side stretch to keep the ladder's ends. Migration: where you
+  used `*-500` to mean the tone, use the tone token (`bg-success`,
+  `text-tone-1`). The other steps keep their roles (100 a wash, 700/800
+  text), but may be a little lighter or deeper than before.
+- **Tone steps stay in sRGB for any hue.** A tone scale's chroma falls from
+  the tone toward each end of the ladder, under a bound fitted per step
+  over the whole hue circle, so a customised or app-defined tone can't push
+  a step out of gamut. This replaces the fixed caps on the light steps.
+- **Yellow sits a little deeper in dark mode** (500 at L 0.78, was 0.82), so
+  its 800–950 no longer crowd against the ink.
+- **The palette tests hold spacing.** Neighbouring steps of every scale, in
+  every theme and mode, are at least 3 apart in OKLab (the 50→100 washes
+  1.4), and every tone sits exactly on its nearest step. Before, the only
+  check was that each step moved 0.005 in lightness, and 73 of 224 scales
+  had a pair of neighbouring steps under 3 apart.
+
 ## 0.12.0
 
 Getting to a working first component, finding the right example, moving over from shadcn, and the components that move called for: Menubar, NavigationMenu, InputGroup, ButtonGroup, CaretMenu and bottom-sheet snap points.

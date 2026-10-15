@@ -16,8 +16,11 @@
  * - **neutral** is the theme's own page and ink mixed in steps, so it carries
  *   whatever tint the theme's surfaces do.
  * - Every **tone** (tone-1…3, info, warning, success, destructive) gets a scale
- *   anchored on itself: step 500 IS the tone, the rest walk from it toward the
- *   page and toward the ink.
+ *   on one shared ladder of depths, and the tone lands exactly on the step
+ *   nearest its own lightness: a light status colour in dark mode is 800, a
+ *   mid one is 500. The steps either side stretch to keep the ladder's ends,
+ *   so a tone near one end does not crush five steps into the little room
+ *   left past it, and tone-1-100 and success-100 are the same depth.
  *
  * Steps follow the mode rather than literal lightness: a low step is always
  * near the page and a high step always far from it, so 800 text on a 100
@@ -42,7 +45,9 @@ export const PALETTE_FAMILIES: readonly PaletteFamily[] = [
 	{ name: "red", hue: 25, light: { l: 0.6, c: 0.21 }, dark: { l: 0.64, c: 0.2 } },
 	{ name: "orange", hue: 50, light: { l: 0.69, c: 0.18 }, dark: { l: 0.71, c: 0.17 } },
 	// Yellow is only yellow when it is light; at 0.6 it is olive.
-	{ name: "yellow", hue: 92, light: { l: 0.83, c: 0.16 }, dark: { l: 0.82, c: 0.15 } },
+	// In dark mode it sits a little deeper, or 800–950 crowd into the room
+	// left between it and the ink.
+	{ name: "yellow", hue: 92, light: { l: 0.83, c: 0.16 }, dark: { l: 0.78, c: 0.15 } },
 	{ name: "green", hue: 145, light: { l: 0.64, c: 0.17 }, dark: { l: 0.68, c: 0.16 } },
 	{ name: "teal", hue: 190, light: { l: 0.7, c: 0.12 }, dark: { l: 0.74, c: 0.12 } },
 	{ name: "blue", hue: 262, light: { l: 0.6, c: 0.19 }, dark: { l: 0.64, c: 0.17 } },
@@ -140,14 +145,29 @@ export const NEUTRAL_MIX: Record<PaletteStep, number> = {
 }
 
 /**
- * A tone's own chroma can sit above what sRGB holds at a wash's lightness, so
- * the near-page steps are capped. The rest keep the tone's chroma as scaled:
- * a tone is already in gamut at its own depth.
+ * The tone ladder: one lightness per step, per mode, shared by every tone.
+ * Close to Tailwind's depths, with the washes a touch lighter. A tone takes
+ * the step whose depth is nearest its own and the rest of the ladder is
+ * stretched about it (see `toneStep`), so its ends hold wherever the tone sits.
  */
-export const TONE_CHROMA_CAP: Record<PaletteMode, Partial<Record<PaletteStep, number>>> = {
-	light: { 50: 0.02, 100: 0.04, 200: 0.07, 300: 0.11 },
-	dark: { 50: 0.035, 100: 0.05, 200: 0.07, 300: 0.1 },
+export const TONE_LADDER: Record<PaletteMode, Record<PaletteStep, number>> = {
+	light: { 50: 0.975, 100: 0.945, 200: 0.895, 300: 0.82, 400: 0.725, 500: 0.63, 600: 0.55, 700: 0.47, 800: 0.4, 900: 0.33, 950: 0.27 },
+	dark: { 50: 0.215, 100: 0.25, 200: 0.31, 300: 0.39, 400: 0.5, 500: 0.6, 600: 0.69, 700: 0.77, 800: 0.84, 900: 0.895, 950: 0.94 },
 }
+
+/**
+ * The share of the tone's chroma left at each end of the ladder: `page` at 50,
+ * `ink` at 950. Between the tone and an end it falls in a straight line. sRGB
+ * caps it further where the depth cannot hold it (palette.css fits that bound
+ * per step, over the whole hue circle, since a tone can be any hue).
+ */
+export const TONE_CHROMA_ENDS: Record<PaletteMode, { page: number; ink: number }> = {
+	light: { page: 0.12, ink: 0.52 },
+	dark: { page: 0.25, ink: 0.3 },
+}
+
+/** Steepness of the CSS step functions that pick the tone's step: 1/10000 L wide. */
+export const TONE_SNAP = 10000
 
 /**
  * The lean: half the hue gap, at most 15°, in full only past this much brand
@@ -166,8 +186,51 @@ export function familyHue(hue: number, brand: { c: number; h: number }, harmony 
 	return (((hue + lean) % 360) + 360) % 360
 }
 
-/** One step from an anchor, before any gamut cap — the JS twin of the CSS. */
+/** One family step from its 500, before any gamut cap — the JS twin of the CSS. */
 export function stepFrom(anchor: { l: number; c: number }, step: PaletteStep, mode: PaletteMode): { l: number; c: number } {
 	const curve = STEP_CURVES[mode][step]
 	return { l: anchor.l + (curve.target - anchor.l) * curve.pull, c: anchor.c * curve.chroma }
+}
+
+/**
+ * Position along a mode's ladder, from 50 (0) toward 950: the ladder runs down
+ * in light mode and up in dark, and this makes both read the same way.
+ */
+export function ladderDepth(l: number, mode: PaletteMode): number {
+	const top = TONE_LADDER[mode][50]
+	return mode === "light" ? top - l : l - top
+}
+
+/** The ladder depth of the step a tone of lightness `l` snaps to — the JS twin of `--_tone-anchor`. */
+export function toneAnchor(l: number, mode: PaletteMode): number {
+	const ladder = TONE_LADDER[mode]
+	let depth = 0
+	for (let i = 1; i < PALETTE_STEPS.length; i++) {
+		const [before, at] = [ladder[PALETTE_STEPS[i - 1]], ladder[PALETTE_STEPS[i]]]
+		const mid = (before + at) / 2
+		depth += Math.abs(at - before) * clamp((mode === "light" ? mid - l : l - mid) * TONE_SNAP, 0, 1)
+	}
+	return depth
+}
+
+/**
+ * One tone step, before the gamut bound — the JS twin of the CSS. The tone sits
+ * on its anchor step; steps toward the page stretch over the room between the
+ * tone and step 50, steps toward the ink over the room between it and 950.
+ */
+export function toneStep(tone: { l: number; c: number }, step: PaletteStep, mode: PaletteMode): { l: number; c: number; anchor: boolean } {
+	const end = ladderDepth(TONE_LADDER[mode][950], mode)
+	const at = ladderDepth(TONE_LADDER[mode][step], mode)
+	const anchor = toneAnchor(tone.l, mode)
+	const own = ladderDepth(tone.l, mode)
+	const pageSide = clamp((anchor - at) * TONE_SNAP, 0, 1)
+	const towardPage = (at * own) / Math.max(anchor, 0.001)
+	const towardInk = own + ((at - anchor) * (end - own)) / Math.max(end - anchor, 0.001)
+	const depth = pageSide * towardPage + (1 - pageSide) * towardInk
+	const ends = TONE_CHROMA_ENDS[mode]
+	const share =
+		pageSide * (1 - (1 - ends.page) * ((anchor - at) / Math.max(anchor, 0.001))) +
+		(1 - pageSide) * (1 - (1 - ends.ink) * ((at - anchor) / Math.max(end - anchor, 0.001)))
+	const top = TONE_LADDER[mode][50]
+	return { l: mode === "light" ? top - depth : top + depth, c: tone.c * share, anchor: Math.abs(at - anchor) * TONE_SNAP < 1 }
 }

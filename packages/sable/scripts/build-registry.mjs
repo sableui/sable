@@ -1949,7 +1949,7 @@ function llmsTokenIntent() {
 		palette.about,
 		"",
 		`- **Families:** ${palette.families.map(code).join(", ")}, each ${palette.steps[0]}–${palette.steps.at(-1)}.`,
-		`- **Tone scales:** ${palette.toneScales.map((name) => code(`${name}-*`)).join(", ")}; step 500 is the tone itself.`,
+		`- **Tone scales:** ${palette.toneScales.map((name) => code(`${name}-*`)).join(", ")}; one ladder of depths shared by every tone, with the tone exactly on the step nearest its own lightness (500 for a mid tone, 800 for a light status colour in dark mode). Use the tone token itself for the tone.`,
 		`- **Use as:** ${palette.utilities}`,
 		...Object.entries(palette.pairs).map(([use, pair]) => `- **${use}:** ${pair}`),
 		`- **Components:** ${palette.components}`,

@@ -15,7 +15,7 @@ import {
 } from "../themes/contrast"
 import { PALETTE_SLOT_TOKENS } from "../themes/_contract"
 import { themeIds } from "../themes/index"
-import { LEAN, NEUTRAL_MIX, PALETTE_COLORS, PALETTE_FAMILIES, PALETTE_SCALES, PALETTE_SLOTS, PALETTE_STEPS, PALETTE_TONES, type PaletteMode, familyHue } from "./palette"
+import { LEAN, NEUTRAL_MIX, PALETTE_COLORS, PALETTE_FAMILIES, PALETTE_SCALES, PALETTE_SLOTS, PALETTE_STEPS, PALETTE_TONES, type PaletteMode, TONE_LADDER, familyHue, toneStep } from "./palette"
 
 const PKG = resolve(__dirname, "..", "..")
 const css = readFileSync(resolve(PKG, "src", "palette.css"), "utf8")
@@ -42,6 +42,19 @@ function evaluate(expression: string, channels: Partial<OklchColor>): number {
 		.replace(/\b([lch])\b/g, (_, name: keyof OklchColor) => `(${channels[name]})`)
 	const fn = new Function("min", "max", "clamp", "mod", `return ${js}`) as (...args: unknown[]) => number
 	return fn(Math.min, Math.max, (lo: number, v: number, hi: number) => Math.min(hi, Math.max(lo, v)), (a: number, b: number) => ((a % b) + b) % b)
+}
+
+/**
+ * Substitute var() references from a declaration block, as the browser does:
+ * the tone steps name per-mode custom properties written in the tone's own
+ * channel keywords, which resolve once they land inside its oklch(from …).
+ */
+function expand(expression: string, decls: Map<string, string>): string {
+	return expression.replace(/var\((--[\w-]+)\)/g, (_, name: string) => {
+		const value = decls.get(name)
+		if (value === undefined) throw new Error(`unknown ${name}`)
+		return `(${expand(value, decls)})`
+	})
 }
 
 /** `oklch(from var(--x) L C h)` → the L and C expressions. */
@@ -114,9 +127,8 @@ function scalesFor(themeId: string, mode: PaletteMode, harmony = 1) {
 			tone,
 			new Map(
 				PALETTE_STEPS.map((step) => {
-					if (step === 500) return [step, anchor]
 					const { l, c } = channelsOf(decls.get(`--${tone}-${step}`) ?? "")
-					return [step, { l: evaluate(l, anchor), c: evaluate(c, anchor), h: anchor.h }]
+					return [step, { l: evaluate(expand(l, decls), anchor), c: evaluate(expand(c, decls), anchor), h: anchor.h }]
 				}),
 			),
 		)
@@ -126,6 +138,19 @@ function scalesFor(themeId: string, mode: PaletteMode, harmony = 1) {
 	if (!page || !ink) throw new Error(`${themeId} ${mode}: no page or ink`)
 	scales.set("neutral", new Map(PALETTE_STEPS.map((step) => [step, linearRgbToOklch(oklabMix(page, ink, NEUTRAL_MIX[step] / 100))])))
 	return { scales, page, brand }
+}
+
+/**
+ * The least OKLab distance (×100) between neighbouring steps. About 2 is the
+ * smallest difference anyone notices; 3 reads as a step. The 50→100 washes
+ * are meant to be quiet (Tailwind's own are about 1.5 apart), so they get less.
+ */
+const STEP_GAP = 3
+const WASH_GAP = 1.4
+const deltaE = (a: OklchColor, b: OklchColor) => {
+	const lab = (o: OklchColor) => [o.l * 100, o.c * 100 * Math.cos((o.h * Math.PI) / 180), o.c * 100 * Math.sin((o.h * Math.PI) / 180)]
+	const [p, q] = [lab(a), lab(b)]
+	return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2])
 }
 
 const cases = themeIds.flatMap((id) => (["light", "dark"] as const).map((mode) => [id, mode] as const))
@@ -187,6 +212,51 @@ describe("palette", () => {
 			for (let i = 1; i < ls.length; i++) {
 				const away = mode === "light" ? ls[i - 1] - ls[i] : ls[i] - ls[i - 1]
 				if (!(away > 0.005)) out.push(`${name} ${PALETTE_STEPS[i - 1]}→${PALETTE_STEPS[i]}`)
+			}
+		}
+		expect(out).toEqual([])
+	})
+
+	it.each(cases)("%s %s: neighbouring steps are told apart, the 50 and 100 washes less so", (themeId, mode) => {
+		const { scales } = scalesFor(themeId, mode)
+		const out: string[] = []
+		for (const [name, steps] of scales) {
+			for (let i = 1; i < PALETTE_STEPS.length; i++) {
+				const [from, to] = [PALETTE_STEPS[i - 1], PALETTE_STEPS[i]]
+				const gap = deltaE(steps.get(from) as OklchColor, steps.get(to) as OklchColor)
+				if (gap < (from === 50 ? WASH_GAP : STEP_GAP)) out.push(`${name} ${from}→${to} ${gap.toFixed(2)}`)
+			}
+		}
+		expect(out).toEqual([])
+	})
+
+	it.each(cases)("%s %s: every tone sits exactly on the step nearest its own depth", (themeId, mode) => {
+		const theme = themeTokens(themeId, mode)
+		const { scales } = scalesFor(themeId, mode)
+		const out: string[] = []
+		for (const tone of PALETTE_TONES) {
+			const own = theme.oklch(`--${tone}`)
+			// A tone on the midpoint between two steps may take either.
+			const off = (step: (typeof PALETTE_STEPS)[number]) => Math.abs(TONE_LADDER[mode][step] - own.l)
+			const least = Math.min(...PALETTE_STEPS.map(off))
+			const nearest = PALETTE_STEPS.filter((step) => off(step) < least + 1e-3)
+			const gap = Math.min(...nearest.map((step) => deltaE(scales.get(tone)?.get(step) as OklchColor, own)))
+			if (gap > 0.05) out.push(`${tone} is ${gap.toFixed(2)} from step ${nearest.join(" or ")}`)
+		}
+		expect(out).toEqual([])
+	})
+
+	it("matches its JS twin: toneStep computes what palette.css does", () => {
+		const out: string[] = []
+		for (const mode of ["light", "dark"] as const) {
+			for (let l = 0.25; l <= 0.95; l += 0.0125) {
+				const tone = { l, c: 0.05, h: 140 }
+				for (const step of PALETTE_STEPS) {
+					const { l: lx, c: cx } = channelsOf(MODE_BLOCKS[mode].get(`--success-${step}`) ?? "")
+					const twin = toneStep(tone, step, mode)
+					const css = { l: evaluate(expand(lx, MODE_BLOCKS[mode]), tone), c: evaluate(expand(cx, MODE_BLOCKS[mode]), tone) }
+					if (Math.abs(css.l - twin.l) > 1e-4 || Math.abs(css.c - twin.c) > 1e-4) out.push(`${mode} L${l.toFixed(3)} ${step}: css ${css.l.toFixed(4)}/${css.c.toFixed(4)} twin ${twin.l.toFixed(4)}/${twin.c.toFixed(4)}`)
+				}
 			}
 		}
 		expect(out).toEqual([])
