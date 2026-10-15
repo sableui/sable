@@ -1,5 +1,19 @@
 # What's new
 
+## 0.11.0
+
+- **New: `PropertyGroup`, a collapsible group inside a PanelSection.** The
+  row names the group, summarises its value while closed (a word, a few
+  swatches, or both), and opens with +/− to the rows beneath. It's sized for
+  a tool panel, where an Accordion is page furniture. Groups open
+  independently and stack with a hairline between them.
+- **sableui.com's Customize panel: the Color section is rebuilt on it.**
+  It now reads Brand color, then Primary action (with colour dots), then
+  three groups: Color palette (the families and Pull to brand), Tones (tones
+  and status) and Neutrals. Each group summarises itself with its own
+  swatches, and Tones and Neutrals are chosen from a list that previews what
+  each option would paint. The section has its own Reset.
+
 ## 0.10.0
 
 A palette generated from the theme, numbered extra tones, and sample content that isn't a marketplace.

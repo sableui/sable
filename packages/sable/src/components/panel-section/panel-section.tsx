@@ -1,8 +1,10 @@
 "use client";
 
 import type { ComponentProps, ReactNode } from "react"
+import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
 import { beginScrub } from "../../lib/scrub-gesture"
+import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "../collapsible/collapsible"
 
 type SectionProps = Omit<ComponentProps<"section">, "title"> & {
 	/** Section name, rendered as the header. */
@@ -218,3 +220,48 @@ export function PropertyPair({ labels, className, children, ...props }: PairProp
 	)
 }
 PropertyPair.displayName = "PropertyPair"
+
+type GroupProps = Omit<ComponentProps<typeof Collapsible>, "children" | "className"> & {
+	/** The group's name. */
+	label: ReactNode
+	/**
+	 * What the group is set to, readable while it is closed: a value ("Cool",
+	 * "200% pull"), a few swatches, or both. Sits before the indicator.
+	 */
+	summary?: ReactNode
+	className?: string
+	children: ReactNode
+}
+
+/**
+ * PropertyGroup — a set of properties that folds behind one row, inside a
+ * PanelSection: the row names the group and summarises its value, and opens to
+ * the controls beneath it. The +/− tools use for "more here" (Figma's
+ * collapsible layer properties), at the panel's own scale — an Accordion is
+ * page furniture, its title-sized trigger twice the height of a property row.
+ *
+ * Each group opens on its own, so two can be compared side by side. Groups
+ * stack with a hairline between them; the summary is what keeps a closed
+ * group honest, so give it the value, not a restatement of the label.
+ *
+ *   <PropertyGroup label="Neutrals" summary="Cool">
+ *     <PropertyRow label="Tint">…</PropertyRow>
+ *   </PropertyGroup>
+ */
+export function PropertyGroup({ label, summary, className, children, ...props }: GroupProps) {
+	return (
+		<Collapsible className={cn("border-t border-hairline", className)} {...props}>
+			<CollapsibleTrigger className="group/property-group flex h-(--control-sm) w-full items-center gap-2 rounded-xs text-start motion-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+				<span className="min-w-0 flex-1 truncate text-ui-md text-foreground">{label}</span>
+				{summary != null ? <span className="flex min-w-0 shrink items-center gap-2 truncate text-ui-md text-muted-foreground">{summary}</span> : null}
+				<Icon name="plus" className="shrink-0 text-xs text-muted-foreground group-data-[panel-open]/property-group:hidden" />
+				<Icon name="minus" className="hidden shrink-0 text-xs text-muted-foreground group-data-[panel-open]/property-group:block" />
+			</CollapsibleTrigger>
+			<CollapsiblePanel>
+				{/* The same rhythm as a PanelSection's rows, so a group opens into rows that read as the section's own. */}
+				<div className="flex flex-col gap-1.5 pt-0.5 pb-2">{children}</div>
+			</CollapsiblePanel>
+		</Collapsible>
+	)
+}
+PropertyGroup.displayName = "PropertyGroup"

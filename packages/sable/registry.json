@@ -1,7 +1,7 @@
 {
   "$schema": "https://sable.design/registry.schema.json",
   "name": "@sableui/react",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Themeable React components, semantic tokens, layout patterns, presets, and package-owned agent skills. Default theme: Sable.",
   "engine": {
     "behavior": "@base-ui/react",
@@ -13578,6 +13578,11 @@
             "name": "PropertyPair",
             "required": false,
             "description": "Two controls side by side, with optional captions above each."
+          },
+          {
+            "name": "PropertyGroup",
+            "required": false,
+            "description": "A set of properties folded behind one row that names the group and summarises its value, opening with +/− to the controls beneath."
           }
         ]
       },
@@ -13613,6 +13618,11 @@
           "name": "PropertyPair",
           "type": "{ labels?: [ReactNode, ReactNode] }",
           "description": "Two controls side by side in a 2-up grid, with optional captions above each."
+        },
+        {
+          "name": "PropertyGroup",
+          "type": "{ label: ReactNode; summary?: ReactNode; defaultOpen?: boolean; open?: boolean; onOpenChange?: (open: boolean) => void }",
+          "description": "A collapsible set of properties inside a section, at the panel's scale (an Accordion is page furniture). The row shows the label, then the summary (the group's value, readable while closed: a word, a few swatches, or both), then a + that turns to − when open. Groups open independently and stack with a hairline between them. Built on Collapsible."
         }
       ],
       "tokensUsed": [
@@ -13621,12 +13631,18 @@
         "hairline"
       ],
       "a11y": [
+        "PropertyGroup's row is a real button with aria-expanded (Collapsible); its summary is part of the button's name, so a closed group still announces its value.",
         "PropertyRow renders a real <label>; pass htmlFor with the control's id so clicking the label focuses it.",
         "The section title is an h3, so panels contribute a real heading outline rather than styled divs.",
         "`hint` is exposed as the label's title attribute — keep the essential meaning in the label itself, since title text is not reliably announced.",
         "A `scrub` label does not replace keyboard editing and must not be the only way to set the value: the drag is a pointer affordance, so the control it names still has to accept typing and arrow keys. It also keeps its `htmlFor` behaviour, which is the reason the gesture arms on a 2px threshold rather than on pointerdown."
       ],
       "examples": [
+        {
+          "label": "Groups that fold behind their value",
+          "code": "<PanelSection title=\"Color\">\n  <PropertyGroup label=\"Tones\" summary=\"Brand only\">\n    <PropertyRow label=\"Scheme\">\n      <Select value=\"brand\">\n        <SelectTrigger size=\"xs\" />\n        <SelectContent>\n          <SelectItem value=\"brand\">Brand only</SelectItem>\n          <SelectItem value=\"harmonize\">Harmonize</SelectItem>\n        </SelectContent>\n      </Select>\n    </PropertyRow>\n  </PropertyGroup>\n  <PropertyGroup label=\"Grid\" summary=\"8px\">\n    <PropertyRow label=\"Size\">\n      <ScrubField label=\"Grid size\" value={8} min={1} max={64} suffix=\"px\" />\n    </PropertyRow>\n  </PropertyGroup>\n</PanelSection>",
+          "imports": "import { PanelSection, PropertyGroup, PropertyRow, ScrubField, Select, SelectContent, SelectItem, SelectTrigger } from \"@sableui/react\""
+        },
         {
           "label": "Blending section, 2-up",
           "code": "<PanelSection title=\"Blending\">\n  <PropertyPair>\n    <ScrubField label=\"Opacity\" value={100} min={0} max={100} suffix=\"%\" />\n    <Select value=\"normal\">\n      <SelectTrigger size=\"xs\" />\n      <SelectContent>\n        <SelectItem value=\"normal\">Normal</SelectItem>\n        <SelectItem value=\"multiply\">Multiply</SelectItem>\n      </SelectContent>\n    </Select>\n  </PropertyPair>\n</PanelSection>",
@@ -25486,6 +25502,18 @@
         "className",
         "render",
         "style"
+      ],
+      "PropertyGroup": [
+        "children",
+        "className",
+        "defaultOpen",
+        "disabled",
+        "label",
+        "onOpenChange",
+        "open",
+        "render",
+        "style",
+        "summary"
       ],
       "PropertyPair": [
         "labels"

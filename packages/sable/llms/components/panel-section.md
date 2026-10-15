@@ -27,6 +27,7 @@ Use PanelSection to group properties inside an inspector or docked panel, with P
 | Header | yes | The section title in the UI section tier, with an optional trailing action. |
 | PropertyRow | no | One property: label left, control right. `stacked` moves the control to its own line for full-width controls. |
 | PropertyPair | no | Two controls side by side, with optional captions above each. |
+| PropertyGroup | no | A set of properties folded behind one row that names the group and summarises its value, opening with +/− to the controls beneath. |
 
 ## Subcomponents
 
@@ -34,6 +35,7 @@ Use PanelSection to group properties inside an inspector or docked panel, with P
 | --- | --- | --- |
 | PropertyRow | { label: ReactNode; htmlFor?: string; hint?: string; stacked?: boolean; scrub?: { value, onValueChange, step?, min?, max?, onGestureStart?, onGestureEnd?, disabled? } } | One property line. `hint` becomes the label's hover explanation; `stacked` puts the control on its own line. `scrub` makes the property NAME a drag handle for its value — the Figma/Framer/Paper convention, and the answer for a numeric row with no honest glyph to put in a ScrubField (a schema-generated `levels` or `seed`, where a `#` would be noise pretending to be meaning). Opt-in and additive: a row without it is unchanged. The label stays a real `<label htmlFor>` — a 2px jitter threshold keeps a click a click, and the click synthesised after a real drag is swallowed so a scrub does not also select the field's text. |
 | PropertyPair | { labels?: [ReactNode, ReactNode] } | Two controls side by side in a 2-up grid, with optional captions above each. |
+| PropertyGroup | { label: ReactNode; summary?: ReactNode; defaultOpen?: boolean; open?: boolean; onOpenChange?: (open: boolean) => void } | A collapsible set of properties inside a section, at the panel's scale (an Accordion is page furniture). The row shows the label, then the summary (the group's value, readable while closed: a word, a few swatches, or both), then a + that turns to − when open. Groups open independently and stack with a hairline between them. Built on Collapsible. |
 
 ## Props
 
@@ -48,6 +50,7 @@ Use PanelSection to group properties inside an inspector or docked panel, with P
 
 ## Accessibility
 
+- PropertyGroup's row is a real button with aria-expanded (Collapsible); its summary is part of the button's name, so a closed group still announces its value.
 - PropertyRow renders a real <label>; pass htmlFor with the control's id so clicking the label focuses it.
 - The section title is an h3, so panels contribute a real heading outline rather than styled divs.
 - `hint` is exposed as the label's title attribute — keep the essential meaning in the label itself, since title text is not reliably announced.
@@ -58,6 +61,31 @@ Use PanelSection to group properties inside an inspector or docked panel, with P
 - Components: Workspace, PanelGroup, ScrubField, StatusBar, Field, Card
 
 ## Examples
+
+### Groups that fold behind their value
+
+```tsx
+import { PanelSection, PropertyGroup, PropertyRow, ScrubField, Select, SelectContent, SelectItem, SelectTrigger } from "@sableui/react"
+
+<PanelSection title="Color">
+  <PropertyGroup label="Tones" summary="Brand only">
+    <PropertyRow label="Scheme">
+      <Select value="brand">
+        <SelectTrigger size="xs" />
+        <SelectContent>
+          <SelectItem value="brand">Brand only</SelectItem>
+          <SelectItem value="harmonize">Harmonize</SelectItem>
+        </SelectContent>
+      </Select>
+    </PropertyRow>
+  </PropertyGroup>
+  <PropertyGroup label="Grid" summary="8px">
+    <PropertyRow label="Size">
+      <ScrubField label="Grid size" value={8} min={1} max={64} suffix="px" />
+    </PropertyRow>
+  </PropertyGroup>
+</PanelSection>
+```
 
 ### Blending section, 2-up
 

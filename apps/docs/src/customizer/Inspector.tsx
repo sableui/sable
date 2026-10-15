@@ -1,6 +1,7 @@
 import { Button, Density, Icon, PanelSection, PropertyPair, PropertyRow, cn, useCopy } from "@sableui/react"
 import { type ReactNode, useState } from "react"
 import { useTheme } from "../theme"
+import { ColorSection } from "./ColorSection"
 import { useCustomizer } from "./CustomizerProvider"
 import {
 	PresetPicker,
@@ -29,7 +30,7 @@ type Role = "primary" | "secondary" | "mono"
 const FONT_FIELD = { primary: "sans", secondary: "display", mono: "mono" } as const
 
 const PALETTES = [
-	{ value: "preset", label: "Brand" },
+	{ value: "preset", label: "Brand only" },
 	{ value: "harmonize", label: "Harmonize" },
 	{ value: "analogous", label: "Analogous" },
 	{ value: "triadic", label: "Triadic" },
@@ -38,6 +39,11 @@ const PRIMARY = [
 	{ value: "brand", label: "Brand" },
 	{ value: "neutral", label: "Neutral" },
 ] as const
+
+/** Why Primary action and Tones are not yet in play. */
+function BrandHint() {
+	return <p className="text-ui-micro text-muted-foreground">Pick a brand color to set the primary action and generate tones.</p>
+}
 const NEUTRALS = [
 	{ value: "theme", label: "Preset" },
 	{ value: "mono", label: "Mono" },
@@ -227,6 +233,11 @@ export function Inspector({
 	const simple = (
 		<>
 			{presetSection}
+			{/* The brand, then one folding group per thing it drives (palette, tones,
+			    neutrals), each summarised by its own swatches. See ColorSection. */}
+			<ColorSection />
+			{/* Color is the identity; Character and Shape are the feel, so they sit
+			    together. */}
 			<Section title="Character">
 				{/* The pad is a gesture across type, controls and spacing at once; it
 				    hands those domains back from any exact anchors set in Advanced. */}
@@ -234,33 +245,6 @@ export function Inspector({
 					bold={look.bold}
 					airy={look.airy}
 					onChange={(patch) => setLook({ ...patch, typeBase: null, typeRatio: null, controlBase: null, spacingBase: null })}
-				/>
-			</Section>
-			<Section title="Color">
-				<HueStrip hue={look.brand ? null : look.hue} onChange={(hue) => setLook({ hue, brand: null })} />
-				<BrandColorInput value={brandHex} fallback={presetPrimary} onChange={(hex) => setLook({ brand: hex })} />
-				<PalettePreview />
-				{hasBrand ? (
-					<PropertyRow stacked label="Palette">
-						<Segmented label="Palette" value={look.palette} onChange={(palette) => setLook({ palette })} options={PALETTES} />
-					</PropertyRow>
-				) : null}
-				{hasBrand ? (
-					<PropertyRow stacked label="Primary action">
-						<Segmented label="Primary action" value={look.primary} onChange={(primary) => setLook({ primary })} options={PRIMARY} />
-					</PropertyRow>
-				) : null}
-				<PropertyRow stacked label="Neutrals">
-					<Segmented label="Neutrals" value={look.neutrals} onChange={(next) => setLook({ neutrals: next })} options={neutrals} />
-				</PropertyRow>
-				{/* How far the generated families (bg-blue-500 …) lean toward the brand.
-				    The slider's middle is the default lean: 0 keeps their own hues, the
-				    far end doubles the pull. Double-click resets. */}
-				<LookSlider
-					label="Harmony"
-					value={look.harmony == null ? null : look.harmony / 2}
-					valueText={(value) => (value == null ? "Theme" : value === 0 ? "Own hues" : `${Math.round(value * 2)}%`)}
-					onChange={(value) => setLook({ harmony: value == null ? null : Math.round(value * 2) })}
 				/>
 			</Section>
 			<Section title="Shape">
@@ -294,6 +278,38 @@ export function Inspector({
 	const advancedView = (
 		<>
 			{presetSection}
+			<Section title="Color">
+				<HueStrip size="sm" hue={look.brand ? null : look.hue} onChange={(hue) => setLook({ hue, brand: null })} />
+				<BrandColorInput size="xs" value={brandHex} fallback={presetPrimary} onChange={(hex) => setLook({ brand: hex })} />
+				{hasBrand ? null : <BrandHint />}
+				<PropertyPair labels={["Primary action", "Tones"]}>
+					<Segmented size="sm" label="Primary action" value={look.primary} onChange={(primary) => setLook({ primary })} options={PRIMARY} disabled={!hasBrand} />
+					<ChromeSelect label="Tones" value={look.palette} onChange={(palette) => setLook({ palette })} options={PALETTES} disabled={!hasBrand} />
+				</PropertyPair>
+				<PalettePreview />
+				{/* The two leans, side by side. Pull: how far the generated families
+				    (bg-blue-500 …) lean toward the brand — 0 keeps their own hues, 100
+				    is the default, 200 doubles it. Status lean: 0 keeps success,
+				    warning and destructive as the preset ships them; 100 takes each to
+				    the edge of the hue range where it still reads as itself (see
+				    leanStatus). Untouched, each shows its default. */}
+				<PropertyPair
+					labels={[
+						<AnchorCaption key="pull" label="Pull to brand" set={look.harmony != null} onReset={() => setLook({ harmony: null })} />,
+						<AnchorCaption key="lean" label="Status lean" set={look.statusLean != null} onReset={() => setLook({ statusLean: null })} />,
+					]}
+				>
+					<AnchorField label="Pull to brand" prefix="P" suffix="%" min={0} max={200} value={look.harmony} measured={100} onChange={(harmony) => setLook({ harmony })} />
+					{hasBrand ? (
+						<AnchorField label="Status lean" prefix="S" suffix="%" min={0} max={100} value={look.statusLean} measured={DEFAULT_STATUS_LEAN[look.palette]} onChange={(statusLean) => setLook({ statusLean })} />
+					) : (
+						<span className="text-ui-md text-muted-foreground">Needs a brand</span>
+					)}
+				</PropertyPair>
+				<PropertyRow label="Neutrals">
+					<ChromeSelect label="Neutrals" value={look.neutrals} onChange={(next) => setLook({ neutrals: next })} options={neutrals} className="w-36" />
+				</PropertyRow>
+			</Section>
 			<Section title="Typography">
 				{fonts("xs")}
 				<PropertyPair labels={[<AnchorCaption label="Body size" set={look.typeBase != null} onReset={() => setLook({ typeBase: null })} />, <AnchorCaption label="Scale ratio" set={look.typeRatio != null} onReset={() => setLook({ typeRatio: null })} />]}>
@@ -312,31 +328,6 @@ export function Inspector({
 				</PropertyPair>
 				<MeasuredLadder caption="Controls" rows={CONTROL_ROWS} />
 				<MeasuredLadder caption="Spacing" rows={SPACING_ROWS} />
-			</Section>
-			<Section title="Color">
-				<HueStrip size="sm" hue={look.brand ? null : look.hue} onChange={(hue) => setLook({ hue, brand: null })} />
-				<BrandColorInput size="xs" value={brandHex} fallback={presetPrimary} onChange={(hex) => setLook({ brand: hex })} />
-				<PalettePreview />
-				{hasBrand ? (
-					<PropertyRow label="Palette">
-						<ChromeSelect label="Palette" value={look.palette} onChange={(palette) => setLook({ palette })} options={PALETTES} className="w-36" />
-					</PropertyRow>
-				) : null}
-				{hasBrand ? (
-					// Status lean: 0 keeps success, warning and destructive as the preset
-					// ships them; 100 takes each to the edge of the hue range where it still
-					// reads as itself (see leanStatus). Untouched, it shows the palette's default.
-					<PropertyPair labels={["Primary action", <AnchorCaption key="lean" label="Status lean" set={look.statusLean != null} onReset={() => setLook({ statusLean: null })} />]}>
-						<Segmented size="sm" label="Primary action" value={look.primary} onChange={(primary) => setLook({ primary })} options={PRIMARY} />
-						<AnchorField label="Status lean" prefix="S" suffix="%" min={0} max={100} value={look.statusLean} measured={DEFAULT_STATUS_LEAN[look.palette]} onChange={(statusLean) => setLook({ statusLean })} />
-					</PropertyPair>
-				) : null}
-				{/* Harmony: how far the generated families (bg-blue-500 …) lean toward
-				    the brand. 0 keeps their own hues; 100 is the default; 200 doubles it. */}
-				<PropertyPair labels={["Neutrals", <AnchorCaption key="harmony" label="Harmony" set={look.harmony != null} onReset={() => setLook({ harmony: null })} />]}>
-					<ChromeSelect label="Neutrals" value={look.neutrals} onChange={(next) => setLook({ neutrals: next })} options={neutrals} />
-					<AnchorField label="Palette harmony" prefix="H" suffix="%" min={0} max={200} value={look.harmony} measured={100} onChange={(harmony) => setLook({ harmony })} />
-				</PropertyPair>
 			</Section>
 			<Section title="Corners">
 				<PropertyPair labels={[<AnchorCaption label="Medium radius" set={look.radiusBase != null} onReset={() => setLook({ radiusBase: null })} />, "Buttons"]}>

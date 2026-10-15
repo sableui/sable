@@ -6,6 +6,7 @@ import {
 	DisclosurePickerPanel,
 	DisclosurePickerTrigger,
 	Input,
+	PALETTE_COLORS,
 	PropertyRow,
 	Select,
 	SelectContent,
@@ -407,11 +408,17 @@ const PALETTE_GROUPS = [
 
 const PALETTE_TOKENS = PALETTE_GROUPS.flatMap((group) => group.tokens)
 
+/** The generated families, at the step a tag's dot or a solid swatch uses. */
+const FAMILY_TOKENS = ["neutral", ...PALETTE_COLORS].map((name) => `${name}-500`)
+
 /**
  * The palette the look paints right now, read back from the page — not
  * recomputed — so Harmonize or Triadic shows exactly what the canvas got.
- * Custom properties compute with var() substituted, so one read per token is
- * enough; it runs a frame after the look's stylesheet is rewritten.
+ * The roles compute with var() substituted, so one read per token is enough.
+ * The families do not: they are relative colours computed from --primary, and
+ * would re-resolve against the panel's own house theme if painted here, so
+ * they are resolved by a probe on the page instead. It runs a frame after the
+ * look's stylesheet is rewritten.
  */
 export function PalettePreview() {
 	const { css } = useCustomizer()
@@ -420,19 +427,35 @@ export function PalettePreview() {
 	useLayoutEffect(() => {
 		const frame = requestAnimationFrame(() => {
 			const computed = getComputedStyle(document.documentElement)
-			setColors(Object.fromEntries(PALETTE_TOKENS.map((token) => [token, computed.getPropertyValue(`--${token}`).trim()])))
+			const probe = document.createElement("span")
+			probe.style.cssText = "position:absolute;visibility:hidden;pointer-events:none"
+			document.body.appendChild(probe)
+			const family = (token: string) => {
+				probe.style.color = `var(--${token})`
+				return getComputedStyle(probe).color
+			}
+			setColors({
+				...Object.fromEntries(PALETTE_TOKENS.map((token) => [token, computed.getPropertyValue(`--${token}`).trim()])),
+				...Object.fromEntries(FAMILY_TOKENS.map((token) => [token, family(token)])),
+			})
+			probe.remove()
 		})
 		return () => cancelAnimationFrame(frame)
 	}, [css, mode])
+	// An outline, not an inset ring: it paints over the swatches, so a white ground still has an edge.
+	const strip = "flex h-full overflow-hidden rounded-xs outline-1 -outline-offset-1 outline-hairline-strong"
 	return (
-		<div className="grid gap-1" role="img" aria-label="Current palette. Status colours lean toward the brand only as far as they keep their meaning.">
+		<div
+			className="grid gap-1"
+			role="img"
+			aria-label="Current palette: ground, brand, tones and status, then the generated colour families. Status leans toward the brand only as far as it keeps its meaning."
+		>
 			<div className="flex h-5 items-center gap-1">
 				{PALETTE_GROUPS.map((group) => (
-					// An outline, not an inset ring: it paints over the swatches, so a white ground still has an edge.
 					<span
 						key={group.name}
 						title={group.name === "Status" ? "Status leans toward the brand only as far as it keeps its meaning" : group.name}
-						className="flex h-full overflow-hidden rounded-xs outline-1 -outline-offset-1 outline-hairline-strong"
+						className={strip}
 						style={{ flex: `${group.tokens.length} 1 0` }}
 					>
 						{group.tokens.map((token) => (
@@ -448,6 +471,17 @@ export function PalettePreview() {
 					</span>
 				))}
 			</div>
+			{/* The families (bg-blue-500 …): what Pull to brand moves. */}
+			<div className="mt-1 flex h-3 items-center">
+				<span className={cn(strip, "flex-1")} title="Palette: neutral and the eight families, as the brand pulls them">
+					{FAMILY_TOKENS.map((token) => (
+						<span key={token} className="flex-1" title={token.replace(/-500$/, "")} style={{ background: colors[token] || "transparent" }} />
+					))}
+				</span>
+			</div>
+			<span className="text-ui-micro text-muted-foreground" aria-hidden>
+				Palette
+			</span>
 		</div>
 	)
 }
@@ -468,6 +502,7 @@ export function ChromeSelect<T extends string>({
 	onChange,
 	className,
 	id,
+	disabled,
 }: {
 	label: string
 	value: T
@@ -475,9 +510,10 @@ export function ChromeSelect<T extends string>({
 	onChange: (value: T) => void
 	className?: string
 	id?: string
+	disabled?: boolean
 }) {
 	return (
-		<Select value={value} onValueChange={(next) => next != null && next !== value && onChange(next as T)}>
+		<Select value={value} disabled={disabled} onValueChange={(next) => next != null && next !== value && onChange(next as T)}>
 			<SelectTrigger id={id} size="xs" aria-label={label} className={className} />
 			<SelectContent data-canvas-chrome="">
 				{options.map((option) => (
@@ -543,6 +579,7 @@ export function Segmented<T extends string>({
 	fill = true,
 	size = "md",
 	id,
+	disabled,
 }: {
 	label: string
 	value: T
@@ -557,12 +594,15 @@ export function Segmented<T extends string>({
 	/** md for the simple view; sm is the property-grid rung (24px segments). */
 	size?: "md" | "sm"
 	id?: string
+	/** Shown but not yet in play (a brand-only choice before a brand is picked). */
+	disabled?: boolean
 }) {
 	const t = TRACK[size === "sm" && track === "card" ? "compact" : track]
 	return (
 		<ToggleGroup
 			id={id}
 			aria-label={label}
+			disabled={disabled}
 			value={[value]}
 			onValueChange={(next) => {
 				const picked = (next as T[])[0]

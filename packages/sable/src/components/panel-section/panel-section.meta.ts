@@ -73,6 +73,12 @@ export const panelSectionMeta: ComponentMeta = {
 				required: false,
 				description: "Two controls side by side, with optional captions above each.",
 			},
+			{
+				name: "PropertyGroup",
+				required: false,
+				description:
+					"A set of properties folded behind one row that names the group and summarises its value, opening with +/− to the controls beneath.",
+			},
 		],
 	},
 	related: {
@@ -105,8 +111,15 @@ export const panelSectionMeta: ComponentMeta = {
 			description:
 				"Two controls side by side in a 2-up grid, with optional captions above each.",
 		},
+		{
+			name: "PropertyGroup",
+			type: "{ label: ReactNode; summary?: ReactNode; defaultOpen?: boolean; open?: boolean; onOpenChange?: (open: boolean) => void }",
+			description:
+				"A collapsible set of properties inside a section, at the panel's scale (an Accordion is page furniture). The row shows the label, then the summary (the group's value, readable while closed: a word, a few swatches, or both), then a + that turns to − when open. Groups open independently and stack with a hairline between them. Built on Collapsible.",
+		},
 	],
 	a11y: [
+		"PropertyGroup's row is a real button with aria-expanded (Collapsible); its summary is part of the button's name, so a closed group still announces its value.",
 		"PropertyRow renders a real <label>; pass htmlFor with the control's id so clicking the label focuses it.",
 		"The section title is an h3, so panels contribute a real heading outline rather than styled divs.",
 		"`hint` is exposed as the label's title attribute — keep the essential meaning in the label itself, since title text is not reliably announced.",
@@ -114,6 +127,27 @@ export const panelSectionMeta: ComponentMeta = {
 	],
 	tokensUsed: ["foreground", "muted-foreground", "hairline"],
 	examples: [
+		{
+			label: "Groups that fold behind their value",
+			code: `<PanelSection title="Color">
+  <PropertyGroup label="Tones" summary="Brand only">
+    <PropertyRow label="Scheme">
+      <Select value="brand">
+        <SelectTrigger size="xs" />
+        <SelectContent>
+          <SelectItem value="brand">Brand only</SelectItem>
+          <SelectItem value="harmonize">Harmonize</SelectItem>
+        </SelectContent>
+      </Select>
+    </PropertyRow>
+  </PropertyGroup>
+  <PropertyGroup label="Grid" summary="8px">
+    <PropertyRow label="Size">
+      <ScrubField label="Grid size" value={8} min={1} max={64} suffix="px" />
+    </PropertyRow>
+  </PropertyGroup>
+</PanelSection>`,
+		},
 		{
 			label: "Blending section, 2-up",
 			code: `<PanelSection title="Blending">
