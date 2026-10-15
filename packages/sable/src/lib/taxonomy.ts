@@ -78,6 +78,8 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 	   options" pattern) — that its list opens in a layer is how it works, not
 	   what it is. Copying is `useCopy` on a Button, not a component. */
 	Button: ["Actions", "either"],
+	ButtonGroup: ["Actions", "either"],
+	Menubar: ["Actions", "either"],
 	OverflowMenu: ["Actions", "either"],
 	Toolbar: ["Actions", "either"],
 
@@ -93,6 +95,7 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 	FileDropzone: ["Forms", "page"],
 	Form: ["Forms", "either"],
 	Input: ["Forms", "either"],
+	InputGroup: ["Forms", "either"],
 	Label: ["Forms", "either"],
 	NumberField: ["Forms", "either"],
 	OtpField: ["Forms", "either"],
@@ -121,6 +124,7 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 
 	/* ── Overlays ─────────────────────────────────────────────────────────────
 	   Anything that renders above the page in its own layer. */
+	CaretMenu: ["Overlays", "either"],
 	CommandMenu: ["Overlays", "either"],
 	ContextCard: ["Overlays", "page"],
 	ContextMenu: ["Overlays", "either"],
@@ -139,6 +143,7 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 	   stay together; `Tree` is the hierarchy browser. */
 	Breadcrumbs: ["Navigation", "either"],
 	BottomNav: ["Navigation", "page"],
+	NavigationMenu: ["Navigation", "page"],
 	Pagination: ["Navigation", "either"],
 	ShowMore: ["Navigation", "page"],
 	SideNav: ["Navigation", "page"],

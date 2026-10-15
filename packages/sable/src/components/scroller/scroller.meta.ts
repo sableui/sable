@@ -72,6 +72,13 @@ export const scrollerMeta: ComponentMeta = {
 				"On a horizontal Scroller, let a vertical mouse wheel scroll it sideways. Ignored when vertical. Turn it off only if the region is inside something that owns the wheel itself (a map, a canvas).",
 		},
 		{
+			name: "smoothWheel",
+			type: "boolean",
+			default: "true",
+			description:
+				"Ease mouse-wheel steps toward their target, on either axis: the inertia a smooth-scroll library such as Lenis adds, scoped to this region. Only a mouse wheel is eased; trackpads and touch keep their own momentum, keys and scrollbar drags stay native, and reduced motion (the OS preference or MotionProvider) turns it off. Anything else that moves the region (scrollIntoView, a stick-to-bottom chat) stops the easing at once. For a scroll container of your own, `useSmoothWheel()` returns the same behaviour as a ref callback.",
+		},
+		{
 			name: "label",
 			type: "string",
 			description:

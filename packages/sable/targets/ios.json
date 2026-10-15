@@ -218,6 +218,15 @@
       ],
       "defaultContext": "Everything else"
     },
+    "ButtonGroup": {
+      "source": "ButtonGroup",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "ButtonGroup"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
     "Calendar": {
       "source": "Calendar",
       "strategy": "preserve",
@@ -233,6 +242,15 @@
       "importFrom": "@sableui/react",
       "components": [
         "Card"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
+    "CaretMenu": {
+      "source": "CaretMenu",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "CaretMenu"
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
@@ -498,6 +516,15 @@
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
+    "InputGroup": {
+      "source": "InputGroup",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "InputGroup"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
     "Kbd": {
       "source": "Kbd",
       "strategy": "preserve",
@@ -570,6 +597,15 @@
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
+    "Menubar": {
+      "source": "Menubar",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "Menubar"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
     "Message": {
       "source": "Message",
       "strategy": "preserve",
@@ -603,6 +639,15 @@
       "importFrom": "@sableui/react",
       "components": [
         "MiddleTruncate"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
+    "NavigationMenu": {
+      "source": "NavigationMenu",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "NavigationMenu"
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },

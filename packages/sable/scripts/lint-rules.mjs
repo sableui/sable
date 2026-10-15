@@ -728,6 +728,41 @@ export function makeRules({ semanticTokens, motionTokens, labelContrast = null, 
 			},
 		},
 		{
+			id: "shadcn-leftover",
+			/* CONSUMER-scoped. A shadcn/Radix migration is done when nothing still
+			 * imports the old stack. The leftovers compile and mostly render, which is
+			 * the problem: a Radix Dialog beside Sable's has its own focus, layering
+			 * and motion, and `asChild` on a Sable trigger is silently ignored (Base
+			 * UI composes through `render`). The migration guide used to end with a
+			 * grep for these; the grep is now this rule. A deliberate keeper, such as
+			 * a Radix part Sable does not ship yet, takes a reasoned disable. */
+			scope: "consumer",
+			since: "0.12.0",
+			file: true,
+			code: true,
+			why:
+				"Leftover shadcn/ui or Radix code. Sable replaces the stack: `asChild` → `render`, `@radix-ui/*` and `@/components/ui/*` → the Sable component (`sable search \"<name>\"`), `lucide-react` → <Icon name> under IconProvider, `sonner` → ToastProvider + toast, `vaul` → Sheet, `cmdk` → CommandMenu, `input-otp` → OtpField, `next-themes` → SableThemeProvider. `sable docs migrating-from-shadcn` has the full map.",
+			scan(text) {
+				const REPLACEMENT = {
+					"lucide-react": "<Icon name> under IconProvider",
+					sonner: "ToastProvider + toast",
+					vaul: "Sheet",
+					cmdk: "CommandMenu",
+					"input-otp": "OtpField",
+					"next-themes": "SableThemeProvider",
+				}
+				const out = []
+				for (const m of text.matchAll(/from\s+["']((@radix-ui\/[\w-]+)|[@~]\/components\/ui(?:\/[\w-]+)?|lucide-react|sonner|vaul|cmdk|input-otp|next-themes)["']/g)) {
+					const target = REPLACEMENT[m[1]] ?? "the Sable component (sable search)"
+					out.push({ index: m.index, match: `import from "${m[1]}" → ${target}` })
+				}
+				// The JSX prop, not prose: `<DialogTrigger asChild>`, `asChild={true}`.
+				for (const m of text.matchAll(/<[A-Z][\w.]*\b[^<>]*?\s(asChild)(?=[\s=/>])/g))
+					out.push({ index: m.index + m[0].lastIndexOf("asChild"), match: "asChild → render={<Element />}" })
+				return out
+			},
+		},
+		{
 			id: "hand-rolled-control",
 			/* CONSUMER-scoped: apps built WITH Sable. The package's own components are
 			 * where these roles are allowed to be implemented; everywhere else, a

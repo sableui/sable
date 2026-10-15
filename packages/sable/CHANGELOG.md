@@ -1,5 +1,175 @@
 # What's new
 
+## 0.12.0
+
+Getting to a working first component, finding the right example, moving over from shadcn, and the components that move called for: Menubar, NavigationMenu, InputGroup, ButtonGroup, CaretMenu and bottom-sheet snap points.
+
+- **New: `sable init` wires an app in one step.** Run it after `pnpm add
+  @sableui/react`. It installs what is missing with your package manager
+  (React, Tailwind and its build plugin), puts the CSS imports in order, adds
+  React dedupe and the Tailwind plugin to a Vite config (a
+  `postcss.config.mjs` for Next.js), loads Figtree and DM Mono, and wraps a
+  Vite starter's `<App />` in `IconProvider`. Then it installs the agent
+  skill and runs `sable doctor`. What it can't change safely, such as a
+  Next.js layout or an unfamiliar config, it prints as the snippet and the
+  file it belongs in. `--dry-run` shows every change first.
+- **New: `sable doctor --fix`** applies the same fixes to whatever doctor
+  flags in an app that's already set up, then checks again. A fix that
+  didn't take is reported as unverified, not done. Doctor also gains two
+  warnings: Tailwind missing from the Vite or Next.js build (`css:build`),
+  and the theme's fonts never loaded (`fonts`).
+- **`sable search` finds examples.** Every component example is searchable
+  by what it shows: `sable search "multiple selection"` or `"server errors"`.
+  A hit names its own retrieve command, `sable component Combobox --example
+  "Multiple selection"`, which prints that one example with its imports.
+  Examples are capped per component and per list, so a component name still
+  lands on the component.
+- **New: a migration guide from shadcn/ui and Radix.** `sable docs
+  migrating-from-shadcn` maps what changes everywhere (`asChild` becomes
+  `render`, values become arrays, menu rows take `onClick`,
+  `data-[state=open]:` becomes `sable-open:`), the tokens, lucide icons, and
+  every shadcn component to its Sable counterpart, or what to compose where
+  there isn't one. `converting-an-app` points to it.
+- **New lint rule: `shadcn-leftover`.** Flags imports still coming from the
+  old stack (`@radix-ui/*`, `@/components/ui`, `lucide-react`, `sonner`,
+  `vaul`, `cmdk`, `input-otp`, `next-themes`) and any `asChild` prop, which a
+  Sable trigger silently ignores. A deliberate keeper takes a reasoned disable.
+- **The agent skill has a `fix` mode.** `$sable fix <target>` (or `/sable
+  fix`) repairs one scoped defect on a short path: it reads only the
+  contracts the change touches, then runs `sable check` on the changed files
+  and looks at the affected state. It escalates to `polish`, and its full
+  finish checklist, when the change grows. Run `sable setup --agent --update`
+  to refresh installed entries.
+- **ChatComposer can send attachments without text.** Pass
+  `allowEmpty={files.length > 0}` and send enables on the files alone;
+  `onSend` receives `""`. Tie it to the pending files: a constant
+  `allowEmpty` leaves send enabled with nothing to send.
+- **ChatComposer: on a phone or tablet, Return starts a new line.** A soft
+  keyboard has no Shift+Return, so on a touch device (`pointer: coarse`) the
+  default `sendOn="enter"` now behaves as `mod-enter`: Return breaks the
+  line, the send button sends, and ⌘/Ctrl+Enter still sends from a hardware
+  keyboard. `aria-keyshortcuts` reports whichever is in effect. `footer` now
+  also takes a function of the send key in effect, so a keyboard hint can
+  stay true: `footer={({ sendOn }) => sendOn === "enter" ? "Enter to send" :
+  null}` (null removes the row). *Migration:* a fixed "Enter to send" footer
+  is wrong on touch; switch it to the function form, as ChatPanel has.
+- **Combobox documents server-backed search.** A new "Async search" example
+  and the props it uses (`filter={null}`, `onInputValueChange`,
+  `itemToStringLabel`) show how to show results a server already filtered.
+- **New: `Menubar`.** An application's row of menus (File, Edit, View) over
+  Base UI's Menubar. Each menu is an ordinary `Menu` with a `MenubarTrigger`
+  as its title. The bar is one tab stop with ←/→ between titles, and once a
+  menu is open, pointing at a neighbour opens it.
+- **New: `NavigationMenu`.** A site header's primary nav: a bar of links and
+  triggers, where a trigger opens a panel of links on hover, click or Enter.
+  One shared panel moves along the bar and resizes to each trigger's
+  content. Links take your router's link through `render` and mark the
+  current page with `active`; panel rows take a `description`. Below `md`,
+  hand the same destinations to a Sheet with a SideNav, as the docs show.
+- **Pagination can render real links.** `pageLink={(page) => <Link
+  to={`?page=${page}`} />}` makes every page control a link that crawlers
+  follow and readers can open in a new tab. The current page keeps
+  `aria-current`; the arrows at the ends stay disabled buttons.
+  `onPageChange` is optional with `pageLink`.
+- **New: `InputGroup`.** An Input with addons inside the same field: a
+  prefix or suffix ("https://", ".com"), an icon, or a borderless Button
+  such as copy or reveal. One shell, one focus ring, one error state; inside
+  a Field, the label, description and error reach the Input.
+- **OverflowMenu documents responsive actions.** Secondary actions inline
+  when the container is wide, folded into the menu when it's narrow, the
+  primary action always inline. `sable search "responsive action menu"`
+  finds it.
+- **Sheet: snap points for bottom sheets.** `<Sheet snapPoints={[0.4, 1]}>`
+  gives a bottom sheet stops between closed and fully open; a swipe moves
+  between them, and `snapPoint` / `onSnapPointChange` control the active
+  one (new `SheetSnapPoint` type). With stops the sheet shows a drag handle,
+  and the part below the screen becomes padding, so content scrolls and
+  `SheetFooter` stays visible. Other sides ignore stops and a development
+  build says so. Every bottom sheet now also rides above the on-screen
+  keyboard (measured from `visualViewport`).
+- **New: `CaretMenu` and `useCaretTrigger`, mentions and slash commands on
+  any text field.** The hook watches a Textarea, Input or ChatComposer
+  (`fieldRef`) for a trigger character at the caret (`@`, `/` at the start,
+  `#`) and reports the query. CaretMenu shows suggestions there, driven by
+  ↑/↓, Enter, Tab and Escape while focus stays in the field. The app
+  supplies the items and what choosing one does: `trigger.replace("@Sam
+  Rivera ")` inserts a mention as text, and a command runs and `replace("")`
+  clears it. The value stays a plain string; chips inside the field need a
+  rich-text editor, which Sable doesn't ship.
+- **ChatComposer: an Enter someone else handled doesn't send.** A listener
+  on `fieldRef` that handles Enter and calls `preventDefault()` owns it. It's
+  how CaretMenu picks a suggestion instead of sending, and how an app adds
+  key behaviour of its own.
+- **ChatComposer keeps focus after Stop.** Stop turns back into send in
+  place, and with an empty field that send is disabled, which dropped focus
+  to the page. Focus now moves to the field, except on touch, where it would
+  raise the keyboard unasked.
+- **Scroller eases the mouse wheel.** New `smoothWheel` (on by default): a
+  notch eases toward its target instead of jumping, on either axis, the
+  inertia a library like Lenis adds but scoped to the region. Only a mouse
+  wheel is eased: trackpads and touch keep their own momentum, keys and
+  scrollbar drags stay native, it releases at the ends so the page scrolls
+  on, a nested area that can still scroll (a code block, a textarea) keeps
+  the wheel, a region that smooths or snaps in CSS is left to the browser,
+  and anything else that moves the region (`scrollIntoView`, a scrollbar
+  drag) stops it at once. Reduced motion turns it off. New
+  `useSmoothWheel()` gives a scroll container of your own the same thing.
+- **New guide: `sable docs building-a-chat`.** Wires Sable's chat parts to
+  any streaming source: which part owns what and what stays with the app, a
+  turn's lifecycle mapped onto `busy`, `onStop`, `streaming` and `disabled`,
+  where each failure goes, announcing a turn once rather than per token, and
+  rendering model output without injecting HTML.
+- **New guide: `sable docs extending-a-component`.** What to do when a
+  component doesn't do what you need: compose with `render`, fill a slot,
+  hold the state and reach the element, add behaviour on top (mentions as
+  the worked example), change the look through tokens and presets rather
+  than overrides, patch a defect, and tell a library gap from app work.
+- **The shadcn migration guide now maps every component.** Menubar,
+  NavigationMenu, InputGroup, ButtonGroup, link Pagination and drawer snap
+  points all have counterparts.
+- **Fix: a horizontal Scroller no longer widens its container.** Its outer
+  box kept the default `min-width: auto`, so inside a grid or flex column a
+  strip of cards grew to its full length and never scrolled. It now shrinks
+  to the column and scrolls with its edge fade. The Scrolling page's own
+  example was showing exactly this, and also lacked `orientation="horizontal"`.
+- **`useCopy` takes a function.** `useCopy(() => fetch(url).then((r) =>
+  r.text()))` produces the text only on click; a pending promise goes to the
+  clipboard as a ClipboardItem so Safari still counts it as part of the click.
+  New `CopySource` type.
+- **New: `ButtonGroup`.** Buttons joined into one control, such as a split
+  button (an action beside the chevron that opens its menu) or a short run of
+  related actions. The children stay ordinary Buttons with their own variants
+  and sizes. The group squares their inner corners, collapses bordered seams
+  into one hairline and draws a seam between filled ones. Button now reads a
+  per-side radius (`--button-radius-s` / `--button-radius-e`, falling back to
+  `--button-radius`) and renders `data-variant`, which is how the group
+  does it without overriding a class.
+- **Menu rows can carry an icon and a description.** `MenuItem` takes `icon`
+  and `description`, a quieter second line saying what the action does; with
+  a description the icon sits in a small tile spanning both lines.
+- **New: `MenuLinkItem`.** A menu row that navigates: a real `<a>`, so it opens
+  in a new tab, middle-clicks and copies as a link. With `target="_blank"`
+  it adds `rel="noopener noreferrer"` and a trailing ↗.
+- **Icon contract: `arrow-up-right`.** Added for links that leave the app.
+  An app with its own icon set should map it; Reicon's set already does.
+- **sableui.com: a Copy page button on every page.** Each page with a
+  Markdown version has a split button in its header. Copy page copies the
+  page as Markdown, fetched only when you click. The menu behind the chevron
+  opens the Markdown file, starts a ChatGPT or Claude chat that reads the
+  page (Claude tries the desktop app first and falls back to claude.ai), and
+  copies the setup command (`pnpm add @sableui/react && pnpm exec
+  sable init`). The Markdown files are the same ones the site publishes at
+  `/<page>.md`; both now come from one table
+  (`apps/docs/src/markdown-twins.json`).
+- **New: `Sidebar surface="page"`.** The rail paints the page's own surface
+  and ink, with no border, instead of the theme's `--sidebar-*` set. Use it
+  when a full-width header sits above the rail: a tinted or dark rail
+  (Verdant, Meridian) starting under a page-coloured bar reads as pasted on.
+  The default, `surface="rail"`, is unchanged and still right for a
+  full-height rail. Overriding `bg-background text-foreground` on a Sidebar
+  never worked, because the rail re-points those tokens at its own;
+  use the prop instead. sableui.com's docs rail now uses it.
+
 ## 0.11.0
 
 - **New: `PropertyGroup`, a collapsible group inside a PanelSection.** The

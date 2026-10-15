@@ -40,6 +40,8 @@ const OWNERS: Record<string, { owners: string[]; why?: string }> = {
 	"@base-ui/react/form": { owners: ["form"] },
 	"@base-ui/react/input": { owners: ["input"] },
 	"@base-ui/react/menu": { owners: ["menu"] },
+	"@base-ui/react/menubar": { owners: ["menubar"] },
+	"@base-ui/react/navigation-menu": { owners: ["navigation-menu"] },
 	"@base-ui/react/meter": { owners: ["meter"] },
 	"@base-ui/react/number-field": { owners: ["number-field"] },
 	"@base-ui/react/otp-field": { owners: ["otp-field"] },

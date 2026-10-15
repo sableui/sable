@@ -10,6 +10,10 @@ export const overflowMenuMeta: ComponentMeta = {
 		"more actions",
 		"ellipsis",
 		"kebab",
+		"responsive actions",
+		"responsive action menu",
+		"collapse actions",
+		"actions overflow on mobile",
 	],
 	usage: {
 		description: "Use OverflowMenu for compact overflow actions when the primary action is already visible elsewhere.",
@@ -21,6 +25,10 @@ export const overflowMenuMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description: "Keep labels explicit so the icon-only trigger does not obscure the command meaning.",
+			},
+			{
+				guidance: "do",
+				description: "For actions that fit inline on a wide screen but not a narrow one, render them twice: inline (a Row inside a wrapper shown from a container width; Row sets its own display, so the wrapper does the hiding), and as MenuItems in an OverflowMenu hidden from that width (`@container` + `@md:`). display:none takes the hidden copy out of the accessibility tree, so only one set is ever announced. Keep the primary action inline at every width.",
 			},
 			{
 				guidance: "dont",
@@ -97,6 +105,10 @@ export const overflowMenuMeta: ComponentMeta = {
 		{
 			label: "With leading icons",
 			code: '<OverflowMenu><MenuItem><Icon name="check" className="text-sm" />Mark as read</MenuItem><MenuSeparator /><MenuItem variant="destructive"><Icon name="xmark" className="text-sm" />Delete</MenuItem></OverflowMenu>',
+		},
+		{
+			label: "Responsive actions: inline when wide, in a menu when narrow",
+			code: '<div className="@container/actions flex w-full justify-end">\n\t<Row gap={1} align="center">\n\t\t<div className="hidden @md/actions:block">\n\t\t\t<Row gap={1}>\n\t\t\t\t<Button variant="ghost" size="sm" iconStart={<Icon name="share" />}>Share</Button>\n\t\t\t\t<Button variant="ghost" size="sm" iconStart={<Icon name="download" />}>Export</Button>\n\t\t\t</Row>\n\t\t</div>\n\t\t<div className="@md/actions:hidden">\n\t\t\t<OverflowMenu label="Report actions" size="icon-sm">\n\t\t\t\t<MenuItem icon={<Icon name="share" />}>Share</MenuItem>\n\t\t\t\t<MenuItem icon={<Icon name="download" />}>Export</MenuItem>\n\t\t\t</OverflowMenu>\n\t\t</div>\n\t\t<Button size="sm" iconStart={<Icon name="edit" />}>Edit report</Button>\n\t</Row>\n</div>',
 		},
 	],
 }

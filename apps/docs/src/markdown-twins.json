@@ -1,0 +1,23 @@
+{
+	"$comment": "The markdown twin of each docs route that is not a component page (a component's twin is /llms/components/<slug>.md). Read by scripts/prerender-routes.mjs, which publishes each twin at /<route>.md, and by the page header's Copy Markdown action. /llms.txt means the route has no twin of its own, only the index.",
+	"getting-started": "/llms/tasks/getting-started.md",
+	"build-with-sable": "/llms/tasks/building-with-sable.md",
+	"ios-prototype": "/llms/tasks/building-an-ios-prototype.md",
+	"credits": "/credits.md",
+	"whats-new": "/whats-new.md",
+	"patterns": "/llms.txt",
+	"blocks": "/llms.txt",
+	"themes": "/llms/tasks/using-presets.md",
+	"colors": "/llms/reference/token-intent.md",
+	"typography": "/llms/foundations/typography.md",
+	"dimensions": "/llms/foundations/spacing.md",
+	"shape": "/llms/foundations/shape.md",
+	"elevation": "/llms/foundations/surfaces.md",
+	"motion": "/llms/foundations/motion.md",
+	"grid": "/llms/layout/grid.md",
+	"icons": "/llms.txt",
+	"scrolling": "/llms/foundations/scrolling.md",
+	"accessibility": "/llms/foundations/accessibility.md",
+	"guidelines": "/llms.txt",
+	"customize": "/llms/tasks/creating-a-preset.md"
+}

@@ -1,0 +1,75 @@
+import type { ComponentMeta } from "../../lib/meta"
+
+export const buttonGroupMeta: ComponentMeta = {
+	name: "ButtonGroup",
+	summary:
+		"Buttons joined into one control: a split button (an action beside the chevron that opens its menu) or a short run of related actions. The children stay ordinary Buttons; the group squares their inner corners, collapses bordered seams into one hairline, and draws a seam between filled ones.",
+	status: "stable",
+	keywords: ["split button", "button group", "segmented actions", "dropdown button", "joined buttons", "toolbar"],
+	usage: {
+		description:
+			"Use ButtonGroup when one action has close alternatives (Copy page, with Open in… behind a chevron) or a few actions belong together as one object (zoom out, reset, zoom in). Use ToggleGroup for a choice that stays selected, and Tabs to switch views.",
+		bestPractices: [
+			{
+				guidance: "do",
+				description:
+					"Give the children one height: `size=\"sm\"` with `size=\"icon-sm\"`, `md` with `icon`. The group aligns them but cannot reconcile two heights into one edge.",
+			},
+			{
+				guidance: "do",
+				description:
+					"For a split button, put the main action first and a Menu whose trigger is the chevron Button second, with an aria-label on the trigger (\"More page actions\").",
+			},
+			{
+				guidance: "do",
+				description: "Name the group with aria-label when the buttons alone do not say what they act on.",
+			},
+			{
+				guidance: "dont",
+				description:
+					"Do not round or border the children yourself to make them meet; that is the group's job, and an override breaks under a theme's button shape.",
+			},
+			{
+				guidance: "dont",
+				description: "Do not use it for a selection that stays on. That is ToggleGroup, which carries the pressed state.",
+			},
+		],
+	},
+	related: {
+		components: ["Button", "Menu", "Toggle"],
+	},
+	props: [
+		{
+			name: "role",
+			type: "string",
+			default: '"group"',
+			description: "Group semantics, so a screen reader announces the buttons as one set. Pass `toolbar` when it carries arrow-key navigation of your own.",
+		},
+		{
+			name: "className",
+			type: "string",
+			description: "Layout classes for the group (margins, alignment). The children's look comes from their own variants.",
+		},
+		{
+			name: "...props",
+			type: 'ComponentPropsWithRef<"div">',
+			description: "All native <div> attributes, including aria-label.",
+		},
+	],
+	tokensUsed: [],
+	a11y: [
+		"Renders role=\"group\", so assistive tech announces the buttons as one set; name it with aria-label.",
+		"Each child keeps its own focus stop and label; a focused child is raised above its neighbour so its ring is drawn whole.",
+		"An icon-only chevron that opens a menu needs its own aria-label, such as \"More page actions\".",
+	],
+	examples: [
+		{
+			label: "Split button with a menu",
+			code: '<ButtonGroup aria-label="Page actions"><Button variant="outline" size="sm" iconStart={<Icon name="copy" />} onClick={copy}>Copy page</Button><Menu><MenuTrigger render={<Button variant="outline" size="icon-sm" aria-label="More page actions" />}><Icon name="chevron-down" /></MenuTrigger><MenuContent align="end"><MenuItem icon={<Icon name="file" />} description="View this page as plain text">View as Markdown</MenuItem></MenuContent></Menu></ButtonGroup>',
+		},
+		{
+			label: "Related actions",
+			code: '<ButtonGroup aria-label="Zoom"><Button variant="secondary" size="icon-sm" aria-label="Zoom out"><Icon name="minus" /></Button><Button variant="secondary" size="sm">100%</Button><Button variant="secondary" size="icon-sm" aria-label="Zoom in"><Icon name="plus" /></Button></ButtonGroup>',
+		},
+	],
+}

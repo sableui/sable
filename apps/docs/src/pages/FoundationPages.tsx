@@ -125,7 +125,7 @@ export function ScrollingPage() {
 				<QuietList />
 			</Section>
 			<Section title="Horizontal: an edge fade" description="No bar. The fade says there is more, and the mouse wheel moves it sideways.">
-				<Scroller label="Example strip">
+				<Scroller orientation="horizontal" label="Example strip">
 					<div className="flex gap-3">
 						{Array.from({ length: 16 }, (_, i) => (
 							<div key={i} className="grid h-24 w-40 shrink-0 place-items-center rounded-lg border border-border bg-card text-label-md">

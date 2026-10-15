@@ -1,6 +1,6 @@
 ---
 name: sable
-description: Build websites and apps with Sable, develop reusable presets from inspiration, audit interfaces, and polish designs using the installed library.
+description: Build websites and apps with Sable, develop reusable presets from inspiration, audit interfaces, polish designs, and fix scoped defects using the installed library.
 ---
 
 # Sable
@@ -27,7 +27,8 @@ named `sable` or `sable-ui`. Explain missing access and continue
 independent brief work when installation is blocked.
 
 Primary modes are `build <idea> [using <preset>]`, `inspire <references or brief>`,
-`audit <existing interface>`, and `polish <target>`. `create` aliases `build`.
+`audit <existing interface>`, `polish <target>`, and `fix <target>` for one scoped
+defect. `create` aliases `build`.
 These are agent modes, not terminal subcommands. Every build must query and use
 the installed Sable components, variants, utilities, tokens, layouts, and guides,
 then run its design lint and inspect the working result. Do not begin UI code

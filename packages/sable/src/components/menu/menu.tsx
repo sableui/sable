@@ -1,5 +1,5 @@
 import { Menu as Base } from "@base-ui/react/menu"
-import type { ComponentProps } from "react"
+import type { ComponentProps, ReactNode } from "react"
 import { Icon } from "../../icon"
 import { anchoredScroll } from "../../lib/anchored-scroll"
 import { cn } from "../../lib/cn"
@@ -80,16 +80,59 @@ export function MenuContent({
 	)
 }
 
-type ItemProps = Omit<ComponentProps<typeof Base.Item>, "className"> & {
-	className?: string
+export type ItemContent = {
+	/** A leading icon. Beside a `description` it sits in a small tile spanning both lines. */
+	icon?: ReactNode
 	/**
-	 * `destructive` for an action that deletes or cannot be undone. It keeps the
-	 * destructive ink when highlighted — the default highlight repaints the row
-	 * in accent ink, which hid the warning exactly when the row was targeted —
-	 * and washes the highlight in the destructive tone instead.
-	 * @default "default"
+	 * A second, quieter line under the label: what the action does, where a
+	 * label alone is ambiguous ("Copy page" → "Copy page as Markdown for LLMs").
 	 */
-	variant?: "default" | "destructive"
+	description?: ReactNode
+}
+
+type ItemProps = Omit<ComponentProps<typeof Base.Item>, "className"> &
+	ItemContent & {
+		className?: string
+		/**
+		 * `destructive` for an action that deletes or cannot be undone. It keeps the
+		 * destructive ink when highlighted — the default highlight repaints the row
+		 * in accent ink, which hid the warning exactly when the row was targeted —
+		 * and washes the highlight in the destructive tone instead.
+		 * @default "default"
+		 */
+		variant?: "default" | "destructive"
+	}
+
+/** A menu row. Shared with CaretMenuItem, so suggestion rows and menu rows cannot drift apart. */
+export const MENU_ITEM =
+	"flex cursor-default select-none items-center gap-(--item-gap) rounded-popup-item px-(--item-px) py-1.5 outline-none motion-interactive data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:shrink-0"
+
+/**
+ * The row's content: the label alone, or icon + label + description. The
+ * description keeps the muted ink under the highlight, so the two lines stay
+ * two levels rather than flattening into the label's accent ink.
+ */
+export function useItemContent(children: ReactNode, { icon, description }: ItemContent) {
+	const tier = useTypeTier()
+	if (!description) return icon ? <>{icon}{children}</> : children
+	return (
+		<>
+			{icon ? (
+				<span
+					data-slot="menu-item-icon"
+					className="flex size-(--control-sm) shrink-0 items-center justify-center rounded-sm border border-border-strong bg-popover text-muted-foreground"
+				>
+					{icon}
+				</span>
+			) : null}
+			<span className="flex min-w-0 flex-col">
+				<span>{children}</span>
+				<span data-slot="menu-item-description" className={cn("text-muted-foreground", tier.secondary)}>
+					{description}
+				</span>
+			</span>
+		</>
+	)
 }
 
 /** Shared with ContextMenuItem so the two destructive rows cannot drift apart. */
@@ -102,17 +145,51 @@ export const MENU_ITEM_DESTRUCTIVE =
 	"text-[color-mix(in_oklch,var(--destructive-text)_75%,var(--foreground))] data-[highlighted]:bg-destructive/10 data-[highlighted]:text-[color-mix(in_oklch,var(--destructive-text)_75%,var(--foreground))]"
 
 /** A single interactive row. Highlights via Base UI's data-[highlighted]. */
-export function MenuItem({ className, variant = "default", ...props }: ItemProps) {
+export function MenuItem({ className, variant = "default", icon, description, children, ...props }: ItemProps) {
 	const tier = useTypeTier()
+	const content = useItemContent(children as ReactNode, { icon, description })
 	return (
 		<Base.Item
-			className={cn(
-				`flex cursor-default select-none items-center gap-(--item-gap) rounded-popup-item px-(--item-px) py-1.5 ${tier.body} outline-none motion-interactive data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:shrink-0`,
-				variant === "destructive" && MENU_ITEM_DESTRUCTIVE,
-				className,
-			)}
+			className={cn(MENU_ITEM, tier.body, variant === "destructive" && MENU_ITEM_DESTRUCTIVE, className)}
 			{...props}
-		/>
+		>
+			{content}
+		</Base.Item>
+	)
+}
+
+type LinkItemProps = Omit<ComponentProps<typeof Base.LinkItem>, "className"> &
+	ItemContent & {
+		className?: string
+	}
+
+/**
+ * A row that navigates: a real `<a>`, so it opens in a new tab, middle-clicks
+ * and copies as a link, which a MenuItem with an onClick cannot. Pass `href`,
+ * and `target="_blank"` for a page outside the app; the row then marks itself
+ * as leaving with a trailing ↗.
+ */
+export function MenuLinkItem({ className, icon, description, children, target, ...props }: LinkItemProps) {
+	const tier = useTypeTier()
+	const external = target === "_blank"
+	const label = external ? (
+		<span className="inline-flex items-center gap-1">
+			{children as ReactNode}
+			<Icon name="arrow-up-right" className="text-[0.875em] text-muted-foreground" />
+		</span>
+	) : (
+		(children as ReactNode)
+	)
+	const content = useItemContent(label, { icon, description })
+	return (
+		<Base.LinkItem
+			className={cn(MENU_ITEM, tier.body, className)}
+			target={target}
+			rel={external ? "noopener noreferrer" : undefined}
+			{...props}
+		>
+			{content}
+		</Base.LinkItem>
 	)
 }
 

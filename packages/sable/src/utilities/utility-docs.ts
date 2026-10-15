@@ -88,9 +88,13 @@ export const UTILITIES_ELSEWHERE = {
 /**
  * `@utility` / `@custom-variant` names in styles.css that are deliberately NOT
  * public, so neither the build nor the CLI test asks for a doc. Each needs a
- * reason in a comment. Empty today: every utility styles.css declares is public.
+ * reason in a comment.
  */
-export const INTERNAL_UTILITIES: readonly string[] = []
+export const INTERNAL_UTILITIES: readonly string[] = [
+	// ButtonGroup's own joins. Public use is the component: on any other
+	// container the sibling rules would square buttons nobody grouped.
+	"button-group-join",
+]
 
 export const UTILITY_DOCS: UtilityDoc[] = [
 	/* ── Relative surfaces ─────────────────────────────────────────────────── */

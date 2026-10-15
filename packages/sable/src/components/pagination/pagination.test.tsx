@@ -49,3 +49,44 @@ describe("Pagination", () => {
 		expect(screen.getByRole("button", { name: "Previous page" })).toBeEnabled()
 	})
 })
+
+describe("Pagination with page links", () => {
+	const link = (page: number) => <a href={`/results?page=${page}`} />
+
+	it("renders every page and the arrows as crawlable links", () => {
+		renderWithProviders(<Pagination page={3} total={10} pageLink={link} />)
+		expect(screen.getByRole("navigation", { name: "Pagination" })).toBeInTheDocument()
+		expect(screen.getByRole("link", { name: "Page 1" })).toHaveAttribute("href", "/results?page=1")
+		expect(screen.getByRole("link", { name: "Page 3" })).toHaveAttribute("aria-current", "page")
+		expect(screen.getByRole("link", { name: "Previous page" })).toHaveAttribute("href", "/results?page=2")
+		expect(screen.getByRole("link", { name: "Next page" })).toHaveAttribute("href", "/results?page=4")
+	})
+
+	it("keeps the arrows at the bounds as disabled buttons, never a link to nowhere", () => {
+		renderWithProviders(<Pagination page={1} total={3} pageLink={link} />)
+		expect(screen.getByRole("button", { name: "Previous page" })).toBeDisabled()
+		expect(screen.queryByRole("link", { name: "Previous page" })).toBeNull()
+		expect(screen.getByRole("link", { name: "Next page" })).toHaveAttribute("href", "/results?page=2")
+	})
+
+	it("still reports the page to a client that keeps its own state", async () => {
+		const seen: number[] = []
+		renderWithProviders(
+			<Pagination page={1} total={3} pageLink={(page) => <a href={`#page-${page}`} />} onPageChange={(p) => seen.push(p)} />,
+		)
+		await userEvent.click(screen.getByRole("link", { name: "Page 2" }))
+		expect(seen).toEqual([2])
+	})
+
+	it("leaves the current page alone when a modified click opens a link elsewhere", () => {
+		const seen: number[] = []
+		renderWithProviders(
+			<Pagination page={1} total={3} pageLink={(page) => <a href={`#page-${page}`} />} onPageChange={(p) => seen.push(p)} />,
+		)
+		const link = screen.getByRole("link", { name: "Page 2" })
+		for (const modifier of ["metaKey", "ctrlKey", "shiftKey", "altKey"]) {
+			link.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, [modifier]: true }))
+		}
+		expect(seen).toEqual([])
+	})
+})

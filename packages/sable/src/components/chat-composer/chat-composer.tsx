@@ -1,7 +1,7 @@
 "use client";
 
 import type { ComponentPropsWithRef, FormEvent, KeyboardEvent, ReactNode } from "react"
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useRef, useState, useSyncExternalStore } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
 import { useTypeTier } from "../../lib/density"
@@ -21,15 +21,26 @@ export interface ChatComposerProps
 	/**
 	 * Called with the trimmed message when the reader sends. An uncontrolled
 	 * composer clears itself afterwards; a controlled one is the caller's to
-	 * clear, since only they know whether the send succeeded.
+	 * clear, since only they know whether the send succeeded. With `allowEmpty`
+	 * the message can be `""`.
 	 */
 	onSend?: (value: string) => void
+	/**
+	 * Let the reader send with no text, because the app has something else to
+	 * send — pending attachments, a picked file. Pass it only while that is true
+	 * (`allowEmpty={files.length > 0}`), or send is enabled with nothing to send.
+	 * `onSend` then receives `""`.
+	 * @default false
+	 */
+	allowEmpty?: boolean
 	/** Placeholder for the field. @default "Send a message…" */
 	placeholder?: string
 	/**
 	 * Which key sends. `enter` for chat: Enter sends, Shift+Enter breaks the line.
 	 * `mod-enter` for long-form replies (an email, a support answer): Enter breaks
 	 * the line and ⌘/Ctrl+Enter sends, so a paragraph break never mails a draft.
+	 * On a touch device (`pointer: coarse`) `enter` behaves as `mod-enter`: the
+	 * soft keyboard's Return breaks the line and the send button sends.
 	 * @default "enter"
 	 */
 	sendOn?: "enter" | "mod-enter"
@@ -59,8 +70,12 @@ export interface ChatComposerProps
 	sendLabel?: string
 	/** Accessible label for the stop button. @default "Stop generating" */
 	stopLabel?: string
-	/** Helper or counter text below the controls. */
-	footer?: ReactNode
+	/**
+	 * Helper or counter text below the controls. A function receives the send
+	 * key in effect, so a keyboard hint stays true on touch, where `enter`
+	 * becomes `mod-enter`; return null and the row goes away.
+	 */
+	footer?: ReactNode | ((state: { sendOn: "enter" | "mod-enter" }) => ReactNode)
 	/** Ref to the underlying textarea — for focusing after a send, or on mount. */
 	fieldRef?: ComponentPropsWithRef<"textarea">["ref"]
 }
@@ -81,13 +96,18 @@ export interface ChatComposerProps
  * The three details that are the whole job:
  *
  * - **Enter sends, Shift+Enter breaks the line** (or, with `sendOn="mod-enter"`,
- *   Enter breaks it and ⌘/Ctrl+Enter sends) — and neither fires mid-IME.
+ *   Enter breaks it and ⌘/Ctrl+Enter sends) — and neither fires mid-IME. On
+ *   a touch device Return always breaks the line: a soft keyboard has no
+ *   Shift+Return, so Enter-to-send would leave no way to write a second line.
  *   A Japanese, Chinese, or Korean reader confirming a candidate in the
  *   composition popup presses Enter to *choose a word*, and a composer that
  *   reads that as "send" mails half a sentence. `event.nativeEvent.isComposing`
  *   is the guard, and it is the single most commonly missed line in a chat input.
+ *   An Enter that something else already handled (`preventDefault()`) does not
+ *   send either: that is how a CaretMenu on `fieldRef` picks a suggestion.
  * - **Whitespace never sends.** The send button is disabled until there is
- *   something to send, so the affordance and the behaviour agree.
+ *   something to send, so the affordance and the behaviour agree. When the
+ *   something is a file rather than text, the app says so with `allowEmpty`.
  * - **Send becomes stop while busy**, in place, when `onStop` is given.
  *   Interrupting a long generation is the most common thing a reader wants
  *   during one, and it belongs where their cursor already is.
@@ -97,6 +117,7 @@ export function ChatComposer({
 	defaultValue = "",
 	onValueChange,
 	onSend,
+	allowEmpty = false,
 	placeholder = "Send a message…",
 	sendOn = "enter",
 	busy = false,
@@ -138,7 +159,15 @@ export function ChatComposer({
 		[isControlled, onValueChange],
 	)
 
-	const canSend = text.trim().length > 0 && !busy && !disabled
+	const coarse = useCoarsePointer()
+	// A soft keyboard has one Return key and no Shift+Return, so on touch Enter
+	// must break the line and the button sends. ⌘/Ctrl+Enter still sends, for a
+	// tablet with a hardware keyboard. This is `mod-enter`, which keeps the key
+	// handler and aria-keyshortcuts describing the same behaviour.
+	const mode = coarse ? "mod-enter" : sendOn
+	const footerContent = typeof footer === "function" ? footer({ sendOn: mode }) : footer
+
+	const canSend = (allowEmpty || text.trim().length > 0) && !busy && !disabled
 
 	const send = useCallback(() => {
 		if (!canSend) return
@@ -163,11 +192,16 @@ export function ChatComposer({
 			// Mid-composition Enter is "commit this candidate", not "send". Without
 			// this guard every CJK reader sends a fragment of their first word.
 			if (event.nativeEvent.isComposing) return
-			if (sendOn === "mod-enter" ? !(event.metaKey || event.ctrlKey) : event.shiftKey) return
+			// Something earlier already took this Enter: a CaretMenu choosing the
+			// highlighted suggestion, or an app's own listener on `fieldRef`. That
+			// is the extension point — whoever handles Enter first and calls
+			// preventDefault() owns it, and the composer does not also send.
+			if (event.defaultPrevented) return
+			if (mode === "mod-enter" ? !(event.metaKey || event.ctrlKey) : event.shiftKey) return
 			event.preventDefault()
 			send()
 		},
-		[send, sendOn],
+		[send, mode],
 	)
 
 	const showStop = busy && Boolean(onStop)
@@ -195,7 +229,7 @@ export function ChatComposer({
 				autoResize
 				rows={1}
 				aria-label={label}
-				aria-keyshortcuts={sendOn === "mod-enter" ? "Meta+Enter Control+Enter" : "Enter"}
+				aria-keyshortcuts={mode === "mod-enter" ? "Meta+Enter Control+Enter" : "Enter"}
 				aria-invalid={invalid || undefined}
 				disabled={disabled}
 				placeholder={placeholder}
@@ -238,7 +272,14 @@ export function ChatComposer({
 						variant="secondary"
 						size="icon-sm"
 						aria-label={stopLabel}
-						onClick={onStop}
+						onClick={() => {
+							onStop?.()
+							// This button turns back into send, disabled while the field
+							// is empty, and a disabled element drops focus to the page.
+							// So focus goes to the field, where the next message starts.
+							// Not on touch: that would raise the soft keyboard unasked.
+							if (!coarse) field.current?.focus()
+						}}
 					>
 						{/* A filled square, the universal stop (xmark read as close or clear),
 						    drawn smaller than the box so it sits in the button as a mark. */}
@@ -259,9 +300,9 @@ export function ChatComposer({
 				)}
 			</div>
 
-			{footer ? (
+			{footerContent ? (
 				<p className={cn("px-[calc((var(--control-sm)-1.125rem)/2)] text-muted-foreground", tier.secondary)}>
-					{footer}
+					{footerContent}
 				</p>
 			) : null}
 			{children}
@@ -269,3 +310,22 @@ export function ChatComposer({
 	)
 }
 ChatComposer.displayName = "ChatComposer"
+
+const COARSE = "(pointer: coarse)"
+
+function subscribeCoarse(onChange: () => void) {
+	if (typeof window === "undefined" || !window.matchMedia) return () => {}
+	const query = window.matchMedia(COARSE)
+	query.addEventListener("change", onChange)
+	return () => query.removeEventListener("change", onChange)
+}
+
+/** The primary pointer is a finger. The server renders the desktop answer and
+ * the client corrects it on hydration, which useSyncExternalStore makes safe. */
+function useCoarsePointer() {
+	return useSyncExternalStore(
+		subscribeCoarse,
+		() => typeof window !== "undefined" && Boolean(window.matchMedia?.(COARSE).matches),
+		() => false,
+	)
+}

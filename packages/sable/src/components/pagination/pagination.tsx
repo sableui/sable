@@ -1,6 +1,6 @@
 "use client";
 
-import type { ComponentPropsWithRef } from "react"
+import type { ComponentPropsWithRef, MouseEvent, ReactElement } from "react"
 import { cn } from "../../lib/cn"
 import { Button } from "../button/button"
 import { Icon } from "../../icon/Icon"
@@ -11,8 +11,19 @@ export interface PaginationProps
 	page: number
 	/** Total number of pages. */
 	total: number
-	/** Called with the next page when a control is activated. */
-	onPageChange: (page: number) => void
+	/**
+	 * Called with the next page when a control is activated. Optional when
+	 * `pageLink` is set and the URL is the page state.
+	 */
+	onPageChange?: (page: number) => void
+	/**
+	 * Make every page control a real link: return the element to render for a
+	 * page, `(page) => <a href={`?page=${page}`} />` or a router's
+	 * `(page) => <Link to={`?page=${page}`} />`. Links are crawlable and open
+	 * in a new tab; without this the controls are buttons for client-only paging.
+	 * Previous/next at the bounds stay disabled buttons, never a link to nowhere.
+	 */
+	pageLink?: (page: number) => ReactElement
 	/**
 	 * How many page buttons to show on each side of the current page before the
 	 * list collapses into ellipses. First and last pages are always shown.
@@ -83,6 +94,7 @@ export function Pagination({
 	page,
 	total,
 	onPageChange,
+	pageLink,
 	siblingCount = 1,
 	label = "Pagination",
 	className,
@@ -93,10 +105,16 @@ export function Pagination({
 	const current = Math.min(Math.max(page, 1), safeTotal)
 	const items = buildRange(current, safeTotal, siblingCount)
 
-	const goTo = (next: number) => {
+	const goTo = (next: number, event: MouseEvent) => {
 		if (next < 1 || next > safeTotal || next === current) return
-		onPageChange(next)
+		// A modified click on a page link opens it elsewhere (new tab, window,
+		// download); the page in front of the reader stays where it is.
+		if (pageLink && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) return
+		onPageChange?.(next)
 	}
+	// A link where one leads somewhere; a disabled button at the bounds.
+	const linkTo = (next: number) =>
+		pageLink && next >= 1 && next <= safeTotal ? pageLink(next) : undefined
 
 	return (
 		<nav
@@ -110,7 +128,8 @@ export function Pagination({
 				size="icon-sm"
 				aria-label="Previous page"
 				disabled={current <= 1}
-				onClick={() => goTo(current - 1)}
+				render={linkTo(current - 1)}
+				onClick={(event) => goTo(current - 1, event)}
 			>
 				<Icon name="chevron-left" className="text-base" />
 			</Button>
@@ -138,7 +157,8 @@ export function Pagination({
 								className="w-auto min-w-(--control-sm) px-1 tabular-nums"
 								aria-label={`Page ${item}`}
 								aria-current={item === current ? "page" : undefined}
-								onClick={() => goTo(item)}
+								render={linkTo(item)}
+								onClick={(event) => goTo(item, event)}
 							>
 								{item}
 							</Button>
@@ -152,7 +172,8 @@ export function Pagination({
 				size="icon-sm"
 				aria-label="Next page"
 				disabled={current >= safeTotal}
-				onClick={() => goTo(current + 1)}
+				render={linkTo(current + 1)}
+				onClick={(event) => goTo(current + 1, event)}
 			>
 				<Icon name="chevron-right" className="text-base" />
 			</Button>

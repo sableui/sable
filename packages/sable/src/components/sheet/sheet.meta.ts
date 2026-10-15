@@ -11,6 +11,9 @@ export const sheetMeta: ComponentMeta = {
 		"side panel",
 		"overlay",
 		"swipe to dismiss",
+		"bottom sheet",
+		"snap points",
+		"detents",
 	],
 	usage: {
 		description: "Use Sheet for secondary workflows that slide in while preserving context from the underlying page.",
@@ -22,6 +25,10 @@ export const sheetMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description: "Include clear title, close path, and footer actions for task-oriented sheets.",
+			},
+			{
+				guidance: "do",
+				description: "Give a bottom sheet snap points when it shows a summary first and detail on demand (a map result, a now-playing panel): `snapPoints={[0.4, 1]}`. The first stop is where it opens; put what matters at that height, because the rest is a drag away.",
 			},
 			{
 				guidance: "dont",
@@ -85,8 +92,32 @@ export const sheetMeta: ComponentMeta = {
 	props: [
 		{
 			name: "Sheet (Root)",
-			type: "Base UI Drawer.Root props (open, defaultOpen, onOpenChange, onOpenChangeComplete, modal, disablePointerDismissal, actionsRef, handle) — minus swipeDirection and snap points",
+			type: "Base UI Drawer.Root props (open, defaultOpen, onOpenChange, onOpenChangeComplete, modal, disablePointerDismissal, actionsRef, handle, snapPoints, snapPoint, defaultSnapPoint, onSnapPointChange, snapToSequentialPoints) — minus swipeDirection",
 			description: "Controls open state. Uncontrolled by default. The dismiss swipe direction is not a prop: it follows SheetContent's side. onOpenChange reports reason \"swipe\" when a swipe closed it.",
+		},
+		{
+			name: "snapPoints",
+			type: "(number | string)[]",
+			default: "—",
+			description: "Stops a bottom sheet rests at, smallest first: a fraction of the viewport (0.4), pixels (320), or a px/rem string (\"20rem\"). The panel is the full stop's height and opens at the first stop; a swipe moves between stops and a swipe below the first closes it. side=\"bottom\" only: other sides ignore them, with a development warning.",
+		},
+		{
+			name: "snapPoint",
+			type: "number | string | null",
+			default: "—",
+			description: "The active stop, controlled. Pair with onSnapPointChange; use defaultSnapPoint to open at a different stop uncontrolled.",
+		},
+		{
+			name: "onSnapPointChange",
+			type: "(snapPoint: number | string | null, eventDetails) => void",
+			default: "—",
+			description: "Fires when a swipe (or your code) moves the sheet to another stop.",
+		},
+		{
+			name: "snapToSequentialPoints",
+			type: "boolean",
+			default: "false",
+			description: "Move one stop per swipe, by distance. Off, a fast flick can skip past a stop.",
 		},
 	],
 	subcomponents: [
@@ -94,7 +125,7 @@ export const sheetMeta: ComponentMeta = {
 			name: "SheetContent",
 			type: 'Base UI Drawer.Popup props (initialFocus, finalFocus, …) + side: "right" | "left" | "top" | "bottom" + className',
 			description:
-				'Backdrop + edge-anchored popup; portals to <body>. side picks which viewport edge the sheet anchors to and slides in from (defaults to "right"). Left/right are full-height side panels; top/bottom span the width up to 80vh. On touch it swipes closed toward that same edge (right swipes right, left swipes left, top swipes up, bottom swipes down).',
+				'Backdrop + edge-anchored popup; portals to <body>. side picks which viewport edge the sheet anchors to and slides in from (defaults to "right"). Left/right are full-height side panels; top/bottom span the width up to 80vh. A bottom sheet with snapPoints is as tall as its highest stop allows (the viewport less a top gap), shows a drag handle, and translates down to the active stop; the part below the screen becomes bottom padding, so its scroll area and SheetFooter end at the visible edge. A bottom sheet rides above the on-screen keyboard (measured from visualViewport). On touch it swipes closed toward that same edge (right swipes right, left swipes left, top swipes up, bottom swipes down).',
 		},
 		{
 			name: "SheetTrigger",
@@ -147,6 +178,8 @@ export const sheetMeta: ComponentMeta = {
 		"Render a SheetClose inside SheetContent so screen-reader users can escape the popup.",
 		"Slide animation runs via data-[starting-style]/data-[ending-style] attributes on the motion-duration token; while swiping the panel tracks the finger directly, and a released swipe finishes on the same token (scaled by flick speed), so reduced motion makes it instant.",
 		"A mouse drag that starts on sheet content selects text rather than dragging the panel; mouse dragging only starts from the padding edge.",
+		"Snap points add stops, not a gate: at any stop the content scrolls within the visible part and every control stays reachable by keyboard, so nothing needs the drag. The handle is decorative (aria-hidden).",
+		"A bottom sheet stays above the on-screen keyboard: its bottom edge is lifted by the height the keyboard takes from the visual viewport, so a focused field is not covered. An app that sets interactive-widget=resizes-content in its viewport meta gets the same result from the browser, and the inset reads 0.",
 	],
 	examples: [
 		{
@@ -160,6 +193,10 @@ export const sheetMeta: ComponentMeta = {
 		{
 			label: "Left side",
 			code: '<Sheet><SheetTrigger render={<Button variant="secondary">Menu</Button>} /><SheetContent side="left"><SheetHeader><SheetTitle>Navigation</SheetTitle></SheetHeader><SheetFooter><SheetClose render={<Button variant="secondary">Close</Button>} /></SheetFooter></SheetContent></Sheet>',
+		},
+		{
+			label: "Bottom sheet with snap points",
+			code: '<Sheet snapPoints={[0.4, 1]}><SheetTrigger render={<Button variant="secondary">Nearby</Button>} /><SheetContent side="bottom"><SheetHeader><SheetTitle>12 places nearby</SheetTitle><SheetDescription>Drag up for the full list.</SheetDescription></SheetHeader><SheetList>{places.map((place) => <Entity key={place.id} title={place.name} subtitle={place.distance} />)}</SheetList></SheetContent></Sheet>',
 		},
 		{
 			label: "Bottom side",

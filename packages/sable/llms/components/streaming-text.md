@@ -12,6 +12,7 @@ Use StreamingText for text whose final length is unknown while it renders — a 
 
 ### Best practices
 
+- Do: In a chat, read `sable docs building-a-chat`: one status drives `streaming` and the composer, a regenerated answer takes a new key (the text is append-only), and the finished turn is announced once.
 - Do: Grow `text` and let the component do the rest. It assumes an append-only string and keys units by index, so React mounts only the new spans — re-rendering a longer string animates what was added and leaves what the reader has already read alone.
 - Do: Drop `streaming` to false the moment the source closes. That is what removes the caret and the softened tail, and their disappearance is the only signal the reader gets that the answer is complete.
 - Do: Turn `caret` off when something adjacent already reports the wait — a spinner in the message header, a status row beneath. Two indicators for one wait read as two things happening.
@@ -74,7 +75,7 @@ import { StreamingText } from "@sableui/react"
 ```tsx
 import { Message, StreamingText } from "@sableui/react"
 
-<Message role="assistant"><StreamingText text={answer} streaming={pending} caret={false} /></Message>
+<Message align="start"><StreamingText text={answer} streaming={pending} caret={false} /></Message>
 ```
 
 ### A headline resolving character by character

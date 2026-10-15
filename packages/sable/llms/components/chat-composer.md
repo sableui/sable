@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-The input half of a conversation: one surface holding attachments, an auto-growing field, and its controls. Enter sends, Shift+Enter breaks the line (sendOn="mod-enter" swaps them for long-form replies), and send becomes stop while a reply streams.
+The input half of a conversation: one surface holding attachments, an auto-growing field, and its controls. Enter sends, Shift+Enter breaks the line (sendOn="mod-enter" swaps them for long-form replies; on touch, Return always breaks the line), and send becomes stop while a reply streams. allowEmpty sends attachments without text.
 
 **Keywords:** chat input, composer, message input, prompt input, send message, ai chat, support chat, textarea
 
@@ -12,13 +12,15 @@ Pairs with MessageScroller to make a working chat. A single surface rather than 
 
 ### Best practices
 
+- Do: Wiring it to a streaming source? `sable docs building-a-chat` maps a turn lifecycle (submitted, streaming, done, stopped, error) onto `busy`, `onStop` and `disabled`, and says where each failure goes.
 - Do: Pass `busy` while a reply streams, and `onStop` alongside it. Interrupting a long generation is the most common thing a reader wants during one, and the control belongs where their cursor already is.
 - Do: Leave it uncontrolled unless you need the text elsewhere — a slash-command menu, a draft you persist. Uncontrolled clears itself on send; controlled does not.
 - Do: Render pending uploads as `<Attachment>` chips in `attachments`, so the file and the message it belongs to stay in one box.
+- Do: Pass `allowEmpty={files.length > 0}` when a file can go without a caption. Send enables on the attachment alone and `onSend` receives `""`. Tie it to the pending files: a constant `allowEmpty` leaves send enabled with nothing to send.
 - Do: Put model pickers and tool toggles in `leading`, beside the attach button — they are composer state, not message content, and belong on the chrome row rather than in the field.
 - Do: Building a docked agent panel inside a tool? Wrap the whole conversation — scroller, messages and composer — in `<Density value="compact">`. The entire set follows the workspace register from there: prose drops a tier, the rhythm tightens, and the controls come off the compact ladder. Do not hand-size it at the call site.
 - Don't: Do not clear a controlled composer for the user on send. Only the caller knows whether the send succeeded, and clearing on their behalf loses the message when it did not.
-- Don't: Do not add your own Enter-to-send handler on top. The built-in one already guards against firing mid-IME-composition, which is the line hand-rolled chat inputs miss.
+- Don't: Do not add your own Enter-to-send handler on top. The built-in one already guards against firing mid-IME-composition, and on a touch device lets Return break the line (a soft keyboard has no Shift+Return), which are the lines hand-rolled chat inputs miss.
 - Don't: Do not use it as a general multi-line input inside a larger form. That is `Textarea`. A standalone reply box that sends multi-paragraph messages (email, support replies) is this one with sendOn="mod-enter".
 - Don't: Do not override the field's type utility to make it match your transcript. The field and `Bubble` both read the same tier already, which is what stops a message changing size the moment it is sent — overriding one breaks that pairing.
 - Don't: Do not remove the height cap to let the field grow without limit. A pasted essay would push the conversation off the screen; past the cap it scrolls.
@@ -39,9 +41,10 @@ Pairs with MessageScroller to make a working chat. A single surface rather than 
 | value | string | — | Controlled value. Omit for an uncontrolled composer that owns its own text. |
 | defaultValue | string | "" | Initial value when uncontrolled. |
 | onValueChange | (value: string) => void | — | Notified on every keystroke. Required when `value` is supplied. |
-| onSend | (value: string) => void | — | Called with the trimmed message. An uncontrolled composer clears itself afterwards; a controlled one is the caller's to clear. |
+| onSend | (value: string) => void | — | Called with the trimmed message. An uncontrolled composer clears itself afterwards; a controlled one is the caller's to clear. With `allowEmpty` the message can be `""`. |
+| allowEmpty | boolean | false | Let the reader send with no text, because the app has something else to send (pending attachments). Pass it only while that is true, `allowEmpty={files.length > 0}`; `onSend` then receives `""`. |
 | placeholder | string | "Send a message…" | Placeholder for the field. |
-| sendOn | "enter" \| "mod-enter" | "enter" | Which key sends. enter for chat (Shift+Enter breaks the line). mod-enter for long-form replies such as an email or a support answer: Enter breaks the line and Cmd/Ctrl+Enter sends, so a paragraph break never mails a draft. Say so in footer ("Cmd+Enter to send"). |
+| sendOn | "enter" \| "mod-enter" | "enter" | Which key sends. enter for chat (Shift+Enter breaks the line). mod-enter for long-form replies such as an email or a support answer: Enter breaks the line and Cmd/Ctrl+Enter sends, so a paragraph break never mails a draft. Say so in footer ("Cmd+Enter to send"). On a touch device (pointer: coarse) enter behaves as mod-enter: a soft keyboard has no Shift+Return, so Return breaks the line and the send button sends. |
 | busy | boolean | false | A reply is streaming. Disables send, and swaps it for a stop control when `onStop` is supplied. |
 | onStop | () => void | — | Interrupt the in-flight reply. Supplying it turns send into stop while busy. |
 | disabled | boolean | false | Block sending entirely — over a limit, disconnected, read-only thread. Distinct from `busy`, which is temporary and offers a way out (stop). |
@@ -53,8 +56,8 @@ Pairs with MessageScroller to make a working chat. A single surface rather than 
 | label | string | "Message" | Accessible label for the field. |
 | sendLabel | string | "Send message" | Accessible label for the send button. |
 | stopLabel | string | "Stop generating" | Accessible label for the stop button. |
-| footer | ReactNode | — | Helper text or counter below the controls. |
-| fieldRef | Ref<HTMLTextAreaElement> | — | Ref to the underlying textarea — for focusing after a send, or on mount. |
+| footer | ReactNode \| ((state: { sendOn: "enter" \| "mod-enter" }) => ReactNode) | — | Helper text or counter below the controls. For a keyboard hint pass a function: it receives the send key in effect (touch turns `enter` into `mod-enter`), and returning null removes the row, e.g. `footer={({ sendOn }) => sendOn === "enter" ? "Enter to send" : null}`. |
+| fieldRef | Ref<HTMLTextAreaElement> | — | Ref to the underlying textarea — for focusing after a send, or on mount, and the extension point for anything that listens to the field. Pass `useCaretTrigger`'s `fieldRef` here for mentions and slash commands (CaretMenu). An Enter another listener already handled (`preventDefault()`) does not send. |
 | ...form props | Omit<ComponentPropsWithRef<"form">, "onSubmit" \| "defaultValue"> | — | Spread onto the form element. Use `onSend` rather than `onSubmit`. |
 
 ## Variants
@@ -70,7 +73,8 @@ Pairs with MessageScroller to make a working chat. A single surface rather than 
 - A real `<form>`, so the send button is a submit button and the whole thing behaves as one control to assistive tech and to password managers alike.
 - Enter never submits while an IME composition is open (`isComposing`), so a CJK reader confirming a candidate word does not mail a fragment of their first sentence.
 - The focus ring is drawn on the surface via `focus-within`, not on the textarea, so the visible focus indicator matches the box a sighted user perceives as the input.
-- Send is disabled — not merely styled down — until there is non-whitespace to send, so the affordance and the behaviour agree for keyboard users.
+- Send is disabled — not merely styled down — until there is non-whitespace to send (or `allowEmpty` says an attachment is enough), so the affordance and the behaviour agree for keyboard users.
+- On a touch device Return breaks the line and the send button sends; `aria-keyshortcuts` reports the shortcut actually in effect (⌘/Ctrl+Enter there, Enter on desktop).
 - Icon-only attach, send and stop buttons all carry accessible labels, each overridable for localisation.
 
 ## Related
@@ -109,6 +113,19 @@ import { Attachment, Button, ChatComposer, Icon } from "@sableui/react"
 	attachments={files.map((f) => (<Attachment key={f.id} variant="media" name={f.name} thumbnail={f.url} actions={<Button variant="floating" size="icon-xs" aria-label="Remove" onClick={() => drop(f.id)}><Icon name="xmark" /></Button>} />))}
 	footer={`${draft.length} / 4000`}
 	invalid={draft.length > 4000}
+/>
+```
+
+### Attachments sent without text
+
+```tsx
+import { Attachment, ChatComposer } from "@sableui/react"
+
+<ChatComposer
+	onSend={(text) => post(text, files)}
+	allowEmpty={files.length > 0}
+	onAttach={pickFile}
+	attachments={files.map((f) => <Attachment key={f.id} name={f.name} meta={f.size} />)}
 />
 ```
 

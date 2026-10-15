@@ -15,6 +15,10 @@ import { cva } from "class-variance-authority"
  * dots, …). Meridian uses square buttons. Themes can set `--theme-button-radius`
  * plus `--button-radius` to preserve their shape across nested density scopes
  * (mode-independent — same rule as `--theme-radius-*`).
+ *
+ * Each side reads its own var first (`--button-radius-s` / `--button-radius-e`)
+ * so a ButtonGroup can square the inner corners of a joined pair by setting a
+ * var on its children, never by fighting the radius class with an override.
  */
 /** Focus for the on-colour tiers: an ink ring past a transparent gap (see below). */
 const ON_COLOR_FOCUS =
@@ -26,7 +30,7 @@ const ON_COLOR_FOCUS =
  * in, a 32px compact button carried 15px page-register text.
  */
 export const buttonVariants = cva(
-	"inline-flex items-center justify-center gap-(--control-gap) whitespace-nowrap rounded-[var(--button-radius,9999px)] motion-interactive motion-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg]:shrink-0 [&_svg]:size-(--button-icon)",
+	"inline-flex items-center justify-center gap-(--control-gap) whitespace-nowrap rounded-s-[var(--button-radius-s,var(--button-radius,9999px))] rounded-e-[var(--button-radius-e,var(--button-radius,9999px))] motion-interactive motion-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg]:shrink-0 [&_svg]:size-(--button-icon)",
 	{
 		variants: {
 			variant: {

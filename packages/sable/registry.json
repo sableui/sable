@@ -1,7 +1,7 @@
 {
   "$schema": "https://sable.design/registry.schema.json",
   "name": "@sableui/react",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "Themeable React components, semantic tokens, layout patterns, presets, and package-owned agent skills. Default theme: Sable.",
   "engine": {
     "behavior": "@base-ui/react",
@@ -91,6 +91,16 @@
       "previewCss": "@sableui/react/ios/frame.css",
       "guide": "sable docs building-an-ios-prototype",
       "updates": "Consume the shipped adapter instead of copying demo helpers. Package upgrades update the brand bridge, material, safe areas, navigation, sheets and input bindings."
+    },
+    "init": {
+      "command": "pnpm exec sable init",
+      "preview": "pnpm exec sable init --dry-run",
+      "after": "Run it once the package is installed; before that `npx sable` resolves an unrelated package.",
+      "does": "Installs missing packages with the lockfile's package manager (React, Tailwind and its build plugin), writes the css imports in order into the global stylesheet, adds bundlerDedupe and the Tailwind plugin to a Vite config (a postcss.config.mjs for Next.js), loads the fonts, wraps a Vite starter's <App /> in IconProvider, runs agentSetup, then sable doctor.",
+      "frameworks": "Vite and Next.js (App Router) get every step. Other setups get the packages and the stylesheet; the bundler and provider steps are printed.",
+      "manual": "Each edit it cannot make safely (an unfamiliar config shape, a Next.js layout, a stylesheet split across files) is printed as the exact snippet and the file it belongs in. Apply them, then run sable doctor.",
+      "flags": "--dry-run previews; --no-agent skips the skill; --no-install prints install commands instead of running them.",
+      "repair": "In an app that is already wired: pnpm exec sable doctor --fix (or --dry-run) applies the same fixes to whatever doctor flags."
     }
   },
   "themes": {
@@ -1665,6 +1675,10 @@
       {
         "id": "form-required-error",
         "fails-on": "A `required` Field with an `error` prop, inside a `Form` that validates for you. On submit Form checks every Field first, so an empty required one stops the submit with the browser's message (\"Please fill out this field.\") and your onSubmit, which would set `error`, never runs. Either let your code own validation, `<Form noValidate>` (onSubmit always runs and the Field shows your `error`), or let Form validate and word the message on the Field: `messages={{ valueMissing: \"Enter a subject.\" }}`."
+      },
+      {
+        "id": "shadcn-leftover",
+        "fails-on": "Leftover shadcn/ui or Radix code. Sable replaces the stack: `asChild` → `render`, `@radix-ui/*` and `@/components/ui/*` → the Sable component (`sable search \"<name>\"`), `lucide-react` → <Icon name> under IconProvider, `sonner` → ToastProvider + toast, `vaul` → Sheet, `cmdk` → CommandMenu, `input-otp` → OtpField, `next-themes` → SableThemeProvider. `sable docs migrating-from-shadcn` has the full map."
       }
     ],
     "escapeHatch": {
@@ -1699,6 +1713,7 @@
       "chevron-left",
       "chevron-right",
       "arrow-up",
+      "arrow-up-right",
       "expand",
       "eye",
       "eye-off",
@@ -2861,7 +2876,8 @@
         "components": [
           "AppShell",
           "PageHeader",
-          "BottomNav"
+          "BottomNav",
+          "NavigationMenu"
         ]
       },
       "props": [
@@ -4928,7 +4944,7 @@
           },
           {
             "guidance": "do",
-            "description": "For a copy control, pair an icon Button with `useCopy(text, { timeout? })`. It takes the text when the hook is called and returns `{ copy, copied }`; `copy()` takes no argument, so pass the value the button copies to the hook, not to `copy`."
+            "description": "For a copy control, pair an icon Button with `useCopy(text, { timeout? })`. It takes the text when the hook is called and returns `{ copy, copied }`; `copy()` takes no argument, so pass the value the button copies to the hook, not to `copy`. Text that costs something to produce (a file to fetch) goes in as a function, `useCopy(() => fetch(url).then((r) => r.text()))`, called only on click."
           },
           {
             "guidance": "do",
@@ -5227,6 +5243,90 @@
           "label": "Action in a solid Banner",
           "code": "<Banner tone=\"warning\" appearance=\"solid\" action={<Button variant=\"on-color\" size=\"sm\">Reconnect</Button>}>Calendar sync paused.</Banner>",
           "imports": "import { Banner, Button } from \"@sableui/react\""
+        }
+      ]
+    },
+    {
+      "name": "ButtonGroup",
+      "status": "stable",
+      "group": "Actions",
+      "register": "either",
+      "path": "components/button-group",
+      "summary": "Buttons joined into one control: a split button (an action beside the chevron that opens its menu) or a short run of related actions. The children stay ordinary Buttons; the group squares their inner corners, collapses bordered seams into one hairline, and draws a seam between filled ones.",
+      "keywords": [
+        "split button",
+        "button group",
+        "segmented actions",
+        "dropdown button",
+        "joined buttons",
+        "toolbar"
+      ],
+      "usage": {
+        "description": "Use ButtonGroup when one action has close alternatives (Copy page, with Open in… behind a chevron) or a few actions belong together as one object (zoom out, reset, zoom in). Use ToggleGroup for a choice that stays selected, and Tabs to switch views.",
+        "bestPractices": [
+          {
+            "guidance": "do",
+            "description": "Give the children one height: `size=\"sm\"` with `size=\"icon-sm\"`, `md` with `icon`. The group aligns them but cannot reconcile two heights into one edge."
+          },
+          {
+            "guidance": "do",
+            "description": "For a split button, put the main action first and a Menu whose trigger is the chevron Button second, with an aria-label on the trigger (\"More page actions\")."
+          },
+          {
+            "guidance": "do",
+            "description": "Name the group with aria-label when the buttons alone do not say what they act on."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not round or border the children yourself to make them meet; that is the group's job, and an override breaks under a theme's button shape."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not use it for a selection that stays on. That is ToggleGroup, which carries the pressed state."
+          }
+        ]
+      },
+      "related": {
+        "components": [
+          "Button",
+          "Menu",
+          "Toggle"
+        ]
+      },
+      "props": [
+        {
+          "name": "role",
+          "type": "string",
+          "default": "\"group\"",
+          "description": "Group semantics, so a screen reader announces the buttons as one set. Pass `toolbar` when it carries arrow-key navigation of your own."
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "description": "Layout classes for the group (margins, alignment). The children's look comes from their own variants."
+        },
+        {
+          "name": "...props",
+          "type": "ComponentPropsWithRef<\"div\">",
+          "description": "All native <div> attributes, including aria-label."
+        }
+      ],
+      "tokensUsed": [],
+      "a11y": [
+        "Renders role=\"group\", so assistive tech announces the buttons as one set; name it with aria-label.",
+        "Each child keeps its own focus stop and label; a focused child is raised above its neighbour so its ring is drawn whole.",
+        "An icon-only chevron that opens a menu needs its own aria-label, such as \"More page actions\"."
+      ],
+      "examples": [
+        {
+          "label": "Split button with a menu",
+          "code": "<ButtonGroup aria-label=\"Page actions\"><Button variant=\"outline\" size=\"sm\" iconStart={<Icon name=\"copy\" />} onClick={copy}>Copy page</Button><Menu><MenuTrigger render={<Button variant=\"outline\" size=\"icon-sm\" aria-label=\"More page actions\" />}><Icon name=\"chevron-down\" /></MenuTrigger><MenuContent align=\"end\"><MenuItem icon={<Icon name=\"file\" />} description=\"View this page as plain text\">View as Markdown</MenuItem></MenuContent></Menu></ButtonGroup>",
+          "imports": "import { Button, ButtonGroup, Icon, Menu, MenuContent, MenuItem, MenuTrigger } from \"@sableui/react\""
+        },
+        {
+          "label": "Related actions",
+          "code": "<ButtonGroup aria-label=\"Zoom\"><Button variant=\"secondary\" size=\"icon-sm\" aria-label=\"Zoom out\"><Icon name=\"minus\" /></Button><Button variant=\"secondary\" size=\"sm\">100%</Button><Button variant=\"secondary\" size=\"icon-sm\" aria-label=\"Zoom in\"><Icon name=\"plus\" /></Button></ButtonGroup>",
+          "imports": "import { Button, ButtonGroup, Icon } from \"@sableui/react\""
         }
       ]
     },
@@ -5606,6 +5706,152 @@
       ]
     },
     {
+      "name": "CaretMenu",
+      "status": "beta",
+      "group": "Overlays",
+      "register": "either",
+      "path": "components/caret-menu",
+      "summary": "Suggestions at the caret of a text field, for @mentions and /slash commands. `useCaretTrigger` watches a Textarea, Input or ChatComposer (through `fieldRef`) for a trigger character and reports the query; CaretMenu draws the list beside the trigger and drives it from the field's keys, so focus never leaves the field. The value stays plain text: a mention is inserted as `@Sam Rivera`, a command runs and clears its `/query`.",
+      "keywords": [
+        "mention",
+        "mentions",
+        "at mention",
+        "slash command",
+        "slash commands",
+        "autocomplete",
+        "typeahead",
+        "suggestions",
+        "emoji picker",
+        "hashtag",
+        "trigger"
+      ],
+      "usage": {
+        "description": "Use CaretMenu with `useCaretTrigger` when typing a character in running text should offer choices: `@` for people, `/` for commands, `#` for channels, `:` for emoji. The app owns the items (filter or fetch them from `trigger.match.query`) and what choosing one does; Sable owns detecting the trigger, placing the list at the caret, the keys and the accessibility. Use Combobox when the whole field is a search for one value, and CommandMenu for a global palette.",
+        "bestPractices": [
+          {
+            "guidance": "do",
+            "description": "Attach the hook's `fieldRef` to the field: `ref` on Textarea or Input, `fieldRef` on ChatComposer. On ChatComposer, Enter picks the highlighted suggestion instead of sending, because CaretMenu takes the Enter first."
+          },
+          {
+            "guidance": "do",
+            "description": "Insert a mention with a trailing space, `trigger.replace(`@${person.name} `)`, so the reader keeps typing; run a slash command and then `trigger.replace(\"\")` to clear `/query` from the field."
+          },
+          {
+            "guidance": "do",
+            "description": "For `@` names with spaces set `allowSpaces: true` on that trigger; for `/` commands set `atStart: true` so `and/or` mid-sentence stays text."
+          },
+          {
+            "guidance": "do",
+            "description": "Fetch remote suggestions from `trigger.match?.query` yourself, debounced, and pass `status` while loading or when nothing matches (\"Searching…\", \"No one matches\"). The status row is also what the list announces."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not expect chips inside the field. A textarea holds text, so a mention is text. Rendering tokens in the field needs a rich-text editor, which Sable does not own (`sable docs extending-a-component`)."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not move focus into the list or wrap the field in a Popover. Focus stays in the field; the list is pointed at with aria-activedescendant."
+          }
+        ],
+        "anatomy": [
+          {
+            "name": "useCaretTrigger",
+            "required": true,
+            "description": "The hook on the field: trigger detection, the query, the caret anchor, replace() and dismiss()."
+          },
+          {
+            "name": "CaretMenu",
+            "required": true,
+            "description": "The list at the caret, its keys, and its announcements."
+          },
+          {
+            "name": "CaretMenuItem",
+            "required": true,
+            "description": "One suggestion row, with optional icon and description."
+          }
+        ]
+      },
+      "related": {
+        "components": [
+          "ChatComposer",
+          "Textarea",
+          "Input",
+          "Combobox",
+          "CommandMenu",
+          "Menu"
+        ]
+      },
+      "props": [
+        {
+          "name": "trigger",
+          "type": "UseCaretTriggerResult",
+          "description": "The result of `useCaretTrigger({ triggers })`, whose `fieldRef` is attached to the field. Each trigger is `{ char, atStart?, allowSpaces?, maxQueryLength? }`; the result carries `match` (`{ trigger, query, start, end }` or null), `replace(text)`, `dismiss()` and `getAnchorRect()`."
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "description": "The list's accessible name, e.g. \"People\" or \"Commands\"."
+        },
+        {
+          "name": "status",
+          "type": "ReactNode",
+          "description": "A row under the items for what the list is doing: loading, nothing found, an error. Announced politely in place of the suggestion count. With no items and no status the list stays shut."
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "description": "CaretMenuItems, already filtered for the query."
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "description": "Layout classes for the popup, such as a width."
+        }
+      ],
+      "subcomponents": [
+        {
+          "name": "CaretMenuItem",
+          "type": "div props + onSelect: () => void + disabled?: boolean + icon?: ReactNode + description?: ReactNode",
+          "description": "One suggestion, styled as a Menu row. `onSelect` runs on Enter, Tab or click; `icon` and `description` work as on MenuItem. A disabled row shows but the arrow keys skip it."
+        }
+      ],
+      "tokensUsed": [
+        "popover",
+        "popover-foreground",
+        "border-floating",
+        "accent",
+        "accent-foreground",
+        "muted-foreground"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "motion-pop",
+          "part": "root",
+          "why": "Scales in from the caret's side, so the list reads as coming from the character just typed. It leaves instantly: it answers a keystroke and should be gone by the next one."
+        }
+      ],
+      "a11y": [
+        "Focus stays in the field. The field carries aria-autocomplete=\"list\", aria-controls (the listbox) and aria-activedescendant (the highlighted option), so a screen reader follows the arrow keys without focus moving.",
+        "An <input> becomes role=\"combobox\" with aria-expanded. A <textarea> keeps its textbox role (combobox would drop multiline), and since a textbox cannot carry aria-expanded, opening is announced through a polite status, mounted from the start: \"3 suggestions\", or the `status` text.",
+        "↑/↓ move the highlight and wrap; Enter or Tab choose it; Escape closes the list without reaching an enclosing Dialog or Sheet. Shift+Enter is left alone, so a line break still breaks the line.",
+        "Rows keep focus in the field on pointer down, so a click does not blur it and close the list first.",
+        "Triggers follow a word boundary (`ana@example.com` and `and/or` stay text), wait for IME composition to end, and stay closed after Escape until the caret leaves that trigger."
+      ],
+      "examples": [
+        {
+          "label": "Mentions and slash commands in a ChatComposer",
+          "code": "const trigger = useCaretTrigger({ triggers: [{ char: \"@\", allowSpaces: true }, { char: \"/\", atStart: true }] })\nconst q = trigger.match?.query.toLowerCase() ?? \"\"\nconst commands = trigger.match?.trigger.char === \"/\"\n\n<ChatComposer fieldRef={trigger.fieldRef} onSend={send} />\n<CaretMenu trigger={trigger} label={commands ? \"Commands\" : \"People\"} status={!commands && people.length === 0 ? \"No one matches\" : undefined}>\n\t{commands\n\t\t? slashCommands.filter((c) => c.name.startsWith(q)).map((c) => (\n\t\t\t<CaretMenuItem key={c.name} description={c.hint} onSelect={() => { c.run(); trigger.replace(\"\") }}>/{c.name}</CaretMenuItem>\n\t\t))\n\t\t: people.filter((p) => p.name.toLowerCase().includes(q)).map((p) => (\n\t\t\t<CaretMenuItem key={p.id} icon={<Avatar size=\"sm\" src={p.avatar} fallback={p.initials} />} onSelect={() => trigger.replace(`@${p.name} `)}>{p.name}</CaretMenuItem>\n\t\t))}\n</CaretMenu>",
+          "imports": "import { Avatar, CaretMenu, CaretMenuItem, ChatComposer, useCaretTrigger } from \"@sableui/react\""
+        },
+        {
+          "label": "On a Textarea, with remote results",
+          "code": "const trigger = useCaretTrigger({ triggers: [{ char: \"#\" }] })\n// Fetch from trigger.match?.query yourself, debounced; pass the state as status.\n<Textarea ref={trigger.fieldRef} aria-label=\"Note\" />\n<CaretMenu trigger={trigger} label=\"Channels\" status={loading ? \"Searching…\" : channels.length === 0 ? \"No channels match\" : undefined}>\n\t{channels.map((c) => <CaretMenuItem key={c.id} onSelect={() => trigger.replace(`#${c.name} `)}>#{c.name}</CaretMenuItem>)}\n</CaretMenu>",
+          "imports": "import { CaretMenu, CaretMenuItem, Textarea, useCaretTrigger } from \"@sableui/react\""
+        }
+      ]
+    },
+    {
       "name": "Carousel",
       "status": "stable",
       "group": "Media & mockups",
@@ -5774,7 +6020,7 @@
       "group": "Chat & AI",
       "register": "either",
       "path": "components/chat-composer",
-      "summary": "The input half of a conversation: one surface holding attachments, an auto-growing field, and its controls. Enter sends, Shift+Enter breaks the line (sendOn=\"mod-enter\" swaps them for long-form replies), and send becomes stop while a reply streams.",
+      "summary": "The input half of a conversation: one surface holding attachments, an auto-growing field, and its controls. Enter sends, Shift+Enter breaks the line (sendOn=\"mod-enter\" swaps them for long-form replies; on touch, Return always breaks the line), and send becomes stop while a reply streams. allowEmpty sends attachments without text.",
       "keywords": [
         "chat input",
         "composer",
@@ -5790,6 +6036,10 @@
         "bestPractices": [
           {
             "guidance": "do",
+            "description": "Wiring it to a streaming source? `sable docs building-a-chat` maps a turn lifecycle (submitted, streaming, done, stopped, error) onto `busy`, `onStop` and `disabled`, and says where each failure goes."
+          },
+          {
+            "guidance": "do",
             "description": "Pass `busy` while a reply streams, and `onStop` alongside it. Interrupting a long generation is the most common thing a reader wants during one, and the control belongs where their cursor already is."
           },
           {
@@ -5802,6 +6052,10 @@
           },
           {
             "guidance": "do",
+            "description": "Pass `allowEmpty={files.length > 0}` when a file can go without a caption. Send enables on the attachment alone and `onSend` receives `\"\"`. Tie it to the pending files: a constant `allowEmpty` leaves send enabled with nothing to send."
+          },
+          {
+            "guidance": "do",
             "description": "Put model pickers and tool toggles in `leading`, beside the attach button — they are composer state, not message content, and belong on the chrome row rather than in the field."
           },
           {
@@ -5810,7 +6064,7 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not add your own Enter-to-send handler on top. The built-in one already guards against firing mid-IME-composition, which is the line hand-rolled chat inputs miss."
+            "description": "Do not add your own Enter-to-send handler on top. The built-in one already guards against firing mid-IME-composition, and on a touch device lets Return break the line (a soft keyboard has no Shift+Return), which are the lines hand-rolled chat inputs miss."
           },
           {
             "guidance": "do",
@@ -5884,7 +6138,13 @@
         {
           "name": "onSend",
           "type": "(value: string) => void",
-          "description": "Called with the trimmed message. An uncontrolled composer clears itself afterwards; a controlled one is the caller's to clear."
+          "description": "Called with the trimmed message. An uncontrolled composer clears itself afterwards; a controlled one is the caller's to clear. With `allowEmpty` the message can be `\"\"`."
+        },
+        {
+          "name": "allowEmpty",
+          "type": "boolean",
+          "default": "false",
+          "description": "Let the reader send with no text, because the app has something else to send (pending attachments). Pass it only while that is true, `allowEmpty={files.length > 0}`; `onSend` then receives `\"\"`."
         },
         {
           "name": "placeholder",
@@ -5896,7 +6156,7 @@
           "name": "sendOn",
           "type": "\"enter\" | \"mod-enter\"",
           "default": "\"enter\"",
-          "description": "Which key sends. enter for chat (Shift+Enter breaks the line). mod-enter for long-form replies such as an email or a support answer: Enter breaks the line and Cmd/Ctrl+Enter sends, so a paragraph break never mails a draft. Say so in footer (\"Cmd+Enter to send\")."
+          "description": "Which key sends. enter for chat (Shift+Enter breaks the line). mod-enter for long-form replies such as an email or a support answer: Enter breaks the line and Cmd/Ctrl+Enter sends, so a paragraph break never mails a draft. Say so in footer (\"Cmd+Enter to send\"). On a touch device (pointer: coarse) enter behaves as mod-enter: a soft keyboard has no Shift+Return, so Return breaks the line and the send button sends."
         },
         {
           "name": "busy",
@@ -5961,13 +6221,13 @@
         },
         {
           "name": "footer",
-          "type": "ReactNode",
-          "description": "Helper text or counter below the controls."
+          "type": "ReactNode | ((state: { sendOn: \"enter\" | \"mod-enter\" }) => ReactNode)",
+          "description": "Helper text or counter below the controls. For a keyboard hint pass a function: it receives the send key in effect (touch turns `enter` into `mod-enter`), and returning null removes the row, e.g. `footer={({ sendOn }) => sendOn === \"enter\" ? \"Enter to send\" : null}`."
         },
         {
           "name": "fieldRef",
           "type": "Ref<HTMLTextAreaElement>",
-          "description": "Ref to the underlying textarea — for focusing after a send, or on mount."
+          "description": "Ref to the underlying textarea — for focusing after a send, or on mount, and the extension point for anything that listens to the field. Pass `useCaretTrigger`'s `fieldRef` here for mentions and slash commands (CaretMenu). An Enter another listener already handled (`preventDefault()`) does not send."
         },
         {
           "name": "...form props",
@@ -5999,7 +6259,8 @@
         "A real `<form>`, so the send button is a submit button and the whole thing behaves as one control to assistive tech and to password managers alike.",
         "Enter never submits while an IME composition is open (`isComposing`), so a CJK reader confirming a candidate word does not mail a fragment of their first sentence.",
         "The focus ring is drawn on the surface via `focus-within`, not on the textarea, so the visible focus indicator matches the box a sighted user perceives as the input.",
-        "Send is disabled — not merely styled down — until there is non-whitespace to send, so the affordance and the behaviour agree for keyboard users.",
+        "Send is disabled — not merely styled down — until there is non-whitespace to send (or `allowEmpty` says an attachment is enough), so the affordance and the behaviour agree for keyboard users.",
+        "On a touch device Return breaks the line and the send button sends; `aria-keyshortcuts` reports the shortcut actually in effect (⌘/Ctrl+Enter there, Enter on desktop).",
         "Icon-only attach, send and stop buttons all carry accessible labels, each overridable for localisation."
       ],
       "examples": [
@@ -6017,6 +6278,11 @@
           "label": "Controlled, with pending attachments",
           "code": "<ChatComposer\n\tvalue={draft}\n\tonValueChange={setDraft}\n\tonSend={(text) => { post(text, files); setDraft(\"\") }}\n\tonAttach={pickFile}\n\tattachments={files.map((f) => (<Attachment key={f.id} variant=\"media\" name={f.name} thumbnail={f.url} actions={<Button variant=\"floating\" size=\"icon-xs\" aria-label=\"Remove\" onClick={() => drop(f.id)}><Icon name=\"xmark\" /></Button>} />))}\n\tfooter={`${draft.length} / 4000`}\n\tinvalid={draft.length > 4000}\n/>",
           "imports": "import { Attachment, Button, ChatComposer, Icon } from \"@sableui/react\""
+        },
+        {
+          "label": "Attachments sent without text",
+          "code": "<ChatComposer\n\tonSend={(text) => post(text, files)}\n\tallowEmpty={files.length > 0}\n\tonAttach={pickFile}\n\tattachments={files.map((f) => <Attachment key={f.id} name={f.name} meta={f.size} />)}\n/>",
+          "imports": "import { Attachment, ChatComposer } from \"@sableui/react\""
         },
         {
           "label": "A working chat, end to end",
@@ -6804,6 +7070,10 @@
           },
           {
             "guidance": "do",
+            "description": "For results from a server, pass `filter={null}` so Base UI shows the items as the server returned them, fetch from `onInputValueChange`, and make ComboboxEmpty say which state it is in (searching, no results, type to search). Object items take `itemToStringLabel`."
+          },
+          {
+            "guidance": "do",
             "description": "Wrap in Field when the combobox is part of a form."
           },
           {
@@ -6897,6 +7167,24 @@
           "type": "boolean",
           "default": "false",
           "description": "Select several items instead of one. `value` / `defaultValue` / `onValueChange` become arrays, choosing an item toggles its membership, and the popup stays open between picks. Pair it with ComboboxChips in place of ComboboxInput; every other part is unchanged."
+        },
+        {
+          "name": "filter",
+          "type": "null | ((item, query, itemToString?) => boolean)",
+          "default": "Base UI's locale-aware contains",
+          "description": "How items match the query. `null` turns matching off, for items a server already filtered: pair it with `onInputValueChange` to fetch."
+        },
+        {
+          "name": "onInputValueChange",
+          "type": "(inputValue: string, eventDetails) => void",
+          "default": "—",
+          "description": "Fires as the reader types. The place to fetch results for a server-backed combobox."
+        },
+        {
+          "name": "itemToStringLabel",
+          "type": "(item) => string",
+          "default": "item.label for { value, label } items",
+          "description": "The text an object item shows in the input once chosen, and is matched by. Needed for object items without a `label` field."
         },
         {
           "name": "virtualized",
@@ -6993,6 +7281,11 @@
           "label": "Multiple selection",
           "code": "<Combobox multiple items={tags} value={value} onValueChange={setValue}><ComboboxChips placeholder=\"Add tags…\" /><ComboboxContent><ComboboxEmpty>No matching tags.</ComboboxEmpty><ComboboxList>{(item) => (<ComboboxItem key={item} value={item}>{item}</ComboboxItem>)}</ComboboxList></ComboboxContent></Combobox>",
           "imports": "import { Combobox, ComboboxChips, ComboboxContent, ComboboxEmpty, ComboboxItem, ComboboxList } from \"@sableui/react\""
+        },
+        {
+          "label": "Async search (server results)",
+          "code": "<Combobox items={results} filter={null} itemToStringLabel={(person) => person.name} value={person} onValueChange={setPerson} onInputValueChange={setQuery}><ComboboxInput placeholder=\"Search people…\" /><ComboboxContent><ComboboxEmpty>{searching ? \"Searching…\" : query ? \"No one matches.\" : \"Type a name to search.\"}</ComboboxEmpty><ComboboxList>{(item) => (<ComboboxItem key={item.id} value={item}>{item.name}</ComboboxItem>)}</ComboboxList></ComboboxContent></Combobox>",
+          "imports": "import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from \"@sableui/react\""
         },
         {
           "label": "Virtualized (long list)",
@@ -10384,6 +10677,128 @@
       ]
     },
     {
+      "name": "InputGroup",
+      "status": "stable",
+      "group": "Forms",
+      "register": "either",
+      "path": "components/input-group",
+      "summary": "An Input with addons inside the same field: a prefix or suffix (\"https://\", \".com\", \"$\"), an icon, or a borderless Button such as copy or reveal. One shell, one focus ring, one error state; a Field's label and error wiring reaches the Input inside.",
+      "keywords": [
+        "input group",
+        "input addon",
+        "prefix",
+        "suffix",
+        "adornment",
+        "url input",
+        "currency input",
+        "password reveal",
+        "copy field",
+        "icon in input"
+      ],
+      "usage": {
+        "description": "Use InputGroup when something belongs inside the field with the text: a unit, a fixed prefix, an icon, or a small action on the value itself (copy, reveal, clear). Use Field's `trailing` for an action beside the field (Apply next to a promo code), SearchInput for search, and NumberField for numbers with steppers.",
+        "bestPractices": [
+          {
+            "guidance": "do",
+            "description": "Keep text addons short and fixed (\"https://\", \"kg\", \"USD\"). They are part of the field, not its label."
+          },
+          {
+            "guidance": "do",
+            "description": "For a button addon, use a borderless Button (`variant=\"ghost\"`, `size=\"icon-sm\"`) with an aria-label. The addon tightens around it, so it sits as far from the edge as from the top and bottom."
+          },
+          {
+            "guidance": "do",
+            "description": "Wrap the group in Field for a label and errors: `<Field label=\"Website\"><InputGroup leading=\"https://\"><Input /></InputGroup></Field>`."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not put the value's meaning only in an addon. A screen reader hears the label and the text, so \"Price (USD)\" belongs in the label too."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not restyle an Input to fake an addon; the group owns the border, the fill and the ring."
+          }
+        ]
+      },
+      "related": {
+        "components": [
+          "Input",
+          "Field",
+          "SearchInput",
+          "NumberField",
+          "Button"
+        ]
+      },
+      "props": [
+        {
+          "name": "leading",
+          "type": "ReactNode",
+          "default": "—",
+          "description": "Inside the field, before the text: a prefix (\"https://\", \"$\"), an icon, or a borderless Button."
+        },
+        {
+          "name": "trailing",
+          "type": "ReactNode",
+          "default": "—",
+          "description": "Inside the field, after the text: a suffix (\".com\", \"kg\"), an icon, or a borderless Button (copy, reveal, clear)."
+        },
+        {
+          "name": "children",
+          "type": "ReactElement",
+          "default": "—",
+          "description": "The single `<Input />`. It keeps its own props and type; the group takes over its border, fill and focus ring."
+        },
+        {
+          "name": "id / required / disabled / aria-describedby / aria-invalid",
+          "type": "control props",
+          "default": "—",
+          "description": "Forwarded to the Input, not set on the group. This is how a Field's wiring reaches the text box when the group is its child."
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": "—",
+          "description": "Layout classes for the group (width, margins)."
+        }
+      ],
+      "tokensUsed": [
+        "input",
+        "card",
+        "ring",
+        "destructive",
+        "muted-foreground",
+        "foreground"
+      ],
+      "a11y": [
+        "The Input stays the focusable control; the group draws the focus ring around the whole field while it is focused.",
+        "Inside a Field, the label, description and error are wired to the Input itself, not the group.",
+        "Text addons are plain text beside the input, read in order; put a unit or currency in the label as well so it is not only visual.",
+        "A button addon is a real Button with its own focus stop and needs an aria-label."
+      ],
+      "examples": [
+        {
+          "label": "Prefix and suffix",
+          "code": "<Field label=\"Website\"><InputGroup leading=\"https://\" trailing=\".com\"><Input placeholder=\"example\" /></InputGroup></Field>",
+          "imports": "import { Field, Input, InputGroup } from \"@sableui/react\""
+        },
+        {
+          "label": "Leading icon",
+          "code": "<Field label=\"Email\"><InputGroup leading={<Icon name=\"mail\" />}><Input type=\"email\" placeholder=\"you@example.com\" /></InputGroup></Field>",
+          "imports": "import { Field, Icon, Input, InputGroup } from \"@sableui/react\""
+        },
+        {
+          "label": "Copy button",
+          "code": "<Field label=\"API key\"><InputGroup trailing={<Button variant=\"ghost\" size=\"icon-sm\" aria-label=\"Copy key\" onClick={copy}><Icon name={copied ? \"check\" : \"copy\"} /></Button>}><Input readOnly value={key} /></InputGroup></Field>",
+          "imports": "import { Button, Field, Icon, Input, InputGroup } from \"@sableui/react\""
+        },
+        {
+          "label": "Password with reveal",
+          "code": "<Field label=\"Password\"><InputGroup trailing={<Button variant=\"ghost\" size=\"icon-sm\" aria-label={shown ? \"Hide password\" : \"Show password\"} aria-pressed={shown} onClick={() => setShown(!shown)}><Icon name={shown ? \"eye-off\" : \"eye\"} /></Button>}><Input type={shown ? \"text\" : \"password\"} autoComplete=\"current-password\" /></InputGroup></Field>",
+          "imports": "import { Button, Field, Icon, Input, InputGroup } from \"@sableui/react\""
+        }
+      ]
+    },
+    {
       "name": "Kbd",
       "status": "stable",
       "group": "Text & code",
@@ -11618,8 +12033,13 @@
         },
         {
           "name": "MenuItem",
-          "type": "Base UI Menu.Item props + className (disabled, closeOnClick, onClick) + variant?: \"default\" | \"destructive\"",
-          "description": "An interactive row. Highlights via data-[highlighted]; dims via data-[disabled]. variant=\"destructive\" for a delete or irreversible action: it keeps the destructive ink when highlighted (never className=\"text-destructive\", which the highlight repaints)."
+          "type": "Base UI Menu.Item props + className (disabled, closeOnClick, onClick) + variant?: \"default\" | \"destructive\" + icon?: ReactNode + description?: ReactNode",
+          "description": "An interactive row. Highlights via data-[highlighted]; dims via data-[disabled]. variant=\"destructive\" for a delete or irreversible action: it keeps the destructive ink when highlighted (never className=\"text-destructive\", which the highlight repaints). `icon` leads the row; `description` adds a quieter second line saying what the action does, and the icon then sits in a small tile spanning both lines."
+        },
+        {
+          "name": "MenuLinkItem",
+          "type": "Base UI Menu.LinkItem props (href, target, closeOnClick) + className + icon?: ReactNode + description?: ReactNode",
+          "description": "A row that navigates: a real <a>, so it opens in a new tab, middle-clicks and copies as a link. With target=\"_blank\" it adds rel=\"noopener noreferrer\" and a trailing ↗. Takes icon and description like MenuItem."
         },
         {
           "name": "MenuSeparator",
@@ -11694,9 +12114,148 @@
           "imports": "import { Button, Menu, MenuContent, MenuItem, MenuRadioGroup, MenuRadioItem, MenuSubmenu, MenuSubmenuTrigger, MenuTrigger } from \"@sableui/react\""
         },
         {
+          "label": "Rows with icons and descriptions, and links",
+          "code": "<Menu>\n\t<MenuTrigger render={<Button variant=\"outline\" size=\"sm\">Share</Button>} />\n\t<MenuContent align=\"end\">\n\t\t<MenuItem icon={<Icon name=\"copy\" />} description=\"Copy page as Markdown for LLMs\" onClick={copy}>Copy page</MenuItem>\n\t\t<MenuLinkItem icon={<Icon name=\"file\" />} description=\"View this page as plain text\" href={markdownUrl} target=\"_blank\">View as Markdown</MenuLinkItem>\n\t</MenuContent>\n</Menu>",
+          "imports": "import { Button, Icon, Menu, MenuContent, MenuItem, MenuLinkItem, MenuTrigger } from \"@sableui/react\""
+        },
+        {
           "label": "Toggling rows",
           "code": "<Menu>\n\t<MenuTrigger render={<Button variant=\"secondary\">Columns</Button>} />\n\t<MenuContent>\n\t\t<MenuCheckboxItem checked={cols.status} onCheckedChange={(v) => setCol(\"status\", v)}>Status</MenuCheckboxItem>\n\t\t<MenuCheckboxItem checked={cols.updated} onCheckedChange={(v) => setCol(\"updated\", v)}>Updated</MenuCheckboxItem>\n\t</MenuContent>\n</Menu>",
           "imports": "import { Button, Menu, MenuCheckboxItem, MenuContent, MenuTrigger } from \"@sableui/react\""
+        }
+      ]
+    },
+    {
+      "name": "Menubar",
+      "status": "stable",
+      "group": "Actions",
+      "register": "either",
+      "path": "components/menubar",
+      "summary": "An application's row of menus — File, Edit, View — over Base UI's Menubar. Each menu is an ordinary Sable Menu with a MenubarTrigger as its title; the bar joins them into one tab stop with ←/→ between titles, and once one menu is open, pointing at a neighbour opens it.",
+      "keywords": [
+        "menubar",
+        "menu bar",
+        "app menu",
+        "file menu",
+        "edit menu",
+        "application menu",
+        "desktop menu"
+      ],
+      "usage": {
+        "description": "Use Menubar for a tool or editor whose commands are too many for a toolbar and belong under named menus (File, Edit, View, Help). Use Toolbar for a row of direct actions, a single Menu or OverflowMenu for one set of options, and NavigationMenu-style links for site navigation.",
+        "bestPractices": [
+          {
+            "guidance": "do",
+            "description": "Compose each menu from the Menu parts: `<Menu><MenubarTrigger>File</MenubarTrigger><MenuContent>…</MenuContent></Menu>`. Rows, groups, submenus, checkbox and radio items are the same parts a lone Menu uses."
+          },
+          {
+            "guidance": "do",
+            "description": "Name the bar with aria-label (\"Editor\") so it is announced as the application's menus, not a list of buttons."
+          },
+          {
+            "guidance": "do",
+            "description": "Keep titles to one short word each. A reader scans a menubar left to right; a phrase in the bar is a toolbar button."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not use MenubarTrigger outside a Menubar, or a plain MenuTrigger inside one. The bar's arrow keys and hover-to-switch work on the triggers it owns; a Button trigger in the bar looks like a menu title and behaves like a stray button."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not use a menubar for site navigation. Its items are commands in menus (role=menuitem), not links between pages."
+          }
+        ],
+        "anatomy": [
+          {
+            "name": "Menubar",
+            "required": true,
+            "description": "The bar: role=menubar, one tab stop, arrow keys between titles."
+          },
+          {
+            "name": "Menu",
+            "required": true,
+            "description": "One per title; the ordinary Menu root."
+          },
+          {
+            "name": "MenubarTrigger",
+            "required": true,
+            "description": "The title in the bar that opens its menu."
+          },
+          {
+            "name": "MenuContent",
+            "required": true,
+            "description": "The menu's popup, with MenuItem / MenuSubmenu / MenuCheckboxItem rows inside."
+          }
+        ]
+      },
+      "related": {
+        "components": [
+          "Menu",
+          "Toolbar",
+          "OverflowMenu",
+          "ContextMenu"
+        ]
+      },
+      "props": [
+        {
+          "name": "orientation",
+          "type": "\"horizontal\" | \"vertical\"",
+          "default": "\"horizontal\"",
+          "description": "The bar's axis. Arrow keys follow it: ←/→ along a horizontal bar, ↑/↓ down a vertical one."
+        },
+        {
+          "name": "loopFocus",
+          "type": "boolean",
+          "default": "true",
+          "description": "Wrap from the last title back to the first with the arrow keys."
+        },
+        {
+          "name": "modal",
+          "type": "boolean",
+          "default": "true",
+          "description": "While a menu is open, block pointer interaction outside it and lock page scroll, like a lone Menu."
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disable every menu in the bar."
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "description": "Layout classes for the bar. Titles take their look from MenubarTrigger."
+        }
+      ],
+      "subcomponents": [
+        {
+          "name": "MenubarTrigger",
+          "type": "Base UI Menu.Trigger props + className",
+          "description": "A menu's title in the bar. A small ghost Button in the control type tier, held in the accent wash while its menu is open (`sable-open:`), so the reader sees which title the popup belongs to."
+        }
+      ],
+      "tokensUsed": [
+        "accent",
+        "accent-foreground",
+        "foreground",
+        "ring"
+      ],
+      "a11y": [
+        "Base UI renders role=\"menubar\" with aria-orientation; each title is a menuitem with aria-haspopup and aria-expanded.",
+        "The bar is one tab stop. ←/→ move between titles (↑/↓ when vertical), ↓ or Enter opens a menu and moves into it, and Esc closes it and returns focus to its title.",
+        "With one menu open, pointing at another title opens that menu instead, so a reader can sweep across the bar, as in a desktop application.",
+        "Name the bar with aria-label; titles are their own text."
+      ],
+      "examples": [
+        {
+          "label": "Editor menus",
+          "code": "<Menubar aria-label=\"Editor\">\n\t<Menu>\n\t\t<MenubarTrigger>File</MenubarTrigger>\n\t\t<MenuContent>\n\t\t\t<MenuItem>New</MenuItem>\n\t\t\t<MenuItem>Open…</MenuItem>\n\t\t\t<MenuSeparator />\n\t\t\t<MenuItem>Save</MenuItem>\n\t\t</MenuContent>\n\t</Menu>\n\t<Menu>\n\t\t<MenubarTrigger>Edit</MenubarTrigger>\n\t\t<MenuContent>\n\t\t\t<MenuItem>Undo</MenuItem>\n\t\t\t<MenuItem>Redo</MenuItem>\n\t\t</MenuContent>\n\t</Menu>\n</Menubar>",
+          "imports": "import { Menu, Menubar, MenubarTrigger, MenuContent, MenuItem, MenuSeparator } from \"@sableui/react\""
+        },
+        {
+          "label": "With a submenu and toggling rows",
+          "code": "<Menubar aria-label=\"Editor\">\n\t<Menu>\n\t\t<MenubarTrigger>View</MenubarTrigger>\n\t\t<MenuContent>\n\t\t\t<MenuCheckboxItem checked={ruler} onCheckedChange={setRuler}>Show ruler</MenuCheckboxItem>\n\t\t\t<MenuSubmenu>\n\t\t\t\t<MenuSubmenuTrigger value={zoom}>Zoom</MenuSubmenuTrigger>\n\t\t\t\t<MenuContent side=\"inline-end\" align=\"start\" sideOffset={4}>\n\t\t\t\t\t<MenuRadioGroup value={zoom} onValueChange={setZoom}>\n\t\t\t\t\t\t<MenuRadioItem value=\"100%\">100%</MenuRadioItem>\n\t\t\t\t\t\t<MenuRadioItem value=\"Fit\">Fit</MenuRadioItem>\n\t\t\t\t\t</MenuRadioGroup>\n\t\t\t\t</MenuContent>\n\t\t\t</MenuSubmenu>\n\t\t</MenuContent>\n\t</Menu>\n</Menubar>",
+          "imports": "import { Menu, Menubar, MenubarTrigger, MenuCheckboxItem, MenuContent, MenuRadioGroup, MenuRadioItem, MenuSubmenu, MenuSubmenuTrigger } from \"@sableui/react\""
         }
       ]
     },
@@ -11893,6 +12452,10 @@
       "usage": {
         "description": "The scroll region a conversation lives in. It owns the scrolling and nothing else — not your messages, not your AI state, not your transport or persistence — so you bring the content renderer and it handles the behaviors that make streaming chat feel right: pinning to the newest message, releasing when the reader scrolls up, keeping the view still when older history loads above, jumping to a specific message, restoring a saved read position, and reporting what is actually on screen.",
         "bestPractices": [
+          {
+            "guidance": "do",
+            "description": "Building a whole chat? `sable docs building-a-chat` covers what the scroller does during a stream, what the app owns, and the failure states around it."
+          },
           {
             "guidance": "do",
             "description": "Bound it the way you would bound any scroll box — `flex-1 min-h-0` inside a flex column, or `max-h-96`. `className` lands on the element that actually scrolls, so the obvious bound is the correct one (same contract as Scroller)."
@@ -12376,6 +12939,196 @@
           "label": "Copyable value",
           "code": "const { copy, copied } = useCopy(commitHash)\n<Row gap={1}><MiddleTruncate text={commitHash} /><Button variant=\"ghost\" size=\"icon-xs\" aria-label=\"Copy commit hash\" onClick={copy}><Icon name={copied ? \"check\" : \"copy\"} /></Button></Row>",
           "imports": "import { Button, Icon, MiddleTruncate, Row, useCopy } from \"@sableui/react\""
+        }
+      ]
+    },
+    {
+      "name": "NavigationMenu",
+      "status": "stable",
+      "group": "Navigation",
+      "register": "page",
+      "path": "components/navigation-menu",
+      "summary": "A site header's primary nav over Base UI NavigationMenu: a bar of links and triggers, where a trigger opens a panel of links on hover, click or Enter. One shared panel glides between triggers and resizes to each one's content. Links take any router's link through `render` and mark the current page with `active`.",
+      "keywords": [
+        "navigation",
+        "nav",
+        "header nav",
+        "site nav",
+        "mega menu",
+        "top nav",
+        "navbar",
+        "dropdown nav"
+      ],
+      "usage": {
+        "description": "Use NavigationMenu for a marketing or docs site's header: a few top-level destinations, some of which open a panel of related pages. Use Menu for actions rather than destinations, Tabs to switch views inside a page, Sidebar or SideNav for an app's persistent navigation, and AppHeader for an app's mobile top bar.",
+        "bestPractices": [
+          {
+            "guidance": "do",
+            "description": "Keep the bar to a handful of entries. A trigger groups related pages; a destination with nothing beneath it is a plain NavigationMenuLink in its own item."
+          },
+          {
+            "guidance": "do",
+            "description": "Give panel links a `description` when titles alone are ambiguous (\"Sync\" → \"Offline first, conflict free\"), and lay the Content out with layout classes (`grid w-[30rem] grid-cols-2`); the shared panel sizes itself to it."
+          },
+          {
+            "guidance": "do",
+            "description": "Pass your router's link through `render` (`<NavigationMenuLink render={<Link to=\"/pricing\" />}>`) and set `active` on the current page's link, so the bar shows where the reader is and announces it as `aria-current=\"page\"`."
+          },
+          {
+            "guidance": "do",
+            "description": "Below `md`, hide the bar and offer the same destinations in a Sheet opened from a menu Button: SheetContent side=\"left\" holding a SideNav, its groups mirroring the panels. A hover panel has nothing to hover on a phone, and a bar of five entries does not fit one."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not put actions in it (Sign in, New project). Those are Buttons beside the nav; the nav holds places to go."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not assemble the panel yourself. The root renders the one Portal, Positioner, Popup and Viewport every trigger shares; a second one breaks the glide between triggers."
+          }
+        ],
+        "anatomy": [
+          {
+            "name": "NavigationMenu",
+            "required": true,
+            "description": "The `<nav>` root; also renders the shared floating panel."
+          },
+          {
+            "name": "NavigationMenuList",
+            "required": true,
+            "description": "The bar: a `<ul>` the arrow keys rove across."
+          },
+          {
+            "name": "NavigationMenuItem",
+            "required": true,
+            "description": "One `<li>`: a link, or a trigger with its content."
+          },
+          {
+            "name": "NavigationMenuTrigger",
+            "required": false,
+            "description": "Opens its item's content; carries a chevron."
+          },
+          {
+            "name": "NavigationMenuContent",
+            "required": false,
+            "description": "The links a trigger reveals, rendered into the shared panel."
+          },
+          {
+            "name": "NavigationMenuLink",
+            "required": true,
+            "description": "A destination: a bar entry in an item, a two-line row in content."
+          }
+        ]
+      },
+      "related": {
+        "components": [
+          "Menu",
+          "SideNav",
+          "Sheet",
+          "AppHeader",
+          "Tabs"
+        ]
+      },
+      "props": [
+        {
+          "name": "NavigationMenu (Root)",
+          "type": "Base UI NavigationMenu.Root props (value, defaultValue, onValueChange, delay, closeDelay, orientation) + className",
+          "default": "—",
+          "description": "The `<nav>`. `value` is the open item's value (null when closed); `delay` / `closeDelay` tune hover-to-open."
+        },
+        {
+          "name": "align",
+          "type": "\"start\" | \"center\" | \"end\"",
+          "default": "\"start\"",
+          "description": "Alignment of the shared panel along its trigger."
+        },
+        {
+          "name": "sideOffset",
+          "type": "number",
+          "default": "8",
+          "description": "Gap between the bar and the panel, in px. The pointer crosses it on a bridge, so the panel does not close on the way in."
+        }
+      ],
+      "subcomponents": [
+        {
+          "name": "NavigationMenuList",
+          "type": "Base UI NavigationMenu.List props + className",
+          "description": "The bar of items, a `<ul>`. Arrow keys move between entries."
+        },
+        {
+          "name": "NavigationMenuItem",
+          "type": "Base UI NavigationMenu.Item props + className + value?: string",
+          "description": "One `<li>` holding either a NavigationMenuLink or a NavigationMenuTrigger with its NavigationMenuContent."
+        },
+        {
+          "name": "NavigationMenuTrigger",
+          "type": "Base UI NavigationMenu.Trigger props + className",
+          "description": "Opens its item's content on hover, click or Enter, with a chevron that turns while open. Styled like the bar's links: muted at rest, full ink when hovered or open."
+        },
+        {
+          "name": "NavigationMenuContent",
+          "type": "Base UI NavigationMenu.Content props + className + keepMounted?: boolean",
+          "description": "The item's panel content. Size and lay it out with layout classes; the shared panel follows its size and slides it in from the side it was reached from."
+        },
+        {
+          "name": "NavigationMenuLink",
+          "type": "Base UI NavigationMenu.Link props + className + href?: string + active?: boolean + closeOnClick?: boolean + render?: ReactElement + description?: ReactNode",
+          "description": "A destination. In an item it is a bar entry; in content it is a row with an optional `description` line. `active` sets `aria-current=\"page\"`; `render={<Link to=\"…\" />}` keeps the roving focus on your router's link."
+        }
+      ],
+      "tokensUsed": [
+        "popover",
+        "popover-foreground",
+        "border-floating",
+        "accent",
+        "accent-foreground",
+        "muted-foreground",
+        "foreground",
+        "ring"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "custom",
+          "part": "Panel",
+          "why": "The panel fades and scales in from its trigger like a popover, but it also resizes as the reader moves between triggers, which motion-pop cannot express: Base UI measures each content into --popup-width/--popup-height and the popup transitions to them on the motion tokens."
+        },
+        {
+          "slot": "transition",
+          "recipe": "custom",
+          "part": "Panel",
+          "why": "Moving from one trigger to the next keeps one panel open: it glides along the bar and the new content slides in from the direction of travel, so the reader sees one surface changing rather than two popups swapping. Snaps on first open and on resize (data-instant), where a glide would mean nothing."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Trigger, Link",
+          "why": "Bar entries and panel rows fill on hover and focus like the other interactive surfaces, so the bar reads as live before anything opens."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "root",
+          "why": "Nothing in a nav moves on its own."
+        }
+      ],
+      "a11y": [
+        "The root is a <nav>; give it an aria-label when the page has more than one nav (\"Main\").",
+        "Arrow keys move across the bar; Enter, Space or ArrowDown opens a trigger's content and moves focus into it; Esc closes and returns focus to the trigger.",
+        "A trigger is a button with aria-expanded; its content is reachable by Tab in reading order once open.",
+        "`active` on a link sets aria-current=\"page\" and gives it full ink, so the current page is announced as well as shown.",
+        "Panel motion runs on the motion tokens, so reduced motion (or MotionProvider \"reduced\") collapses the glide and resize to instant."
+      ],
+      "examples": [
+        {
+          "label": "Bar with a panel",
+          "code": "<NavigationMenu aria-label=\"Main\">\n\t<NavigationMenuList>\n\t\t<NavigationMenuItem>\n\t\t\t<NavigationMenuTrigger>Product</NavigationMenuTrigger>\n\t\t\t<NavigationMenuContent className=\"grid w-[30rem] grid-cols-2\">\n\t\t\t\t<NavigationMenuLink href=\"/editor\" description=\"Write and review together.\">Editor</NavigationMenuLink>\n\t\t\t\t<NavigationMenuLink href=\"/sync\" description=\"Offline first, conflict free.\">Sync</NavigationMenuLink>\n\t\t\t</NavigationMenuContent>\n\t\t</NavigationMenuItem>\n\t\t<NavigationMenuItem>\n\t\t\t<NavigationMenuLink href=\"/pricing\">Pricing</NavigationMenuLink>\n\t\t</NavigationMenuItem>\n\t</NavigationMenuList>\n</NavigationMenu>",
+          "imports": "import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from \"@sableui/react\""
+        },
+        {
+          "label": "With a router, marking the current page",
+          "code": "<NavigationMenu aria-label=\"Main\">\n\t<NavigationMenuList>\n\t\t<NavigationMenuItem>\n\t\t\t<NavigationMenuLink active={path === \"/docs\"} render={<Link to=\"/docs\" />}>Docs</NavigationMenuLink>\n\t\t</NavigationMenuItem>\n\t\t<NavigationMenuItem>\n\t\t\t<NavigationMenuLink active={path === \"/blog\"} render={<Link to=\"/blog\" />}>Blog</NavigationMenuLink>\n\t\t</NavigationMenuItem>\n\t</NavigationMenuList>\n</NavigationMenu>",
+          "imports": "import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from \"@sableui/react\"\n// <Link> = your router's link (react-router, next/link, @tanstack/router, …)"
         }
       ]
     },
@@ -12955,7 +13708,11 @@
         "dots menu",
         "more actions",
         "ellipsis",
-        "kebab"
+        "kebab",
+        "responsive actions",
+        "responsive action menu",
+        "collapse actions",
+        "actions overflow on mobile"
       ],
       "usage": {
         "description": "Use OverflowMenu for compact overflow actions when the primary action is already visible elsewhere.",
@@ -12967,6 +13724,10 @@
           {
             "guidance": "do",
             "description": "Keep labels explicit so the icon-only trigger does not obscure the command meaning."
+          },
+          {
+            "guidance": "do",
+            "description": "For actions that fit inline on a wide screen but not a narrow one, render them twice: inline (a Row inside a wrapper shown from a container width; Row sets its own display, so the wrapper does the hiding), and as MenuItems in an OverflowMenu hidden from that width (`@container` + `@md:`). display:none takes the hidden copy out of the accessibility tree, so only one set is ever announced. Keep the primary action inline at every width."
           },
           {
             "guidance": "dont",
@@ -13046,6 +13807,11 @@
           "label": "With leading icons",
           "code": "<OverflowMenu><MenuItem><Icon name=\"check\" className=\"text-sm\" />Mark as read</MenuItem><MenuSeparator /><MenuItem variant=\"destructive\"><Icon name=\"xmark\" className=\"text-sm\" />Delete</MenuItem></OverflowMenu>",
           "imports": "import { Icon, MenuItem, MenuSeparator, OverflowMenu } from \"@sableui/react\""
+        },
+        {
+          "label": "Responsive actions: inline when wide, in a menu when narrow",
+          "code": "<div className=\"@container/actions flex w-full justify-end\">\n\t<Row gap={1} align=\"center\">\n\t\t<div className=\"hidden @md/actions:block\">\n\t\t\t<Row gap={1}>\n\t\t\t\t<Button variant=\"ghost\" size=\"sm\" iconStart={<Icon name=\"share\" />}>Share</Button>\n\t\t\t\t<Button variant=\"ghost\" size=\"sm\" iconStart={<Icon name=\"download\" />}>Export</Button>\n\t\t\t</Row>\n\t\t</div>\n\t\t<div className=\"@md/actions:hidden\">\n\t\t\t<OverflowMenu label=\"Report actions\" size=\"icon-sm\">\n\t\t\t\t<MenuItem icon={<Icon name=\"share\" />}>Share</MenuItem>\n\t\t\t\t<MenuItem icon={<Icon name=\"download\" />}>Export</MenuItem>\n\t\t\t</OverflowMenu>\n\t\t</div>\n\t\t<Button size=\"sm\" iconStart={<Icon name=\"edit\" />}>Edit report</Button>\n\t</Row>\n</div>",
+          "imports": "import { Button, Icon, MenuItem, OverflowMenu, Row } from \"@sableui/react\""
         }
       ]
     },
@@ -13246,7 +14012,7 @@
       "group": "Navigation",
       "register": "either",
       "path": "components/pagination",
-      "summary": "Page navigation built from our own Button + Icon (no Base UI). A <nav aria-label='Pagination'> with prev/next icon buttons that disable at the bounds and numbered page buttons; the current page is a secondary button marked aria-current. Collapses to first/last/current plus a sibling window, bridging skipped runs with an ellipsis.",
+      "summary": "Page navigation built from our own Button + Icon (no Base UI). A <nav aria-label='Pagination'> with prev/next icon buttons that disable at the bounds and numbered page buttons; the current page is a secondary button marked aria-current. With pageLink every control is a real link (crawlable, opens in a new tab, any router through render). Collapses to first/last/current plus a sibling window, bridging skipped runs with an ellipsis.",
       "keywords": [
         "pagination",
         "pager",
@@ -13255,7 +14021,10 @@
         "results",
         "navigation",
         "next",
-        "previous"
+        "previous",
+        "page links",
+        "seo",
+        "url"
       ],
       "usage": {
         "description": "Use Pagination when a result set is split into discrete pages and the user needs predictable movement through them. Pair it with DataTable, list results, or server-paged views; use a load-more Button or infinite scroll when page numbers are not meaningful.",
@@ -13267,6 +14036,10 @@
           {
             "guidance": "do",
             "description": "Use a specific label when multiple pagers appear on a page, such as \"Customer pages\"."
+          },
+          {
+            "guidance": "do",
+            "description": "Pass pageLink when the page lives in the URL (search results, a blog, a catalogue): each page becomes a link a crawler can follow and a reader can open in a new tab. Use a router's Link there so navigation stays in the app."
           },
           {
             "guidance": "do",
@@ -13332,7 +14105,13 @@
           "name": "onPageChange",
           "type": "(page: number) => void",
           "default": "—",
-          "description": "Called with the next page when a control is activated. No-op for out-of-range or unchanged values."
+          "description": "Called with the next page when a control is activated. No-op for out-of-range or unchanged values. Optional with pageLink, where the URL is the page state."
+        },
+        {
+          "name": "pageLink",
+          "type": "(page: number) => ReactElement",
+          "default": "—",
+          "description": "Render each page control as a link: return the element for a page, (page) => <a href={`?page=${page}`} /> or a router's <Link to={`?page=${page}`} />. The current page keeps aria-current; previous/next at the bounds stay disabled buttons. onPageChange becomes optional and, if set, still fires on click."
         },
         {
           "name": "siblingCount",
@@ -13366,6 +14145,7 @@
         "Renders a landmark <nav> with aria-label so assistive tech can jump to the pager.",
         "The current page button carries aria-current='page'.",
         "Prev/next buttons are real <button>s with aria-label and become disabled at the bounds.",
+        "With pageLink the controls are real <a> links (or the router's), so they are crawlable and open in a new tab; a bound arrow stays a disabled button rather than a link to nowhere.",
         "Ellipsis slots are aria-hidden — they convey no navigable target."
       ],
       "examples": [
@@ -13383,6 +14163,11 @@
           "label": "Table results footer",
           "code": "<Stack gap={2}><DataTable data={rows} columns={columns} rowKey={(row) => row.id} /><Pagination label=\"Customer pages\" page={page} total={12} onPageChange={setPage} /></Stack>",
           "imports": "import { DataTable, Pagination, Stack } from \"@sableui/react\""
+        },
+        {
+          "label": "Page links (URL is the state)",
+          "code": "<Pagination page={page} total={pageCount} pageLink={(page) => <Link to={`/search?q=${query}&page=${page}`} />} />",
+          "imports": "import { Pagination } from \"@sableui/react\"\n// <Link> = your router's link (react-router, next/link, @tanstack/router, …)"
         },
         {
           "label": "Server query state",
@@ -15248,6 +16033,12 @@
           "description": "On a horizontal Scroller, let a vertical mouse wheel scroll it sideways. Ignored when vertical. Turn it off only if the region is inside something that owns the wheel itself (a map, a canvas)."
         },
         {
+          "name": "smoothWheel",
+          "type": "boolean",
+          "default": "true",
+          "description": "Ease mouse-wheel steps toward their target, on either axis: the inertia a smooth-scroll library such as Lenis adds, scoped to this region. Only a mouse wheel is eased; trackpads and touch keep their own momentum, keys and scrollbar drags stay native, and reduced motion (the OS preference or MotionProvider) turns it off. Anything else that moves the region (scrollIntoView, a stick-to-bottom chat) stops the easing at once. For a scroll container of your own, `useSmoothWheel()` returns the same behaviour as a ref callback."
+        },
+        {
           "name": "label",
           "type": "string",
           "description": "Accessible name for the scroll region. The region takes focus, so it should say what it contains; without one a screen reader announces an unnamed group."
@@ -16444,7 +17235,10 @@
         "drawer",
         "side panel",
         "overlay",
-        "swipe to dismiss"
+        "swipe to dismiss",
+        "bottom sheet",
+        "snap points",
+        "detents"
       ],
       "usage": {
         "description": "Use Sheet for secondary workflows that slide in while preserving context from the underlying page.",
@@ -16456,6 +17250,10 @@
           {
             "guidance": "do",
             "description": "Include clear title, close path, and footer actions for task-oriented sheets."
+          },
+          {
+            "guidance": "do",
+            "description": "Give a bottom sheet snap points when it shows a summary first and detail on demand (a map result, a now-playing panel): `snapPoints={[0.4, 1]}`. The first stop is where it opens; put what matters at that height, because the rest is a drag away."
           },
           {
             "guidance": "dont",
@@ -16519,15 +17317,39 @@
       "props": [
         {
           "name": "Sheet (Root)",
-          "type": "Base UI Drawer.Root props (open, defaultOpen, onOpenChange, onOpenChangeComplete, modal, disablePointerDismissal, actionsRef, handle) — minus swipeDirection and snap points",
+          "type": "Base UI Drawer.Root props (open, defaultOpen, onOpenChange, onOpenChangeComplete, modal, disablePointerDismissal, actionsRef, handle, snapPoints, snapPoint, defaultSnapPoint, onSnapPointChange, snapToSequentialPoints) — minus swipeDirection",
           "description": "Controls open state. Uncontrolled by default. The dismiss swipe direction is not a prop: it follows SheetContent's side. onOpenChange reports reason \"swipe\" when a swipe closed it."
+        },
+        {
+          "name": "snapPoints",
+          "type": "(number | string)[]",
+          "default": "—",
+          "description": "Stops a bottom sheet rests at, smallest first: a fraction of the viewport (0.4), pixels (320), or a px/rem string (\"20rem\"). The panel is the full stop's height and opens at the first stop; a swipe moves between stops and a swipe below the first closes it. side=\"bottom\" only: other sides ignore them, with a development warning."
+        },
+        {
+          "name": "snapPoint",
+          "type": "number | string | null",
+          "default": "—",
+          "description": "The active stop, controlled. Pair with onSnapPointChange; use defaultSnapPoint to open at a different stop uncontrolled."
+        },
+        {
+          "name": "onSnapPointChange",
+          "type": "(snapPoint: number | string | null, eventDetails) => void",
+          "default": "—",
+          "description": "Fires when a swipe (or your code) moves the sheet to another stop."
+        },
+        {
+          "name": "snapToSequentialPoints",
+          "type": "boolean",
+          "default": "false",
+          "description": "Move one stop per swipe, by distance. Off, a fast flick can skip past a stop."
         }
       ],
       "subcomponents": [
         {
           "name": "SheetContent",
           "type": "Base UI Drawer.Popup props (initialFocus, finalFocus, …) + side: \"right\" | \"left\" | \"top\" | \"bottom\" + className",
-          "description": "Backdrop + edge-anchored popup; portals to <body>. side picks which viewport edge the sheet anchors to and slides in from (defaults to \"right\"). Left/right are full-height side panels; top/bottom span the width up to 80vh. On touch it swipes closed toward that same edge (right swipes right, left swipes left, top swipes up, bottom swipes down)."
+          "description": "Backdrop + edge-anchored popup; portals to <body>. side picks which viewport edge the sheet anchors to and slides in from (defaults to \"right\"). Left/right are full-height side panels; top/bottom span the width up to 80vh. A bottom sheet with snapPoints is as tall as its highest stop allows (the viewport less a top gap), shows a drag handle, and translates down to the active stop; the part below the screen becomes bottom padding, so its scroll area and SheetFooter end at the visible edge. A bottom sheet rides above the on-screen keyboard (measured from visualViewport). On touch it swipes closed toward that same edge (right swipes right, left swipes left, top swipes up, bottom swipes down)."
         },
         {
           "name": "SheetTrigger",
@@ -16587,7 +17409,9 @@
         "Focus matches Dialog: the first tabbable on mouse/keyboard open, the panel itself on touch (so the virtual keyboard stays down); focus returns to the trigger on close.",
         "Render a SheetClose inside SheetContent so screen-reader users can escape the popup.",
         "Slide animation runs via data-[starting-style]/data-[ending-style] attributes on the motion-duration token; while swiping the panel tracks the finger directly, and a released swipe finishes on the same token (scaled by flick speed), so reduced motion makes it instant.",
-        "A mouse drag that starts on sheet content selects text rather than dragging the panel; mouse dragging only starts from the padding edge."
+        "A mouse drag that starts on sheet content selects text rather than dragging the panel; mouse dragging only starts from the padding edge.",
+        "Snap points add stops, not a gate: at any stop the content scrolls within the visible part and every control stays reachable by keyboard, so nothing needs the drag. The handle is decorative (aria-hidden).",
+        "A bottom sheet stays above the on-screen keyboard: its bottom edge is lifted by the height the keyboard takes from the visual viewport, so a focused field is not covered. An app that sets interactive-widget=resizes-content in its viewport meta gets the same result from the browser, and the inset reads 0."
       ],
       "examples": [
         {
@@ -16604,6 +17428,11 @@
           "label": "Left side",
           "code": "<Sheet><SheetTrigger render={<Button variant=\"secondary\">Menu</Button>} /><SheetContent side=\"left\"><SheetHeader><SheetTitle>Navigation</SheetTitle></SheetHeader><SheetFooter><SheetClose render={<Button variant=\"secondary\">Close</Button>} /></SheetFooter></SheetContent></Sheet>",
           "imports": "import { Button, Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from \"@sableui/react\""
+        },
+        {
+          "label": "Bottom sheet with snap points",
+          "code": "<Sheet snapPoints={[0.4, 1]}><SheetTrigger render={<Button variant=\"secondary\">Nearby</Button>} /><SheetContent side=\"bottom\"><SheetHeader><SheetTitle>12 places nearby</SheetTitle><SheetDescription>Drag up for the full list.</SheetDescription></SheetHeader><SheetList>{places.map((place) => <Entity key={place.id} title={place.name} subtitle={place.distance} />)}</SheetList></SheetContent></Sheet>",
+          "imports": "import { Button, Entity, Sheet, SheetContent, SheetDescription, SheetHeader, SheetList, SheetTitle, SheetTrigger } from \"@sableui/react\""
         },
         {
           "label": "Bottom side",
@@ -16721,6 +17550,10 @@
             "description": "Keep item labels predictable and active state obvious."
           },
           {
+            "guidance": "do",
+            "description": "Set surface=\"page\" when a full-width top bar sits above the rail. A theme's tinted or dark rail is for a full-height rail that frames the app."
+          },
+          {
             "guidance": "dont",
             "description": "Do not use Sidebar for page-local settings, filters, or temporary action groups."
           },
@@ -16767,6 +17600,12 @@
           "type": "\"app\" | \"inline\"",
           "default": "\"app\"",
           "description": "Where the rail lives. \"app\" is the page's chrome column — sticky, full viewport height, hidden below lg where AppHeader + BottomNav take over. \"inline\" is always visible and fills its parent's height, for a rail inside a bounded frame (a nested shell, an embedded preview). Use it instead of overriding the layout with !important classes."
+        },
+        {
+          "name": "surface",
+          "type": "\"rail\" | \"page\"",
+          "default": "\"rail\"",
+          "description": "Which surface the rail is painted on. \"rail\" is its own --sidebar-* surface with a border — right for a full-height rail that frames the app, which a theme may tint or paint dark. \"page\" uses the page's surface and ink with no border — use it when a full-width header sits above the rail, where a tinted column starting under a page-coloured bar reads as pasted on. Use it instead of overriding bg-/text- classes, which the rail's re-pointed tokens defeat."
         }
       ],
       "subcomponents": [
@@ -18037,6 +18876,10 @@
         "bestPractices": [
           {
             "guidance": "do",
+            "description": "In a chat, read `sable docs building-a-chat`: one status drives `streaming` and the composer, a regenerated answer takes a new key (the text is append-only), and the finished turn is announced once."
+          },
+          {
+            "guidance": "do",
             "description": "Grow `text` and let the component do the rest. It assumes an append-only string and keys units by index, so React mounts only the new spans — re-rendering a longer string animates what was added and leaves what the reader has already read alone."
           },
           {
@@ -18159,7 +19002,7 @@
         },
         {
           "label": "Inside a message, with the wait reported elsewhere",
-          "code": "<Message role=\"assistant\"><StreamingText text={answer} streaming={pending} caret={false} /></Message>",
+          "code": "<Message align=\"start\"><StreamingText text={answer} streaming={pending} caret={false} /></Message>",
           "imports": "import { Message, StreamingText } from \"@sableui/react\""
         },
         {
@@ -20553,6 +21396,7 @@
         "summary": "A full-height conversation surface: titled header, scrolling transcript, and a composer pinned to the bottom — the assembled shape of an AI assistant, a support thread, or a DM.",
         "intent": "Reach for this for any conversation that owns its screen — an assistant, a support inbox thread, a DM. Not for a chat docked beside other work (compose the same three parts inside a Sheet or a PanelGroup instead), and not for a comment thread under an article, which is a FeedPage concern.",
         "notes": [
+          "This is the assembled screen with sample data. To wire it to a real streaming source (a hook such as useChat, or your own transport), read `sable docs building-a-chat`: who owns what, the turn lifecycle mapped to props, and every failure state.",
           "The panel is a fixed-height column, not a growing page. `h-[calc(100dvh_-_--spacing(12))]` on the Card (the viewport minus the Page's py-6, in spacing units so density moves both together — a fixed `3rem` drifts the moment density moves the padding) and `flex-1 min-h-0` on the MessageScroller are what make the transcript scroll instead of the document — the single most common thing to get wrong here, and it fails by pushing the composer off the bottom of the screen.",
           "The panel is a Card, not a hand-built bordered section: CardHeader (title, description, CardAction), the MessageScroller and a CardFooter all inset by the card's own `--card-p`, so the three regions share one edge at any card density.",
           "`dvh` rather than `vh`: on mobile the URL bar collapses, and a `vh`-sized panel puts the composer under it exactly when someone is trying to type.",
@@ -20575,7 +21419,7 @@
           "The composer is a real <form> whose Enter handling skips IME composition, and every icon-only control in the panel carries an accessible label — the answer actions also carry a tooltip, and the stop control is named for what it stops (`stopLabel=\"Stop answering\"`)."
         ],
         "imports": "import { Attachment, Avatar, Bubble, Button, Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle, ChatComposer, CodeBlock, Icon, Marker, MenuRadioGroup, MenuRadioItem, Message, MessageScroller, Page, SettingsMenu, SettingsRow, SimpleTooltip, StreamingText, Toolbar, ToolbarButton } from \"@sableui/react\"",
-        "code": "/**\n * The request is in flight. In an app this is your send state — from `useChat`,\n * a fetch, whatever owns the turn — and it is deliberately ONE flag driving two\n * places: the composer's `busy` and the answer's `streaming`. They are the same\n * wait reported at both ends of the panel, and letting them drift is how you get\n * a composer that still says \"sending\" under an answer that already finished.\n */\nconst pending = true\n\n/** The answer so far. Append tokens to this; `StreamingText` assumes it only grows. */\nconst streamed =\n\t\"Yes, appends are already safe: your layout effect measures before paint. The jump is on the prepend path, which reads scrollHeight after the new rows\"\n\n/**\n * The opening exchange. `step` is what the assistant did before answering — a\n * doc it read, a tool it ran — and it rides in that message's header, so it\n * reads as part of the turn rather than as an event between turns.\n */\nconst turns: { id: string; mine: boolean; step?: string; body: string }[] = [\n\t{\n\t\tid: \"t_01\",\n\t\tmine: true,\n\t\tbody: \"Our chat scroll jumps every time older messages load. What are we doing wrong?\",\n\t},\n\t{\n\t\tid: \"t_02\",\n\t\tmine: false,\n\t\tstep: \"Read message-scroller.md\",\n\t\tbody: \"Almost always the anchor. If you preserve the scroll position by measuring the container, prepending history moves everything under the reader.\",\n\t},\n\t{\n\t\tid: \"t_03\",\n\t\tmine: false,\n\t\tbody: \"Anchor on the oldest rendered message instead and add back however far it moved. Appends leave it alone, so the same rule covers both.\",\n\t},\n]\n\nexport function ChatPanel() {\n\t// One identity for every assistant turn. A glyph rather than initials: \"AI\"\n\t// in a circle reads as a person called A. I. The glyph is sized to the\n\t// circle (the fallback's own size is tuned for two letters, and a lone icon\n\t// at that size reads as a speck); `alt` names it for a screen reader, which\n\t// otherwise gets nothing from a fallback-only avatar.\n\tconst assistant = (\n\t\t<Avatar variant=\"art\"\n\t\t\tsize=\"sm\"\n\t\t\talt=\"Assistant\"\n\t\t\tfallback={<Icon name=\"sparkles\" className=\"text-base\" />}\n\t\t/>\n\t)\n\n\treturn (\n\t\t<Page as=\"main\" max=\"feed\" gap={0} className=\"py-6\">\n\t\t\t{/* h-dvh minus the page's own padding (py-6 = 12 spacing units, in\n\t\t\t    spacing units so density moves both together): the panel owns the\n\t\t\t    viewport, and the transcript — not the page — is the thing that\n\t\t\t    scrolls. The panel is a Card; its parts inset by the card's own\n\t\t\t    --card-p, so header, transcript and composer share one edge. */}\n\t\t\t<Card\n\t\t\t\trender={<section aria-labelledby=\"chat-title\" />}\n\t\t\t\tclassName=\"flex h-[calc(100dvh_-_--spacing(12))] flex-col overflow-hidden\"\n\t\t\t>\n\t\t\t\t<CardHeader className=\"pb-(--card-p) shadow-[inset_0_-1px_0_var(--border)]\">\n\t\t\t\t\t{/* CardTitle carries the type; the h1 inside it is the page heading. */}\n\t\t\t\t\t<CardTitle>\n\t\t\t\t\t\t<h1 id=\"chat-title\">Scroll behaviour</h1>\n\t\t\t\t\t</CardTitle>\n\t\t\t\t\t<CardDescription>Assistant · answers from your team's docs</CardDescription>\n\t\t\t\t\t<CardAction>\n\t\t\t\t\t\t{/* Labelled, not a bare plus: the composer already has a plus\n\t\t\t\t\t\t    (attach), and two identical glyphs a panel apart that do\n\t\t\t\t\t\t    different things is a guessing game. */}\n\t\t\t\t\t\t<Button variant=\"ghost\" size=\"sm\">\n\t\t\t\t\t\t\t<Icon name=\"edit\" />\n\t\t\t\t\t\t\tNew chat\n\t\t\t\t\t\t</Button>\n\t\t\t\t\t</CardAction>\n\t\t\t\t</CardHeader>\n\n\t\t\t\t{/* flex-1 min-h-0 is the whole layout: it bounds the scroll region\n\t\t\t\t    against the panel instead of letting the transcript grow the page. */}\n\t\t\t\t<MessageScroller className=\"min-h-0 flex-1 p-(--card-p)\">\n\t\t\t\t\t<Marker variant=\"separator\">Today</Marker>\n\n\t\t\t\t\t{turns.map((turn, i) => {\n\t\t\t\t\t\t// Derived, not hand-set: a turn continues a run when the one\n\t\t\t\t\t\t// before it has the same author. A continuation drops its\n\t\t\t\t\t\t// avatar (Message keeps the column) AND its tail (Bubble keeps\n\t\t\t\t\t\t// the ear's space) — together, that makes the run one block.\n\t\t\t\t\t\tconst continues = i > 0 && turns[i - 1].mine === turn.mine\n\t\t\t\t\t\treturn (\n\t\t\t\t\t\t\t<Message\n\t\t\t\t\t\t\t\tkey={turn.id}\n\t\t\t\t\t\t\t\tmessageId={turn.id}\n\t\t\t\t\t\t\t\talign={turn.mine ? \"end\" : \"start\"}\n\t\t\t\t\t\t\t\tgrouped={continues}\n\t\t\t\t\t\t\t\tavatar={turn.mine ? undefined : assistant}\n\t\t\t\t\t\t\t\theader={\n\t\t\t\t\t\t\t\t\tturn.step ? (\n\t\t\t\t\t\t\t\t\t\t<Marker variant=\"note\" icon=\"book\" className=\"justify-start\">\n\t\t\t\t\t\t\t\t\t\t\t{turn.step}\n\t\t\t\t\t\t\t\t\t\t</Marker>\n\t\t\t\t\t\t\t\t\t) : undefined\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t<Bubble\n\t\t\t\t\t\t\t\t\tvariant={turn.mine ? \"primary\" : \"muted\"}\n\t\t\t\t\t\t\t\t\talign={turn.mine ? \"end\" : \"start\"}\n\t\t\t\t\t\t\t\t\ttail={!continues}\n\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t\t{turn.body}\n\t\t\t\t\t\t\t\t</Bubble>\n\t\t\t\t\t\t\t</Message>\n\t\t\t\t\t\t)\n\t\t\t\t\t})}\n\n\t\t\t\t\t{/* The same run, continued: long-form output with no bubble,\n\t\t\t\t\t    because a tinted box around a code block reads as a quote\n\t\t\t\t\t    rather than as a turn. Its footer carries what the reader does\n\t\t\t\t\t    WITH a settled answer, as a Toolbar: one tab stop, arrow keys\n\t\t\t\t\t    between the actions. */}\n\t\t\t\t\t<Message\n\t\t\t\t\t\tmessageId=\"t_04\"\n\t\t\t\t\t\tgrouped\n\t\t\t\t\t\tavatar={assistant}\n\t\t\t\t\t\tfooter={\n\t\t\t\t\t\t\t<Toolbar aria-label=\"Answer actions\">\n\t\t\t\t\t\t\t\t<SimpleTooltip content=\"Copy answer\">\n\t\t\t\t\t\t\t\t\t<ToolbarButton size=\"icon-sm\" aria-label=\"Copy answer\">\n\t\t\t\t\t\t\t\t\t\t<Icon name=\"copy\" />\n\t\t\t\t\t\t\t\t\t</ToolbarButton>\n\t\t\t\t\t\t\t\t</SimpleTooltip>\n\t\t\t\t\t\t\t\t<SimpleTooltip content=\"Regenerate\">\n\t\t\t\t\t\t\t\t\t<ToolbarButton size=\"icon-sm\" aria-label=\"Regenerate answer\">\n\t\t\t\t\t\t\t\t\t\t<Icon name=\"refresh\" />\n\t\t\t\t\t\t\t\t\t</ToolbarButton>\n\t\t\t\t\t\t\t\t</SimpleTooltip>\n\t\t\t\t\t\t\t</Toolbar>\n\t\t\t\t\t\t}\n\t\t\t\t\t>\n\t\t\t\t\t\t{/* max-w-full: a plain Bubble sizes to its content with no\n\t\t\t\t\t\t    measure cap, and a code line is wider than a phone. Bounded\n\t\t\t\t\t\t    by the column, the CodeBlock scrolls inside itself instead of\n\t\t\t\t\t\t    pushing the whole transcript sideways. */}\n\t\t\t\t\t\t<Bubble variant=\"plain\" className=\"max-w-full\">\n\t\t\t\t\t\t\t<p className=\"text-body-md text-foreground\">\n\t\t\t\t\t\t\t\tHere is the shape of it:\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t\t<CodeBlock\n\t\t\t\t\t\t\t\tcode={\n\t\t\t\t\t\t\t\t\t\"const shift = anchor.offsetTop - lastTop\\nif (shift !== 0) viewport.scrollTop += shift\"\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\tfilename=\"preserve.ts\"\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t</Bubble>\n\t\t\t\t\t</Message>\n\n\t\t\t\t\t{/* The reader's follow-up is one turn: the question and the file\n\t\t\t\t\t    it refers to stack in a single Message, so they share a side, an\n\t\t\t\t\t    edge and a timestamp rather than reading as two sends. */}\n\t\t\t\t\t<Message messageId=\"t_05\" align=\"end\">\n\t\t\t\t\t\t<Bubble variant=\"primary\" align=\"end\">\n\t\t\t\t\t\t\tHere's ours. Does the same fix cover new messages arriving?\n\t\t\t\t\t\t</Bubble>\n\t\t\t\t\t\t<Attachment\n\t\t\t\t\t\t\tname=\"scroller.tsx\"\n\t\t\t\t\t\t\tmeta=\"4.2 KB · TSX\"\n\t\t\t\t\t\t\tonOpen={() => undefined}\n\t\t\t\t\t\t/>\n\t\t\t\t\t</Message>\n\n\t\t\t\t\t{/* The answer arriving. A `Marker` with a spinner — or ThinkingOrb —\n\t\t\t\t\t    is what sits here BEFORE the first token; once tokens land it is\n\t\t\t\t\t    replaced rather than kept, because two indicators for one wait\n\t\t\t\t\t    read as two things happening. What stays is the step it took,\n\t\t\t\t\t    as a finished note in the header.\n\n\t\t\t\t\t    No bubble, same as the long-form answer above: a tinted box\n\t\t\t\t\t    around a growing paragraph makes the reflow look like the box\n\t\t\t\t\t    breathing. And no answer actions yet — there is nothing to copy\n\t\t\t\t\t    or regenerate until it settles; Stop lives in the composer.\n\n\t\t\t\t\t    MessageScroller needs no help with this — it already re-follows on\n\t\t\t\t\t    \"a message grew\" (ResizeObserver), not just on \"a message arrived\",\n\t\t\t\t\t    so the newest token stays pinned while the reader can still scroll\n\t\t\t\t\t    up without being yanked back. */}\n\t\t\t\t\t<Message\n\t\t\t\t\t\tmessageId=\"t_06\"\n\t\t\t\t\t\tavatar={assistant}\n\t\t\t\t\t\theader={\n\t\t\t\t\t\t\t<Marker variant=\"note\" icon=\"file\" className=\"justify-start\">\n\t\t\t\t\t\t\t\tRead scroller.tsx\n\t\t\t\t\t\t\t</Marker>\n\t\t\t\t\t\t}\n\t\t\t\t\t>\n\t\t\t\t\t\t<Bubble variant=\"plain\">\n\t\t\t\t\t\t\t<StreamingText text={streamed} streaming={pending} />\n\t\t\t\t\t\t</Bubble>\n\t\t\t\t\t</Message>\n\t\t\t\t</MessageScroller>\n\n\t\t\t\t<CardFooter className=\"pt-(--card-p) shadow-[inset_0_1px_0_var(--border)]\">\n\t\t\t\t\t<ChatComposer\n\t\t\t\t\t\tclassName=\"flex-1\"\n\t\t\t\t\t\tplaceholder=\"Ask a follow-up…\"\n\t\t\t\t\t\t// Same flag as the answer's `streaming`, which is what turns Send\n\t\t\t\t\t\t// into Stop. A composer that stays sendable mid-answer invites a\n\t\t\t\t\t\t// second request on top of the one still running.\n\t\t\t\t\t\tbusy={pending}\n\t\t\t\t\t\tonStop={() => undefined}\n\t\t\t\t\t\tstopLabel=\"Stop answering\"\n\t\t\t\t\t\tonAttach={() => undefined}\n\t\t\t\t\t\tfooter=\"Enter to send · Shift+Enter for a new line\"\n\t\t\t\t\t\t// Model and effort sit in `actions`, at the send end of the row:\n\t\t\t\t\t\t// they qualify the message about to be sent, so they belong beside\n\t\t\t\t\t\t// the button that sends it rather than next to the attach control.\n\t\t\t\t\t\tactions={\n\t\t\t\t\t\t\t<SettingsMenu\n\t\t\t\t\t\t\t\tvariant=\"subtle\"\n\t\t\t\t\t\t\t\tsize=\"xs\"\n\t\t\t\t\t\t\t\tlabel=\"Change model and effort\"\n\t\t\t\t\t\t\t\tsummary={\n\t\t\t\t\t\t\t\t\t<>\n\t\t\t\t\t\t\t\t\t\t<span className=\"text-foreground\">5.6 Sol</span>{\" \"}\n\t\t\t\t\t\t\t\t\t\t<span className=\"text-muted-foreground\">High</span>\n\t\t\t\t\t\t\t\t\t</>\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t<SettingsRow label=\"Model\" value=\"5.6 Sol\">\n\t\t\t\t\t\t\t\t\t<MenuRadioGroup defaultValue=\"sol\">\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"sol\">5.6 Sol</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"lite\">5.6 Lite</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t</MenuRadioGroup>\n\t\t\t\t\t\t\t\t</SettingsRow>\n\t\t\t\t\t\t\t\t<SettingsRow label=\"Effort\" value=\"High\">\n\t\t\t\t\t\t\t\t\t<MenuRadioGroup defaultValue=\"high\">\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"low\">Low</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"standard\">Standard</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"high\">High</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t</MenuRadioGroup>\n\t\t\t\t\t\t\t\t</SettingsRow>\n\t\t\t\t\t\t\t\t<SettingsRow label=\"Speed\" value=\"Standard\">\n\t\t\t\t\t\t\t\t\t<MenuRadioGroup defaultValue=\"standard\">\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"standard\">Standard</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"priority\">Priority</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t</MenuRadioGroup>\n\t\t\t\t\t\t\t\t</SettingsRow>\n\t\t\t\t\t\t\t</SettingsMenu>\n\t\t\t\t\t\t}\n\t\t\t\t\t/>\n\t\t\t\t</CardFooter>\n\t\t\t</Card>\n\t\t</Page>\n\t)\n}"
+        "code": "/**\n * The request is in flight. In an app this is your send state — from `useChat`,\n * a fetch, whatever owns the turn — and it is deliberately ONE flag driving two\n * places: the composer's `busy` and the answer's `streaming`. They are the same\n * wait reported at both ends of the panel, and letting them drift is how you get\n * a composer that still says \"sending\" under an answer that already finished.\n */\nconst pending = true\n\n/** The answer so far. Append tokens to this; `StreamingText` assumes it only grows. */\nconst streamed =\n\t\"Yes, appends are already safe: your layout effect measures before paint. The jump is on the prepend path, which reads scrollHeight after the new rows\"\n\n/**\n * The opening exchange. `step` is what the assistant did before answering — a\n * doc it read, a tool it ran — and it rides in that message's header, so it\n * reads as part of the turn rather than as an event between turns.\n */\nconst turns: { id: string; mine: boolean; step?: string; body: string }[] = [\n\t{\n\t\tid: \"t_01\",\n\t\tmine: true,\n\t\tbody: \"Our chat scroll jumps every time older messages load. What are we doing wrong?\",\n\t},\n\t{\n\t\tid: \"t_02\",\n\t\tmine: false,\n\t\tstep: \"Read message-scroller.md\",\n\t\tbody: \"Almost always the anchor. If you preserve the scroll position by measuring the container, prepending history moves everything under the reader.\",\n\t},\n\t{\n\t\tid: \"t_03\",\n\t\tmine: false,\n\t\tbody: \"Anchor on the oldest rendered message instead and add back however far it moved. Appends leave it alone, so the same rule covers both.\",\n\t},\n]\n\nexport function ChatPanel() {\n\t// One identity for every assistant turn. A glyph rather than initials: \"AI\"\n\t// in a circle reads as a person called A. I. The glyph is sized to the\n\t// circle (the fallback's own size is tuned for two letters, and a lone icon\n\t// at that size reads as a speck); `alt` names it for a screen reader, which\n\t// otherwise gets nothing from a fallback-only avatar.\n\tconst assistant = (\n\t\t<Avatar variant=\"art\"\n\t\t\tsize=\"sm\"\n\t\t\talt=\"Assistant\"\n\t\t\tfallback={<Icon name=\"sparkles\" className=\"text-base\" />}\n\t\t/>\n\t)\n\n\treturn (\n\t\t<Page as=\"main\" max=\"feed\" gap={0} className=\"py-6\">\n\t\t\t{/* h-dvh minus the page's own padding (py-6 = 12 spacing units, in\n\t\t\t    spacing units so density moves both together): the panel owns the\n\t\t\t    viewport, and the transcript — not the page — is the thing that\n\t\t\t    scrolls. The panel is a Card; its parts inset by the card's own\n\t\t\t    --card-p, so header, transcript and composer share one edge. */}\n\t\t\t<Card\n\t\t\t\trender={<section aria-labelledby=\"chat-title\" />}\n\t\t\t\tclassName=\"flex h-[calc(100dvh_-_--spacing(12))] flex-col overflow-hidden\"\n\t\t\t>\n\t\t\t\t<CardHeader className=\"pb-(--card-p) shadow-[inset_0_-1px_0_var(--border)]\">\n\t\t\t\t\t{/* CardTitle carries the type; the h1 inside it is the page heading. */}\n\t\t\t\t\t<CardTitle>\n\t\t\t\t\t\t<h1 id=\"chat-title\">Scroll behaviour</h1>\n\t\t\t\t\t</CardTitle>\n\t\t\t\t\t<CardDescription>Assistant · answers from your team's docs</CardDescription>\n\t\t\t\t\t<CardAction>\n\t\t\t\t\t\t{/* Labelled, not a bare plus: the composer already has a plus\n\t\t\t\t\t\t    (attach), and two identical glyphs a panel apart that do\n\t\t\t\t\t\t    different things is a guessing game. */}\n\t\t\t\t\t\t<Button variant=\"ghost\" size=\"sm\">\n\t\t\t\t\t\t\t<Icon name=\"edit\" />\n\t\t\t\t\t\t\tNew chat\n\t\t\t\t\t\t</Button>\n\t\t\t\t\t</CardAction>\n\t\t\t\t</CardHeader>\n\n\t\t\t\t{/* flex-1 min-h-0 is the whole layout: it bounds the scroll region\n\t\t\t\t    against the panel instead of letting the transcript grow the page. */}\n\t\t\t\t<MessageScroller className=\"min-h-0 flex-1 p-(--card-p)\">\n\t\t\t\t\t<Marker variant=\"separator\">Today</Marker>\n\n\t\t\t\t\t{turns.map((turn, i) => {\n\t\t\t\t\t\t// Derived, not hand-set: a turn continues a run when the one\n\t\t\t\t\t\t// before it has the same author. A continuation drops its\n\t\t\t\t\t\t// avatar (Message keeps the column) AND its tail (Bubble keeps\n\t\t\t\t\t\t// the ear's space) — together, that makes the run one block.\n\t\t\t\t\t\tconst continues = i > 0 && turns[i - 1].mine === turn.mine\n\t\t\t\t\t\treturn (\n\t\t\t\t\t\t\t<Message\n\t\t\t\t\t\t\t\tkey={turn.id}\n\t\t\t\t\t\t\t\tmessageId={turn.id}\n\t\t\t\t\t\t\t\talign={turn.mine ? \"end\" : \"start\"}\n\t\t\t\t\t\t\t\tgrouped={continues}\n\t\t\t\t\t\t\t\tavatar={turn.mine ? undefined : assistant}\n\t\t\t\t\t\t\t\theader={\n\t\t\t\t\t\t\t\t\tturn.step ? (\n\t\t\t\t\t\t\t\t\t\t<Marker variant=\"note\" icon=\"book\" className=\"justify-start\">\n\t\t\t\t\t\t\t\t\t\t\t{turn.step}\n\t\t\t\t\t\t\t\t\t\t</Marker>\n\t\t\t\t\t\t\t\t\t) : undefined\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t<Bubble\n\t\t\t\t\t\t\t\t\tvariant={turn.mine ? \"primary\" : \"muted\"}\n\t\t\t\t\t\t\t\t\talign={turn.mine ? \"end\" : \"start\"}\n\t\t\t\t\t\t\t\t\ttail={!continues}\n\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t\t{turn.body}\n\t\t\t\t\t\t\t\t</Bubble>\n\t\t\t\t\t\t\t</Message>\n\t\t\t\t\t\t)\n\t\t\t\t\t})}\n\n\t\t\t\t\t{/* The same run, continued: long-form output with no bubble,\n\t\t\t\t\t    because a tinted box around a code block reads as a quote\n\t\t\t\t\t    rather than as a turn. Its footer carries what the reader does\n\t\t\t\t\t    WITH a settled answer, as a Toolbar: one tab stop, arrow keys\n\t\t\t\t\t    between the actions. */}\n\t\t\t\t\t<Message\n\t\t\t\t\t\tmessageId=\"t_04\"\n\t\t\t\t\t\tgrouped\n\t\t\t\t\t\tavatar={assistant}\n\t\t\t\t\t\tfooter={\n\t\t\t\t\t\t\t<Toolbar aria-label=\"Answer actions\">\n\t\t\t\t\t\t\t\t<SimpleTooltip content=\"Copy answer\">\n\t\t\t\t\t\t\t\t\t<ToolbarButton size=\"icon-sm\" aria-label=\"Copy answer\">\n\t\t\t\t\t\t\t\t\t\t<Icon name=\"copy\" />\n\t\t\t\t\t\t\t\t\t</ToolbarButton>\n\t\t\t\t\t\t\t\t</SimpleTooltip>\n\t\t\t\t\t\t\t\t<SimpleTooltip content=\"Regenerate\">\n\t\t\t\t\t\t\t\t\t<ToolbarButton size=\"icon-sm\" aria-label=\"Regenerate answer\">\n\t\t\t\t\t\t\t\t\t\t<Icon name=\"refresh\" />\n\t\t\t\t\t\t\t\t\t</ToolbarButton>\n\t\t\t\t\t\t\t\t</SimpleTooltip>\n\t\t\t\t\t\t\t</Toolbar>\n\t\t\t\t\t\t}\n\t\t\t\t\t>\n\t\t\t\t\t\t{/* max-w-full: a plain Bubble sizes to its content with no\n\t\t\t\t\t\t    measure cap, and a code line is wider than a phone. Bounded\n\t\t\t\t\t\t    by the column, the CodeBlock scrolls inside itself instead of\n\t\t\t\t\t\t    pushing the whole transcript sideways. */}\n\t\t\t\t\t\t<Bubble variant=\"plain\" className=\"max-w-full\">\n\t\t\t\t\t\t\t<p className=\"text-body-md text-foreground\">\n\t\t\t\t\t\t\t\tHere is the shape of it:\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t\t<CodeBlock\n\t\t\t\t\t\t\t\tcode={\n\t\t\t\t\t\t\t\t\t\"const shift = anchor.offsetTop - lastTop\\nif (shift !== 0) viewport.scrollTop += shift\"\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\tfilename=\"preserve.ts\"\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t</Bubble>\n\t\t\t\t\t</Message>\n\n\t\t\t\t\t{/* The reader's follow-up is one turn: the question and the file\n\t\t\t\t\t    it refers to stack in a single Message, so they share a side, an\n\t\t\t\t\t    edge and a timestamp rather than reading as two sends. */}\n\t\t\t\t\t<Message messageId=\"t_05\" align=\"end\">\n\t\t\t\t\t\t<Bubble variant=\"primary\" align=\"end\">\n\t\t\t\t\t\t\tHere's ours. Does the same fix cover new messages arriving?\n\t\t\t\t\t\t</Bubble>\n\t\t\t\t\t\t<Attachment\n\t\t\t\t\t\t\tname=\"scroller.tsx\"\n\t\t\t\t\t\t\tmeta=\"4.2 KB · TSX\"\n\t\t\t\t\t\t\tonOpen={() => undefined}\n\t\t\t\t\t\t/>\n\t\t\t\t\t</Message>\n\n\t\t\t\t\t{/* The answer arriving. A `Marker` with a spinner — or ThinkingOrb —\n\t\t\t\t\t    is what sits here BEFORE the first token; once tokens land it is\n\t\t\t\t\t    replaced rather than kept, because two indicators for one wait\n\t\t\t\t\t    read as two things happening. What stays is the step it took,\n\t\t\t\t\t    as a finished note in the header.\n\n\t\t\t\t\t    No bubble, same as the long-form answer above: a tinted box\n\t\t\t\t\t    around a growing paragraph makes the reflow look like the box\n\t\t\t\t\t    breathing. And no answer actions yet — there is nothing to copy\n\t\t\t\t\t    or regenerate until it settles; Stop lives in the composer.\n\n\t\t\t\t\t    MessageScroller needs no help with this — it already re-follows on\n\t\t\t\t\t    \"a message grew\" (ResizeObserver), not just on \"a message arrived\",\n\t\t\t\t\t    so the newest token stays pinned while the reader can still scroll\n\t\t\t\t\t    up without being yanked back. */}\n\t\t\t\t\t<Message\n\t\t\t\t\t\tmessageId=\"t_06\"\n\t\t\t\t\t\tavatar={assistant}\n\t\t\t\t\t\theader={\n\t\t\t\t\t\t\t<Marker variant=\"note\" icon=\"file\" className=\"justify-start\">\n\t\t\t\t\t\t\t\tRead scroller.tsx\n\t\t\t\t\t\t\t</Marker>\n\t\t\t\t\t\t}\n\t\t\t\t\t>\n\t\t\t\t\t\t<Bubble variant=\"plain\">\n\t\t\t\t\t\t\t<StreamingText text={streamed} streaming={pending} />\n\t\t\t\t\t\t</Bubble>\n\t\t\t\t\t</Message>\n\t\t\t\t</MessageScroller>\n\n\t\t\t\t<CardFooter className=\"pt-(--card-p) shadow-[inset_0_1px_0_var(--border)]\">\n\t\t\t\t\t<ChatComposer\n\t\t\t\t\t\tclassName=\"flex-1\"\n\t\t\t\t\t\tplaceholder=\"Ask a follow-up…\"\n\t\t\t\t\t\t// Same flag as the answer's `streaming`, which is what turns Send\n\t\t\t\t\t\t// into Stop. A composer that stays sendable mid-answer invites a\n\t\t\t\t\t\t// second request on top of the one still running.\n\t\t\t\t\t\tbusy={pending}\n\t\t\t\t\t\tonStop={() => undefined}\n\t\t\t\t\t\tstopLabel=\"Stop answering\"\n\t\t\t\t\t\tonAttach={() => undefined}\n\t\t\t\t\t\t// A keyboard hint, so only where Enter sends: on touch Return\n\t\t\t\t\t\t// breaks the line and the button sends, and the row goes away.\n\t\t\t\t\t\tfooter={({ sendOn }) => (sendOn === \"enter\" ? \"Enter to send · Shift+Enter for a new line\" : null)}\n\t\t\t\t\t\t// Model and effort sit in `actions`, at the send end of the row:\n\t\t\t\t\t\t// they qualify the message about to be sent, so they belong beside\n\t\t\t\t\t\t// the button that sends it rather than next to the attach control.\n\t\t\t\t\t\tactions={\n\t\t\t\t\t\t\t<SettingsMenu\n\t\t\t\t\t\t\t\tvariant=\"subtle\"\n\t\t\t\t\t\t\t\tsize=\"xs\"\n\t\t\t\t\t\t\t\tlabel=\"Change model and effort\"\n\t\t\t\t\t\t\t\tsummary={\n\t\t\t\t\t\t\t\t\t<>\n\t\t\t\t\t\t\t\t\t\t<span className=\"text-foreground\">5.6 Sol</span>{\" \"}\n\t\t\t\t\t\t\t\t\t\t<span className=\"text-muted-foreground\">High</span>\n\t\t\t\t\t\t\t\t\t</>\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t<SettingsRow label=\"Model\" value=\"5.6 Sol\">\n\t\t\t\t\t\t\t\t\t<MenuRadioGroup defaultValue=\"sol\">\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"sol\">5.6 Sol</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"lite\">5.6 Lite</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t</MenuRadioGroup>\n\t\t\t\t\t\t\t\t</SettingsRow>\n\t\t\t\t\t\t\t\t<SettingsRow label=\"Effort\" value=\"High\">\n\t\t\t\t\t\t\t\t\t<MenuRadioGroup defaultValue=\"high\">\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"low\">Low</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"standard\">Standard</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"high\">High</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t</MenuRadioGroup>\n\t\t\t\t\t\t\t\t</SettingsRow>\n\t\t\t\t\t\t\t\t<SettingsRow label=\"Speed\" value=\"Standard\">\n\t\t\t\t\t\t\t\t\t<MenuRadioGroup defaultValue=\"standard\">\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"standard\">Standard</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"priority\">Priority</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t</MenuRadioGroup>\n\t\t\t\t\t\t\t\t</SettingsRow>\n\t\t\t\t\t\t\t</SettingsMenu>\n\t\t\t\t\t\t}\n\t\t\t\t\t/>\n\t\t\t\t</CardFooter>\n\t\t\t</Card>\n\t\t</Page>\n\t)\n}"
       },
       {
         "name": "DashboardPage",
@@ -24199,6 +25043,19 @@
       "CardTitle": [
         "render"
       ],
+      "CaretMenu": [
+        "children",
+        "className",
+        "label",
+        "status",
+        "trigger"
+      ],
+      "CaretMenuItem": [
+        "description",
+        "disabled",
+        "icon",
+        "onSelect"
+      ],
       "Carousel": [
         "arrowClassName",
         "arrows",
@@ -24222,6 +25079,7 @@
       ],
       "ChatComposer": [
         "actions",
+        "allowEmpty",
         "attachments",
         "busy",
         "defaultValue",
@@ -24948,6 +25806,16 @@
       "Input": [
         "size"
       ],
+      "InputGroup": [
+        "aria-describedby",
+        "aria-invalid",
+        "children",
+        "disabled",
+        "id",
+        "leading",
+        "required",
+        "trailing"
+      ],
       "Kbd": [
         "mod",
         "variant"
@@ -25046,6 +25914,28 @@
         "orientation",
         "triggerId"
       ],
+      "Menubar": [
+        "className",
+        "disabled",
+        "loopFocus",
+        "modal",
+        "orientation",
+        "render",
+        "style"
+      ],
+      "MenubarTrigger": [
+        "children",
+        "className",
+        "closeDelay",
+        "delay",
+        "disabled",
+        "handle",
+        "nativeButton",
+        "openOnHover",
+        "payload",
+        "render",
+        "style"
+      ],
       "MenuCheckboxItem": [
         "checked",
         "className",
@@ -25085,7 +25975,9 @@
       "MenuItem": [
         "className",
         "closeOnClick",
+        "description",
         "disabled",
+        "icon",
         "id",
         "label",
         "nativeButton",
@@ -25093,6 +25985,16 @@
         "render",
         "style",
         "variant"
+      ],
+      "MenuLinkItem": [
+        "className",
+        "closeOnClick",
+        "description",
+        "icon",
+        "id",
+        "label",
+        "render",
+        "style"
       ],
       "MenuPortal": [
         "className",
@@ -25244,6 +26146,52 @@
         "policy",
         "target"
       ],
+      "NavigationMenu": [
+        "actionsRef",
+        "align",
+        "className",
+        "closeDelay",
+        "defaultValue",
+        "delay",
+        "onOpenChangeComplete",
+        "onValueChange",
+        "orientation",
+        "render",
+        "sideOffset",
+        "style",
+        "value"
+      ],
+      "NavigationMenuContent": [
+        "className",
+        "keepMounted",
+        "render",
+        "style"
+      ],
+      "NavigationMenuItem": [
+        "className",
+        "render",
+        "style",
+        "value"
+      ],
+      "NavigationMenuLink": [
+        "active",
+        "className",
+        "closeOnClick",
+        "description",
+        "render",
+        "style"
+      ],
+      "NavigationMenuList": [
+        "className",
+        "render",
+        "style"
+      ],
+      "NavigationMenuTrigger": [
+        "className",
+        "nativeButton",
+        "render",
+        "style"
+      ],
       "Note": [
         "action",
         "icon",
@@ -25342,6 +26290,7 @@
         "label",
         "onPageChange",
         "page",
+        "pageLink",
         "siblingCount",
         "total"
       ],
@@ -25654,6 +26603,7 @@
       "Scroller": [
         "label",
         "orientation",
+        "smoothWheel",
         "viewportClassName",
         "wheelScroll"
       ],
@@ -25822,13 +26772,18 @@
         "actionsRef",
         "children",
         "defaultOpen",
+        "defaultSnapPoint",
         "defaultTriggerId",
         "disablePointerDismissal",
         "handle",
         "modal",
         "onOpenChange",
         "onOpenChangeComplete",
+        "onSnapPointChange",
         "open",
+        "snapPoint",
+        "snapPoints",
+        "snapToSequentialPoints",
         "triggerId"
       ],
       "SheetClose": [
@@ -25878,6 +26833,7 @@
       "Sidebar": [
         "collapsed",
         "icons",
+        "surface",
         "variant"
       ],
       "SidebarBrand": [

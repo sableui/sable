@@ -23,6 +23,11 @@ export const streamingTextMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
+					"In a chat, read `sable docs building-a-chat`: one status drives `streaming` and the composer, a regenerated answer takes a new key (the text is append-only), and the finished turn is announced once.",
+			},
+			{
+				guidance: "do",
+				description:
 					"Grow `text` and let the component do the rest. It assumes an append-only string and keys units by index, so React mounts only the new spans — re-rendering a longer string animates what was added and leaves what the reader has already read alone.",
 			},
 			{
@@ -150,7 +155,7 @@ export const streamingTextMeta: ComponentMeta = {
 		},
 		{
 			label: "Inside a message, with the wait reported elsewhere",
-			code: '<Message role="assistant"><StreamingText text={answer} streaming={pending} caret={false} /></Message>',
+			code: '<Message align="start"><StreamingText text={answer} streaming={pending} caret={false} /></Message>',
 		},
 		{
 			label: "A headline resolving character by character",

@@ -30,6 +30,11 @@ export const comboboxMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
+					"For results from a server, pass `filter={null}` so Base UI shows the items as the server returned them, fetch from `onInputValueChange`, and make ComboboxEmpty say which state it is in (searching, no results, type to search). Object items take `itemToStringLabel`.",
+			},
+			{
+				guidance: "do",
+				description:
 					"Wrap in Field when the combobox is part of a form.",
 			},
 			{
@@ -129,6 +134,25 @@ export const comboboxMeta: ComponentMeta = {
 			default: "false",
 			description:
 				"Select several items instead of one. `value` / `defaultValue` / `onValueChange` become arrays, choosing an item toggles its membership, and the popup stays open between picks. Pair it with ComboboxChips in place of ComboboxInput; every other part is unchanged.",
+		},
+		{
+			name: "filter",
+			type: "null | ((item, query, itemToString?) => boolean)",
+			default: "Base UI's locale-aware contains",
+			description:
+				"How items match the query. `null` turns matching off, for items a server already filtered: pair it with `onInputValueChange` to fetch.",
+		},
+		{
+			name: "onInputValueChange",
+			type: "(inputValue: string, eventDetails) => void",
+			default: "—",
+			description: "Fires as the reader types. The place to fetch results for a server-backed combobox.",
+		},
+		{
+			name: "itemToStringLabel",
+			type: "(item) => string",
+			default: "item.label for { value, label } items",
+			description: "The text an object item shows in the input once chosen, and is matched by. Needed for object items without a `label` field.",
 		},
 		{
 			name: "virtualized",
@@ -232,6 +256,10 @@ export const comboboxMeta: ComponentMeta = {
 		{
 			label: "Multiple selection",
 			code: '<Combobox multiple items={tags} value={value} onValueChange={setValue}><ComboboxChips placeholder="Add tags…" /><ComboboxContent><ComboboxEmpty>No matching tags.</ComboboxEmpty><ComboboxList>{(item) => (<ComboboxItem key={item} value={item}>{item}</ComboboxItem>)}</ComboboxList></ComboboxContent></Combobox>',
+		},
+		{
+			label: "Async search (server results)",
+			code: '<Combobox items={results} filter={null} itemToStringLabel={(person) => person.name} value={person} onValueChange={setPerson} onInputValueChange={setQuery}><ComboboxInput placeholder="Search people…" /><ComboboxContent><ComboboxEmpty>{searching ? "Searching…" : query ? "No one matches." : "Type a name to search."}</ComboboxEmpty><ComboboxList>{(item) => (<ComboboxItem key={item.id} value={item}>{item.name}</ComboboxItem>)}</ComboboxList></ComboboxContent></Combobox>',
 		},
 		{
 			label: "Virtualized (long list)",

@@ -1,11 +1,12 @@
 # Sable (@sableui/react)
 
-> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 111 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
+> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 116 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
 
 ## Start here — brief, composition, evidence
 
 Read `sable docs building-with-sable` for the connected workflow: build a product
-idea, inspire a reusable preset, audit existing work, or polish a selected design.
+idea, inspire a reusable preset, audit existing work, polish a selected design, or
+fix one scoped defect on a short path that reads only what the change touches.
 Run `sable setup --agent` to connect Codex, Claude Code, or Cursor to the maintained
 `skills/sable/SKILL.md` in the installed package. Package upgrades update the skill.
 Canvas and the skill exchange portable presets; `sable preset --check <path>`
@@ -119,7 +120,10 @@ These are organised by **task**, and they are the fastest route in:
 - [llms/tasks/learning-from-builds.md](./llms/tasks/learning-from-builds.md) — retrieve and preserve conditional lessons with `sable learn`
 - [llms/tasks/building-a-page.md](./llms/tasks/building-a-page.md) — page register: patterns, regions, type tiers, colour by role
 - [llms/tasks/building-a-tool.md](./llms/tasks/building-a-tool.md) — workspace register: the shell, what to use instead of what, the traps
+- [llms/tasks/building-a-chat.md](./llms/tasks/building-a-chat.md) — a real chat on any streaming source: who owns what, the turn lifecycle mapped to props, every failure state, a11y, safe Markdown
 - [llms/tasks/converting-an-app.md](./llms/tasks/converting-an-app.md) — migrating an existing app, in the order that avoids rework
+- [llms/tasks/migrating-from-shadcn.md](./llms/tasks/migrating-from-shadcn.md) — shadcn/ui + Radix → Sable: `asChild` → `render`, array values, events, tokens, icons, every component mapped
+- [llms/tasks/extending-a-component.md](./llms/tasks/extending-a-component.md) — when a component doesn't do something: `render`, slots, refs and key handling, mentions and slash commands (`useCaretTrigger` + CaretMenu), tokens not overrides, gap or app-owned
 - [llms/tasks/auditing-an-app.md](./llms/tasks/auditing-an-app.md) — an app already on Sable, after an upgrade: what changed, what to re-check
 - [llms/tasks/adding-a-component.md](./llms/tasks/adding-a-component.md) — contributing to Sable: the meta contract and the enforced minima
 
@@ -598,6 +602,167 @@ being a thing anyone has to say.
 
 ---
 
+# Task: building a chat
+
+Sable ships the parts a conversation is made of, and the [`ChatPanel`
+pattern](../patterns/chat-panel.md) assembles them into a working screen. It
+ships no transport, no message store and no model client. This guide is the
+seam between the two: which part owns what, how a request's lifecycle maps
+onto the parts' props, what each failure looks like, and what is left for the
+app.
+
+Check every name here against the installed package with
+`sable component <Name> --detail full` before relying on it.
+
+## Who owns what
+
+| Sable part | Owns | Does not own |
+|---|---|---|
+| [`MessageScroller`](../components/message-scroller.md) | The scroll region: following the newest message, letting go when the reader scrolls up, the jump-to-latest button, holding still when history is prepended, `scrollToMessage`, `onVisibleMessagesChange` | Your messages, your loading of history |
+| [`Message`](../components/message.md) | One turn's row: side (`align`), avatar gutter, `header` and `footer`, `grouped` runs, `messageId` | How the content looks |
+| [`Bubble`](../components/bubble.md) | The surface: `muted` (them), `primary` (me), `plain` (long-form answers), the tail, reactions | Timestamps and names (those go in Message's `header`/`footer`) |
+| [`StreamingText`](../components/streaming-text.md) | Text arriving a token at a time: `text` (append-only), `streaming`, the caret, `aria-busy` | Markdown, and announcing the finished answer |
+| [`ThinkingOrb`](../components/thinking-orb.md), [`Marker`](../components/marker.md) | The wait before the first token (orb or `Marker icon="spinner" spin`), and every non-message row: status, tool notes, date breaks, bordered notices | — |
+| [`Attachment`](../components/attachment.md) | A file's four states: queued, `uploading` with `progress`, `error` with the reason in `meta`, delivered | The upload itself |
+| [`ChatComposer`](../components/chat-composer.md) | The input: Enter to send (never mid-IME; Return breaks the line on touch), `busy` + `onStop`, `allowEmpty` for attachment-only sends, `disabled`, `invalid`, `footer` as a function of the send key in effect | Whether the send succeeded |
+| [`Toast`](../components/toast.md) | Notices about the app, not the conversation | — |
+
+**The app owns** the transport (HTTP, SSE, WebSocket), the streaming state, message ids, persistence and history, retries and backoff, auth, rate limits, moderation, uploads, and what counts as a failed turn. Sable renders whatever state you hand it; it never infers one.
+
+## The lifecycle, mapped to props
+
+A turn moves through five states. Keep **one** status value in the app and derive every prop from it; two flags (`sending` here, `streaming` there) drift, and the composer ends up saying "sending" under an answer that already finished.
+
+| State | Transcript | Composer |
+|---|---|---|
+| **idle** | Settled messages. The last answer's `footer` carries its actions (copy, regenerate) as a `Toolbar` of icon `ToolbarButton`s | Normal; `busy={false}` |
+| **submitted** (sent, no token yet) | The reader's message, optimistically, with the id you generated. Below it, the wait: `<Marker icon="spinner" spin shimmer>Thinking…</Marker>` or a `ThinkingOrb` | `busy` and `onStop` |
+| **streaming** | The wait is **replaced** by the answer: `StreamingText` with `streaming` in a `plain` Bubble. No answer actions yet | `busy` and `onStop` |
+| **done** | `streaming={false}`, which removes the caret: the only signal the reader gets that the answer is complete. Actions appear in the `footer` | `busy={false}` |
+| **stopped / error** | See [Failures](#failures) | `busy={false}`; the draft is still the reader's |
+
+Rules that follow from it:
+
+- **One indicator per wait.** The spinner Marker (or orb) shows before the first token and is removed when tokens land. While the answer streams, its own caret is the indicator; pass `caret={false}` only when something adjacent already reports the wait.
+- **`busy` is not `disabled`.** `busy` is temporary and comes with a way out (`onStop` turns send into stop). `disabled` is for a composer that cannot send at all: offline, over a quota, a read-only thread.
+- **Controlled composers are cleared by you, after the send is accepted.** An uncontrolled composer clears itself; a controlled one leaves the text so a failed send loses nothing.
+- **Regenerate replaces the answer, not appends to it.** `StreamingText` assumes `text` only grows. When regenerating, give the new answer a new `key` (a new message id does it) so the old spans unmount instead of being diffed against.
+- **Editing a sent message** is the app's feature: put the text back in a controlled composer, or swap the Bubble's content for a `Textarea` in place, then truncate the turns after it before re-sending. Sable has no edit mode on Message.
+
+## Scrolling
+
+`MessageScroller` needs no configuration for streaming. It follows the newest message as messages arrive **and** as the last one grows, and stops following the moment the reader scrolls up past `followThreshold` (64px). The jump-to-latest button appears while they are away; returning to the bottom resumes following.
+
+- Bound it: `flex-1 min-h-0` inside a flex column. A transcript that grows the page pushes the composer off the screen.
+- Never call `scrollToBottom` per token. It fights a reader who scrolled up to read. Call it once when **they** send, so their own message is in view.
+- Give every `Message` a `messageId`; it is the handle for `scrollToMessage`, `initialScroll={{ messageId }}` (restore a read position) and `onVisibleMessagesChange` (read receipts).
+- Load older history by prepending to `children`. The scroller anchors on the first rendered message, so the view does not jump.
+
+## Attachments
+
+- **Pending** files are `Attachment` chips in the composer's `attachments`, each with a remove action. Upload when picked, not when sent, so `status="uploading"` and `progress` can show in the box the file belongs to.
+- **Failed** uploads keep their card: `status="error"`, the reason in `meta` ("Over the 50 MB limit"), a Retry action. Colour alone is not a status.
+- **Attachment-only sends:** `allowEmpty={files.length > 0}`. `onSend` then receives `""`. Tie it to the pending files; a constant `allowEmpty` leaves send enabled with nothing to send. Disable sending while an upload is still in flight if your backend needs the file first.
+- **Sent** files move into the turn: one `Message` holding the files and the text together, `variant="media"` for images, `variant="card"` for documents, `onOpen` to preview.
+
+## Failures
+
+Put each failure where the reader is looking when it happens. A failure that belongs to a turn stays in the transcript, next to that turn; a toast is for things that are not about the conversation.
+
+| Failure | UI |
+|---|---|
+| **Send rejected** (network down, 4xx before streaming) | The optimistic message stays, with a Message `footer` of `<InlineStatus tone="destructive">Not sent</InlineStatus>` and a Retry button. The composer keeps the draft if it was controlled |
+| **Error mid-stream** | Keep what streamed, set `streaming={false}`, and add `<Marker variant="bordered" icon="warning">The answer was cut off.</Marker>` with Retry in the answer's `footer`. Never delete partial text the reader may be reading |
+| **Stopped by the reader** | Keep the partial answer, `streaming={false}`, and a quiet `<Marker variant="note">Stopped</Marker>`. Not an error, so no warning colour |
+| **Rate limited / quota** | `ChatComposer disabled`, with the reason and the wait in its `footer` ("Limit reached · try again in 2 min"). Re-enable it when the window passes |
+| **Empty response** | Treat as an error: a bordered Marker ("No answer came back") and Retry. An empty plain Bubble reads as a rendering bug |
+| **Tool call failed** | A `Marker variant="note" icon="warning"` in that turn's `header` ("Search failed: timeout"). The answer may continue without it; say so rather than hiding the failure |
+| **Disconnected** (socket dropped) | A `Banner` above the transcript, or a toast if the panel is small, and `disabled` on the composer until reconnected |
+| **Moderation / blocked** | A bordered Marker in place of the answer, naming what happened. Don't render the blocked content and then hide it |
+
+## Accessibility
+
+- **Don't put streamed text in a live region.** Every token would be announced. `StreamingText` sets `aria-busy` while streaming instead.
+- **Announce the turn once, when it settles.** Keep an empty `<p role="status" className="sr-only">` mounted from the start, and set its text when a turn ends ("Answer ready", "Answer stopped", "Couldn't answer"). A region inserted together with its text is announced unreliably (`sable docs AGENTS` → Announcing and focusing).
+- **A status Marker is already live** (`role="status"`), so replacing its text as the work moves on ("Searching the docs" → "Writing the answer") is announced. Remove it when the work ends; a permanent "Thinking…" is a region that never resolves.
+- **ThinkingOrb's `label` must stay constant** while it is mounted. Put the changing phase in adjacent text.
+- **Focus:** after sending, keep focus in the composer (`fieldRef`) so the reader can keep typing. After Stop, ChatComposer moves focus to the field itself (the stop button turns back into send in place, and a disabled send would drop focus to the page); on touch it leaves focus alone rather than raise the keyboard.
+- **Reduced motion:** StreamingText, ThinkingOrb, the Marker shimmer and the scroller's smooth scrolling all fall back under `prefers-reduced-motion` or `MotionProvider` off. Don't add your own animation that ignores it.
+
+## Rendering the model's output
+
+Sable has no Markdown renderer; use one (react-markdown, or your own parser) and map its elements to Sable parts:
+
+- the answer sits in `<Bubble variant="plain">`, which drops the surface and the measure cap; give it `max-w-full` so a wide code line scrolls inside its block rather than pushing the transcript sideways on a phone;
+- fenced code → `CodeBlock` (copy button included; wire highlighting once with `CodeHighlightProvider`);
+- inline code → `Code`; tables → `Table` parts; links → your router's link or a plain `<a>` with `rel="noopener noreferrer"` for outside URLs;
+- paragraphs and lists take the prose tier (`useTypeTier().prose`) rather than a hand-picked size.
+
+**Never render model output as HTML** (`dangerouslySetInnerHTML`, or a Markdown renderer with raw HTML on). Model output is untrusted input. Strip or escape HTML, and allow only `http(s)` and `mailto` link targets.
+
+While an answer streams, render it with `StreamingText` (plain text); switch to the Markdown renderer when it settles, or render Markdown progressively if your renderer tolerates half-finished syntax (an unclosed fence). Either way the switch must not move the text the reader is on.
+
+## Wiring a chat hook
+
+The shape below fits most streaming chat hooks. The hook's names (`messages`, `status`, `send`, `stop`, `regenerate`, `error`) belong to **your library**, not Sable. The AI SDK's `useChat`, for example, exposes a `status` of `"submitted" | "streaming" | "ready" | "error"`; check the version you have installed.
+
+```tsx
+import {
+	Bubble, ChatComposer, Marker, Message, MessageScroller, StreamingText,
+} from "@sableui/react"
+
+function Chat() {
+	const { messages, status, send, stop } = useYourChat() // your library
+	const busy = status === "submitted" || status === "streaming"
+	const last = messages.at(-1)
+	return (
+		<div className="flex h-full min-h-0 flex-col">
+			<MessageScroller className="flex-1 min-h-0 px-4 py-6">
+				{messages.map((m) => {
+					const mine = m.role === "user"
+					const live = status === "streaming" && m.id === last?.id && !mine
+					return (
+						<Message key={m.id} messageId={m.id} align={mine ? "end" : "start"}>
+							<Bubble variant={mine ? "primary" : "plain"} align={mine ? "end" : "start"} className={mine ? undefined : "max-w-full"}>
+								{mine ? m.text : <StreamingText text={m.text} streaming={live} />}
+							</Bubble>
+						</Message>
+					)
+				})}
+				{status === "submitted" ? <Marker icon="spinner" spin shimmer>Thinking…</Marker> : null}
+			</MessageScroller>
+			<ChatComposer
+				onSend={(text) => send(text)}
+				busy={busy}
+				onStop={stop}
+				footer={({ sendOn }) => (sendOn === "enter" ? "Enter to send · Shift+Enter for a new line" : null)}
+			/>
+		</div>
+	)
+}
+```
+
+For the full screen (header, grouping, avatars, answer actions, the empty state), start from `sable pattern ChatPanel --skeleton` and replace its sample data with your hook. For a chat docked beside other work, compose the same three parts inside a `Sheet` or a panel and wrap them in `<Density value="compact">`.
+
+## What Sable does not do
+
+- No transport, retries or reconnection.
+- No message store, ids, history paging or persistence; `MessageScroller` only renders what you pass.
+- No Markdown parsing or sanitising.
+- No mentions or slash commands in `ChatComposer` (it holds a plain string).
+- No typing indicators or presence from other people; compose them from `Marker` and `Avatar` status if your product has them.
+
+## Before you ship
+
+1. `sable check src` passes.
+2. Walk the journey (`sable docs reviewing-a-journey`) through every row of the lifecycle and failure tables: send, wait, stream, stop mid-answer, regenerate, a failed send, an error mid-stream, attachment-only send, an upload failure, and a reload that restores the thread.
+3. Scroll up mid-stream: the view must stay put, and jump-to-latest must appear and work.
+4. Keyboard only, then a screen reader: the finished answer is announced once; Stop is reachable from the composer; nothing announces per token.
+5. On a phone: Return breaks the line, the send button sends, the composer stays above the on-screen keyboard (`dvh`, not `vh`), and wide code scrolls inside its block.
+6. Reduced motion on: text still arrives, nothing keeps moving after the turn settles (`sable docs reviewing-motion`).
+
+---
+
 # Task: building a page (page register)
 
 Marketing, docs, settings, a feed, a dashboard — anything whose primary
@@ -1065,6 +1230,7 @@ $sable inspire these references into a warm, compact shop preset
 $sable build a ceramics shop using .sable/presets/clay.json
 $sable audit our checkout and report prioritized findings
 $sable polish our checkout and repair the reported issues
+$sable fix the settings dialog's footer buttons
 ```
 
 Claude Code and Cursor use `/sable` with the same modes. `create` is a `build`
@@ -1072,7 +1238,9 @@ alias. These are agent instructions; the shell CLI serves catalog resources and
 validates records. Other agents can read the package's `skills/sable/SKILL.md`.
 
 `inspire` produces a preset and component preview. `audit` evaluates an existing
-interface and reports by default. A reference URL does not request a cloned site.
+interface and reports by default. `fix` repairs one scoped defect: it reads only the
+contracts the change touches and finishes with `sable check` on the changed files
+and a look at the affected state, escalating to `polish` when the change grows. A reference URL does not request a cloned site.
 Develop alternative rendered directions when requested or when a consequential
 choice needs comparison. A three-design comparison is not a mandatory build step.
 
@@ -1235,6 +1403,11 @@ use instead.
 Migrating a React app that has its own styles. The order below front-loads the
 decisions that invalidate later work if you get them wrong.
 
+Coming from **shadcn/ui or Radix**? Do this order, then use
+[migrating-from-shadcn.md](./migrating-from-shadcn.md) for step 3: it maps
+`asChild` → `render`, array values, renamed parts and events, the tokens and
+icons, and every shadcn component to its Sable counterpart.
+
 ## 0. Classify every surface first
 
 Before touching a component, **list the routes and assign a register to each** —
@@ -1379,6 +1552,8 @@ layers panel lost 174 lines by adopting `Tree`.
 
 - [building-a-tool.md](./building-a-tool.md) or
   [building-a-page.md](./building-a-page.md)
+- [migrating-from-shadcn.md](./migrating-from-shadcn.md) — the per-component map from shadcn/ui and Radix
+- [extending-a-component.md](./extending-a-component.md) — what to do where the app used to edit a component's source
 - `DESIGN.md → Registers`
 - `llms/reference/token-intent.md`
 
@@ -1837,6 +2012,179 @@ fine-tune the agent's underlying model or guarantee universal aesthetic quality.
 
 ---
 
+# Task: extending a Sable component
+
+You need a component to do something it doesn't do out of the box: be a link,
+carry an extra control, react to a key, suggest names as someone types. Before
+restyling it from the outside or copying it into the app, go through the
+extension points below, roughly in this order. Most needs are one of them, and
+each keeps the component's states, density, focus and keyboard contract, which a
+copy loses the day it is made.
+
+The split to keep in mind: **behaviour** comes from Base UI and Sable, **look**
+comes from variants and tokens, and **what is yours** (content, data, what an
+action does) goes in through props and slots.
+
+## 1. Compose an element: `render`
+
+Every component that renders an element takes `render`, and keeps its props,
+ref and state on the element you give it. This is how a Sable control becomes a
+link, or any router's link:
+
+```tsx
+<Button render={<a href="/pricing" />}>See pricing</Button>
+<Card render={<Link to="/projects/42" />}>…</Card>
+<Button variant="ghost" render={<Link to="/inbox" />} iconStart={<Icon name="inbox" />}>Inbox</Button>
+```
+
+A link that looks like a button is `<Button render={<a … />}>`, never an `<a>`
+wearing button classes (`sable-lint` flags that as `lookalike-control`).
+
+## 2. Fill a slot
+
+Slots take content you own. The component lays it out and keeps it aligned with
+its own parts. Check `sable component <Name> --props` for the full list.
+
+| Component | Slots |
+|---|---|
+| Button | `iconStart`, `iconEnd`, `badge` |
+| ChatComposer | `leading`, `actions`, `attachments`, `footer` (a node, or a function of the send key in effect) |
+| Message | `avatar`, `header`, `footer` |
+| PageHeader | `actions`, `back` |
+| MenuItem, MenuLinkItem, CaretMenuItem | `icon`, `description` |
+
+`className` on a component is for layout (margins, width, alignment). It is not
+a slot for a new look; see section 5.
+
+## 3. Hold the state, reach the element
+
+Controlled props (`value` + `onValueChange`, `open` + `onOpenChange`) let the
+app own the state and change it from anywhere: clear a draft after a server
+confirms the send, open a menu from a shortcut.
+
+Refs reach the element itself. ChatComposer's `fieldRef` is the textarea, which
+is enough to focus it, read the caret, or **listen to it**. That last one is an
+extension point in its own right: a key handler on the field that handles a key
+and calls `event.preventDefault()` owns that key, and ChatComposer does not also
+act on it. That is how the suggestion list below takes Enter without the message
+being sent.
+
+## 4. Add behaviour on top: mentions and slash commands
+
+The worked example. Mentions and slash commands are behaviour that sits on a
+text field, not a new kind of field, so Sable ships the parts every app gets
+wrong and leaves the rest to the app:
+
+- **Sable owns:** noticing a trigger character at the caret (`@`, `/`, `#`), on
+  a word boundary and after IME composition; placing the list at the caret;
+  ↑/↓/Enter/Tab/Escape while focus stays in the field; the ARIA that lets a
+  screen reader follow along.
+- **The app owns:** the items (filter or fetch them, debounced, from the query),
+  the loading and empty states, and what choosing one does.
+
+```tsx
+const trigger = useCaretTrigger({
+	triggers: [{ char: "@", allowSpaces: true }, { char: "/", atStart: true }],
+})
+const q = trigger.match?.query.toLowerCase() ?? ""
+const commands = trigger.match?.trigger.char === "/"
+
+<ChatComposer fieldRef={trigger.fieldRef} onSend={send} />
+<CaretMenu trigger={trigger} label={commands ? "Commands" : "People"} status={loading ? "Searching…" : undefined}>
+	{commands
+		? slashCommands.filter((c) => c.name.startsWith(q)).map((c) => (
+				<CaretMenuItem key={c.name} description={c.hint} onSelect={() => { c.run(); trigger.replace("") }}>
+					/{c.name}
+				</CaretMenuItem>
+			))
+		: people.filter((p) => p.name.toLowerCase().includes(q)).map((p) => (
+				<CaretMenuItem key={p.id} onSelect={() => trigger.replace(`@${p.name} `)}>{p.name}</CaretMenuItem>
+			))}
+</CaretMenu>
+```
+
+A mention is inserted as text with a trailing space; a command runs and
+`replace("")` clears its `/query`. The same hook works on `Textarea` and
+`Input` through `ref={trigger.fieldRef}`. `sable component CaretMenu` has the
+props and the accessibility notes.
+
+The pattern generalises. To add your own behaviour to a Sable field, attach to
+it through its ref, read and write through the field's own input path (the hook's
+`replace()` does, so controlled values and undo keep working), and take a key by
+handling it first and calling `preventDefault()`.
+
+### Mentions as chips are a different job
+
+`useCaretTrigger` keeps the value a plain string, because that is what a
+textarea holds. Showing a mention as a token *inside the field* needs a
+rich-text (contenteditable) editor such as TipTap or Lexical, with its own value
+model. Sable does not own an editor. Two ways to get chips today:
+
+- Keep text mentions in the field and render them as chips where the message is
+  shown: parse `@Name` against your people list when you render the Message.
+- Use an editor in place of the composer's field and keep Sable's controls around
+  it. A ChatComposer slot for a custom editor is a possible later addition; it
+  doesn't exist yet, so don't write code that assumes it.
+
+## 5. Change the look: tokens and presets, not overrides
+
+A component's fill, edge, corners, ink and interaction states come from its
+variants and the theme's tokens. To change how it looks:
+
+- **Everywhere:** override tokens on `:root` (or any subtree) after Sable's CSS:
+  radius, density, accent, type scale, motion. `sable token --list` lists them.
+- **As a reusable direction:** a preset (`sable docs creating-a-preset`), compiled
+  to scoped CSS with `sable preset --css <path>`.
+- **One component, a look it lacks:** that is a missing variant. Report it (see
+  section 8); don't paint it on with `className`. `component-restyle`,
+  `destructive-item-ink` and `table-edge-padding` flag the common overrides,
+  because a class that repaints a part fights the part's own hover, focus and
+  disabled states.
+
+Parts carry `data-slot` names (`chat-composer-attachments`,
+`menu-item-description`, `button-group`). They are good test selectors and fine
+for layout from a parent. They are not a way around the rule above, and a slot
+name a component's docs don't mention may change between versions.
+
+## 6. Add icons: `composeIconSets`
+
+`<IconProvider set={composeIconSets(appExtras, reiconIconSet)}>` adds your own
+glyphs alongside Reicon's (list the added names in `.sable/icons.json` so
+`sable grade` accepts them). Components keep using semantic names.
+
+## 7. Fix a defect: `sable patch`
+
+When a component is wrong, not merely missing something, patch the installed
+module and record why: `sable patch <Component> --reason … --repro …`. Doctor
+re-checks it on every upgrade. `sable docs patching-a-component` has the steps.
+
+## 8. App-owned, or a library gap?
+
+It belongs in the app when it is about **your** product: domain data, copy,
+business rules, which items a list offers, what an action does, the layout of a
+signature surface.
+
+It is a library gap when **another app would need the same thing** and none of
+the sections above gets there without fighting the component: a missing
+variant, slot, prop, or piece of behaviour. Then:
+
+1. Show the search: `sable search "<need>"` and what came back.
+2. Name the missing capability and the smallest API that would cover it.
+3. Meanwhile, compose the nearest thing from Sable's parts in the app (not a
+   copy of the component), and say in your summary that it is a stand-in for a
+   reported gap.
+
+In the Sable repository itself, close the gap in the package and then use it
+(`sable docs adding-a-component`).
+
+## Read next
+
+- [patching-a-component.md](./patching-a-component.md): the patch workflow
+- [creating-a-preset.md](./creating-a-preset.md): a reusable look
+- [building-a-chat.md](./building-a-chat.md): the chat parts and who owns what
+
+---
+
 # Get started with Sable
 
 Sable is on npm as `@sableui/react`. The installed version's `registry.json`
@@ -1849,13 +2197,27 @@ TypeScript on Vite, TanStack Router, TanStack Query, TanStack Form for forms wit
 validation logic, and TanStack Table once a table outgrows `DataTable`
 (`sable docs tables-with-tanstack`). An existing app keeps its own.
 
-## Install
+## Install and wire it
 
 ```bash
 pnpm add @sableui/react
+pnpm exec sable init --dry-run   # every change it would make
+pnpm exec sable init
 ```
 
-## Connect CSS and React
+`sable init` reads the package manager from your lockfile and the framework
+from the project. It installs what is missing (React, Tailwind and its build
+plugin), writes the CSS below into your global stylesheet in order, adds React
+dedupe and the Tailwind plugin to a Vite config (a PostCSS config for Next.js),
+loads Figtree and DM Mono, wraps a Vite starter's `<App />` in `IconProvider`,
+installs the agent skill, and finishes with `sable doctor`. Edits it cannot make
+safely, such as a Next.js root layout, it prints with the file they belong in.
+Vite and Next.js get every step; other setups get the packages and stylesheet.
+Once an app is wired, `sable doctor --fix` applies the same fixes to whatever
+doctor flags. Run `sable init` with the package installed: before that, `npx
+sable` names an unrelated package.
+
+## Or wire it by hand
 
 For `src/styles.css` with `node_modules` at the project root:
 
@@ -1882,10 +2244,14 @@ export default function App() {
 }
 ```
 
-No provider or icon dependency is required for this first component. Optional
-theme, icon, and motion providers are explained in the package README.
+Mount `<IconProvider set={reiconIconSet}>` (from `@sableui/react/icons/reicon`)
+once at the root: without it every icon, including those inside Sable's
+components, renders nothing, and `sable doctor` fails. Optional theme and motion
+providers are explained in the package README.
 
 ## Connect your agent and verify
+
+`sable init` already ran these; by hand:
 
 ```bash
 pnpm exec sable setup --agent --dry-run
@@ -1990,6 +2356,360 @@ a subjective choice into a correctness rule. `sable explore` creates the local
 comparison interface and export. See [developing-taste.md](./developing-taste.md)
 for the visual atlas, scoped retrieval, comparison workflow, and transfer tests.
 Only label a record human when it reflects an actual human's stated judgment.
+
+---
+
+# Task: migrating from shadcn/ui (and Radix) to Sable
+
+An app built on shadcn/ui owns a `components/ui/` folder of copied Radix
+wrappers. Sable replaces that folder with one installed package. The visible
+API is close: Sable's semantic tokens share shadcn's names, and most
+components keep their part names. The behaviour layer is different. Sable is
+built on **Base UI**, not Radix, so composition, values and events follow Base
+UI. This guide maps one to the other. Every Sable name below is in the
+installed contract: confirm any of them with `sable component <Name>`.
+
+Do the app-level work in [converting-an-app.md](./converting-an-app.md) first
+(registers, wiring, deleting your tokens). This guide covers the component
+swap that follows.
+
+## 0. What goes away
+
+- **`components/ui/*` and `components.json`.** Delete the folder once nothing
+  imports it. Every component comes from `@sableui/react` (layout primitives
+  too; blocks and patterns from `@sableui/react/blocks` and `/patterns`).
+  Don't copy a Sable component into the app to edit it. Use a variant, a
+  preset, or [patching-a-component.md](./patching-a-component.md).
+- **`@radix-ui/*`, `cmdk`, `vaul`, `sonner`, `input-otp`, `next-themes`,
+  `tw-animate-css`, `class-variance-authority` (unless the app's own code uses
+  it) and `lucide-react`.** Each has a Sable counterpart below.
+- **Your `globals.css` token block.** Sable's tokens carry the same names
+  (`--background`, `--card`, `--primary`…) and are defined by the theme. A
+  copied shadcn `:root { … }` block overrides them with values the theme
+  never tested. Delete it, and move brand colour into a preset
+  (`sable docs using-presets`).
+
+`cn()` survives: Sable exports it (`import { cn } from "@sableui/react"`), with
+the paired typography utilities registered in its merge groups.
+
+## 1. The patterns that change everywhere
+
+### `asChild` → `render`
+
+Radix composes by cloning a child. Base UI takes the element as a prop:
+
+```tsx
+// shadcn
+<DialogTrigger asChild><Button variant="outline">Edit</Button></DialogTrigger>
+
+// Sable
+<DialogTrigger render={<Button variant="outline">Edit</Button>} />
+```
+
+It applies to every trigger and close part (`DialogTrigger`, `DialogClose`,
+`SheetTrigger`, `MenuTrigger`, `PopoverTrigger`, `TooltipTrigger`,
+`CollapsibleTrigger`, `ContextCardTrigger`…). The same goes for links: a
+`Button` that navigates is `<Button render={<Link to="/x" />}>Open</Button>`.
+`SidebarItem`, `SidebarBrand`, `Card` and `Separator` take `render` too.
+
+### Part names
+
+| shadcn / Radix | Sable |
+|---|---|
+| `DropdownMenu*` | `Menu*`: `Menu`, `MenuTrigger`, `MenuContent`, `MenuItem` |
+| `DropdownMenuLabel` | `MenuGroupLabel`, **inside a `MenuGroup`** (Base UI requires the group) |
+| `DropdownMenuSub` / `SubTrigger` / `SubContent` | `MenuSubmenu` / `MenuSubmenuTrigger` / a nested `MenuContent side="inline-end"` |
+| `*Content` on Accordion, Collapsible | `AccordionPanel`, `CollapsiblePanel` |
+| `TabsContent` | `TabsPanel` (`TabsContent` is exported as an alias) |
+| `HoverCard*` | `ContextCard*` |
+| `Drawer*` (vaul) | `Sheet*` with `side="bottom"` |
+
+Dialog, AlertDialog, Popover, Tooltip, Select, ContextMenu, Sheet and Combobox
+keep `*Content`.
+
+### Values are arrays where Base UI allows several
+
+| shadcn / Radix | Sable |
+|---|---|
+| `<Accordion type="single" collapsible defaultValue="a">` | `<Accordion defaultValue={["a"]}>`. Single is the default, and an open item always closes on its trigger, so there is no `collapsible` |
+| `<Accordion type="multiple">` | `<Accordion multiple>` |
+| `<ToggleGroup type="single" value="a">` | `<ToggleGroup value={["a"]}>`. Always an array; `multiple` allows several |
+| `<Slider defaultValue={[50]}>` | `<Slider defaultValue={50}>`. A single thumb is a number, a range is `[20, 80]` |
+| `<Checkbox checked="indeterminate">` | `<Checkbox indeterminate>`. `checked` is only ever a boolean |
+
+### Events
+
+- **Menu rows:** `onSelect` → `onClick`. To keep the menu open after a click
+  (Radix: `event.preventDefault()` in `onSelect`), set `closeOnClick={false}`.
+- **Change handlers take a second argument.** `onValueChange`,
+  `onCheckedChange` and `onOpenChange` receive `(value, eventDetails)`. The
+  first argument is what Radix passed, so most handlers work unchanged.
+- **Dismissal hooks:** `onEscapeKeyDown` / `onPointerDownOutside` /
+  `onInteractOutside` → one `onOpenChange` on the root. Read
+  `eventDetails.reason` (`"escape-key"`, `"outside-press"`…) and call
+  `eventDetails.cancel()` to keep it open.
+- **`forceMount`** → `keepMounted` (on `AccordionPanel`, `CollapsiblePanel` and
+  portals).
+- **State styling:** `data-[state=open]:` → Sable's state variants:
+  `sable-open:`, `sable-selected:`, `sable-highlighted:`, `sable-disabled:`
+  and `sable-invalid:` (`sable utility sable-open:`). Base UI writes
+  `data-open`, `data-checked`, `data-highlighted` and `data-pressed`, not
+  `data-state`.
+
+### Variants, not overrides
+
+shadcn invites restyling through `className`. Sable does not: a
+`bg-*`/`border*`/`rounded*`/`ring-*`/`shadow-*` class on `Button`, `Pill` or
+`Badge` fails `component-restyle`. Layout classes (`w-full`, `ms-auto`, grid
+placement) are fine. If no variant gives you the look, the component
+needs one, and that is a library change; `extending-a-component.md` has the
+ways that don't need one (`render`, slots, refs, tokens). Map the variants instead:
+
+| shadcn `Button` | Sable `Button` |
+|---|---|
+| `variant="default"` | `variant="primary"` (the default) |
+| `secondary` / `outline` / `ghost` / `destructive` / `link` | same names |
+| `size="default"` / `sm` / `lg` | `size="md"` (default) / `sm` / `cta` |
+| `size="icon"` / `icon-sm` / `icon-lg` | `icon` / `icon-sm` / `icon` (add `icon-xs` in tool chrome) |
+| a hand-placed `<Loader2 className="animate-spin" />` | `loading` (keeps the label; `loadingLabel` to change it) |
+| `<Icon /> Label` children | `iconStart={<Icon name="plus" />}` / `iconEnd` |
+
+`buttonVariants` is exported, as in shadcn, for the rare non-`Button` element
+that must look like one. Prefer `render`.
+
+### Classes shadcn's source teaches that Sable's lint rejects
+
+Copied shadcn markup carries these idioms. `sable-lint` names each one:
+
+| shadcn idiom | Sable | rule |
+|---|---|---|
+| `text-sm font-medium` | a paired tier: `text-label-md`, `text-body-sm`, `text-heading-3`… (`sable token typography`) | `decomposed-type` |
+| `hover:bg-accent hover:text-accent-foreground` | a component, or `sable-surface-interactive` | `surface-hover` |
+| `transition-colors`, `transition-all`, `transition-[color,box-shadow]` | `motion-interactive` | `transition-colors`, `transition-all` |
+| `animate-in fade-in-0 zoom-in-95 data-[state=open]:…` | `motion-pop` / `motion-fade` / `motion-slide-*` | n/a (tw-animate is gone) |
+| `animate-spin`, `animate-pulse` | `motion-spin`, `motion-pulse`, or `Spinner` / `Skeleton` | `builtin-animate` |
+| `ring-ring/50`, `focus-visible:ring-[3px]` | the component's own focus ring; `ring-ring` at full strength if you must | `faded-focus-ring` |
+| `bg-black/50` scrim | `bg-overlay` (Dialog and Sheet draw their own) | `raw-black-white` |
+| `z-50` | `z-(--z-overlay)` and siblings | `raw-z-index` |
+| `text-muted-foreground/70` | `text-muted-foreground` | `text-opacity` |
+| `overflow-y-auto` alone | add `scrollbar-quiet`, or use `Scroller` | `unmanaged-overflow` |
+| `bg-zinc-900`, `text-slate-500` | a semantic token, or a generated family (`bg-blue-100`) for categorical colour | `palette-ref` |
+| `<div className="border-input rounded-md …">` dressed as a field | `Input` / `Textarea` / `SearchInput` | `lookalike-control` |
+
+## 2. Tokens
+
+The names carry over. Most shadcn utilities (`bg-background`, `text-foreground`,
+`bg-card`, `bg-popover`, `bg-muted`, `text-muted-foreground`, `bg-primary`,
+`bg-secondary`, `bg-accent`, `bg-destructive`, `border-border`, `border-input`,
+`ring-ring`, `bg-sidebar*`) compile unchanged against Sable. Sable is stricter
+about **role**, so check each use against its intent (`sable token <name>`):
+
+| shadcn var | Sable | note |
+|---|---|---|
+| `--background`, `--foreground` | same | the page ground and ink |
+| `--card`, `--popover` | same | `popover` is for anything floating, including persistent inspectors |
+| `--muted` | same | recessed and **inert**; not a hover fill |
+| `--secondary` | same | a pressable low-emphasis fill; not a surface |
+| `--accent` | same | the transient **state** layer (hover, current), applied by components; don't paint it by hand |
+| `--border` | `border` or `border-strong` | `border-strong` when the line carries structure (a table rule, a section divider) |
+| `--input` | `input` (fields), `control-border` (checkbox, radio, switch) | `control-border` is held to 3:1 |
+| `--ring` | same | focus only, never selection |
+| `--destructive` | `destructive` (fill), `destructive-text` (ink on a surface) | likewise `success`/`success-text`, `tone-warning`/`tone-warning-text`, `tone-info`/`tone-info-text` |
+| `--chart-1`…`--chart-5` | `--chart-1`…`--chart-8`, set by the theme | address series by `tone` on the chart, not by variable |
+| `--sidebar-*` | same names | |
+| `--radius` (one value, derived) | a ladder: `rounded-xs`…`rounded-xl`, `rounded-full`; `--button-radius` for buttons | a theme sets the ladder; pick by role (`sable token radii`) |
+
+New to a shadcn app: `tone-1`…`tone-3` (category colour), `highlight` (marked
+content), `overlay` (scrims), and the generated palette families. Fonts:
+Sable's `--font-sans` / `--font-mono` default to Figtree and DM Mono, loaded
+by the host (see **Consuming** in `llms.txt`).
+
+Dark mode: `next-themes` → `SableThemeProvider` (`defaultPreference`,
+`useSableTheme()`). It writes the same `.dark` class on `<html>`.
+
+## 3. Icons
+
+`lucide-react` imports → `<Icon name="…" />`, rendered by the set in
+`<IconProvider set={reiconIconSet}>` (`@sableui/react/icons/reicon`).
+Without a provider, every icon renders nothing, including the ones inside
+Sable's components. Names are semantic:
+
+| lucide | Sable | lucide | Sable |
+|---|---|---|---|
+| `X` | `xmark` | `MoreHorizontal` / `Ellipsis` | `ellipsis` |
+| `Check` | `check` | `ChevronDown` / `Up` / `Left` / `Right` | `chevron-down` … |
+| `Search` | `search` | `Plus` / `Minus` | `plus` / `minus` |
+| `Settings` | `gear` | `Trash2` | `trash` |
+| `Pencil` | `edit` | `Copy` | `copy` |
+| `Loader2` | `spinner` (or `Spinner`) | `AlertTriangle` | `warning` |
+| `Info` | `info` | `CircleCheck` | `circle-check` |
+| `Mail` | `mail` | `Menu` | `bars` |
+| `ExternalLink` | `external` | `LogOut` | `logout` |
+
+The full contract is 84 names (`iconContract.names` in `registry.json`). An app
+icon outside it goes in a set of your own composed over Reicon
+(`composeIconSets(appIcons, reiconIconSet)`) and is listed in
+`.sable/icons.json`. Keeping lucide as that set is allowed; use `<Icon>` at the
+call sites either way.
+
+## 4. Component by component
+
+`—` means Sable has no counterpart. The note says what to compose instead.
+
+| shadcn | Sable | what changes |
+|---|---|---|
+| accordion | `Accordion`, `AccordionItem`, `AccordionTrigger`, `AccordionPanel` | array values; no `type` or `collapsible` (§1) |
+| alert | `Note` (`tone`, `title`, `icon`, `action`) | `variant="destructive"` → `tone="destructive"`. A page-wide bar is `Banner`; a one-line status is `InlineStatus` |
+| alert-dialog | `AlertDialog`, `AlertDialogTrigger`, `AlertDialogContent`, `AlertDialogHeader`, `AlertDialogTitle`, `AlertDialogDescription`, `AlertDialogFooter`, `AlertDialogClose` | `AlertDialogAction` / `AlertDialogCancel` → `AlertDialogClose render={<Button …/>}`. For a delete confirmation use `DestructiveActionModal` (`onConfirm`, `pending`, `confirmText`) |
+| aspect-ratio | `AspectBox` (`ratio`) | layout primitive |
+| avatar | `Avatar` (`src`, `fallback`, `size`, `status`), or `AvatarRoot` / `AvatarImage` / `AvatarFallback` | the one-element form covers most uses; `AvatarGroup` for stacks |
+| badge | `Badge` (`appearance` × `tone`) | `default` → `appearance="solid"`; `secondary` → `soft`; `outline` → `outline`; `destructive` → `tone="destructive"` |
+| breadcrumb | `Breadcrumbs`, `BreadcrumbItem`, `BreadcrumbLink`, `BreadcrumbPage`, `BreadcrumbSeparator` | no `BreadcrumbList` (the root renders the `<ol>`); no `BreadcrumbEllipsis` |
+| button | `Button` | §1 table |
+| calendar | `Calendar` | same react-day-picker v9 (`mode`, `selected`, `onSelect`); Sable styles it, so drop `classNames` overrides |
+| card | `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardAction`, `CardContent`, `CardFooter` | same parts, plus `CardList` for rows and `density="compact"` |
+| carousel | `Carousel` (`slidesToShow`, `loop`, `autoplay`, `index`) | one component, no Embla parts |
+| checkbox | `Checkbox` | `indeterminate` prop (§1); wrap in `Field label orientation="horizontal"` for a label |
+| collapsible | `Collapsible`, `CollapsibleTrigger`, `CollapsiblePanel` | `CollapsibleIndicator` for the chevron |
+| combobox (Popover + Command) | `Combobox`, `ComboboxInput`, `ComboboxContent`, `ComboboxList`, `ComboboxItem`, `ComboboxEmpty` | one real combobox instead of a popover holding a command list; `items` on the root, a render function in `ComboboxList`; `multiple` + `ComboboxChips` for several |
+| command | `CommandMenu` (`items`, `open`, `onOpenChange`), `CommandMenuPanel` inline | data-driven: `{ group, label, onSelect, icon, hint }` items instead of `CommandGroup`/`CommandItem` children (declarative `CommandMenuGroup` / `CommandMenuItem` exist too). `useCommandMenuShortcut` binds ⌘K |
+| context-menu | `ContextMenu`, `ContextMenuTrigger`, `ContextMenuContent`, `ContextMenuItem`, `ContextMenuSeparator`, `ContextMenuGroup`, `ContextMenuGroupLabel` | `onSelect` → `onClick`; destructive rows use `variant="destructive"` |
+| data-table | `DataTable` (`columns`, `data`, `rowKey`, `defaultSort`, selection) | built-in sorting and selection; for TanStack features see `sable docs tables-with-tanstack` |
+| dialog | `Dialog`, `DialogTrigger`, `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogDescription`, `DialogFooter`, `DialogClose` | **`showCloseButton` defaults to false** (true in shadcn); `size="fullscreen"` for a media viewer |
+| drawer | `Sheet`, `SheetTrigger`, `SheetContent side="bottom"`, `SheetHeader`, `SheetTitle`, `SheetDescription`, `SheetFooter`, `SheetClose` | swipe-to-dismiss included. vaul's `snapPoints` / `activeSnapPoint` / `setActiveSnapPoint` → `Sheet` `snapPoints` / `snapPoint` / `onSnapPointChange` (bottom only; fractions, px or rem); `fadeFromIndex` has no equivalent |
+| dropdown-menu | `Menu`, `MenuTrigger`, `MenuContent`, `MenuItem`, `MenuGroup`, `MenuGroupLabel`, `MenuSeparator`, `MenuCheckboxItem`, `MenuRadioGroup`, `MenuRadioItem`, `MenuSubmenu`, `MenuSubmenuTrigger` | §1; `DropdownMenuShortcut` → a `<KbdGroup className="ms-auto">` in the row; an ellipsis trigger is `OverflowMenu` |
+| empty | `EmptyState` (`icon`, `title`, `description`, `action`) | |
+| field / form (react-hook-form) | `Form`, `Field` (`label`, `description`, `error`, `required`, `name`, `trailing`) | §5 |
+| hover-card | `ContextCard`, `ContextCardTrigger`, `ContextCardContent` | |
+| input | `Input` | `aria-invalid` drives the error state; `SearchInput` for search; `NumberField` for numbers |
+| input-group | `InputGroup` (`leading`, `trailing`) around one `Input` | addons are props, not `InputGroupAddon` / `InputGroupInput` / `InputGroupButton` parts: `<InputGroup leading="https://" trailing={<Button variant="ghost" size="icon-sm" aria-label="Copy">…</Button>}><Input /></InputGroup>`. A button beside the field (not inside it) is `Field trailing` |
+| input-otp | `OtpField` (`length`, `groupSize`, `onValueComplete`) | one component: no `InputOTPGroup` / `InputOTPSlot` / `InputOTPSeparator`; `groupSize={3}` draws the split |
+| item | `Entity` (`leading`, `title`, `subtitle`, `action`, `interactive`) | |
+| kbd | `Kbd`, `KbdGroup` | `mod` renders ⌘ or Ctrl per platform |
+| label | `Label`, or better `Field label` | `Field` wires `htmlFor`, `aria-describedby` and `aria-invalid` for you |
+| menubar | `Menubar` | one `Menu` per title: `MenubarMenu` → `Menu`, `MenubarTrigger` → `MenubarTrigger`, `MenubarContent` → `MenuContent`, `MenubarItem` → `MenuItem`, `MenubarSub` / `MenubarSubTrigger` / `MenubarSubContent` → `MenuSubmenu` / `MenuSubmenuTrigger` / `MenuContent side="inline-end"`, checkbox and radio rows → `MenuCheckboxItem` / `MenuRadioGroup` + `MenuRadioItem`. No `MenubarShortcut` |
+| navigation-menu | `NavigationMenu` | `NavigationMenuList` / `Item` / `Trigger` / `Content` / `Link` keep their names. `NavigationMenuViewport` and `NavigationMenuIndicator` go: the root renders the one shared panel, which glides between triggers and resizes itself. `asChild` on a link → `render={<Link to="…" />}`; mark the current page with `active` (`aria-current="page"`). shadcn's `navigationMenuTriggerStyle()` on a plain link → a `NavigationMenuLink` in its own item, which is styled as a bar entry. Panel rows take `description` for the second line. For app navigation, use `Sidebar` / `SideNav` / `AppHeader` / `BottomNav` in an `AppShell` instead |
+| pagination | `Pagination` (`page`, `total`, `onPageChange`, `siblingCount`, `pageLink`) | one component, not `PaginationContent` / `PaginationItem` / `PaginationLink` parts. Links: `` pageLink={(page) => <Link to={`?page=${page}`} />} `` makes every control a real link |
+| popover | `Popover`, `PopoverTrigger`, `PopoverContent` (`side`, `align`, `sideOffset`), `PopoverTitle`, `PopoverDescription`, `PopoverClose` | `PopoverAnchor` → `anchor` on `PopoverContent` (an element or ref) |
+| progress | `Progress` (`value`, `null` for indeterminate) | a level within a range (storage, quota) is `Meter`, not Progress |
+| radio-group | `RadioGroup`, `Radio` | `RadioGroupItem` → `Radio`; `RadioCard` for card options |
+| resizable | `PanelGroup`, `Panel`, `PanelResizer`, `usePanelWidth` | pixel widths with persisted bounds, for tool chrome; no percentage layout. A non-resizable two-pane split is `SplitPane` |
+| scroll-area | `Scroller` (edge fades), or `scrollbar-quiet` on any overflow element | |
+| select | `Select`, `SelectTrigger`, `SelectContent`, `SelectItem`, `SelectGroup`, `SelectGroupLabel`, `SelectSeparator` | `<SelectValue placeholder>` → `<SelectTrigger placeholder>`; the trigger shows the item's label, derived from `SelectItem`s or `items` |
+| separator | `Separator` (`orientation`, `label`) | |
+| sheet | `Sheet` parts as above, `side` on `SheetContent` (default `"right"`) | `SheetList` for row content |
+| sidebar | `Sidebar` (`collapsed`, `variant`), `SidebarHeader`, `SidebarBrand`, `SidebarNav`, `SidebarItem` (`icon`, `label`, `active`, `badge`, `render`), `SidebarFooter`; mounted in `AppShell sidebar={…}` | no `SidebarProvider` / `SidebarMenu*` / `SidebarGroup`; the rail is desktop-only, and mobile uses `AppHeader` + `BottomNav` (`sable pattern` shells show the wiring) |
+| skeleton | `Skeleton` | same; shape with utilities |
+| slider | `Slider` | number vs array (§1) |
+| sonner | `ToastProvider` at the root + `toast` | sonner's API: `toast.success/error/warning/info/loading/promise/dismiss`. `<Toaster />` → `<ToastProvider position="bottom-right">` around the app |
+| spinner | `Spinner` (`size`, `appearance="ring" \| "dots"`, `label`) | |
+| switch | `Switch` | same `checked` / `onCheckedChange` |
+| table | `Table`, `TableHeader`, `TableBody`, `TableFooter`, `TableRow`, `TableHead`, `TableCell`, `TableCaption` | same parts; don't pad edge cells by hand (`table-edge-padding`); `CardContent flush` sets the inset |
+| tabs | `Tabs`, `TabsList` (`variant="underline" \| "pill"`), `TabsTrigger`, `TabsPanel` | `TabsContent` still works as an alias |
+| textarea | `Textarea` (`autoResize`) | |
+| toggle | `Toggle` (`pressed`, `onPressedChange`) | |
+| toggle-group | `ToggleGroup` (`appearance="segmented"` for a segmented control), `Toggle` / `ToggleGroupItem` | array value (§1) |
+| tooltip | `TooltipProvider`, `Tooltip`, `TooltipTrigger`, `TooltipContent` (`side`), or `SimpleTooltip` | `delayDuration` → `delay` on `TooltipProvider` |
+| chart | `AreaChart`, `BarChart`, `LineChart`, `PieChart`, `RadarChart`, `RadialChart`, `Sparkline` | no Recharts and no `ChartContainer`/`ChartConfig`: pass `data`, `index` (the x key) and `series: [{ key, label, tone }]` |
+| button-group | `ButtonGroup` | children stay `Button`s; the group squares inner corners and draws the seam. A split button is `ButtonGroup` > `Button` + `Menu` with the chevron `Button` as `MenuTrigger`. No `ButtonGroupSeparator`/`ButtonGroupText` |
+| native-select | — | use `Select` in place of a native one |
+
+Before and after for the non-obvious cases:
+
+```tsx
+// dropdown-menu
+<DropdownMenu>
+  <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal /></Button></DropdownMenuTrigger>
+  <DropdownMenuContent align="end">
+    <DropdownMenuLabel>Post</DropdownMenuLabel>
+    <DropdownMenuItem onSelect={edit}>Edit</DropdownMenuItem>
+    <DropdownMenuItem className="text-destructive" onSelect={remove}>Delete</DropdownMenuItem>
+  </DropdownMenuContent>
+</DropdownMenu>
+
+<OverflowMenu label="Post actions">
+  <MenuGroup>
+    <MenuGroupLabel>Post</MenuGroupLabel>
+    <MenuItem onClick={edit}>Edit</MenuItem>
+    <MenuItem variant="destructive" onClick={remove}>Delete</MenuItem>
+  </MenuGroup>
+</OverflowMenu>
+```
+
+```tsx
+// chart
+<ChartContainer config={{ revenue: { label: "Revenue", color: "var(--chart-1)" } }}>
+  <AreaChart data={data}><XAxis dataKey="month" /><Area dataKey="revenue" /></AreaChart>
+</ChartContainer>
+
+<AreaChart label="Revenue" data={data} index="month" series={[{ key: "revenue", label: "Revenue", tone: "1" }]} />
+```
+
+## 5. Forms
+
+shadcn's `Form` wraps react-hook-form with `FormField` / `FormItem` /
+`FormLabel` / `FormControl` / `FormMessage`. Sable's `Form` + `Field` is
+library-agnostic and does that wiring itself:
+
+```tsx
+<Form onFormSubmit={save} errors={serverErrors}>
+  <Field name="email" label="Email" required messages={{ valueMissing: "Enter your email." }}>
+    <Input type="email" autoComplete="email" spellCheck={false} />
+  </Field>
+  <Button type="submit" loading={saving}>Save</Button>
+</Form>
+```
+
+- `FormLabel` + `FormControl` + `FormDescription` + `FormMessage` → one
+  `Field` (`label`, `description`, `error`). It wires `htmlFor`,
+  `aria-describedby` and `aria-invalid`.
+- **Keeping react-hook-form** is fine: register the control as usual and pass
+  `error={errors.email?.message}` to its `Field`. Use `<Form noValidate>` so
+  your resolver owns validation. Don't also mark that `Field` `required`
+  with an `error` inside a validating `Form` (`form-required-error`).
+- Server errors go in `Form errors={{ email: "Taken" }}`, keyed by `Field name`.
+  Each clears when the user edits that field.
+- Follow the form submit contract in `AGENTS.md`: submit stays enabled until
+  the request starts; focus the first invalid field (`Form` does);
+  `loading` keeps the label.
+
+## 6. What Sable doesn't have yet
+
+Every shadcn component in the map above now has a Sable counterpart. For
+anything else shadcn's ecosystem offers, compose it from Sable's parts rather
+than porting the shadcn file back in. If a missing piece blocks the app, say so
+upstream. A local workaround is a
+`sable patch`, not a copy.
+
+## 7. Verify
+
+```bash
+pnpm exec sable doctor        # wiring: styles order, @source, IconProvider, dedupe
+pnpm exec sable lint src      # the idioms in §1, by rule
+pnpm exec sable check src     # doctor + lint + grade before calling it done
+```
+
+`shadcn-leftover` flags what is still imported from the old stack (`@radix-ui/*`,
+`@/components/ui`, `lucide-react`, `sonner`, `vaul`, `cmdk`, `input-otp`,
+`next-themes`) and every `asChild` prop. A deliberate keeper, such as a Radix
+part Sable does not ship yet, takes a reasoned disable. The rest no rule can
+judge, so grep for it; each of these should return nothing:
+
+```bash
+grep -rnE 'data-\[state=|animate-in|tw-animate|type="(single|multiple)"' src
+grep -rn 'onSelect=' src   # Menu rows: should be onClick (Calendar, CommandMenu items and Entity keep onSelect)
+```
+
+Then render it: open each overlay, menu and form in light and dark. Lint
+passes on markup that never opens.
+
+## Read next
+
+- [converting-an-app.md](./converting-an-app.md): registers, wiring, tokens, verification by measurement
+- [patching-a-component.md](./patching-a-component.md): when a Sable component is wrong and the fix hasn't shipped
+- [extending-a-component.md](./extending-a-component.md): owning the source is gone, so this is how you add what a component lacks
+- [tables-with-tanstack.md](./tables-with-tanstack.md): data tables beyond `DataTable`
+- [auditing-an-app.md](./auditing-an-app.md): staying converted across upgrades
 
 ---
 
@@ -3989,6 +4709,7 @@ A full-height conversation surface: titled header, scrolling transcript, and a c
 
 ## Notes
 
+- This is the assembled screen with sample data. To wire it to a real streaming source (a hook such as useChat, or your own transport), read `sable docs building-a-chat`: who owns what, the turn lifecycle mapped to props, and every failure state.
 - The panel is a fixed-height column, not a growing page. `h-[calc(100dvh_-_--spacing(12))]` on the Card (the viewport minus the Page's py-6, in spacing units so density moves both together — a fixed `3rem` drifts the moment density moves the padding) and `flex-1 min-h-0` on the MessageScroller are what make the transcript scroll instead of the document — the single most common thing to get wrong here, and it fails by pushing the composer off the bottom of the screen.
 - The panel is a Card, not a hand-built bordered section: CardHeader (title, description, CardAction), the MessageScroller and a CardFooter all inset by the card's own `--card-p`, so the three regions share one edge at any card density.
 - `dvh` rather than `vh`: on mobile the URL bar collapses, and a `vh`-sized panel puts the composer under it exactly when someone is trying to type.
@@ -4228,7 +4949,9 @@ export function ChatPanel() {
 						onStop={() => undefined}
 						stopLabel="Stop answering"
 						onAttach={() => undefined}
-						footer="Enter to send · Shift+Enter for a new line"
+						// A keyboard hint, so only where Enter sends: on touch Return
+						// breaks the line and the button sends, and the row goes away.
+						footer={({ sendOn }) => (sendOn === "enter" ? "Enter to send · Shift+Enter for a new line" : null)}
 						// Model and effort sit in `actions`, at the send end of the row:
 						// they qualify the message about to be sent, so they belong beside
 						// the button that sends it rather than next to the attach control.
@@ -10004,7 +10727,7 @@ Use AppHeader for compact application chrome at the top of a screen, usually wit
 
 ## Related
 
-- Components: AppShell, PageHeader, BottomNav
+- Components: AppShell, PageHeader, BottomNav, NavigationMenu
 
 ## Examples
 
@@ -11341,7 +12064,7 @@ Use Button when the user commits an action, submits a form, opens UI, or confirm
 ### Best practices
 
 - Do: Use a single primary button in a view or dense panel so the action hierarchy stays obvious.
-- Do: For a copy control, pair an icon Button with `useCopy(text, { timeout? })`. It takes the text when the hook is called and returns `{ copy, copied }`; `copy()` takes no argument, so pass the value the button copies to the hook, not to `copy`.
+- Do: For a copy control, pair an icon Button with `useCopy(text, { timeout? })`. It takes the text when the hook is called and returns `{ copy, copied }`; `copy()` takes no argument, so pass the value the button copies to the hook, not to `copy`. Text that costs something to produce (a file to fetch) goes in as a function, `useCopy(() => fetch(url).then((r) => r.text()))`, called only on click.
 - Do: Write labels as actions, such as "Save changes" or "Delete draft", instead of vague labels like "OK".
 - Do: Use loading with loadingLabel for async work so the action cannot double-fire and the state is announced.
 - Do: Put icons in iconStart / iconEnd rather than as children, so the button applies its optical padding. Start icons say what the action is (plus, share); end icons say where it goes (chevron-right, external).
@@ -11557,6 +12280,64 @@ import { Button } from "@sableui/react"
 import { Banner, Button } from "@sableui/react"
 
 <Banner tone="warning" appearance="solid" action={<Button variant="on-color" size="sm">Reconnect</Button>}>Calendar sync paused.</Banner>
+```
+
+---
+
+# ButtonGroup
+
+**Status:** stable
+
+Buttons joined into one control: a split button (an action beside the chevron that opens its menu) or a short run of related actions. The children stay ordinary Buttons; the group squares their inner corners, collapses bordered seams into one hairline, and draws a seam between filled ones.
+
+**Keywords:** split button, button group, segmented actions, dropdown button, joined buttons, toolbar
+
+## Usage
+
+Use ButtonGroup when one action has close alternatives (Copy page, with Open in… behind a chevron) or a few actions belong together as one object (zoom out, reset, zoom in). Use ToggleGroup for a choice that stays selected, and Tabs to switch views.
+
+### Best practices
+
+- Do: Give the children one height: `size="sm"` with `size="icon-sm"`, `md` with `icon`. The group aligns them but cannot reconcile two heights into one edge.
+- Do: For a split button, put the main action first and a Menu whose trigger is the chevron Button second, with an aria-label on the trigger ("More page actions").
+- Do: Name the group with aria-label when the buttons alone do not say what they act on.
+- Don't: Do not round or border the children yourself to make them meet; that is the group's job, and an override breaks under a theme's button shape.
+- Don't: Do not use it for a selection that stays on. That is ToggleGroup, which carries the pressed state.
+
+## Props
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| role | string | "group" | Group semantics, so a screen reader announces the buttons as one set. Pass `toolbar` when it carries arrow-key navigation of your own. |
+| className | string | — | Layout classes for the group (margins, alignment). The children's look comes from their own variants. |
+| ...props | ComponentPropsWithRef<"div"> | — | All native <div> attributes, including aria-label. |
+
+## Accessibility
+
+- Renders role="group", so assistive tech announces the buttons as one set; name it with aria-label.
+- Each child keeps its own focus stop and label; a focused child is raised above its neighbour so its ring is drawn whole.
+- An icon-only chevron that opens a menu needs its own aria-label, such as "More page actions".
+
+## Related
+
+- Components: Button, Menu, Toggle
+
+## Examples
+
+### Split button with a menu
+
+```tsx
+import { Button, ButtonGroup, Icon, Menu, MenuContent, MenuItem, MenuTrigger } from "@sableui/react"
+
+<ButtonGroup aria-label="Page actions"><Button variant="outline" size="sm" iconStart={<Icon name="copy" />} onClick={copy}>Copy page</Button><Menu><MenuTrigger render={<Button variant="outline" size="icon-sm" aria-label="More page actions" />}><Icon name="chevron-down" /></MenuTrigger><MenuContent align="end"><MenuItem icon={<Icon name="file" />} description="View this page as plain text">View as Markdown</MenuItem></MenuContent></Menu></ButtonGroup>
+```
+
+### Related actions
+
+```tsx
+import { Button, ButtonGroup, Icon } from "@sableui/react"
+
+<ButtonGroup aria-label="Zoom"><Button variant="secondary" size="icon-sm" aria-label="Zoom out"><Icon name="minus" /></Button><Button variant="secondary" size="sm">100%</Button><Button variant="secondary" size="icon-sm" aria-label="Zoom in"><Icon name="plus" /></Button></ButtonGroup>
 ```
 
 ---
@@ -11777,6 +12558,109 @@ import { Avatar, Card, CardDescription, CardHeader, CardList, CardTitle, Entity 
 
 ---
 
+# CaretMenu
+
+**Status:** beta
+
+Suggestions at the caret of a text field, for @mentions and /slash commands. `useCaretTrigger` watches a Textarea, Input or ChatComposer (through `fieldRef`) for a trigger character and reports the query; CaretMenu draws the list beside the trigger and drives it from the field's keys, so focus never leaves the field. The value stays plain text: a mention is inserted as `@Sam Rivera`, a command runs and clears its `/query`.
+
+**Keywords:** mention, mentions, at mention, slash command, slash commands, autocomplete, typeahead, suggestions, emoji picker, hashtag, trigger
+
+## Usage
+
+Use CaretMenu with `useCaretTrigger` when typing a character in running text should offer choices: `@` for people, `/` for commands, `#` for channels, `:` for emoji. The app owns the items (filter or fetch them from `trigger.match.query`) and what choosing one does; Sable owns detecting the trigger, placing the list at the caret, the keys and the accessibility. Use Combobox when the whole field is a search for one value, and CommandMenu for a global palette.
+
+### Best practices
+
+- Do: Attach the hook's `fieldRef` to the field: `ref` on Textarea or Input, `fieldRef` on ChatComposer. On ChatComposer, Enter picks the highlighted suggestion instead of sending, because CaretMenu takes the Enter first.
+- Do: Insert a mention with a trailing space, `trigger.replace(`@${person.name} `)`, so the reader keeps typing; run a slash command and then `trigger.replace("")` to clear `/query` from the field.
+- Do: For `@` names with spaces set `allowSpaces: true` on that trigger; for `/` commands set `atStart: true` so `and/or` mid-sentence stays text.
+- Do: Fetch remote suggestions from `trigger.match?.query` yourself, debounced, and pass `status` while loading or when nothing matches ("Searching…", "No one matches"). The status row is also what the list announces.
+- Don't: Do not expect chips inside the field. A textarea holds text, so a mention is text. Rendering tokens in the field needs a rich-text editor, which Sable does not own (`sable docs extending-a-component`).
+- Don't: Do not move focus into the list or wrap the field in a Popover. Focus stays in the field; the list is pointed at with aria-activedescendant.
+
+### Anatomy
+
+| Part | Required | Description |
+| --- | --- | --- |
+| useCaretTrigger | yes | The hook on the field: trigger detection, the query, the caret anchor, replace() and dismiss(). |
+| CaretMenu | yes | The list at the caret, its keys, and its announcements. |
+| CaretMenuItem | yes | One suggestion row, with optional icon and description. |
+
+## Subcomponents
+
+| Name | Type | Description |
+| --- | --- | --- |
+| CaretMenuItem | div props + onSelect: () => void + disabled?: boolean + icon?: ReactNode + description?: ReactNode | One suggestion, styled as a Menu row. `onSelect` runs on Enter, Tab or click; `icon` and `description` work as on MenuItem. A disabled row shows but the arrow keys skip it. |
+
+## Props
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| trigger | UseCaretTriggerResult | — | The result of `useCaretTrigger({ triggers })`, whose `fieldRef` is attached to the field. Each trigger is `{ char, atStart?, allowSpaces?, maxQueryLength? }`; the result carries `match` (`{ trigger, query, start, end }` or null), `replace(text)`, `dismiss()` and `getAnchorRect()`. |
+| label | string | — | The list's accessible name, e.g. "People" or "Commands". |
+| status | ReactNode | — | A row under the items for what the list is doing: loading, nothing found, an error. Announced politely in place of the suggestion count. With no items and no status the list stays shut. |
+| children | ReactNode | — | CaretMenuItems, already filtered for the query. |
+| className | string | — | Layout classes for the popup, such as a width. |
+
+## Tokens used
+
+`popover`, `popover-foreground`, `border-floating`, `accent`, `accent-foreground`, `muted-foreground`
+
+## Motion
+
+- **arrival** · root · `motion-pop` — Scales in from the caret's side, so the list reads as coming from the character just typed. It leaves instantly: it answers a keystroke and should be gone by the next one.
+
+## Accessibility
+
+- Focus stays in the field. The field carries aria-autocomplete="list", aria-controls (the listbox) and aria-activedescendant (the highlighted option), so a screen reader follows the arrow keys without focus moving.
+- An <input> becomes role="combobox" with aria-expanded. A <textarea> keeps its textbox role (combobox would drop multiline), and since a textbox cannot carry aria-expanded, opening is announced through a polite status, mounted from the start: "3 suggestions", or the `status` text.
+- ↑/↓ move the highlight and wrap; Enter or Tab choose it; Escape closes the list without reaching an enclosing Dialog or Sheet. Shift+Enter is left alone, so a line break still breaks the line.
+- Rows keep focus in the field on pointer down, so a click does not blur it and close the list first.
+- Triggers follow a word boundary (`ana@example.com` and `and/or` stay text), wait for IME composition to end, and stay closed after Escape until the caret leaves that trigger.
+
+## Related
+
+- Components: ChatComposer, Textarea, Input, Combobox, CommandMenu, Menu
+
+## Examples
+
+### Mentions and slash commands in a ChatComposer
+
+```tsx
+import { Avatar, CaretMenu, CaretMenuItem, ChatComposer, useCaretTrigger } from "@sableui/react"
+
+const trigger = useCaretTrigger({ triggers: [{ char: "@", allowSpaces: true }, { char: "/", atStart: true }] })
+const q = trigger.match?.query.toLowerCase() ?? ""
+const commands = trigger.match?.trigger.char === "/"
+
+<ChatComposer fieldRef={trigger.fieldRef} onSend={send} />
+<CaretMenu trigger={trigger} label={commands ? "Commands" : "People"} status={!commands && people.length === 0 ? "No one matches" : undefined}>
+	{commands
+		? slashCommands.filter((c) => c.name.startsWith(q)).map((c) => (
+			<CaretMenuItem key={c.name} description={c.hint} onSelect={() => { c.run(); trigger.replace("") }}>/{c.name}</CaretMenuItem>
+		))
+		: people.filter((p) => p.name.toLowerCase().includes(q)).map((p) => (
+			<CaretMenuItem key={p.id} icon={<Avatar size="sm" src={p.avatar} fallback={p.initials} />} onSelect={() => trigger.replace(`@${p.name} `)}>{p.name}</CaretMenuItem>
+		))}
+</CaretMenu>
+```
+
+### On a Textarea, with remote results
+
+```tsx
+import { CaretMenu, CaretMenuItem, Textarea, useCaretTrigger } from "@sableui/react"
+
+const trigger = useCaretTrigger({ triggers: [{ char: "#" }] })
+// Fetch from trigger.match?.query yourself, debounced; pass the state as status.
+<Textarea ref={trigger.fieldRef} aria-label="Note" />
+<CaretMenu trigger={trigger} label="Channels" status={loading ? "Searching…" : channels.length === 0 ? "No channels match" : undefined}>
+	{channels.map((c) => <CaretMenuItem key={c.id} onSelect={() => trigger.replace(`#${c.name} `)}>#{c.name}</CaretMenuItem>)}
+</CaretMenu>
+```
+
+---
+
 # Carousel
 
 **Status:** stable
@@ -11871,7 +12755,7 @@ import { Carousel } from "@sableui/react"
 
 **Status:** stable
 
-The input half of a conversation: one surface holding attachments, an auto-growing field, and its controls. Enter sends, Shift+Enter breaks the line (sendOn="mod-enter" swaps them for long-form replies), and send becomes stop while a reply streams.
+The input half of a conversation: one surface holding attachments, an auto-growing field, and its controls. Enter sends, Shift+Enter breaks the line (sendOn="mod-enter" swaps them for long-form replies; on touch, Return always breaks the line), and send becomes stop while a reply streams. allowEmpty sends attachments without text.
 
 **Keywords:** chat input, composer, message input, prompt input, send message, ai chat, support chat, textarea
 
@@ -11881,13 +12765,15 @@ Pairs with MessageScroller to make a working chat. A single surface rather than 
 
 ### Best practices
 
+- Do: Wiring it to a streaming source? `sable docs building-a-chat` maps a turn lifecycle (submitted, streaming, done, stopped, error) onto `busy`, `onStop` and `disabled`, and says where each failure goes.
 - Do: Pass `busy` while a reply streams, and `onStop` alongside it. Interrupting a long generation is the most common thing a reader wants during one, and the control belongs where their cursor already is.
 - Do: Leave it uncontrolled unless you need the text elsewhere — a slash-command menu, a draft you persist. Uncontrolled clears itself on send; controlled does not.
 - Do: Render pending uploads as `<Attachment>` chips in `attachments`, so the file and the message it belongs to stay in one box.
+- Do: Pass `allowEmpty={files.length > 0}` when a file can go without a caption. Send enables on the attachment alone and `onSend` receives `""`. Tie it to the pending files: a constant `allowEmpty` leaves send enabled with nothing to send.
 - Do: Put model pickers and tool toggles in `leading`, beside the attach button — they are composer state, not message content, and belong on the chrome row rather than in the field.
 - Do: Building a docked agent panel inside a tool? Wrap the whole conversation — scroller, messages and composer — in `<Density value="compact">`. The entire set follows the workspace register from there: prose drops a tier, the rhythm tightens, and the controls come off the compact ladder. Do not hand-size it at the call site.
 - Don't: Do not clear a controlled composer for the user on send. Only the caller knows whether the send succeeded, and clearing on their behalf loses the message when it did not.
-- Don't: Do not add your own Enter-to-send handler on top. The built-in one already guards against firing mid-IME-composition, which is the line hand-rolled chat inputs miss.
+- Don't: Do not add your own Enter-to-send handler on top. The built-in one already guards against firing mid-IME-composition, and on a touch device lets Return break the line (a soft keyboard has no Shift+Return), which are the lines hand-rolled chat inputs miss.
 - Don't: Do not use it as a general multi-line input inside a larger form. That is `Textarea`. A standalone reply box that sends multi-paragraph messages (email, support replies) is this one with sendOn="mod-enter".
 - Don't: Do not override the field's type utility to make it match your transcript. The field and `Bubble` both read the same tier already, which is what stops a message changing size the moment it is sent — overriding one breaks that pairing.
 - Don't: Do not remove the height cap to let the field grow without limit. A pasted essay would push the conversation off the screen; past the cap it scrolls.
@@ -11908,9 +12794,10 @@ Pairs with MessageScroller to make a working chat. A single surface rather than 
 | value | string | — | Controlled value. Omit for an uncontrolled composer that owns its own text. |
 | defaultValue | string | "" | Initial value when uncontrolled. |
 | onValueChange | (value: string) => void | — | Notified on every keystroke. Required when `value` is supplied. |
-| onSend | (value: string) => void | — | Called with the trimmed message. An uncontrolled composer clears itself afterwards; a controlled one is the caller's to clear. |
+| onSend | (value: string) => void | — | Called with the trimmed message. An uncontrolled composer clears itself afterwards; a controlled one is the caller's to clear. With `allowEmpty` the message can be `""`. |
+| allowEmpty | boolean | false | Let the reader send with no text, because the app has something else to send (pending attachments). Pass it only while that is true, `allowEmpty={files.length > 0}`; `onSend` then receives `""`. |
 | placeholder | string | "Send a message…" | Placeholder for the field. |
-| sendOn | "enter" \| "mod-enter" | "enter" | Which key sends. enter for chat (Shift+Enter breaks the line). mod-enter for long-form replies such as an email or a support answer: Enter breaks the line and Cmd/Ctrl+Enter sends, so a paragraph break never mails a draft. Say so in footer ("Cmd+Enter to send"). |
+| sendOn | "enter" \| "mod-enter" | "enter" | Which key sends. enter for chat (Shift+Enter breaks the line). mod-enter for long-form replies such as an email or a support answer: Enter breaks the line and Cmd/Ctrl+Enter sends, so a paragraph break never mails a draft. Say so in footer ("Cmd+Enter to send"). On a touch device (pointer: coarse) enter behaves as mod-enter: a soft keyboard has no Shift+Return, so Return breaks the line and the send button sends. |
 | busy | boolean | false | A reply is streaming. Disables send, and swaps it for a stop control when `onStop` is supplied. |
 | onStop | () => void | — | Interrupt the in-flight reply. Supplying it turns send into stop while busy. |
 | disabled | boolean | false | Block sending entirely — over a limit, disconnected, read-only thread. Distinct from `busy`, which is temporary and offers a way out (stop). |
@@ -11922,8 +12809,8 @@ Pairs with MessageScroller to make a working chat. A single surface rather than 
 | label | string | "Message" | Accessible label for the field. |
 | sendLabel | string | "Send message" | Accessible label for the send button. |
 | stopLabel | string | "Stop generating" | Accessible label for the stop button. |
-| footer | ReactNode | — | Helper text or counter below the controls. |
-| fieldRef | Ref<HTMLTextAreaElement> | — | Ref to the underlying textarea — for focusing after a send, or on mount. |
+| footer | ReactNode \| ((state: { sendOn: "enter" \| "mod-enter" }) => ReactNode) | — | Helper text or counter below the controls. For a keyboard hint pass a function: it receives the send key in effect (touch turns `enter` into `mod-enter`), and returning null removes the row, e.g. `footer={({ sendOn }) => sendOn === "enter" ? "Enter to send" : null}`. |
+| fieldRef | Ref<HTMLTextAreaElement> | — | Ref to the underlying textarea — for focusing after a send, or on mount, and the extension point for anything that listens to the field. Pass `useCaretTrigger`'s `fieldRef` here for mentions and slash commands (CaretMenu). An Enter another listener already handled (`preventDefault()`) does not send. |
 | ...form props | Omit<ComponentPropsWithRef<"form">, "onSubmit" \| "defaultValue"> | — | Spread onto the form element. Use `onSend` rather than `onSubmit`. |
 
 ## Variants
@@ -11939,7 +12826,8 @@ Pairs with MessageScroller to make a working chat. A single surface rather than 
 - A real `<form>`, so the send button is a submit button and the whole thing behaves as one control to assistive tech and to password managers alike.
 - Enter never submits while an IME composition is open (`isComposing`), so a CJK reader confirming a candidate word does not mail a fragment of their first sentence.
 - The focus ring is drawn on the surface via `focus-within`, not on the textarea, so the visible focus indicator matches the box a sighted user perceives as the input.
-- Send is disabled — not merely styled down — until there is non-whitespace to send, so the affordance and the behaviour agree for keyboard users.
+- Send is disabled — not merely styled down — until there is non-whitespace to send (or `allowEmpty` says an attachment is enough), so the affordance and the behaviour agree for keyboard users.
+- On a touch device Return breaks the line and the send button sends; `aria-keyshortcuts` reports the shortcut actually in effect (⌘/Ctrl+Enter there, Enter on desktop).
 - Icon-only attach, send and stop buttons all carry accessible labels, each overridable for localisation.
 
 ## Related
@@ -11978,6 +12866,19 @@ import { Attachment, Button, ChatComposer, Icon } from "@sableui/react"
 	attachments={files.map((f) => (<Attachment key={f.id} variant="media" name={f.name} thumbnail={f.url} actions={<Button variant="floating" size="icon-xs" aria-label="Remove" onClick={() => drop(f.id)}><Icon name="xmark" /></Button>} />))}
 	footer={`${draft.length} / 4000`}
 	invalid={draft.length > 4000}
+/>
+```
+
+### Attachments sent without text
+
+```tsx
+import { Attachment, ChatComposer } from "@sableui/react"
+
+<ChatComposer
+	onSend={(text) => post(text, files)}
+	allowEmpty={files.length > 0}
+	onAttach={pickFile}
+	attachments={files.map((f) => <Attachment key={f.id} name={f.name} meta={f.size} />)}
 />
 ```
 
@@ -12545,6 +13446,7 @@ Use Combobox when users choose from a list that benefits from typing, filtering,
 
 - Do: Pass items so internal filtering, empty state, and accessibility wiring have the full option set.
 - Do: Use ComboboxEmpty with helpful copy for zero matches.
+- Do: For results from a server, pass `filter={null}` so Base UI shows the items as the server returned them, fetch from `onInputValueChange`, and make ComboboxEmpty say which state it is in (searching, no results, type to search). Object items take `itemToStringLabel`.
 - Do: Wrap in Field when the combobox is part of a form.
 - Do: Reach for ComboboxVirtualList past roughly a thousand rows, and leave filtering to the root. It reads the filtered list through useFilteredItems(), so the rendered rows and the rows Base UI navigates cannot drift apart.
 - Do: Use `multiple` with ComboboxChips for several values from a filterable set, and keep chip labels short so the field does not turn into a paragraph.
@@ -12585,6 +13487,9 @@ Use Combobox when users choose from a list that benefits from typing, filtering,
 | Combobox (Root) | Base UI Combobox.Root props (items, value, defaultValue, onValueChange, inputValue, onInputValueChange, open, onOpenChange, multiple, autoHighlight, filter, disabled) | — | Groups all parts and owns selection + filter state. Pass `items` (flat array or groups) to enable internal filtering and ComboboxEmpty. |
 | items | readonly any[] \| readonly ComboboxItemGroup[] | — | The pool of options, flat or grouped ({ value, items }). Drives type-to-filter and is required for ComboboxEmpty to render its fallback. |
 | multiple | boolean | false | Select several items instead of one. `value` / `defaultValue` / `onValueChange` become arrays, choosing an item toggles its membership, and the popup stays open between picks. Pair it with ComboboxChips in place of ComboboxInput; every other part is unchanged. |
+| filter | null \| ((item, query, itemToString?) => boolean) | Base UI's locale-aware contains | How items match the query. `null` turns matching off, for items a server already filtered: pair it with `onInputValueChange` to fetch. |
+| onInputValueChange | (inputValue: string, eventDetails) => void | — | Fires as the reader types. The place to fetch results for a server-backed combobox. |
+| itemToStringLabel | (item) => string | item.label for { value, label } items | The text an object item shows in the input once chosen, and is matched by. Needed for object items without a `label` field. |
 | virtualized | boolean | false | Tells Base UI the DOM holds only part of the list. Required when using ComboboxVirtualList. |
 
 ## Tokens used
@@ -12631,6 +13536,14 @@ import { Combobox, ComboboxContent, ComboboxInput, ComboboxItem, ComboboxList } 
 import { Combobox, ComboboxChips, ComboboxContent, ComboboxEmpty, ComboboxItem, ComboboxList } from "@sableui/react"
 
 <Combobox multiple items={tags} value={value} onValueChange={setValue}><ComboboxChips placeholder="Add tags…" /><ComboboxContent><ComboboxEmpty>No matching tags.</ComboboxEmpty><ComboboxList>{(item) => (<ComboboxItem key={item} value={item}>{item}</ComboboxItem>)}</ComboboxList></ComboboxContent></Combobox>
+```
+
+### Async search (server results)
+
+```tsx
+import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@sableui/react"
+
+<Combobox items={results} filter={null} itemToStringLabel={(person) => person.name} value={person} onValueChange={setPerson} onInputValueChange={setQuery}><ComboboxInput placeholder="Search people…" /><ComboboxContent><ComboboxEmpty>{searching ? "Searching…" : query ? "No one matches." : "Type a name to search."}</ComboboxEmpty><ComboboxList>{(item) => (<ComboboxItem key={item.id} value={item}>{item.name}</ComboboxItem>)}</ComboboxList></ComboboxContent></Combobox>
 ```
 
 ### Virtualized (long list)
@@ -14769,6 +15682,87 @@ import { Input } from "@sableui/react"
 
 ---
 
+# InputGroup
+
+**Status:** stable
+
+An Input with addons inside the same field: a prefix or suffix ("https://", ".com", "$"), an icon, or a borderless Button such as copy or reveal. One shell, one focus ring, one error state; a Field's label and error wiring reaches the Input inside.
+
+**Keywords:** input group, input addon, prefix, suffix, adornment, url input, currency input, password reveal, copy field, icon in input
+
+## Usage
+
+Use InputGroup when something belongs inside the field with the text: a unit, a fixed prefix, an icon, or a small action on the value itself (copy, reveal, clear). Use Field's `trailing` for an action beside the field (Apply next to a promo code), SearchInput for search, and NumberField for numbers with steppers.
+
+### Best practices
+
+- Do: Keep text addons short and fixed ("https://", "kg", "USD"). They are part of the field, not its label.
+- Do: For a button addon, use a borderless Button (`variant="ghost"`, `size="icon-sm"`) with an aria-label. The addon tightens around it, so it sits as far from the edge as from the top and bottom.
+- Do: Wrap the group in Field for a label and errors: `<Field label="Website"><InputGroup leading="https://"><Input /></InputGroup></Field>`.
+- Don't: Do not put the value's meaning only in an addon. A screen reader hears the label and the text, so "Price (USD)" belongs in the label too.
+- Don't: Do not restyle an Input to fake an addon; the group owns the border, the fill and the ring.
+
+## Props
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| leading | ReactNode | — | Inside the field, before the text: a prefix ("https://", "$"), an icon, or a borderless Button. |
+| trailing | ReactNode | — | Inside the field, after the text: a suffix (".com", "kg"), an icon, or a borderless Button (copy, reveal, clear). |
+| children | ReactElement | — | The single `<Input />`. It keeps its own props and type; the group takes over its border, fill and focus ring. |
+| id / required / disabled / aria-describedby / aria-invalid | control props | — | Forwarded to the Input, not set on the group. This is how a Field's wiring reaches the text box when the group is its child. |
+| className | string | — | Layout classes for the group (width, margins). |
+
+## Tokens used
+
+`input`, `card`, `ring`, `destructive`, `muted-foreground`, `foreground`
+
+## Accessibility
+
+- The Input stays the focusable control; the group draws the focus ring around the whole field while it is focused.
+- Inside a Field, the label, description and error are wired to the Input itself, not the group.
+- Text addons are plain text beside the input, read in order; put a unit or currency in the label as well so it is not only visual.
+- A button addon is a real Button with its own focus stop and needs an aria-label.
+
+## Related
+
+- Components: Input, Field, SearchInput, NumberField, Button
+
+## Examples
+
+### Prefix and suffix
+
+```tsx
+import { Field, Input, InputGroup } from "@sableui/react"
+
+<Field label="Website"><InputGroup leading="https://" trailing=".com"><Input placeholder="example" /></InputGroup></Field>
+```
+
+### Leading icon
+
+```tsx
+import { Field, Icon, Input, InputGroup } from "@sableui/react"
+
+<Field label="Email"><InputGroup leading={<Icon name="mail" />}><Input type="email" placeholder="you@example.com" /></InputGroup></Field>
+```
+
+### Copy button
+
+```tsx
+import { Button, Field, Icon, Input, InputGroup } from "@sableui/react"
+
+<Field label="API key"><InputGroup trailing={<Button variant="ghost" size="icon-sm" aria-label="Copy key" onClick={copy}><Icon name={copied ? "check" : "copy"} /></Button>}><Input readOnly value={key} /></InputGroup></Field>
+```
+
+### Password with reveal
+
+```tsx
+import { Button, Field, Icon, Input, InputGroup } from "@sableui/react"
+
+<Field label="Password"><InputGroup trailing={<Button variant="ghost" size="icon-sm" aria-label={shown ? "Hide password" : "Show password"} aria-pressed={shown} onClick={() => setShown(!shown)}><Icon name={shown ? "eye-off" : "eye"} /></Button>}><Input type={shown ? "text" : "password"} autoComplete="current-password" /></InputGroup></Field>
+```
+
+---
+
 # Kbd
 
 **Status:** stable
@@ -15508,7 +16502,8 @@ Use Menu for a compact list of actions opened from a visible trigger.
 | --- | --- | --- |
 | MenuTrigger | Base UI Menu.Trigger props + render | The button that opens the menu. Compose with render={<Button … />}. |
 | MenuContent | Base UI Popup props + side: 'top' \| 'right' \| 'bottom' \| 'left' + align: 'start' \| 'center' \| 'end' + sideOffset: number + className | Portal + Positioner + Popup. side picks which side of the trigger the popup renders against (auto-flips on collision; defaults to 'bottom'); align sets alignment along that side (defaults to 'start'); sideOffset is the gap in px between trigger and popup (defaults to 6). |
-| MenuItem | Base UI Menu.Item props + className (disabled, closeOnClick, onClick) + variant?: "default" \| "destructive" | An interactive row. Highlights via data-[highlighted]; dims via data-[disabled]. variant="destructive" for a delete or irreversible action: it keeps the destructive ink when highlighted (never className="text-destructive", which the highlight repaints). |
+| MenuItem | Base UI Menu.Item props + className (disabled, closeOnClick, onClick) + variant?: "default" \| "destructive" + icon?: ReactNode + description?: ReactNode | An interactive row. Highlights via data-[highlighted]; dims via data-[disabled]. variant="destructive" for a delete or irreversible action: it keeps the destructive ink when highlighted (never className="text-destructive", which the highlight repaints). `icon` leads the row; `description` adds a quieter second line saying what the action does, and the icon then sits in a small tile spanning both lines. |
+| MenuLinkItem | Base UI Menu.LinkItem props (href, target, closeOnClick) + className + icon?: ReactNode + description?: ReactNode | A row that navigates: a real <a>, so it opens in a new tab, middle-clicks and copies as a link. With target="_blank" it adds rel="noopener noreferrer" and a trailing ↗. Takes icon and description like MenuItem. |
 | MenuSeparator | Base UI Separator props + className | Hairline rule between item runs. |
 | MenuSubmenu | Base UI Menu.SubmenuRoot props | A nested menu. Wraps a MenuSubmenuTrigger and its own MenuContent — pass side="inline-end" to that content so the submenu opens away from its parent in RTL as well as LTR. |
 | MenuSubmenuTrigger | Base UI Menu.SubmenuTrigger props + value: ReactNode + className | The row that opens a submenu: item styling, a trailing chevron, and an optional `value` showing the current choice so the row reads "Effort  High ›" rather than making the reader open it to find out. |
@@ -15580,6 +16575,20 @@ import { Button, Menu, MenuContent, MenuItem, MenuRadioGroup, MenuRadioItem, Men
 </Menu>
 ```
 
+### Rows with icons and descriptions, and links
+
+```tsx
+import { Button, Icon, Menu, MenuContent, MenuItem, MenuLinkItem, MenuTrigger } from "@sableui/react"
+
+<Menu>
+	<MenuTrigger render={<Button variant="outline" size="sm">Share</Button>} />
+	<MenuContent align="end">
+		<MenuItem icon={<Icon name="copy" />} description="Copy page as Markdown for LLMs" onClick={copy}>Copy page</MenuItem>
+		<MenuLinkItem icon={<Icon name="file" />} description="View this page as plain text" href={markdownUrl} target="_blank">View as Markdown</MenuLinkItem>
+	</MenuContent>
+</Menu>
+```
+
 ### Toggling rows
 
 ```tsx
@@ -15592,6 +16601,119 @@ import { Button, Menu, MenuCheckboxItem, MenuContent, MenuTrigger } from "@sable
 		<MenuCheckboxItem checked={cols.updated} onCheckedChange={(v) => setCol("updated", v)}>Updated</MenuCheckboxItem>
 	</MenuContent>
 </Menu>
+```
+
+---
+
+# Menubar
+
+**Status:** stable
+
+An application's row of menus — File, Edit, View — over Base UI's Menubar. Each menu is an ordinary Sable Menu with a MenubarTrigger as its title; the bar joins them into one tab stop with ←/→ between titles, and once one menu is open, pointing at a neighbour opens it.
+
+**Keywords:** menubar, menu bar, app menu, file menu, edit menu, application menu, desktop menu
+
+## Usage
+
+Use Menubar for a tool or editor whose commands are too many for a toolbar and belong under named menus (File, Edit, View, Help). Use Toolbar for a row of direct actions, a single Menu or OverflowMenu for one set of options, and NavigationMenu-style links for site navigation.
+
+### Best practices
+
+- Do: Compose each menu from the Menu parts: `<Menu><MenubarTrigger>File</MenubarTrigger><MenuContent>…</MenuContent></Menu>`. Rows, groups, submenus, checkbox and radio items are the same parts a lone Menu uses.
+- Do: Name the bar with aria-label ("Editor") so it is announced as the application's menus, not a list of buttons.
+- Do: Keep titles to one short word each. A reader scans a menubar left to right; a phrase in the bar is a toolbar button.
+- Don't: Do not use MenubarTrigger outside a Menubar, or a plain MenuTrigger inside one. The bar's arrow keys and hover-to-switch work on the triggers it owns; a Button trigger in the bar looks like a menu title and behaves like a stray button.
+- Don't: Do not use a menubar for site navigation. Its items are commands in menus (role=menuitem), not links between pages.
+
+### Anatomy
+
+| Part | Required | Description |
+| --- | --- | --- |
+| Menubar | yes | The bar: role=menubar, one tab stop, arrow keys between titles. |
+| Menu | yes | One per title; the ordinary Menu root. |
+| MenubarTrigger | yes | The title in the bar that opens its menu. |
+| MenuContent | yes | The menu's popup, with MenuItem / MenuSubmenu / MenuCheckboxItem rows inside. |
+
+## Subcomponents
+
+| Name | Type | Description |
+| --- | --- | --- |
+| MenubarTrigger | Base UI Menu.Trigger props + className | A menu's title in the bar. A small ghost Button in the control type tier, held in the accent wash while its menu is open (`sable-open:`), so the reader sees which title the popup belongs to. |
+
+## Props
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| orientation | "horizontal" \| "vertical" | "horizontal" | The bar's axis. Arrow keys follow it: ←/→ along a horizontal bar, ↑/↓ down a vertical one. |
+| loopFocus | boolean | true | Wrap from the last title back to the first with the arrow keys. |
+| modal | boolean | true | While a menu is open, block pointer interaction outside it and lock page scroll, like a lone Menu. |
+| disabled | boolean | false | Disable every menu in the bar. |
+| className | string | — | Layout classes for the bar. Titles take their look from MenubarTrigger. |
+
+## Tokens used
+
+`accent`, `accent-foreground`, `foreground`, `ring`
+
+## Accessibility
+
+- Base UI renders role="menubar" with aria-orientation; each title is a menuitem with aria-haspopup and aria-expanded.
+- The bar is one tab stop. ←/→ move between titles (↑/↓ when vertical), ↓ or Enter opens a menu and moves into it, and Esc closes it and returns focus to its title.
+- With one menu open, pointing at another title opens that menu instead, so a reader can sweep across the bar, as in a desktop application.
+- Name the bar with aria-label; titles are their own text.
+
+## Related
+
+- Components: Menu, Toolbar, OverflowMenu, ContextMenu
+
+## Examples
+
+### Editor menus
+
+```tsx
+import { Menu, Menubar, MenubarTrigger, MenuContent, MenuItem, MenuSeparator } from "@sableui/react"
+
+<Menubar aria-label="Editor">
+	<Menu>
+		<MenubarTrigger>File</MenubarTrigger>
+		<MenuContent>
+			<MenuItem>New</MenuItem>
+			<MenuItem>Open…</MenuItem>
+			<MenuSeparator />
+			<MenuItem>Save</MenuItem>
+		</MenuContent>
+	</Menu>
+	<Menu>
+		<MenubarTrigger>Edit</MenubarTrigger>
+		<MenuContent>
+			<MenuItem>Undo</MenuItem>
+			<MenuItem>Redo</MenuItem>
+		</MenuContent>
+	</Menu>
+</Menubar>
+```
+
+### With a submenu and toggling rows
+
+```tsx
+import { Menu, Menubar, MenubarTrigger, MenuCheckboxItem, MenuContent, MenuRadioGroup, MenuRadioItem, MenuSubmenu, MenuSubmenuTrigger } from "@sableui/react"
+
+<Menubar aria-label="Editor">
+	<Menu>
+		<MenubarTrigger>View</MenubarTrigger>
+		<MenuContent>
+			<MenuCheckboxItem checked={ruler} onCheckedChange={setRuler}>Show ruler</MenuCheckboxItem>
+			<MenuSubmenu>
+				<MenuSubmenuTrigger value={zoom}>Zoom</MenuSubmenuTrigger>
+				<MenuContent side="inline-end" align="start" sideOffset={4}>
+					<MenuRadioGroup value={zoom} onValueChange={setZoom}>
+						<MenuRadioItem value="100%">100%</MenuRadioItem>
+						<MenuRadioItem value="Fit">Fit</MenuRadioItem>
+					</MenuRadioGroup>
+				</MenuContent>
+			</MenuSubmenu>
+		</MenuContent>
+	</Menu>
+</Menubar>
 ```
 
 ---
@@ -15727,6 +16849,7 @@ The scroll region a conversation lives in. It owns the scrolling and nothing els
 
 ### Best practices
 
+- Do: Building a whole chat? `sable docs building-a-chat` covers what the scroller does during a stream, what the app owns, and the failure states around it.
 - Do: Bound it the way you would bound any scroll box — `flex-1 min-h-0` inside a flex column, or `max-h-96`. `className` lands on the element that actually scrolls, so the obvious bound is the correct one (same contract as Scroller).
 - Do: Give every Message a `messageId`. It is the handle for `scrollToMessage`, `initialScroll`, and `onVisibleMessagesChange` — a message without one is invisible to all three.
 - Do: Prepend older history directly into `children` when the reader reaches the top. The scroller anchors on the first rendered message and re-adds the height that appeared above it, so the view does not jump.
@@ -16014,6 +17137,122 @@ import { Button, Icon, MiddleTruncate, Row, useCopy } from "@sableui/react"
 
 const { copy, copied } = useCopy(commitHash)
 <Row gap={1}><MiddleTruncate text={commitHash} /><Button variant="ghost" size="icon-xs" aria-label="Copy commit hash" onClick={copy}><Icon name={copied ? "check" : "copy"} /></Button></Row>
+```
+
+---
+
+# NavigationMenu
+
+**Status:** stable
+
+A site header's primary nav over Base UI NavigationMenu: a bar of links and triggers, where a trigger opens a panel of links on hover, click or Enter. One shared panel glides between triggers and resizes to each one's content. Links take any router's link through `render` and mark the current page with `active`.
+
+**Keywords:** navigation, nav, header nav, site nav, mega menu, top nav, navbar, dropdown nav
+
+## Usage
+
+Use NavigationMenu for a marketing or docs site's header: a few top-level destinations, some of which open a panel of related pages. Use Menu for actions rather than destinations, Tabs to switch views inside a page, Sidebar or SideNav for an app's persistent navigation, and AppHeader for an app's mobile top bar.
+
+### Best practices
+
+- Do: Keep the bar to a handful of entries. A trigger groups related pages; a destination with nothing beneath it is a plain NavigationMenuLink in its own item.
+- Do: Give panel links a `description` when titles alone are ambiguous ("Sync" → "Offline first, conflict free"), and lay the Content out with layout classes (`grid w-[30rem] grid-cols-2`); the shared panel sizes itself to it.
+- Do: Pass your router's link through `render` (`<NavigationMenuLink render={<Link to="/pricing" />}>`) and set `active` on the current page's link, so the bar shows where the reader is and announces it as `aria-current="page"`.
+- Do: Below `md`, hide the bar and offer the same destinations in a Sheet opened from a menu Button: SheetContent side="left" holding a SideNav, its groups mirroring the panels. A hover panel has nothing to hover on a phone, and a bar of five entries does not fit one.
+- Don't: Do not put actions in it (Sign in, New project). Those are Buttons beside the nav; the nav holds places to go.
+- Don't: Do not assemble the panel yourself. The root renders the one Portal, Positioner, Popup and Viewport every trigger shares; a second one breaks the glide between triggers.
+
+### Anatomy
+
+| Part | Required | Description |
+| --- | --- | --- |
+| NavigationMenu | yes | The `<nav>` root; also renders the shared floating panel. |
+| NavigationMenuList | yes | The bar: a `<ul>` the arrow keys rove across. |
+| NavigationMenuItem | yes | One `<li>`: a link, or a trigger with its content. |
+| NavigationMenuTrigger | no | Opens its item's content; carries a chevron. |
+| NavigationMenuContent | no | The links a trigger reveals, rendered into the shared panel. |
+| NavigationMenuLink | yes | A destination: a bar entry in an item, a two-line row in content. |
+
+## Subcomponents
+
+| Name | Type | Description |
+| --- | --- | --- |
+| NavigationMenuList | Base UI NavigationMenu.List props + className | The bar of items, a `<ul>`. Arrow keys move between entries. |
+| NavigationMenuItem | Base UI NavigationMenu.Item props + className + value?: string | One `<li>` holding either a NavigationMenuLink or a NavigationMenuTrigger with its NavigationMenuContent. |
+| NavigationMenuTrigger | Base UI NavigationMenu.Trigger props + className | Opens its item's content on hover, click or Enter, with a chevron that turns while open. Styled like the bar's links: muted at rest, full ink when hovered or open. |
+| NavigationMenuContent | Base UI NavigationMenu.Content props + className + keepMounted?: boolean | The item's panel content. Size and lay it out with layout classes; the shared panel follows its size and slides it in from the side it was reached from. |
+| NavigationMenuLink | Base UI NavigationMenu.Link props + className + href?: string + active?: boolean + closeOnClick?: boolean + render?: ReactElement + description?: ReactNode | A destination. In an item it is a bar entry; in content it is a row with an optional `description` line. `active` sets `aria-current="page"`; `render={<Link to="…" />}` keeps the roving focus on your router's link. |
+
+## Props
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| NavigationMenu (Root) | Base UI NavigationMenu.Root props (value, defaultValue, onValueChange, delay, closeDelay, orientation) + className | — | The `<nav>`. `value` is the open item's value (null when closed); `delay` / `closeDelay` tune hover-to-open. |
+| align | "start" \| "center" \| "end" | "start" | Alignment of the shared panel along its trigger. |
+| sideOffset | number | 8 | Gap between the bar and the panel, in px. The pointer crosses it on a bridge, so the panel does not close on the way in. |
+
+## Tokens used
+
+`popover`, `popover-foreground`, `border-floating`, `accent`, `accent-foreground`, `muted-foreground`, `foreground`, `ring`
+
+## Motion
+
+- **arrival** · Panel · _custom (outside the recipe layer)_ — The panel fades and scales in from its trigger like a popover, but it also resizes as the reader moves between triggers, which motion-pop cannot express: Base UI measures each content into --popup-width/--popup-height and the popup transitions to them on the motion tokens.
+- **response** · Trigger, Link · `motion-interactive` — Bar entries and panel rows fill on hover and focus like the other interactive surfaces, so the bar reads as live before anything opens.
+- **transition** · Panel · _custom (outside the recipe layer)_ — Moving from one trigger to the next keeps one panel open: it glides along the bar and the new content slides in from the direction of travel, so the reader sees one surface changing rather than two popups swapping. Snaps on first open and on resize (data-instant), where a glide would mean nothing.
+- **activity** · root · _no motion_ — Nothing in a nav moves on its own.
+
+## Accessibility
+
+- The root is a <nav>; give it an aria-label when the page has more than one nav ("Main").
+- Arrow keys move across the bar; Enter, Space or ArrowDown opens a trigger's content and moves focus into it; Esc closes and returns focus to the trigger.
+- A trigger is a button with aria-expanded; its content is reachable by Tab in reading order once open.
+- `active` on a link sets aria-current="page" and gives it full ink, so the current page is announced as well as shown.
+- Panel motion runs on the motion tokens, so reduced motion (or MotionProvider "reduced") collapses the glide and resize to instant.
+
+## Related
+
+- Components: Menu, SideNav, Sheet, AppHeader, Tabs
+
+## Examples
+
+### Bar with a panel
+
+```tsx
+import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@sableui/react"
+
+<NavigationMenu aria-label="Main">
+	<NavigationMenuList>
+		<NavigationMenuItem>
+			<NavigationMenuTrigger>Product</NavigationMenuTrigger>
+			<NavigationMenuContent className="grid w-[30rem] grid-cols-2">
+				<NavigationMenuLink href="/editor" description="Write and review together.">Editor</NavigationMenuLink>
+				<NavigationMenuLink href="/sync" description="Offline first, conflict free.">Sync</NavigationMenuLink>
+			</NavigationMenuContent>
+		</NavigationMenuItem>
+		<NavigationMenuItem>
+			<NavigationMenuLink href="/pricing">Pricing</NavigationMenuLink>
+		</NavigationMenuItem>
+	</NavigationMenuList>
+</NavigationMenu>
+```
+
+### With a router, marking the current page
+
+```tsx
+import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from "@sableui/react"
+// <Link> = your router's link (react-router, next/link, @tanstack/router, …)
+
+<NavigationMenu aria-label="Main">
+	<NavigationMenuList>
+		<NavigationMenuItem>
+			<NavigationMenuLink active={path === "/docs"} render={<Link to="/docs" />}>Docs</NavigationMenuLink>
+		</NavigationMenuItem>
+		<NavigationMenuItem>
+			<NavigationMenuLink active={path === "/blog"} render={<Link to="/blog" />}>Blog</NavigationMenuLink>
+		</NavigationMenuItem>
+	</NavigationMenuList>
+</NavigationMenu>
 ```
 
 ---
@@ -16355,7 +17594,7 @@ import { Field, OtpField } from "@sableui/react"
 
 An overflow ellipsis icon button that opens a Menu. Composes our Menu + Button + Icon — pass MenuItems as children and it wires the ghost icon trigger, accessible label, and portal-rendered content. All keyboard, focus, and dismissal behavior comes through Menu.
 
-**Keywords:** dots menu, more actions, ellipsis, kebab
+**Keywords:** dots menu, more actions, ellipsis, kebab, responsive actions, responsive action menu, collapse actions, actions overflow on mobile
 
 ## Usage
 
@@ -16365,6 +17604,7 @@ Use OverflowMenu for compact overflow actions when the primary action is already
 
 - Do: Use it for secondary commands that belong to a row, card, or toolbar item.
 - Do: Keep labels explicit so the icon-only trigger does not obscure the command meaning.
+- Do: For actions that fit inline on a wide screen but not a narrow one, render them twice: inline (a Row inside a wrapper shown from a container width; Row sets its own display, so the wrapper does the hiding), and as MenuItems in an OverflowMenu hidden from that width (`@container` + `@md:`). display:none takes the hidden copy out of the accessibility tree, so only one set is ever announced. Keep the primary action inline at every width.
 - Don't: Do not hide the most important or most frequent action inside OverflowMenu.
 - Don't: Do not use it as the only affordance on a touch surface. It is revealed on hover in most layouts, and hover does not exist on touch — pair it with a visible action or make it always-visible there.
 
@@ -16412,6 +17652,30 @@ import { MenuItem, MenuSeparator, OverflowMenu } from "@sableui/react"
 import { Icon, MenuItem, MenuSeparator, OverflowMenu } from "@sableui/react"
 
 <OverflowMenu><MenuItem><Icon name="check" className="text-sm" />Mark as read</MenuItem><MenuSeparator /><MenuItem variant="destructive"><Icon name="xmark" className="text-sm" />Delete</MenuItem></OverflowMenu>
+```
+
+### Responsive actions: inline when wide, in a menu when narrow
+
+```tsx
+import { Button, Icon, MenuItem, OverflowMenu, Row } from "@sableui/react"
+
+<div className="@container/actions flex w-full justify-end">
+	<Row gap={1} align="center">
+		<div className="hidden @md/actions:block">
+			<Row gap={1}>
+				<Button variant="ghost" size="sm" iconStart={<Icon name="share" />}>Share</Button>
+				<Button variant="ghost" size="sm" iconStart={<Icon name="download" />}>Export</Button>
+			</Row>
+		</div>
+		<div className="@md/actions:hidden">
+			<OverflowMenu label="Report actions" size="icon-sm">
+				<MenuItem icon={<Icon name="share" />}>Share</MenuItem>
+				<MenuItem icon={<Icon name="download" />}>Export</MenuItem>
+			</OverflowMenu>
+		</div>
+		<Button size="sm" iconStart={<Icon name="edit" />}>Edit report</Button>
+	</Row>
+</div>
 ```
 
 ---
@@ -16570,9 +17834,9 @@ import { PageLoader } from "@sableui/react"
 
 **Status:** stable
 
-Page navigation built from our own Button + Icon (no Base UI). A <nav aria-label='Pagination'> with prev/next icon buttons that disable at the bounds and numbered page buttons; the current page is a secondary button marked aria-current. Collapses to first/last/current plus a sibling window, bridging skipped runs with an ellipsis.
+Page navigation built from our own Button + Icon (no Base UI). A <nav aria-label='Pagination'> with prev/next icon buttons that disable at the bounds and numbered page buttons; the current page is a secondary button marked aria-current. With pageLink every control is a real link (crawlable, opens in a new tab, any router through render). Collapses to first/last/current plus a sibling window, bridging skipped runs with an ellipsis.
 
-**Keywords:** pagination, pager, pages, table, results, navigation, next, previous
+**Keywords:** pagination, pager, pages, table, results, navigation, next, previous, page links, seo, url
 
 ## Usage
 
@@ -16582,6 +17846,7 @@ Use Pagination when a result set is split into discrete pages and the user needs
 
 - Do: Keep page state controlled by the parent route or data layer so URL, filters, and result fetches stay in sync.
 - Do: Use a specific label when multiple pagers appear on a page, such as "Customer pages".
+- Do: Pass pageLink when the page lives in the URL (search results, a blog, a catalogue): each page becomes a link a crawler can follow and a reader can open in a new tab. Use a router's Link there so navigation stays in the app.
 - Do: Reset to page 1 when filters or search terms materially change the result set.
 - Don't: Use Pagination for tiny lists where all items fit comfortably on one page.
 - Don't: Hide disabled previous/next buttons at the bounds; disabled controls make the current position clearer.
@@ -16601,7 +17866,8 @@ Use Pagination when a result set is split into discrete pages and the user needs
 | --- | --- | --- | --- |
 | page | number | — | The active page (1-based). Clamped into the valid range. |
 | total | number | — | Total number of pages. |
-| onPageChange | (page: number) => void | — | Called with the next page when a control is activated. No-op for out-of-range or unchanged values. |
+| onPageChange | (page: number) => void | — | Called with the next page when a control is activated. No-op for out-of-range or unchanged values. Optional with pageLink, where the URL is the page state. |
+| pageLink | (page: number) => ReactElement | — | Render each page control as a link: return the element for a page, (page) => <a href={`?page=${page}`} /> or a router's <Link to={`?page=${page}`} />. The current page keeps aria-current; previous/next at the bounds stay disabled buttons. onPageChange becomes optional and, if set, still fires on click. |
 | siblingCount | number | 1 | Page buttons shown on each side of the current page before the list collapses into ellipses. First and last pages are always shown. |
 | label | string | Pagination | Accessible label applied to the surrounding nav element. |
 | className | string | — | Extra classes merged onto the nav. |
@@ -16615,6 +17881,7 @@ Use Pagination when a result set is split into discrete pages and the user needs
 - Renders a landmark <nav> with aria-label so assistive tech can jump to the pager.
 - The current page button carries aria-current='page'.
 - Prev/next buttons are real <button>s with aria-label and become disabled at the bounds.
+- With pageLink the controls are real <a> links (or the router's), so they are crawlable and open in a new tab; a bound arrow stays a disabled button rather than a link to nowhere.
 - Ellipsis slots are aria-hidden — they convey no navigable target.
 
 ## Related
@@ -16648,6 +17915,15 @@ const [page, setPage] = useState(8)
 import { DataTable, Pagination, Stack } from "@sableui/react"
 
 <Stack gap={2}><DataTable data={rows} columns={columns} rowKey={(row) => row.id} /><Pagination label="Customer pages" page={page} total={12} onPageChange={setPage} /></Stack>
+```
+
+### Page links (URL is the state)
+
+```tsx
+import { Pagination } from "@sableui/react"
+// <Link> = your router's link (react-router, next/link, @tanstack/router, …)
+
+<Pagination page={page} total={pageCount} pageLink={(page) => <Link to={`/search?q=${query}&page=${page}`} />} />
 ```
 
 ### Server query state
@@ -17874,6 +19150,7 @@ Use Scroller to create a contained overflow region for content that naturally ex
 | --- | --- | --- | --- |
 | orientation | "vertical" \| "horizontal" | "vertical" | "vertical" scrolls and fades top/bottom; "horizontal" scrolls and fades left/right. |
 | wheelScroll | boolean | true | On a horizontal Scroller, let a vertical mouse wheel scroll it sideways. Ignored when vertical. Turn it off only if the region is inside something that owns the wheel itself (a map, a canvas). |
+| smoothWheel | boolean | true | Ease mouse-wheel steps toward their target, on either axis: the inertia a smooth-scroll library such as Lenis adds, scoped to this region. Only a mouse wheel is eased; trackpads and touch keep their own momentum, keys and scrollbar drags stay native, and reduced motion (the OS preference or MotionProvider) turns it off. Anything else that moves the region (scrollIntoView, a stick-to-bottom chat) stops the easing at once. For a scroll container of your own, `useSmoothWheel()` returns the same behaviour as a ref callback. |
 | label | string | — | Accessible name for the scroll region. The region takes focus, so it should say what it contains; without one a screen reader announces an unnamed group. |
 | viewportClassName | string | — | Classes for the inner element that actually scrolls. Narrow on purpose — `className` is what you want almost always. This is for the few utilities that only mean something on the scrolling box: `snap-x`, `scroll-smooth`, `scroll-p-*`. |
 | ...div props | ComponentPropsWithRef<'div'> | — | Everything except `className`/`style` spreads onto the SCROLLING element — `role`, `id`, `aria-*`, `data-*` and event handlers all describe the thing that scrolls, and CommandMenu relies on it to make this component its listbox. `ref` and `onScroll` likewise address the scroller, and compose with the component's own. |
@@ -18705,7 +19982,7 @@ import { MenuRadioGroup, MenuRadioItem, MenuSeparator, SettingsMenu, SettingsRow
 
 Edge-anchored drawer over Base UI Drawer — focus trap, scroll lock, Esc/outside dismissal, portal backdrop, plus swipe-to-dismiss on touch. Slides in from a viewport edge via side and swipes back out toward the same edge.
 
-**Keywords:** sheet, drawer, side panel, overlay, swipe to dismiss
+**Keywords:** sheet, drawer, side panel, overlay, swipe to dismiss, bottom sheet, snap points, detents
 
 ## Usage
 
@@ -18715,6 +19992,7 @@ Use Sheet for secondary workflows that slide in while preserving context from th
 
 - Do: Use it for inspect, edit, filter, or create flows that relate to the current page.
 - Do: Include clear title, close path, and footer actions for task-oriented sheets.
+- Do: Give a bottom sheet snap points when it shows a summary first and detail on demand (a map result, a now-playing panel): `snapPoints={[0.4, 1]}`. The first stop is where it opens; put what matters at that height, because the rest is a drag away.
 - Don't: Do not use Sheet for simple confirmations or deeply nested workflows.
 - Don't: Do not use it on desktop where a Dialog fits. A sheet's affordance is edge-anchored travel for thumb reach; on a wide viewport it becomes a dialog that arrives from the wrong place.
 
@@ -18735,7 +20013,7 @@ Use Sheet for secondary workflows that slide in while preserving context from th
 
 | Name | Type | Description |
 | --- | --- | --- |
-| SheetContent | Base UI Drawer.Popup props (initialFocus, finalFocus, …) + side: "right" \| "left" \| "top" \| "bottom" + className | Backdrop + edge-anchored popup; portals to <body>. side picks which viewport edge the sheet anchors to and slides in from (defaults to "right"). Left/right are full-height side panels; top/bottom span the width up to 80vh. On touch it swipes closed toward that same edge (right swipes right, left swipes left, top swipes up, bottom swipes down). |
+| SheetContent | Base UI Drawer.Popup props (initialFocus, finalFocus, …) + side: "right" \| "left" \| "top" \| "bottom" + className | Backdrop + edge-anchored popup; portals to <body>. side picks which viewport edge the sheet anchors to and slides in from (defaults to "right"). Left/right are full-height side panels; top/bottom span the width up to 80vh. A bottom sheet with snapPoints is as tall as its highest stop allows (the viewport less a top gap), shows a drag handle, and translates down to the active stop; the part below the screen becomes bottom padding, so its scroll area and SheetFooter end at the visible edge. A bottom sheet rides above the on-screen keyboard (measured from visualViewport). On touch it swipes closed toward that same edge (right swipes right, left swipes left, top swipes up, bottom swipes down). |
 | SheetTrigger | Base UI Drawer.Trigger props (render) | Element that opens the sheet. Compose via render prop. |
 | SheetClose | Base UI Drawer.Close props (render) | Element that dismisses the sheet. Compose via render prop. |
 | SheetHeader | ComponentProps<"div"> | Top section holding SheetTitle/SheetDescription. |
@@ -18748,7 +20026,11 @@ Use Sheet for secondary workflows that slide in while preserving context from th
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| Sheet (Root) | Base UI Drawer.Root props (open, defaultOpen, onOpenChange, onOpenChangeComplete, modal, disablePointerDismissal, actionsRef, handle) — minus swipeDirection and snap points | — | Controls open state. Uncontrolled by default. The dismiss swipe direction is not a prop: it follows SheetContent's side. onOpenChange reports reason "swipe" when a swipe closed it. |
+| Sheet (Root) | Base UI Drawer.Root props (open, defaultOpen, onOpenChange, onOpenChangeComplete, modal, disablePointerDismissal, actionsRef, handle, snapPoints, snapPoint, defaultSnapPoint, onSnapPointChange, snapToSequentialPoints) — minus swipeDirection | — | Controls open state. Uncontrolled by default. The dismiss swipe direction is not a prop: it follows SheetContent's side. onOpenChange reports reason "swipe" when a swipe closed it. |
+| snapPoints | (number \| string)[] | — | Stops a bottom sheet rests at, smallest first: a fraction of the viewport (0.4), pixels (320), or a px/rem string ("20rem"). The panel is the full stop's height and opens at the first stop; a swipe moves between stops and a swipe below the first closes it. side="bottom" only: other sides ignore them, with a development warning. |
+| snapPoint | number \| string \| null | — | The active stop, controlled. Pair with onSnapPointChange; use defaultSnapPoint to open at a different stop uncontrolled. |
+| onSnapPointChange | (snapPoint: number \| string \| null, eventDetails) => void | — | Fires when a swipe (or your code) moves the sheet to another stop. |
+| snapToSequentialPoints | boolean | false | Move one stop per swipe, by distance. Off, a fast flick can skip past a stop. |
 
 ## Variants
 
@@ -18768,6 +20050,8 @@ Use Sheet for secondary workflows that slide in while preserving context from th
 - Render a SheetClose inside SheetContent so screen-reader users can escape the popup.
 - Slide animation runs via data-[starting-style]/data-[ending-style] attributes on the motion-duration token; while swiping the panel tracks the finger directly, and a released swipe finishes on the same token (scaled by flick speed), so reduced motion makes it instant.
 - A mouse drag that starts on sheet content selects text rather than dragging the panel; mouse dragging only starts from the padding edge.
+- Snap points add stops, not a gate: at any stop the content scrolls within the visible part and every control stays reachable by keyboard, so nothing needs the drag. The handle is decorative (aria-hidden).
+- A bottom sheet stays above the on-screen keyboard: its bottom edge is lifted by the height the keyboard takes from the visual viewport, so a focused field is not covered. An app that sets interactive-widget=resizes-content in its viewport meta gets the same result from the browser, and the inset reads 0.
 
 ## Related
 
@@ -18797,6 +20081,14 @@ import { Button, Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter,
 import { Button, Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@sableui/react"
 
 <Sheet><SheetTrigger render={<Button variant="secondary">Menu</Button>} /><SheetContent side="left"><SheetHeader><SheetTitle>Navigation</SheetTitle></SheetHeader><SheetFooter><SheetClose render={<Button variant="secondary">Close</Button>} /></SheetFooter></SheetContent></Sheet>
+```
+
+### Bottom sheet with snap points
+
+```tsx
+import { Button, Entity, Sheet, SheetContent, SheetDescription, SheetHeader, SheetList, SheetTitle, SheetTrigger } from "@sableui/react"
+
+<Sheet snapPoints={[0.4, 1]}><SheetTrigger render={<Button variant="secondary">Nearby</Button>} /><SheetContent side="bottom"><SheetHeader><SheetTitle>12 places nearby</SheetTitle><SheetDescription>Drag up for the full list.</SheetDescription></SheetHeader><SheetList>{places.map((place) => <Entity key={place.id} title={place.name} subtitle={place.distance} />)}</SheetList></SheetContent></Sheet>
 ```
 
 ### Bottom side
@@ -18887,6 +20179,7 @@ Use Sidebar for persistent desktop navigation or application chrome outside the 
 
 - Do: Use it for stable app destinations that should remain visible while content changes.
 - Do: Keep item labels predictable and active state obvious.
+- Do: Set surface="page" when a full-width top bar sits above the rail. A theme's tinted or dark rail is for a full-height rail that frames the app.
 - Don't: Do not use Sidebar for page-local settings, filters, or temporary action groups.
 - Don't: Do not put page content in it. It is fixed-width chrome OUTSIDE the content grid, so anything in it is exempt from the page's measure and rhythm.
 
@@ -18912,6 +20205,7 @@ Use Sidebar for persistent desktop navigation or application chrome outside the 
 | collapsed | boolean | false | Collapse the rail to an icon-only width (--sidebar-width-collapsed). Items hide their label + badge and reveal the label in a hover tooltip; the content area reflows. Controlled — wire a toggle from app state. Read the state in custom header/footer content via useSidebar(). |
 | icons | boolean | true | Render the leading icon on each SidebarItem. Set false for a text-only rail. Ignored while collapsed (icon-only by definition). |
 | variant | "app" \| "inline" | "app" | Where the rail lives. "app" is the page's chrome column — sticky, full viewport height, hidden below lg where AppHeader + BottomNav take over. "inline" is always visible and fills its parent's height, for a rail inside a bounded frame (a nested shell, an embedded preview). Use it instead of overriding the layout with !important classes. |
+| surface | "rail" \| "page" | "rail" | Which surface the rail is painted on. "rail" is its own --sidebar-* surface with a border — right for a full-height rail that frames the app, which a theme may tint or paint dark. "page" uses the page's surface and ink with no border — use it when a full-width header sits above the rail, where a tinted column starting under a page-coloured bar reads as pasted on. Use it instead of overriding bg-/text- classes, which the rail's re-pointed tokens defeat. |
 
 ## Variants
 
@@ -19748,6 +21042,7 @@ Use StreamingText for text whose final length is unknown while it renders — a 
 
 ### Best practices
 
+- Do: In a chat, read `sable docs building-a-chat`: one status drives `streaming` and the composer, a regenerated answer takes a new key (the text is append-only), and the finished turn is announced once.
 - Do: Grow `text` and let the component do the rest. It assumes an append-only string and keys units by index, so React mounts only the new spans — re-rendering a longer string animates what was added and leaves what the reader has already read alone.
 - Do: Drop `streaming` to false the moment the source closes. That is what removes the caret and the softened tail, and their disappearance is the only signal the reader gets that the answer is complete.
 - Do: Turn `caret` off when something adjacent already reports the wait — a spinner in the message header, a status row beneath. Two indicators for one wait read as two things happening.
@@ -19810,7 +21105,7 @@ import { StreamingText } from "@sableui/react"
 ```tsx
 import { Message, StreamingText } from "@sableui/react"
 
-<Message role="assistant"><StreamingText text={answer} streaming={pending} caret={false} /></Message>
+<Message align="start"><StreamingText text={answer} streaming={pending} caret={false} /></Message>
 ```
 
 ### A headline resolving character by character

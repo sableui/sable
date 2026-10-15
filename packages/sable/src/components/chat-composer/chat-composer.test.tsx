@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 import { fireEvent, renderWithProviders, screen } from "../../test/render"
 import { ChatComposer } from "./index"
 
@@ -75,6 +75,77 @@ describe("ChatComposer", () => {
 		expect(sendButton()).toBeEnabled()
 	})
 
+	it("with allowEmpty, sends attachments without text", () => {
+		const onSend = vi.fn()
+		const { rerender } = renderWithProviders(<ChatComposer onSend={onSend} allowEmpty />)
+		expect(sendButton()).toBeEnabled()
+		fireEvent.click(sendButton())
+		expect(onSend).toHaveBeenCalledWith("")
+
+		// Whitespace still sends as nothing, never as spaces.
+		type("  ")
+		fireEvent.keyDown(field(), { key: "Enter" })
+		expect(onSend).toHaveBeenLastCalledWith("")
+
+		// It is permission, not an override: busy still blocks it.
+		rerender(<ChatComposer onSend={onSend} allowEmpty busy />)
+		expect(sendButton()).toBeDisabled()
+	})
+
+	describe("on a touch device", () => {
+		const realMatchMedia = window.matchMedia
+		afterEach(() => {
+			window.matchMedia = realMatchMedia
+		})
+		function coarsePointer() {
+			window.matchMedia = ((query: string) => ({
+				matches: query === "(pointer: coarse)",
+				media: query,
+				onchange: null,
+				addEventListener: () => {},
+				removeEventListener: () => {},
+				addListener: () => {},
+				removeListener: () => {},
+				dispatchEvent: () => false,
+			})) as typeof window.matchMedia
+		}
+
+		it("breaks the line on Return, and the button sends", () => {
+			// A soft keyboard has no Shift+Return. Enter-to-send there leaves no
+			// way to write a second line.
+			coarsePointer()
+			const onSend = vi.fn()
+			renderWithProviders(<ChatComposer onSend={onSend} />)
+			type("first line")
+			fireEvent.keyDown(field(), { key: "Enter" })
+			expect(onSend).not.toHaveBeenCalled()
+			fireEvent.click(sendButton())
+			expect(onSend).toHaveBeenCalledWith("first line")
+		})
+
+		it("still sends on Cmd/Ctrl+Enter from a hardware keyboard, and says so", () => {
+			coarsePointer()
+			const onSend = vi.fn()
+			renderWithProviders(<ChatComposer onSend={onSend} />)
+			expect(field()).toHaveAttribute("aria-keyshortcuts", "Meta+Enter Control+Enter")
+			type("from an iPad keyboard")
+			fireEvent.keyDown(field(), { key: "Enter", ctrlKey: true })
+			expect(onSend).toHaveBeenCalledWith("from an iPad keyboard")
+		})
+
+		it("drops a footer hint that is only true where Enter sends", () => {
+			coarsePointer()
+			const hint = ({ sendOn }: { sendOn: string }) => (sendOn === "enter" ? "Enter to send" : null)
+			renderWithProviders(<ChatComposer footer={hint} />)
+			expect(screen.queryByText("Enter to send")).toBeNull()
+		})
+	})
+
+	it("shows a footer hint for the send key in effect", () => {
+		renderWithProviders(<ChatComposer footer={({ sendOn }) => (sendOn === "enter" ? "Enter to send" : null)} />)
+		expect(screen.getByText("Enter to send")).toBeInTheDocument()
+	})
+
 	it("trims what it sends", () => {
 		const onSend = vi.fn()
 		renderWithProviders(<ChatComposer onSend={onSend} />)
@@ -120,6 +191,16 @@ describe("ChatComposer", () => {
 		rerender(<ChatComposer busy defaultValue="hi" />)
 		expect(screen.queryByRole("button", { name: "Stop generating" })).toBeNull()
 		expect(sendButton()).toBeDisabled()
+	})
+
+	it("hands focus to the field on stop, before the button turns into a disabled send", () => {
+		const { rerender } = renderWithProviders(<ChatComposer busy onStop={() => undefined} />)
+		const stop = screen.getByRole("button", { name: "Stop generating" })
+		stop.focus()
+		fireEvent.click(stop)
+		rerender(<ChatComposer onStop={() => undefined} />)
+		expect(sendButton()).toBeDisabled()
+		expect(field()).toHaveFocus()
 	})
 
 	it("refuses to send while busy or disabled", () => {

@@ -35,6 +35,45 @@ describe("useCopy", () => {
 		expect(result.current.copied).toBe(false)
 	})
 
+	it("calls a text function only on copy", async () => {
+		const writeText = vi.fn().mockResolvedValue(undefined)
+		mockClipboard(writeText)
+		const source = vi.fn(() => "late text")
+		const { result } = renderHook(() => useCopy(source))
+		expect(source).not.toHaveBeenCalled()
+		await act(async () => { await result.current.copy() })
+		expect(writeText).toHaveBeenCalledExactlyOnceWith("late text")
+	})
+
+	it("hands a pending promise to the clipboard as a ClipboardItem", async () => {
+		const write = vi.fn(async (items: ClipboardItem[]) => {
+			await items[0].getType("text/plain")
+		})
+		Object.defineProperty(navigator, "clipboard", { value: { writeText: vi.fn(), write }, configurable: true, writable: true })
+		class FakeClipboardItem {
+			constructor(private readonly items: Record<string, Promise<Blob>>) {}
+			getType(type: string) { return this.items[type] }
+		}
+		vi.stubGlobal("ClipboardItem", FakeClipboardItem)
+		const { result } = renderHook(() => useCopy(() => Promise.resolve("fetched")))
+		let ok = false
+		await act(async () => { ok = await result.current.copy() })
+		expect(ok).toBe(true)
+		expect(write).toHaveBeenCalledOnce()
+		expect(result.current.copied).toBe(true)
+		vi.unstubAllGlobals()
+	})
+
+	it("fails quietly when the text rejects", async () => {
+		const writeText = vi.fn().mockResolvedValue(undefined)
+		mockClipboard(writeText)
+		const { result } = renderHook(() => useCopy(() => Promise.reject(new Error("404"))))
+		let ok = true
+		await act(async () => { ok = await result.current.copy() })
+		expect(ok).toBe(false)
+		expect(result.current.copied).toBe(false)
+	})
+
 	it("resolves false without a clipboard API", async () => {
 		Object.defineProperty(navigator, "clipboard", { value: undefined, configurable: true, writable: true })
 		const { result } = renderHook(() => useCopy("x"))

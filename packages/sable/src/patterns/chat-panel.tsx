@@ -236,7 +236,9 @@ export function ChatPanel() {
 						onStop={() => undefined}
 						stopLabel="Stop answering"
 						onAttach={() => undefined}
-						footer="Enter to send · Shift+Enter for a new line"
+						// A keyboard hint, so only where Enter sends: on touch Return
+						// breaks the line and the button sends, and the row goes away.
+						footer={({ sendOn }) => (sendOn === "enter" ? "Enter to send · Shift+Enter for a new line" : null)}
 						// Model and effort sit in `actions`, at the send end of the row:
 						// they qualify the message about to be sent, so they belong beside
 						// the button that sends it rather than next to the attach control.

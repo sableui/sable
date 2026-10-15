@@ -1710,8 +1710,11 @@ const REQUIRED_TASKS = [
 	"building-a-tool.md",
 	"adding-a-component.md",
 	"converting-an-app.md",
+	"migrating-from-shadcn.md",
 	"patching-a-component.md",
+	"extending-a-component.md",
 	"tables-with-tanstack.md",
+	"building-a-chat.md",
 	// The one that runs AFTER an app is already on Sable. Converting is a project;
 	// staying converted is not, and nothing in the package used to say so — the
 	// rules ship with every upgrade and silently widen what counts as a violation,
@@ -1775,6 +1778,18 @@ registry.consume.registry = PKG.publishConfig.registry
 registry.consume.auth = registry.consume.private ? "Authentication required by the registry." : "None: a public npm package."
 delete registry.consume.npmrc
 registry.consume.install = `pnpm add ${PKG.name}`
+// The recipe below, run. Agents should prefer it to hand-wiring and still read
+// the steps: init prints what it could not apply safely.
+registry.consume.init = {
+	command: "pnpm exec sable init",
+	preview: "pnpm exec sable init --dry-run",
+	after: "Run it once the package is installed; before that `npx sable` resolves an unrelated package.",
+	does: "Installs missing packages with the lockfile's package manager (React, Tailwind and its build plugin), writes the css imports in order into the global stylesheet, adds bundlerDedupe and the Tailwind plugin to a Vite config (a postcss.config.mjs for Next.js), loads the fonts, wraps a Vite starter's <App /> in IconProvider, runs agentSetup, then sable doctor.",
+	frameworks: "Vite and Next.js (App Router) get every step. Other setups get the packages and the stylesheet; the bundler and provider steps are printed.",
+	manual: "Each edit it cannot make safely (an unfamiliar config shape, a Next.js layout, a stylesheet split across files) is printed as the exact snippet and the file it belongs in. Apply them, then run sable doctor.",
+	flags: "--dry-run previews; --no-agent skips the skill; --no-install prints install commands instead of running them.",
+	repair: "In an app that is already wired: pnpm exec sable doctor --fix (or --dry-run) applies the same fixes to whatever doctor flags.",
+}
 registry.consume.agentSetup = {
 	command: "pnpm exec sable setup --agent",
 	preview: "pnpm exec sable setup --agent --dry-run",

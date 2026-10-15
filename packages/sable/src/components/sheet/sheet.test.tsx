@@ -277,3 +277,116 @@ describe("Sheet — what toasts read", () => {
 		expect(document.documentElement.style.getPropertyValue("--sable-sheet-right-w")).toBe("0px")
 	})
 })
+
+/**
+ * Snap points need real heights (Base UI resolves them against the measured
+ * popup and viewport) and a real drag, neither of which jsdom has. These pin
+ * the wiring: which sheets take them, the handle, and the CSS hooks the
+ * stops and the keyboard inset are drawn with.
+ */
+describe("Sheet — snap points", () => {
+	it("gives a bottom sheet the stops, a handle, and the offset its transform reads", async () => {
+		render(
+			<Sheet open snapPoints={[0.5, 1]}>
+				<SheetContent side="bottom">
+					<SheetTitle>Nearby</SheetTitle>
+				</SheetContent>
+			</Sheet>,
+		)
+		const popup = await screen.findByRole("dialog")
+		expect(popup).toHaveAttribute("data-snap-points")
+		expect(popup.querySelector('[data-slot="sheet-handle"]')).toHaveAttribute("aria-hidden")
+		// Base UI writes the active stop here; the bottom side translates by it.
+		expect(popup.style.getPropertyValue("--drawer-snap-point-offset")).toBe("0px")
+		expect(popup.className).toContain("var(--drawer-snap-point-offset,0px)")
+	})
+
+	it("leaves a bottom sheet without stops as it was: no handle, auto height", async () => {
+		render(
+			<Sheet open>
+				<SheetContent side="bottom">
+					<SheetTitle>Share</SheetTitle>
+				</SheetContent>
+			</Sheet>,
+		)
+		const popup = await screen.findByRole("dialog")
+		expect(popup).not.toHaveAttribute("data-snap-points")
+		expect(popup.querySelector('[data-slot="sheet-handle"]')).toBeNull()
+	})
+
+	it("stays controlled from the first render, though its side arrives after it", async () => {
+		// Sheet learns `side` from SheetContent in an effect. It used to withhold
+		// the snap props until then, and Base UI fixes controlled-or-not on the
+		// first render: the controlled stop was ignored for the sheet's life.
+		const error = vi.spyOn(console, "error").mockImplementation(() => undefined)
+		function Controlled() {
+			const [stop, setStop] = useState<number | string | null>(0.4)
+			return (
+				<Sheet open snapPoints={[0.4, 1]} snapPoint={stop} onSnapPointChange={setStop}>
+					<SheetContent side="bottom">
+						<SheetTitle>Nearby</SheetTitle>
+						<Button onClick={() => setStop(1)}>Show all</Button>
+					</SheetContent>
+				</Sheet>
+			)
+		}
+		render(<Controlled />)
+		await userEvent.click(await screen.findByRole("button", { name: "Show all" }))
+		expect(error.mock.calls.flat().join(" ")).not.toMatch(/uncontrolled|controlled/i)
+		error.mockRestore()
+	})
+
+	it("ignores stops on a side sheet, and says so once in development", async () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined)
+		render(
+			<Sheet open snapPoints={[0.5, 1]}>
+				<SheetContent side="right">
+					<SheetTitle>Filters</SheetTitle>
+				</SheetContent>
+			</Sheet>,
+		)
+		const popup = await screen.findByRole("dialog")
+		expect(popup).not.toHaveAttribute("data-snap-points")
+		expect(popup.querySelector('[data-slot="sheet-handle"]')).toBeNull()
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('applies to side="bottom" only'))
+		warn.mockRestore()
+	})
+})
+
+describe("Sheet — the on-screen keyboard", () => {
+	it("lifts a bottom sheet by the height the keyboard takes from the visual viewport", async () => {
+		const viewport = Object.assign(new EventTarget(), { height: window.innerHeight, offsetTop: 0, scale: 1 })
+		Object.defineProperty(window, "visualViewport", { value: viewport, configurable: true })
+		render(
+			<Sheet open>
+				<SheetContent side="bottom">
+					<SheetTitle>Reply</SheetTitle>
+				</SheetContent>
+			</Sheet>,
+		)
+		const popup = await screen.findByRole("dialog")
+		expect(popup.style.getPropertyValue("--sheet-keyboard-inset")).toBe("0px")
+		viewport.height = window.innerHeight - 300
+		viewport.dispatchEvent(new Event("resize"))
+		await waitFor(() => expect(popup.style.getPropertyValue("--sheet-keyboard-inset")).toBe("300px"))
+		expect(popup.className).toContain("bottom-(--sheet-keyboard-inset,0)")
+		Object.defineProperty(window, "visualViewport", { value: undefined, configurable: true })
+	})
+
+	it("does not mistake a pinch-zoom for a keyboard", async () => {
+		// Zoomed 2x the visual viewport is half the window, with no keyboard open.
+		const viewport = Object.assign(new EventTarget(), { height: window.innerHeight / 2, offsetTop: 0, scale: 2 })
+		Object.defineProperty(window, "visualViewport", { value: viewport, configurable: true })
+		render(
+			<Sheet open>
+				<SheetContent side="bottom">
+					<SheetTitle>Reply</SheetTitle>
+				</SheetContent>
+			</Sheet>,
+		)
+		const popup = await screen.findByRole("dialog")
+		viewport.dispatchEvent(new Event("resize"))
+		expect(popup.style.getPropertyValue("--sheet-keyboard-inset")).toBe("0px")
+		Object.defineProperty(window, "visualViewport", { value: undefined, configurable: true })
+	})
+})

@@ -44,7 +44,11 @@ describe("Scroller", () => {
 		// Chrome and cap together, away from the mask.
 		expect(chrome(container).className).toContain("max-h-80")
 		expect(chrome(container).className).toContain("border")
-		expect(chrome(container).className).toContain("flex flex-col")
+		expect(chrome(container).className).toContain("flex-col")
+		// And it may shrink below its content: left at min-width auto, a grid or
+		// flex parent sized a horizontal strip to its full length, and the docs'
+		// own example ran off the page instead of scrolling.
+		expect(chrome(container).className).toContain("min-w-0")
 		// The scroller fills that box without a percentage height — the exact
 		// thing the 0.44 wrapper got wrong.
 		const el = region(container)

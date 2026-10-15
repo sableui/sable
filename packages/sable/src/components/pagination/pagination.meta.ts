@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const paginationMeta: ComponentMeta = {
 	name: "Pagination",
 	summary:
-		"Page navigation built from our own Button + Icon (no Base UI). A <nav aria-label='Pagination'> with prev/next icon buttons that disable at the bounds and numbered page buttons; the current page is a secondary button marked aria-current. Collapses to first/last/current plus a sibling window, bridging skipped runs with an ellipsis.",
+		"Page navigation built from our own Button + Icon (no Base UI). A <nav aria-label='Pagination'> with prev/next icon buttons that disable at the bounds and numbered page buttons; the current page is a secondary button marked aria-current. With pageLink every control is a real link (crawlable, opens in a new tab, any router through render). Collapses to first/last/current plus a sibling window, bridging skipped runs with an ellipsis.",
 	keywords: [
 		"pagination",
 		"pager",
@@ -13,6 +13,9 @@ export const paginationMeta: ComponentMeta = {
 		"navigation",
 		"next",
 		"previous",
+		"page links",
+		"seo",
+		"url",
 	],
 	usage: {
 		description:
@@ -27,6 +30,11 @@ export const paginationMeta: ComponentMeta = {
 				guidance: "do",
 				description:
 					"Use a specific label when multiple pagers appear on a page, such as \"Customer pages\".",
+			},
+			{
+				guidance: "do",
+				description:
+					"Pass pageLink when the page lives in the URL (search results, a blog, a catalogue): each page becomes a link a crawler can follow and a reader can open in a new tab. Use a router's Link there so navigation stays in the app.",
 			},
 			{
 				guidance: "do",
@@ -94,7 +102,14 @@ export const paginationMeta: ComponentMeta = {
 			type: "(page: number) => void",
 			default: "—",
 			description:
-				"Called with the next page when a control is activated. No-op for out-of-range or unchanged values.",
+				"Called with the next page when a control is activated. No-op for out-of-range or unchanged values. Optional with pageLink, where the URL is the page state.",
+		},
+		{
+			name: "pageLink",
+			type: "(page: number) => ReactElement",
+			default: "—",
+			description:
+				"Render each page control as a link: return the element for a page, (page) => <a href={`?page=${page}`} /> or a router's <Link to={`?page=${page}`} />. The current page keeps aria-current; previous/next at the bounds stay disabled buttons. onPageChange becomes optional and, if set, still fires on click.",
 		},
 		{
 			name: "siblingCount",
@@ -129,6 +144,7 @@ export const paginationMeta: ComponentMeta = {
 		"Renders a landmark <nav> with aria-label so assistive tech can jump to the pager.",
 		"The current page button carries aria-current='page'.",
 		"Prev/next buttons are real <button>s with aria-label and become disabled at the bounds.",
+		"With pageLink the controls are real <a> links (or the router's), so they are crawlable and open in a new tab; a bound arrow stays a disabled button rather than a link to nowhere.",
 		"Ellipsis slots are aria-hidden — they convey no navigable target.",
 	],
 	examples: [
@@ -143,6 +159,10 @@ export const paginationMeta: ComponentMeta = {
 		{
 			label: "Table results footer",
 			code: '<Stack gap={2}><DataTable data={rows} columns={columns} rowKey={(row) => row.id} /><Pagination label="Customer pages" page={page} total={12} onPageChange={setPage} /></Stack>',
+		},
+		{
+			label: "Page links (URL is the state)",
+			code: "<Pagination page={page} total={pageCount} pageLink={(page) => <Link to={`/search?q=${query}&page=${page}`} />} />",
 		},
 		{
 			label: "Server query state",

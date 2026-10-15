@@ -51,9 +51,13 @@ These are short on purpose. Each links to a foundations doc with the full vocabu
 
 Pick a theme as a starting point, then override tokens on top of it. Every token a theme sets can be reset by the app on `:root` (or any subtree) after the theme CSS loads — radius, density, type scale, motion scale, accent — and components follow, because they only read tokens. The docs site's **Customize** panel does exactly this live and exports the result as CSS; paste it after your Sable imports. Retrieve the overridable set with `npx sable token --list`. When you retune a filled role (`--primary`, `--sidebar-primary`, `--highlight`, `--destructive`, `--success`, `--tone-warning`, `--tone-info`), check the label on it: `sable lint` measures the pair against the installed theme and suggests one that reads. If the pair is a deliberate brand choice, keep it with `/* design-lint-disable-next-line label-contrast -- <reason> */`. Status colours have a second token for the colour drawn on a surface — `--destructive-text`, `--success-text`, `--tone-warning-text`, `--tone-info-text` — which `text-`, `border-` and `ring-<status>` read; only `bg-<status>` reads the fill. Retune both.
 
+When a component doesn't do something you need — be a link, carry a control, take a key, offer @mentions or /commands — read `sable docs extending-a-component` before restyling or copying it: `render`, slots, controlled state and refs, `useCaretTrigger` + `CaretMenu`, and how to tell a library gap from app-owned work.
+
 ## Wire it up
 
 The machine-readable version of this section is the `consume` block in `registry.json`.
+
+**Start with `sable init`.** After `pnpm add @sableui/react`, run `pnpm exec sable init` (`npx sable init` once the package is installed — never before, when `npx sable` would fetch an unrelated package) from the app root. It runs steps 2–5 and 7 below: installs missing packages with the project's package manager, puts the CSS imports in order, adds dedupe and the Tailwind plugin to a Vite config (or a PostCSS config for Next.js), loads the fonts, mounts `IconProvider` in a Vite starter's entry, installs the agent skill, and finishes with `sable doctor`. What it cannot change safely it prints as a snippet with the file it belongs in; apply those, then run `sable doctor` again. `--dry-run` previews every change. In an app that is already wired, `sable doctor --fix` applies the same fixes to whatever doctor flags. The numbered steps are the manual route and what `init` checks against.
 
 1. **Install** from npm: `pnpm add @sableui/react` (or the project's package manager). No registry configuration or token is needed. Sable depends on no router, data or form library, and keeps whatever the project already uses: links, menus and nav items take any router's link through `render` (`render={<Link to="/inbox" />}` is TanStack Router's or React Router's `Link` alike). For a blank-slate app, the suggested stack is Vite + TypeScript with TanStack Router, TanStack Query, TanStack Form for forms with validation logic, and TanStack Table once a table outgrows `DataTable` (`sable docs tables-with-tanstack`).
 2. **Dedupe React** in the bundler (`resolve.dedupe: ["react","react-dom"]`) — Base UI must not resolve a second React, or you get an "invalid hook call" blank page.
@@ -73,7 +77,8 @@ The machine-readable version of this section is the `consume` block in `registry
    npx sable pattern SettingsPage --skeleton     # composition tree, fixtures stripped
    npx sable block --list                        # section-sized blocks: cards, forms, lists
    npx sable component DataTable --props
-   npx sable search "empty state"                # across components, patterns, layout, tokens, docs
+   npx sable search "empty state"                # across components, examples, patterns, blocks, layout, tokens, docs
+   npx sable component Form --example "Server errors"   # one example a search hit names, imports included
    npx sable docs converting-an-app              # the task walkthroughs
    npx sable manifest --json                     # the whole command surface, machine-readable
    ```
@@ -150,9 +155,10 @@ package with `--root` naming the repository root (for example
 there and resolve Sable through the package.
 Each entry resolves `skills/sable/SKILL.md` from the installed package, so package
 upgrades also update the workflow. Other agents can read that file directly.
-Use `$sable build <idea>`, `inspire <references>`, `audit <target>`, or
-`polish <target>` in Codex; use `/sable` with the same modes in Claude Code or
-Cursor. `create` is a build alias. These are agent modes, not shell commands.
+Use `$sable build <idea>`, `inspire <references>`, `audit <target>`,
+`polish <target>`, or `fix <target>` in Codex; use `/sable` with the same modes in
+Claude Code or Cursor. `create` is a build alias. `fix` takes the short path for
+one scoped defect and escalates to `polish` when the change grows. These are agent modes, not shell commands.
 
 Upgrade with `pnpm update @sableui/react --latest`, then
 `pnpm exec sable setup --agent --update`. Setup only replaces managed files

@@ -1006,6 +1006,31 @@
 	margin-inline: calc(-1 * max(--spacing(1), calc(var(--radius-md) / 3)));
 }
 
+/* ButtonGroup's joins. Keyed to sibling Buttons (`data-variant`), never to
+   :first/:last-child: an open Menu inserts focus-guard spans beside its
+   trigger, and a position rule then read the chevron as "not last" and
+   squared its outer corner for as long as the menu was open. Inner corners
+   square through the per-side radius vars Button reads; bordered buttons
+   overlap by their hairline; filled and ghost ones get a seam in their own
+   ink, except while focused, where the shadow is the focus ring. */
+@utility button-group-join {
+	& > [data-variant] ~ [data-variant] {
+		--button-radius-s: 0px;
+	}
+	& > [data-variant]:has(~ [data-variant]) {
+		--button-radius-e: 0px;
+	}
+	& > [data-variant] ~ [data-variant="outline"] {
+		margin-inline-start: -1px;
+	}
+	& > [data-variant] ~ [data-variant]:not([data-variant="outline"], :focus-visible) {
+		box-shadow: inset 1px 0 0 color-mix(in oklab, currentColor 20%, transparent);
+	}
+	& > :focus-visible {
+		z-index: 1;
+	}
+}
+
 @utility sable-frame {
 	--sable-frame-radius: var(--radius-lg);
 	--sable-frame-padding: --spacing(4);

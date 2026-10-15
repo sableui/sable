@@ -37,6 +37,7 @@ export const appHeaderMeta: ComponentMeta = {
 			"AppShell",
 			"PageHeader",
 			"BottomNav",
+			"NavigationMenu",
 		],
 	},
 	props: [

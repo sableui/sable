@@ -10,13 +10,27 @@ TypeScript on Vite, TanStack Router, TanStack Query, TanStack Form for forms wit
 validation logic, and TanStack Table once a table outgrows `DataTable`
 (`sable docs tables-with-tanstack`). An existing app keeps its own.
 
-## Install
+## Install and wire it
 
 ```bash
 pnpm add @sableui/react
+pnpm exec sable init --dry-run   # every change it would make
+pnpm exec sable init
 ```
 
-## Connect CSS and React
+`sable init` reads the package manager from your lockfile and the framework
+from the project. It installs what is missing (React, Tailwind and its build
+plugin), writes the CSS below into your global stylesheet in order, adds React
+dedupe and the Tailwind plugin to a Vite config (a PostCSS config for Next.js),
+loads Figtree and DM Mono, wraps a Vite starter's `<App />` in `IconProvider`,
+installs the agent skill, and finishes with `sable doctor`. Edits it cannot make
+safely, such as a Next.js root layout, it prints with the file they belong in.
+Vite and Next.js get every step; other setups get the packages and stylesheet.
+Once an app is wired, `sable doctor --fix` applies the same fixes to whatever
+doctor flags. Run `sable init` with the package installed: before that, `npx
+sable` names an unrelated package.
+
+## Or wire it by hand
 
 For `src/styles.css` with `node_modules` at the project root:
 
@@ -43,10 +57,14 @@ export default function App() {
 }
 ```
 
-No provider or icon dependency is required for this first component. Optional
-theme, icon, and motion providers are explained in the package README.
+Mount `<IconProvider set={reiconIconSet}>` (from `@sableui/react/icons/reicon`)
+once at the root: without it every icon, including those inside Sable's
+components, renders nothing, and `sable doctor` fails. Optional theme and motion
+providers are explained in the package README.
 
 ## Connect your agent and verify
+
+`sable init` already ran these; by hand:
 
 ```bash
 pnpm exec sable setup --agent --dry-run

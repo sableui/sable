@@ -12,6 +12,7 @@ The scroll region a conversation lives in. It owns the scrolling and nothing els
 
 ### Best practices
 
+- Do: Building a whole chat? `sable docs building-a-chat` covers what the scroller does during a stream, what the app owns, and the failure states around it.
 - Do: Bound it the way you would bound any scroll box — `flex-1 min-h-0` inside a flex column, or `max-h-96`. `className` lands on the element that actually scrolls, so the obvious bound is the correct one (same contract as Scroller).
 - Do: Give every Message a `messageId`. It is the handle for `scrollToMessage`, `initialScroll`, and `onVisibleMessagesChange` — a message without one is invisible to all three.
 - Do: Prepend older history directly into `children` when the reader reaches the top. The scroller anchors on the first rendered message and re-adds the height that appeared above it, so the view does not jump.

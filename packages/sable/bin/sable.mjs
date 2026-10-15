@@ -39,6 +39,7 @@ import { skeletonize } from "../scripts/skeleton.mjs"
 import { claudeStopHook, installAgentSkill, installClaudeStopHook } from "../scripts/agent-setup.mjs"
 import { patchChecks } from "../scripts/patches.mjs"
 import { sourcesCheck } from "../scripts/sources.mjs"
+import { detectFramework, detectPackageManager, fixWiring, fontsCheck, providerSnippet, tailwindBuildCheck } from "../scripts/wiring.mjs"
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const PKG_ROOT = join(HERE, "..")
@@ -139,7 +140,7 @@ const COMMANDS = [
 		summary: "One ranked result set across components, providers, patterns, blocks, layout primitives, utilities, tokens, and docs.",
 		arg: { name: "query", required: true },
 		flags: [
-			{ name: "--type", value: "component|provider|pattern|block|layout|utility|token|doc", describe: "Restrict to one kind." },
+			{ name: "--type", value: "component|provider|pattern|block|example|layout|utility|token|doc", describe: "Restrict to one kind. `example` finds a component example by what it shows (\"multiple selection\", \"server errors\")." },
 			{ name: "--limit", value: "n", describe: "Cap results. Default 20." },
 		],
 		returns: ["search"],
@@ -167,9 +168,10 @@ const COMMANDS = [
 			{ name: "--register", value: "page|workspace|either", describe: "With --list: filter by register." },
 			{ name: "--props", value: null, describe: "Props table only." },
 			{ name: "--examples", value: null, describe: "Examples only, imports included." },
+			{ name: "--example", value: "label", describe: "One example by its label (case-insensitive), imports included. Labels come from --examples or search." },
 			{ name: "--a11y", value: null, describe: "Accessibility contract only." },
 		],
-		returns: ["component.list", "component.detail", "component.props", "component.examples", "component.a11y"],
+		returns: ["component.list", "component.detail", "component.props", "component.examples", "component.example", "component.a11y"],
 	},
 	{
 		name: "pattern",
@@ -246,8 +248,23 @@ const COMMANDS = [
 		name: "doctor",
 		summary: "Check this project's Sable wiring. Exits 1 on any failure.",
 		arg: null,
-		flags: [],
-		returns: ["doctor"],
+		flags: [
+			{ name: "--fix", value: null, describe: "Apply the fixes that need no judgment (imports in order, @source, missing packages, Vite dedupe and Tailwind plugin, fonts, IconProvider in a starter entry), print the rest, then check again." },
+			{ name: "--dry-run", value: null, describe: "Report what --fix would change without writing or installing anything." },
+			{ name: "--no-install", value: null, describe: "With --fix: print install commands instead of running them." },
+		],
+		returns: ["doctor", "doctor.fix"],
+	},
+	{
+		name: "init",
+		summary: "Wire Sable into this app in one step: install what is missing, fix what doctor flags, install the agent skill, print the provider snippet for your root, then run doctor. Vite and Next.js get every step; other setups get the packages and stylesheet, and the rest printed.",
+		arg: null,
+		flags: [
+			{ name: "--dry-run", value: null, describe: "Report every change without writing or installing anything." },
+			{ name: "--no-agent", value: null, describe: "Skip the agent skill (sable setup --agent)." },
+			{ name: "--no-install", value: null, describe: "Print install commands instead of running them." },
+		],
+		returns: ["init"],
 	},
 	{
 		name: "grade",
@@ -337,6 +354,7 @@ const ERROR_CODES = [
 	{ code: "ERR_PRESET_INVALID", when: "A preset is missing required metadata, semantic values, or uses unsupported tokens or CSS." },
 	{ code: "ERR_PRESET_CONTRAST", when: "A label on a brand or status fill (primary, sidebar-primary, highlight, destructive, success, tone-warning, tone-info) misses 4.5:1 or APCA Lc 60. Apply the suggested pair, or record an `exceptions` entry with a reason." },
 	{ code: "ERR_AGENT_SETUP", when: "The packaged skill is missing, the destination is linked, or existing local edits would be overwritten." },
+	{ code: "ERR_INIT", when: "sable init ran outside an app root (no package.json)." },
 	{ code: "ERR_UNKNOWN_COMMAND", when: "The first argument is not a command." },
 	{ code: "ERR_MISSING_ARGUMENT", when: "A command that requires an argument got none." },
 	{ code: "ERR_UNKNOWN_COMPONENT", when: "No component by that name. `suggestions` carries near matches." },
@@ -347,6 +365,7 @@ const ERROR_CODES = [
 	{ code: "ERR_UNKNOWN_UTILITY", when: "No utility or variant by that name. `suggestions` carries near matches." },
 	{ code: "ERR_UNKNOWN_DOC", when: "No package guide or doc mirror by that slug. `suggestions` carries near matches and the package guides." },
 	{ code: "ERR_UNKNOWN_PROVIDER", when: "No provider by that name. `suggestions` carries near matches." },
+	{ code: "ERR_UNKNOWN_EXAMPLE", when: "The component has no example with that label. `suggestions` carries near matches as commands." },
 	{ code: "ERR_LINT_INPUT", when: "sable lint --json: a path to lint does not exist." },
 	{ code: "ERR_CHECK_FAILED", when: "sable check: doctor, lint, or grade failed. `data.checks` names which." },
 	{ code: "ERR_BAD_FLAG", when: "A flag value is outside its allowed set." },
@@ -630,14 +649,33 @@ function cmdSearch() {
 	if (!type || type === "doc")
 		for (const d of docSlugs())
 			pool.push({ kind: "doc", name: d.slug, summary: `${d.kind} mirror`, _s: score({ name: d.slug, text: d.kind }) })
+	if (!type || type === "example")
+		for (const c of COMPONENTS)
+			for (const e of c.examples ?? []) {
+				const s = scoreExample(c, e, { q, terms })
+				if (s > 0) pool.push({ kind: "example", name: `${c.name} › ${e.label}`, component: c.name, label: e.label, summary: `Uses ${exampleParts(e).join(", ")}.`, _s: s })
+			}
 
 	// Ties resolve in the order AGENTS.md tells an agent to resolve a need:
 	// a component first, then a pattern or primitive, then a utility, then a
 	// token. "segmented" should land on ToggleGroup before the well behind it.
-	const KIND_ORDER = ["component", "provider", "pattern", "block", "layout", "utility", "token", "doc"]
+	const KIND_ORDER = ["component", "provider", "pattern", "block", "example", "layout", "utility", "token", "doc"]
+	// A popular label ("Controlled value") exists on dozens of components, so
+	// examples are capped twice: per component, and as a share of the list, or
+	// one query would bury every component under its own examples.
+	const perComponent = new Map()
+	let examples = 0
 	const hits = pool
 		.filter((h) => h._s > 0)
 		.sort((a, b) => b._s - a._s || KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind))
+		.filter((h) => {
+			if (h.kind !== "example" || type === "example") return true
+			const n = perComponent.get(h.component) ?? 0
+			if (n >= 2 || examples >= Math.max(3, Math.ceil(limit / 3))) return false
+			perComponent.set(h.component, n + 1)
+			examples++
+			return true
+		})
 		.slice(0, limit)
 	if (!hits.length)
 		fail("ERR_NO_RESULTS", `Nothing matched "${query}".`, [
@@ -652,7 +690,10 @@ function cmdSearch() {
 	const results = hits.map(({ _s, ...h }) => ({
 		...h,
 		...(h.kind === "pattern" || h.kind === "block" ? { reference: true } : {}),
-		retrieve: `sable ${h.kind === "doc" ? "docs" : h.kind} ${h.name}`,
+		retrieve:
+			h.kind === "example"
+				? `sable component ${h.component} --example "${h.label.replace(/"/g, '\\"')}"`
+				: `sable ${h.kind === "doc" ? "docs" : h.kind} ${h.name}`,
 	}))
 	const anyReference = results.some((h) => h.reference)
 	ok("search", { query, count: results.length, results }, () =>
@@ -667,6 +708,57 @@ function cmdSearch() {
 				: []),
 		].join("\n"),
 	)
+}
+
+/** The names an example imports: the parts it composes. */
+const exampleParts = (e) =>
+	(e.imports ?? "")
+		.split(/[{}]/)[1]
+		?.split(",")
+		.map((s) => s.trim())
+		.filter(Boolean) ?? []
+
+/** Every component and prop an example's code uses, lowercased: `<Combobox multiple items=…>` → combobox, multiple, items. */
+const exampleIdentifiers = (e) => {
+	const ids = new Set(exampleParts(e).map((p) => p.toLowerCase()))
+	for (const [, tag] of (e.code ?? "").matchAll(/<([A-Z]\w*)/g)) ids.add(tag.toLowerCase())
+	for (const [, prop] of (e.code ?? "").matchAll(/\s([a-z][A-Za-z]+)(?==|[\s/>])/g)) ids.add(prop.toLowerCase())
+	return ids
+}
+
+/**
+ * An example is found by what it shows, not by the component it belongs to. The
+ * label carries the intent ("Multiple selection", "Server errors"); the code
+ * names the parts and props it relies on; the parent component's name counts,
+ * but less than the component itself scores, so "Combobox" still lands on the
+ * component and "multiple combobox" lands on its example. An example qualifies
+ * only by its own label, or — for a phrase — by covering every term with its
+ * code: otherwise every example that renders a Button answers "button".
+ */
+function scoreExample(c, e, { q, terms }) {
+	const label = e.label.toLowerCase()
+	const ids = exampleIdentifiers(e)
+	const parent = c.name.toLowerCase()
+	const keywords = (c.keywords ?? []).map((k) => k.toLowerCase())
+	let s = terms.length > 1 && label === q ? 60 : 0
+	let labelHit = false
+	let codeHit = false
+	let covered = 0
+	for (const t of terms) {
+		const inLabel = label.includes(t)
+		const inCode = ids.has(t) ? 10 : [...ids].some((id) => id.includes(t)) ? 4 : 0
+		const inParent = parent === t ? 15 : parent.includes(t) ? 10 : keywords.includes(t) ? 5 : 0
+		s += (inLabel ? 30 : 0) + inCode + inParent
+		labelHit ||= inLabel
+		codeHit ||= inCode > 0
+		if (inLabel || inCode || inParent) covered++
+	}
+	const phrase = terms.length > 1 && covered === terms.length
+	if (!labelHit && !(phrase && codeHit)) return 0
+	// A single word is a lookup, and the component it names is the answer; a
+	// phrase is a need, and the example that covers all of it is.
+	if (terms.length === 1) return Math.round(s / 2)
+	return phrase ? s + 20 : Math.round((s * covered) / terms.length)
 }
 
 /**
@@ -727,6 +819,22 @@ function cmdComponent() {
 		)
 	if (flags.has("examples"))
 		return ok("component.examples", { name: c.name, examples: c.examples ?? [] }, () => renderExamples(c))
+	if (flags.has("example")) {
+		// The retrieve step for a search hit: one example, not the whole set.
+		const want = flags.get("example")
+		const labels = (c.examples ?? []).map((e) => e.label)
+		const quoted = (l) => `sable component ${c.name} --example "${l.replace(/"/g, '\\"')}"`
+		if (want === true) fail("ERR_MISSING_ARGUMENT", "--example needs a label.", labels.map(quoted))
+		const example = (c.examples ?? []).find((e) => e.label.toLowerCase() === String(want).toLowerCase())
+		if (!example) {
+			const near = nearest(String(want), labels)
+			fail("ERR_UNKNOWN_EXAMPLE", `${c.name} has no example labelled "${want}".`, [
+				...(near.length ? near : labels).map(quoted),
+				`sable component ${c.name} --examples`,
+			])
+		}
+		return ok("component.example", { name: c.name, example }, () => renderExample(example))
+	}
 	if (flags.has("a11y")) return ok("component.a11y", { name: c.name, a11y: c.a11y ?? [] }, () => (c.a11y ?? []).map(bullet).join("\n"))
 
 	const level = detailLevel("compact")
@@ -796,9 +904,11 @@ function renderUsage(c) {
 function renderExamples(c) {
 	const ex = c.examples ?? []
 	if (!ex.length) return ""
-	return `\nExamples:\n${ex
-		.map((e) => `\n  ── ${e.label}\n  ${e.imports}\n${e.code.split("\n").map((l) => `  ${l}`).join("\n")}`)
-		.join("\n")}`
+	return `\nExamples:\n${ex.map((e) => `\n${renderExample(e)}`).join("\n")}`
+}
+
+function renderExample(e) {
+	return `  ── ${e.label}\n  ${e.imports}\n${e.code.split("\n").map((l) => `  ${l}`).join("\n")}`
 }
 
 const slugify = (name) => name.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase()
@@ -1342,6 +1452,17 @@ function doctorReport() {
 			)
 	}
 
+	/* Tailwind in the build, and the theme's fonts: both fail as a page that
+	 * renders, just not as Sable — unstyled, or in system fonts. */
+	if (pkg) {
+		const build = tailwindBuildCheck(CWD, detectFramework(CWD))
+		if (build) checks.push(build)
+	}
+	if (usesSable || sableImport.test(cssText)) {
+		const html = collectSources(/\.html$/).map((f) => f.text).join("\n")
+		checks.push(fontsCheck({ css: cssText, source: srcText, html, deps: pkg ? { ...pkg.dependencies, ...pkg.devDependencies } : {} }))
+	}
+
 	/* Local patches (sable patch): each one is re-checked against the installed
 	 * Sable, and fails when Sable changed a patched file, so an upgrade tells the
 	 * agent to re-run the repro instead of keeping or losing a fix silently. */
@@ -1354,6 +1475,7 @@ function doctorReport() {
 }
 
 function cmdDoctor() {
+	if (flags.has("fix") || flags.has("dry-run")) return cmdDoctorFix()
 	const data = doctorReport()
 	const { checks, failed } = data
 	if (JSON_OUT) {
@@ -1368,6 +1490,127 @@ function cmdDoctor() {
 	}
 	logInvocation(failed ? 1 : 0)
 	process.exit(failed ? 1 : 0)
+}
+
+/**
+ * A fix counts as applied only once doctor, run again, stops flagging its
+ * check. An edit that did not take is reported as unverified, with what doctor
+ * still says, rather than as done.
+ */
+function verifyFixes(fixes, after) {
+	for (const f of fixes) {
+		if (f.status !== "applied") continue
+		const c = after.checks.find((x) => x.name === f.check)
+		if (c && (c.status === "fail" || c.status === "warn" || (f.check === "dedupe" && c.status === "info"))) {
+			f.status = "unverified"
+			f.detail = `${f.detail} Doctor still reports: ${c.detail}`
+		}
+	}
+	return fixes
+}
+
+function fixLines(fixes, indent = "  ") {
+	const mark = { applied: "+", "would-apply": "~", manual: "!", failed: "✗", unverified: "?" }
+	const word = { applied: "", "would-apply": "", manual: "by hand: ", failed: "failed: ", unverified: "unverified: " }
+	return fixes
+		.map(
+			(f) =>
+				`${indent}${mark[f.status]} ${f.check.padEnd(14)}${word[f.status]}${f.file ? `${f.file} — ` : ""}${f.detail}\n` +
+				(f.snippet ? `${f.snippet.split("\n").map((l) => `${indent}      ${l}`).join("\n")}\n` : ""),
+		)
+		.join("")
+}
+
+function cmdDoctorFix() {
+	const dryRun = flags.has("dry-run")
+	const before = doctorReport()
+	const fixes = fixWiring({ root: CWD, pkgRoot: PKG_ROOT, report: before, framework: detectFramework(CWD), dryRun, install: !flags.has("no-install"), quiet: JSON_OUT })
+	const after = dryRun ? before : doctorReport()
+	verifyFixes(fixes, after)
+	const { failed } = after
+	if (JSON_OUT) process.stdout.write(`${JSON.stringify({ type: "doctor.fix", data: { ...after, dryRun, fixes } }, null, DENSE ? 0 : 1)}\n`)
+	else
+		process.stdout.write(
+			[
+				fixes.length ? `${dryRun ? "Would fix (dry run, nothing written):" : "Fixes:"}\n${fixLines(fixes)}` : "Nothing to fix.\n",
+				`${dryRun ? "Now:" : "After:"}\n${doctorLines(after.checks)}`,
+				failed ? `[sable doctor] ✗ ${failed} failure(s)${dryRun ? "" : " left; the steps marked ! need you"}.\n` : "[sable doctor] ✓ wiring holds.\n",
+			].join("\n"),
+		)
+	logInvocation(failed ? 1 : 0)
+	process.exit(failed ? 1 : 0)
+}
+
+/* ── init ───────────────────────────────────────────────────────────────────── */
+
+/**
+ * The install recipe, run: doctor --fix, the agent skill, and the provider the
+ * app still has to mount. Each step is the code its own command runs, so init
+ * can never wire an app differently from what doctor checks.
+ */
+function cmdInit() {
+	if (!existsSync(join(CWD, "package.json")))
+		fail("ERR_INIT", `No package.json in ${CWD}.`, ["Run sable init from your app's root.", "Starting fresh: pnpm create vite@latest my-app --template react-ts, then pnpm add @sableui/react && pnpm exec sable init"])
+	const dryRun = flags.has("dry-run")
+	const framework = detectFramework(CWD)
+	const packageManager = detectPackageManager(CWD)
+	const before = doctorReport()
+	const fixes = fixWiring({ root: CWD, pkgRoot: PKG_ROOT, report: before, framework, dryRun, install: !flags.has("no-install"), quiet: JSON_OUT })
+
+	let agent
+	if (flags.has("no-agent")) agent = { status: "skipped" }
+	else
+		try {
+			// update: an unchanged managed entry from an older Sable is refreshed;
+			// one with local edits still refuses, and is reported for the user.
+			const setup = installAgentSkill({ root: CWD, project: CWD, packageRoot: PKG_ROOT, target: "all", update: true, dryRun })
+			agent = { status: dryRun ? "would-apply" : "applied", destinations: setup.destinations, next: setup.next }
+		} catch (error) {
+			agent = { status: "manual", detail: error.message, fix: "sable setup --agent --dry-run" }
+		}
+
+	const after = dryRun ? before : doctorReport()
+	verifyFixes(fixes, after)
+	const mounted = after.checks.find((c) => c.name === "icons")?.status === "pass"
+	const providers = { ...providerSnippet(framework), mounted }
+	const data = { framework: { id: framework.id, label: framework.label }, packageManager, dryRun, fixes, agent, providers, doctor: after }
+
+	if (JSON_OUT) process.stdout.write(`${JSON.stringify({ type: "init", data }, null, DENSE ? 0 : 1)}\n`)
+	else {
+		const agentText = {
+			applied: () => `Agent skill: installed at ${agent.destinations.join(", ")}.`,
+			"would-apply": () => `Agent skill: would install at ${agent.destinations.join(", ")}.`,
+			skipped: () => "Agent skill: skipped (--no-agent).",
+			manual: () => `Agent skill: not installed — ${agent.detail}\n  → ${agent.fix}`,
+		}[agent.status]()
+		const iconsFix = fixes.find((f) => f.check === "icons")
+		const providerText = mounted
+			? "Providers: <IconProvider> is mounted. MotionProvider and SableThemeProvider are optional: sable provider --list."
+			: iconsFix?.status === "would-apply"
+				? `Providers: <IconProvider> would be mounted in ${iconsFix.file}.`
+				: iconsFix?.status === "manual"
+					? "Providers: mount IconProvider as shown under icons above."
+					: [`Providers — mount IconProvider once, in ${providers.file}${providers.then ? `, then ${providers.then}` : ""}:`, ...providers.code.split("\n").map((l) => `    ${l}`)].join("\n")
+		process.stdout.write(
+			[
+				`sable init — ${framework.label}, ${packageManager}${dryRun ? " (dry run: nothing written or installed)" : ""}`,
+				...(framework.id === "unknown" ? ["Not Vite or Next.js: init installs the packages and wires the stylesheet it finds; the bundler and provider steps are printed for you."] : []),
+				"",
+				fixes.length ? `${dryRun ? "Would fix:" : "Fixes:"}\n${fixLines(fixes)}` : "Nothing to fix.\n",
+				agentText,
+				"",
+				providerText,
+				"",
+				`Doctor:\n${doctorLines(after.checks)}`,
+				after.failed
+					? `[sable init] ✗ ${after.failed} failure(s) ${dryRun ? "now" : "left; the steps marked ! need you"}. Re-check with sable doctor.`
+					: `[sable init] ✓ wiring holds. Next: ${agent.next ?? "sable docs building-with-sable"}`,
+				"",
+			].join("\n"),
+		)
+	}
+	logInvocation(after.failed ? 1 : 0)
+	process.exit(after.failed ? 1 : 0)
 }
 
 function doctorLines(checks, indent = "  ") {
@@ -1407,7 +1650,7 @@ function collectSources(match, limit = 4000) {
 
 
 function readConfigs() {
-	return ["vite.config.ts", "vite.config.js", "next.config.js", "next.config.mjs", "webpack.config.js"]
+	return ["vite.config.ts", "vite.config.mts", "vite.config.js", "vite.config.mjs", "next.config.ts", "next.config.js", "next.config.mjs", "webpack.config.js"]
 		.map((f) => (existsSync(join(CWD, f)) ? readFileSync(join(CWD, f), "utf8") : ""))
 		.join("\n")
 }
@@ -1698,6 +1941,7 @@ const HANDLERS = {
 	utility: cmdUtility,
 	docs: cmdDocs,
 	doctor: cmdDoctor,
+	init: cmdInit,
 	grade: cmdGrade,
 	learn: cmdLearn,
 	atlas: () => cmdDesignTool("design-atlas.mjs"),

@@ -14,6 +14,7 @@ Use Combobox when users choose from a list that benefits from typing, filtering,
 
 - Do: Pass items so internal filtering, empty state, and accessibility wiring have the full option set.
 - Do: Use ComboboxEmpty with helpful copy for zero matches.
+- Do: For results from a server, pass `filter={null}` so Base UI shows the items as the server returned them, fetch from `onInputValueChange`, and make ComboboxEmpty say which state it is in (searching, no results, type to search). Object items take `itemToStringLabel`.
 - Do: Wrap in Field when the combobox is part of a form.
 - Do: Reach for ComboboxVirtualList past roughly a thousand rows, and leave filtering to the root. It reads the filtered list through useFilteredItems(), so the rendered rows and the rows Base UI navigates cannot drift apart.
 - Do: Use `multiple` with ComboboxChips for several values from a filterable set, and keep chip labels short so the field does not turn into a paragraph.
@@ -54,6 +55,9 @@ Use Combobox when users choose from a list that benefits from typing, filtering,
 | Combobox (Root) | Base UI Combobox.Root props (items, value, defaultValue, onValueChange, inputValue, onInputValueChange, open, onOpenChange, multiple, autoHighlight, filter, disabled) | — | Groups all parts and owns selection + filter state. Pass `items` (flat array or groups) to enable internal filtering and ComboboxEmpty. |
 | items | readonly any[] \| readonly ComboboxItemGroup[] | — | The pool of options, flat or grouped ({ value, items }). Drives type-to-filter and is required for ComboboxEmpty to render its fallback. |
 | multiple | boolean | false | Select several items instead of one. `value` / `defaultValue` / `onValueChange` become arrays, choosing an item toggles its membership, and the popup stays open between picks. Pair it with ComboboxChips in place of ComboboxInput; every other part is unchanged. |
+| filter | null \| ((item, query, itemToString?) => boolean) | Base UI's locale-aware contains | How items match the query. `null` turns matching off, for items a server already filtered: pair it with `onInputValueChange` to fetch. |
+| onInputValueChange | (inputValue: string, eventDetails) => void | — | Fires as the reader types. The place to fetch results for a server-backed combobox. |
+| itemToStringLabel | (item) => string | item.label for { value, label } items | The text an object item shows in the input once chosen, and is matched by. Needed for object items without a `label` field. |
 | virtualized | boolean | false | Tells Base UI the DOM holds only part of the list. Required when using ComboboxVirtualList. |
 
 ## Tokens used
@@ -100,6 +104,14 @@ import { Combobox, ComboboxContent, ComboboxInput, ComboboxItem, ComboboxList } 
 import { Combobox, ComboboxChips, ComboboxContent, ComboboxEmpty, ComboboxItem, ComboboxList } from "@sableui/react"
 
 <Combobox multiple items={tags} value={value} onValueChange={setValue}><ComboboxChips placeholder="Add tags…" /><ComboboxContent><ComboboxEmpty>No matching tags.</ComboboxEmpty><ComboboxList>{(item) => (<ComboboxItem key={item} value={item}>{item}</ComboboxItem>)}</ComboboxList></ComboboxContent></Combobox>
+```
+
+### Async search (server results)
+
+```tsx
+import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@sableui/react"
+
+<Combobox items={results} filter={null} itemToStringLabel={(person) => person.name} value={person} onValueChange={setPerson} onInputValueChange={setQuery}><ComboboxInput placeholder="Search people…" /><ComboboxContent><ComboboxEmpty>{searching ? "Searching…" : query ? "No one matches." : "Type a name to search."}</ComboboxEmpty><ComboboxList>{(item) => (<ComboboxItem key={item.id} value={item}>{item.name}</ComboboxItem>)}</ComboboxList></ComboboxContent></Combobox>
 ```
 
 ### Virtualized (long list)

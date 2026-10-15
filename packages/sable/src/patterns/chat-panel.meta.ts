@@ -7,6 +7,7 @@ export const chatPanelMeta: PatternMeta = {
 	intent:
 		"Reach for this for any conversation that owns its screen — an assistant, a support inbox thread, a DM. Not for a chat docked beside other work (compose the same three parts inside a Sheet or a PanelGroup instead), and not for a comment thread under an article, which is a FeedPage concern.",
 	notes: [
+		"This is the assembled screen with sample data. To wire it to a real streaming source (a hook such as useChat, or your own transport), read `sable docs building-a-chat`: who owns what, the turn lifecycle mapped to props, and every failure state.",
 		"The panel is a fixed-height column, not a growing page. `h-[calc(100dvh_-_--spacing(12))]` on the Card (the viewport minus the Page's py-6, in spacing units so density moves both together — a fixed `3rem` drifts the moment density moves the padding) and `flex-1 min-h-0` on the MessageScroller are what make the transcript scroll instead of the document — the single most common thing to get wrong here, and it fails by pushing the composer off the bottom of the screen.",
 		"The panel is a Card, not a hand-built bordered section: CardHeader (title, description, CardAction), the MessageScroller and a CardFooter all inset by the card's own `--card-p`, so the three regions share one edge at any card density.",
 		"`dvh` rather than `vh`: on mobile the URL bar collapses, and a `vh`-sized panel puts the composer under it exactly when someone is trying to type.",

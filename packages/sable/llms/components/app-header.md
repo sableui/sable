@@ -36,7 +36,7 @@ Use AppHeader for compact application chrome at the top of a screen, usually wit
 
 ## Related
 
-- Components: AppShell, PageHeader, BottomNav
+- Components: AppShell, PageHeader, BottomNav, NavigationMenu
 
 ## Examples
 

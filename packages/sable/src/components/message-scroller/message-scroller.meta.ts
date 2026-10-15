@@ -26,6 +26,11 @@ export const messageScrollerMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
+					"Building a whole chat? `sable docs building-a-chat` covers what the scroller does during a stream, what the app owns, and the failure states around it.",
+			},
+			{
+				guidance: "do",
+				description:
 					"Bound it the way you would bound any scroll box — `flex-1 min-h-0` inside a flex column, or `max-h-96`. `className` lands on the element that actually scrolls, so the obvious bound is the correct one (same contract as Scroller).",
 			},
 			{

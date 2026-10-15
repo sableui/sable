@@ -9,6 +9,8 @@ export {
 	SheetHeader,
 	SheetList,
 	SheetFooter,
+	type SheetProps,
+	type SheetSnapPoint,
 } from "./sheet"
 export { sheetVariants } from "./sheet.variants"
 export { sheetMeta } from "./sheet.meta"

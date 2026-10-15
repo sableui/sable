@@ -25,6 +25,7 @@ $sable inspire these references into a warm, compact shop preset
 $sable build a ceramics shop using .sable/presets/clay.json
 $sable audit our checkout and report prioritized findings
 $sable polish our checkout and repair the reported issues
+$sable fix the settings dialog's footer buttons
 ```
 
 Claude Code and Cursor use `/sable` with the same modes. `create` is a `build`
@@ -32,7 +33,9 @@ alias. These are agent instructions; the shell CLI serves catalog resources and
 validates records. Other agents can read the package's `skills/sable/SKILL.md`.
 
 `inspire` produces a preset and component preview. `audit` evaluates an existing
-interface and reports by default. A reference URL does not request a cloned site.
+interface and reports by default. `fix` repairs one scoped defect: it reads only the
+contracts the change touches and finishes with `sable check` on the changed files
+and a look at the affected state, escalating to `polish` when the change grows. A reference URL does not request a cloned site.
 Develop alternative rendered directions when requested or when a consequential
 choice needs comparison. A three-design comparison is not a mandatory build step.
 

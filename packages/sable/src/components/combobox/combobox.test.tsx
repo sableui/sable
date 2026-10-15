@@ -1,3 +1,4 @@
+import { useState } from "react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 import { Density } from "../../lib/density"
@@ -265,5 +266,50 @@ describe("Combobox — the register its list opens over", () => {
 		)
 		await userEvent.click(screen.getByPlaceholderText("Font"))
 		expect((await screen.findByRole("option", { name: "Inter" })).className).toContain("text-body-md")
+	})
+})
+
+describe("Combobox — server results", () => {
+	interface Person {
+		id: string
+		name: string
+	}
+
+	/** The registry's "Async search" recipe, with the server faked by a filter. */
+	function AsyncHost() {
+		const [query, setQuery] = useState("")
+		const results: Person[] = query.startsWith("a")
+			? [{ id: "1", name: "Ada Lovelace" }, { id: "2", name: "Grace Hopper" }]
+			: []
+		return (
+			<Combobox
+				items={results}
+				filter={null}
+				itemToStringLabel={(person: Person) => person.name}
+				onInputValueChange={setQuery}
+			>
+				<ComboboxInput placeholder="Search people…" />
+				<ComboboxContent>
+					<ComboboxEmpty>{query ? "No one matches." : "Type a name to search."}</ComboboxEmpty>
+					<ComboboxList>
+						{(item: Person) => <ComboboxItem key={item.id} value={item}>{item.name}</ComboboxItem>}
+					</ComboboxList>
+				</ComboboxContent>
+			</Combobox>
+		)
+	}
+
+	it("shows what the server returned, without filtering it again", async () => {
+		renderWithProviders(<AsyncHost />)
+		await userEvent.type(screen.getByPlaceholderText("Search people…"), "ad")
+		// "Grace Hopper" does not contain "ad"; Base UI's own filter would drop it.
+		expect(await screen.findByRole("option", { name: "Grace Hopper" })).toBeInTheDocument()
+		expect(screen.getByRole("option", { name: "Ada Lovelace" })).toBeInTheDocument()
+	})
+
+	it("says why the list is empty", async () => {
+		renderWithProviders(<AsyncHost />)
+		await userEvent.type(screen.getByPlaceholderText("Search people…"), "zz")
+		expect(await screen.findByText("No one matches.")).toBeInTheDocument()
 	})
 })

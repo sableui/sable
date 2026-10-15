@@ -237,6 +237,37 @@ describe("search", () => {
 		const err = JSON.parse(run(["search", "zzzznotathing", "--json"]).out)
 		expect(err.code).toBe("ERR_NO_RESULTS")
 	})
+
+	it("finds a component example by what it shows, and retrieves just that example", () => {
+		// The examples are the small compositions an agent needs most often, and
+		// they used to be reachable only by reading every example of the right
+		// component — which meant already knowing which component that was.
+		const hit = json(["search", "multiple selection"]).data.results[0]
+		expect(hit).toMatchObject({ kind: "example", component: "Combobox", label: "Multiple selection" })
+		expect(hit.retrieve).toBe('sable component Combobox --example "Multiple selection"')
+		const { data } = json(["component", "Combobox", "--example", "multiple SELECTION"])
+		expect(data.example.label).toBe("Multiple selection")
+		expect(data.example.imports).toContain("ComboboxChips")
+		const errors = json(["search", "settings form errors"]).data.results.map((r: { name: string }) => r.name)
+		expect(errors).toContain("Form › Server errors")
+	})
+
+	it("keeps a bare name on its component, and examples from flooding the list", () => {
+		expect(json(["search", "Combobox"]).data.results[0]).toMatchObject({ kind: "component", name: "Combobox" })
+		expect(json(["search", "button"]).data.results[0]).toMatchObject({ kind: "component", name: "Button" })
+		const results = json(["search", "controlled value"]).data.results as { kind: string; component?: string }[]
+		const examples = results.filter((r) => r.kind === "example")
+		expect(examples.length).toBeLessThanOrEqual(7)
+		const perComponent = new Map<string, number>()
+		for (const r of examples) perComponent.set(r.component!, (perComponent.get(r.component!) ?? 0) + 1)
+		expect(Math.max(...perComponent.values())).toBeLessThanOrEqual(2)
+	})
+
+	it("names the example labels when one is misspelled", () => {
+		const err = JSON.parse(run(["component", "Combobox", "--example", "multiple", "--json"]).out)
+		expect(err.code).toBe("ERR_UNKNOWN_EXAMPLE")
+		expect(err.suggestions).toContain('sable component Combobox --example "Multiple selection"')
+	})
 })
 
 describe("utilities", () => {
@@ -328,6 +359,7 @@ describe("global flags", () => {
 		utility: ["utility", "--list"],
 		docs: ["docs", "--list"],
 		doctor: ["doctor"],
+		init: ["init", "--dry-run", "--no-agent", "--no-install"],
 		grade: ["grade", "src"],
 		learn: ["learn", "--search", "motion"],
 		lint: ["lint", "src"],

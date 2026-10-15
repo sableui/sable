@@ -1,11 +1,12 @@
 # Sable (@sableui/react)
 
-> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 111 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
+> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 116 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
 
 ## Start here — brief, composition, evidence
 
 Read `sable docs building-with-sable` for the connected workflow: build a product
-idea, inspire a reusable preset, audit existing work, or polish a selected design.
+idea, inspire a reusable preset, audit existing work, polish a selected design, or
+fix one scoped defect on a short path that reads only what the change touches.
 Run `sable setup --agent` to connect Codex, Claude Code, or Cursor to the maintained
 `skills/sable/SKILL.md` in the installed package. Package upgrades update the skill.
 Canvas and the skill exchange portable presets; `sable preset --check <path>`
@@ -119,7 +120,10 @@ These are organised by **task**, and they are the fastest route in:
 - [llms/tasks/learning-from-builds.md](./llms/tasks/learning-from-builds.md) — retrieve and preserve conditional lessons with `sable learn`
 - [llms/tasks/building-a-page.md](./llms/tasks/building-a-page.md) — page register: patterns, regions, type tiers, colour by role
 - [llms/tasks/building-a-tool.md](./llms/tasks/building-a-tool.md) — workspace register: the shell, what to use instead of what, the traps
+- [llms/tasks/building-a-chat.md](./llms/tasks/building-a-chat.md) — a real chat on any streaming source: who owns what, the turn lifecycle mapped to props, every failure state, a11y, safe Markdown
 - [llms/tasks/converting-an-app.md](./llms/tasks/converting-an-app.md) — migrating an existing app, in the order that avoids rework
+- [llms/tasks/migrating-from-shadcn.md](./llms/tasks/migrating-from-shadcn.md) — shadcn/ui + Radix → Sable: `asChild` → `render`, array values, events, tokens, icons, every component mapped
+- [llms/tasks/extending-a-component.md](./llms/tasks/extending-a-component.md) — when a component doesn't do something: `render`, slots, refs and key handling, mentions and slash commands (`useCaretTrigger` + CaretMenu), tokens not overrides, gap or app-owned
 - [llms/tasks/auditing-an-app.md](./llms/tasks/auditing-an-app.md) — an app already on Sable, after an upgrade: what changed, what to re-check
 - [llms/tasks/adding-a-component.md](./llms/tasks/adding-a-component.md) — contributing to Sable: the meta contract and the enforced minima
 
@@ -358,7 +362,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **ToastProvider** (part of Toast) — Wraps Base UI Toast.Provider and renders the themed Viewport + toast list.
 - **TooltipProvider** (part of Tooltip) — Wraps an app or group of Tooltips to share open/close delays.
 
-### Components (111) — full props/subcomponents/variants/guidance/a11y/examples in registry.json → components
+### Components (116) — full props/subcomponents/variants/guidance/a11y/examples in registry.json → components
 
 - **Accordion** — Stacked, collapsible disclosure sections over Base UI Accordion — roving focus, arrow-key navigation, ARIA region/heading/button wiring, and an animated height transition. *Parts:* AccordionItem, AccordionTrigger, AccordionPanel. → [`llms/components/accordion.md`](./llms/components/accordion.md)
 - **AppHeader** — Mobile top bar (sticky, hidden at lg) with leading / title / actions slots on a 3-column grid that keeps the title optically centered. → [`llms/components/app-header.md`](./llms/components/app-header.md)
@@ -374,8 +378,10 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **Browser** — A generic, current browser window: one compact toolbar (window controls, back/forward/reload, a centered address field) around page content. → [`llms/components/browser.md`](./llms/components/browser.md)
 - **Bubble** — The surface a message's content sits on: four treatments, an align-aware tail, a readable measure cap, and an optional row of reaction pills. *Parts:* BubbleReactions, BubbleReaction. → [`llms/components/bubble.md`](./llms/components/bubble.md)
 - **Button** — Pill-shaped action primitive (theme-driven radius via --button-radius, defaults to full). → [`llms/components/button.md`](./llms/components/button.md)
+- **ButtonGroup** — Buttons joined into one control: a split button (an action beside the chevron that opens its menu) or a short run of related actions. → [`llms/components/button-group.md`](./llms/components/button-group.md)
 - **Calendar** — Date picker grid wrapping react-day-picker v9, themed entirely with semantic tokens (no external stylesheet). → [`llms/components/calendar.md`](./llms/components/calendar.md)
 - **Card** — Raised surface container (rounded-lg) with optional Header/Title/Description/Action/Content/Footer parts. *Parts:* CardHeader, CardTitle, CardDescription, CardAction, CardContent, CardList, CardFooter. → [`llms/components/card.md`](./llms/components/card.md)
+- **CaretMenu** — **BETA.** Suggestions at the caret of a text field, for @mentions and /slash commands. *Parts:* CaretMenuItem. → [`llms/components/caret-menu.md`](./llms/components/caret-menu.md)
 - **Carousel** — Generic, accessible, zero-dependency slide carousel. → [`llms/components/carousel.md`](./llms/components/carousel.md)
 - **ChatComposer** — The input half of a conversation: one surface holding attachments, an auto-growing field, and its controls. → [`llms/components/chat-composer.md`](./llms/components/chat-composer.md)
 - **Checkbox** — Square toggle (18px at rest, on the spacing scale) over Base UI's Checkbox. → [`llms/components/checkbox.md`](./llms/components/checkbox.md)
@@ -405,6 +411,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **GradientArt** — **BETA.** Placeholder artwork painted by a static WebGL shader from the preset's own art direction (the --art-* tokens: palette, ground, warp, softness, grain) — Ember burns, Prism airbrushes, Meridian is grainy monochrome — with a CSS gradient underneath for prerendered pages and browsers without WebGL2. → [`llms/components/gradient-art.md`](./llms/components/gradient-art.md)
 - **InlineStatus** — A borderless single-line status message — a leading semantic icon + one line of text over the canonical tone scale (neutral/info/success/warning/destructive). → [`llms/components/inline-status.md`](./llms/components/inline-status.md)
 - **Input** — Styled native text input. → [`llms/components/input.md`](./llms/components/input.md)
+- **InputGroup** — An Input with addons inside the same field: a prefix or suffix ("https://", ".com", "$"), an icon, or a borderless Button such as copy or reveal. → [`llms/components/input-group.md`](./llms/components/input-group.md)
 - **Kbd** — A keyboard key indicator. → [`llms/components/kbd.md`](./llms/components/kbd.md)
 - **Label** — Styled native <label>. → [`llms/components/label.md`](./llms/components/label.md)
 - **LineChart** — **BETA.** Lines over a sequence — for comparing how measures move. → [`llms/components/line-chart.md`](./llms/components/line-chart.md)
@@ -412,11 +419,13 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **Marquee** — Seamless, constant-speed infinite loop (logos, tags, testimonials). → [`llms/components/marquee.md`](./llms/components/marquee.md)
 - **MediaImage** — **BETA.** An image that fills its box and falls back to GradientArt seeded by the item when it has no source or the source fails — Avatar's image-load tracking, for covers, thumbnails and product shots instead of faces. → [`llms/components/media-image.md`](./llms/components/media-image.md)
 - **MediaTile** — **BETA.** A cover-first tile — square, 16:9 or poster artwork with an optional play-style action over it, then a title and a subtitle that can each be links — that is one link as a whole without nesting its other controls inside one. → [`llms/components/media-tile.md`](./llms/components/media-tile.md)
-- **Menu** — Dropdown menu over Base UI Menu — roving focus, typeahead, ARIA menu/menuitem wiring, collision-aware positioning, Esc/outside dismissal. *Parts:* MenuTrigger, MenuContent, MenuItem, MenuSeparator, MenuSubmenu, MenuSubmenuTrigger, MenuRadioGroup, MenuRadioItem, MenuCheckboxItem, MenuGroup, MenuGroupLabel. → [`llms/components/menu.md`](./llms/components/menu.md)
+- **Menu** — Dropdown menu over Base UI Menu — roving focus, typeahead, ARIA menu/menuitem wiring, collision-aware positioning, Esc/outside dismissal. *Parts:* MenuTrigger, MenuContent, MenuItem, MenuLinkItem, MenuSeparator, MenuSubmenu, MenuSubmenuTrigger, MenuRadioGroup, MenuRadioItem, MenuCheckboxItem, MenuGroup, MenuGroupLabel. → [`llms/components/menu.md`](./llms/components/menu.md)
+- **Menubar** — An application's row of menus — File, Edit, View — over Base UI's Menubar. *Parts:* MenubarTrigger. → [`llms/components/menubar.md`](./llms/components/menubar.md)
 - **Message** — One row in a conversation: avatar gutter, side, and stacked header / content / footer. → [`llms/components/message.md`](./llms/components/message.md)
 - **MessageScroller** — Scroll container for a conversation. → [`llms/components/message-scroller.md`](./llms/components/message-scroller.md)
 - **Meter** — A role=meter reading over Base UI Meter, drawn as a bar or a ring — how full something is within a known range (storage, quota, strength), with a tone for good/caution/bad. *Parts:* MeterTrack, MeterIndicator, MeterLabel, MeterValue. → [`llms/components/meter.md`](./llms/components/meter.md)
 - **MiddleTruncate** — Middle-truncates a long string (hash, address, signature) to `5J7s…8xQp`, keeping the start and end legible while preserving the full value on hover. → [`llms/components/middle-truncate.md`](./llms/components/middle-truncate.md)
+- **NavigationMenu** — A site header's primary nav over Base UI NavigationMenu: a bar of links and triggers, where a trigger opens a panel of links on hover, click or Enter. *Parts:* NavigationMenuList, NavigationMenuItem, NavigationMenuTrigger, NavigationMenuContent, NavigationMenuLink. → [`llms/components/navigation-menu.md`](./llms/components/navigation-menu.md)
 - **Note** — Callout / admonition box. → [`llms/components/note.md`](./llms/components/note.md)
 - **NotificationBadge** — An unread indicator. → [`llms/components/notification-badge.md`](./llms/components/notification-badge.md)
 - **NumberField** — Numeric input with decrement/increment steppers over Base UI NumberField — keyboard arrows, scroll, scrub-to-change, min/max clamping, locale formatting, and form integration. → [`llms/components/number-field.md`](./llms/components/number-field.md)

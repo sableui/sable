@@ -8,8 +8,8 @@ import { useEdgeFade } from "../../lib/use-edge-fade"
 import { useScrollActivity } from "../../lib/use-scroll-activity"
 import {
 	scrollRegionKeyDown,
-	useWheelToHorizontal,
-} from "../../lib/use-wheel-to-horizontal"
+	useSmoothWheel,
+} from "../../lib/use-smooth-wheel"
 
 export interface ScrollerProps extends ComponentPropsWithRef<"div"> {
 	/**
@@ -28,6 +28,15 @@ export interface ScrollerProps extends ComponentPropsWithRef<"div"> {
 	 * @default true
 	 */
 	wheelScroll?: boolean
+	/**
+	 * Ease mouse-wheel steps toward their target, the inertia a smooth-scroll
+	 * library adds, on either axis. Only a mouse wheel: trackpads and touch keep
+	 * their own momentum, keys and scrollbar drags stay native, and reduced
+	 * motion (the OS preference or MotionProvider) turns it off. Anything else
+	 * that moves the region, such as `scrollIntoView`, stops the easing.
+	 * @default true
+	 */
+	smoothWheel?: boolean
 	/**
 	 * Accessible name for the scroll region. A scrollable region that takes
 	 * focus should say what it contains — without one, a screen reader announces
@@ -97,6 +106,7 @@ export interface ScrollerProps extends ComponentPropsWithRef<"div"> {
 export function Scroller({
 	orientation = "vertical",
 	wheelScroll = true,
+	smoothWheel = true,
 	label,
 	className,
 	viewportClassName,
@@ -115,7 +125,7 @@ export function Scroller({
 	// does work on attach — CommandMenu seeds its keyboard highlight there — would
 	// have that work redone on every render, undoing whatever happened since.
 	const trackActivity = useScrollActivity()
-	const trackWheel = useWheelToHorizontal(isHorizontal && wheelScroll)
+	const trackWheel = useSmoothWheel({ axis: orientation, mapVertical: isHorizontal && wheelScroll, smooth: smoothWheel })
 	const setRegion = useCallback(
 		(node: HTMLDivElement | null) => {
 			setRef(ref, node)
@@ -157,7 +167,10 @@ export function Scroller({
 		// sizing, and is NOT masked — which is the entire point of the split. A
 		// flex column so the scroller below can be `flex-1 min-h-0`, which bounds
 		// off `h-*`, `max-h-*` and `flex-1` alike with no percentage to resolve.
-		<div style={style} className={cn("flex flex-col", className)}>
+		// `min-w-0` because this box, not the scroller inside it, is what a grid
+		// or flex parent sizes: left at `min-width: auto`, a horizontal strip
+		// widened its column to the full length of its content and never scrolled.
+		<div style={style} className={cn("flex min-w-0 flex-col", className)}>
 			{/*
 			 * Everything EXCEPT className/style spreads here, not onto the chrome box.
 			 * The split is by meaning, not convenience: className and style are

@@ -53,6 +53,9 @@ if (existsSync(join(DIST, "llms", "atlas"))) fail("dist/llms/atlas exists — th
 const shell = readFileSync(shellPath, "utf8")
 if (shell.includes('property="og:title"')) fail("dist/index.html was already prerendered — run vite build again first.")
 const site = JSON.parse(readFileSync(join(SRC, "site-meta.json"), "utf8"))
+// Shared with the page header's Copy Markdown action, so the twin a person
+// copies is the twin this script publishes at /<route>.md.
+const { $comment, ...markdownTwins } = JSON.parse(readFileSync(join(SRC, "markdown-twins.json"), "utf8"))
 const registry = JSON.parse(readFileSync(join(SABLE_ROOT, "registry.json"), "utf8"))
 const ORIGIN = site.origin.replace(/\/+$/, "")
 
@@ -104,31 +107,18 @@ const foundationsBySlug = new Map((registry.foundations ?? []).map((f) => [f.slu
 // Pages that predate the foundation slugs.
 const foundationAlias = { dimensions: "spacing", elevation: "surfaces" }
 
-/** Metadata for routes the registry does not describe. */
+/** Metadata for routes the registry does not describe. Their twins are in src/markdown-twins.json. */
 const extra = {
 	"getting-started": {
 		description: "Install Sable from npm, connect React and Tailwind CSS, and set up your coding agent.",
-		markdown: "/llms/tasks/getting-started.md",
 	},
-	"build-with-sable": { markdown: "/llms/tasks/building-with-sable.md" },
-	"ios-prototype": { markdown: "/llms/tasks/building-an-ios-prototype.md" },
-	credits: { markdown: "/credits.md" },
-	"whats-new": { markdown: "/whats-new.md" },
-	patterns: { markdown: "/llms.txt" },
-	blocks: { markdown: "/llms.txt" },
-	themes: { markdown: "/llms/tasks/using-presets.md" },
-	colors: { markdown: "/llms/reference/token-intent.md" },
-	grid: { markdown: "/llms/layout/grid.md" },
-	icons: { markdown: "/llms.txt" },
 	guidelines: {
 		title: "Guidelines",
 		description: "Every component's do's and don'ts in one searchable list.",
-		markdown: "/llms.txt",
 	},
 	customize: {
 		title: "Canvas",
 		description: "Tune color, type, corners, depth and motion on a live canvas of Sable components, then export the look as a preset.",
-		markdown: "/llms/tasks/creating-a-preset.md",
 	},
 }
 
@@ -145,14 +135,14 @@ for (const [slug, { file, exportName }] of appPages) {
 		title: more.title ?? header.title ?? foundation?.title ?? component?.name,
 		description: more.description ?? component?.summary ?? foundation?.summary ?? header.lede,
 		markdown:
-			more.markdown ??
+			markdownTwins[slug] ??
 			(component ? `/llms/components/${slug}.md` : foundation ? `/llms/foundations/${foundation.slug}.md` : undefined),
 		index: true,
 	}
 	if (!meta.title || !meta.description || !meta.markdown) missing.push(slug)
 	routes.set(slug, meta)
 }
-for (const slug of ["customize", "guidelines"]) routes.set(slug, { ...extra[slug], index: true })
+for (const slug of ["customize", "guidelines"]) routes.set(slug, { ...extra[slug], markdown: markdownTwins[slug], index: true })
 for (const slug of previewSlugs) {
 	const pattern = catalogPatterns.find((p) => p.path === `patterns/${slug}.tsx`)
 	const name = (pattern?.name ?? slug).replace(/Page$/, "").split(/(?=[A-Z])/).join(" ").toLowerCase()

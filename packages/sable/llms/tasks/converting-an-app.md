@@ -3,6 +3,11 @@
 Migrating a React app that has its own styles. The order below front-loads the
 decisions that invalidate later work if you get them wrong.
 
+Coming from **shadcn/ui or Radix**? Do this order, then use
+[migrating-from-shadcn.md](./migrating-from-shadcn.md) for step 3: it maps
+`asChild` → `render`, array values, renamed parts and events, the tokens and
+icons, and every shadcn component to its Sable counterpart.
+
 ## 0. Classify every surface first
 
 Before touching a component, **list the routes and assign a register to each** —
@@ -147,5 +152,7 @@ layers panel lost 174 lines by adopting `Tree`.
 
 - [building-a-tool.md](./building-a-tool.md) or
   [building-a-page.md](./building-a-page.md)
+- [migrating-from-shadcn.md](./migrating-from-shadcn.md) — the per-component map from shadcn/ui and Radix
+- [extending-a-component.md](./extending-a-component.md) — what to do where the app used to edit a component's source
 - `DESIGN.md → Registers`
 - `llms/reference/token-intent.md`

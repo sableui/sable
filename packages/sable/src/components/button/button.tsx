@@ -236,6 +236,9 @@ export function Button({
 			children: content,
 			onClick: handleClick,
 			onKeyDown: handleKeyDown,
+			// Read by a ButtonGroup, which draws the seam between a bordered pair
+			// differently from a filled one.
+			"data-variant": variant ?? "primary",
 			...(resolvedBleed ? { "data-bleed": resolvedBleed } : null),
 			...(busy ? { "aria-busy": true } : null),
 			// A busy native button stays focusable: aria-disabled, with presses

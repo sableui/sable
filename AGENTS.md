@@ -5,8 +5,8 @@ This is the **Sable** workspace. The published library is `packages/sable` → *
 ## To DESIGN with Sable
 
 Use the package-owned [Sable skill](./packages/sable/skills/sable/SKILL.md) for
-`$sable build <idea>`, `inspire <references>`, `audit <target>`, and `polish <target>`.
-`create` is a build alias. Build starts from the user's product brief and an
+`$sable build <idea>`, `inspire <references>`, `audit <target>`, `polish <target>`,
+and `fix <target>`. `create` is a build alias; `fix` is the short path for one scoped defect. Build starts from the user's product brief and an
 optional preset; inspiration develops a reusable preset; audit reviews existing
 work. All builds must retrieve and compose the installed Sable components,
 utilities, patterns, and semantic tokens, then lint and inspect the real result.

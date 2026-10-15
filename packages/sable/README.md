@@ -62,6 +62,17 @@ retrieval is the default. These tools do not update model weights. See
 
 > **Agents:** the machine-readable version of these steps is the `consume` block in [`registry.json`](./registry.json).
 
+**Quick start** — install, then let `sable init` do steps 2–5:
+
+```bash
+pnpm add @sableui/react
+pnpm exec sable init        # or: npx sable init — once the package is installed
+```
+
+`init` reads your package manager from the lockfile and your framework from the project. It installs what is missing (React, Tailwind and its build plugin), puts the CSS imports below in order, adds React dedupe and the Tailwind plugin to a Vite config, loads the fonts, mounts `IconProvider` in a Vite starter's entry, installs the agent skill (`sable setup --agent`), then runs `sable doctor`. Anything it cannot change safely — an unfamiliar config, a Next.js layout — it prints as the exact snippet and the file it belongs in. Vite and Next.js (App Router) get every step; other setups get the packages and the stylesheet. `--dry-run` shows every change first; `--no-agent` skips the skill. Already set up? `sable doctor --fix` applies the same fixes to whatever doctor flags.
+
+The steps below are what `init` does, for doing it by hand or checking its work.
+
 **1. Install:**
 
 ```bash
@@ -138,8 +149,11 @@ npx sable pattern --list                     # the eight canonical page shells
 npx sable pattern DashboardPage --skeleton   # its composition tree — 127 lines of source, 45 of structure
 npx sable block PricingCardBlock --code      # a section-sized block's source, imports included
 npx sable component Button --props
-npx sable search "date range"                # one ranked set across components, patterns, layout, tokens, docs
+npx sable search "date range"                # one ranked set across components, examples, patterns, layout, tokens, docs
+npx sable component Calendar --example Range # just the example a search hit names
+npx sable init                               # wire a new app: packages, CSS, fonts, IconProvider, agent skill, then doctor
 npx sable doctor                             # is this project wired correctly? exits 1 if not
+npx sable doctor --fix                       # apply the fixes doctor can make safely; print the rest
 npx sable docs designing-a-surface           # brief, direction, composition, interaction, adaptation
 npx sable docs developing-taste             # references, rendered directions, scoped judgment
 npx sable atlas --search "editorial culture" --contrast --limit 3 --json  # a project's own atlas, if it has one

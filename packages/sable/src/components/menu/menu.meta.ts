@@ -98,9 +98,15 @@ export const menuMeta: ComponentMeta = {
 		},
 		{
 			name: "MenuItem",
-			type: 'Base UI Menu.Item props + className (disabled, closeOnClick, onClick) + variant?: "default" | "destructive"',
+			type: 'Base UI Menu.Item props + className (disabled, closeOnClick, onClick) + variant?: "default" | "destructive" + icon?: ReactNode + description?: ReactNode',
 			description:
-				"An interactive row. Highlights via data-[highlighted]; dims via data-[disabled]. variant=\"destructive\" for a delete or irreversible action: it keeps the destructive ink when highlighted (never className=\"text-destructive\", which the highlight repaints).",
+				"An interactive row. Highlights via data-[highlighted]; dims via data-[disabled]. variant=\"destructive\" for a delete or irreversible action: it keeps the destructive ink when highlighted (never className=\"text-destructive\", which the highlight repaints). `icon` leads the row; `description` adds a quieter second line saying what the action does, and the icon then sits in a small tile spanning both lines.",
+		},
+		{
+			name: "MenuLinkItem",
+			type: "Base UI Menu.LinkItem props (href, target, closeOnClick) + className + icon?: ReactNode + description?: ReactNode",
+			description:
+				"A row that navigates: a real <a>, so it opens in a new tab, middle-clicks and copies as a link. With target=\"_blank\" it adds rel=\"noopener noreferrer\" and a trailing ↗. Takes icon and description like MenuItem.",
 		},
 		{
 			name: "MenuSeparator",
@@ -177,6 +183,10 @@ export const menuMeta: ComponentMeta = {
 		{
 			label: "Nested, with a single-choice submenu",
 			code: '<Menu>\n\t<MenuTrigger render={<Button variant="secondary">View</Button>} />\n\t<MenuContent>\n\t\t<MenuItem>Reload</MenuItem>\n\t\t<MenuSubmenu>\n\t\t\t<MenuSubmenuTrigger value={density}>Density</MenuSubmenuTrigger>\n\t\t\t<MenuContent side="inline-end" align="start" sideOffset={4}>\n\t\t\t\t<MenuRadioGroup value={density} onValueChange={setDensity}>\n\t\t\t\t\t<MenuRadioItem value="Comfortable">Comfortable</MenuRadioItem>\n\t\t\t\t\t<MenuRadioItem value="Compact">Compact</MenuRadioItem>\n\t\t\t\t</MenuRadioGroup>\n\t\t\t</MenuContent>\n\t\t</MenuSubmenu>\n\t</MenuContent>\n</Menu>',
+		},
+		{
+			label: "Rows with icons and descriptions, and links",
+			code: '<Menu>\n\t<MenuTrigger render={<Button variant="outline" size="sm">Share</Button>} />\n\t<MenuContent align="end">\n\t\t<MenuItem icon={<Icon name="copy" />} description="Copy page as Markdown for LLMs" onClick={copy}>Copy page</MenuItem>\n\t\t<MenuLinkItem icon={<Icon name="file" />} description="View this page as plain text" href={markdownUrl} target="_blank">View as Markdown</MenuLinkItem>\n\t</MenuContent>\n</Menu>',
 		},
 		{
 			label: "Toggling rows",

@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { renderWithProviders, screen } from "../test/render"
 import { Scroller } from "../components/scroller"
+import { MotionProvider } from "../motion/MotionProvider"
 
 /**
  * Each of these is one of the four traps that make a naive wheel-to-horizontal
@@ -21,7 +22,7 @@ describe("wheel-to-horizontal", () => {
 		wheelScroll?: boolean
 	} = {}) {
 		const { container } = renderWithProviders(
-			<Scroller orientation="horizontal" label="Tags" {...props}>
+			<Scroller orientation="horizontal" label="Tags" smoothWheel={false} {...props}>
 				content
 			</Scroller>,
 		)
@@ -175,5 +176,145 @@ describe("keyboard scrolling", () => {
 		key(el, "ArrowDown")
 		expect(el.scrollTop).toBe(60)
 		expect(key(el, "ArrowRight").defaultPrevented).toBe(false)
+	})
+})
+
+/**
+ * The easing. jsdom has no layout and no frames, so geometry is stubbed and
+ * requestAnimationFrame is driven by hand: each `frame()` is one 60fps frame.
+ */
+describe("smooth wheel", () => {
+	let queue: FrameRequestCallback[] = []
+	let now = 0
+	let clock: { mockRestore(): void } | undefined
+	beforeEach(() => {
+		queue = []
+		now = 0
+		clock = vi.spyOn(performance, "now").mockImplementation(() => now)
+		vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => queue.push(cb))
+		vi.stubGlobal("cancelAnimationFrame", () => {
+			queue = []
+		})
+	})
+	afterEach(() => {
+		vi.unstubAllGlobals()
+		// Only our clock: restoreAllMocks would also reset the setup file's matchMedia.
+		clock?.mockRestore()
+	})
+	function frame(n = 1) {
+		for (let i = 0; i < n; i++) {
+			now += 1000 / 60
+			const run = queue
+			queue = []
+			for (const cb of run) cb(now)
+		}
+	}
+	function list({ scrollTop = 0, scrollHeight = 2000, clientHeight = 400, smoothWheel }: { scrollTop?: number; scrollHeight?: number; clientHeight?: number; smoothWheel?: boolean } = {}) {
+		const { container } = renderWithProviders(
+			<Scroller label="Rows" className="h-96" smoothWheel={smoothWheel}>
+				content
+			</Scroller>,
+		)
+		const el = container.firstElementChild?.firstElementChild as HTMLElement
+		Object.defineProperty(el, "scrollHeight", { configurable: true, value: scrollHeight })
+		Object.defineProperty(el, "clientHeight", { configurable: true, value: clientHeight })
+		el.scrollTop = scrollTop
+		return el
+	}
+	const notch = (el: HTMLElement, deltaY: number, extra: WheelEventInit = {}) => {
+		const event = new WheelEvent("wheel", { bubbles: true, cancelable: true, deltaY, deltaMode: 1, ...extra })
+		el.dispatchEvent(event)
+		return event
+	}
+
+	it("eases a mouse-wheel notch toward its target instead of jumping", () => {
+		const el = list()
+		const event = notch(el, 3) // Firefox: 3 lines, 48px
+		expect(event.defaultPrevented).toBe(true)
+		expect(el.scrollTop).toBe(0) // nothing yet: the first frame moves it
+		frame()
+		expect(el.scrollTop).toBeGreaterThan(0)
+		expect(el.scrollTop).toBeLessThan(48)
+		frame(60)
+		expect(el.scrollTop).toBe(48)
+		expect(queue).toHaveLength(0) // settled, no frames left running
+	})
+
+	it("adds quick notches to the target, not to where it has got to", () => {
+		const el = list()
+		notch(el, 3)
+		frame(2)
+		notch(el, 3)
+		notch(el, 3)
+		frame(90)
+		expect(el.scrollTop).toBe(144)
+	})
+
+	it("leaves a trackpad's pixel stream to the browser", () => {
+		const el = list()
+		const event = notch(el, 7.5, { deltaMode: 0 })
+		expect(event.defaultPrevented).toBe(false)
+		expect(queue).toHaveLength(0)
+	})
+
+	it("releases at the end, so the page scrolls on", () => {
+		const el = list({ scrollTop: 1600 })
+		expect(notch(el, 3).defaultPrevented).toBe(false)
+		expect(notch(el, -3).defaultPrevented).toBe(true)
+	})
+
+	it("stops easing the moment anything else moves the region", () => {
+		const el = list()
+		notch(el, 30) // 480px of travel
+		frame(2)
+		el.scrollTop = 900 // scrollIntoView, a key, a scrollbar drag
+		el.dispatchEvent(new Event("scroll"))
+		frame(30)
+		expect(el.scrollTop).toBe(900)
+	})
+
+	it("lets a nested scroll area that can still move take the wheel", () => {
+		const { container } = renderWithProviders(
+			<Scroller label="Rows">
+				<pre data-testid="code" style={{ overflowY: "auto" }}>
+					code
+				</pre>
+			</Scroller>,
+		)
+		const el = container.firstElementChild?.firstElementChild as HTMLElement
+		Object.defineProperty(el, "scrollHeight", { configurable: true, value: 2000 })
+		Object.defineProperty(el, "clientHeight", { configurable: true, value: 400 })
+		const code = screen.getByTestId("code")
+		Object.defineProperty(code, "scrollHeight", { configurable: true, value: 600 })
+		Object.defineProperty(code, "clientHeight", { configurable: true, value: 200 })
+		expect(notch(code, 3).defaultPrevented).toBe(false)
+		// At its end, the inner area hands the wheel on to the region.
+		code.scrollTop = 400
+		expect(notch(code, 3).defaultPrevented).toBe(true)
+	})
+
+	it("leaves easing to CSS where the region smooths or snaps itself", () => {
+		const el = list()
+		el.style.scrollBehavior = "smooth"
+		expect(notch(el, 3).defaultPrevented).toBe(false)
+		expect(queue).toHaveLength(0)
+	})
+
+	it("adds no easing, and takes no wheel, under reduced motion", () => {
+		const { container } = renderWithProviders(
+			<MotionProvider policy="reduced">
+				<Scroller label="Rows">content</Scroller>
+			</MotionProvider>,
+		)
+		const el = container.querySelector('[role="group"]') as HTMLElement
+		Object.defineProperty(el, "scrollHeight", { configurable: true, value: 2000 })
+		Object.defineProperty(el, "clientHeight", { configurable: true, value: 400 })
+		expect(notch(el, 3).defaultPrevented).toBe(false)
+		expect(queue).toHaveLength(0)
+	})
+
+	it("is off with smoothWheel={false}: the browser's own wheel scroll stands", () => {
+		const el = list({ smoothWheel: false })
+		expect(notch(el, 3).defaultPrevented).toBe(false)
 	})
 })

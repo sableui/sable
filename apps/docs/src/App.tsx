@@ -269,6 +269,7 @@ const pages: Record<string, ComponentType> = {
 	scrolling: page(() => import("./pages/FoundationPages"), "ScrollingPage"),
 	accessibility: page(() => import("./pages/FoundationPages"), "AccessibilityPage"),
 	button: page(() => import("./pages/components/ButtonPage"), "ButtonPage"),
+	"button-group": page(() => import("./pages/components/ButtonGroupPage"), "ButtonGroupPage"),
 	badge: page(() => import("./pages/components/BadgePage"), "BadgePage"),
 	card: page(() => import("./pages/components/CardPage"), "CardPage"),
 	carousel: page(
@@ -290,6 +291,7 @@ const pages: Record<string, ComponentType> = {
 		"AttachmentPage",
 	),
 	marker: page(() => import("./pages/components/MarkerPage"), "MarkerPage"),
+	"caret-menu": page(() => import("./pages/components/CaretMenuPage"), "CaretMenuPage"),
 	"chat-composer": page(
 		() => import("./pages/components/ChatComposerPage"),
 		"ChatComposerPage",
@@ -300,6 +302,7 @@ const pages: Record<string, ComponentType> = {
 	),
 	dialog: page(() => import("./pages/components/DialogPage"), "DialogPage"),
 	input: page(() => import("./pages/components/InputPage"), "InputPage"),
+	"input-group": page(() => import("./pages/components/InputGroupPage"), "InputGroupPage"),
 	textarea: page(
 		() => import("./pages/components/TextareaPage"),
 		"TextareaPage",
@@ -322,6 +325,7 @@ const pages: Record<string, ComponentType> = {
 	toolbar: page(() => import("./pages/components/ToolbarPage"), "ToolbarPage"),
 	popover: page(() => import("./pages/components/PopoverPage"), "PopoverPage"),
 	menu: page(() => import("./pages/components/MenuPage"), "MenuPage"),
+	menubar: page(() => import("./pages/components/MenubarPage"), "MenubarPage"),
 	sheet: page(() => import("./pages/components/SheetPage"), "SheetPage"),
 	avatar: page(() => import("./pages/components/AvatarPage"), "AvatarPage"),
 	progress: page(
@@ -529,6 +533,10 @@ const pages: Record<string, ComponentType> = {
 	"bottom-nav": page(
 		() => import("./pages/components/BottomNavPage"),
 		"BottomNavPage",
+	),
+	"navigation-menu": page(
+		() => import("./pages/components/NavigationMenuPage"),
+		"NavigationMenuPage",
 	),
 	"page-header": page(
 		() => import("./pages/components/PageHeaderPage"),

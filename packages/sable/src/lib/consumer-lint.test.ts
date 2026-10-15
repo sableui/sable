@@ -378,6 +378,32 @@ describe("sable-lint bin", () => {
 		expect(r.out).not.toContain("native-ui-import")
 	})
 
+	/* ── shadcn-leftover: a migration is done when the old stack is gone. ──── */
+	it("catches leftover shadcn and Radix imports and asChild", () => {
+		for (const src of [
+			`import * as Dialog from "@radix-ui/react-dialog"\nexport const A = () => <Dialog.Root />`,
+			`import { Button } from "@/components/ui/button"\nexport const A = () => <Button />`,
+			`import { Check } from "lucide-react"\nexport const A = () => <Check />`,
+			`import { toast } from "sonner"\nexport const A = () => null`,
+			`import { Drawer } from "vaul"\nexport const A = () => <Drawer.Root />`,
+			`import { DialogTrigger, Button } from "@sableui/react"\nexport const A = () => <DialogTrigger asChild><Button>Edit</Button></DialogTrigger>`,
+		]) {
+			const r = lint(src)
+			expect(r.code, src).toBe(1)
+			expect(r.out, src).toContain("shadcn-leftover")
+		}
+	})
+
+	it("does not flag render, prose about asChild, or Sable imports", () => {
+		const r = lint(
+			`import { DialogTrigger, Button } from "@sableui/react"\n` +
+				`// shadcn wrote <DialogTrigger asChild>; Sable uses render.\n` +
+				`export const A = () => <DialogTrigger render={<Button />}>Edit</DialogTrigger>\n` +
+				`export const note = "replace asChild with render"`,
+		)
+		expect(r.out).not.toContain("shadcn-leftover")
+	})
+
 	/* ── hand-rolled-control: use the component Sable ships. ─────────────────
 	 * Sable's own Customize panel was a row of role="radio" buttons with no
 	 * arrow keys, a native range and a native colour input, and nothing could

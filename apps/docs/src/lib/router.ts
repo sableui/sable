@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { createContext, useEffect, useState } from "react"
 
 /**
  * Path router — `/typography`, `/button`, `/guide/conventions`.
@@ -14,6 +14,13 @@ import { useEffect, useState } from "react"
  */
 
 const EVENT = "sable-docs-navigate"
+
+/**
+ * The route the docs shell is rendering, for a page's own parts (its header's
+ * Copy Markdown action) to read. Provided by DocsShell rather than read with
+ * `useRoute`, which also installs the document's link-click handler.
+ */
+export const CurrentRouteContext = createContext<string | null>(null)
 
 function slugFromLocation(): string {
 	if (typeof window === "undefined") return "introduction"

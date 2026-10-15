@@ -4,6 +4,7 @@ export {
 	MenuPortal,
 	MenuContent,
 	MenuItem,
+	MenuLinkItem,
 	MenuSeparator,
 	MenuGroup,
 	MenuGroupLabel,

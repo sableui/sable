@@ -2,6 +2,7 @@ import { Drawer as Base } from "@base-ui/react/drawer"
 import type { VariantProps } from "class-variance-authority"
 import {
 	type ComponentProps,
+	type CSSProperties,
 	createContext,
 	useContext,
 	useMemo,
@@ -14,6 +15,8 @@ import { PresentationProvider, StackedActionsContext, usePresentation } from "..
 import { mergeRefs } from "../../lib/refs"
 import { useIsomorphicLayoutEffect } from "../../lib/use-isomorphic-layout-effect"
 import { sheetVariants } from "./sheet.variants"
+
+declare const process: { env: { NODE_ENV?: string } }
 
 /**
  * Sheet — an edge-anchored drawer built on Base UI's Drawer (focus trap, scroll
@@ -52,33 +55,102 @@ const SWIPE_DIRECTION = {
 
 /**
  * `side` lives on SheetContent, but Base UI reads the swipe direction from the
- * Root. SheetContent reports its side up through this setter so the API stays
- * where it always was.
+ * Root. SheetContent reports its side up through `reportSide` so the API stays
+ * where it always was, and reads back whether the Root was given snap points.
  */
-const SheetSideContext = createContext<((side: SheetSide) => void) | null>(null)
+const SheetRootContext = createContext<{ reportSide: (side: SheetSide) => void; snaps: boolean } | null>(null)
+
+/** A snap point: a fraction of the viewport (0–1), pixels (> 1), or a `px` / `rem` string. */
+export type SheetSnapPoint = number | string
 
 /**
- * Root props. Everything Base UI Drawer.Root takes except the swipe direction
- * (derived from SheetContent's `side`) and snap points (a bottom-sheet feature
- * Sheet's styling does not implement).
+ * Root props: everything Base UI Drawer.Root takes except the swipe direction,
+ * which comes from SheetContent's `side`.
+ *
+ * Snap points are a bottom sheet's: stops the panel rests at between closed
+ * and fully open, dragged between by its handle or any touch swipe. They take
+ * effect only with `side="bottom"`; a side or top sheet ignores them and a
+ * development build says so, rather than half-applying a bottom-sheet gesture
+ * to a panel that slides sideways.
  */
-export type SheetProps<Payload = unknown> = Omit<
-	Base.Root.Props<Payload>,
-	| "swipeDirection"
-	| "snapPoints"
-	| "snapPoint"
-	| "defaultSnapPoint"
-	| "onSnapPointChange"
-	| "snapToSequentialPoints"
->
+export type SheetProps<Payload = unknown> = Omit<Base.Root.Props<Payload>, "swipeDirection">
 
-export function Sheet<Payload = unknown>(props: SheetProps<Payload>) {
+export function Sheet<Payload = unknown>({
+	snapPoints,
+	snapPoint,
+	defaultSnapPoint,
+	onSnapPointChange,
+	snapToSequentialPoints,
+	...props
+}: SheetProps<Payload>) {
 	const [side, setSide] = useState<SheetSide>("right")
+	const snaps = Boolean(snapPoints?.length)
+	const context = useMemo(() => ({ reportSide: setSide, snaps }), [snaps])
+	// Only the stops are gated to a bottom sheet (Base UI also applies them to an
+	// upward swipe, which the top panel is not styled for). The snap point's
+	// state is always forwarded: `side` arrives from SheetContent after the
+	// first render, and Base UI decides controlled-or-not on that first render
+	// for good, so withholding `snapPoint` then made a controlled sheet
+	// uncontrolled for its whole life.
 	return (
-		<SheetSideContext.Provider value={setSide}>
-			<Base.Root {...props} swipeDirection={SWIPE_DIRECTION[side]} />
-		</SheetSideContext.Provider>
+		<SheetRootContext.Provider value={context}>
+			<Base.Root
+				{...props}
+				snapPoints={snaps && side === "bottom" ? snapPoints : undefined}
+				snapPoint={snapPoint}
+				defaultSnapPoint={defaultSnapPoint}
+				onSnapPointChange={onSnapPointChange}
+				snapToSequentialPoints={snapToSequentialPoints}
+				swipeDirection={SWIPE_DIRECTION[side]}
+			/>
+		</SheetRootContext.Provider>
 	)
+}
+
+/**
+ * Inside try, not behind `typeof process`, for the reason Icon gives: bundlers
+ * replace the literal text, and a build that defines nothing reads as production.
+ */
+function isDevelopment() {
+	try {
+		return process.env.NODE_ENV !== "production"
+	} catch {
+		return false
+	}
+}
+
+/**
+ * The height the on-screen keyboard takes from the bottom of the layout
+ * viewport, from `visualViewport`. Neither Base UI's Drawer nor `dvh` accounts
+ * for it: on iOS, and on Android's default `resizes-visual`, the keyboard
+ * covers the page instead of resizing it, so a bottom sheet pinned to
+ * `bottom: 0` keeps its focused field under the keys. 0 where the API is
+ * missing or the keyboard is down.
+ */
+function useKeyboardInset(enabled: boolean) {
+	const [inset, setInset] = useState(0)
+	useIsomorphicLayoutEffect(() => {
+		const viewport = typeof window === "undefined" ? undefined : window.visualViewport
+		if (!enabled || !viewport) return
+		// A pinch-zoomed viewport is also shorter than the window, but that is the
+		// reader's zoom, not a keyboard: lifting the sheet then floated it half a
+		// screen up. Zoomed, the keyboard is not measured at all.
+		const measure = () =>
+			setInset(
+				Math.abs(viewport.scale - 1) > 0.01
+					? 0
+					: Math.max(0, Math.round(window.innerHeight - viewport.height - viewport.offsetTop)),
+			)
+		measure()
+		viewport.addEventListener("resize", measure)
+		viewport.addEventListener("scroll", measure)
+		return () => {
+			viewport.removeEventListener("resize", measure)
+			viewport.removeEventListener("scroll", measure)
+			setInset(0)
+		}
+	}, [enabled])
+	return inset
 }
 
 export const SheetTrigger = Base.Trigger
@@ -98,25 +170,39 @@ type ContentProps = Omit<ComponentProps<typeof Base.Popup>, "className"> &
  * stay flex items of the popup column): a mouse drag that starts on content
  * selects text instead of dragging the sheet. Touch swipes work anywhere.
  */
+let warnedSnapSide = false
+
 export function SheetContent({
 	className,
 	children,
 	side,
 	initialFocus,
 	ref,
+	style,
 	...props
 }: ContentProps) {
-	const reportSide = useContext(SheetSideContext)
+	const root = useContext(SheetRootContext)
 	const resolvedSide = side ?? "right"
+	const reportSide = root?.reportSide
 	useIsomorphicLayoutEffect(() => {
 		reportSide?.(resolvedSide)
 	}, [reportSide, resolvedSide])
-
+	const snaps = Boolean(root?.snaps) && resolvedSide === "bottom"
+	if (root?.snaps && resolvedSide !== "bottom" && !warnedSnapSide && isDevelopment()) {
+		warnedSnapSide = true
+		console.warn(`Sable: <Sheet snapPoints> applies to side="bottom" only; this sheet opens from the ${resolvedSide}, so its snap points are ignored.`)
+	}
 	const popupRef = useRef<HTMLDivElement>(null)
 	// The popup mounts when the sheet opens, after this component, so its width
 	// is followed through state rather than read from the ref at mount.
 	const [popup, setPopup] = useState<HTMLDivElement | null>(null)
 	const mergedRef = useMemo(() => mergeRefs(popupRef, ref, setPopup), [ref])
+
+	// Measured only while this bottom sheet is open: a closed one has nothing
+	// to lift, and every sheet on a page listening would re-render them all on
+	// each viewport scroll.
+	const keyboardInset = useKeyboardInset(resolvedSide === "bottom" && popup !== null)
+	const keyboardVars = { "--sheet-keyboard-inset": `${keyboardInset}px` } as CSSProperties
 
 	// A toast stack on this sheet's edge moves beside it (styles.css). It needs
 	// the sheet's real width, which a className can change, so a side sheet
@@ -151,9 +237,27 @@ export function SheetContent({
 					}
 					// Toasts read this to keep clear of the sheet's actions (styles.css).
 					data-sable-sheet={resolvedSide}
+					data-snap-points={snaps ? "" : undefined}
 					className={cn(sheetVariants({ side }), className)}
 					{...props}
+					// The keyboard inset is merged under the caller's style, which Base UI
+					// also accepts as a function of the popup's state.
+					style={
+						typeof style === "function"
+							? (state) => ({ ...keyboardVars, ...style(state) })
+							: { ...keyboardVars, ...style }
+					}
 				>
+					{snaps ? (
+						// The grip says "drag me". Decorative: the stops are reached by
+						// swipe, and the sheet's content stays reachable by scrolling
+						// and by keyboard whichever stop it rests at.
+						<div
+							aria-hidden
+							data-slot="sheet-handle"
+							className="-mt-(--sheet-handle-pull) mb-0 h-1 w-10 shrink-0 self-center rounded-full bg-border-strong"
+						/>
+					) : null}
 					<Base.Content className="contents">
 						{/* A bottom sheet is the phone's sheet: it owns its content's actions
 						    (lib/presentation). A side sheet is a page again, even one opened

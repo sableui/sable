@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const chatComposerMeta: ComponentMeta = {
 	name: "ChatComposer",
 	summary:
-		"The input half of a conversation: one surface holding attachments, an auto-growing field, and its controls. Enter sends, Shift+Enter breaks the line (sendOn=\"mod-enter\" swaps them for long-form replies), and send becomes stop while a reply streams.",
+		"The input half of a conversation: one surface holding attachments, an auto-growing field, and its controls. Enter sends, Shift+Enter breaks the line (sendOn=\"mod-enter\" swaps them for long-form replies; on touch, Return always breaks the line), and send becomes stop while a reply streams. allowEmpty sends attachments without text.",
 	status: "stable",
 	keywords: [
 		"chat input",
@@ -22,6 +22,11 @@ export const chatComposerMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
+					"Wiring it to a streaming source? `sable docs building-a-chat` maps a turn lifecycle (submitted, streaming, done, stopped, error) onto `busy`, `onStop` and `disabled`, and says where each failure goes.",
+			},
+			{
+				guidance: "do",
+				description:
 					"Pass `busy` while a reply streams, and `onStop` alongside it. Interrupting a long generation is the most common thing a reader wants during one, and the control belongs where their cursor already is.",
 			},
 			{
@@ -37,6 +42,11 @@ export const chatComposerMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
+					"Pass `allowEmpty={files.length > 0}` when a file can go without a caption. Send enables on the attachment alone and `onSend` receives `\"\"`. Tie it to the pending files: a constant `allowEmpty` leaves send enabled with nothing to send.",
+			},
+			{
+				guidance: "do",
+				description:
 					"Put model pickers and tool toggles in `leading`, beside the attach button — they are composer state, not message content, and belong on the chrome row rather than in the field.",
 			},
 			{
@@ -47,7 +57,7 @@ export const chatComposerMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description:
-					"Do not add your own Enter-to-send handler on top. The built-in one already guards against firing mid-IME-composition, which is the line hand-rolled chat inputs miss.",
+					"Do not add your own Enter-to-send handler on top. The built-in one already guards against firing mid-IME-composition, and on a touch device lets Return break the line (a soft keyboard has no Shift+Return), which are the lines hand-rolled chat inputs miss.",
 			},
 			{
 				guidance: "do",
@@ -129,7 +139,14 @@ export const chatComposerMeta: ComponentMeta = {
 			name: "onSend",
 			type: "(value: string) => void",
 			description:
-				"Called with the trimmed message. An uncontrolled composer clears itself afterwards; a controlled one is the caller's to clear.",
+				"Called with the trimmed message. An uncontrolled composer clears itself afterwards; a controlled one is the caller's to clear. With `allowEmpty` the message can be `\"\"`.",
+		},
+		{
+			name: "allowEmpty",
+			type: "boolean",
+			default: "false",
+			description:
+				"Let the reader send with no text, because the app has something else to send (pending attachments). Pass it only while that is true, `allowEmpty={files.length > 0}`; `onSend` then receives `\"\"`.",
 		},
 		{
 			name: "placeholder",
@@ -141,7 +158,7 @@ export const chatComposerMeta: ComponentMeta = {
 			name: "sendOn",
 			type: '"enter" | "mod-enter"',
 			default: '"enter"',
-			description: "Which key sends. enter for chat (Shift+Enter breaks the line). mod-enter for long-form replies such as an email or a support answer: Enter breaks the line and Cmd/Ctrl+Enter sends, so a paragraph break never mails a draft. Say so in footer (\"Cmd+Enter to send\").",
+			description: "Which key sends. enter for chat (Shift+Enter breaks the line). mod-enter for long-form replies such as an email or a support answer: Enter breaks the line and Cmd/Ctrl+Enter sends, so a paragraph break never mails a draft. Say so in footer (\"Cmd+Enter to send\"). On a touch device (pointer: coarse) enter behaves as mod-enter: a soft keyboard has no Shift+Return, so Return breaks the line and the send button sends.",
 		},
 		{
 			name: "busy",
@@ -212,14 +229,14 @@ export const chatComposerMeta: ComponentMeta = {
 		},
 		{
 			name: "footer",
-			type: "ReactNode",
-			description: "Helper text or counter below the controls.",
+			type: 'ReactNode | ((state: { sendOn: "enter" | "mod-enter" }) => ReactNode)',
+			description: "Helper text or counter below the controls. For a keyboard hint pass a function: it receives the send key in effect (touch turns `enter` into `mod-enter`), and returning null removes the row, e.g. `footer={({ sendOn }) => sendOn === \"enter\" ? \"Enter to send\" : null}`.",
 		},
 		{
 			name: "fieldRef",
 			type: "Ref<HTMLTextAreaElement>",
 			description:
-				"Ref to the underlying textarea — for focusing after a send, or on mount.",
+				"Ref to the underlying textarea — for focusing after a send, or on mount, and the extension point for anything that listens to the field. Pass `useCaretTrigger`'s `fieldRef` here for mentions and slash commands (CaretMenu). An Enter another listener already handled (`preventDefault()`) does not send.",
 		},
 		{
 			name: "...form props",
@@ -247,7 +264,8 @@ export const chatComposerMeta: ComponentMeta = {
 		"A real `<form>`, so the send button is a submit button and the whole thing behaves as one control to assistive tech and to password managers alike.",
 		"Enter never submits while an IME composition is open (`isComposing`), so a CJK reader confirming a candidate word does not mail a fragment of their first sentence.",
 		"The focus ring is drawn on the surface via `focus-within`, not on the textarea, so the visible focus indicator matches the box a sighted user perceives as the input.",
-		"Send is disabled — not merely styled down — until there is non-whitespace to send, so the affordance and the behaviour agree for keyboard users.",
+		"Send is disabled — not merely styled down — until there is non-whitespace to send (or `allowEmpty` says an attachment is enough), so the affordance and the behaviour agree for keyboard users.",
+		"On a touch device Return breaks the line and the send button sends; `aria-keyshortcuts` reports the shortcut actually in effect (⌘/Ctrl+Enter there, Enter on desktop).",
 		"Icon-only attach, send and stop buttons all carry accessible labels, each overridable for localisation.",
 	],
 	examples: [
@@ -262,6 +280,10 @@ export const chatComposerMeta: ComponentMeta = {
 		{
 			label: "Controlled, with pending attachments",
 			code: '<ChatComposer\n\tvalue={draft}\n\tonValueChange={setDraft}\n\tonSend={(text) => { post(text, files); setDraft("") }}\n\tonAttach={pickFile}\n\tattachments={files.map((f) => (<Attachment key={f.id} variant="media" name={f.name} thumbnail={f.url} actions={<Button variant="floating" size="icon-xs" aria-label="Remove" onClick={() => drop(f.id)}><Icon name="xmark" /></Button>} />))}\n\tfooter={`${draft.length} / 4000`}\n\tinvalid={draft.length > 4000}\n/>',
+		},
+		{
+			label: "Attachments sent without text",
+			code: '<ChatComposer\n\tonSend={(text) => post(text, files)}\n\tallowEmpty={files.length > 0}\n\tonAttach={pickFile}\n\tattachments={files.map((f) => <Attachment key={f.id} name={f.name} meta={f.size} />)}\n/>',
 		},
 		{
 			label: "A working chat, end to end",

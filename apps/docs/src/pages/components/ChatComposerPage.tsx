@@ -27,6 +27,7 @@ import {
 	Section,
 	ledeFor,
 } from "../../components/docs-ui"
+import { MentionsComposer } from "./CaretMenuPage"
 
 interface Turn {
 	id: string
@@ -139,18 +140,23 @@ function LiveChat() {
 	)
 }
 
-/** Attachments live inside the composer, above the field. */
+const SAMPLE_FILES = [
+	{ id: "f1", name: "scroller.tsx", meta: "4.2 KB · TSX" },
+	{ id: "f2", name: "trace.json", meta: "88 KB · JSON" },
+]
+
+/** Attachments live inside the composer, above the field. A file can go
+ * without a caption, so send enables on the attachment alone. */
 function AttachmentsDemo() {
-	const [files, setFiles] = useState([
-		{ id: "f1", name: "scroller.tsx", meta: "4.2 KB · TSX" },
-		{ id: "f2", name: "trace.json", meta: "88 KB · JSON" },
-	])
+	const [files, setFiles] = useState(SAMPLE_FILES)
 
 	return (
 		<ChatComposer
 			className="max-w-lg"
 			placeholder="Describe what you're seeing…"
-			onAttach={() => undefined}
+			allowEmpty={files.length > 0}
+			onSend={() => setFiles([])}
+			onAttach={() => setFiles(SAMPLE_FILES)}
 			attachments={files.map((f) => (
 				<Attachment
 					key={f.id}
@@ -188,6 +194,18 @@ function ControlledDemo() {
 			invalid={over}
 			placeholder="Write a short note…"
 			footer={`${draft.length} / ${limit}`}
+		/>
+	)
+}
+
+/** A reply long enough to have paragraphs: Enter breaks the line. */
+function LongFormDemo() {
+	return (
+		<ChatComposer
+			className="max-w-lg"
+			sendOn="mod-enter"
+			placeholder="Write a reply…"
+			footer="⌘/Ctrl+Enter to send"
 		/>
 	)
 }
@@ -241,10 +259,28 @@ export function ChatComposerPage() {
 
 			<Section
 				title="Attachments"
-				description="Files sit above the text, in the same box as the message."
+				description="Files sit above the text, in the same box as the message. With allowEmpty, they can be sent without a caption."
 			>
 				<Example>
 					<AttachmentsDemo />
+				</Example>
+			</Section>
+
+			<Section
+				title="Mentions and slash commands"
+				description="The composer stays a plain text field. Pass useCaretTrigger's fieldRef and add a CaretMenu: @ suggests people, / at the start runs a command, and while the list is open Enter picks instead of sending."
+			>
+				<Example>
+					<MentionsComposer />
+				</Example>
+			</Section>
+
+			<Section
+				title="Long-form replies"
+				description="For an email or a support answer, Enter starts a new line and ⌘/Ctrl+Enter sends. On a phone or tablet, Return always starts a new line and the button sends, whichever key is set."
+			>
+				<Example>
+					<LongFormDemo />
 				</Example>
 			</Section>
 

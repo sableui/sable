@@ -354,7 +354,8 @@ describe("Button field variant", () => {
 		expect(cls).toContain("hover:bg-panel-field-hover")
 		// The field's corner replaces the pill; cn() must drop the base radius.
 		expect(cls).toContain("rounded-[var(--panel-field-radius,var(--radius-xs))]")
-		expect(cls).not.toContain("rounded-[var(--button-radius,9999px)]")
+		expect(cls).not.toContain("rounded-s-[var(--button-radius-s")
+		expect(cls).not.toContain("rounded-e-[var(--button-radius-e")
 	})
 
 	describe("bleed", () => {

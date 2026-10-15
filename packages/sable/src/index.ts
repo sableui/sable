@@ -2,7 +2,7 @@
 // Components, primitives, layout, and icon adapter are re-exported here as they land.
 // Keep this the single public entry; never deep-import internals from consumer apps.
 
-export const SABLE_UI_VERSION = "0.11.0" as const
+export const SABLE_UI_VERSION = "0.12.0" as const
 
 // Foundations
 export * from "./lib/cn"
@@ -92,11 +92,14 @@ export * from "./motion"
 
 // Components
 export * from "./components/button"
+export * from "./components/button-group"
 export * from "./components/card"
+export * from "./components/caret-menu"
 export * from "./components/badge"
 export * from "./components/dialog"
 export * from "./components/separator"
 export * from "./components/input"
+export * from "./components/input-group"
 export * from "./components/textarea"
 export * from "./components/number-field"
 export * from "./components/otp-field"
@@ -143,6 +146,8 @@ export * from "./components/radio"
 export * from "./components/select"
 export * from "./components/popover"
 export * from "./components/menu"
+export * from "./components/navigation-menu"
+export * from "./components/menubar"
 export * from "./components/sheet"
 export * from "./components/table"
 export * from "./components/data-table"
@@ -233,7 +238,16 @@ export { PresentationProvider, usePresentation, type Presentation } from "./lib/
 // a consumer building their own scroll container needs it to honour the policy
 // the six hard rules require of ours. See DESIGN.md → Scrolling.
 export { useScrollActivity } from "./lib/use-scroll-activity"
-export { useCopy, type UseCopyOptions, type UseCopyResult } from "./lib/use-copy"
+export { useCopy, type CopySource, type UseCopyOptions, type UseCopyResult } from "./lib/use-copy"
+export { useSmoothWheel, type SmoothWheelOptions } from "./lib/use-smooth-wheel"
+export {
+	useCaretTrigger,
+	type CaretTrigger,
+	type CaretTriggerField,
+	type CaretTriggerMatch,
+	type UseCaretTriggerOptions,
+	type UseCaretTriggerResult,
+} from "./lib/use-caret-trigger"
 export { STATUS_TONES, STATUS_TONE_ICON, type StatusTone } from "./lib/status-tone"
 // The generated palette's names, for UIs that list or pick from it (a tag
 // colour picker, a docs swatch book). The colours themselves are CSS.

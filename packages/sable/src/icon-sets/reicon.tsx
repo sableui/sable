@@ -19,6 +19,7 @@ import { ChevronDown } from "reicon-react/icons/ChevronDown"
 import { ChevronLeft } from "reicon-react/icons/ChevronLeft"
 import { ChevronRight } from "reicon-react/icons/ChevronRight"
 import { ArrowUp } from "reicon-react/icons/ArrowUp"
+import { ArrowUpRight } from "reicon-react/icons/ArrowUpRight"
 import { ChevronUp } from "reicon-react/icons/ChevronUp"
 import { Comment } from "reicon-react/icons/Comment"
 import { Component2 } from "reicon-react/icons/Component2"
@@ -120,6 +121,7 @@ const ICONS: Record<string, IconComponent> = {
 	"chevron-down": ChevronDown,
 	"chevron-up": ChevronUp,
 	"arrow-up": ArrowUp,
+	"arrow-up-right": ArrowUpRight,
 	"chevron-left": ChevronLeft,
 	"chevron-right": ChevronRight,
 	expand: Expand,

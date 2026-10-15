@@ -23,6 +23,10 @@ export const sidebarMeta: ComponentMeta = {
 				description: "Keep item labels predictable and active state obvious.",
 			},
 			{
+				guidance: "do",
+				description: "Set surface=\"page\" when a full-width top bar sits above the rail. A theme's tinted or dark rail is for a full-height rail that frames the app.",
+			},
+			{
 				guidance: "dont",
 				description: "Do not use Sidebar for page-local settings, filters, or temporary action groups.",
 			},
@@ -72,6 +76,13 @@ export const sidebarMeta: ComponentMeta = {
 			default: '"app"',
 			description:
 				"Where the rail lives. \"app\" is the page's chrome column — sticky, full viewport height, hidden below lg where AppHeader + BottomNav take over. \"inline\" is always visible and fills its parent's height, for a rail inside a bounded frame (a nested shell, an embedded preview). Use it instead of overriding the layout with !important classes.",
+		},
+		{
+			name: "surface",
+			type: '"rail" | "page"',
+			default: '"rail"',
+			description:
+				"Which surface the rail is painted on. \"rail\" is its own --sidebar-* surface with a border — right for a full-height rail that frames the app, which a theme may tint or paint dark. \"page\" uses the page's surface and ink with no border — use it when a full-width header sits above the rail, where a tinted column starting under a page-coloured bar reads as pasted on. Use it instead of overriding bg-/text- classes, which the rail's re-pointed tokens defeat.",
 		},
 	],
 	subcomponents: [

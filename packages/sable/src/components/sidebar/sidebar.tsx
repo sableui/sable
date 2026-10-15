@@ -48,6 +48,17 @@ export interface SidebarProps extends ComponentPropsWithRef<"aside"> {
 	 * @default "app"
 	 */
 	variant?: "app" | "inline"
+	/**
+	 * Which surface the rail is painted on.
+	 * - `rail` (default) — its own `--sidebar-*` surface, with a border. Right
+	 *   for a full-height rail that frames the app on its own; a theme can tint
+	 *   it, or paint it dark on a light page.
+	 * - `page` — the page's own surface and ink, no border. Use it when a
+	 *   full-width header sits above the rail: a tinted column that starts
+	 *   under a page-coloured bar reads as pasted on, not as chrome.
+	 * @default "rail"
+	 */
+	surface?: "rail" | "page"
 }
 
 /** The layout each `variant` takes; colours and width are shared. */
@@ -84,10 +95,25 @@ const SIDEBAR_INK = [
 	"[--border:var(--sidebar-border)] [--ring:var(--sidebar-ring)]",
 ].join(" ")
 
+/**
+ * The reverse, for `surface="page"`: the rail's tokens re-pointed at the
+ * page's, so every part that inks with `--sidebar-*` (SidebarItem, the
+ * footer rule, the brand's focus ring) reads as page content. Never combined
+ * with SIDEBAR_INK — the two together would be a cycle.
+ */
+const PAGE_INK = [
+	"[--sidebar:var(--background)] [--sidebar-foreground:var(--foreground)]",
+	"[--sidebar-muted-foreground:var(--muted-foreground)]",
+	"[--sidebar-primary:var(--primary)] [--sidebar-primary-foreground:var(--primary-foreground)]",
+	"[--sidebar-accent:var(--muted)] [--sidebar-accent-foreground:var(--foreground)]",
+	"[--sidebar-border:var(--border)] [--sidebar-ring:var(--ring)]",
+].join(" ")
+
 export function Sidebar({
 	collapsed = false,
 	icons = true,
 	variant = "app",
+	surface = "rail",
 	className,
 	children,
 	...props
@@ -97,15 +123,18 @@ export function Sidebar({
 			<aside
 				data-collapsed={collapsed || undefined}
 				data-variant={variant}
+				data-surface={surface}
 				className={cn(
-					"shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground",
+					"shrink-0 flex-col bg-sidebar text-sidebar-foreground",
 					// The rail is its own surface. Anything placed in it that inks with
 					// page tokens — an Entity account row, an Avatar, a ghost Button,
 					// an OverflowMenu — reads the rail's set instead, so a theme can paint a
 					// dark rail on a light page (Meridian) and the footer row stays
 					// legible. Muted ink is the rail's ink at 62% over the rail, unless
 					// a theme names --sidebar-muted-foreground.
-					SIDEBAR_INK,
+					// On the page surface the rail is separated by space and its
+					// content, not a rule and a tonal step.
+					surface === "rail" ? cn("border-r border-sidebar-border", SIDEBAR_INK) : PAGE_INK,
 					SIDEBAR_VARIANT[variant],
 					"w-[var(--sidebar-width,16rem)] data-[collapsed]:w-[var(--sidebar-width-collapsed,4rem)]",
 					className,

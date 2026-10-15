@@ -1,13 +1,18 @@
+import { useState } from "react"
 import {
 	Button,
+	Entity,
+	SearchInput,
 	Sheet,
 	SheetClose,
 	SheetContent,
 	SheetDescription,
 	SheetFooter,
 	SheetHeader,
+	SheetList,
 	sheetMeta,
 	SheetTitle,
+	type SheetSnapPoint,
 	SheetTrigger,
 } from "@sableui/react"
 import {
@@ -18,6 +23,48 @@ import {
 	Section,
 	ledeFor,
 } from "../../components/docs-ui"
+
+/** Sample content (invented): enough rows that the full stop has to scroll. */
+const PLACES = [
+	["Juniper Coffee", "120 m"],
+	["Northside Books", "240 m"],
+	["Harbor Market", "350 m"],
+	["Lantern Noodle Bar", "410 m"],
+	["Cedar Park", "520 m"],
+	["The Print Room", "600 m"],
+	["Fig & Olive Deli", "680 m"],
+	["Riverside Climbing", "750 m"],
+	["Atlas Records", "820 m"],
+	["Moss Plant Studio", "900 m"],
+	["Second Spin Cycles", "1.1 km"],
+	["Quarry Swim Club", "1.3 km"],
+].map(([name, distance]) => ({ name, distance }))
+
+function SnapPointsDemo() {
+	const [stop, setStop] = useState<SheetSnapPoint | null>(0.4)
+	return (
+		<Sheet snapPoints={[0.4, 1]} snapPoint={stop} onSnapPointChange={setStop} onOpenChange={(open) => open && setStop(0.4)}>
+			<SheetTrigger render={<Button variant="secondary">Nearby</Button>} />
+			<SheetContent side="bottom">
+				<SheetHeader>
+					<SheetTitle>12 places nearby</SheetTitle>
+					<SheetDescription>Drag up for the full list.</SheetDescription>
+				</SheetHeader>
+				<SearchInput aria-label="Filter places" placeholder="Filter places" />
+				<SheetList>
+					{PLACES.map((place) => (
+						<Entity key={place.name} title={place.name} subtitle={place.distance} />
+					))}
+				</SheetList>
+				{stop !== 1 ? (
+					<Button variant="secondary" onClick={() => setStop(1)}>
+						Show all 12
+					</Button>
+				) : null}
+			</SheetContent>
+		</Sheet>
+	)
+}
 
 export function SheetPage() {
 	return (
@@ -122,6 +169,35 @@ export function SheetPage() {
 							</SheetFooter>
 						</SheetContent>
 					</Sheet>
+				</Example>
+			</Section>
+
+			<Section
+				title="Snap points"
+				description="A bottom sheet with stops: it opens at the first and a swipe moves between them, the way a map shows a few results and then the whole list. The part below the screen is padding, so the list scrolls within what you can see, and the sheet rides above the on-screen keyboard."
+			>
+				<Example
+					code={`const [stop, setStop] = useState<SheetSnapPoint | null>(0.4)
+
+<Sheet snapPoints={[0.4, 1]} snapPoint={stop} onSnapPointChange={setStop}>
+  <SheetTrigger render={<Button variant="secondary">Nearby</Button>} />
+  <SheetContent side="bottom">
+    <SheetHeader>
+      <SheetTitle>12 places nearby</SheetTitle>
+      <SheetDescription>Drag up for the full list.</SheetDescription>
+    </SheetHeader>
+    <SearchInput aria-label="Filter places" placeholder="Filter places" />
+    <SheetList>
+      {places.map((place) => (
+        <Entity key={place.id} title={place.name} subtitle={place.distance} />
+      ))}
+    </SheetList>
+    {/* The drag is never the only way: a button reaches the full stop too. */}
+    {stop !== 1 ? <Button variant="secondary" onClick={() => setStop(1)}>Show all 12</Button> : null}
+  </SheetContent>
+</Sheet>`}
+				>
+					<SnapPointsDemo />
 				</Example>
 			</Section>
 

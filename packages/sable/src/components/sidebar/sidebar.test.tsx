@@ -124,4 +124,20 @@ describe("SidebarBrand", () => {
 		expect(brand).toContainElement(screen.getByTestId("mark"))
 		expect(brand).not.toHaveTextContent("Undertow")
 	})
+
+	it("paints its own surface by default, and the page's with surface=\"page\"", () => {
+		const { container, rerender } = render(<Sidebar><SidebarNav /></Sidebar>)
+		const rail = container.querySelector("aside")!
+		expect(rail).toHaveAttribute("data-surface", "rail")
+		expect(rail.className).toContain("border-r")
+		// The rail re-points the page tokens at its own…
+		expect(rail.className).toContain("[--background:var(--sidebar)]")
+
+		rerender(<Sidebar surface="page"><SidebarNav /></Sidebar>)
+		expect(rail).toHaveAttribute("data-surface", "page")
+		expect(rail.className).not.toContain("border-r")
+		// …and on the page surface the reverse, never both (a token cycle).
+		expect(rail.className).toContain("[--sidebar:var(--background)]")
+		expect(rail.className).not.toContain("[--background:var(--sidebar)]")
+	})
 })

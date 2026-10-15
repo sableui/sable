@@ -1,11 +1,18 @@
 import {
 	Button,
+	ButtonGroup,
 	CodeBlock,
 	Collapsible,
 	CollapsibleIndicator,
 	CollapsiblePanel,
 	CollapsibleTrigger,
 	Icon,
+	Menu,
+	MenuContent,
+	MenuItem,
+	MenuLinkItem,
+	MenuSeparator,
+	MenuTrigger,
 	Note,
 	PageHeader as SablePageHeader,
 	SectionHeader,
@@ -20,11 +27,14 @@ import {
 	componentSlug,
 } from "@sableui/react"
 import type { ComponentMeta } from "@sableui/react"
-import type { ReactNode } from "react"
+import { brandIconSet } from "@sableui/react/icons/brands"
+import { type ReactNode, useContext } from "react"
 import { DESIGN_NOTES } from "../content/design-notes"
 import { CATALOG_BY_SLUG } from "../lib/catalog"
+import { markdownTwinFor } from "../lib/markdown-twins"
 import { PREVIEWS } from "../lib/previews"
-import { hrefFor } from "../lib/router"
+import site from "../site-meta.json"
+import { CurrentRouteContext, hrefFor } from "../lib/router"
 import { Playground } from "./Playground"
 
 export function PageHeader({
@@ -36,6 +46,8 @@ export function PageHeader({
 	title: string
 	lede?: string
 }) {
+	const route = useContext(CurrentRouteContext)
+	const twin = route ? markdownTwinFor(route) : null
 	return (
 		// No eyebrow: a page starts with its title (the sidebar already says
 		// where you are). `eyebrow` is accepted for compatibility and ignored.
@@ -44,12 +56,136 @@ export function PageHeader({
 		<SablePageHeader
 			title={title}
 			description={lede}
+			actions={twin ? <PageActions href={twin} /> : undefined}
 			// The lede is set on the header's own paragraph, not a span of another
 			// size inside it: two sizes in one line box make the line taller than
 			// its line height.
-			className="mb-12 max-w-(--measure-prose) gap-2 pb-0 text-body-md [&>p]:text-body-md [&>p]:text-pretty"
+			// The header spans the content column so its actions sit on the column's
+			// edge; only the lede keeps the reading measure.
+			className="mb-12 gap-2 pb-0 text-body-md [&>p]:max-w-(--measure-prose) [&>p]:text-body-md [&>p]:text-pretty"
 			data-eyebrow={eyebrow ? "" : undefined}
 		/>
+	)
+}
+
+/**
+ * Open a desktop app's deep link, falling back to its web URL.
+ *
+ * A page cannot ask which apps are installed, so this infers it: launching an
+ * app takes focus from the page, and an unregistered scheme does nothing. No
+ * blur within the window means no app, and the web URL opens instead. It is a
+ * heuristic, and it errs toward opening the web: Chrome asks "Open Claude?"
+ * the first time, and a confirm slower than the window opens both. The new tab
+ * opens after the click, inside the browser's activation window (about five
+ * seconds); if it is blocked anyway, this tab navigates rather than doing
+ * nothing.
+ */
+function openPreferringDesktop(appUrl: string, webUrl: string, waitMs = 1500) {
+	let left = false
+	const onLeave = () => {
+		left = true
+	}
+	window.addEventListener("blur", onLeave, { once: true })
+	document.addEventListener("visibilitychange", onLeave, { once: true })
+	// The probe navigates a hidden frame, never this tab: a browser that
+	// answers an unregistered scheme with an error page (Firefox) would
+	// otherwise unload the docs, and the web fallback with them.
+	const probe = document.createElement("iframe")
+	probe.hidden = true
+	probe.src = appUrl
+	document.body.append(probe)
+	window.setTimeout(() => {
+		probe.remove()
+		window.removeEventListener("blur", onLeave)
+		document.removeEventListener("visibilitychange", onLeave)
+		if (left) return
+		// Not the "noopener" feature: with it, open() returns null even on
+		// success, which reads as blocked and navigates this tab as well.
+		const tab = window.open(webUrl, "_blank")
+		if (tab) tab.opener = null
+		else window.location.href = webUrl
+	}, waitMs)
+}
+
+/** What a new Sable app runs first; the menu hands it over with the page. */
+const SETUP_COMMAND = "pnpm add @sableui/react && pnpm exec sable init"
+
+/**
+ * The page, handed to an agent: copy it as markdown, open the file, or start a
+ * chat that reads it. A split button, so the common action is one click and
+ * the rest sit one click behind the chevron.
+ *
+ * The file is fetched on click, not on every page view; `useCopy` hands the
+ * pending text to the clipboard inside the click. A dev server answers a
+ * missing file with the app's HTML, so anything that is not markdown fails the
+ * copy rather than putting a page of HTML on the clipboard.
+ *
+ * The chat links name the public URL, never this tab's origin: an assistant
+ * cannot read a localhost page, and the published twin is the same file.
+ */
+function PageActions({ href }: { href: string }) {
+	const { copy, copied } = useCopy(() =>
+		fetch(href).then((response) =>
+			response.ok && !response.headers.get("content-type")?.includes("text/html")
+				? response.text()
+				: Promise.reject(new Error(`${href}: ${response.status}`)),
+		),
+	)
+	const setup = useCopy(SETUP_COMMAND)
+	const ask = encodeURIComponent(`Read ${site.origin.replace(/\/+$/, "")}${href} so I can ask questions about it.`)
+	const claudeMark = brandIconSet({ name: "claude", variant: "brands", title: "" })
+	return (
+		<ButtonGroup aria-label="Page actions">
+			<Button variant="outline" size="sm" iconStart={<Icon name={copied ? "check" : "copy"} />} onClick={copy}>
+				{copied ? "Copied" : "Copy page"}
+			</Button>
+			<Menu>
+				<MenuTrigger render={<Button variant="outline" size="icon-sm" aria-label="More page actions" />}>
+					<Icon name="chevron-down" />
+				</MenuTrigger>
+				<MenuContent align="end" className="w-80">
+					<MenuItem icon={<Icon name="copy" />} description="Copy page as Markdown for LLMs" onClick={copy}>
+						Copy page
+					</MenuItem>
+					<MenuLinkItem icon={<Icon name="file" />} description="View this page as plain text" href={href} target="_blank">
+						View as Markdown
+					</MenuLinkItem>
+					<MenuSeparator />
+					<MenuLinkItem
+						icon={<Icon name="comment" />}
+						description="Ask questions about this page"
+						href={`https://chatgpt.com/?hints=search&q=${ask}`}
+						target="_blank"
+					>
+						Open in ChatGPT
+					</MenuLinkItem>
+					<MenuLinkItem
+						icon={claudeMark}
+						description="Ask questions about this page"
+						href={`https://claude.ai/new?q=${ask}`}
+						target="_blank"
+						onClick={(event) => {
+							// A plain click tries the desktop app first; a modified click
+							// (new tab, new window) is the user choosing the web, so it
+							// stays an ordinary link.
+							if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+							event.preventDefault()
+							openPreferringDesktop(`claude://claude.ai/new?q=${ask}`, `https://claude.ai/new?q=${ask}`)
+						}}
+					>
+						Open in Claude
+					</MenuLinkItem>
+					<MenuSeparator />
+					<MenuItem
+						icon={<Icon name={setup.copied ? "check" : "download"} />}
+						description="Install Sable and connect your agent"
+						onClick={setup.copy}
+					>
+						Copy setup command
+					</MenuItem>
+				</MenuContent>
+			</Menu>
+		</ButtonGroup>
 	)
 }
 

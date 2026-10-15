@@ -1,6 +1,6 @@
 ---
 name: sable
-description: Build original websites and apps with Sable, turn inspiration into reusable presets, audit existing interfaces, and polish a selected design. Use for Sable design and UI work, not unrelated backend tasks.
+description: Build original websites and apps with Sable, turn inspiration into reusable presets, audit existing interfaces, polish a selected design, and fix a scoped defect on a short path. Use for Sable design and UI work, not unrelated backend tasks.
 ---
 
 # Sable
@@ -9,7 +9,27 @@ Build the user's idea with the installed Sable library. The product brief determ
 content, structure, and behavior; a preset supplies theme values and design guidance.
 References inform an original direction. A reference or preset is optional.
 
-## Finish checklist — before you call any build, repair, or polish done
+## Fix: the short path
+
+A `fix` is a scoped change to UI that already uses Sable: a wrong prop or variant,
+a lint or doctor finding, a broken state, one control swapped for the right one.
+It needs this section and the CLI from "Resolve and set up the installed library";
+skip the manifest, the design guides, and the finish checklist below.
+
+1. Read only what the change touches: `sable component <Name> --props`, the
+   example you need (`sable search "<need>"` finds it), `sable token <group>` or
+   `sable utility <name>` for a styling question, and `sable docs <foundation>`
+   only when the fix is about type, spacing, motion, or accessibility.
+2. Change the smallest amount of code that fixes it. A defect inside a Sable
+   component is patched, not restyled (see the end of this file).
+3. Run `sable check <changed paths>` and the project's own build and type checks,
+   then look at the affected state rendered, in every colour mode the app ships.
+
+Escalate to `polish` and its finish checklist when the change moves layout or
+hierarchy, touches a signature surface, spans more than one screen or flow, or
+the check turns up more than the fix. Say that you escalated, and why.
+
+## Finish checklist — before you call any build or polish done
 
 1. Run `sable check <source paths>` (default `src`). It runs `sable doctor`,
    `sable lint`, and `sable grade` and exits 1 if any fails. Repair the findings
@@ -51,9 +71,10 @@ These are agent skill modes, not shell commands. Use `$sable` in Codex and
 | `inspire <references or description>` | Study the inspiration, develop a direction, and save a previewable, editable preset. Stop before a full product build. |
 | `audit <existing interface>` | Inspect existing work and report prioritized design, behavior, accessibility, and Sable-contract findings. Apply repairs only when requested. |
 | `polish <target or instruction>` | Improve the current product or preset while preserving its selected direction, then verify affected states. |
+| `fix <target or finding>` | Repair one scoped defect in existing Sable UI on the short path at the top of this file, escalating to `polish` when it grows. |
 
 `create` is an alias for `build`. A bare new-product brief means `build`; an editing
-follow-up means `polish`. A request for direction only stops before implementation.
+follow-up means `polish`, unless it names one defect, which is a `fix`. A request for direction only stops before implementation.
 “Show alternatives” produces bounded rendered studies and stops at comparison when
 the user reserves the choice. Explore only when requested or when competing choices
 materially affect the brief; do not require three designs for every build.
@@ -140,7 +161,7 @@ Before UI code, run `sable manifest --json`, read `sable docs building-with-sabl
 foundations through `sable docs typography|spacing|shape|surfaces|motion|scrolling|accessibility`.
 The installed catalog and guides are authoritative for API and token names.
 
-**Required for every build and UI repair:**
+**Required for every build and polish:**
 
 1. Search the installed catalog for every recognizable element or behavior:
    `sable search "<need>" --json`. Inspect the matching
@@ -251,7 +272,7 @@ contract violations, design judgments, intentional choices, and verified library
 gaps. A visual-only review leaves code and unobserved behavior untested. For
 `polish`, reuse the existing direction and inspect the affected product or preset.
 
-Every build ends with the finish checklist at the top of this skill. Notes on it:
+Every build and polish ends with the finish checklist near the top of this skill. Notes on it:
 
 - `sable check` gives one combined result; while iterating, `sable lint <paths> --json`,
   `sable doctor`, and `sable grade <paths>` run the parts separately.

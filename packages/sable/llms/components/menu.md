@@ -35,7 +35,8 @@ Use Menu for a compact list of actions opened from a visible trigger.
 | --- | --- | --- |
 | MenuTrigger | Base UI Menu.Trigger props + render | The button that opens the menu. Compose with render={<Button … />}. |
 | MenuContent | Base UI Popup props + side: 'top' \| 'right' \| 'bottom' \| 'left' + align: 'start' \| 'center' \| 'end' + sideOffset: number + className | Portal + Positioner + Popup. side picks which side of the trigger the popup renders against (auto-flips on collision; defaults to 'bottom'); align sets alignment along that side (defaults to 'start'); sideOffset is the gap in px between trigger and popup (defaults to 6). |
-| MenuItem | Base UI Menu.Item props + className (disabled, closeOnClick, onClick) + variant?: "default" \| "destructive" | An interactive row. Highlights via data-[highlighted]; dims via data-[disabled]. variant="destructive" for a delete or irreversible action: it keeps the destructive ink when highlighted (never className="text-destructive", which the highlight repaints). |
+| MenuItem | Base UI Menu.Item props + className (disabled, closeOnClick, onClick) + variant?: "default" \| "destructive" + icon?: ReactNode + description?: ReactNode | An interactive row. Highlights via data-[highlighted]; dims via data-[disabled]. variant="destructive" for a delete or irreversible action: it keeps the destructive ink when highlighted (never className="text-destructive", which the highlight repaints). `icon` leads the row; `description` adds a quieter second line saying what the action does, and the icon then sits in a small tile spanning both lines. |
+| MenuLinkItem | Base UI Menu.LinkItem props (href, target, closeOnClick) + className + icon?: ReactNode + description?: ReactNode | A row that navigates: a real <a>, so it opens in a new tab, middle-clicks and copies as a link. With target="_blank" it adds rel="noopener noreferrer" and a trailing ↗. Takes icon and description like MenuItem. |
 | MenuSeparator | Base UI Separator props + className | Hairline rule between item runs. |
 | MenuSubmenu | Base UI Menu.SubmenuRoot props | A nested menu. Wraps a MenuSubmenuTrigger and its own MenuContent — pass side="inline-end" to that content so the submenu opens away from its parent in RTL as well as LTR. |
 | MenuSubmenuTrigger | Base UI Menu.SubmenuTrigger props + value: ReactNode + className | The row that opens a submenu: item styling, a trailing chevron, and an optional `value` showing the current choice so the row reads "Effort  High ›" rather than making the reader open it to find out. |
@@ -103,6 +104,20 @@ import { Button, Menu, MenuContent, MenuItem, MenuRadioGroup, MenuRadioItem, Men
 				</MenuRadioGroup>
 			</MenuContent>
 		</MenuSubmenu>
+	</MenuContent>
+</Menu>
+```
+
+### Rows with icons and descriptions, and links
+
+```tsx
+import { Button, Icon, Menu, MenuContent, MenuItem, MenuLinkItem, MenuTrigger } from "@sableui/react"
+
+<Menu>
+	<MenuTrigger render={<Button variant="outline" size="sm">Share</Button>} />
+	<MenuContent align="end">
+		<MenuItem icon={<Icon name="copy" />} description="Copy page as Markdown for LLMs" onClick={copy}>Copy page</MenuItem>
+		<MenuLinkItem icon={<Icon name="file" />} description="View this page as plain text" href={markdownUrl} target="_blank">View as Markdown</MenuLinkItem>
 	</MenuContent>
 </Menu>
 ```

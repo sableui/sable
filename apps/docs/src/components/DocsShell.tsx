@@ -24,7 +24,7 @@ import { type ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import { CATALOG_BY_SLUG, SEARCH_DOCS } from "../lib/catalog"
 import { SableLogo } from "./SableLogo"
 import { GitHubLink } from "./GitHubLink"
-import { hrefFor, navigate } from "../lib/router"
+import { CurrentRouteContext, hrefFor, navigate } from "../lib/router"
 import { makeDocsFilter } from "../lib/search"
 import { Inspector } from "../customizer/Inspector"
 import { useCustomizer } from "../customizer/CustomizerProvider"
@@ -436,13 +436,10 @@ export function DocsShell({
 				 * under the top bar. Offsetting both the stick point and the height by
 				 * the nav height is the whole coupling between the two.
 				 */
-				// Borderless and on the page's own surface: the rail is separated by
-				// space and its content, not by a rule and a tonal step.
-				// Because the rail sits on the PAGE surface, its items use the content
-				// tokens. Sidebar tokens assume the sidebar's own surface — on a
-				// preset with a dark sidebar (Meridian) they rendered near-white ink
-				// on the light page.
-				<Sidebar className="border-r-0 bg-background text-foreground lg:top-[var(--nav-height,56px)] lg:h-[calc(100vh-var(--nav-height,56px))]">
+				// On the page's own surface: a preset's tinted or dark rail (Verdant,
+				// Meridian) is for a full-height rail, and starting it under the
+				// full-width top bar read as a pasted-on column.
+				<Sidebar surface="page" className="lg:top-[var(--nav-height,56px)] lg:h-[calc(100vh-var(--nav-height,56px))]">
 					<SidebarNav>
 						<DocsNav
 							sections={sections}
@@ -480,12 +477,14 @@ export function DocsShell({
 				style={{ transitionProperty: "padding" }}
 			>
 				{bare ? (
-					<div key={current} ref={routeContent}>{children}</div>
+					<div key={current} ref={routeContent}>
+						<CurrentRouteContext.Provider value={current}>{children}</CurrentRouteContext.Provider>
+					</div>
 				) : (
 					<Region max={max} className="box-border py-10 lg:py-14">
 						{/* Re-keyed per route so each navigation plays a soft entrance. */}
 						<div key={current} ref={routeContent} className="animate-fade-up">
-							{children}
+							<CurrentRouteContext.Provider value={current}>{children}</CurrentRouteContext.Provider>
 						</div>
 					</Region>
 				)}

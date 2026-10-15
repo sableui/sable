@@ -1,9 +1,12 @@
 import {
+	Button,
 	OverflowMenu,
 	overflowMenuMeta,
 	Icon,
 	MenuItem,
 	MenuSeparator,
+	Row,
+	Stack,
 } from "@sableui/react"
 import {
 	Example,
@@ -12,6 +15,41 @@ import {
 	Section,
 	ledeFor,
 } from "../../components/docs-ui"
+
+/**
+ * Secondary actions inline when the container is wide, in an OverflowMenu
+ * when it is narrow; the primary action stays inline at every width. Both
+ * copies are rendered and one is display:none, which also takes it out of the
+ * accessibility tree, so only one set is ever announced.
+ */
+function ReportActions() {
+	return (
+		<div className="@container/actions flex w-full justify-end">
+			<Row gap={1} align="center">
+				{/* Row sets its display inline, so a wrapper does the hiding. */}
+				<div className="hidden @md/actions:block">
+					<Row gap={1}>
+						<Button variant="ghost" size="sm" iconStart={<Icon name="share" />}>
+							Share
+						</Button>
+						<Button variant="ghost" size="sm" iconStart={<Icon name="download" />}>
+							Export
+						</Button>
+					</Row>
+				</div>
+				<div className="@md/actions:hidden">
+					<OverflowMenu label="Report actions" size="icon-sm">
+						<MenuItem icon={<Icon name="share" />}>Share</MenuItem>
+						<MenuItem icon={<Icon name="download" />}>Export</MenuItem>
+					</OverflowMenu>
+				</div>
+				<Button size="sm" iconStart={<Icon name="edit" />}>
+					Edit report
+				</Button>
+			</Row>
+		</div>
+	)
+}
 
 export function OverflowMenuPage() {
 	return (
@@ -121,6 +159,22 @@ export function OverflowMenuPage() {
 						<MenuItem>Edit</MenuItem>
 						<MenuItem>Share</MenuItem>
 					</OverflowMenu>
+				</Example>
+			</Section>
+
+			<Section
+				title="Responsive actions"
+				description="Secondary actions sit inline while there is room and fold into the menu when there is not. A container query decides, so it follows the space the actions have, not the window. The primary action never folds."
+			>
+				<Example
+					code={'<div className="@container/actions flex w-full justify-end">\n\t<Row gap={1} align="center">\n\t\t<div className="hidden @md/actions:block">\n\t\t\t<Row gap={1}>\n\t\t\t\t<Button variant="ghost" size="sm" iconStart={<Icon name="share" />}>Share</Button>\n\t\t\t\t<Button variant="ghost" size="sm" iconStart={<Icon name="download" />}>Export</Button>\n\t\t\t</Row>\n\t\t</div>\n\t\t<div className="@md/actions:hidden">\n\t\t\t<OverflowMenu label="Report actions" size="icon-sm">\n\t\t\t\t<MenuItem icon={<Icon name="share" />}>Share</MenuItem>\n\t\t\t\t<MenuItem icon={<Icon name="download" />}>Export</MenuItem>\n\t\t\t</OverflowMenu>\n\t\t</div>\n\t\t<Button size="sm" iconStart={<Icon name="edit" />}>Edit report</Button>\n\t</Row>\n</div>'}
+				>
+					<Stack gap={6} className="w-full">
+						<ReportActions />
+						<div className="w-full max-w-64 self-end">
+							<ReportActions />
+						</div>
+					</Stack>
 				</Example>
 			</Section>
 
