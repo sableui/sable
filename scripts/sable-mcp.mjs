@@ -130,8 +130,8 @@ async function callTool(name, args) {
 
 let packument = { at: 0, data: null }
 
-async function published() {
-	if (packument.data && Date.now() - packument.at < PACKUMENT_TTL_MS) return packument.data
+async function published({ fresh = false } = {}) {
+	if (!fresh && packument.data && Date.now() - packument.at < PACKUMENT_TTL_MS) return packument.data
 	const res = await fetch(PACKUMENT_URL, { headers: { accept: "application/vnd.npm.install-v1+json" } })
 	if (!res.ok) throw new Error(`npm answered ${res.status} for ${PACKAGE}`)
 	packument = { at: Date.now(), data: await res.json() }
@@ -139,15 +139,19 @@ async function published() {
 }
 
 async function resolveVersion(requested) {
-	const data = await published()
-	const latest = data["dist-tags"]?.latest
+	let data = await published()
 	// A package.json range ("^0.12.0") names the version the caller means.
-	const wanted = requested === undefined || requested === "latest" ? latest : String(requested).trim().replace(/^[\^~=v]+/, "")
-	if (!data.versions?.[wanted]) {
+	const wanted = requested === undefined || requested === "latest" ? undefined : String(requested).trim().replace(/^[\^~=v]+/, "")
+	// A version newer than the cached list is usually one just published: look again before saying no,
+	// at most every 30 seconds, so a stream of bad versions can't turn into a stream of npm requests.
+	if (wanted && !data.versions?.[wanted] && Date.now() - packument.at > 30_000) data = await published({ fresh: true })
+	const latest = data["dist-tags"]?.latest
+	const version = wanted ?? latest
+	if (!data.versions?.[version]) {
 		const recent = Object.keys(data.versions ?? {}).slice(-5).reverse()
 		throw new ToolError(`${PACKAGE} has no published version "${requested}". Recent versions: ${recent.join(", ")}.`)
 	}
-	return { version: wanted, latest }
+	return { version, latest }
 }
 
 /* ── One extracted package per version, cached for the life of the instance. ── */
