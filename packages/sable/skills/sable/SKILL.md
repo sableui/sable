@@ -110,11 +110,18 @@ The registry's parent is the package root; read its `AGENTS.md` (`sable docs AGE
 `packages/sable/registry.json`. Below, `sable` means this resolved CLI invoked with
 the target project as its working directory. Never fetch an unrelated public
 package with bare `npx sable`, or invent shell `build`, `inspire`, or `audit` commands.
+If the session also has Sable's MCP tools (`search`, `get`, `docs` from
+sableui.com/api/mcp), they serve the same contract. Use them only until the
+package is installed, then use the CLI.
 
 If Sable is absent, read the trusted repository or package README's install recipe
 and registry `consume` block. Install from npm with the project's package
 manager, for example `pnpm add @sableui/react`; no registry setup or token is
-needed. Do not substitute an unrelated package with a similar name.
+needed. Do not substitute an unrelated package with a similar name. Then run
+`sable init` from the app root: it installs what is missing, wires the bundler,
+CSS, fonts and `IconProvider`, installs these skill entries, and runs `sable
+doctor`. Apply any snippet it prints for a file it could not change safely (a
+Next.js layout, an unfamiliar config). `--dry-run` previews every change.
 
 A project that already has a router, data layer or form library keeps it: Sable
 depends on none, and its links, menus and nav take any router's link through
@@ -125,7 +132,9 @@ for server data, **TanStack Form** when a form needs validation logic, and
 tables-with-tanstack`). Say so in the brief, and use something else only when the
 user or the product asks for it.
 
-Complete setup before implementing UI:
+Complete setup before implementing UI. `sable init` covers these on a fresh
+install and `sable doctor --fix` on an app that is already wired; confirm each
+rather than redoing it:
 
 - Match the installed package's React, React DOM, Tailwind, and Node requirements.
 - Dedupe React in the bundler. Import Tailwind, then Sable's stylesheet; add the
@@ -140,8 +149,8 @@ Complete setup before implementing UI:
 - Run `sable doctor`, repair wiring issues, and verify the app renders a real
   Sable component. Reuse an existing app server; never start duplicate instances.
 
-Run `sable setup --agent` once from the project root to install discoverable entry
-files for Codex/Cursor and Claude Code. `--target codex|claude|cursor|all` selects
+`sable init` installs the discoverable entry files for Codex/Cursor and Claude
+Code; in an app wired by hand, run `sable setup --agent` once from the project root. `--target codex|claude|cursor|all` selects
 hosts. For Claude Code, setup also prints a Stop hook that runs `sable check`
 before a task can end; it writes that hook to `.claude/settings.json` only with
 `--hook`, so add it only when the user wants it. The hook is one plain command

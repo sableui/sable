@@ -21,9 +21,11 @@ The structured, machine-readable install recipe is the **`consume` block in [`pa
 Quick version:
 
 1. **Install:** `pnpm add @sableui/react`.
-2. **Wire it up:** dedupe React in the bundler; `@import "tailwindcss";` then `@import "@sableui/react/styles.css";` then an `@source` glob over the package's `dist`; load Figtree + DM Mono; wrap the app once in `<IconProvider set={reiconIconSet}>` (`reiconIconSet` from `@sableui/react/icons/reicon`, or your own set — required: without a provider icons render nothing), optionally in `<MotionProvider>`; toggle the `dark` class on `<html>` for dark-by-default.
+2. **Wire it up:** `pnpm exec sable init` from the app root (never bare `npx sable` before the install — that fetches an unrelated package). It installs what is missing (React, Tailwind and its build plugin), puts the CSS imports in order, adds React dedupe and the Tailwind plugin, loads Figtree + DM Mono, mounts `IconProvider` in a Vite starter, installs the agent skill, then runs `sable doctor`. What it can't change safely — a Next.js layout, an unfamiliar config — it prints as a snippet with the file it belongs in. `--dry-run` previews every change; an app that is already wired uses `sable doctor --fix`.
 
-Full walkthrough: [`packages/sable/README.md`](./packages/sable/README.md). The post-install steps (3) are also self-describing from the installed package's own `AGENTS.md` / `registry.json`.
+What `init` does, for doing it by hand or checking its work: dedupe React in the bundler; `@import "tailwindcss";` then `@import "@sableui/react/styles.css";` then an `@source` glob over the package's `dist`; load Figtree + DM Mono; wrap the app once in `<IconProvider set={reiconIconSet}>` (`reiconIconSet` from `@sableui/react/icons/reicon`, or your own set — required: without a provider icons render nothing), optionally in `<MotionProvider>`; toggle the `dark` class on `<html>` for dark-by-default.
+
+Full walkthrough: [`packages/sable/README.md`](./packages/sable/README.md). The installed package's own `AGENTS.md` / `registry.json` describe the same steps.
 
 ## To CONTRIBUTE to the library
 

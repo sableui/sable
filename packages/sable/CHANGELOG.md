@@ -1,5 +1,24 @@
 # What's new
 
+## 0.13.1
+
+Sable from any agent, and setup that starts with `sable init` everywhere an agent looks first.
+
+- **New: a hosted MCP server at `https://www.sableui.com/api/mcp`.** Three
+  tools, `search`, `get` and `docs`, give the same answers as the `sable`
+  CLI, with nothing installed first. Pass `version` to match the version a
+  project has installed; each answer comes from that version's own published
+  CLI. Add it with `claude mcp add --transport http sable
+  https://www.sableui.com/api/mcp` (Cursor, VS Code and Codex take the same
+  URL). Once Sable is installed, the CLI stays the default: it's offline and
+  always matches node_modules.
+- **The agent entry points lead with `sable init`.** `llms.txt` and the Sable
+  skill now install with `pnpm add @sableui/react` and then `pnpm exec sable
+  init`, and keep the manual steps as what `init` does. Before, they listed
+  the manual wiring only, so agents did by hand what one command does.
+- **Fixed: `llms.txt` called `IconProvider` optional.** It's required for
+  icons. Without it every `<Icon>` renders nothing.
+
 ## 0.13.0
 
 Tone scales that keep their steps apart, whatever the tone.

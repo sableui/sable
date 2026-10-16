@@ -12,14 +12,17 @@
  * Why this exists: `registry.json` is 780KB and `llms-full.txt` is 550KB. Both
  * are complete and both are unreadable in a working context window, so in
  * practice an agent greps them, or skips them and writes what its training data
- * suggests — which for a private library is nothing. The contract being
+ * suggests — which for a library this new is nothing. The contract being
  * published is not the same as the contract being read.
  *
  * So the same generated artifacts get a retrieval surface: ask for one
  * component, one pattern, one token group, at one of three detail levels. It
  * runs from `node_modules`, offline, and it is versioned with the package it
- * describes — a hosted docs site can drift from your installed version, and an
- * MCP endpoint cannot serve a private package to a machine that has no token.
+ * describes, so it can't drift from your installed version. The hosted MCP
+ * server (sableui.com/api/mcp, scripts/sable-mcp.mjs in the repo) answers from
+ * this same file, run out of the published tarball of whichever version the
+ * caller names, so the two can't disagree. The CLI stays the default because
+ * it needs no network.
  *
  * Three rules this file keeps:
  *   1. **Everything is derivable.** `--json` emits `{ type, data }` with a

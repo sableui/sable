@@ -219,6 +219,12 @@ Use `$sable build <idea>`, `inspire <references>`, `audit <target>`, or
 `polish <target>` in Codex; use `/sable` with the same modes in Claude Code or
 Cursor. `create` is a build alias. These are agent modes, not shell commands.
 
+To look Sable up before installing it, or if you prefer MCP, add the hosted
+server: `claude mcp add --transport http sable https://www.sableui.com/api/mcp`
+(Cursor, VS Code and Codex take the same URL). Its three tools, `search`, `get`
+and `docs`, give the CLI's answers from the published package, at the version
+the agent passes or the latest. Once Sable is installed, the CLI is the default.
+
 Upgrade with `pnpm update @sableui/react --latest`, then
 `pnpm exec sable setup --agent --update`. Setup only replaces managed files
 that have not been locally edited; `--dry-run` checks without writing. Keep

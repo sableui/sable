@@ -28,5 +28,9 @@ export function BuildWithSablePage() {
 			<p className="mt-4 text-body-md text-muted-foreground">Every build must retrieve Sable's component contracts, use its supported variants and tokens, run design lint, and inspect the working result. Your agent should report a library gap instead of recreating an available control, and is free to design its own layouts from Sable's parts.</p>
 			<Button className="mt-4" variant="secondary" render={<a href={hrefFor("getting-started")} />}>Install and set up</Button>
 		</Section>
+		<Section title="Look Sable up from any agent" description="Sable's MCP server answers the same component, block, pattern and guide lookups as the CLI, with nothing installed first. Your agent can pass the version your project uses, so the answers match it.">
+			<CodeBlock code="claude mcp add --transport http sable https://www.sableui.com/api/mcp" />
+			<p className="mt-4 text-body-md text-muted-foreground">Cursor, VS Code and Codex take the same URL in their MCP settings. Once Sable is installed, the CLI in the package is the quicker path: it works offline and always matches your version.</p>
+		</Section>
 	</>
 }
