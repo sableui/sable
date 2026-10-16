@@ -25,6 +25,7 @@ export const spinnerMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Do not use Spinner as the only content for long waits or full page loading.",
+				instead: ["Skeleton", "PageLoader"],
 			},
 			{
 				guidance: "dont",

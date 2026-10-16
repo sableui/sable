@@ -15,7 +15,7 @@ Use Toggle for button-like controls that can be pressed on or off within a toolb
 - Do: Use it for transient UI modes such as bold, preview, pin, or favorite.
 - Do: Make the pressed state visually and programmatically clear.
 - Do: Use ToggleGroup appearance="segmented" for a single-select view switch (List / Grid). It is the same capsule ThemeSwitcher wears — do not hand-build a track around a row of toggles.
-- Don't: Do not use Toggle for persistent application settings; use Switch.
+- Don't: Do not use Toggle for persistent application settings; use Switch. → use **Switch**
 - Don't: Do not leave an icon-only Toggle without an accessible name. It announces as "button, pressed", which tells a screen-reader user the state but never what the state applies to.
 
 ### Anatomy

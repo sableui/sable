@@ -2706,7 +2706,10 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not nest an Accordion inside an Accordion. Two layers of roving focus fight each other, and the arrow keys become ambiguous — flatten the hierarchy or use a Tree."
+            "description": "Do not nest an Accordion inside an Accordion. Two layers of roving focus fight each other, and the arrow keys become ambiguous — flatten the hierarchy or use a Tree.",
+            "instead": [
+              "Tree"
+            ]
           }
         ],
         "anatomy": [
@@ -3819,7 +3822,11 @@
           },
           {
             "guidance": "dont",
-            "description": "Use a Badge as a button. If it triggers an action, use Button, Toggle, or a menu item."
+            "description": "Use a Badge as a button. If it triggers an action, use Button, Toggle, or a menu item.",
+            "instead": [
+              "Button",
+              "Toggle"
+            ]
           },
           {
             "guidance": "do",
@@ -4047,11 +4054,18 @@
           },
           {
             "guidance": "dont",
-            "description": "Use Banner for field-level validation, row status, or small local hints; use Field, InlineStatus, or Badge instead."
+            "description": "Use Banner for field-level validation, row status, or small local hints; use Field, InlineStatus, or Badge instead.",
+            "instead": [
+              "InlineStatus",
+              "Badge"
+            ]
           },
           {
             "guidance": "dont",
-            "description": "Use Banner inside a dialog, a form, or a section to qualify the content around it — that is Note. Banner is a full-width announcement strip for page- or app-level state, so in a modal it reads as a slab heavier than the fields it warns about, and its soft appearance has no border and no tone-colored icon: the severity survives only as a faint wash."
+            "description": "Use Banner inside a dialog, a form, or a section to qualify the content around it — that is Note. Banner is a full-width announcement strip for page- or app-level state, so in a modal it reads as a slab heavier than the fields it warns about, and its soft appearance has no border and no tone-colored icon: the severity survives only as a faint wash.",
+            "instead": [
+              "Note"
+            ]
           }
         ],
         "anatomy": [
@@ -5282,7 +5296,10 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not use it for a selection that stays on. That is ToggleGroup, which carries the pressed state."
+            "description": "Do not use it for a selection that stays on. That is ToggleGroup, which carries the pressed state.",
+            "instead": [
+              "ToggleGroup"
+            ]
           }
         ]
       },
@@ -6317,7 +6334,11 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not use Checkbox for mutually exclusive choices; use Radio or Select instead."
+            "description": "Do not use Checkbox for mutually exclusive choices; use Radio or Select instead.",
+            "instead": [
+              "Radio",
+              "Select"
+            ]
           },
           {
             "guidance": "dont",
@@ -6804,7 +6825,11 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not use Collapsible for multi-section navigation; use Accordion or Tabs instead."
+            "description": "Do not use Collapsible for multi-section navigation; use Accordion or Tabs instead.",
+            "instead": [
+              "Accordion",
+              "Tabs"
+            ]
           },
           {
             "guidance": "dont",
@@ -7078,7 +7103,11 @@
           },
           {
             "guidance": "dont",
-            "description": "Use Combobox for tiny option sets where Select or Radio would be easier to scan."
+            "description": "Use Combobox for tiny option sets where Select or Radio would be easier to scan.",
+            "instead": [
+              "Select",
+              "Radio"
+            ]
           },
           {
             "guidance": "do",
@@ -7090,7 +7119,10 @@
           },
           {
             "guidance": "dont",
-            "description": "Use Combobox as a command launcher. Use CommandMenu for actions and navigation."
+            "description": "Use Combobox as a command launcher. Use CommandMenu for actions and navigation.",
+            "instead": [
+              "CommandMenu"
+            ]
           },
           {
             "guidance": "dont",
@@ -7332,7 +7364,10 @@
           },
           {
             "guidance": "dont",
-            "description": "Hand-style a <button> to look like a search field, or put a SearchInput in the header that opens a dialog when focused. The first drifts from the field it imitates; the second is a text box you cannot type in. A header search that opens the palette is CommandMenuTrigger."
+            "description": "Hand-style a <button> to look like a search field, or put a SearchInput in the header that opens a dialog when focused. The first drifts from the field it imitates; the second is a text box you cannot type in. A header search that opens the palette is CommandMenuTrigger.",
+            "instead": [
+              "CommandMenuTrigger"
+            ]
           },
           {
             "guidance": "do",
@@ -7348,7 +7383,12 @@
           },
           {
             "guidance": "dont",
-            "description": "Use CommandMenu as a replacement for every dropdown. Simple choices belong in Select, Menu, or Tabs."
+            "description": "Use CommandMenu as a replacement for every dropdown. Simple choices belong in Select, Menu, or Tabs.",
+            "instead": [
+              "Select",
+              "Menu",
+              "Tabs"
+            ]
           },
           {
             "guidance": "do",
@@ -7368,7 +7408,10 @@
           },
           {
             "guidance": "dont",
-            "description": "Hand-build a palette mock from a search glyph, a row of buttons and a highlight. That is CommandMenuPanel, and the hand-built one has no combobox, no filtering and no keyboard model."
+            "description": "Hand-build a palette mock from a search glyph, a row of buttons and a highlight. That is CommandMenuPanel, and the hand-built one has no combobox, no filtering and no keyboard model.",
+            "instead": [
+              "CommandMenuPanel"
+            ]
           },
           {
             "guidance": "dont",
@@ -7625,7 +7668,10 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not open it on click. It is a hover/focus preview; making it click-triggered gives you a Popover with no dismiss affordance and no way to reach the content it previews."
+            "description": "Do not open it on click. It is a hover/focus preview; making it click-triggered gives you a Popover with no dismiss affordance and no way to reach the content it previews.",
+            "instead": [
+              "Popover"
+            ]
           }
         ],
         "anatomy": [
@@ -8504,7 +8550,10 @@
           },
           {
             "guidance": "dont",
-            "description": "Put large multipage workflows in a centered dialog. Use Sheet or a page route when the task needs space."
+            "description": "Put large multipage workflows in a centered dialog. Use Sheet or a page route when the task needs space.",
+            "instead": [
+              "Sheet"
+            ]
           },
           {
             "guidance": "do",
@@ -8512,7 +8561,10 @@
           },
           {
             "guidance": "dont",
-            "description": "Use size=\"fullscreen\" for forms, confirmations, or anything that isn't media. A dialog that happens to need room is a Sheet or a page; the fullscreen affordances (dark scrim, corner close, centred content) all assume something to look at."
+            "description": "Use size=\"fullscreen\" for forms, confirmations, or anything that isn't media. A dialog that happens to need room is a Sheet or a page; the fullscreen affordances (dark scrim, corner close, centred content) all assume something to look at.",
+            "instead": [
+              "Sheet"
+            ]
           },
           {
             "guidance": "dont",
@@ -8520,7 +8572,12 @@
           },
           {
             "guidance": "dont",
-            "description": "Open a dialog for passive status updates. Use Toast, Banner, or InlineStatus instead."
+            "description": "Open a dialog for passive status updates. Use Toast, Banner, or InlineStatus instead.",
+            "instead": [
+              "Toast",
+              "Banner",
+              "InlineStatus"
+            ]
           },
           {
             "guidance": "do",
@@ -8770,7 +8827,10 @@
           },
           {
             "guidance": "dont",
-            "description": "Use it in a page-register form. A form field that pushes the form down on open reads as a layout jump; that is Select's job."
+            "description": "Use it in a page-register form. A form field that pushes the form down on open reads as a layout jump; that is Select's job.",
+            "instead": [
+              "Select"
+            ]
           },
           {
             "guidance": "dont",
@@ -10424,7 +10484,10 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not use InlineStatus for global announcements or page-level alerts."
+            "description": "Do not use InlineStatus for global announcements or page-level alerts.",
+            "instead": [
+              "Banner"
+            ]
           },
           {
             "guidance": "dont",
@@ -11966,7 +12029,10 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not build a Select out of it. A menu fires actions and has no value; a Select holds one and reports changes. Swapping them loses form semantics and keyboard type-ahead."
+            "description": "Do not build a Select out of it. A menu fires actions and has no value; a Select holds one and reports changes. Swapping them loses form semantics and keyboard type-ahead.",
+            "instead": [
+              "Select"
+            ]
           },
           {
             "guidance": "do",
@@ -12162,7 +12228,10 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not use a menubar for site navigation. Its items are commands in menus (role=menuitem), not links between pages."
+            "description": "Do not use a menubar for site navigation. Its items are commands in menus (role=menuitem), not links between pages.",
+            "instead": [
+              "NavigationMenu"
+            ]
           }
         ],
         "anatomy": [
@@ -12654,7 +12723,10 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not use Meter for a task in flight — an upload, an install, a step count. That is Progress; Meter tells assistive tech nothing is happening."
+            "description": "Do not use Meter for a task in flight — an upload, an install, a step count. That is Progress; Meter tells assistive tech nothing is happening.",
+            "instead": [
+              "Progress"
+            ]
           },
           {
             "guidance": "dont",
@@ -13169,7 +13241,10 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not use Note for state the whole page or app is in (an outage, an offline session, a blocked account) — that is Banner — or for a message tied to one field, which is the field's own error text."
+            "description": "Do not use Note for state the whole page or app is in (an outage, an offline session, a blocked account) — that is Banner — or for a message tied to one field, which is the field's own error text.",
+            "instead": [
+              "Banner"
+            ]
           },
           {
             "guidance": "dont",
@@ -13936,7 +14011,12 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not use PageLoader for small inline waits; use Spinner, an indeterminate Progress, or Skeleton."
+            "description": "Do not use PageLoader for small inline waits; use Spinner, an indeterminate Progress, or Skeleton.",
+            "instead": [
+              "Spinner",
+              "Progress",
+              "Skeleton"
+            ]
           },
           {
             "guidance": "dont",
@@ -14768,7 +14848,10 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not use Pill as a static label. A pressable-looking chip that does nothing is the most common cause of dead clicks in a filter row — that is a Badge."
+            "description": "Do not use Pill as a static label. A pressable-looking chip that does nothing is the most common cause of dead clicks in a filter row — that is a Badge.",
+            "instead": [
+              "Badge"
+            ]
           },
           {
             "guidance": "dont",
@@ -14913,11 +14996,17 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not use Popover for blocking confirmations, long forms, or critical information."
+            "description": "Do not use Popover for blocking confirmations, long forms, or critical information.",
+            "instead": [
+              "Dialog"
+            ]
           },
           {
             "guidance": "dont",
-            "description": "Do not put a form that can fail validation inside one. A popover dismisses on outside click, which discards what the user typed with no warning — that is a Dialog."
+            "description": "Do not put a form that can fail validation inside one. A popover dismisses on outside click, which discards what the user typed with no warning — that is a Dialog.",
+            "instead": [
+              "Dialog"
+            ]
           }
         ],
         "anatomy": [
@@ -15054,7 +15143,10 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not use a determinate Progress for an unknown duration. A bar that sits at 90% is worse than a Spinner, because it makes a promise about time that you cannot keep."
+            "description": "Do not use a determinate Progress for an unknown duration. A bar that sits at 90% is worse than a Spinner, because it makes a promise about time that you cannot keep.",
+            "instead": [
+              "Spinner"
+            ]
           }
         ],
         "anatomy": [
@@ -15654,7 +15746,11 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not use Radio for independent toggles or multiple selection; use Checkbox or Switch."
+            "description": "Do not use Radio for independent toggles or multiple selection; use Checkbox or Switch.",
+            "instead": [
+              "Checkbox",
+              "Switch"
+            ]
           },
           {
             "guidance": "dont",
@@ -16611,7 +16707,10 @@
           },
           {
             "guidance": "dont",
-            "description": "Use it for a single value against a limit; that is Meter, which carries the meter role and its value."
+            "description": "Use it for a single value against a limit; that is Meter, which carries the meter role and its value.",
+            "instead": [
+              "Meter"
+            ]
           },
           {
             "guidance": "dont",
@@ -16772,11 +16871,18 @@
           },
           {
             "guidance": "dont",
-            "description": "Use Select for very large or fuzzy lists. Use Combobox when typing is the primary way to find an option."
+            "description": "Use Select for very large or fuzzy lists. Use Combobox when typing is the primary way to find an option.",
+            "instead": [
+              "Combobox"
+            ]
           },
           {
             "guidance": "dont",
-            "description": "Use Select for binary on/off settings. Use Switch or Checkbox instead."
+            "description": "Use Select for binary on/off settings. Use Switch or Checkbox instead.",
+            "instead": [
+              "Switch",
+              "Checkbox"
+            ]
           },
           {
             "guidance": "do",
@@ -17257,11 +17363,17 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not use Sheet for simple confirmations or deeply nested workflows."
+            "description": "Do not use Sheet for simple confirmations or deeply nested workflows.",
+            "instead": [
+              "Dialog"
+            ]
           },
           {
             "guidance": "dont",
-            "description": "Do not use it on desktop where a Dialog fits. A sheet's affordance is edge-anchored travel for thumb reach; on a wide viewport it becomes a dialog that arrives from the wrong place."
+            "description": "Do not use it on desktop where a Dialog fits. A sheet's affordance is edge-anchored travel for thumb reach; on a wide viewport it becomes a dialog that arrives from the wrong place.",
+            "instead": [
+              "Dialog"
+            ]
           }
         ],
         "anatomy": [
@@ -17701,7 +17813,10 @@
           },
           {
             "guidance": "dont",
-            "description": "Use SideNav for bottom mobile navigation; use BottomNav in AppShell's bottomNav slot."
+            "description": "Use SideNav for bottom mobile navigation; use BottomNav in AppShell's bottomNav slot.",
+            "instead": [
+              "BottomNav"
+            ]
           },
           {
             "guidance": "dont",
@@ -17841,7 +17956,10 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not leave Skeleton visible after an error or empty state; switch to EmptyState (tone='destructive' for an error)."
+            "description": "Do not leave Skeleton visible after an error or empty state; switch to EmptyState (tone='destructive' for an error).",
+            "instead": [
+              "EmptyState"
+            ]
           },
           {
             "guidance": "dont",
@@ -18306,7 +18424,11 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not use Spinner as the only content for long waits or full page loading."
+            "description": "Do not use Spinner as the only content for long waits or full page loading.",
+            "instead": [
+              "Skeleton",
+              "PageLoader"
+            ]
           },
           {
             "guidance": "dont",
@@ -18697,11 +18819,17 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not use Stepper for a task with unknown length or for a percentage. That is Progress; a stepper promises a fixed set of named stops."
+            "description": "Do not use Stepper for a task with unknown length or for a percentage. That is Progress; a stepper promises a fixed set of named stops.",
+            "instead": [
+              "Progress"
+            ]
           },
           {
             "guidance": "dont",
-            "description": "Do not use it as navigation between independent sections. Sections the user can visit in any order are Tabs; a stepper implies each step depends on the one before."
+            "description": "Do not use it as navigation between independent sections. Sections the user can visit in any order are Tabs; a stepper implies each step depends on the one before.",
+            "instead": [
+              "Tabs"
+            ]
           },
           {
             "guidance": "dont",
@@ -19042,7 +19170,11 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not use Switch for one-time agreement, multi-select choices, or submit-only booleans."
+            "description": "Do not use Switch for one-time agreement, multi-select choices, or submit-only booleans.",
+            "instead": [
+              "Checkbox",
+              "Radio"
+            ]
           },
           {
             "guidance": "dont",
@@ -19197,7 +19329,11 @@
           },
           {
             "guidance": "dont",
-            "description": "Use Table for heterogeneous items with no stable columns. Use Card, Entity, or a list composition instead."
+            "description": "Use Table for heterogeneous items with no stable columns. Use Card, Entity, or a list composition instead.",
+            "instead": [
+              "Card",
+              "Entity"
+            ]
           },
           {
             "guidance": "dont",
@@ -19347,11 +19483,18 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not use Tabs for unrelated pages or primary navigation that needs distinct URLs."
+            "description": "Do not use Tabs for unrelated pages or primary navigation that needs distinct URLs.",
+            "instead": [
+              "SideNav",
+              "NavigationMenu"
+            ]
           },
           {
             "guidance": "dont",
-            "description": "Do not use tabs for sequential steps. Tabs are peer views the user returns to in any order; a process with an order needs a stepper, or the user will skip ahead."
+            "description": "Do not use tabs for sequential steps. Tabs are peer views the user returns to in any order; a process with an order needs a stepper, or the user will skip ahead.",
+            "instead": [
+              "Stepper"
+            ]
           }
         ],
         "anatomy": [
@@ -19863,11 +20006,18 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not put one on every row of a list or in a repeated skeleton. Each orb runs its own animation frame loop painting hundreds of arcs; use Skeleton for content-shaped waits and Spinner inside buttons."
+            "description": "Do not put one on every row of a list or in a repeated skeleton. Each orb runs its own animation frame loop painting hundreds of arcs; use Skeleton for content-shaped waits and Spinner inside buttons.",
+            "instead": [
+              "Skeleton",
+              "Spinner"
+            ]
           },
           {
             "guidance": "dont",
-            "description": "Do not use it for a determinate wait. It carries no sense of how far along anything is — reach for Progress when a percentage exists."
+            "description": "Do not use it for a determinate wait. It carries no sense of how far along anything is — reach for Progress when a percentage exists.",
+            "instead": [
+              "Progress"
+            ]
           },
           {
             "guidance": "dont",
@@ -20023,7 +20173,11 @@
           },
           {
             "guidance": "dont",
-            "description": "Use Toast for critical blockers or persistent outages. Use Banner or Dialog when the user must notice and act."
+            "description": "Use Toast for critical blockers or persistent outages. Use Banner or Dialog when the user must notice and act.",
+            "instead": [
+              "Banner",
+              "Dialog"
+            ]
           },
           {
             "guidance": "dont",
@@ -20295,7 +20449,10 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not use Toggle for persistent application settings; use Switch."
+            "description": "Do not use Toggle for persistent application settings; use Switch.",
+            "instead": [
+              "Switch"
+            ]
           },
           {
             "guidance": "dont",
@@ -20450,7 +20607,12 @@
           },
           {
             "guidance": "dont",
-            "description": "Use Toolbar for navigation between pages or views. Links that go somewhere are Tabs, SideNav or Breadcrumbs; ToolbarLink is for the odd link that sits among actions, like Help."
+            "description": "Use Toolbar for navigation between pages or views. Links that go somewhere are Tabs, SideNav or Breadcrumbs; ToolbarLink is for the odd link that sits among actions, like Help.",
+            "instead": [
+              "Tabs",
+              "SideNav",
+              "Breadcrumbs"
+            ]
           },
           {
             "guidance": "dont",
@@ -20679,7 +20841,11 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not put critical instructions, errors, or interactive content inside Tooltip."
+            "description": "Do not put critical instructions, errors, or interactive content inside Tooltip.",
+            "instead": [
+              "Popover",
+              "InlineStatus"
+            ]
           },
           {
             "guidance": "dont",

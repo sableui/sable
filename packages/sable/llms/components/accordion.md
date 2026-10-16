@@ -15,7 +15,7 @@ Use Accordion to reveal a vertical set of related sections while keeping the sur
 - Do: Use concise trigger text that describes the content revealed below it.
 - Do: Keep section content focused so expanding one item does not feel like navigating to a new page.
 - Don't: Do not hide required fields, primary actions, or critical errors inside collapsed sections.
-- Don't: Do not nest an Accordion inside an Accordion. Two layers of roving focus fight each other, and the arrow keys become ambiguous — flatten the hierarchy or use a Tree.
+- Don't: Do not nest an Accordion inside an Accordion. Two layers of roving focus fight each other, and the arrow keys become ambiguous — flatten the hierarchy or use a Tree. → use **Tree**
 
 ### Anatomy
 

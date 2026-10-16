@@ -34,6 +34,7 @@ export const toggleMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Do not use Toggle for persistent application settings; use Switch.",
+				instead: ["Switch"],
 			},
 			{
 				guidance: "dont",

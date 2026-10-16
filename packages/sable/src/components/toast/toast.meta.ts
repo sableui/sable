@@ -41,6 +41,7 @@ export const toastMeta: ComponentMeta = {
 				guidance: "dont",
 				description:
 					"Use Toast for critical blockers or persistent outages. Use Banner or Dialog when the user must notice and act.",
+				instead: ["Banner", "Dialog"],
 			},
 			{
 				guidance: "dont",

@@ -14,7 +14,7 @@ Use Collapsible for a single piece of optional content that can expand in place.
 
 - Do: Use it for local detail, advanced settings, or secondary context.
 - Do: Make the trigger label describe the hidden content, not the mechanism.
-- Don't: Do not use Collapsible for multi-section navigation; use Accordion or Tabs instead.
+- Don't: Do not use Collapsible for multi-section navigation; use Accordion or Tabs instead. → use **Accordion**, **Tabs**
 - Don't: Do not animate it by transitioning height from auto. Use the motion-disclosure recipe, which transitions to the measured panel height — `auto` does not animate and the panel will snap.
 
 ### Anatomy

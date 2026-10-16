@@ -25,10 +25,12 @@ export const popoverMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Do not use Popover for blocking confirmations, long forms, or critical information.",
+				instead: ["Dialog"],
 			},
 			{
 				guidance: "dont",
 				description: "Do not put a form that can fail validation inside one. A popover dismisses on outside click, which discards what the user typed with no warning — that is a Dialog.",
+				instead: ["Dialog"],
 			},
 		],
 		anatomy: [

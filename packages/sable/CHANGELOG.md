@@ -1,5 +1,23 @@
 # What's new
 
+## 0.13.2
+
+What to use instead, wherever a component is the wrong pick.
+
+- **New: a don't can name its replacement.** `usage.bestPractices` entries
+  take `instead: ["Banner", "Dialog"]`, set on 48 don'ts across the
+  families that get confused: Toast, Banner, Note and InlineStatus; Dialog,
+  Sheet and Popover; Select, Combobox and DisclosurePicker; Progress, Meter,
+  Spinner, Skeleton, PageLoader and ThinkingOrb; Tabs, Stepper and the
+  navs; Checkbox, Radio, Switch and Toggle. The build fails if a name isn't
+  a real component or subcomponent, so a rename can't leave a pointer to
+  nothing.
+- **`sable component <Name>` ends with "not for".** At compact detail, the
+  default, it now lists those don'ts in one line each with what to use
+  instead (`✗ Use Select for very large or fuzzy lists. → Combobox`). Before,
+  the don'ts only showed at `--detail full`. `--json` carries the same list
+  as `notFor`, and the markdown mirrors end each one with `→ use **X**`.
+
 ## 0.13.1
 
 Sable from any agent, and setup that starts with `sable init` everywhere an agent looks first.

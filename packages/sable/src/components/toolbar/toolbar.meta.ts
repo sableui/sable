@@ -54,6 +54,7 @@ export const toolbarMeta: ComponentMeta = {
 				guidance: "dont",
 				description:
 					"Use Toolbar for navigation between pages or views. Links that go somewhere are Tabs, SideNav or Breadcrumbs; ToolbarLink is for the odd link that sits among actions, like Help.",
+				instead: ["Tabs", "SideNav", "Breadcrumbs"],
 			},
 			{
 				guidance: "dont",

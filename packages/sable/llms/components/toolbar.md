@@ -18,7 +18,7 @@ Use Toolbar when three or more related controls sit together and act on the same
 - Do: Compose triggers and toggles through ToolbarButton's render prop — render={<MenuTrigger />}, render={<PopoverTrigger />}, or render={<Toggle value="bold" />} inside a ToggleGroup — so they join the toolbar's arrow-key order.
 - Don't: Put a bare Button, Toggle or Input inside a Toolbar. It renders, but it is not a toolbar item: the arrow keys skip it and it takes its own tab stop, which is the inconsistency Toolbar exists to remove. Use ToolbarButton, ToolbarInput, or render through ToolbarButton.
 - Don't: Wrap one or two buttons, or a dialog's Cancel/Confirm pair, in a Toolbar. Those are independent actions; arrow-key movement there is a surprise, not a shortcut. A plain row of Buttons is right.
-- Don't: Use Toolbar for navigation between pages or views. Links that go somewhere are Tabs, SideNav or Breadcrumbs; ToolbarLink is for the odd link that sits among actions, like Help.
+- Don't: Use Toolbar for navigation between pages or views. Links that go somewhere are Tabs, SideNav or Breadcrumbs; ToolbarLink is for the odd link that sits among actions, like Help. → use **Tabs**, **SideNav**, **Breadcrumbs**
 - Don't: Give toolbar buttons primary or destructive fills by default. A toolbar is a quiet strip of tools; the ghost default keeps it from competing with the page's one primary action.
 
 ### Anatomy

@@ -855,6 +855,7 @@ function cmdComponent() {
 		data.subcomponents = c.subcomponents ?? []
 		data.related = c.related ?? []
 		if (!DENSE) data.usage = c.usage
+		data.notFor = notFor(c)
 	}
 	if (level === "full") {
 		data.a11y = c.a11y ?? []
@@ -873,6 +874,7 @@ function cmdComponent() {
 			`\n${data.import}`,
 			level === "brief" ? "" : renderProps(c),
 			level !== "full" || DENSE ? "" : renderUsage(c),
+			level === "full" && !DENSE ? "" : renderNotFor(data.notFor ?? []),
 			level === "full" ? section("a11y", (c.a11y ?? []).map(bullet)) : "",
 			level === "full" ? section("tokens", [`  ${(c.tokensUsed ?? []).join(", ")}`]) : "",
 			level === "full" ? renderExamples(c) : "",
@@ -896,9 +898,23 @@ function renderProps(c) {
 	return [section("props", lines), section("subcomponents", subs)].filter(Boolean).join("\n")
 }
 
+/* The donts that name a replacement, cut to their first sentence: the "when not
+ * to use this" an agent needs at compact detail, without the whole guidance list. */
+function notFor(c) {
+	return (c.usage?.bestPractices ?? [])
+		.filter((b) => b.guidance === "dont" && b.instead?.length)
+		.map((b) => ({ dont: b.description.split(/(?<=[.;])\s/)[0], use: b.instead }))
+}
+
+function renderNotFor(items) {
+	return section("not for", items.map((i) => `  ✗ ${i.dont} → ${i.use.join(", ")}`))
+}
+
 function renderUsage(c) {
 	if (!c.usage) return ""
-	const dos = (c.usage.bestPractices ?? []).map((b) => `  ${b.guidance === "do" ? "✓" : "✗"} ${b.description}`)
+	const dos = (c.usage.bestPractices ?? []).map(
+		(b) => `  ${b.guidance === "do" ? "✓" : "✗"} ${b.description}${b.instead ? ` → ${b.instead.join(", ")}` : ""}`,
+	)
 	return [c.usage.description ? `\nWhen to use:\n  ${c.usage.description}` : "", section("guidance", dos)]
 		.filter(Boolean)
 		.join("\n")

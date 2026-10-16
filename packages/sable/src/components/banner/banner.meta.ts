@@ -43,11 +43,13 @@ export const bannerMeta: ComponentMeta = {
 				guidance: "dont",
 				description:
 					"Use Banner for field-level validation, row status, or small local hints; use Field, InlineStatus, or Badge instead.",
+				instead: ["InlineStatus", "Badge"],
 			},
 			{
 				guidance: "dont",
 				description:
 					"Use Banner inside a dialog, a form, or a section to qualify the content around it — that is Note. Banner is a full-width announcement strip for page- or app-level state, so in a modal it reads as a slab heavier than the fields it warns about, and its soft appearance has no border and no tone-colored icon: the severity survives only as a faint wash.",
+				instead: ["Note"],
 			},
 		],
 		anatomy: [

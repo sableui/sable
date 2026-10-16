@@ -14,7 +14,7 @@ Use Spinner for short indeterminate waits where the user cannot know exact progr
 
 - Do: Use it in compact panels or places where layout is already stable. In a button, use Button's loading prop rather than placing a Spinner by hand — it disables the button, sets aria-busy and sizes the spinner to the button's icon.
 - Do: Pair it with accessible loading text when the surrounding label is not enough.
-- Don't: Do not use Spinner as the only content for long waits or full page loading.
+- Don't: Do not use Spinner as the only content for long waits or full page loading. → use **Skeleton**, **PageLoader**
 - Don't: Do not use it without an accessible name or a nearby status message. A spinning icon is invisible to a screen reader, so the wait is announced as nothing at all.
 
 ## Props

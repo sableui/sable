@@ -25,6 +25,7 @@ export const collapsibleMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Do not use Collapsible for multi-section navigation; use Accordion or Tabs instead.",
+				instead: ["Accordion", "Tabs"],
 			},
 			{
 				guidance: "dont",

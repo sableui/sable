@@ -15,8 +15,8 @@ Use Tabs to switch between related panels within the same page context.
 - Do: Use tabs when each panel is peer content and users may compare or switch often.
 - Do: Keep tab labels short and make the active tab unmistakable.
 - Do: Use variant="pill" for a short switcher inside a card or toolbar (Preview / Code, List / Grid); keep the default underline for sections of a page.
-- Don't: Do not use Tabs for unrelated pages or primary navigation that needs distinct URLs.
-- Don't: Do not use tabs for sequential steps. Tabs are peer views the user returns to in any order; a process with an order needs a stepper, or the user will skip ahead.
+- Don't: Do not use Tabs for unrelated pages or primary navigation that needs distinct URLs. → use **SideNav**, **NavigationMenu**
+- Don't: Do not use tabs for sequential steps. Tabs are peer views the user returns to in any order; a process with an order needs a stepper, or the user will skip ahead. → use **Stepper**
 
 ### Anatomy
 

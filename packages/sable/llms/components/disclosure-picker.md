@@ -19,7 +19,7 @@ Use DisclosurePicker for one-of-many choices in a docked panel or inspector wher
 - Do: Use it for a choice with a cost — one that opens a confirm, loads something, or resets other settings. Arrow keys only move focus; onValueChange fires once, on Enter, Space or a click, and only when the pick differs from `value`.
 - Do: Give options a leading visual with `media` (a ThemePreview tile, a swatch) instead of nesting another component's list: ThemeSelector's radio list applies each theme as the arrow keys land on it, which defeats commit-on-Enter. A list the picker cannot express (a Tree) can still close the row with `useDisclosurePicker().close()`.
 - Do: Render DisclosurePickerEmpty in place of the list when a search matches nothing, not inside it — a listbox holds only options.
-- Don't: Use it in a page-register form. A form field that pushes the form down on open reads as a layout jump; that is Select's job.
+- Don't: Use it in a page-register form. A form field that pushes the form down on open reads as a layout jump; that is Select's job. → use **Select**
 - Don't: Rebuild the row from a Collapsible with hand-copied classes. The disclosure, the well, the hover step, the xs field shell, focus return and scroll-into-view all live here; two hand copies of this row in one panel is how it came to exist.
 - Don't: Turn search on for a short list just because the other rows have it. A search field over six options is a control with nothing to do.
 

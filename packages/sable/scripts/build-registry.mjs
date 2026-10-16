@@ -679,6 +679,9 @@ for (const orphan of taxonomyNames) {
 //   a11y     1 → 2  once the last five single-note components had a second.
 const GUIDANCE_FLOOR = { do: 1, dont: 2, a11y: 2, examples: 2, related: 1 }
 const guidanceScores = []
+const insteadNames = new Set(
+	components.flatMap((c) => [c.name, ...(c.subcomponents ?? []).map((s) => (typeof s === "string" ? s : s.name))]),
+)
 for (const c of components) {
 	const bp = c.usage?.bestPractices ?? []
 	const s = {
@@ -731,6 +734,21 @@ for (const c of components) {
 		contractErrors.push(
 			`${c.name}: supersededBy "${c.supersededBy}" is not a component. The replacement must be real.`,
 		)
+	}
+	// "Use X instead" on a dont: the same rule as supersededBy, so a rename
+	// cannot leave a pointer to nothing.
+	for (const b of bp) {
+		if (!b.instead) continue
+		if (b.guidance !== "dont") {
+			contractErrors.push(`${c.name}: a "do" carries instead. Only a dont names what to use in its place.`)
+		}
+		for (const name of b.instead) {
+			if (!insteadNames.has(name) || name === c.name) {
+				contractErrors.push(
+					`${c.name}: instead "${name}" is not ${name === c.name ? "another" : "a"} component or subcomponent. Point a dont at something real, or leave instead off.`,
+				)
+			}
+		}
 	}
 	for (const [field, min] of Object.entries(GUIDANCE_FLOOR)) {
 		if (s[field] < min) {
@@ -1139,7 +1157,7 @@ function renderEntryMd(entry) {
 		if (dos.length || donts.length) {
 			lines.push("### Best practices", "")
 			for (const d of dos) lines.push(`- Do: ${d.description}`)
-			for (const d of donts) lines.push(`- Don't: ${d.description}`)
+			for (const d of donts) lines.push(`- Don't: ${d.description}${d.instead ? ` → use ${d.instead.map((n) => `**${n}**`).join(", ")}` : ""}`)
 			lines.push("")
 		}
 		if (entry.usage.anatomy?.length) {

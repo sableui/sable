@@ -14,7 +14,7 @@ Use InlineStatus for short state messages placed near the thing they describe.
 
 - Do: Use it beside inputs, rows, actions, or settings that need local status.
 - Do: Keep the message brief and pair color with text.
-- Don't: Do not use InlineStatus for global announcements or page-level alerts.
+- Don't: Do not use InlineStatus for global announcements or page-level alerts. → use **Banner**
 - Don't: Do not use tone as the only signal. Colour alone fails for colour-blind users — the leading icon is what carries the meaning, so never hide it.
 
 ## Props

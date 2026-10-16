@@ -59,6 +59,7 @@ export const disclosurePickerMeta: ComponentMeta = {
 				guidance: "dont",
 				description:
 					"Use it in a page-register form. A form field that pushes the form down on open reads as a layout jump; that is Select's job.",
+				instead: ["Select"],
 			},
 			{
 				guidance: "dont",

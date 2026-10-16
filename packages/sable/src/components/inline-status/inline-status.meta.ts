@@ -25,6 +25,7 @@ export const inlineStatusMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Do not use InlineStatus for global announcements or page-level alerts.",
+				instead: ["Banner"],
 			},
 			{
 				guidance: "dont",

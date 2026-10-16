@@ -42,6 +42,7 @@ export const sideNavMeta: ComponentMeta = {
 				guidance: "dont",
 				description:
 					"Use SideNav for bottom mobile navigation; use BottomNav in AppShell's bottomNav slot.",
+				instead: ["BottomNav"],
 			},
 			{
 				guidance: "dont",

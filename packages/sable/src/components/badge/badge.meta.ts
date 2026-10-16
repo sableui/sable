@@ -38,6 +38,7 @@ export const badgeMeta: ComponentMeta = {
 				guidance: "dont",
 				description:
 					"Use a Badge as a button. If it triggers an action, use Button, Toggle, or a menu item.",
+				instead: ["Button", "Toggle"],
 			},
 			{
 				guidance: "do",

@@ -37,11 +37,13 @@ export const selectMeta: ComponentMeta = {
 				guidance: "dont",
 				description:
 					"Use Select for very large or fuzzy lists. Use Combobox when typing is the primary way to find an option.",
+				instead: ["Combobox"],
 			},
 			{
 				guidance: "dont",
 				description:
 					"Use Select for binary on/off settings. Use Switch or Checkbox instead.",
+				instead: ["Switch", "Checkbox"],
 			},
 			{
 				guidance: "do",

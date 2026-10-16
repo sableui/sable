@@ -15,7 +15,7 @@ Use ContextCard to show richer contextual content near a trigger without taking 
 - Do: Use it for previews, summaries, or supporting context tied to a specific element.
 - Do: Keep the card read-only and make the trigger the action: it is a real link to the full profile or item. Keyboard users cannot reach a button inside the card, because moving focus off the trigger closes it. If the preview needs an action (Follow, Add), use a Popover instead.
 - Don't: Do not put critical decisions, long forms, or required workflow steps inside ContextCard.
-- Don't: Do not open it on click. It is a hover/focus preview; making it click-triggered gives you a Popover with no dismiss affordance and no way to reach the content it previews.
+- Don't: Do not open it on click. It is a hover/focus preview; making it click-triggered gives you a Popover with no dismiss affordance and no way to reach the content it previews. → use **Popover**
 
 ### Anatomy
 

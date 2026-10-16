@@ -34,6 +34,7 @@ export const commandMenuMeta: ComponentMeta = {
 				guidance: "dont",
 				description:
 					"Hand-style a <button> to look like a search field, or put a SearchInput in the header that opens a dialog when focused. The first drifts from the field it imitates; the second is a text box you cannot type in. A header search that opens the palette is CommandMenuTrigger.",
+				instead: ["CommandMenuTrigger"],
 			},
 			{
 				guidance: "do",
@@ -54,6 +55,7 @@ export const commandMenuMeta: ComponentMeta = {
 				guidance: "dont",
 				description:
 					"Use CommandMenu as a replacement for every dropdown. Simple choices belong in Select, Menu, or Tabs.",
+				instead: ["Select", "Menu", "Tabs"],
 			},
 			{
 				guidance: "do",
@@ -79,6 +81,7 @@ export const commandMenuMeta: ComponentMeta = {
 				guidance: "dont",
 				description:
 					"Hand-build a palette mock from a search glyph, a row of buttons and a highlight. That is CommandMenuPanel, and the hand-built one has no combobox, no filtering and no keyboard model.",
+				instead: ["CommandMenuPanel"],
 			},
 			{
 				guidance: "dont",

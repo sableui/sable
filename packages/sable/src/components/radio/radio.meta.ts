@@ -25,6 +25,7 @@ export const radioMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Do not use Radio for independent toggles or multiple selection; use Checkbox or Switch.",
+				instead: ["Checkbox", "Switch"],
 			},
 			{
 				guidance: "dont",

@@ -14,7 +14,7 @@ Use Pill for a row of filters or choices a person clicks to narrow or toggle wha
 
 - Do: Use short text that names the filter or choice.
 - Do: Reflect the current choice with selected, so the active filter reads at a glance.
-- Don't: Do not use Pill as a static label. A pressable-looking chip that does nothing is the most common cause of dead clicks in a filter row — that is a Badge.
+- Don't: Do not use Pill as a static label. A pressable-looking chip that does nothing is the most common cause of dead clicks in a filter row — that is a Badge. → use **Badge**
 - Don't: Do not use Pill for primary actions or important system status.
 - Don't: Do not restyle a Pill with border or background classes to get a quieter chip. That is appearance="outline" (and size="sm" for a small one); an override is a look that exists nowhere else in the system.
 

@@ -14,7 +14,7 @@ Use PageLoader for full-route or full-page pending states where the entire view 
 
 - Do: Use it during route transitions, auth checks, or initial data loading.
 - Do: Prefer a clear page-level message when the wait may take noticeable time.
-- Don't: Do not use PageLoader for small inline waits; use Spinner, an indeterminate Progress, or Skeleton.
+- Don't: Do not use PageLoader for small inline waits; use Spinner, an indeterminate Progress, or Skeleton. → use **Spinner**, **Progress**, **Skeleton**
 - Don't: Do not leave it mounted if the route's data can fail. It covers the whole viewport, so a PageLoader that never resolves is indistinguishable from a hung application — always give it a failure path.
 
 ## Props

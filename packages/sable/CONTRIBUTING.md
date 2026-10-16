@@ -223,7 +223,7 @@ The system grows **out of the apps**, not ahead of them. A component earns its w
 
 Each component ships `<name>.meta.ts` exporting a `ComponentMeta` object: `name`, `summary`, `keywords`, `usage` (intent, do/don't guidance, anatomy), `related`, `props` (name/type/default/description), `subcomponents`, `variants`, `tokensUsed` (semantic tokens it reads), `a11y` notes, and `examples` (label + code). Inline meta is the preferred **source of truth** and the contract other agents read; keep it in sync when you change a component. Existing guidance backfills may also live in `src/lib/component-guidance.ts`; the docs and registry generator merge that overlay so consumers read one resolved catalog.
 
-`usage.bestPractices` is where design judgment lives. Include concrete "do" and "dont" items that teach agents when to reach for the component, when to choose a neighboring component instead, and which visual/interaction anti-patterns to avoid. For composite components, include `usage.anatomy` so agents understand the required parts and slots before composing JSX.
+`usage.bestPractices` is where design judgment lives. Include concrete "do" and "dont" items that teach agents when to reach for the component, when to choose a neighboring component instead, and which visual/interaction anti-patterns to avoid. When a dont points at a neighbour, name it in `instead: ["Banner"]` as well as in the prose: the build checks each name is a real component or subcomponent, and `sable component` prints those donts as a short **not for** list at compact detail. For composite components, include `usage.anatomy` so agents understand the required parts and slots before composing JSX.
 
 Two rules that keep the contract unambiguous for consumers reading the registry:
 

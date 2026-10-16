@@ -25,6 +25,7 @@ export const skeletonMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Do not leave Skeleton visible after an error or empty state; switch to EmptyState (tone='destructive' for an error).",
+				instead: ["EmptyState"],
 			},
 			{
 				guidance: "dont",

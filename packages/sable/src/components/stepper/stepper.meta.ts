@@ -38,11 +38,13 @@ export const stepperMeta: ComponentMeta = {
 				guidance: "dont",
 				description:
 					"Do not use Stepper for a task with unknown length or for a percentage. That is Progress; a stepper promises a fixed set of named stops.",
+				instead: ["Progress"],
 			},
 			{
 				guidance: "dont",
 				description:
 					"Do not use it as navigation between independent sections. Sections the user can visit in any order are Tabs; a stepper implies each step depends on the one before.",
+				instead: ["Tabs"],
 			},
 			{
 				guidance: "dont",

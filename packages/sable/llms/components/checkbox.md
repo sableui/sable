@@ -14,7 +14,7 @@ Use Checkbox for independent boolean choices or for selecting multiple options i
 
 - Do: Use Checkbox when each option can be toggled independently.
 - Do: Attach a visible label that explains the consequence of checking the control.
-- Don't: Do not use Checkbox for mutually exclusive choices; use Radio or Select instead.
+- Don't: Do not use Checkbox for mutually exclusive choices; use Radio or Select instead. → use **Radio**, **Select**
 - Don't: Do not use it without a label or an aria-label. An 18px square with no accessible name is announced as just "checkbox", which tells a screen-reader user nothing about what they are agreeing to.
 - Don't: Do not phrase the label as a negative, such as "Don't send read receipts". Paired with an unchecked box it becomes a double negative the reader has to solve before they can answer. Label the state being turned on.
 

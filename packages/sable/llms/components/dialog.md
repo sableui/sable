@@ -18,10 +18,10 @@ Use Dialog for focused decisions, short modal forms, confirmations, and content 
 - Do: In a destructive confirmation, state the consequence in DialogDescription ("This is permanent.") and reserve the destructive button variant for actions that cannot be undone.
 - Do: Use size="fullscreen" when an image, video, or gallery needs a larger view than the layout can give it. Give the popup an accessible name (aria-label on DialogContent, or a visually hidden DialogTitle) and alt text on the media.
 - Do: Use the AlertDialog family for a confirmation that must be answered (discard changes, leave without saving). It looks identical but is role="alertdialog" and a backdrop click does not dismiss it — only Cancel, Esc, or the action. For irreversible deletes, use DestructiveActionModal, which is built on it.
-- Don't: Put large multipage workflows in a centered dialog. Use Sheet or a page route when the task needs space.
-- Don't: Use size="fullscreen" for forms, confirmations, or anything that isn't media. A dialog that happens to need room is a Sheet or a page; the fullscreen affordances (dark scrim, corner close, centred content) all assume something to look at.
+- Don't: Put large multipage workflows in a centered dialog. Use Sheet or a page route when the task needs space. → use **Sheet**
+- Don't: Use size="fullscreen" for forms, confirmations, or anything that isn't media. A dialog that happens to need room is a Sheet or a page; the fullscreen affordances (dark scrim, corner close, centred content) all assume something to look at. → use **Sheet**
 - Don't: Hide the close button at size="fullscreen" without another visible way out. A full-bleed viewer that only Esc dismisses is a dead end for anyone who doesn't know the key.
-- Don't: Open a dialog for passive status updates. Use Toast, Banner, or InlineStatus instead.
+- Don't: Open a dialog for passive status updates. Use Toast, Banner, or InlineStatus instead. → use **Toast**, **Banner**, **InlineStatus**
 
 ### Anatomy
 

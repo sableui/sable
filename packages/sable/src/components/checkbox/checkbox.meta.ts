@@ -25,6 +25,7 @@ export const checkboxMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Do not use Checkbox for mutually exclusive choices; use Radio or Select instead.",
+				instead: ["Radio", "Select"],
 			},
 			{
 				guidance: "dont",

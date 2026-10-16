@@ -29,10 +29,12 @@ export const tabsMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Do not use Tabs for unrelated pages or primary navigation that needs distinct URLs.",
+				instead: ["SideNav", "NavigationMenu"],
 			},
 			{
 				guidance: "dont",
 				description: "Do not use tabs for sequential steps. Tabs are peer views the user returns to in any order; a process with an order needs a stepper, or the user will skip ahead.",
+				instead: ["Stepper"],
 			},
 		],
 		anatomy: [

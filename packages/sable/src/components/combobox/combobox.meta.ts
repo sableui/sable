@@ -41,6 +41,7 @@ export const comboboxMeta: ComponentMeta = {
 				guidance: "dont",
 				description:
 					"Use Combobox for tiny option sets where Select or Radio would be easier to scan.",
+				instead: ["Select", "Radio"],
 			},
 			{
 				guidance: "do",
@@ -56,6 +57,7 @@ export const comboboxMeta: ComponentMeta = {
 				guidance: "dont",
 				description:
 					"Use Combobox as a command launcher. Use CommandMenu for actions and navigation.",
+				instead: ["CommandMenu"],
 			},
 			{
 				guidance: "dont",

@@ -15,8 +15,8 @@ Use Sheet for secondary workflows that slide in while preserving context from th
 - Do: Use it for inspect, edit, filter, or create flows that relate to the current page.
 - Do: Include clear title, close path, and footer actions for task-oriented sheets.
 - Do: Give a bottom sheet snap points when it shows a summary first and detail on demand (a map result, a now-playing panel): `snapPoints={[0.4, 1]}`. The first stop is where it opens; put what matters at that height, because the rest is a drag away.
-- Don't: Do not use Sheet for simple confirmations or deeply nested workflows.
-- Don't: Do not use it on desktop where a Dialog fits. A sheet's affordance is edge-anchored travel for thumb reach; on a wide viewport it becomes a dialog that arrives from the wrong place.
+- Don't: Do not use Sheet for simple confirmations or deeply nested workflows. → use **Dialog**
+- Don't: Do not use it on desktop where a Dialog fits. A sheet's affordance is edge-anchored travel for thumb reach; on a wide viewport it becomes a dialog that arrives from the wrong place. → use **Dialog**
 
 ### Anatomy
 

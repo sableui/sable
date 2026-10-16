@@ -25,6 +25,7 @@ export const pageLoaderMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Do not use PageLoader for small inline waits; use Spinner, an indeterminate Progress, or Skeleton.",
+				instead: ["Spinner", "Progress", "Skeleton"],
 			},
 			{
 				guidance: "dont",

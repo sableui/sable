@@ -17,8 +17,8 @@ Use Select when users choose one value from a known, finite set. Use Combobox fo
 - Do: Wrap in Field when the select belongs to a form so label, helper text, and errors are wired automatically.
 - Do: Leave the trigger's type alone on mobile. Below the sm breakpoint the md trigger renders text-body-lg (17px) so it matches the Input and Textarea beside it, which carry that tier because iOS Safari zooms the page when a focused field computes under 16px. A custom field in the same row should follow: a second paired tier under a max-sm: variant, never a hand-set font-size.
 - Do: Inside a <Workspace> a Select adapts automatically — trigger and popup both pick up the compact density, including across the portal. Do NOT hand-size it per call site; that was necessary before v0.41 and is now drift.
-- Don't: Use Select for very large or fuzzy lists. Use Combobox when typing is the primary way to find an option.
-- Don't: Use Select for binary on/off settings. Use Switch or Checkbox instead.
+- Don't: Use Select for very large or fuzzy lists. Use Combobox when typing is the primary way to find an option. → use **Combobox**
+- Don't: Use Select for binary on/off settings. Use Switch or Checkbox instead. → use **Switch**, **Checkbox**
 
 ### Anatomy
 

@@ -29,6 +29,7 @@ export const menuMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Do not build a Select out of it. A menu fires actions and has no value; a Select holds one and reports changes. Swapping them loses form semantics and keyboard type-ahead.",
+				instead: ["Select"],
 			},
 			{
 				guidance: "do",

@@ -32,6 +32,7 @@ export const buttonGroupMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Do not use it for a selection that stays on. That is ToggleGroup, which carries the pressed state.",
+				instead: ["ToggleGroup"],
 			},
 		],
 	},

@@ -14,7 +14,7 @@ Use Skeleton to reserve space and hint at the shape of content while data is loa
 
 - Do: Match the approximate size and rhythm of the eventual content.
 - Do: Use it for content regions where layout stability matters during loading.
-- Don't: Do not leave Skeleton visible after an error or empty state; switch to EmptyState (tone='destructive' for an error).
+- Don't: Do not leave Skeleton visible after an error or empty state; switch to EmptyState (tone='destructive' for an error). → use **EmptyState**
 - Don't: Do not use a skeleton whose shape differs from the content that replaces it. A mismatched placeholder causes a visible jump, which is worse than a brief spinner.
 
 ## Props

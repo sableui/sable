@@ -20,9 +20,9 @@ Use CommandMenu for global or contextual keyboard-driven actions: navigation, cr
 - Do: List a command the user cannot currently run as disabled with the reason in hint, rather than filtering it away. A palette that hides what you cannot do teaches you nothing about why.
 - Do: Resize the list with listClassName rather than reaching past className into the palette's DOM. className is the dialog surface; listClassName is the Scroller that actually scrolls.
 - Do: Use CommandMenuPanel when the palette lives in the page: a sidebar launcher, a settings search, a demo. It takes the same items, filter, query and children, and keeps the same keyboard model; it is a static card, so it does not trap focus or take it on mount, and Esc clears the query instead of closing anything.
-- Don't: Hand-style a <button> to look like a search field, or put a SearchInput in the header that opens a dialog when focused. The first drifts from the field it imitates; the second is a text box you cannot type in. A header search that opens the palette is CommandMenuTrigger.
-- Don't: Use CommandMenu as a replacement for every dropdown. Simple choices belong in Select, Menu, or Tabs.
-- Don't: Hand-build a palette mock from a search glyph, a row of buttons and a highlight. That is CommandMenuPanel, and the hand-built one has no combobox, no filtering and no keyboard model.
+- Don't: Hand-style a <button> to look like a search field, or put a SearchInput in the header that opens a dialog when focused. The first drifts from the field it imitates; the second is a text box you cannot type in. A header search that opens the palette is CommandMenuTrigger. → use **CommandMenuTrigger**
+- Don't: Use CommandMenu as a replacement for every dropdown. Simple choices belong in Select, Menu, or Tabs. → use **Select**, **Menu**, **Tabs**
+- Don't: Hand-build a palette mock from a search glyph, a row of buttons and a highlight. That is CommandMenuPanel, and the hand-built one has no combobox, no filtering and no keyboard model. → use **CommandMenuPanel**
 - Don't: Dump every app route and action into one uncurated list. Keep the palette opinionated.
 - Don't: Rebuild the combobox over Dialog to get consumer-owned ranking. query/onQueryChange and filter are that seam; the keyboard model, activedescendant wiring, and result-count live region come with them.
 

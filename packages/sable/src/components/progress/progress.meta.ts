@@ -29,6 +29,7 @@ export const progressMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Do not use a determinate Progress for an unknown duration. A bar that sits at 90% is worse than a Spinner, because it makes a promise about time that you cannot keep.",
+				instead: ["Spinner"],
 			},
 		],
 		anatomy: [

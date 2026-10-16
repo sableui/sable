@@ -15,7 +15,7 @@ Use Toast for transient feedback caused by a user action: saved, failed, copied,
 - Do: Mount one ToastProvider near the app root before any code calls toast() or useToast().
 - Do: Use toast.promise for async actions so loading, success, and error states stay tied to one notification.
 - Do: Keep toast copy short and outcome-focused. Add an action only when it is immediately useful, such as Undo.
-- Don't: Use Toast for critical blockers or persistent outages. Use Banner or Dialog when the user must notice and act.
+- Don't: Use Toast for critical blockers or persistent outages. Use Banner or Dialog when the user must notice and act. → use **Banner**, **Dialog**
 - Don't: Fire multiple toasts for one operation. Update the same toast when a task progresses.
 - Don't: Put the only path to an action in a toast that auto-dismisses. An Undo that expires on a timer is data loss on a schedule, so error toasts and any toast carrying actionProps default to timeout 0 and wait to be read — pass an explicit timeout only when the action is also reachable somewhere else. When a timeout exists at all, 5s is the floor: anything shorter cannot be read and acted on.
 

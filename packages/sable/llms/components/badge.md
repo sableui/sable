@@ -16,7 +16,7 @@ Use Badge for any short static label: metadata, categories, tone-coded labels, a
 - Do: Use tone variants when the badge carries meaning, such as success, warning or destructive, or a decorative tone for a category or plan.
 - Do: Pair icons with text; the icon reinforces meaning but should not be the only cue.
 - Do: Choose appearance and tone separately: appearance is how loud it is (soft by default, solid for emphasis, overlay on images, plain for a status line); tone is what it means.
-- Don't: Use a Badge as a button. If it triggers an action, use Button, Toggle, or a menu item.
+- Don't: Use a Badge as a button. If it triggers an action, use Button, Toggle, or a menu item. → use **Button**, **Toggle**
 - Don't: Stack many loud tone badges in one row; too many semantic colors compete with the actual content.
 
 ### Anatomy

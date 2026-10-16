@@ -40,6 +40,7 @@ export const noteMeta: ComponentMeta = {
 				guidance: "dont",
 				description:
 					"Do not use Note for state the whole page or app is in (an outage, an offline session, a blocked account) — that is Banner — or for a message tied to one field, which is the field's own error text.",
+				instead: ["Banner"],
 			},
 			{
 				guidance: "dont",

@@ -22,6 +22,7 @@ export const segmentedBarMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Use it for a single value against a limit; that is Meter, which carries the meter role and its value.",
+				instead: ["Meter"],
 			},
 			{
 				guidance: "dont",

@@ -27,6 +27,7 @@ export const pillMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Do not use Pill as a static label. A pressable-looking chip that does nothing is the most common cause of dead clicks in a filter row — that is a Badge.",
+				instead: ["Badge"],
 			},
 			{
 				guidance: "dont",

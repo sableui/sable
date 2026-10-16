@@ -29,6 +29,7 @@ export const accordionMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Do not nest an Accordion inside an Accordion. Two layers of roving focus fight each other, and the arrow keys become ambiguous — flatten the hierarchy or use a Tree.",
+				instead: ["Tree"],
 			},
 		],
 		anatomy: [

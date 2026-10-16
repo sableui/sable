@@ -16,7 +16,7 @@ Use Note for helpful supporting information that should sit near the relevant co
 - Do: Reach for Note rather than Banner when the message qualifies something on the page — a warning inside a dialog, a caveat above a submit button. Banner is a full-width announcement strip for page- or app-level state; inside a form it reads as a slab, and its soft fill carries no border or tone-colored icon, so the severity stops being visible.
 - Do: Keep tone calm and concise so the note does not compete with primary content.
 - Do: When the reader can resolve the state, pass `action` rather than putting a Button in children. The prop is data — label plus handler — so the callout owns the placement and weight; a Button dropped into children inherits neither, floats in the box's padding, and (in `secondary`) punches a near-background hole in the tone fill.
-- Don't: Do not use Note for state the whole page or app is in (an outage, an offline session, a blocked account) — that is Banner — or for a message tied to one field, which is the field's own error text.
+- Don't: Do not use Note for state the whole page or app is in (an outage, an offline session, a blocked account) — that is Banner — or for a message tied to one field, which is the field's own error text. → use **Banner**
 - Don't: Do not give a Note two actions. One remedy reads as the sentence's next move; two make it a decision point, which is a Dialog's job.
 - Don't: Do not stack several in a row. Three notes together are a wall of asides; if everything is called out, nothing is.
 

@@ -14,7 +14,7 @@ Use SegmentedBar when a stat card or row needs to show how a total divides into 
 
 - Do: Keep it to two to six segments and give the same category the same tone everywhere it appears.
 - Do: Show the legend's shares in text ("42%") — colour identifies a segment, but the number is what a reader compares.
-- Don't: Use it for a single value against a limit; that is Meter, which carries the meter role and its value.
+- Don't: Use it for a single value against a limit; that is Meter, which carries the meter role and its value. → use **Meter**
 - Don't: Rely on tone order alone to tell segments apart; a legend row per segment, with its label, is required.
 
 ### Anatomy

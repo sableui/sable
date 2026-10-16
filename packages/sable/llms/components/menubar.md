@@ -16,7 +16,7 @@ Use Menubar for a tool or editor whose commands are too many for a toolbar and b
 - Do: Name the bar with aria-label ("Editor") so it is announced as the application's menus, not a list of buttons.
 - Do: Keep titles to one short word each. A reader scans a menubar left to right; a phrase in the bar is a toolbar button.
 - Don't: Do not use MenubarTrigger outside a Menubar, or a plain MenuTrigger inside one. The bar's arrow keys and hover-to-switch work on the triggers it owns; a Button trigger in the bar looks like a menu title and behaves like a stray button.
-- Don't: Do not use a menubar for site navigation. Its items are commands in menus (role=menuitem), not links between pages.
+- Don't: Do not use a menubar for site navigation. Its items are commands in menus (role=menuitem), not links between pages. → use **NavigationMenu**
 
 ### Anatomy
 

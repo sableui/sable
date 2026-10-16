@@ -16,7 +16,7 @@ Use Menu for a compact list of actions opened from a visible trigger.
 - Do: Keep item labels action-oriented and easy to scan.
 - Do: Inside a <Workspace> a Menu adapts automatically — its popup re-applies the compact density across the portal, so items render on the chrome type tier and the control ladder resolves to workspace sizes. Do NOT override the size per call site; that was necessary before v0.41 and is now drift.
 - Don't: Do not use Menu for complex forms, persistent navigation, or arbitrary rich content.
-- Don't: Do not build a Select out of it. A menu fires actions and has no value; a Select holds one and reports changes. Swapping them loses form semantics and keyboard type-ahead.
+- Don't: Do not build a Select out of it. A menu fires actions and has no value; a Select holds one and reports changes. Swapping them loses form semantics and keyboard type-ahead. → use **Select**
 
 ### Anatomy
 

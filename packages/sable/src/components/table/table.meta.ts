@@ -43,6 +43,7 @@ export const tableMeta: ComponentMeta = {
 				guidance: "dont",
 				description:
 					"Use Table for heterogeneous items with no stable columns. Use Card, Entity, or a list composition instead.",
+				instead: ["Card", "Entity"],
 			},
 			{
 				guidance: "dont",

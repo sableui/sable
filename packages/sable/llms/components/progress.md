@@ -15,7 +15,7 @@ Use Progress to communicate determinate or indeterminate completion for a task o
 - Do: Use determinate values when progress can be measured.
 - Do: Pair the visual indicator with text when users need context or exact values.
 - Don't: Do not use Progress as a decorative divider or status color bar.
-- Don't: Do not use a determinate Progress for an unknown duration. A bar that sits at 90% is worse than a Spinner, because it makes a promise about time that you cannot keep.
+- Don't: Do not use a determinate Progress for an unknown duration. A bar that sits at 90% is worse than a Spinner, because it makes a promise about time that you cannot keep. → use **Spinner**
 
 ### Anatomy
 

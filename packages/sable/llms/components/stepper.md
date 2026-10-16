@@ -15,8 +15,8 @@ Use Stepper above or beside a flow that is split into a known, small number of n
 - Do: Drive it from one number (`current`) and override a single step's `status` only for what a number cannot say — a completed step that now needs attention is `status="error"`.
 - Do: Name steps with a word or two ("Shipping", "Payment"). Go vertical when steps need a description or there are more than five; horizontal titles truncate first.
 - Do: Give completed steps `onSelect` only when going back to edit them actually works, and keep the user's later answers when they do.
-- Don't: Do not use Stepper for a task with unknown length or for a percentage. That is Progress; a stepper promises a fixed set of named stops.
-- Don't: Do not use it as navigation between independent sections. Sections the user can visit in any order are Tabs; a stepper implies each step depends on the one before.
+- Don't: Do not use Stepper for a task with unknown length or for a percentage. That is Progress; a stepper promises a fixed set of named stops. → use **Progress**
+- Don't: Do not use it as navigation between independent sections. Sections the user can visit in any order are Tabs; a stepper implies each step depends on the one before. → use **Tabs**
 - Don't: Do not make upcoming steps pressable to skip ahead. A step that looks reachable but is not is worse than one that is plainly locked.
 
 ### Anatomy

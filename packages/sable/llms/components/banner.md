@@ -16,8 +16,8 @@ Use Banner for page-level or app-level messages that affect the current experien
 - Do: Set live='polite' or live='assertive' only when the banner appears or changes dynamically.
 - Do: Include one clear action when the user can resolve or inspect the state.
 - Don't: Use multiple stacked solid banners unless the page is genuinely blocked by multiple independent states.
-- Don't: Use Banner for field-level validation, row status, or small local hints; use Field, InlineStatus, or Badge instead.
-- Don't: Use Banner inside a dialog, a form, or a section to qualify the content around it — that is Note. Banner is a full-width announcement strip for page- or app-level state, so in a modal it reads as a slab heavier than the fields it warns about, and its soft appearance has no border and no tone-colored icon: the severity survives only as a faint wash.
+- Don't: Use Banner for field-level validation, row status, or small local hints; use Field, InlineStatus, or Badge instead. → use **InlineStatus**, **Badge**
+- Don't: Use Banner inside a dialog, a form, or a section to qualify the content around it — that is Note. Banner is a full-width announcement strip for page- or app-level state, so in a modal it reads as a slab heavier than the fields it warns about, and its soft appearance has no border and no tone-colored icon: the severity survives only as a faint wash. → use **Note**
 
 ### Anatomy
 

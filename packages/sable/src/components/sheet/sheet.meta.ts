@@ -33,10 +33,12 @@ export const sheetMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Do not use Sheet for simple confirmations or deeply nested workflows.",
+				instead: ["Dialog"],
 			},
 			{
 				guidance: "dont",
 				description: "Do not use it on desktop where a Dialog fits. A sheet's affordance is edge-anchored travel for thumb reach; on a wide viewport it becomes a dialog that arrives from the wrong place.",
+				instead: ["Dialog"],
 			},
 		],
 		anatomy: [

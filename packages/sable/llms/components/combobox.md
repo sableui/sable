@@ -18,8 +18,8 @@ Use Combobox when users choose from a list that benefits from typing, filtering,
 - Do: Wrap in Field when the combobox is part of a form.
 - Do: Reach for ComboboxVirtualList past roughly a thousand rows, and leave filtering to the root. It reads the filtered list through useFilteredItems(), so the rendered rows and the rows Base UI navigates cannot drift apart.
 - Do: Use `multiple` with ComboboxChips for several values from a filterable set, and keep chip labels short so the field does not turn into a paragraph.
-- Don't: Use Combobox for tiny option sets where Select or Radio would be easier to scan.
-- Don't: Use Combobox as a command launcher. Use CommandMenu for actions and navigation.
+- Don't: Use Combobox for tiny option sets where Select or Radio would be easier to scan. → use **Select**, **Radio**
+- Don't: Use Combobox as a command launcher. Use CommandMenu for actions and navigation. → use **CommandMenu**
 - Don't: Take filtering over with filteredItems in order to virtualize. Base UI ignores filteredItems while the untouched field still holds the selected item's label, so the list you render and the list it indexes diverge — and the symptom is clicking one row and getting another.
 
 ### Anatomy

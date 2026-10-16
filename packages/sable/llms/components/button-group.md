@@ -16,7 +16,7 @@ Use ButtonGroup when one action has close alternatives (Copy page, with Open inâ
 - Do: For a split button, put the main action first and a Menu whose trigger is the chevron Button second, with an aria-label on the trigger ("More page actions").
 - Do: Name the group with aria-label when the buttons alone do not say what they act on.
 - Don't: Do not round or border the children yourself to make them meet; that is the group's job, and an override breaks under a theme's button shape.
-- Don't: Do not use it for a selection that stays on. That is ToggleGroup, which carries the pressed state.
+- Don't: Do not use it for a selection that stays on. That is ToggleGroup, which carries the pressed state. â†’ use **ToggleGroup**
 
 ## Props
 

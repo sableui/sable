@@ -15,7 +15,7 @@ Use Switch for immediate on/off settings that take effect as a persistent prefer
 - Do: Use it for binary settings where the label describes the enabled state.
 - Do: Make the current state obvious through both position and accessible text.
 - Don't: Do not phrase the label as a negative, such as "Don't send read receipts". Turning off a negative is a double negative, and the user has to solve it before they can act.
-- Don't: Do not use Switch for one-time agreement, multi-select choices, or submit-only booleans.
+- Don't: Do not use Switch for one-time agreement, multi-select choices, or submit-only booleans. → use **Checkbox**, **Radio**
 - Don't: Do not use a Switch whose effect is not immediately visible somewhere. A toggle flipped with no observable consequence gives no confirmation it worked, so the user flips it again to check.
 
 ## Props

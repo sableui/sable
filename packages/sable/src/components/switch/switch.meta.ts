@@ -29,6 +29,7 @@ export const switchMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Do not use Switch for one-time agreement, multi-select choices, or submit-only booleans.",
+				instead: ["Checkbox", "Radio"],
 			},
 			{
 				guidance: "dont",

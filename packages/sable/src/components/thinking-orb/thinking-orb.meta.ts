@@ -39,11 +39,13 @@ export const thinkingOrbMeta: ComponentMeta = {
 				guidance: "dont",
 				description:
 					"Do not put one on every row of a list or in a repeated skeleton. Each orb runs its own animation frame loop painting hundreds of arcs; use Skeleton for content-shaped waits and Spinner inside buttons.",
+				instead: ["Skeleton", "Spinner"],
 			},
 			{
 				guidance: "dont",
 				description:
 					"Do not use it for a determinate wait. It carries no sense of how far along anything is — reach for Progress when a percentage exists.",
+				instead: ["Progress"],
 			},
 			{
 				guidance: "dont",

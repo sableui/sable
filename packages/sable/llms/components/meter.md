@@ -15,7 +15,7 @@ Use Meter to show a static measurement against a known maximum — storage used,
 - Do: Label it and show the reading in units people use ("7.2 of 10 GB"), with MeterLabel and MeterValue. The bar shows proportion; the number is what gets acted on.
 - Do: Pick `tone` from thresholds you own and apply them consistently across the page — warning near the limit, destructive at or over it. The component does not guess where good becomes bad.
 - Do: Use shape="ring" when the reading is a score that belongs in a small, glanceable spot on a card. It is the same measurement drawn as a circular gauge, not a different component.
-- Don't: Do not use Meter for a task in flight — an upload, an install, a step count. That is Progress; Meter tells assistive tech nothing is happening.
+- Don't: Do not use Meter for a task in flight — an upload, an install, a step count. That is Progress; Meter tells assistive tech nothing is happening. → use **Progress**
 - Don't: Do not use it for a value without a meaningful maximum (followers, total spend). A bar implies a full scale; an unbounded count is a stat.
 
 ### Anatomy

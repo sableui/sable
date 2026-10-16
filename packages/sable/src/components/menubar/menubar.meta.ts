@@ -31,6 +31,7 @@ export const menubarMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Do not use a menubar for site navigation. Its items are commands in menus (role=menuitem), not links between pages.",
+				instead: ["NavigationMenu"],
 			},
 		],
 		anatomy: [

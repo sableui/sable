@@ -29,6 +29,14 @@ export interface BestPracticeMeta {
 	guidance: "do" | "dont"
 	/** Short design guidance focused on when and how to use the component. */
 	description: string
+	/**
+	 * On a "dont" only: what to reach for instead — component or subcomponent
+	 * names, checked at build. Prose that names an alternative goes stale silently
+	 * when that component is renamed; this does not, and it lets the CLI print a
+	 * short "not for" list at compact detail. Leave it off when the remedy is a
+	 * way of using this same component.
+	 */
+	instead?: string[]
 }
 
 export interface AnatomyMeta {

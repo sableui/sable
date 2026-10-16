@@ -25,6 +25,7 @@ export const tooltipMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Do not put critical instructions, errors, or interactive content inside Tooltip.",
+				instead: ["Popover", "InlineStatus"],
 			},
 			{
 				guidance: "dont",

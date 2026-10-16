@@ -29,6 +29,7 @@ export const contextCardMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description: "Do not open it on click. It is a hover/focus preview; making it click-triggered gives you a Popover with no dismiss affordance and no way to reach the content it previews.",
+				instead: ["Popover"],
 			},
 		],
 		anatomy: [

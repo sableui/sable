@@ -47,6 +47,7 @@ export const dialogMeta: ComponentMeta = {
 				guidance: "dont",
 				description:
 					"Put large multipage workflows in a centered dialog. Use Sheet or a page route when the task needs space.",
+				instead: ["Sheet"],
 			},
 			{
 				guidance: "do",
@@ -57,6 +58,7 @@ export const dialogMeta: ComponentMeta = {
 				guidance: "dont",
 				description:
 					"Use size=\"fullscreen\" for forms, confirmations, or anything that isn't media. A dialog that happens to need room is a Sheet or a page; the fullscreen affordances (dark scrim, corner close, centred content) all assume something to look at.",
+				instead: ["Sheet"],
 			},
 			{
 				guidance: "dont",
@@ -67,6 +69,7 @@ export const dialogMeta: ComponentMeta = {
 				guidance: "dont",
 				description:
 					"Open a dialog for passive status updates. Use Toast, Banner, or InlineStatus instead.",
+				instead: ["Toast", "Banner", "InlineStatus"],
 			},
 			{
 				guidance: "do",

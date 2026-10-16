@@ -14,7 +14,7 @@ Use Tooltip for brief nonessential hints tied to a specific control or piece of 
 
 - Do: Use it to name icon-only controls or clarify compact UI when the label cannot be visible.
 - Do: Keep tooltip content short and noninteractive.
-- Don't: Do not put critical instructions, errors, or interactive content inside Tooltip.
+- Don't: Do not put critical instructions, errors, or interactive content inside Tooltip. → use **Popover**, **InlineStatus**
 - Don't: Do not let a tooltip serve as an icon button's accessible name. A tooltip is not a name — without its own aria-label the button announces as "button", and the tooltip never opens for a screen reader at all.
 
 ### Anatomy

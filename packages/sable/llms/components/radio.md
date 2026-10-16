@@ -14,7 +14,7 @@ Use Radio when a user must choose exactly one option from a visible set.
 
 - Do: Use it when all options should be visible for comparison.
 - Do: Keep option labels mutually exclusive and easy to understand.
-- Don't: Do not use Radio for independent toggles or multiple selection; use Checkbox or Switch.
+- Don't: Do not use Radio for independent toggles or multiple selection; use Checkbox or Switch. → use **Checkbox**, **Switch**
 - Don't: Do not use a radio group with only one option, and do not omit the Fieldset. Without the fieldset the options share no accessible name, so a screen reader reads the choices with no question attached.
 
 ### Anatomy

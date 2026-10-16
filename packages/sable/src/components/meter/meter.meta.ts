@@ -33,6 +33,7 @@ export const meterMeta: ComponentMeta = {
 				guidance: "dont",
 				description:
 					"Do not use Meter for a task in flight — an upload, an install, a step count. That is Progress; Meter tells assistive tech nothing is happening.",
+				instead: ["Progress"],
 			},
 			{
 				guidance: "dont",
