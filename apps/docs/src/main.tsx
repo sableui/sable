@@ -1,4 +1,5 @@
 import { CodeHighlightProvider, MotionProvider } from "@sableui/react"
+import { Analytics } from "@vercel/analytics/react"
 import { highlight } from "sugar-high"
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
@@ -29,6 +30,8 @@ createRoot(rootEl).render(
 							<App />
 						</RouteErrorBoundary>
 					</CodeHighlightProvider>
+					{/* Vercel Web Analytics: page views, client-side route changes included. */}
+					<Analytics />
 				</MotionProvider>
 			</CustomizerProvider>
 		</ThemeProvider>

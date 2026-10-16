@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@sableui/react": "workspace:*",
+    "@vercel/analytics": "^2.0.1",
     "konsta": "^5.5.0",
     "motion": "^13.1.0",
     "react": "^19.2.4",
