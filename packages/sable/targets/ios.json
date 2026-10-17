@@ -1108,6 +1108,15 @@
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
+    "ToolCall": {
+      "source": "ToolCall",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "ToolCall"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
     "Toolbar": {
       "source": "Toolbar",
       "strategy": "preserve",

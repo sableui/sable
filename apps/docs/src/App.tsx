@@ -349,6 +349,10 @@ const pages: Record<string, ComponentType> = {
 		() => import("./pages/components/ThinkingOrbPage"),
 		"ThinkingOrbPage",
 	),
+	"tool-call": page(
+		() => import("./pages/components/ToolCallPage"),
+		"ToolCallPage",
+	),
 	table: page(() => import("./pages/components/TablePage"), "TablePage"),
 	pill: page(() => import("./pages/components/PillPage"), "PillPage"),
 	"notification-badge": page(

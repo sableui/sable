@@ -1,6 +1,6 @@
 # Sable (@sableui/react)
 
-> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 116 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
+> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 117 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
 
 ## Start here — brief, composition, evidence
 
@@ -288,9 +288,10 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **ListDetailPage** — Searchable list beside the selected record's detail: interactive Entity rows in a CardList (5 of 12 columns) and a sticky detail pane (7) with an editable field, a label/value list, record actions with a destructive confirmation, and recent activity. → [`llms/patterns/list-detail-page.md`](./llms/patterns/list-detail-page.md)
 - **SettingsPage** — Account settings inside the app shell: a sticky SideNav section rail beside a column of section Cards — a Profile form with the page's one explicit save, Card + CardList + Entity rows with Switches that apply instantly, a read-only payouts summary, account rows, and a delete card confirmed through DestructiveActionModal. → [`llms/patterns/settings-page.md`](./llms/patterns/settings-page.md)
 
-### Blocks (40) — section-sized compositions (cards, forms, lists), copy as starting points (registry.json → blocks; importable from `@sableui/react/blocks`; `sable block <Name>`)
+### Blocks (41) — section-sized compositions (cards, forms, lists), copy as starting points (registry.json → blocks; importable from `@sableui/react/blocks`; `sable block <Name>`)
 
 - **ApiKeysBlock** (Settings & team) — An API keys card: each key's name with its masked hint in Code, when it was created and last used, and an OverflowMenu to rename, roll or revoke. → [`llms/blocks/api-keys-block.md`](./llms/blocks/api-keys-block.md)
+- **ApprovalBlock** (AI & agents) — An agent asking permission for one tool call: the question, what will happen and what can't be undone, the call's details, an "allow for the rest of this chat" Checkbox, and Deny / Allow. → [`llms/blocks/approval-block.md`](./llms/blocks/approval-block.md)
 - **ChatThreadBlock** (Social & messaging) — A short message thread on a card: Message rows with incoming muted Bubbles on the start side and your own primary Bubbles on the end. → [`llms/blocks/chat-thread-block.md`](./llms/blocks/chat-thread-block.md)
 - **CommandPaletteBlock** (Navigation) — An inline command palette: CommandMenuPanel with a filter field and grouped actions, each with an icon and its keyboard shortcut. → [`llms/blocks/command-palette-block.md`](./llms/blocks/command-palette-block.md)
 - **CtaBandBlock** (Marketing) — A closing call to action: a centred h2 and one-line lede on a card, with a primary and an outline action. → [`llms/blocks/cta-band-block.md`](./llms/blocks/cta-band-block.md)
@@ -370,7 +371,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **ToastProvider** (part of Toast) — Wraps Base UI Toast.Provider and renders the themed Viewport + toast list.
 - **TooltipProvider** (part of Tooltip) — Wraps an app or group of Tooltips to share open/close delays.
 
-### Components (116) — full props/subcomponents/variants/guidance/a11y/examples in registry.json → components
+### Components (117) — full props/subcomponents/variants/guidance/a11y/examples in registry.json → components
 
 - **Accordion** — Stacked, collapsible disclosure sections over Base UI Accordion — roving focus, arrow-key navigation, ARIA region/heading/button wiring, and an animated height transition. *Parts:* AccordionItem, AccordionTrigger, AccordionPanel. → [`llms/components/accordion.md`](./llms/components/accordion.md)
 - **AppHeader** — Mobile top bar (sticky, hidden at lg) with leading / title / actions slots on a 3-column grid that keeps the title optically centered. → [`llms/components/app-header.md`](./llms/components/app-header.md)
@@ -484,6 +485,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **Toast** — Imperative notification system over Base UI Toast — auto-dismiss timers, swipe-to-dismiss, focus management, ARIA live-region announcements, and a limit-aware stack. *Parts:* ToastRoot, ToastContent, ToastTitle, ToastDescription, ToastClose, ToastAction. → [`llms/components/toast.md`](./llms/components/toast.md)
 - **Toggle** — Pressed-state button over Base UI Toggle, plus ToggleGroup for shared single- or multi-select rows. *Parts:* ToggleGroup, ToggleGroupItem. → [`llms/components/toggle.md`](./llms/components/toggle.md)
 - **Toolbar** — A row or column of controls that is one tab stop, with arrow-key movement between its items (role="toolbar"), over Base UI Toolbar. *Parts:* ToolbarButton, ToolbarLink, ToolbarInput, ToolbarGroup, ToolbarSeparator. → [`llms/components/toolbar.md`](./llms/components/toolbar.md)
+- **ToolCall** — One tool an agent called, as a quiet row inside its turn: a status glyph, what it did, the tool's name and where it is — with the arguments and result behind a disclosure. → [`llms/components/tool-call.md`](./llms/components/tool-call.md)
 - **Tooltip** — Hover/focus label over Base UI Tooltip (collision-aware positioning, ARIA wiring, delay grouping via TooltipProvider). *Parts:* TooltipProvider, TooltipTrigger, TooltipContent, TooltipArrow, SimpleTooltip. → [`llms/components/tooltip.md`](./llms/components/tooltip.md)
 - **Tree** — The object list a tool is built around — layers, scene graph, outline — on one shared grid, so every left edge in the panel resolves to the rail or an exact multiple of the indent step. *Parts:* TreeSection, TreeRow, TreeAddRow, TreeEmpty, treeIndent. → [`llms/components/tree.md`](./llms/components/tree.md)
 - **Video** — Styled 16:9 video player frame. → [`llms/components/video.md`](./llms/components/video.md)

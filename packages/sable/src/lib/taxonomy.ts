@@ -251,6 +251,7 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 	MessageScroller: ["Chat & AI", "either"],
 	StreamingText: ["Chat & AI", "either"],
 	ThinkingOrb: ["Chat & AI", "either"],
+	ToolCall: ["Chat & AI", "either"],
 
 	/* ── Media & mockups ──────────────────────────────────────────────────────
 	   Presenting images and video: players, galleries, scrolling strips, and the

@@ -1,5 +1,25 @@
 # What's new
 
+## 0.14.0
+
+The first pieces for agent products: a tool call, and asking permission for one.
+
+- **New: `ToolCall`.** One tool an agent called, as a quiet row inside its
+  turn: a status glyph, what it did in plain words, the tool's name in mono,
+  and one word for where it is (`running`, `awaiting`, `complete`, `error`,
+  `denied`). Input and output sit behind a disclosure, as formatted JSON or
+  as a rendered result passed as `children`. A failure's message shows under
+  the row without opening anything. When a call settles, its spinner swaps
+  for the outcome in place (`motion-icon-swap`), and that's the only motion
+  in the row. The change is announced once, and a thread restored from
+  history announces nothing.
+- **New: `ApprovalBlock`**, in a new "AI & agents" block family. An agent
+  asking permission for one call: the question in plain words, what can't be
+  undone, the call's details, an "allow for the rest of this chat" Checkbox,
+  and Deny / Allow. Neither button is focused on arrival. After a decision,
+  one status line replaces the buttons, focus moves to it, and it's
+  announced. `onApprove({ remember })` and `onDeny()` report the answer.
+
 ## 0.13.2
 
 What to use instead, wherever a component is the wrong pick.

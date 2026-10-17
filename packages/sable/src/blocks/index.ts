@@ -5,6 +5,8 @@
 // their own: import one to see it in place; copy the source to make it yours.
 export { ApiKeysBlock } from "./api-keys-block"
 export { apiKeysBlockMeta } from "./api-keys-block.meta"
+export { ApprovalBlock } from "./approval-block"
+export { approvalBlockMeta } from "./approval-block.meta"
 export { ChatThreadBlock } from "./chat-thread-block"
 export { chatThreadBlockMeta } from "./chat-thread-block.meta"
 export { CommandPaletteBlock } from "./command-palette-block"

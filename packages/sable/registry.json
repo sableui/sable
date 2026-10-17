@@ -20816,6 +20816,235 @@
       ]
     },
     {
+      "name": "ToolCall",
+      "status": "stable",
+      "group": "Chat & AI",
+      "register": "either",
+      "path": "components/tool-call",
+      "summary": "One tool an agent called, as a quiet row inside its turn: a status glyph, what it did, the tool's name and where it is — with the arguments and result behind a disclosure.",
+      "keywords": [
+        "tool call",
+        "function call",
+        "tool use",
+        "agent step",
+        "mcp",
+        "ai",
+        "tool result",
+        "agent activity"
+      ],
+      "usage": {
+        "description": "Use it for each tool call in an assistant's turn, so the person can see what the agent did and check any step. The row is the summary — glyph, a plain-words title, the tool's name, the status — and stays one line, so a turn with ten calls is still scannable. Input and output sit behind the disclosure, because they are read rarely and, when they are, in full.",
+        "bestPractices": [
+          {
+            "guidance": "do",
+            "description": "Give it a `title` in plain words, in the tense of the status: \"Searching the docs\" while running, \"Searched the docs\" once done. The `name` stays beside it in mono for the person who wants to know exactly which tool ran."
+          },
+          {
+            "guidance": "do",
+            "description": "Drive `status` from the call's real state and keep the same element mounted as it changes. The spinner swaps for the outcome in place, and the change is announced to screen readers once."
+          },
+          {
+            "guidance": "do",
+            "description": "Pass `error` with `status=\"error\"`. It shows under the row without opening anything, because a failure is the one result everyone needs to read."
+          },
+          {
+            "guidance": "do",
+            "description": "Pass a rendered result as `children` when the output is something to look at — a list of hits, a diff — rather than data to inspect. It replaces the output's code view, and `input` still shows above it."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not put the approve and deny buttons in a ToolCall. A call held for permission is `status=\"awaiting\"` here, and the decision itself is ApprovalBlock, which says what will happen and asks once."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not use it for the agent's thinking or a progress note. A wait with no tool behind it is ThinkingOrb or a Spinner with a status line, and a row that claims a tool ran when none did makes every other row less trustworthy.",
+            "instead": [
+              "ThinkingOrb",
+              "Spinner"
+            ]
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not open every call by default. A turn whose calls all show their JSON buries the answer; leave `defaultOpen` for the one call the person is likely to check, if any."
+          }
+        ],
+        "anatomy": [
+          {
+            "name": "Status glyph",
+            "required": true,
+            "description": "Spinner while running, then the outcome: check, warning, clock (awaiting approval) or ×. The only part that moves."
+          },
+          {
+            "name": "Title",
+            "required": false,
+            "description": "What the call does, in plain words. Without one, the tool's name leads."
+          },
+          {
+            "name": "Name",
+            "required": true,
+            "description": "The tool's own name in mono, after the title. Hidden below the sm breakpoint when a title is present."
+          },
+          {
+            "name": "Status",
+            "required": true,
+            "description": "One word for where the call is: Running, Needs approval, Done, Failed, Denied."
+          },
+          {
+            "name": "Error line",
+            "required": false,
+            "description": "The failure message, under the row and always visible."
+          },
+          {
+            "name": "Details",
+            "required": false,
+            "description": "Input and output as code, or a rendered result. A disclosure; the row is its trigger."
+          }
+        ]
+      },
+      "related": {
+        "components": [
+          "Message",
+          "ThinkingOrb",
+          "StreamingText",
+          "CodeBlock",
+          "Collapsible",
+          "InlineStatus"
+        ]
+      },
+      "props": [
+        {
+          "name": "name",
+          "type": "string",
+          "description": "The tool's own name, as the model called it (`search_docs`). Shown in mono."
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "description": "What the call does, in words a person reads. Leads the row; omit it and `name` leads."
+        },
+        {
+          "name": "status",
+          "type": "\"running\" | \"awaiting\" | \"complete\" | \"error\" | \"denied\"",
+          "default": "\"running\"",
+          "description": "Where the call is. `awaiting` is held for the person's approval; `denied` is one they declined."
+        },
+        {
+          "name": "statusLabel",
+          "type": "string",
+          "description": "Overrides the status word, for another language or a more specific phrase."
+        },
+        {
+          "name": "input",
+          "type": "unknown",
+          "description": "The arguments. A string shows as is; anything else as formatted JSON."
+        },
+        {
+          "name": "output",
+          "type": "unknown",
+          "description": "The result, shown the same way as `input`."
+        },
+        {
+          "name": "error",
+          "type": "ReactNode",
+          "description": "What went wrong, for `status=\"error\"`. Always visible under the row."
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "description": "A rendered result in place of `output`'s code view."
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "default": "false",
+          "description": "Open the details on mount."
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "description": "Controlled open state of the details."
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "description": "Called when the details open or close."
+        }
+      ],
+      "variants": {
+        "status": [
+          "running",
+          "awaiting",
+          "complete",
+          "error",
+          "denied"
+        ]
+      },
+      "tokensUsed": [
+        "card",
+        "border",
+        "destructive",
+        "muted",
+        "muted-foreground",
+        "foreground",
+        "tone-warning",
+        "ring"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "It arrives as part of the assistant's turn, and the turn's own arrival covers it. A second entrance per call would make a busy turn twitch."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Header",
+          "why": "The header is the disclosure trigger but reads as a status row. The hover step is what tells the person it opens."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-icon-swap",
+          "part": "Status glyph",
+          "why": "The spinner becoming a check or a warning is the moment the call settles, and it is the one change in the row worth catching from the corner of the eye. The swap reads as one mark replaced, not a flicker."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-disclosure",
+          "part": "Details",
+          "why": "The height change connects the code that appears to the row that was pressed, in a thread where several rows look alike."
+        },
+        {
+          "slot": "activity",
+          "recipe": "motion-spin",
+          "part": "Status glyph",
+          "why": "While the call runs, the spinner is what separates working from stuck. It pauses once the call settles, so a long thread of finished calls costs nothing."
+        }
+      ],
+      "a11y": [
+        "With details, the header is a button with aria-expanded (Base UI Collapsible); its name is the title, the tool name and the status word, so it reads as one sentence.",
+        "A status change after mount is announced once through a polite role=status region (\"Searched the docs: Done\"). The status a call mounts with is not announced, so a thread restored from history stays quiet.",
+        "The glyph is aria-hidden: the status word beside it carries the meaning, so colour and shape are never the only signal."
+      ],
+      "examples": [
+        {
+          "label": "A finished call",
+          "code": "<ToolCall\n\tname=\"search_docs\"\n\ttitle=\"Searched the docs\"\n\tstatus=\"complete\"\n\tinput={{ query: \"date range picker\" }}\n\toutput={{ hits: [\"DatePicker\", \"Calendar\", \"DateTile\"] }}\n/>",
+          "imports": "import { ToolCall } from \"@sableui/react\""
+        },
+        {
+          "label": "Running, then failed",
+          "code": "<div className=\"flex flex-col gap-2\">\n\t<ToolCall name=\"read_file\" title=\"Reading package.json\" status=\"running\" input={{ path: \"package.json\" }} />\n\t<ToolCall\n\t\tname=\"run_tests\"\n\t\ttitle=\"Ran the tests\"\n\t\tstatus=\"error\"\n\t\terror=\"3 of 412 tests failed in date-picker.test.tsx.\"\n\t\tinput={{ filter: \"date-picker\" }}\n\t/>\n</div>",
+          "imports": "import { ToolCall } from \"@sableui/react\""
+        },
+        {
+          "label": "Waiting for approval",
+          "code": "<ToolCall name=\"send_email\" title=\"Send the invoice to Ada\" status=\"awaiting\" input={{ to: \"ada@example.com\", subject: \"INV-1042\" }} />",
+          "imports": "import { ToolCall } from \"@sableui/react\""
+        }
+      ]
+    },
+    {
       "name": "Tooltip",
       "status": "stable",
       "group": "Overlays",
@@ -21741,6 +21970,31 @@
         ],
         "imports": "import { Button, Card, CardAction, CardDescription, CardHeader, CardList, CardTitle, cn, Code, Entity, Icon, MenuItem, MenuSeparator, OverflowMenu } from \"@sableui/react\"",
         "code": "const keys = [\n\t{ id: \"k1\", name: \"Production\", hint: \"sk_live_••••4f2a\", detail: \"Created Mar 2 · used 4 minutes ago\" },\n\t{ id: \"k2\", name: \"Staging\", hint: \"sk_test_••••91cd\", detail: \"Created Feb 11 · used yesterday\" },\n\t{ id: \"k3\", name: \"CI deploys\", hint: \"sk_live_••••0b7e\", detail: \"Created Jan 5 · never used\" },\n]\n\nexport interface ApiKeysBlockProps {\n\tclassName?: string\n\t/** false drops the card's surface and border — for a muted section that already frames it. */\n\tframed?: boolean\n\tonCreate?: () => void\n\t/** Called with the key's id and the action chosen from its menu. */\n\tonKeyAction?: (id: string, action: \"rename\" | \"roll\" | \"revoke\") => void\n}\n\nexport function ApiKeysBlock({ className, framed = true, onCreate, onKeyAction }: ApiKeysBlockProps) {\n\treturn (\n\t\t<Card variant={framed ? \"default\" : \"flat\"} className={cn(\"w-full max-w-2xl\", className)}>\n\t\t\t<CardHeader>\n\t\t\t\t<CardTitle render={<h2 />}>API keys</CardTitle>\n\t\t\t\t<CardDescription>A key is shown once, when you create it. Store it somewhere safe.</CardDescription>\n\t\t\t\t<CardAction>\n\t\t\t\t\t<Button size=\"sm\" variant=\"outline\" iconStart={<Icon name=\"key\" />} onClick={onCreate}>\n\t\t\t\t\t\tCreate key\n\t\t\t\t\t</Button>\n\t\t\t\t</CardAction>\n\t\t\t</CardHeader>\n\t\t\t<CardList>\n\t\t\t\t{keys.map((k) => (\n\t\t\t\t\t<Entity\n\t\t\t\t\t\tkey={k.id}\n\t\t\t\t\t\ttitle={\n\t\t\t\t\t\t\t<span className=\"flex flex-wrap items-center gap-x-2\">\n\t\t\t\t\t\t\t\t{k.name}\n\t\t\t\t\t\t\t\t<Code>{k.hint}</Code>\n\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t}\n\t\t\t\t\t\tsubtitle={k.detail}\n\t\t\t\t\t\taction={\n\t\t\t\t\t\t\t<OverflowMenu label={`Manage the ${k.name} key`} size=\"icon-sm\">\n\t\t\t\t\t\t\t\t<MenuItem onClick={() => onKeyAction?.(k.id, \"rename\")}>Rename</MenuItem>\n\t\t\t\t\t\t\t\t<MenuItem onClick={() => onKeyAction?.(k.id, \"roll\")}>Roll key</MenuItem>\n\t\t\t\t\t\t\t\t<MenuSeparator />\n\t\t\t\t\t\t\t\t<MenuItem variant=\"destructive\" onClick={() => onKeyAction?.(k.id, \"revoke\")}>\n\t\t\t\t\t\t\t\t\tRevoke\n\t\t\t\t\t\t\t\t</MenuItem>\n\t\t\t\t\t\t\t</OverflowMenu>\n\t\t\t\t\t\t}\n\t\t\t\t\t/>\n\t\t\t\t))}\n\t\t\t</CardList>\n\t\t</Card>\n\t)\n}"
+      },
+      {
+        "name": "ApprovalBlock",
+        "path": "blocks/approval-block.tsx",
+        "summary": "An agent asking permission for one tool call: the question, what will happen and what can't be undone, the call's details, an \"allow for the rest of this chat\" Checkbox, and Deny / Allow.",
+        "intent": "Reach for this in a chat or agent run when a tool call waits on the person — sending, paying, deleting, publishing. The call itself, before and after the decision, is a ToolCall with status=\"awaiting\", then \"complete\" or \"denied\". A destructive action outside an agent is DestructiveActionModal.",
+        "family": "AI & agents",
+        "kind": "card",
+        "width": {
+          "min": "18rem",
+          "max": "28rem"
+        },
+        "notes": [
+          "The title is the question in plain words (\"Send the invoice to Ada?\"), not the tool's name; the tool's name is one row of the details, for the person who wants to know exactly what runs.",
+          "The description says what can't be undone. That sentence is what the person is deciding on.",
+          "Deny comes first and Allow is the primary on the end, the same order as every Sable confirmation. Neither is focused on arrival: an approval that a stray Enter can grant is not an approval.",
+          "After a decision the buttons give way to one InlineStatus line saying what happened, so the thread keeps a record of the answer."
+        ],
+        "a11y": [
+          "Focus moves to the outcome line when the buttons leave, instead of dropping to the page; the line is a role=status region, so the decision is announced.",
+          "The details are a dl, so each value is read with its label.",
+          "The remember Checkbox has its own Label, so the tool name inside it is part of its accessible name."
+        ],
+        "imports": "import { useState, useEffect, useRef, useId } from \"react\"\nimport { Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, Checkbox, cn, Code, InlineStatus, Label } from \"@sableui/react\"",
+        "code": "const request = {\n\ttool: \"send_email\",\n\ttitle: \"Send the invoice to Ada?\",\n\tdescription: \"The agent wants to email invoice INV-1042. An email can't be unsent.\",\n\tdetails: [\n\t\t{ label: \"To\", value: \"ada@example.com\" },\n\t\t{ label: \"Subject\", value: \"INV-1042 for October\" },\n\t\t{ label: \"Attached\", value: \"INV-1042.pdf\" },\n\t],\n\tallowed: \"Allowed. Sending the email.\",\n\tdenied: \"Denied. The agent won't send it.\",\n}\n\nexport interface ApprovalBlockProps {\n\tclassName?: string\n\t/** false drops the card's surface and border — for a chat column that already frames it. */\n\tframed?: boolean\n\t/** The person allowed the call. `remember` is the \"for the rest of this chat\" choice. */\n\tonApprove?: (options: { remember: boolean }) => void\n\t/** The person declined the call. */\n\tonDeny?: () => void\n}\n\nexport function ApprovalBlock({ className, framed = true, onApprove, onDeny }: ApprovalBlockProps) {\n\tconst [decision, setDecision] = useState<\"allowed\" | \"denied\" | null>(null)\n\tconst [remember, setRemember] = useState(false)\n\tconst id = useId()\n\tconst outcome = useRef<HTMLDivElement>(null)\n\t// The buttons leave with the decision, so focus moves to the line that\n\t// replaces them instead of falling back to the top of the page.\n\tuseEffect(() => {\n\t\tif (decision) outcome.current?.focus()\n\t}, [decision])\n\n\treturn (\n\t\t<Card variant={framed ? \"default\" : \"flat\"} className={cn(\"w-full max-w-md\", className)}>\n\t\t\t<CardHeader>\n\t\t\t\t<CardTitle>{request.title}</CardTitle>\n\t\t\t\t<CardDescription>{request.description}</CardDescription>\n\t\t\t</CardHeader>\n\t\t\t<CardContent className=\"flex flex-col gap-4\">\n\t\t\t\t<dl className=\"grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-body-sm\">\n\t\t\t\t\t{request.details.map((d) => (\n\t\t\t\t\t\t<div key={d.label} className=\"contents\">\n\t\t\t\t\t\t\t<dt className=\"text-muted-foreground\">{d.label}</dt>\n\t\t\t\t\t\t\t<dd className=\"truncate text-foreground\">{d.value}</dd>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t))}\n\t\t\t\t\t<div className=\"contents\">\n\t\t\t\t\t\t<dt className=\"text-muted-foreground\">Tool</dt>\n\t\t\t\t\t\t<dd className=\"min-w-0\">\n\t\t\t\t\t\t\t<Code>{request.tool}</Code>\n\t\t\t\t\t\t</dd>\n\t\t\t\t\t</div>\n\t\t\t\t</dl>\n\t\t\t\t{decision ? null : (\n\t\t\t\t\t<div className=\"flex items-center gap-2\">\n\t\t\t\t\t\t<Checkbox id={`${id}-remember`} checked={remember} onCheckedChange={(v: boolean) => setRemember(v)} />\n\t\t\t\t\t\t<Label htmlFor={`${id}-remember`} className=\"text-body-sm\">\n\t\t\t\t\t\t\tAllow <Code>{request.tool}</Code> for the rest of this chat\n\t\t\t\t\t\t</Label>\n\t\t\t\t\t</div>\n\t\t\t\t)}\n\t\t\t</CardContent>\n\t\t\t<CardFooter actions className=\"justify-end\">\n\t\t\t\t{decision ? (\n\t\t\t\t\t<InlineStatus\n\t\t\t\t\t\tref={outcome}\n\t\t\t\t\t\ttabIndex={-1}\n\t\t\t\t\t\trole=\"status\"\n\t\t\t\t\t\ttone={decision === \"allowed\" ? \"success\" : \"neutral\"}\n\t\t\t\t\t\tclassName=\"me-auto outline-none\"\n\t\t\t\t\t>\n\t\t\t\t\t\t{decision === \"allowed\" ? request.allowed : request.denied}\n\t\t\t\t\t</InlineStatus>\n\t\t\t\t) : (\n\t\t\t\t\t<>\n\t\t\t\t\t\t<Button\n\t\t\t\t\t\t\tvariant=\"outline\"\n\t\t\t\t\t\t\tonClick={() => {\n\t\t\t\t\t\t\t\tsetDecision(\"denied\")\n\t\t\t\t\t\t\t\tonDeny?.()\n\t\t\t\t\t\t\t}}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\tDeny\n\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t<Button\n\t\t\t\t\t\t\tonClick={() => {\n\t\t\t\t\t\t\t\tsetDecision(\"allowed\")\n\t\t\t\t\t\t\t\tonApprove?.({ remember })\n\t\t\t\t\t\t\t}}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\tAllow\n\t\t\t\t\t\t</Button>\n\t\t\t\t\t</>\n\t\t\t\t)}\n\t\t\t</CardFooter>\n\t\t</Card>\n\t)\n}"
       },
       {
         "name": "ChatThreadBlock",
@@ -27419,6 +27673,19 @@
         "orientation",
         "render",
         "style"
+      ],
+      "ToolCall": [
+        "children",
+        "defaultOpen",
+        "error",
+        "input",
+        "name",
+        "onOpenChange",
+        "open",
+        "output",
+        "status",
+        "statusLabel",
+        "title"
       ],
       "Tooltip": [
         "actionsRef",

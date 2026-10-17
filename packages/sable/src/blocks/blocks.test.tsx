@@ -45,6 +45,22 @@ describe("blocks", () => {
 		expect(onSignIn.mock.calls).toEqual([["password"], ["passkey"]])
 	})
 
+	it("ApprovalBlock reports the decision, then says what happened where the buttons were", () => {
+		const onApprove = vi.fn()
+		const onDeny = vi.fn()
+		const allow = render(<blocks.ApprovalBlock onApprove={onApprove} onDeny={onDeny} />)
+		fireEvent.click(screen.getByRole("checkbox"))
+		fireEvent.click(screen.getByRole("button", { name: "Allow" }))
+		expect(onApprove.mock.calls).toEqual([[{ remember: true }]])
+		expect(screen.queryByRole("button", { name: "Deny" })).toBeNull()
+		expect(screen.getByRole("status")).toHaveFocus()
+		allow.unmount()
+		render(<blocks.ApprovalBlock onApprove={onApprove} onDeny={onDeny} />)
+		fireEvent.click(screen.getByRole("button", { name: "Deny" }))
+		expect(onDeny).toHaveBeenCalledOnce()
+		expect(screen.getByRole("status")).toHaveTextContent("Denied")
+	})
+
 	it("InviteTeamBlock sends the typed address", () => {
 		const onSend = vi.fn()
 		render(<blocks.InviteTeamBlock onSend={onSend} />)

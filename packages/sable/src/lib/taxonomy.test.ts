@@ -121,6 +121,7 @@ describe("taxonomy", () => {
 			"MessageScroller",
 			"StreamingText",
 			"ThinkingOrb",
+			"ToolCall",
 		])
 	})
 
