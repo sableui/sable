@@ -102,6 +102,19 @@ export function CarouselPage() {
 				</Example>
 			</Section>
 
+			<Section
+				title="Subtle motion"
+				description="The slides still travel, since that is the answer to next, but the active dot snaps instead of stretching."
+			>
+				<Example className="block">
+					<Carousel loop motion="subtle" label="Gallery" className="w-full">
+						{Array.from({ length: 4 }, (_, i) => (
+							<Panel key={i} n={i} />
+						))}
+					</Carousel>
+				</Example>
+			</Section>
+
 			<MetaFooter meta={carouselMeta} />
 		</>
 	)

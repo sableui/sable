@@ -1,4 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
+import { useState } from "react"
+import { flushSync } from "react-dom"
 import { fireEvent, renderWithProviders, screen } from "../../test/render"
 import { ChatComposer } from "./index"
 
@@ -260,5 +262,74 @@ describe("ChatComposer", () => {
 		renderWithProviders(<ChatComposer attachments={<span>file</span>} />)
 		const row = document.querySelector("[data-slot=chat-composer-attachments]")
 		expect(row?.className).toContain("[--attachment-radius:")
+	})
+})
+
+describe("ChatComposer motion", () => {
+	const field = () => screen.getByRole("textbox")
+
+	it("keeps one button that changes role, with both glyphs mounted for the swap", () => {
+		const { rerender } = renderWithProviders(<ChatComposer busy onStop={() => undefined} />)
+		const stop = screen.getByRole("button", { name: "Stop generating" })
+		expect(stop).toHaveAttribute("type", "button")
+		const active = () =>
+			[...stop.querySelectorAll("[data-active]")].map((el) => [
+				el.querySelector("[data-icon]")?.getAttribute("data-icon"),
+				el.getAttribute("data-active"),
+			])
+		expect(active()).toEqual([
+			["arrow-up", "false"],
+			["stop", "true"],
+		])
+
+		rerender(<ChatComposer onStop={() => undefined} defaultValue="hi" />)
+		const send = screen.getByRole("button", { name: "Send message" })
+		// The same element: the fill eases and the glyph swaps in place.
+		expect(send).toBe(stop)
+		expect(send).toHaveAttribute("type", "submit")
+		expect(active()).toEqual([
+			["arrow-up", "true"],
+			["stop", "false"],
+		])
+	})
+
+	it("pins an eased pixel height once the field can be measured, and hides overflow below the cap", () => {
+		const scrollHeight = vi.spyOn(HTMLElement.prototype, "scrollHeight", "get").mockReturnValue(48)
+		try {
+			renderWithProviders(<ChatComposer />)
+			fireEvent.change(field(), { target: { value: "one\ntwo" } })
+			const el = field() as HTMLTextAreaElement
+			expect(el.style.height).toBe("48px")
+			expect(el.style.overflowY).toBe("hidden")
+			expect(el.style.transition).toContain("var(--motion-expressive, 1)")
+		} finally {
+			scrollHeight.mockRestore()
+		}
+	})
+
+	it("leaves sizing to CSS while there is nothing to measure (a hidden composer)", () => {
+		renderWithProviders(<ChatComposer />)
+		fireEvent.change(field(), { target: { value: "hello" } })
+		expect((field() as HTMLTextAreaElement).style.height).toBe("")
+	})
+
+	it("does not send a draft when stop clears busy in the same click", () => {
+		const onSend = vi.fn()
+		function Harness() {
+			const [busy, setBusy] = useState(true)
+			// flushSync stands in for the browser: there, React's update lands in the
+			// microtask between the click listener and the button's default action,
+			// so the button is already type="submit" when that action runs.
+			return <ChatComposer busy={busy} onStop={() => flushSync(() => setBusy(false))} onSend={onSend} defaultValue="next question" />
+		}
+		renderWithProviders(<Harness />)
+		fireEvent.click(screen.getByRole("button", { name: "Stop generating" }))
+		expect(screen.getByRole("button", { name: "Send message" })).toHaveAttribute("type", "submit")
+		expect(onSend).not.toHaveBeenCalled()
+	})
+
+	it("carries a motion level on the form", () => {
+		const { container } = renderWithProviders(<ChatComposer motion="subtle" />)
+		expect(container.querySelector("form")).toHaveAttribute("data-motion", "subtle")
 	})
 })

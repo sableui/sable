@@ -111,6 +111,38 @@ export const scrubFieldMeta: ComponentMeta = {
 		{ name: "disabled", type: "boolean", description: "Disables typing and scrubbing." },
 		{ name: "id", type: "string", description: "Input id, for a PropertyRow's htmlFor." },
 	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "It arrives with the inspector row it sits in.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Root",
+			why: "The shell eases its focus ring like every field, so tabbing through a column of numbers shows where the keyboard is without flicker.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Handle",
+			why: "The handle's ink brightens while the field is hovered. It is the only sign that the icon or prefix can be dragged, which nobody would guess from a label.",
+		},
+		{
+			slot: "transition",
+			recipe: "none",
+			part: "Value",
+			why: "The number follows the drag pixel for pixel. Easing it — or rolling it with a NumberTicker — would show a value the pointer has already left, in a control whose whole point is precision.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "Scrubbing is synchronous; there is nothing to wait for.",
+		},
+	],
 	a11y: [
 		"The input carries the accessible name via `label`; the glyph is aria-hidden because it is decorative.",
 		"Every scrub gesture is reachable from the keyboard: ArrowUp/ArrowDown step by `step`, Shift+Arrow by ten steps.",

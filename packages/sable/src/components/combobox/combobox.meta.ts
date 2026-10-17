@@ -236,6 +236,50 @@ export const comboboxMeta: ComponentMeta = {
 		"secondary",
 		"secondary-foreground",
 	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "motion-pop",
+			part: "ComboboxContent",
+			why: "The list grows from the field it filters, its origin on Base UI's anchor. With several comboboxes in a form, that is what attaches the open list to the one being typed in.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "ComboboxItem",
+			why: "A row's ink eases as the pointer or the arrow keys reach it, so moving through a long filtered list reads as continuous movement rather than rows blinking.",
+		},
+		{
+			slot: "response",
+			recipe: "custom",
+			part: "Highlight",
+			why: "One highlight travels to the active row (lib/highlight-glide: a measured translate on the motion tokens) instead of each row painting its own fill. When the list re-filters under the caret, the highlight sliding to the new match is what shows the keyboard target moved.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Toggle",
+			why: "The chevron toggle at the field's edge eases its ink on hover; the change is what tells you it is a separate target from the text box.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-interactive",
+			part: "Toggle",
+			why: "The chevron turns 180° as the list opens and closes (motion-interactive lists `rotate`), in step with the popup, so it reads as one control changing direction.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-pop",
+			part: "ComboboxContent",
+			why: "Closing shrinks back toward the field, returning the eye to the input that now holds the value.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "Combobox ships no loading part. A list fetched as you type shows a Spinner (motion-spin) in ComboboxEmpty or the content — where the results will land — and only the caller knows a fetch is in flight.",
+		},
+	],
 	a11y: [
 		"Base UI provides role=combobox/listbox/option, roving tabindex, arrow-key navigation, and type-to-filter.",
 		"Esc and outside-press dismiss; focus returns to the input on close.",

@@ -5,7 +5,8 @@ import { areaPath, linePath, type Point } from "../../lib/chart/geometry"
 import { drawTransition, riseTransition, stagger } from "../../lib/chart/motion"
 import { type ChartTone, toneColor } from "../../lib/chart/types"
 import { cn } from "../../lib/cn"
-import { useMotion } from "../../motion/MotionProvider"
+import { type MotionLevel, motionAttribute, useMotionLevel } from "../../motion/MotionProvider"
+import { chartMotion } from "../../lib/chart/chart-frame"
 import { useArrival } from "../../lib/chart/use-arrival"
 
 export interface SparklineProps extends Omit<ComponentPropsWithRef<"svg">, "children" | "aria-label"> {
@@ -17,7 +18,19 @@ export interface SparklineProps extends Omit<ComponentPropsWithRef<"svg">, "chil
 	variant?: "line" | "area" | "bar"
 	/** Colour by role. @default "primary" */
 	tone?: ChartTone
-	/** Draw on (or rise) when it scrolls into view. @default true */
+	/**
+	 * How much motion this component uses: `full` (default) inherits the app's
+	 * policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It
+	 * can only turn motion down — it never overrides a reader's reduce-motion
+	 * setting. Drawing on (or rising) as it scrolls into view is the
+	 * flourish, so `subtle` shows the finished line.
+	 */
+	motion?: MotionLevel
+	/**
+	 * Draw on (or rise) when it scrolls into view. `animate={false}` is
+	 * `motion="subtle"`.
+	 * @deprecated Use `motion="subtle"` (what `animate={false}` now maps to) or `motion="off"`.
+	 */
 	animate?: boolean
 	/** BCP 47 locale for the spoken numbers. */
 	locale?: string
@@ -32,10 +45,12 @@ const H = 32
  * stretched to fit, so it follows its container. For values a reader needs
  * to look up, use AreaChart or LineChart.
  */
-export function Sparkline({ data, label, variant = "line", tone = "primary", animate = true, locale, className, ...props }: SparklineProps) {
-	const { enabled } = useMotion()
+export function Sparkline({ data, label, variant = "line", tone = "primary", motion, animate, locale, className, ...props }: SparklineProps) {
+	const level = chartMotion(motion, animate)
+	// The arrival is expressive: under subtle, off or reduced motion the line is simply there.
+	const { expressive } = useMotionLevel(level)
 	const [ref, inView] = useArrival<SVGSVGElement>()
-	const shown = !animate || !enabled || inView
+	const shown = !expressive || inView
 	const color = toneColor(tone)
 	// A line or area shows the shape, so it spans the data's own range. Pinned
 	// to zero, a run from 12 to 26 used the top half of the box: a flat
@@ -104,6 +119,7 @@ export function Sparkline({ data, label, variant = "line", tone = "primary", ani
 			viewBox={`0 0 ${W} ${H}`}
 			preserveAspectRatio="none"
 			data-reveal={shown ? "in" : "out"}
+			data-motion={motionAttribute(level)}
 			className={cn("inline-block h-8 w-24 shrink-0 overflow-visible align-middle", className)}
 			{...props}
 		>

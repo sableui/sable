@@ -45,6 +45,13 @@ Use Breadcrumbs to show the user's location inside a hierarchy and provide light
 
 `muted-foreground`, `foreground`
 
+## Motion
+
+- **arrival** · Root · _no motion_ — The trail is page furniture, rendered with the page header. An entrance would replay on every navigation, which is exactly when the reader looks at it to get their bearings.
+- **response** · BreadcrumbLink · `motion-interactive` — Ancestors are muted until hovered or focused. Easing the ink makes the trail read as links answering the pointer; a hard snap across a row of small text looks like flicker.
+- **transition** · Root · _no motion_ — A breadcrumb has no state of its own. The current page changes by navigation, which replaces the trail; animating between two trails would imply the path itself moved.
+- **activity** · Root · _no motion_ — It never works in the background. A route that is still loading says so in the page, not in its address.
+
 ## Accessibility
 
 - The <nav> carries aria-label="Breadcrumb" so assistive tech announces the landmark.

@@ -28,7 +28,7 @@ export function CodeBlockPage() {
 
 			<Section
 				title="With filename"
-				description="Long lines scroll sideways instead of wrapping."
+				description="Long lines scroll sideways instead of wrapping. Copy cross-fades its glyph to a check and says Copied to a screen reader."
 			>
 				<Example>
 					<CodeBlock filename="cn.ts" code={cnSource} />

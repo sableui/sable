@@ -206,7 +206,7 @@ export function TreePage() {
 
 			<Section
 				title="File tree"
-				description="Folders open and close on their own and start closed unless set open. Click a file to select it, or use the arrow keys."
+				description="Folders open and close on their own and start closed unless set open; the rows an open reveals unfold into place. Click a file to select it, or use the arrow keys."
 			>
 				<FileTreeDemo />
 			</Section>

@@ -99,6 +99,13 @@ export const checkboxCardMeta: ComponentMeta = {
 			description:
 				"Standard checkbox state. Without a group-owned value, each card is independent — drive checked/onCheckedChange per item for multi-select.",
 		},
+		{
+			name: "motion",
+			type: '"full" | "subtle" | "off"',
+			default: '"full"',
+			description:
+				"How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Under `subtle` the tick fades in instead of drawing itself.",
+		},
 	],
 	subcomponents: [
 		{
@@ -130,6 +137,32 @@ export const checkboxCardMeta: ComponentMeta = {
 		"tone-info-foreground",
 		"tone-warning",
 		"tone-warning-foreground",
+	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "It arrives with the form it belongs to. Animating each box in turns a settings list into a title sequence.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Box",
+			why: "The box fills with the primary colour as it is checked; easing the fill keeps the mark and the box changing as one event rather than two frames apart.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-tick",
+			part: "Mark",
+			why: "The check draws itself in from its leading stroke, so checking reads as the box being ticked rather than a glyph appearing. The dash wipes the same way. Unchecking only fades, so clearing a list is quick; under `subtle` checking fades too.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "A checkbox commits instantly. A slow write belongs to the surrounding form's pending state, not the control.",
+		},
 	],
 	a11y: [
 		"Base UI provides the checkbox role, aria-checked, hidden native input, keyboard toggle, and data-[checked]/data-disabled state.",

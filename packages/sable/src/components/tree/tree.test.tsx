@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { act, render, screen } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
 import { axe } from "jest-axe"
 import { describe, expect, it, vi } from "vitest"
@@ -536,5 +536,93 @@ describe("Tree — automated a11y", () => {
 		const { container } = render(<Files />)
 		const results = await axe(container, { rules: { "color-contrast": { enabled: false } } })
 		expect(results.violations).toEqual([])
+	})
+})
+
+describe("Tree arrival on expand", () => {
+	const animated = () =>
+		screen.queryAllByRole("treeitem").filter((el) => el.classList.contains("motion-arrive"))
+
+	function Folder({ motion }: { motion?: "subtle" }) {
+		return (
+			<Tree aria-label="Files" motion={motion}>
+				<TreeRow
+					toggleLabel="src"
+					defaultExpanded={false}
+					subtree={
+						<>
+							<TreeRow>a.ts</TreeRow>
+							<TreeRow>b.ts</TreeRow>
+							<TreeAddRow label="Add file" />
+						</>
+					}
+				>
+					src
+				</TreeRow>
+				<TreeRow toggleLabel="docs" subtree={<TreeRow>readme.md</TreeRow>}>
+					docs
+				</TreeRow>
+			</Tree>
+		)
+	}
+
+	it("shows rows that mount open at once — a tree that cascades on load is a title sequence", () => {
+		render(<Folder />)
+		expect(screen.getByText("readme.md")).toBeInTheDocument()
+		expect(animated()).toHaveLength(0)
+	})
+
+	it("unfolds the rows a user's expand reveals, staggered in document order", async () => {
+		const user = userEvent.setup()
+		render(<Folder />)
+		await user.click(screen.getByText("src"))
+		const rows = animated()
+		expect(rows.map((el) => el.textContent)).toEqual(["a.ts", "b.ts", "Add file"])
+		// Raw stagger steps: the motion-arrive recipe multiplies them by both
+		// policy factors, so reduced motion and `subtle` leave no dead wait.
+		expect(rows.map((el) => el.style.getPropertyValue("--motion-arrive-delay"))).toEqual(["0ms", "18ms", "36ms"])
+	})
+
+	it("does not open an arrival under motion=\"subtle\"", async () => {
+		const user = userEvent.setup()
+		render(<Folder motion="subtle" />)
+		expect(screen.getByRole("tree")).toHaveAttribute("data-motion", "subtle")
+		await user.click(screen.getByText("src"))
+		expect(screen.getByText("a.ts")).toBeInTheDocument()
+		expect(animated()).toHaveLength(0)
+	})
+})
+
+describe("Tree arrival cleanup", () => {
+	it("drops the arrival once it has played, so re-showing a hidden tree cannot replay it", async () => {
+		const user = userEvent.setup()
+		render(
+			<Tree aria-label="Files">
+				<TreeRow toggleLabel="src" defaultExpanded={false} subtree={<TreeRow>a.ts</TreeRow>}>
+					src
+				</TreeRow>
+			</Tree>,
+		)
+		await user.click(screen.getByText("src"))
+		const row = screen.getByText("a.ts").closest("[role=treeitem]") as HTMLElement
+		expect(row).toHaveClass("motion-arrive")
+		// jsdom has no AnimationEvent, so the name is set on a plain event — and
+		// React, finding no unprefixed animation support there, listens for the
+		// WebKit-prefixed name, so both are sent.
+		const end = (target: Element) => {
+			for (const type of ["animationend", "webkitAnimationEnd"]) {
+				const event = new Event(type, { bubbles: true })
+				Object.defineProperty(event, "animationName", { value: "sable-arrive" })
+				act(() => {
+					target.dispatchEvent(event)
+				})
+			}
+		}
+		// A descendant's animation bubbling up is not the row's own.
+		end(row.firstElementChild as HTMLElement)
+		expect(row).toHaveClass("motion-arrive")
+		end(row)
+		expect(row).not.toHaveClass("motion-arrive")
+		expect(row.style.getPropertyValue("--motion-arrive-delay")).toBe("")
 	})
 })

@@ -1,7 +1,7 @@
 import { type CSSProperties, createRef } from "react"
 import { act, render, screen } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { MotionProvider, type MotionPolicy } from "./MotionProvider"
+import { MotionProvider, MotionScope, type MotionLevel, type MotionPolicy, useMotion, useMotionLevel } from "./MotionProvider"
 import { Presence } from "./Presence"
 import { Reveal } from "./Reveal"
 import { TextReveal } from "./TextReveal"
@@ -221,5 +221,56 @@ describe("scroll reveal", () => {
 	it("keeps combined characters and emoji intact when splitting by character", () => {
 		const { container } = render(<TextReveal text="é 👩🏽‍💻" split="char" />)
 		expect(Array.from(container.querySelectorAll("[data-reveal]"), (node) => node.textContent)).toEqual(["é", "👩🏽‍💻"])
+	})
+})
+
+describe("motion levels", () => {
+	function Probe({ level }: { level?: MotionLevel }) {
+		const ctx = useMotion()
+		const own = useMotionLevel(level)
+		return (
+			<output
+				data-testid="probe"
+				data-enabled={String(ctx.enabled)}
+				data-expressive={String(ctx.expressive)}
+				data-level={own.level}
+				data-attribute={own.attribute ?? "none"}
+			/>
+		)
+	}
+	const probe = () => screen.getByTestId("probe")
+
+	it("keeps essential motion and drops expressive motion under the subtle policy", () => {
+		render(<MotionProvider policy="subtle"><Probe /></MotionProvider>)
+		expect(document.documentElement).toHaveAttribute("data-motion", "subtle")
+		expect(probe()).toHaveAttribute("data-enabled", "true")
+		expect(probe()).toHaveAttribute("data-expressive", "false")
+		expect(probe()).toHaveAttribute("data-level", "subtle")
+	})
+
+	it("lets a component prop and a scope turn motion down but never back up", () => {
+		const view = render(<MotionProvider policy="full"><Probe level="subtle" /></MotionProvider>)
+		expect(probe()).toHaveAttribute("data-level", "subtle")
+		expect(probe()).toHaveAttribute("data-attribute", "subtle")
+		view.rerender(<MotionProvider policy="off"><Probe level="full" /></MotionProvider>)
+		expect(probe()).toHaveAttribute("data-level", "off")
+		expect(probe()).toHaveAttribute("data-attribute", "none")
+		view.rerender(<MotionProvider policy="full"><MotionScope level="off"><Probe level="full" /></MotionScope></MotionProvider>)
+		expect(probe()).toHaveAttribute("data-enabled", "false")
+		expect(probe()).toHaveAttribute("data-level", "off")
+	})
+
+	it("renders a box-less scope wrapper that carries data-motion", () => {
+		render(<MotionScope level="subtle"><Probe /></MotionScope>)
+		const wrapper = probe().parentElement as HTMLElement
+		expect(wrapper).toHaveAttribute("data-motion", "subtle")
+		expect(wrapper.style.display).toBe("contents")
+		expect(probe()).toHaveAttribute("data-expressive", "false")
+	})
+
+	it("shows a reveal immediately under subtle, because a scroll reveal is a flourish", () => {
+		render(<MotionProvider policy="subtle"><Reveal delay={300}>Story</Reveal></MotionProvider>)
+		expect(screen.getByText("Story")).toHaveAttribute("data-reveal", "in")
+		expect(screen.getByText("Story").style.transitionDelay).toBe("0ms")
 	})
 })

@@ -34,7 +34,7 @@ export function SearchInputPage() {
 
 			<Section
 				title="Default"
-				description="The clear button appears once there's text."
+				description="The clear button fades in once there's text."
 			>
 				<Example
 					code={`<Field label="Search posts" className="w-full max-w-80">

@@ -52,6 +52,15 @@ Use RadioCard for visual choice cards when users compare a small set of named op
 
 `input`, `card`, `foreground`, `primary`, `muted`, `ring`, `muted-foreground`, `tone-3`, `tone-2`, `tone-1`, `tone-info`, `tone-warning`
 
+## Motion
+
+- **arrival** · Root · _no motion_ — Cards arrive with the form. A plan picker that animated each card in would delay the choice it exists to make.
+- **response** · Root · `motion-interactive` — The edge steps toward the ring colour on hover, eased. On a card-sized target a hard snap across the whole border reads as the layout flickering.
+- **response** · Root · `motion-press` — The settle on press confirms a click anywhere in the card — the radio is small, and without it a click in the card's body can feel like it missed the control.
+- **transition** · Root · `motion-interactive` — Checking eases the tone ring and wash onto the new card as the old one releases, so the choice reads as moving between cards rather than two cards repainting.
+- **transition** · Indicator · `motion-interactive` — The radio dot grows in on a spring, the same mark as Radio, so a card and a plain radio confirm a choice the same way.
+- **activity** · Root · _no motion_ — A choice commits instantly. A slow write belongs to the surrounding form's pending state.
+
 ## Accessibility
 
 - Base UI provides the radiogroup/radio roles, aria-checked, hidden native inputs, and roving tabindex.

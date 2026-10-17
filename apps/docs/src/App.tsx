@@ -177,6 +177,23 @@ const areas: NavArea[] = [
 						],
 					},
 					{
+						slug: "interactions",
+						label: "Interactions",
+						keywords: [
+							"micro-interactions",
+							"microinteractions",
+							"hover",
+							"press",
+							"glide",
+							"sliding indicator",
+							"rolling number",
+							"confirm",
+							"shake",
+							"loading",
+							"subtle motion",
+						],
+					},
+					{
 						slug: "grid",
 						label: "Grid & Layout",
 						keywords: ["columns", "region", "gutter", "page inset", "stack"],
@@ -261,6 +278,7 @@ const pages: Record<string, ComponentType> = {
 	colors: page(() => import("./pages/Colors"), "ColorsPage"),
 	typography: page(() => import("./pages/Typography"), "TypographyPage"),
 	motion: page(() => import("./pages/Motion"), "MotionPage"),
+	interactions: page(() => import("./pages/Interactions"), "InteractionsPage"),
 	grid: page(() => import("./pages/GridLayout"), "GridLayoutPage"),
 	icons: page(() => import("./pages/Icons"), "IconsPage"),
 	dimensions: page(() => import("./pages/Dimensions"), "DimensionsPage"),
@@ -270,6 +288,7 @@ const pages: Record<string, ComponentType> = {
 	accessibility: page(() => import("./pages/FoundationPages"), "AccessibilityPage"),
 	button: page(() => import("./pages/components/ButtonPage"), "ButtonPage"),
 	"button-group": page(() => import("./pages/components/ButtonGroupPage"), "ButtonGroupPage"),
+	"confirm-button": page(() => import("./pages/components/ConfirmButtonPage"), "ConfirmButtonPage"),
 	badge: page(() => import("./pages/components/BadgePage"), "BadgePage"),
 	card: page(() => import("./pages/components/CardPage"), "CardPage"),
 	carousel: page(
@@ -358,6 +377,10 @@ const pages: Record<string, ComponentType> = {
 	"notification-badge": page(
 		() => import("./pages/components/NotificationBadgePage"),
 		"NotificationBadgePage",
+	),
+	"number-ticker": page(
+		() => import("./pages/components/NumberTickerPage"),
+		"NumberTickerPage",
 	),
 	"status-dot": page(
 		() => import("./pages/components/StatusDotPage"),

@@ -61,6 +61,13 @@ export const themeSwitcherMeta: ComponentMeta = {
 			description: "Accessible label for the radiogroup.",
 		},
 		{
+			name: "motion",
+			type: '"full" | "subtle" | "off"',
+			default: '"full"',
+			description:
+				"How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the glide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting.",
+		},
+		{
 			name: "className",
 			type: "string",
 			description: "Merged onto the outer radiogroup container.",
@@ -74,6 +81,38 @@ export const themeSwitcherMeta: ComponentMeta = {
 		"accent",
 		"accent-foreground",
 		"ring",
+	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "It arrives with the header or settings row it lives in; a theme control that announces itself competes with the page it themes.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Option",
+			why: "The icon steps from muted to foreground under the pointer, which is what tells an icon-only segment it is a control.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-press",
+			part: "Option",
+			why: "A settle under the press confirms the tap on a 28px target before the theme change repaints the page around it.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-glide",
+			part: "Active pill",
+			why: "One pill slides to the chosen mode, stepping by option + gap on the spacing scale, so light → dark reads as the same control moving, not three icons trading a fill. Expressive: motion=\"subtle\" lands it in place.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "Changing the theme is synchronous; the repaint is the feedback.",
+		},
 	],
 	a11y: [
 		'The container is role="radiogroup" with an aria-label; each option is role="radio" with aria-checked reflecting the selected value.',
@@ -93,6 +132,10 @@ export const themeSwitcherMeta: ComponentMeta = {
 		{
 			label: "Light selected",
 			code: '<ThemeSwitcher value="light" onValueChange={setTheme} />',
+		},
+		{
+			label: "Subtle motion",
+			code: '<ThemeSwitcher value={theme} onValueChange={setTheme} motion="subtle" />',
 		},
 	],
 }

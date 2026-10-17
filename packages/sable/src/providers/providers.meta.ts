@@ -155,18 +155,18 @@ export function Root({ children }: { children: ReactNode }) {
 	{
 		name: "MotionProvider",
 		summary:
-			"Holds the app's motion policy and writes it as `data-motion` on <html>, which drives the `--motion-scale` switch every Sable motion recipe reads. Lets an app offer its own reduce-motion setting.",
+			"Holds the app's motion policy and writes it as `data-motion` on <html>, which drives the `--motion-scale` and `--motion-expressive` switches every Sable motion recipe reads. Lets an app offer its own motion setting: full, subtle (feedback without flourishes) or off.",
 		required:
 			"Optional. Without it, motion follows the visitor's OS `prefers-reduced-motion` setting, and useMotion() still works (its setPolicy does nothing).",
 		placement: "Once, at the app root, when the app has an in-app motion setting.",
 		source: "motion/MotionProvider.tsx",
 		props: [
-			{ name: "defaultPolicy", type: '"system" | "full" | "reduced" | "off"', default: '"system"', description: "Initial policy when uncontrolled. \"system\" defers to the OS preference." },
-			{ name: "policy", type: '"system" | "full" | "reduced" | "off"', description: "Controlled policy. Pair with onPolicyChange." },
+			{ name: "defaultPolicy", type: '"system" | "full" | "subtle" | "reduced" | "off"', default: '"system"', description: "Initial policy when uncontrolled. \"system\" defers to the OS preference. \"subtle\" keeps essential motion (feedback, overlays, disclosure, loaders) and drops expressive motion (glides, rolling numbers, drawn ticks, shakes, staggers, overshoot)." },
+			{ name: "policy", type: '"system" | "full" | "subtle" | "reduced" | "off"', description: "Controlled policy. Pair with onPolicyChange." },
 			{ name: "onPolicyChange", type: "(policy) => void", description: "Called whenever the policy changes." },
 			{ name: "target", type: '"root" | (() => HTMLElement | null)', default: '"root"', description: "Where to write `data-motion`. The default covers portaled overlays too; a getter scopes motion to a subtree." },
 		],
-		companions: ["useMotion", "useReducedMotion"],
+		companions: ["useMotion", "useMotionLevel", "useReducedMotion", "MotionScope"],
 		examples: [
 			{
 				label: "At the app root",
@@ -188,11 +188,56 @@ export function Root({ children }: { children: ReactNode }) {
 	)
 }`,
 			},
+			{
+				label: "A three-way motion setting",
+				code: `function MotionSetting() {
+	const { policy, setPolicy } = useMotion()
+	return (
+		<ToggleGroup
+			appearance="segmented"
+			value={[policy === "system" ? "full" : policy]}
+			onValueChange={(next) => next[0] && setPolicy(next[0] === "full" ? "system" : (next[0] as "subtle" | "off"))}
+			aria-label="Motion"
+		>
+			<Toggle value="full">Full</Toggle>
+			<Toggle value="subtle">Subtle</Toggle>
+			<Toggle value="off">Off</Toggle>
+		</ToggleGroup>
+	)
+}`,
+			},
 		],
 		notes: [
-			"JavaScript motion must read useMotion().enabled and do nothing when it is false; CSS recipes stop on their own.",
+			"JavaScript motion must read useMotion().enabled and do nothing when it is false; JavaScript flourishes read useMotion().expressive, which is also false under \"subtle\". CSS recipes follow on their own.",
+			"Mapping the app's \"full\" choice back to \"system\" keeps honouring the OS reduce-motion preference; \"full\" itself forces motion on.",
 		],
-		related: ["Switch"],
+		related: ["Switch", "ToggleGroup"],
+	},
+	{
+		name: "MotionScope",
+		summary:
+			"Turns motion down for one region — a dense data view, an embedded widget, a screen a test captures — by writing `data-motion` on a box-less wrapper and passing the same level to useMotion() below it.",
+		required:
+			"Optional. Reach for it when a whole region should be calmer than the app; for one component, use that component's `motion` prop.",
+		placement: "Around the region. It renders a `display: contents` element, so it adds no box to the layout.",
+		source: "motion/MotionProvider.tsx",
+		props: [
+			{ name: "level", type: '"subtle" | "off"', description: "\"subtle\" keeps feedback, overlays, disclosure and loaders and drops glides, rolling numbers, drawn ticks, shakes and staggers. \"off\" stills everything. A scope can only turn motion down." },
+		],
+		companions: ["useMotionLevel", "MotionProvider"],
+		examples: [
+			{
+				label: "A calm data view",
+				code: `export function Dashboard({ children }: { children: ReactNode }) {
+	return <MotionScope level="subtle">{children}</MotionScope>
+}`,
+				extraImports: ['import type { ReactNode } from "react"'],
+			},
+		],
+		notes: [
+			"Overlays portal out of the DOM subtree, so their CSS follows the app-level policy; set it on MotionProvider to cover them too.",
+		],
+		related: ["MotionProvider"],
 	},
 	{
 		name: "DensityProvider",

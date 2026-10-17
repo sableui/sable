@@ -342,6 +342,15 @@
       "components": [],
       "guidance": "Desktop workspace tools have no honest phone form. Redesign the task as screens of Sable content first."
     },
+    "ConfirmButton": {
+      "source": "ConfirmButton",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "ConfirmButton"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
     "ContextCard": {
       "source": "ContextCard",
       "strategy": "preserve",
@@ -675,6 +684,15 @@
       "importFrom": "@sableui/react",
       "components": [
         "NumberField"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
+    "NumberTicker": {
+      "source": "NumberTicker",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "NumberTicker"
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },

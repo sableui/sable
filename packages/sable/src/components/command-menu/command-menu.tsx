@@ -566,24 +566,31 @@ function CommandMenuBody({
 				/>
 				{query ? (
 					// Empties the query and hands focus back to the field, which owns
-					// the keyboard (the list is driven from it).
-					<Button
-						variant="ghost"
-						size="icon-xs"
-						aria-label="Clear search"
-						// Off the tab order (Esc clears from the field), and it never takes
-						// focus from the field on press, so a panel that reacts to the
-						// field's blur does not see one.
-						tabIndex={-1}
-						onMouseDown={(event) => event.preventDefault()}
-						className="-my-1 text-muted-foreground hover:text-foreground"
-						onClick={() => {
-							setQuery("");
-							inputRef.current?.focus();
-						}}
-					>
-						<Icon name="xmark" />
-					</Button>
+					// the keyboard (the list is driven from it). It mounts on the first
+					// keystroke, beside the caret the eye is on, so the wrapper fades it
+					// in (motion-appear) rather than letting it blink into the header.
+					// On the wrapper, not the Button: motion-appear declares its own
+					// transition list and would fight motion-interactive for the one
+					// transition-property slot. Removal stays instant.
+					<span className="flex motion-appear">
+						<Button
+							variant="ghost"
+							size="icon-xs"
+							aria-label="Clear search"
+							// Off the tab order (Esc clears from the field), and it never takes
+							// focus from the field on press, so a panel that reacts to the
+							// field's blur does not see one.
+							tabIndex={-1}
+							onMouseDown={(event) => event.preventDefault()}
+							className="-my-1 text-muted-foreground hover:text-foreground"
+							onClick={() => {
+								setQuery("");
+								inputRef.current?.focus();
+							}}
+						>
+							<Icon name="xmark" />
+						</Button>
+					</span>
 				) : null}
 			</div>
 

@@ -79,6 +79,7 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 	   what it is. Copying is `useCopy` on a Button, not a component. */
 	Button: ["Actions", "either"],
 	ButtonGroup: ["Actions", "either"],
+	ConfirmButton: ["Actions", "either"],
 	Menubar: ["Actions", "either"],
 	OverflowMenu: ["Actions", "either"],
 	Toolbar: ["Actions", "either"],
@@ -198,6 +199,7 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 	Entity: ["Data display", "either"],
 	GlidingHighlight: ["Data display", "either"],
 	Meter: ["Data display", "either"],
+	NumberTicker: ["Data display", "either"],
 	RelativeTime: ["Data display", "either"],
 	SegmentedBar: ["Data display", "either"],
 	Table: ["Data display", "either"],

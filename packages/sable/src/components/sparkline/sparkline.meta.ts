@@ -72,10 +72,17 @@ export const sparklineMeta: ComponentMeta = {
 			description: "Sizes it; the drawing stretches to fit."
 		},
 		{
+			name: "motion",
+			type: "\"full\" | \"subtle\" | \"off\"",
+			default: "\"full\"",
+			description: "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Drawing on (or rising) is the flourish, so `subtle` and `off` show the finished line."
+		},
+		{
 			name: "animate",
 			type: "boolean",
 			default: "true",
-			description: "Draw on (or rise) when it scrolls into view."
+			description: "Draw on (or rise) when it scrolls into view. `animate={false}` is `motion=\"subtle\"`.",
+			deprecated: "motion=\"subtle\" (what animate={false} now maps to) or motion=\"off\""
 		},
 		{
 			name: "locale",
@@ -107,7 +114,7 @@ export const sparklineMeta: ComponentMeta = {
 			slot: "arrival",
 			recipe: "custom",
 			part: "Line / bars",
-			why: "Once on screen the line draws on (or the bars rise, in sequence). On the motion tokens; reduced motion shows the finished drawing."
+			why: "Once on screen the line draws on (or the bars rise, in sequence). On the motion tokens; reduced motion shows the finished drawing. The arrival is expressive: it plays at the full motion level only, so `motion=\"subtle\"` (or a subtle app policy) shows the finished line."
 		},
 		{
 			slot: "response",

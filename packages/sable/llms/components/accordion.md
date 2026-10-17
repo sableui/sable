@@ -52,6 +52,7 @@ Use Accordion to reveal a vertical set of related sections while keeping the sur
 - **arrival** · Root · _no motion_ — An accordion is page furniture that is present from first paint. Animating it in would stage content the reader is already scanning past.
 - **response** · AccordionTrigger · `motion-interactive` — The whole header row is the hit target, and it looks like a heading rather than a control. The hover shift is what tells the reader it can be clicked before they click it.
 - **transition** · AccordionPanel · `motion-disclosure` — Panel height is the only cue that content came from THIS header rather than appearing at the bottom of the page. Snapping it open moves everything below by a screenful with nothing connecting cause to effect.
+- **transition** · Chevron · `motion-interactive` — The chevron turning is the header's half of the same event as the panel opening. motion-interactive lists `rotate` (what Tailwind's rotate-* writes), so it turns with the panel instead of flipping 180° in one frame beside an easing panel. A custom `indicator` that rotates should carry motion-interactive itself.
 - **activity** · Root · _no motion_ — Nothing here is indeterminate — the panel content is already resident. A panel that loads on expand should put its own loader inside the panel.
 
 ## Accessibility
@@ -60,7 +61,7 @@ Use Accordion to reveal a vertical set of related sections while keeping the sur
 - Arrow keys move roving focus between triggers; Home/End jump to the first/last; loopFocus wraps by default.
 - Each trigger toggles its panel with Enter/Space; the panel is announced as a labelled region.
 - A disabled AccordionItem dims and is skipped by keyboard focus while neighbouring items stay interactive.
-- The chevron rotation is driven by data-[panel-open] and the focus ring by focus-visible — both honor reduced-motion via the consumer's transitions.
+- The chevron rotation is driven by data-[panel-open] and the focus ring by focus-visible; both ride motion-interactive, so reduced motion stills them with everything else.
 
 ## Related
 
@@ -89,5 +90,5 @@ import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from "@sab
 ```tsx
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger, Icon } from "@sableui/react"
 
-<Accordion defaultValue={["a"]}><AccordionItem value="a"><AccordionTrigger indicator={<Icon name="plus" className="text-xs text-muted-foreground transition-transform [[data-panel-open]_&]:rotate-45" />}>Can I cancel anytime?</AccordionTrigger><AccordionPanel>Yes — from billing settings.</AccordionPanel></AccordionItem></Accordion>
+<Accordion defaultValue={["a"]}><AccordionItem value="a"><AccordionTrigger indicator={<Icon name="plus" className="text-xs text-muted-foreground motion-interactive [[data-panel-open]_&]:rotate-45" />}>Can I cancel anytime?</AccordionTrigger><AccordionPanel>Yes — from billing settings.</AccordionPanel></AccordionItem></Accordion>
 ```

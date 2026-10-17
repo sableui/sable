@@ -132,6 +132,12 @@ export const accordionMeta: ComponentMeta = {
 			why: "Panel height is the only cue that content came from THIS header rather than appearing at the bottom of the page. Snapping it open moves everything below by a screenful with nothing connecting cause to effect.",
 		},
 		{
+			slot: "transition",
+			recipe: "motion-interactive",
+			part: "Chevron",
+			why: "The chevron turning is the header's half of the same event as the panel opening. motion-interactive lists `rotate` (what Tailwind's rotate-* writes), so it turns with the panel instead of flipping 180° in one frame beside an easing panel. A custom `indicator` that rotates should carry motion-interactive itself.",
+		},
+		{
 			slot: "activity",
 			recipe: "none",
 			part: "Root",
@@ -143,7 +149,7 @@ export const accordionMeta: ComponentMeta = {
 		"Arrow keys move roving focus between triggers; Home/End jump to the first/last; loopFocus wraps by default.",
 		"Each trigger toggles its panel with Enter/Space; the panel is announced as a labelled region.",
 		"A disabled AccordionItem dims and is skipped by keyboard focus while neighbouring items stay interactive.",
-		"The chevron rotation is driven by data-[panel-open] and the focus ring by focus-visible — both honor reduced-motion via the consumer's transitions.",
+		"The chevron rotation is driven by data-[panel-open] and the focus ring by focus-visible; both ride motion-interactive, so reduced motion stills them with everything else.",
 	],
 	examples: [
 		{
@@ -156,7 +162,7 @@ export const accordionMeta: ComponentMeta = {
 		},
 		{
 			label: "Custom indicator (plus-becomes-×)",
-			code: '<Accordion defaultValue={["a"]}><AccordionItem value="a"><AccordionTrigger indicator={<Icon name="plus" className="text-xs text-muted-foreground transition-transform [[data-panel-open]_&]:rotate-45" />}>Can I cancel anytime?</AccordionTrigger><AccordionPanel>Yes — from billing settings.</AccordionPanel></AccordionItem></Accordion>',
+			code: '<Accordion defaultValue={["a"]}><AccordionItem value="a"><AccordionTrigger indicator={<Icon name="plus" className="text-xs text-muted-foreground motion-interactive [[data-panel-open]_&]:rotate-45" />}>Can I cancel anytime?</AccordionTrigger><AccordionPanel>Yes — from billing settings.</AccordionPanel></AccordionItem></Accordion>',
 		},
 	],
 }

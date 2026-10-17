@@ -81,9 +81,36 @@ export const codeBlockMeta: ComponentMeta = {
 		},
 	],
 	tokensUsed: ["border", "muted", "muted-foreground", "foreground"],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "Code is reading content and arrives with the page or message it belongs to. An entrance of its own would delay the text someone came to copy.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Copy button",
+			why: "The copy button is a quiet ghost icon in the corner of a block. Its hover fill is what tells the pointer it is a control and not decoration.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-icon-swap",
+			part: "Copy glyph",
+			why: "The copy mark turning into a check is the only proof the clipboard took the text. Snapped between frames it was easy to miss at the edge of a block; the swap reads as one mark being replaced.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "Copying is instant. There is no in-between worth showing, and a spinner for a clipboard write would read as a slow one.",
+		},
+	],
 	a11y: [
 		"Code renders inside a <pre><code> for correct semantics and screen-reader handling.",
 		"Copy is the ghost icon Button with `useCopy`, which guards clipboard access for SSR safety.",
+		"A successful copy is announced as \"Copied\" through a polite role=status region that is always mounted; the button keeps its label, which names what it does. Both glyphs are aria-hidden.",
 	],
 	examples: [
 		{

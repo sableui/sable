@@ -109,7 +109,13 @@ export const tooltipMeta: ComponentMeta = {
 			name: "SimpleTooltip",
 			type: "Base UI Tooltip.Root props + content: ReactNode + children: ReactElement + side | align | sideOffset",
 			description:
-				"Shorthand wrapping Root + Trigger + Content for the common case. The single child becomes the trigger (via Base UI render); content sets the body; side / align / sideOffset forward to the content with the same defaults. Composition parts remain for advanced use.",
+				"Shorthand wrapping Root + Trigger + Content for the common case. The single child becomes the trigger (via Base UI render); content sets the body; side / align / sideOffset forward to the content with the same defaults. Composition parts remain for advanced use. Inside a TooltipGroup it becomes a trigger of the group's shared tooltip instead.",
+		},
+		{
+			name: "TooltipGroup",
+			type: '{ children: ReactNode; motion?: "full" | "subtle" | "off" }',
+			description:
+				"One tooltip shared by every SimpleTooltip inside it — for a toolbar or a row of icon buttons. Moving the pointer along the row glides the tooltip to the next trigger and swaps its label (old fades out, new fades in, each sliding toward the direction of travel), instead of closing one tooltip and opening another a few pixels away. Renders no element. Each SimpleTooltip keeps its own content / side / align / sideOffset and `disabled`; root props such as open / onOpenChange belong to the shared tooltip and are ignored inside a group. `motion` turns it down: `subtle` jumps between triggers and only cross-fades the label. The composable Tooltip parts are unaffected.",
 		},
 	],
 	tokensUsed: ["popover", "popover-foreground", "border-floating"],
@@ -138,6 +144,12 @@ export const tooltipMeta: ComponentMeta = {
 			part: "Content",
 			why: "Tooltip copy is resident before the tooltip opens. Anything that has to be fetched is a Popover with its own loading state.",
 		},
+		{
+			slot: "transition",
+			recipe: "custom",
+			part: "TooltipGroup",
+			why: "Moving between triggers in a group, the one tooltip glides to the next trigger, resizes to its label and cross-fades the text with a short slide toward the direction of travel. Separate tooltips would close here and open there, two surfaces blinking side by side; the glide says it is the same hint following the pointer. Base UI's handle + Viewport supply the shared popup and the previous/current content; the timing is the expressive glide (slow, emphasized), so `subtle` keeps only the cross-fade.",
+		},
 	],
 	a11y: [
 		"Base UI wires aria-describedby from trigger to popup and manages hover + focus open.",
@@ -157,6 +169,10 @@ export const tooltipMeta: ComponentMeta = {
 		{
 			label: "Shorthand (SimpleTooltip)",
 			code: '<SimpleTooltip content="Saved to your workspace."><Button variant="ghost" size="icon-sm" aria-label="Info"><Icon name="info" /></Button></SimpleTooltip>',
+		},
+		{
+			label: "One tooltip gliding along a toolbar (TooltipGroup)",
+			code: '<TooltipGroup><Toolbar aria-label="Formatting"><SimpleTooltip content="Bold"><ToolbarButton size="icon-sm" aria-label="Bold"><Icon name="bold" /></ToolbarButton></SimpleTooltip><SimpleTooltip content="Italic"><ToolbarButton size="icon-sm" aria-label="Italic"><Icon name="italic" /></ToolbarButton></SimpleTooltip><SimpleTooltip content="Insert link"><ToolbarButton size="icon-sm" aria-label="Insert link"><Icon name="link" /></ToolbarButton></SimpleTooltip></Toolbar></TooltipGroup>',
 		},
 	],
 }

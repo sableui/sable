@@ -48,6 +48,14 @@ Use PanelSection to group properties inside an inspector or docked panel, with P
 
 `foreground`, `muted-foreground`, `hairline`
 
+## Motion
+
+- **arrival** · Root · _no motion_ — Sections are part of the inspector they sit in and arrive with it. Animating each in would make a panel switch look like a page load.
+- **response** · PropertyGroup trigger · `motion-interactive` — The fold row eases its focus ring, so arrowing down a dense inspector shows where the keyboard is without the ring flickering from row to row.
+- **transition** · PropertyGroup panel · `motion-disclosure` — The group opens by easing its height, so the rows below slide down to make room instead of jumping. In an inspector, the next section moving is otherwise how you lose your place.
+- **transition** · PropertyGroup indicator · `motion-icon-swap` — The + collapses into − as the group opens, both glyphs stacked as one mark, so the indicator reads as this row changing state rather than a different icon landing.
+- **activity** · Root · _no motion_ — The inspector edits values in place; nothing in it loads.
+
 ## Accessibility
 
 - PropertyGroup's row is a real button with aria-expanded (Collapsible); its summary is part of the button's name, so a closed group still announces its value.

@@ -171,6 +171,27 @@ describe("Button", () => {
 		expect(screen.getByRole("status")).toBeInTheDocument()
 	})
 
+	it("lays the spinner over a plain label instead of widening the button", () => {
+		renderWithProviders(<Button loading>Save</Button>)
+		const btn = screen.getByRole("button")
+		// The label stays in place (and in the name), faded, so the width holds.
+		expect(btn).toHaveTextContent("Save")
+		expect(btn).toHaveClass("relative", "[&>:not([role=status])]:opacity-0")
+		const spinner = screen.getByRole("status")
+		expect(spinner).toHaveClass("absolute", "inset-0", "m-auto", "motion-appear")
+	})
+
+	it("keeps the spinner in the icon slot when there is one", () => {
+		renderWithProviders(
+			<Button loading iconStart={<svg />}>
+				Save
+			</Button>,
+		)
+		expect(screen.getByRole("button")).not.toHaveClass("[&>:not([role=status])]:opacity-0")
+		expect(screen.getByRole("status")).not.toHaveClass("absolute")
+		expect(screen.getByRole("status")).toHaveClass("motion-appear")
+	})
+
 	it("stays at full opacity while loading — busy, not disabled-looking", () => {
 		renderWithProviders(<Button loading>Save</Button>)
 		expect(screen.getByRole("button")).toHaveClass("disabled:opacity-100")

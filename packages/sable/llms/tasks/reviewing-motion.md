@@ -69,6 +69,20 @@ and canceled work does not report success. Inspect the behavior at normal speed:
 is the response immediate enough for its frequency, and does the movement explain
 the change without delaying access to content?
 
+Check continuity before timing. When a selection, value or mark changes in
+place, one element should travel (an indicator glides, digits roll, a tick
+draws) rather than one thing switching off and another on. A snap between two
+states of the same control — a chevron that jumps, a fill that blinks from one
+tab to the next, an icon replaced between frames — is a finding even when every
+duration is a token. So is a story left unfinished: a refusal with no shake or
+message, a success with no confirmation where it happened.
+
+Run it three ways, not two. Under `data-motion="subtle"` (or the component's
+`motion="subtle"`, or `<MotionScope level="subtle">`) feedback, overlays,
+disclosure and loaders should still play while glides, rolls, draws, shakes,
+staggers and overshoot resolve instantly; a flourish still moving there was
+built on a plain token instead of an expressive one.
+
 Repeat relevant behavior with reduced motion enabled. This should preserve state,
 focus, status, and controls; hiding the animated content is not an equivalent
 result. Test a custom driver directly—Sable's policy cannot disable an unrelated

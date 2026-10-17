@@ -250,7 +250,7 @@ export function ChatComposerPage() {
 
 			<Section
 				title="A working chat"
-				description="Type and send. While a reply streams, send becomes stop."
+				description="Type and send. The field eases taller as lines are added, up to a cap. While a reply streams, send turns into stop in place."
 			>
 				<Example>
 					<LiveChat />

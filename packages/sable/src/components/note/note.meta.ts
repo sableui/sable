@@ -95,6 +95,38 @@ export const noteMeta: ComponentMeta = {
 		"success",
 		"destructive",
 	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "A note is part of the content it annotates and renders with it. A callout that animated in would pull the eye before the reader has reached it in the flow.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Action",
+			why: "The action's focus ring eases in, and its underline thickens on hover. Inside a block of guidance, that is what separates the one thing to do from the prose around it.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-press",
+			part: "Action",
+			why: "A note's action usually navigates or opens something; the small settle on press is the only confirmation before the next surface paints.",
+		},
+		{
+			slot: "transition",
+			recipe: "none",
+			part: "Root",
+			why: "A note has no states to move between: its tone is fixed when it renders. A note that changes tone is a new message, and should arrive as one.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "Static guidance. Work in progress belongs in a Progress or a Spinner, not in a callout.",
+		},
+	],
 	a11y: [
 		'Rendered with role="note" so assistive tech can announce it as an aside.',
 		"Color is never the sole signal — the leading icon and optional title reinforce severity.",

@@ -95,6 +95,13 @@ export const calendarMeta: ComponentMeta = {
 				"Drop the card frame (border, fill, padding) so the grid sits flush inside a surface that already has one, such as a Popover. DatePicker renders its Calendar this way.",
 		},
 		{
+			name: "motion",
+			type: '"full" | "subtle" | "off"',
+			default: '"full"',
+			description:
+				"How much motion this component uses: `full` inherits the app's policy, `subtle` keeps feedback and drops the month slide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting.",
+		},
+		{
 			name: "className",
 			type: "string",
 			description:
@@ -126,6 +133,38 @@ export const calendarMeta: ComponentMeta = {
 		"accent-foreground",
 		"muted-foreground",
 		"ring",
+	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "Inline, it arrives with its form; in a DatePicker the Popover carries the entrance. A grid that animated in by itself would put a second motion on the same opening.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Day",
+			why: "Days ease their hover wash, and the month arrows are ghost Buttons on Button's own recipe. Across a seven-column grid the pointer crosses many cells at once, and an eased wash reads as a cursor travelling rather than a grid flashing.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-interactive",
+			part: "Day",
+			why: "Picking a day eases the primary fill onto it and off the previous one, so a click reads as the selection moving rather than two cells flipping. A range's band is painted on the cells, which carry the same recipe, so the band eases along with its endpoints as the range grows.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "Days are resident data; nothing in the grid loads. Availability fetched per month belongs to the surface around the calendar.",
+		},
+		{
+			slot: "transition",
+			recipe: "custom",
+			part: "Month",
+			why: "Paging months slides the outgoing grid toward the edge it is leaving by and brings the new one in from the other, over a short travel with a fade (react-day-picker's `animate` mode on Sable keyframes in styles.css), so forward and back read as direction rather than a grid swapping in one frame. RDP adds a single class per part, which a recipe utility cannot be; mirrored in RTL. Expressive: Calendar turns `animate` on only at full motion, and an explicit `animate` prop still wins.",
+		},
 	],
 	a11y: [
 		"react-day-picker manages the roving-tabindex grid, arrow-key navigation, and ARIA roles/labels for the calendar.",

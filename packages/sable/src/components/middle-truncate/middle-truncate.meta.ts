@@ -70,7 +70,7 @@ export const middleTruncateMeta: ComponentMeta = {
 		},
 		{
 			label: "Copyable value",
-			code: 'const { copy, copied } = useCopy(commitHash)\n<Row gap={1}><MiddleTruncate text={commitHash} /><Button variant="ghost" size="icon-xs" aria-label="Copy commit hash" onClick={copy}><Icon name={copied ? "check" : "copy"} /></Button></Row>',
+			code: 'const { copy, copied } = useCopy(commitHash)\n<Row gap={1}><MiddleTruncate text={commitHash} /><Button variant="ghost" size="icon-xs" aria-label="Copy commit hash" onClick={copy}><span aria-hidden="true" className="motion-icon-swap"><span data-active={!copied} className="inline-flex"><Icon name="copy" /></span><span data-active={copied} className="inline-flex"><Icon name="check" /></span></span></Button><span role="status" className="sr-only">{copied ? "Copied" : ""}</span></Row>',
 		},
 	],
 }

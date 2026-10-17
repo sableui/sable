@@ -31,10 +31,18 @@ Use Checkbox for independent boolean choices or for selecting multiple options i
 | name | string | — | Field name for the hidden input on form submit. |
 | value | string | — | Value submitted with the form when checked. Inside a group-owned CheckboxGroup, it is the name the group's value array uses for this checkbox. |
 | render | ReactElement \| (props, state) => ReactElement | — | Compose the root with another element through the Base UI render prop. |
+| motion | "full" \| "subtle" \| "off" | "full" | How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Under `subtle` the tick fades in instead of drawing itself. |
 
 ## Tokens used
 
 `card`, `input`, `primary`, `primary-foreground`, `ring`
+
+## Motion
+
+- **arrival** · Root · _no motion_ — It arrives with the form it belongs to. Animating each box in turns a settings list into a title sequence.
+- **response** · Box · `motion-interactive` — The box fills with the primary colour as it is checked; easing the fill keeps the mark and the box changing as one event rather than two frames apart.
+- **transition** · Mark · `motion-tick` — The check draws itself in from its leading stroke, so checking reads as the box being ticked rather than a glyph appearing. The dash wipes the same way. Unchecking only fades, so clearing a list is quick; under `subtle` checking fades too.
+- **activity** · Root · _no motion_ — A checkbox commits instantly. A slow write belongs to the surrounding form's pending state, not the control.
 
 ## Accessibility
 

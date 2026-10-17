@@ -65,6 +65,13 @@ export const carouselMeta: ComponentMeta = {
 			description:
 				"Class for both prev/next arrow buttons. Merged through cn(), so a radius or shadow utility replaces the default rounded-full shadow-md rather than stacking with it.",
 		},
+		{
+			name: "motion",
+			type: '"full" | "subtle" | "off"',
+			default: '"full"',
+			description:
+				"How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the glide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Under subtle the slides still travel and the active dot snaps; off also cuts between slides and pauses autoplay.",
+		},
 	],
 	tokensUsed: [
 		"border",
@@ -73,6 +80,38 @@ export const carouselMeta: ComponentMeta = {
 		"popover-foreground",
 		"foreground",
 		"muted-foreground",
+	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "A carousel arrives with its section. Its content already moves on every advance; an entrance on top would make the first view feel like an advance nobody asked for.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Dot",
+			why: "The dot's 24px hit area eases its focus ring and the dot brightens under the pointer, which is how a 6px mark tells you it is a button.",
+		},
+		{
+			slot: "transition",
+			recipe: "custom",
+			part: "Track",
+			why: "The slide track's translate is set inline from the measured slide pitch, on --motion-duration-slow and the emphasized easing, and switched off during a drag so the track follows the finger. A recipe cannot carry a measured, drag-interrupted offset. Essential: it is the answer to \"next\", so it plays under subtle.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-glide",
+			part: "Dot",
+			why: "The active dot stretches to a bar while the one it left shrinks, on one timeline, so the row keeps its length and the mark reads as travelling with the slide. It used to change width unanimated and jumped while the slides beside it glided. Expressive: motion=\"subtle\" snaps it.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "Autoplay's progress is the slides themselves advancing and the play/pause control; a separate timer animation would put a second clock beside the first.",
+		},
 	],
 	a11y: [
 		"Region carries aria-roledescription='carousel'; each slide is a group with aria-roledescription='slide' and an 'N of M' label; clones are aria-hidden.",
@@ -96,6 +135,10 @@ export const carouselMeta: ComponentMeta = {
 		{
 			label: "Autoplay",
 			code: "<Carousel loop autoplay={4000} counter>{slides}</Carousel>",
+		},
+		{
+			label: "Subtle motion",
+			code: '<Carousel loop motion="subtle" label="Gallery">{slides}</Carousel>',
 		},
 	],
 }

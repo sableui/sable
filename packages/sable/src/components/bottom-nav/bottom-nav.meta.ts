@@ -60,6 +60,38 @@ export const bottomNavMeta: ComponentMeta = {
 				"A single tab, placed as a child of BottomNav. `label` is the accessible name (aria-label) and optional visible label; `icon` is the glyph node (consumer swaps fill weight for the active state); `active` marks the current route (active ink + aria-current); `badge` overlays a corner dot/count on the icon; `showLabel` shows the label text beneath the icon — defaults to false (icon-only); turn it on when the icons alone are not self-evident; `render` renders as another element, e.g. render={<Link to=\"/x\" />}.",
 		},
 	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "Fixed app chrome, present from the first paint of every screen. Animating it in on navigation would make each route change look like the app restarting.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "BottomNavItem",
+			why: "The ink steps up on hover and the focus ring eases in, so a pointer or a keyboard on a tablet gets the same answer as every other control in the app.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-press",
+			part: "BottomNavItem",
+			why: "On a phone there is no hover to say a tap landed, and a route can take a beat to paint. The settle on press is the receipt; without it people tap the tab a second time.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-interactive",
+			part: "BottomNavItem",
+			why: "Changing tab eases the active ink out of one item and into the next. It is a cross-fade, not a travelling indicator: each item owns its colour, so there is no single mark to glide.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "Navigation has no working state of its own. A slow route shows its pending state in the page it is loading, not in the tab bar.",
+		},
+	],
 	a11y: [
 		"BottomNav renders a <nav> landmark.",
 		"Each tab is a 44px minimum touch target with an aria-label.",

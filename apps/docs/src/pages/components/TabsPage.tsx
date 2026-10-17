@@ -66,6 +66,36 @@ export function TabsPage() {
 				</Example>
 			</Section>
 
+			<Section
+				title="Subtle motion"
+				description="The indicator glides to the chosen tab in both styles. In a dense view where every tab change is frequent, motion=&quot;subtle&quot; lands it in place and keeps the hover and panel fade."
+			>
+				<Example>
+					<Tabs defaultValue="table" motion="subtle" className="w-full max-w-md">
+						<TabsList variant="pill">
+							<TabsTrigger value="table">Table</TabsTrigger>
+							<TabsTrigger value="chart">Chart</TabsTrigger>
+							<TabsTrigger value="summary">Summary</TabsTrigger>
+						</TabsList>
+						<TabsPanel value="table">
+							<p className="text-body-md text-muted-foreground">
+								Every order this week, one per row.
+							</p>
+						</TabsPanel>
+						<TabsPanel value="chart">
+							<p className="text-body-md text-muted-foreground">
+								Orders per day, against last week.
+							</p>
+						</TabsPanel>
+						<TabsPanel value="summary">
+							<p className="text-body-md text-muted-foreground">
+								Totals and the change since Monday.
+							</p>
+						</TabsPanel>
+					</Tabs>
+				</Example>
+			</Section>
+
 			<Section title="With a disabled tab">
 				<Example>
 					<Tabs defaultValue="overview" className="w-full max-w-md">

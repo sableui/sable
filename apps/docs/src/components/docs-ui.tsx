@@ -28,7 +28,7 @@ import {
 } from "@sableui/react"
 import type { ComponentMeta } from "@sableui/react"
 import { brandIconSet } from "@sableui/react/icons/brands"
-import { type ReactNode, useContext } from "react"
+import { type ReactNode, useContext, useState } from "react"
 import { DESIGN_NOTES } from "../content/design-notes"
 import { CATALOG_BY_SLUG } from "../lib/catalog"
 import { markdownTwinFor } from "../lib/markdown-twins"
@@ -36,6 +36,7 @@ import { PREVIEWS } from "../lib/previews"
 import site from "../site-meta.json"
 import { CurrentRouteContext, hrefFor } from "../lib/router"
 import { Playground } from "./Playground"
+import { PreviewMotionMenu, PreviewMotionScope, PreviewReplayButton, usePreviewMotion } from "./preview-motion"
 
 export function PageHeader({
 	eyebrow,
@@ -226,6 +227,12 @@ export function Section({
  * the caption needs (a filename bar, a different scroll cap) belongs in
  * `CodeBlock`, where consumers get it too.
  *
+ * A frame with code also carries the preview's motion controls (see
+ * preview-motion): the level this one preview plays at, and Replay, which
+ * remounts it so its arrival can be watched again. They sit with the copy
+ * button, show only on the Preview tab, and stay icon-sized until a level is
+ * picked, so a frame left alone looks as it always did.
+ *
  * `rounded-none border-0 border-t` is a seam override, not a restyle: the frame
  * already owns the outer radius and border, so the block joins it flush.
  */
@@ -235,6 +242,8 @@ export function Example({
 	className,
 	flush = false,
 	onReplay,
+	replayable = false,
+	motionControl = true,
 }: {
 	children: ReactNode
 	code?: string
@@ -244,10 +253,38 @@ export function Example({
 	 * A time-based demo (an entrance, an exit, a draw-on) plays once on its own;
 	 * this puts the one way to see it again in the frame's top-right corner, so
 	 * every demo on every page replays from the same place with the same label.
+	 * With code, Replay is in the header instead; without this, it remounts the
+	 * preview.
 	 */
 	onReplay?: () => void
+	/**
+	 * Give a code-less frame the corner controls (motion level and Replay)
+	 * without a caller-owned replay: Replay remounts the preview. For pages
+	 * whose whole point is the motion, where every frame should offer both.
+	 */
+	replayable?: boolean
+	/**
+	 * Offer the per-preview motion level. Off for a demo that already sets its
+	 * own levels (the Motion page's side-by-side), where a scope around both
+	 * halves would only confuse the comparison.
+	 */
+	motionControl?: boolean
 }) {
 	const { copy, copied } = useCopy(code ?? "")
+	const motion = usePreviewMotion()
+	const [tab, setTab] = useState("preview")
+	const replay = onReplay ?? motion.replay
+	// A caller's onReplay re-keys its own demo; only the generic replay re-keys here.
+	const preview = motionControl ? (
+		<PreviewMotionScope level={motion.level} replayKey={onReplay ? 0 : motion.replayKey}>
+			{children}
+		</PreviewMotionScope>
+	) : (
+		children
+	)
+	const menu = motionControl ? <PreviewMotionMenu level={motion.level} onLevelChange={motion.setLevel} /> : null
+	// Code-less frames keep their old corner control, now with the level beside it.
+	const corner = !code && (onReplay || replayable)
 	const stage = (
 		<div
 			className={cn(
@@ -256,23 +293,31 @@ export function Example({
 					? "bg-background"
 					: "flex min-h-40 flex-wrap items-center justify-center gap-4 bg-background p-6 md:p-10",
 				// Room for the corner control, so it never sits on the demo.
-				onReplay && !flush && "pt-16 md:pt-16",
+				corner && !flush && "pt-16 md:pt-16",
 				className,
 			)}
 		>
-			{onReplay ? (
-				<Button variant="secondary" size="xs" iconStart={<Icon name="refresh" />} onClick={onReplay} className="absolute end-3 top-3">
-					Replay
-				</Button>
+			{corner ? (
+				<div className="absolute end-3 top-3 z-10 flex items-center gap-1">
+					{menu}
+					<Button variant="secondary" size="xs" iconStart={<Icon name="refresh" />} onClick={replay}>
+						Replay
+					</Button>
+				</div>
 			) : null}
-			{children}
+			{preview}
 		</div>
 	)
 	if (!code) return <div data-docs-example className="overflow-hidden rounded-xl border border-border">{stage}</div>
 	// Preview first, code one click away — browsing stays visual, and the code is
 	// still the same copyable CodeBlock (copy lives in the header, both tabs).
 	return (
-		<Tabs data-docs-example defaultValue="preview" className="overflow-hidden rounded-xl border border-border">
+		<Tabs
+			data-docs-example
+			value={tab}
+			onValueChange={(next) => setTab(String(next))}
+			className="overflow-hidden rounded-xl border border-border"
+		>
 			<div className="flex items-center justify-between gap-2 border-b border-border px-2 py-2">
 				{/* Pill tabs take the theme's button shape, so they match the
 				    buttons in the preview below and follow Customize's Button shape. */}
@@ -280,9 +325,19 @@ export function Example({
 					<TabsTrigger value="preview">Preview</TabsTrigger>
 					<TabsTrigger value="code">Code</TabsTrigger>
 				</TabsList>
-				<Button variant="ghost" size="icon-sm" aria-label="Copy code" onClick={copy} className="text-muted-foreground">
-					<Icon name={copied ? "check" : "copy"} />
-				</Button>
+				<div className="flex items-center gap-1">
+					{/* Preview-only controls leave with the preview: on the Code tab
+					    they would act on something the reader cannot see. */}
+					{tab === "preview" ? (
+						<>
+							{menu}
+							<PreviewReplayButton onReplay={replay} />
+						</>
+					) : null}
+					<Button variant="ghost" size="icon-sm" aria-label="Copy code" onClick={copy} className="text-muted-foreground">
+						<Icon name={copied ? "check" : "copy"} />
+					</Button>
+				</div>
 			</div>
 			<TabsPanel value="preview" className="pt-0">
 				{stage}

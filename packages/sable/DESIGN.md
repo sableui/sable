@@ -477,7 +477,11 @@ Reference via `z-(--z-overlay)`, never a raw `z-[9999]`. Base UI overlays portal
 
 ## Motion
 
-Motion is a first-class token layer, not an afterthought. **Subtle by default, with room for tasteful delight** — quick, deliberate, skippable, and never gaudy. The feel is restrained but alive, built compositor-first (opacity + transform only).
+Motion is a first-class token layer, not an afterthought. **Crafted by default, calm on request** — quick, deliberate, skippable, and never gaudy. Sable components ship the small continuity that makes an interface feel made rather than assembled: one indicator travels to the selected tab instead of two fills blinking, a total rolls to its new value, a check draws itself in, a wrong code shakes and clears. Built compositor-first (opacity + transform, with height and an absolutely positioned glider's size as the sanctioned exceptions).
+
+**The principle behind the craft: one thing travels; two things do not blink.** When a selection, a value or a mark changes in place, move the element that represents it. And finish the story — a refused answer shakes *and* says why, a success confirms where it happened, an armed action asks again before it acts.
+
+**Two levels.** *Essential* motion answers the user — colour and focus feedback, press, overlay arrival, disclosure height, loaders, chart hover. *Expressive* motion narrates — glides, rolling numbers, drawn ticks, shakes, staggers, chart arrival and morph, scroll reveals, spring overshoot. Expressive durations are multiplied by a second factor, `--motion-expressive`, which `data-motion="subtle"` sets to 0 (and which takes the overshoot out of `ease-spring`). So the policy ladder is `full` (default: both) → `subtle` (essential only) → `off` (nothing moves; every state still changes). Set it app-wide on `<MotionProvider policy>`, for a region with `<MotionScope level>`, or per component with the `motion` prop that every component owning a flourish takes. Scopes and props can only turn motion **down** — `full` on a component means "inherit", so nothing below the provider can override a reader's reduce-motion setting.
 
 **Three parts:**
 
@@ -487,9 +491,10 @@ Motion is a first-class token layer, not an afterthought. **Subtle by default, w
    - Consume easings via the `ease-*` utilities; durations via `duration-(--motion-duration-*)` (so the kill-switch always applies).
 
 2. **Recipes** (`styles.css`) — named, reusable behaviours a component opts into with one class instead of a bespoke transition string:
-   - `motion-interactive` (hover/focus colour + transform transitions) · `motion-press` (tactile press settle) · `motion-fade` (scrims) · `motion-pop` (anchored/centred surfaces — gentle spring on open) · `motion-slide-{up,down,left,right}` (directional fade-slide) · `motion-disclosure` (height) · `motion-draw` (SVG line-art draw-on — a `pathLength="1"` path inside a `<Reveal>` draws in when scrolled into view; stagger siblings via `--motion-draw-delay`) · loaders `motion-spin`/`motion-pulse`/`motion-shimmer`/`motion-dot-bounce`. Enter/exit recipes drive off Base UI's `data-[starting-style]`/`data-[ending-style]`.
+   - `motion-interactive` (hover/focus colour + transform transitions, including `rotate`) · `motion-press` (tactile press settle) · `motion-fade` (scrims) · `motion-pop` (anchored/centred surfaces — gentle spring on open) · `motion-slide-{up,down,left,right}` (directional fade-slide) · `motion-disclosure` (height) · `motion-draw` (SVG line-art draw-on — a `pathLength="1"` path inside a `<Reveal>` draws in when scrolled into view; stagger siblings via `--motion-draw-delay`) · loaders `motion-spin`/`motion-pulse`/`motion-shimmer`/`motion-dot-bounce`. Enter/exit recipes drive off Base UI's `data-[starting-style]`/`data-[ending-style]`.
+   - Expressive: `motion-glide` (one indicator travelling to the selection) · `motion-shake` (a refused answer, driven by `useShake()`) · `motion-tick` (a mark that draws itself in) · `motion-appear` (a small control mounting via `@starting-style`) · `motion-arrive` (items a user action adds to a list, staggered) · `motion-size` (easing between intrinsic sizes via `interpolate-size`). `NumberTicker` is the rolling-number primitive.
 
-3. **Policy** — `prefers-reduced-motion` and `<MotionProvider>` collapse `--motion-scale` to 0 in one place: transitions resolve instantly, loaders hold their first frame. Motion is fully **toggleable on/off** in-app via `useMotion()`.
+3. **Policy** — `prefers-reduced-motion` and `<MotionProvider>` collapse `--motion-scale` to 0 in one place: transitions resolve instantly, loaders hold their first frame. `subtle` zeroes `--motion-expressive` instead, so essential motion keeps playing. In-app, `useMotion()` reads and sets the policy; `useMotionLevel(motion)` resolves a component's own prop against everything around it, and JS-driven flourishes gate on its `expressive`.
 
 Richer physics (interruptible velocity-springs, FLIP layout, drag/gesture) is intentionally **out of core** — it's the future optional `@sableui/motion` adapter (peer-dep `motion`), reached for only when CSS genuinely can't express a surface.
 

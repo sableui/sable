@@ -35,6 +35,8 @@ export const CollapsibleTrigger = Base.Trigger
  *   } />
  */
 export function CollapsibleIndicator({ className }: { className?: string }) {
+	// The rotate class and motion-interactive sit on the same element (the
+	// glyph), and the recipe lists `rotate`, so the flip eases with the panel.
 	return (
 		<Icon
 			name="chevron-down"

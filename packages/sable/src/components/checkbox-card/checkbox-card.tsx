@@ -2,6 +2,7 @@ import { Checkbox as Base } from "@base-ui/react/checkbox"
 import { CheckboxGroup as BaseGroup } from "@base-ui/react/checkbox-group"
 import type { ComponentProps, ReactNode } from "react"
 import { cn } from "../../lib/cn"
+import { type MotionLevel, motionAttribute } from "../../motion/MotionProvider"
 import {
 	CHECK_BOX,
 	SELECTION_CARD_GLYPH,
@@ -103,6 +104,13 @@ export type CheckboxCardProps = Omit<
 	 * and icon. Defaults to "neutral" (the primary/accent treatment).
 	 */
 	tone?: CheckboxCardTone
+	/**
+	 * How much motion this component uses: `full` (default) inherits the app's
+	 * policy, `subtle` keeps feedback and drops the flourish, `off` stills it.
+	 * It can only turn motion down — it never overrides a reader's reduce-motion
+	 * setting. Under `subtle` the tick fades in instead of drawing itself.
+	 */
+	motion?: MotionLevel
 }
 
 /**
@@ -122,6 +130,7 @@ export function CheckboxCard({
 	description,
 	icon,
 	tone = "neutral",
+	motion,
 	...props
 }: CheckboxCardProps) {
 	const t = checkboxCardToneClasses[tone]
@@ -132,6 +141,7 @@ export function CheckboxCard({
 	)
 	return (
 		<Base.Root
+			data-motion={motionAttribute(motion)}
 			className={cn(
 				SELECTION_CARD_SHELL,
 				icon != null ? SELECTION_CARD_LAYOUT.tile : SELECTION_CARD_LAYOUT.row,

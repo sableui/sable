@@ -51,6 +51,7 @@ const AXES: Record<string, string> = {
 	gap: "MessageScroller spacing",
 	avatarSize: "Message's avatar, on Avatar's size ladder",
 	overlay: "NotificationBadge placement: pinned to its host's top-end corner",
+	confirmVariant: "ConfirmButton: the Button `variant` it switches to while armed",
 }
 
 /** Spellings that have each been someone's name for an axis above. */
@@ -84,6 +85,7 @@ const VALUE_IS_NOT_CONTROLLED = new Set([
 	"RadioCard", // which option this card is
 	"Meter", // a reading
 	"Progress",
+	"NumberTicker", // a reading it rolls to, never edited
 ])
 
 describe("prop vocabulary", () => {

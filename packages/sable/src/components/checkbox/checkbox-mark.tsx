@@ -17,13 +17,23 @@ import { CHECK_MARK_SIZE } from "../../lib/selection-card"
  * `parent` ("select all") checkbox inside a CheckboxGroup never receives the
  * prop — the group computes its mixed state.
  *
+ * Unchecking only fades (motion-tick's exit), so clearing a long list of boxes
+ * is not a performance; under `data-motion="subtle"` checking fades too.
+ *
  * Must render inside a Base UI Checkbox.Root (Checkbox, or CheckboxCard's root).
  */
 export function CheckboxMark({ className }: { className?: string }) {
 	return (
 		<Base.Indicator
 			className={cn(
-				"flex items-center justify-center text-current motion-interactive ease-spring data-[starting-style]:scale-0 data-[starting-style]:opacity-0 data-[ending-style]:scale-0 data-[ending-style]:opacity-0",
+				// motion-tick, not a scale from 0: the mark wipes in from its leading
+				// stroke, so checking reads as a tick being drawn rather than a dot
+				// swelling into a check. The dash takes the same wipe, which for a
+				// horizontal bar is simply a line drawn left to right. It declares its
+				// own transition list, so motion-interactive must not sit here too —
+				// two transition-property declarations on one element and the later
+				// class silently wins, dropping the clip-path.
+				"flex items-center justify-center text-current motion-tick",
 				className,
 			)}
 			render={(indicatorProps, state) => (

@@ -30,6 +30,15 @@ Use ShowMore to reveal additional content after an intentionally shortened previ
 
 `background`, `foreground`, `ring`
 
+## Motion
+
+- **arrival** · Root · _no motion_ — The preview arrives with the content it clips. Its fade and toggle appear only once a measurement proves the content overflows.
+- **response** · Toggle · `motion-interactive` — The toggle is a link Button, so its hover and focus ease on Button's recipe.
+- **transition** · Content · _custom (outside the recipe layer)_ — The region eases its max-height between the collapsed and the measured full height on the slow motion token. motion-disclosure keys on Base UI's starting and ending styles, which this self-contained toggle does not have. The text unrolling in place keeps the reader's line; a snap drops them at a different scroll position.
+- **transition** · Fade · `motion-interactive` — The bottom fade dissolves as the region opens and returns as it closes, so the cut edge and the reveal read as one movement.
+- **transition** · Chevron · `motion-interactive` — The chevron turns 180° in step with the region (motion-interactive lists `rotate`), so the toggle visibly points at what it will do next.
+- **activity** · Root · _no motion_ — Expanding is local and instant; nothing loads.
+
 ## Accessibility
 
 - The toggle is a real <button> with aria-expanded reflecting the open state.

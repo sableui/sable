@@ -1201,7 +1201,8 @@
    drops the hiding rule entirely and the action simply stays visible. */
 @utility reveal-on-hover {
 	transition-property: color, background-color, border-color, box-shadow,
-		opacity, fill, stroke, scale, translate;
+		opacity, fill, stroke, scale, translate, rotate, outline-color, outline-width,
+		outline-offset;
 	transition-duration: var(--motion-duration-fast);
 	transition-timing-function: var(--motion-ease-standard);
 
@@ -1844,8 +1845,18 @@
       collapse --motion-scale to 0 — one switch makes all token-driven motion
       static (transitions resolve instantly; loaders hold their first frame).
 
-   Keep motion subtle: opacity + transform only (compositor-friendly), short
-   durations, no spring/overshoot. See DESIGN.md → Motion.
+   Two LEVELS sit under the switch. ESSENTIAL motion answers the user: colour
+   and focus feedback, press, overlay arrival, disclosure height, loaders.
+   EXPRESSIVE motion narrates continuity: an indicator that travels between
+   options (motion-glide), digits that roll (NumberTicker), a tick that draws
+   (motion-tick), a shake on a wrong answer (motion-shake), staggered arrivals
+   and spring overshoot. Expressive durations are multiplied by a second
+   factor, --motion-expressive, which `data-motion="subtle"` sets to 0 (and
+   which also takes the overshoot out of ease-spring/ease-bounce). So "subtle"
+   keeps every answer and drops every flourish; "off" drops both.
+
+   Opacity + transform only (compositor-friendly), short durations, overshoot on
+   enter only. See DESIGN.md → Motion.
    ========================================================================== */
 
 @keyframes sable-spin {
@@ -2009,10 +2020,22 @@
    `motion-press` and the hover/active surface — the flash is a second, worse
    answer. Both are inert on pointer devices, and neither is motion, so
    --motion-scale: 0 and prefers-reduced-motion leave them untouched: the delay
-   fix keeps working when animation is off, which is when it matters most. */
+   fix keeps working when animation is off, which is when it matters most.
+
+   `rotate` is in the list because Tailwind v4's `rotate-*` utilities write the
+   standalone `rotate` property, not `transform`. Without it every disclosure
+   chevron carrying this recipe (Accordion, Collapsible, Tree) jumped 180° in a
+   single frame while the panel beside it eased open.
+
+   The outline properties are there for focus rings drawn with `outline-*`
+   (the box-shadow `ring-*` ones were already covered). An outline's computed
+   width is 0 while its style is `none`, so on focus the ring grows from the
+   element's edge to its full width at the fast step instead of appearing in
+   one frame; on blur it shrinks back. Under reduced motion it is instant. */
 @utility motion-interactive {
 	transition-property: color, background-color, border-color, box-shadow,
-		opacity, fill, stroke, scale, translate;
+		opacity, fill, stroke, scale, translate, rotate, outline-color, outline-width,
+		outline-offset;
 	transition-duration: var(--motion-duration-fast);
 	transition-timing-function: var(--motion-ease-standard);
 	touch-action: manipulation;
@@ -2194,6 +2217,262 @@
 		pointer-events: none;
 		transition-duration: var(--motion-duration-exit);
 	}
+}
+
+/* --------------------------------------------------------------------------
+   Expressive recipes — continuity and choreography. Each duration is a token
+   multiplied by --motion-expressive, so `data-motion="subtle"` resolves them
+   instantly while the essential recipes above keep answering. Under the
+   off/reduced policy the token itself is already 0.
+   -------------------------------------------------------------------------- */
+
+/* Glide — ONE element that travels to the selected option, instead of each
+   option blinking its own fill: a tab's underline or pill, a segmented thumb,
+   a carousel's active dot, a nav's current-page bar. The component positions it
+   (Base UI's --active-tab-* vars, a measured box, or an index step); this
+   recipe carries the timing.
+
+   Width and height are in the list on purpose. The glider is absolutely
+   positioned, so resizing it lays out nothing else, and a pill that stretches
+   to its new option's label width cannot be a scale without distorting its
+   corners. Emphasized easing: it leaves quickly and settles, which is what
+   reads as "one thing moved" rather than "two things swapped". */
+@utility motion-glide {
+	transition-property: translate, width, height, inset, left, top, opacity, background-color;
+	/* The travel is expressive; the glider fading in or out and its colour
+	   answering a hover are essential, so "subtle" keeps those. One duration
+	   per property — a shorter list repeats from the start. */
+	transition-duration:
+		calc(var(--motion-duration-slow) * var(--motion-expressive, 1)),
+		calc(var(--motion-duration-slow) * var(--motion-expressive, 1)),
+		calc(var(--motion-duration-slow) * var(--motion-expressive, 1)),
+		calc(var(--motion-duration-slow) * var(--motion-expressive, 1)),
+		calc(var(--motion-duration-slow) * var(--motion-expressive, 1)),
+		calc(var(--motion-duration-slow) * var(--motion-expressive, 1)),
+		var(--motion-duration-fast),
+		var(--motion-duration-fast);
+	transition-timing-function: var(--motion-ease-emphasized), var(--motion-ease-emphasized),
+		var(--motion-ease-emphasized), var(--motion-ease-emphasized), var(--motion-ease-emphasized),
+		var(--motion-ease-emphasized), var(--motion-ease-standard), var(--motion-ease-standard);
+}
+
+/* Shake — a short horizontal no, for an answer that was refused: a wrong
+   one-time code, a submit with invalid fields. Plays while `data-shake` is set;
+   `useShake()` (src/motion) sets it, clears it on animationend, and restarts it
+   when the next refusal lands mid-shake. Decaying amplitude, about a fifth of a
+   second per swing — anything longer reads as a tantrum.
+
+   Never the only signal. The field turns destructive and says why; the shake
+   is what makes a repeated mistake feel noticed. Under "subtle" the duration
+   is 0 and only the colour remains. */
+@keyframes sable-shake {
+	0%,
+	100% {
+		translate: 0 0;
+	}
+	20% {
+		translate: -0.375rem 0;
+	}
+	40% {
+		translate: 0.3rem 0;
+	}
+	60% {
+		translate: -0.2rem 0;
+	}
+	80% {
+		translate: 0.1rem 0;
+	}
+}
+@utility motion-shake {
+	&[data-shake] {
+		animation: sable-shake calc(var(--motion-duration-slower) * 0.8 * var(--motion-expressive, 1))
+			var(--motion-ease-standard);
+	}
+}
+
+/* Tick — a selection mark that draws itself in rather than appearing: the
+   check in a Checkbox, a success glyph. The mark wipes in from its leading
+   stroke (clip-path, so it works on any injected icon set — a path-length draw
+   would need to own the SVG) while its opacity takes the essential fade.
+   Keyed to Base UI's starting/ending style like the overlay recipes; exits only
+   fade, at the exit speed, so un-checking is not a performance.
+
+   Two durations: the fade is essential (fast), the wipe is expressive, so
+   "subtle" keeps a clean fade and drops the draw. */
+@utility motion-tick {
+	/* Both ends of the wipe must be inset() so they interpolate: from the
+	   default `none` the clip-path flipped in one frame and only the fade and
+	   scale played. Outset by 2px so the resting clip never shaves an injected
+	   glyph's round caps. */
+	clip-path: inset(-2px);
+	transition-property: opacity, clip-path, scale;
+	transition-duration: var(--motion-duration-fast),
+		calc(var(--motion-duration-base) * var(--motion-expressive, 1)),
+		calc(var(--motion-duration-base) * var(--motion-expressive, 1));
+	transition-timing-function: var(--motion-ease-standard), var(--motion-ease-decelerate),
+		var(--motion-ease-spring);
+	&[data-starting-style] {
+		opacity: 0;
+		clip-path: inset(-2px 100% -2px -2px);
+		scale: 0.6;
+	}
+	&[data-ending-style] {
+		opacity: 0;
+		transition-duration: var(--motion-duration-exit), 0s, 0s;
+	}
+}
+
+/* Appear — a small control that mounts in place and should not pop into
+   existence: a search field's clear button, a send button replacing a mic, a
+   count badge. Uses @starting-style, so it needs no data attribute and no JS;
+   the element simply transitions in from its starting style on first render.
+   The fade is essential, the scale is expressive. Removal is instant — an
+   unmounted element has nothing to animate, and a control leaving should get
+   out of the way. It declares its own transition-property, so put it on a
+   WRAPPER around a Button or anything carrying motion-interactive — on the
+   same element one of the two lists would silently win. */
+@utility motion-appear {
+	transition-property: opacity, scale;
+	transition-duration: var(--motion-duration-fast),
+		calc(var(--motion-duration-base) * var(--motion-expressive, 1));
+	transition-timing-function: var(--motion-ease-standard), var(--motion-ease-spring);
+	@starting-style {
+		opacity: 0;
+		scale: 0.6;
+	}
+}
+
+/* Arrive — items that a user action brings into a list settle into place one
+   after another, so the eye can follow where they came from: a tree folder's
+   children on expand, results that load in, a row that was just added.
+   A CSS animation rather than a transition, so it composes with the
+   motion-interactive every row already carries. Set the item's stagger as a
+   raw delay in --motion-arrive-delay (index x ~18ms, capped around ten items so
+   a long list settles as fast as a short one); the recipe scales it, so
+   "subtle" and reduced motion show the items at once with no dead wait.
+   `backwards` holds the start pose through the delay and then lets go, so a
+   later opacity (a dimmed row) is never pinned.
+
+   Only on a user action. A list that arrives this way every time it renders is
+   a title sequence: mount the class only on items that are new. */
+@keyframes sable-arrive {
+	from {
+		opacity: 0;
+		translate: 0 -0.25rem;
+	}
+}
+@utility motion-arrive {
+	animation: sable-arrive calc(var(--motion-duration-base) * var(--motion-expressive, 1))
+		var(--motion-ease-decelerate)
+		calc(var(--motion-arrive-delay, 0ms) * var(--motion-scale, 1) * var(--motion-expressive, 1))
+		backwards;
+}
+
+/* Calendar month paging — react-day-picker's `animate` mode, which Calendar
+   turns on only while motion is expressive. RDP keeps the outgoing month as a
+   snapshot laid over the incoming one and adds ONE class to each part (so
+   these are plain classes, not utilities: a class list would not survive
+   classList.add). The months trade places over a short travel with a fade,
+   not RDP's default full-width slide, which drags a whole grid across the
+   card. Enter at the slow step on the emphasized curve; exit at the exit step,
+   so the old month is out of the way before the new one settles.
+
+   Naming follows RDP: "after" means the month that arrives is AFTER the one
+   leaving (paging forward), so it comes in from the end and the old one leaves
+   toward the start. Mirrored under [dir=rtl]. */
+@keyframes sable-month-from-start {
+	from {
+		opacity: 0;
+		translate: -1.5rem 0;
+	}
+}
+@keyframes sable-month-from-end {
+	from {
+		opacity: 0;
+		translate: 1.5rem 0;
+	}
+}
+@keyframes sable-month-to-start {
+	to {
+		opacity: 0;
+		translate: -1.5rem 0;
+	}
+}
+@keyframes sable-month-to-end {
+	to {
+		opacity: 0;
+		translate: 1.5rem 0;
+	}
+}
+@keyframes sable-fade-out {
+	to {
+		opacity: 0;
+	}
+}
+.sable-month-enter-after,
+.sable-month-enter-before {
+	animation: sable-month-from-end calc(var(--motion-duration-slow) * var(--motion-expressive, 1))
+		var(--motion-ease-emphasized) both;
+}
+.sable-month-enter-before,
+[dir="rtl"] .sable-month-enter-after {
+	animation-name: sable-month-from-start;
+}
+[dir="rtl"] .sable-month-enter-before {
+	animation-name: sable-month-from-end;
+}
+.sable-month-exit-after,
+.sable-month-exit-before {
+	animation: sable-month-to-start calc(var(--motion-duration-exit) * var(--motion-expressive, 1))
+		var(--motion-ease-standard) both;
+}
+.sable-month-exit-after,
+[dir="rtl"] .sable-month-exit-before {
+	animation-name: sable-month-to-end;
+}
+[dir="rtl"] .sable-month-exit-after {
+	animation-name: sable-month-to-start;
+}
+.sable-caption-enter {
+	animation: sable-fade-in calc(var(--motion-duration-slow) * var(--motion-expressive, 1))
+		var(--motion-ease-decelerate) both;
+}
+.sable-caption-exit {
+	animation: sable-fade-out calc(var(--motion-duration-exit) * var(--motion-expressive, 1))
+		var(--motion-ease-standard) both;
+}
+
+/* Size — eases an element between sizes: a button whose label changes
+   ("Delete" → "Confirm delete?"), a chip that gains a count, a panel going from
+   0 to its natural height.
+
+   A transition needs the computed size to CHANGE. Between a keyword and a
+   length (0 ↔ auto) `interpolate-size: allow-keywords` supplies that. A
+   content-sized box whose content changes computes `auto` both times, so pair
+   the recipe with `useAutoSize()` (src/motion), which writes the content's
+   measured size as pixels for this transition to ease between. Where
+   interpolate-size is unsupported the keyword case simply snaps, which is the
+   old behaviour. Expressive: under "subtle" the size snaps and the label still
+   changes. */
+@utility motion-size {
+	interpolate-size: allow-keywords;
+	/* A superset of motion-interactive's list, in the same order after the two
+	   sizes, so it can sit on a Button (which carries motion-interactive) and
+	   whichever declaration wins the cascade, nothing the other animated stops
+	   animating. Only the two sizes are expressive. */
+	transition-property: width, height, color, background-color, border-color, box-shadow,
+		opacity, fill, stroke, scale, translate, rotate, outline-color, outline-width,
+		outline-offset;
+	/* One entry per property: a shorter list would REPEAT from the start. */
+	transition-duration: calc(var(--motion-duration-base) * var(--motion-expressive, 1)),
+		calc(var(--motion-duration-base) * var(--motion-expressive, 1)),
+		var(--motion-duration-fast), var(--motion-duration-fast), var(--motion-duration-fast), var(--motion-duration-fast), var(--motion-duration-fast),
+		var(--motion-duration-fast), var(--motion-duration-fast), var(--motion-duration-fast), var(--motion-duration-fast), var(--motion-duration-fast),
+		var(--motion-duration-fast), var(--motion-duration-fast), var(--motion-duration-fast);
+	transition-timing-function: var(--motion-ease-emphasized), var(--motion-ease-emphasized),
+		var(--motion-ease-standard), var(--motion-ease-standard), var(--motion-ease-standard), var(--motion-ease-standard), var(--motion-ease-standard),
+		var(--motion-ease-standard), var(--motion-ease-standard), var(--motion-ease-standard), var(--motion-ease-standard), var(--motion-ease-standard),
+		var(--motion-ease-standard), var(--motion-ease-standard), var(--motion-ease-standard);
 }
 
 /* --------------------------------------------------------------------------
@@ -2458,4 +2737,18 @@
 [data-motion="off"],
 [data-motion="off"] [data-sable-theme] {
 	--motion-scale: 0 !important;
+}
+
+/* "subtle": essential motion plays, expressive motion resolves instantly and
+   nothing overshoots. It never touches --motion-scale, so it can only turn
+   motion DOWN: nested inside "off", or under the OS reduce preference, the
+   scale is still 0. That is what makes it safe as a per-component prop and on
+   <MotionScope> — neither can switch motion back on for a reader who asked for
+   it off. The easings are re-pointed rather than zeroed: a spring pop becomes a
+   clean decelerate, which is still an answer. */
+[data-motion="subtle"],
+[data-motion="subtle"] [data-sable-theme] {
+	--motion-expressive: 0 !important;
+	--motion-ease-spring: var(--motion-ease-decelerate) !important;
+	--motion-ease-bounce: var(--motion-ease-decelerate) !important;
 }

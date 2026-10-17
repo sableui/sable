@@ -25,9 +25,11 @@ function otpBase(): OtpBase {
 	}
 	return resolvedBase
 }
-import { type ComponentProps, Fragment } from "react"
+import { type ComponentProps, Fragment, useEffect, useRef } from "react"
 import { cn } from "../../lib/cn"
 import { FIELD_INVALID, FIELD_SHELL } from "../../lib/field-shell"
+import { type MotionLevel, motionAttribute } from "../../motion/MotionProvider"
+import { useShake } from "../../motion/useShake"
 
 type BaseRootProps = ComponentProps<OtpBase["Root"]>
 
@@ -55,8 +57,21 @@ export type OtpFieldProps = Omit<
 	 * @default (index, length) => `Character ${index + 1} of ${length}`
 	 */
 	getSlotLabel?: (index: number, length: number) => string
-	/** Marks every slot invalid. `<Field error>` sets this for you. */
+	/**
+	 * Marks every slot invalid: destructive border and digits, and — when it
+	 * turns on after mount — one short shake of the whole field. `<Field error>`
+	 * sets this for you.
+	 */
 	"aria-invalid"?: boolean | "true" | "false"
+	/**
+	 * How much motion this component uses: `full` (default) inherits the app's
+	 * policy, `subtle` keeps feedback and drops the flourish, `off` stills it.
+	 * It can only turn motion down — it never overrides a reader's reduce-motion
+	 * setting. The shake on a refused code is the flourish; the destructive
+	 * colour stays at every level.
+	 * @default "full"
+	 */
+	motion?: MotionLevel
 }
 
 const defaultSlotLabel = (index: number, length: number) =>
@@ -77,6 +92,11 @@ const defaultSlotLabel = (index: number, length: number) =>
  * Slots are `text-mono-lg` (20px) so iOS Safari never zooms on focus, and sit
  * on the control ladder — `--control-md` wide, `--control-lg` tall — so a
  * compact Workspace retunes them with everything else.
+ *
+ * A refused code shakes the field once (motion-shake) as it turns invalid, and
+ * the digits take the destructive colour. The slots are NOT cleared: the wrong
+ * digits are the evidence of which one was mistyped, and the error message
+ * under the field says what to do next.
  */
 export function OtpField({
 	className,
@@ -84,18 +104,36 @@ export function OtpField({
 	groupSize,
 	getSlotLabel = defaultSlotLabel,
 	"aria-invalid": ariaInvalid,
+	motion,
+	onAnimationEnd,
 	...root
 }: OtpFieldProps) {
 	const invalid = ariaInvalid === true || ariaInvalid === "true"
 	const Base = otpBase()
+	// Shake on the TRANSITION to invalid, never on mount: a field restored with
+	// an error (a reload, a server-rendered form) has nothing new to say. An app
+	// that clears the error as the user edits — the usual pattern — gets a fresh
+	// shake for every new wrong code, because each one is a new transition.
+	const { shake, shakeProps } = useShake()
+	const wasInvalid = useRef(invalid)
+	useEffect(() => {
+		if (invalid && !wasInvalid.current) shake()
+		wasInvalid.current = invalid
+	}, [invalid, shake])
 	return (
 		<Base.Root
 			length={length}
 			data-invalid={invalid ? "" : undefined}
+			data-motion={motionAttribute(motion)}
 			// max-w-full + shrinkable slots (min-w-0): in a column narrower than the
 			// code, slots narrow instead of pushing the field off the edge.
-			className={cn("inline-flex max-w-full items-center gap-2", className)}
+			className={cn("inline-flex max-w-full items-center gap-2 motion-shake", className)}
 			{...root}
+			data-shake={shakeProps["data-shake"]}
+			onAnimationEnd={(event) => {
+				shakeProps.onAnimationEnd(event)
+				onAnimationEnd?.(event)
+			}}
 		>
 			{Array.from({ length }, (_, index) => (
 				// Slots are positional and never reorder, so the index is the identity.
@@ -120,6 +158,10 @@ export function OtpField({
 							// coloured border under it made a 3px edge only here.
 							"data-[filled]:border-border-strong",
 							FIELD_INVALID,
+							// The digits turn too, not just the box: on a six-slot code the
+							// border alone is a thin line, and the characters are what the
+							// user is reading to find the mistake.
+							"aria-[invalid=true]:text-destructive",
 						)}
 					/>
 				</Fragment>

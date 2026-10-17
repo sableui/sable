@@ -2,6 +2,7 @@
 
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
+import { type MotionLevel, motionAttribute, useMotionLevel } from "../../motion/MotionProvider"
 import { buttonVariants } from "../button/button.variants"
 import {
 	type ChevronProps,
@@ -31,6 +32,14 @@ export type CalendarProps = DayPickerProps & {
 	 * @default false
 	 */
 	bare?: boolean
+	/**
+	 * How much motion this component uses: `full` (default) inherits the app's
+	 * policy, `subtle` keeps feedback and drops the month slide, `off` stills
+	 * it. It can only turn motion down — it never overrides a reader's
+	 * reduce-motion setting.
+	 * @default "full"
+	 */
+	motion?: MotionLevel
 }
 
 /**
@@ -50,12 +59,21 @@ export function Calendar({
 	showOutsideDays = true,
 	components,
 	bare = false,
+	motion,
+	animate,
 	...props
 }: CalendarProps) {
+	const level = useMotionLevel(motion)
 	return (
 		<DayPicker
 			data-slot="calendar"
+			data-motion={motionAttribute(motion)}
 			showOutsideDays={showOutsideDays}
+			// Paging months slides the grids past each other (styles.css →
+			// "Calendar month paging"). Expressive, so it is on only at full motion:
+			// RDP lays a snapshot of the old month over the new one and waits for
+			// its animation to end, which is cleaner to skip than to run at 0s.
+			animate={animate ?? level.expressive}
 			className={cn(
 				// relative: the nav is absolutely positioned (react-day-picker v9
 				// renders it inside `months`, not inside each month), and with no
@@ -82,7 +100,10 @@ export function Calendar({
 				weekday:
 					"flex size-9 items-center justify-center text-caption text-muted-foreground",
 				week: "mt-1 flex w-full",
-				day: "p-0 text-center",
+				// motion-interactive on the cell too: a range's fill is painted on the
+				// cells (see range_* below), so without it the band between the
+				// endpoints snapped while the endpoint buttons eased.
+				day: "p-0 text-center motion-interactive",
 				day_button:
 					"inline-flex size-9 items-center justify-center rounded-md text-body-sm motion-interactive outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring",
 				// Range fill lives on the CELL so it forms one continuous bar; only the
@@ -110,6 +131,14 @@ export function Calendar({
 				disabled:
 					"[&>button]:pointer-events-none [&>button]:text-muted-foreground [&>button]:opacity-50",
 				hidden: "invisible",
+				weeks_after_enter: "sable-month-enter-after",
+				weeks_before_enter: "sable-month-enter-before",
+				weeks_after_exit: "sable-month-exit-after",
+				weeks_before_exit: "sable-month-exit-before",
+				caption_after_enter: "sable-caption-enter",
+				caption_before_enter: "sable-caption-enter",
+				caption_after_exit: "sable-caption-exit",
+				caption_before_exit: "sable-caption-exit",
 				...classNames,
 			}}
 			components={{ Chevron: CalendarChevron, ...components }}

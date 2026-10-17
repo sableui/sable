@@ -35,7 +35,8 @@ Use RadarChart to compare the shape of a profile across five to eight dimensions
 | tooltip | boolean \| { indicator?: "dot" \| "line" \| "dashed" \| "none"; hideLabel?: boolean; labelFormatter?: (label, datum) => ReactNode; showTotal?: boolean } | true | Show a tooltip on hover and keyboard focus, or configure it: the row marker, hiding the heading, rewriting it, adding a Total row. |
 | valueFormatter | (value: number) => string | — | Format values everywhere (axis, labels, tooltip, table) — units like "$12,480". Default: compact on the axis, full elsewhere. |
 | locale | string | runtime locale | BCP 47 locale for default number and date formatting. |
-| animate | boolean | true | Grow the polygons from the centre when the chart scrolls into view. |
+| motion | "full" \| "subtle" \| "off" | "full" | How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The polygons growing in and morphing are the flourish; the hover highlight is the feedback `subtle` keeps. |
+| animate | boolean | true | Grow the polygons from the centre when the chart scrolls into view. `animate={false}` is `motion="subtle"`. |
 | activeIndex | number \| null | — | The highlighted row (controlled); `null` for none. |
 | defaultActiveIndex | number \| null | — | The row highlighted at first — a tooltip already open before anyone hovers. |
 | onActiveIndexChange | (index: number \| null) => void | — | Called as the pointer or keyboard moves between rows. |
@@ -46,9 +47,9 @@ Use RadarChart to compare the shape of a profile across five to eight dimensions
 
 ## Motion
 
-- **arrival** · Polygon · _custom (outside the recipe layer)_ — Once on screen each polygon grows from the centre and fades in, series staggered, on the emphasized easing. On the motion tokens; reduced motion shows the finished chart.
+- **arrival** · Polygon · _custom (outside the recipe layer)_ — Once on screen each polygon grows from the centre and fades in, series staggered, on the emphasized easing. On the motion tokens; reduced motion shows the finished chart. The arrival is expressive: it plays at the full motion level only, so `motion="subtle"` (or a subtle app policy) shows the finished chart while hover feedback stays.
 - **response** · Active spoke · _no motion_ — The hovered spoke's vertices and label highlight at once.
-- **transition** · Polygon · _custom (outside the recipe layer)_ — Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place.
+- **transition** · Polygon · _custom (outside the recipe layer)_ — Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place. Expressive, like the arrival: under `subtle` new data swaps in place.
 - **activity** · RadarChart · _no motion_ — A chart has no indeterminate state; show a Skeleton while the data loads.
 
 ## Accessibility

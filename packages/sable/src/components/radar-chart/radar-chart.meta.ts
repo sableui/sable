@@ -123,10 +123,17 @@ export const radarChartMeta: ComponentMeta = {
 			description: "BCP 47 locale for default number and date formatting."
 		},
 		{
+			name: "motion",
+			type: "\"full\" | \"subtle\" | \"off\"",
+			default: "\"full\"",
+			description: "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The polygons growing in and morphing are the flourish; the hover highlight is the feedback `subtle` keeps."
+		},
+		{
 			name: "animate",
 			type: "boolean",
 			default: "true",
-			description: "Grow the polygons from the centre when the chart scrolls into view."
+			description: "Grow the polygons from the centre when the chart scrolls into view. `animate={false}` is `motion=\"subtle\"`.",
+			deprecated: "motion=\"subtle\" (what animate={false} now maps to: no arrival, hover kept) or motion=\"off\""
 		},
 		{
 			name: "activeIndex",
@@ -163,7 +170,7 @@ export const radarChartMeta: ComponentMeta = {
 			slot: "arrival",
 			recipe: "custom",
 			part: "Polygon",
-			why: "Once on screen each polygon grows from the centre and fades in, series staggered, on the emphasized easing. On the motion tokens; reduced motion shows the finished chart."
+			why: "Once on screen each polygon grows from the centre and fades in, series staggered, on the emphasized easing. On the motion tokens; reduced motion shows the finished chart. The arrival is expressive: it plays at the full motion level only, so `motion=\"subtle\"` (or a subtle app policy) shows the finished chart while hover feedback stays."
 		},
 		{
 			slot: "response",
@@ -175,7 +182,7 @@ export const radarChartMeta: ComponentMeta = {
 			slot: "transition",
 			recipe: "custom",
 			part: "Polygon",
-			why: "Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place."
+			why: "Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place. Expressive, like the arrival: under `subtle` new data swaps in place."
 		},
 		{
 			slot: "activity",

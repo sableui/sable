@@ -118,6 +118,38 @@ export const panelSectionMeta: ComponentMeta = {
 				"A collapsible set of properties inside a section, at the panel's scale (an Accordion is page furniture). The row shows the label, then the summary (the group's value, readable while closed: a word, a few swatches, or both), then a + that turns to − when open. Groups open independently and stack with a hairline between them. Built on Collapsible.",
 		},
 	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "Sections are part of the inspector they sit in and arrive with it. Animating each in would make a panel switch look like a page load.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "PropertyGroup trigger",
+			why: "The fold row eases its focus ring, so arrowing down a dense inspector shows where the keyboard is without the ring flickering from row to row.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-disclosure",
+			part: "PropertyGroup panel",
+			why: "The group opens by easing its height, so the rows below slide down to make room instead of jumping. In an inspector, the next section moving is otherwise how you lose your place.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-icon-swap",
+			part: "PropertyGroup indicator",
+			why: "The + collapses into − as the group opens, both glyphs stacked as one mark, so the indicator reads as this row changing state rather than a different icon landing.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "The inspector edits values in place; nothing in it loads.",
+		},
+	],
 	a11y: [
 		"PropertyGroup's row is a real button with aria-expanded (Collapsible); its summary is part of the button's name, so a closed group still announces its value.",
 		"PropertyRow renders a real <label>; pass htmlFor with the control's id so clicking the label focuses it.",

@@ -130,6 +130,32 @@ export const tableMeta: ComponentMeta = {
 		},
 	],
 	tokensUsed: ["border", "muted", "muted-foreground"],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "A table renders with the page it sits in. Staggering rows in delays reading data someone opened to scan.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "TableRow",
+			why: "Body rows ease to a muted wash under the pointer. Across a wide row, the wash is what keeps the eye on the right line, and eased it follows the cursor down the table rather than strobing.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-interactive",
+			part: "TableCell",
+			why: "A `data-selected` row's fill eases in on every cell together, so the selected row reads as one band being set rather than a stamp.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "Table is markup. Loading rows are Skeletons, which carry the shimmer.",
+		},
+	],
 	a11y: [
 		"Renders semantic native table elements (thead/tbody/tfoot/th/td/caption) preserving built-in table semantics.",
 		"Use TableHead (th) for column headers and TableCaption for an accessible description.",

@@ -115,10 +115,11 @@ export function ShowMore({
 				iconEnd={
 					<Icon
 						name="chevron-down"
-						className={cn(
-							"transition-transform duration-(--motion-duration-fast) ease-standard",
-							expanded && "rotate-180",
-						)}
+						// motion-interactive, not transition-transform: Tailwind v4's
+						// rotate-180 writes the standalone `rotate` property, which a
+						// `transform` transition never sees, so the chevron jumped
+						// while the region beside it eased open.
+						className={cn("motion-interactive", expanded && "rotate-180")}
 					/>
 				}
 			>

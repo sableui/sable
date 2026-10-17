@@ -119,10 +119,17 @@ export const areaChartMeta: ComponentMeta = {
 			description: "The vertical axis."
 		},
 		{
+			name: "motion",
+			type: "\"full\" | \"subtle\" | \"off\"",
+			default: "\"full\"",
+			description: "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The arrival (draw-on, rising fill) and the data-change morph are the flourish; the gliding cursor and tooltip are the feedback `subtle` keeps."
+		},
+		{
 			name: "animate",
 			type: "boolean",
 			default: "true",
-			description: "Play the arrival once the chart scrolls into view. Reduced motion shows the finished chart."
+			description: "Play the arrival once the chart scrolls into view. Reduced motion shows the finished chart. `animate={false}` is `motion=\"subtle\"`.",
+			deprecated: "motion=\"subtle\" (what animate={false} now maps to: no arrival, hover kept) or motion=\"off\""
 		},
 		{
 			name: "activeIndex",
@@ -177,7 +184,7 @@ export const areaChartMeta: ComponentMeta = {
 			slot: "arrival",
 			recipe: "custom",
 			part: "Area + line",
-			why: "Once on screen, each line draws on (stroke-dashoffset) and its fill rises from the baseline, series staggered — the trend is read as it is drawn. On the motion tokens; reduced motion shows the finished chart."
+			why: "Once on screen, each line draws on (stroke-dashoffset) and its fill rises from the baseline, series staggered — the trend is read as it is drawn. On the motion tokens; reduced motion shows the finished chart. The arrival is expressive: it plays at the full motion level only, so `motion=\"subtle\"` (or a subtle app policy) shows the finished chart while hover feedback stays."
 		},
 		{
 			slot: "response",
@@ -189,7 +196,7 @@ export const areaChartMeta: ComponentMeta = {
 			slot: "transition",
 			recipe: "custom",
 			part: "Area + line",
-			why: "Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place."
+			why: "Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place. Expressive, like the arrival: under `subtle` new data swaps in place."
 		},
 		{
 			slot: "activity",

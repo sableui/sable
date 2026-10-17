@@ -60,6 +60,13 @@ Use Slider for bounded numeric choices where approximate adjustment is faster th
 
 `secondary`, `primary`, `background`, `ring`
 
+## Motion
+
+- **arrival** · Root · _no motion_ — It arrives with the form or panel it sits in.
+- **response** · Thumb · `motion-interactive` — The thumb's dot grows from 12px to full size on hover and keyboard focus, and a little past it while dragging, on a spring. Only the paint resizes, never the hit target, so the growth says the thumb is live without moving where you have to aim.
+- **transition** · Thumb · _no motion_ — The thumb and the filled range follow the pointer one-to-one, and keyboard steps land at once. An eased position would trail the drag and show a value the user has already moved past.
+- **activity** · Root · _no motion_ — A slider commits as it moves; there is nothing to wait for.
+
 ## Accessibility
 
 - Base UI provides role=slider, aria-valuemin/max/now, and arrow-key / Page Up-Down / Home-End control.

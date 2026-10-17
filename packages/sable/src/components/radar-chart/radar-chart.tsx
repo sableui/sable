@@ -1,7 +1,7 @@
 "use client"
 
 import type { CSSProperties } from "react"
-import { ChartFrame, type ChartSize } from "../../lib/chart/chart-frame"
+import { ChartFrame, type ChartSize, chartMotion } from "../../lib/chart/chart-frame"
 import { ChartLegend } from "../../lib/chart/chart-legend"
 import { ChartTooltipContent } from "../../lib/chart/chart-tooltip"
 import { approxTextWidth, categoryText, chartFormatters } from "../../lib/chart/format"
@@ -17,6 +17,7 @@ import {
 	resolveSeries,
 } from "../../lib/chart/types"
 import { cn } from "../../lib/cn"
+import type { MotionLevel } from "../../motion/MotionProvider"
 
 export interface RadarChartProps {
 	/** One row per spoke (a skill, a month, a dimension). */
@@ -44,7 +45,19 @@ export interface RadarChartProps {
 	tooltip?: boolean | ChartTooltipOptions
 	valueFormatter?: ChartValueFormatter
 	locale?: string
-	/** Grow the polygons from the centre when the chart scrolls into view. @default true */
+	/**
+	 * How much motion this component uses: `full` (default) inherits the app's
+	 * policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It
+	 * can only turn motion down — it never overrides a reader's reduce-motion
+	 * setting. The polygons growing in and morphing are the flourish; the
+	 * hover dot is the feedback `subtle` keeps.
+	 */
+	motion?: MotionLevel
+	/**
+	 * Grow the polygons from the centre when the chart scrolls into view.
+	 * `animate={false}` is `motion="subtle"`.
+	 * @deprecated Use `motion="subtle"` (what `animate={false}` now maps to: no arrival, hover kept) or `motion="off"`.
+	 */
 	animate?: boolean
 	activeIndex?: number | null
 	defaultActiveIndex?: number | null
@@ -72,7 +85,8 @@ export function RadarChart({
 	tooltip = true,
 	valueFormatter,
 	locale,
-	animate = true,
+	motion,
+	animate,
 	activeIndex,
 	defaultActiveIndex,
 	onActiveIndexChange,
@@ -124,7 +138,7 @@ export function RadarChart({
 			className={cn("h-72", className)}
 			count={n}
 			interactive={tooltip !== false}
-			animate={animate}
+			motion={chartMotion(motion, animate)}
 			activeIndex={activeIndex}
 			defaultActiveIndex={defaultActiveIndex}
 			onActiveIndexChange={onActiveIndexChange}

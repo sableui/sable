@@ -62,6 +62,38 @@ export const videoMeta: ComponentMeta = {
 		},
 	],
 	tokensUsed: ["border", "overlay", "overlay-foreground", "ring"],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "The frame arrives with its page. Once there is a source, the poster and controls are the browser's.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Play button",
+			why: "With `onRequestPlay`, the play disc firms its scrim on hover, eased, so the mark reads as pressable over any image.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-press",
+			part: "Play button",
+			why: "Loading a source can take a moment; the settle on press confirms the tap before the player appears.",
+		},
+		{
+			slot: "transition",
+			recipe: "none",
+			part: "Root",
+			why: "Placeholder to player is a swap of elements: the native video mounts where the poster was. Animating the swap would delay the playback the person just asked for.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "Buffering belongs to the native controls, which draw their own indicator. A second loader over the frame would compete with the browser's.",
+		},
+	],
 	a11y: [
 		"Mounts a native <video> element, preserving built-in keyboard controls when controls is enabled.",
 		"Without onRequestPlay the placeholder play mark is decorative (aria-hidden) — nothing on the frame pretends to be pressable. With it, the mark is a native button named \"Play video\".",

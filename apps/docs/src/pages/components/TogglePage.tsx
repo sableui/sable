@@ -81,6 +81,40 @@ export function TogglePage() {
 			</Section>
 
 			<Section
+				title="Segmented with labels"
+				description="One fill glides to the pressed option and stretches to its label. motion=&quot;subtle&quot; lands it in place instead."
+			>
+				<Example
+					code={`<ToggleGroup appearance="segmented" defaultValue={["week"]} aria-label="Range">
+	<Toggle value="day">Day</Toggle>
+	<Toggle value="week">Week</Toggle>
+	<Toggle value="month">Month</Toggle>
+</ToggleGroup>
+<ToggleGroup appearance="segmented" motion="subtle" defaultValue={["week"]} aria-label="Range, subtle motion">
+	<Toggle value="day">Day</Toggle>
+	<Toggle value="week">Week</Toggle>
+	<Toggle value="month">Month</Toggle>
+</ToggleGroup>`}
+				>
+					<ToggleGroup appearance="segmented" defaultValue={["week"]} aria-label="Range">
+						<Toggle value="day">Day</Toggle>
+						<Toggle value="week">Week</Toggle>
+						<Toggle value="month">Month</Toggle>
+					</ToggleGroup>
+					<ToggleGroup
+						appearance="segmented"
+						motion="subtle"
+						defaultValue={["week"]}
+						aria-label="Range, subtle motion"
+					>
+						<Toggle value="day">Day</Toggle>
+						<Toggle value="week">Week</Toggle>
+						<Toggle value="month">Month</Toggle>
+					</ToggleGroup>
+				</Example>
+			</Section>
+
+			<Section
 				title="Multi-select group"
 				description="Several can be pressed at once, like formatting buttons."
 			>

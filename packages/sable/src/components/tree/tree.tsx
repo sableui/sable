@@ -1,6 +1,6 @@
 "use client";
 
-import type { ComponentProps, KeyboardEvent, ReactNode } from "react"
+import type { AnimationEvent, ComponentProps, CSSProperties, KeyboardEvent, ReactNode } from "react"
 import {
 	createContext,
 	useCallback,
@@ -15,6 +15,7 @@ import {
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
 import { hitTargetMin } from "../../lib/hit-target"
+import { type MotionLevel, motionAttribute, useMotionLevel } from "../../motion/MotionProvider"
 
 /* ==========================================================================
    Tree — the object list every tool has: layers, scene graph, file explorer,
@@ -115,6 +116,97 @@ function useTreeItem(idProp: string | undefined) {
 	}
 }
 
+/* --- Arrival on expand -----------------------------------------------------
+   Rows that a user's expand brings in fade down into place, one after another,
+   so the eye can follow where the children came from. Everything about it is
+   chosen to stay cheap and quiet in a tool panel:
+
+   - Only on a USER expand. A row that mounts open (the whole tree on first
+     render, a restored layout) shows its rows at once: a panel that cascades
+     every time it loads is a title sequence. TreeRow notices `expanded` turning
+     true after mount and opens an arrival for the subtree it reveals.
+   - A CSS animation, not a transition: the `motion-arrive` recipe. Rows
+     already carry motion-interactive, and a second transition list on the
+     same element would fight it for the one transition-property slot; an
+     animation composes with it.
+   - Staggered by document order, capped. Rows read their index once, at mount,
+     from the arrival their nearest opening ancestor provides (nested rows that
+     mount open in the same expand join the same count). Past the cap every row
+     shares the last delay, so a folder of 500 files settles as fast as one of
+     eleven.
+   - Expressive. Durations and delays carry --motion-expressive and
+     --motion-scale, so `subtle` and reduced motion show the rows at once; the
+     arrival is not even opened unless motion is expressive.
+   Collapse is instant: rows going away should get out of the way.
+   ------------------------------------------------------------------------- */
+
+/** Rows past this index share its delay. */
+const ARRIVAL_CAP = 10
+const ARRIVAL_STEP_MS = 18
+
+interface TreeArrival {
+	/** The stagger position for a row, stable across a re-render of the same row. */
+	index: (id: string) => number
+}
+
+function createArrival(): TreeArrival {
+	// Keyed by row id, so StrictMode's double-invoked initialisers (and any
+	// re-render while the arrival is open) do not advance the count twice.
+	const seen = new Map<string, number>()
+	return {
+		index(id) {
+			let at = seen.get(id)
+			if (at === undefined) {
+				at = seen.size
+				seen.set(id, at)
+			}
+			return at
+		},
+	}
+}
+
+const TreeArrivalContext = createContext<TreeArrival | null>(null)
+
+/** The Tree's own `motion` level, so rows gate their JS the way its CSS is gated. */
+const TreeMotionContext = createContext<MotionLevel | undefined>(undefined)
+
+interface ArrivalProps {
+	className?: string
+	style?: CSSProperties
+}
+
+interface Arrival extends ArrivalProps {
+	/**
+	 * Drop the recipe once it has played. A CSS animation restarts whenever its
+	 * element goes from `display: none` back to displayed, so a row that kept
+	 * the class replayed its fade every time a keepMounted tab or a `hidden`
+	 * panel holding the tree was shown again.
+	 */
+	onAnimationEnd: (event: AnimationEvent<HTMLElement>) => void
+}
+
+/** The recipe plus this row's raw stagger; the recipe scales it. */
+function arrivalProps(index: number): ArrivalProps {
+	return {
+		className: "motion-arrive",
+		style: { "--motion-arrive-delay": `${Math.min(index, ARRIVAL_CAP) * ARRIVAL_STEP_MS}ms` } as CSSProperties,
+	}
+}
+
+/**
+ * The arrival for a row mounting now, or nothing. Read once, at mount: the
+ * animation plays on insertion, so the answer is frozen in state — and cleared
+ * when the animation ends, so nothing can play it a second time.
+ */
+function useArrival(id: string): Arrival {
+	const arrival = useContext(TreeArrivalContext)
+	const [props, setProps] = useState<ArrivalProps>(() => (arrival ? arrivalProps(arrival.index(id)) : {}))
+	const onAnimationEnd = useCallback((event: AnimationEvent<HTMLElement>) => {
+		if (event.target === event.currentTarget && event.animationName === "sable-arrive") setProps({})
+	}, [])
+	return { ...props, onAnimationEnd }
+}
+
 const ITEM_FOCUS =
 	"focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
 
@@ -133,7 +225,17 @@ const ITEM_FOCUS =
  * `className="min-h-0 flex-1 overflow-y-auto scrollbar-quiet"` when the tree is
  * the scrolling region itself.
  */
-export function Tree({ className, children, onKeyDown, ...props }: ComponentProps<"div">) {
+type TreeProps = ComponentProps<"div"> & {
+	/**
+	 * How much motion this component uses: `full` (default) inherits the app's
+	 * policy, `subtle` keeps feedback and drops the flourish, `off` stills it.
+	 * It can only turn motion down — it never overrides a reader's reduce-motion
+	 * setting. Under `subtle` expanded rows appear at once instead of unfolding.
+	 */
+	motion?: MotionLevel
+}
+
+export function Tree({ className, children, onKeyDown, motion, ...props }: TreeProps) {
 	const [focusedId, setFocusedId] = useState<string | null>(null)
 	const rootRef = useRef<HTMLDivElement | null>(null)
 
@@ -227,15 +329,18 @@ export function Tree({ className, children, onKeyDown, ...props }: ComponentProp
 
 	return (
 		<TreeContext.Provider value={context}>
-			<div
-				ref={rootRef}
-				role="tree"
-				onKeyDown={handleKeyDown}
-				className={cn("flex flex-col py-1", className)}
-				{...props}
-			>
-				{children}
-			</div>
+			<TreeMotionContext.Provider value={motion}>
+				<div
+					ref={rootRef}
+					role="tree"
+					data-motion={motionAttribute(motion)}
+					onKeyDown={handleKeyDown}
+					className={cn("flex flex-col py-1", className)}
+					{...props}
+				>
+					{children}
+				</div>
+			</TreeMotionContext.Provider>
 		</TreeContext.Provider>
 	)
 }
@@ -396,10 +501,33 @@ export function TreeRow({
 
 	const item = useTreeItem(idProp)
 	const nameId = useId()
+	const arrivalOwn = useArrival(item.id)
+
+	// Open an arrival when `expanded` turns true after mount — by the disclosure,
+	// the keyboard, or a controlling parent alike. Derived during render (React's
+	// sanctioned "state from a changed prop" pattern) so the subtree's FIRST
+	// render already sees it; an effect would be one commit too late, after the
+	// rows had painted at rest. Cleared after commit, so rows that mount later in
+	// an open folder (a layer just added) do not inherit a stale stagger.
+	const inheritedArrival = useContext(TreeArrivalContext)
+	const motionLevel = useMotionLevel(useContext(TreeMotionContext))
+	const [seenExpanded, setSeenExpanded] = useState(expanded)
+	const [arrival, setArrival] = useState<TreeArrival | null>(null)
+	if (seenExpanded !== expanded) {
+		setSeenExpanded(expanded)
+		setArrival(expanded && subtree !== undefined && motionLevel.expressive ? createArrival() : null)
+	}
+	useEffect(() => {
+		if (arrival) setArrival(null)
+	}, [arrival])
 
 	const row = (
 		<div
 			{...props}
+			onAnimationEnd={(event) => {
+				arrivalOwn.onAnimationEnd(event)
+				props.onAnimationEnd?.(event)
+			}}
 			id={item.inTree ? item.id : idProp}
 			data-selected={selected || undefined}
 			// One mapping (see "Tree semantics"): a treeitem exposes selection with
@@ -423,9 +551,10 @@ export function TreeRow({
 			onClick={onClick ?? (expandable ? () => setExpanded(!expanded) : undefined)}
 			// Indent with padding rather than a wrapper, so the hover and selection
 			// fills still span the panel's full width the way reference tools do.
-			style={{ paddingInlineStart: treeIndent(depth), ...style }}
+			style={{ paddingInlineStart: treeIndent(depth), ...arrivalOwn.style, ...style }}
 			className={cn(
 				"group relative flex h-(--control-xs) items-center gap-1.5 rounded-xs pe-1 motion-interactive",
+				arrivalOwn.className,
 				selected ? "bg-panel-raised" : "hover:bg-panel-raised/60",
 				item.inTree && ITEM_FOCUS,
 				dimmed && "opacity-50",
@@ -467,6 +596,8 @@ export function TreeRow({
 						// The drawn box stays on --tree-column because that column is also
 						// the indent step; a bigger button moves every name in the tree.
 						hitTargetMin,
+						// motion-interactive lists `rotate` (what -rotate-90 writes), so the
+						// chevron turns with the rows arriving under it instead of snapping.
 						"rounded-xs text-muted-foreground motion-interactive hover:text-foreground",
 						!expanded && "-rotate-90",
 					)}
@@ -494,7 +625,14 @@ export function TreeRow({
 		<>
 			{row}
 			{expanded ? (
-				<TreeDepthContext.Provider value={depth + 1}>{subtree}</TreeDepthContext.Provider>
+				<TreeDepthContext.Provider value={depth + 1}>
+					{/* Always the same provider, so clearing the arrival re-renders the
+					    subtree instead of remounting it. Nested rows that mount open in
+					    this expand join the ancestor's count. */}
+					<TreeArrivalContext.Provider value={arrival ?? inheritedArrival}>
+						{subtree}
+					</TreeArrivalContext.Provider>
+				</TreeDepthContext.Provider>
 			) : null}
 		</>
 	)
@@ -549,6 +687,7 @@ export function TreeEmpty({
 }: EmptyProps) {
 	const inheritedDepth = useContext(TreeDepthContext)
 	const depth = depthProp ?? inheritedDepth
+	const arrival = useArrival(useId())
 	return (
 		<div
 			data-drop-target={dropTarget || undefined}
@@ -556,9 +695,15 @@ export function TreeEmpty({
 				"flex flex-col",
 				dropTarget &&
 					"mx-2 my-1 gap-1 rounded-sm border border-dashed border-hairline-strong p-2",
+				arrival.className,
 				className,
 			)}
 			{...props}
+			onAnimationEnd={(event) => {
+				arrival.onAnimationEnd(event)
+				props.onAnimationEnd?.(event)
+			}}
+			style={arrival.style ? { ...arrival.style, ...props.style } : props.style}
 		>
 			<p
 				style={dropTarget ? undefined : { paddingInlineStart: treeIndent(depth) }}
@@ -611,10 +756,15 @@ export function TreeAddRow({
 	const inheritedDepth = useContext(TreeDepthContext)
 	const depth = depthProp ?? inheritedDepth
 	const item = useTreeItem(idProp)
+	const arrival = useArrival(item.id)
 	return (
 		<button
 			type="button"
 			{...props}
+			onAnimationEnd={(event) => {
+				arrival.onAnimationEnd(event)
+				props.onAnimationEnd?.(event)
+			}}
 			id={item.inTree ? item.id : idProp}
 			// Inside a Tree it is a treeitem, so the arrow keys reach it like any row
 			// and Enter/Space activate it.
@@ -625,9 +775,10 @@ export function TreeAddRow({
 				item.claimFocus()
 				onFocus?.(event)
 			}}
-			style={{ paddingInlineStart: treeIndent(depth), ...style }}
+			style={{ paddingInlineStart: treeIndent(depth), ...arrival.style, ...style }}
 			className={cn(
 				"group flex h-(--control-xs) w-full items-center gap-1.5 rounded-xs pe-1 motion-interactive",
+				arrival.className,
 				"text-ui-md text-muted-foreground hover:bg-panel-raised/60 hover:text-foreground",
 				ITEM_FOCUS,
 				className,

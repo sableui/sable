@@ -198,6 +198,13 @@ export const treeMeta: ComponentMeta = {
 			description:
 				"TreeAddRow's visible label. Name what gets added — 'Add effect', not 'Add'.",
 		},
+		{
+			name: "motion",
+			type: '"full" | "subtle" | "off"',
+			default: '"full"',
+			description:
+				"On Tree. How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Under `subtle` expanded rows appear at once instead of unfolding; the chevron still turns.",
+		},
 	],
 	subcomponents: [
 		{
@@ -242,6 +249,32 @@ export const treeMeta: ComponentMeta = {
 		"Right-rail controls that appear on hover must also appear on focus-visible, or they are unreachable by keyboard.",
 	],
 	tokensUsed: ["panel-raised", "hairline", "foreground", "muted-foreground", "primary", "ring"],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "motion-arrive",
+			part: "TreeRow",
+			why: "Rows a user's expand reveals fade down into place in document order (a capped 18ms stagger), so the eye can follow where the children came from. An animation (motion-arrive) rather than a transition, because the rows already wear motion-interactive and a second transition list would fight it. Only on a user expand of a `subtree` — a tree that mounts open shows its rows at once, and rows added later to an open folder do not cascade. Expressive: `subtle` shows them at once.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "TreeRow",
+			why: "Hover and selection fills ease, so sweeping the pointer down a dense panel reads as a highlight following it rather than rows flickering.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-interactive",
+			part: "Disclosure",
+			why: "The chevron turns with the rows arriving under it; motion-interactive lists `rotate`, which is what -rotate-90 writes, so it no longer flips in one frame.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Tree",
+			why: "A tree has no indeterminate state of its own; a branch that loads its children should render a TreeEmpty or a loading row inside it.",
+		},
+	],
 	examples: [
 		{
 			label: "File tree",

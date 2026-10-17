@@ -42,6 +42,11 @@ export const otpFieldMeta: ComponentMeta = {
 					"Do not use OtpField for a password, an arbitrary-length PIN, or anything the user types from memory. Slots promise a fixed length; use Input with `type=\"password\"` and `autocomplete=\"current-password\"` instead.",
 			},
 			{
+				guidance: "do",
+				description:
+					"Clear the error as soon as the user edits the code (`onValueChange` → reset the error), and set it again when the next code is refused. Each refusal is then a fresh change to invalid, so the field shakes for every wrong code, not only the first.",
+			},
+			{
 				guidance: "dont",
 				description:
 					"Do not intercept paste or clear the field on a wrong code before the user has seen the error. Blocking paste breaks SMS autofill and password managers, and wiping the slots erases the evidence of which digit was wrong.",
@@ -143,7 +148,14 @@ export const otpFieldMeta: ComponentMeta = {
 			name: "aria-invalid",
 			type: "boolean",
 			description:
-				"Marks every slot invalid (destructive border). `<Field error>` sets it for you.",
+				"Marks every slot invalid (destructive border and digits). Turning it on after mount shakes the field once. `<Field error>` sets it for you.",
+		},
+		{
+			name: "motion",
+			type: '"full" | "subtle" | "off"',
+			default: '"full"',
+			description:
+				"How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The shake is the flourish; the destructive colour stays at every level.",
 		},
 		{
 			name: "disabled / readOnly / required / name / id / form",
@@ -182,6 +194,12 @@ export const otpFieldMeta: ComponentMeta = {
 			why: "A filled slot strengthens its border, so a pasted code visibly lands in every slot at once. Easing it reads as the code arriving rather than the field flickering.",
 		},
 		{
+			slot: "transition",
+			recipe: "motion-shake",
+			part: "Root",
+			why: "A refused code shakes the field once as it turns invalid — the short horizontal no that makes a second wrong code feel noticed rather than ignored. It never carries the refusal alone: the digits and borders turn destructive and the Field says why. It plays on the change to invalid, not on mount, and is expressive, so `subtle` keeps only the colour.",
+		},
+		{
 			slot: "activity",
 			recipe: "none",
 			part: "Root",
@@ -193,6 +211,7 @@ export const otpFieldMeta: ComponentMeta = {
 		"Only one slot is in the tab order. Arrow keys, Home/End and Backspace move between slots; Tab leaves the whole field.",
 		"The first slot carries autocomplete=\"one-time-code\" and the numeric virtual keyboard, so iOS and Android offer the SMS code above the keyboard.",
 		"Slots render at 20px (`text-mono-lg`), above the 16px floor that stops iOS Safari zooming on focus.",
+		"An invalid code is never signalled by motion alone: every slot carries aria-invalid, the digits and borders turn destructive, and the Field's error message is wired through aria-describedby. The shake resolves instantly under reduced motion and `subtle`.",
 	],
 	examples: [
 		{
@@ -206,6 +225,10 @@ export const otpFieldMeta: ComponentMeta = {
 		{
 			label: "With an error",
 			code: '<Field label="Verification code" error="That code has expired. Request a new code and try again."><OtpField length={6} groupSize={3} defaultValue="482913" /></Field>',
+		},
+		{
+			label: "Verify on completion, shake on a wrong code",
+			code: 'const [code, setCode] = useState("")\nconst [wrong, setWrong] = useState(false)\n<Field label="Verification code" error={wrong ? "That code does not match. Check the message and try again." : undefined}><OtpField length={6} groupSize={3} value={code} onValueChange={(next) => { setCode(next); setWrong(false) }} onValueComplete={(value) => setWrong(value !== expected)} /></Field>',
 		},
 		{
 			label: "Alphanumeric",

@@ -2,7 +2,101 @@
 
 ## 0.14.0
 
-The first pieces for agent products: a tool call, and asking permission for one.
+Motion that is crafted by default and calm on request, and the first pieces for agent products.
+
+- **New: two motion levels, and `subtle`.** Motion is now *essential*
+  (colour and focus feedback, press, overlay arrival, disclosure, loaders,
+  chart hover) or *expressive* (glides, rolling numbers, drawn ticks,
+  shakes, staggers, chart arrival and morph, scroll reveals, spring
+  overshoot). Expressive durations also multiply by `--motion-expressive`,
+  which the new `subtle` policy sets to 0, and `subtle` takes the overshoot
+  out of `ease-spring` and `ease-bounce`. So `full` (the default) plays both,
+  `subtle` keeps every answer and drops every flourish, and `off` stills
+  everything. Set it app-wide with `<MotionProvider policy="subtle">`, for a
+  region with the new `<MotionScope level="subtle">`, or per component with a
+  new `motion` prop. Scopes and props can only turn motion **down**: `full`
+  on a component means "inherit", so nothing can override a reader's
+  reduce-motion setting. `useMotion()` gains `expressive`, and
+  `useMotionLevel(motion)` resolves a component's prop against everything
+  around it. `Reveal` and `TextReveal` are expressive: under `subtle` the
+  content is simply there.
+- **New recipes:** `motion-glide` (one indicator travelling to the selected
+  option), `motion-shake` (a refused answer, driven by the new `useShake()`),
+  `motion-tick` (a mark that draws itself in), `motion-appear` (a small
+  control mounting in place, through `@starting-style`), `motion-arrive`
+  (items a user action adds to a list, staggered) and `motion-size` (easing
+  between sizes, with the new `useAutoSize()` measuring a label change).
+  `sable utility <name>` has each one.
+- **New: `NumberTicker`.** A number that rolls to its new value, digit by
+  digit, keyed by place value, so 999 → 1,000 rolls the columns it keeps and
+  grows the one it gains. It formats through `Intl.NumberFormat`, reads as
+  plain text to assistive tech and copy, and lands without a roll under
+  `subtle`. `NotificationBadge` counts and the `PieChart` / `RadialChart`
+  centre values now roll through it.
+- **New: `ConfirmButton`.** An inline two-step for low-stakes destructive
+  actions. The first press arms it: the label changes, the button eases to
+  the new width, a thin line drains while it waits, and the armed state is
+  announced. A second press within `timeout` confirms; Escape, a click
+  elsewhere, blur or the timeout disarms it, and a double-click cannot
+  confirm. `DestructiveActionModal` stays the answer for high stakes.
+- **New: `TooltipGroup`.** Wrap a row of `SimpleTooltip`s and they share one
+  tooltip: moving along a toolbar, it glides to the next button and its label
+  slides across instead of closing and reopening.
+- **Selections travel.** `Tabs` renders a gliding indicator in both variants
+  (the underline and the pill), and a changed panel fades in. Single-select
+  `ToggleGroup appearance="segmented"` has one fill that glides and resizes
+  to the pressed option. `ThemeSwitcher` uses the same recipe, and
+  `Carousel`'s active dot eases its width. `SideNav` and `SidebarNav` draw
+  the current page as one fill that glides to the new item when the page
+  changes inside a persistent layout. Menu, Select and Combobox highlights
+  keep their glide, which is now expressive.
+- **Calendar pages with direction.** Going to the next or previous month
+  slides the old grid out toward the edge it leaves by and the new one in
+  from the other, over a short travel with a fade (react-day-picker's
+  `animate` mode on Sable keyframes, mirrored in RTL). It is on at full
+  motion only (a `DatePicker`'s calendar follows the app or scope policy);
+  `Calendar` takes `motion`, and an explicit `animate` still wins.
+- **Sidebar collapse eases.** Collapsing to the icon rail eases the width
+  instead of jumping 192px in one frame, so the content beside it visibly
+  takes the room. Icons stay on one column throughout and labels fade back
+  in on reopen. `Sidebar` takes `motion`; `subtle` snaps.
+- **Focus outlines ease in.** `motion-interactive` now also transitions
+  `outline-color`, `outline-width` and `outline-offset`, so a keyboard focus
+  ring drawn with `outline-*` grows from the element's edge over the fast
+  step instead of appearing in one frame. Instant under reduced motion.
+- **States finish their story.** `OtpField` shakes once when it turns
+  invalid, and its digits take the destructive colour. `CodeBlock`'s copy
+  button swaps to a check in place and announces "Copied". `Feedback` shows a
+  drawn check and a thank-you before it closes. A loading `Button` keeps its
+  width: the spinner lays over the label instead of replacing it. The
+  `ChatComposer` grows with an ease, and its send and stop swap in one
+  button. `SearchInput` and `CommandMenu`'s clear buttons appear rather than
+  pop. Expanding a `Tree` folder settles its rows in, staggered. The
+  `Checkbox` tick draws in from its leading stroke.
+- **Fixed: disclosure chevrons snapped.** Tailwind v4's `rotate-*` writes the
+  standalone `rotate` property, which `motion-interactive` did not list, so
+  the chevrons on `Accordion`, `Collapsible`, `Tree` and `ShowMore` jumped
+  180° in one frame while the panel beside them eased. The recipe now lists
+  `rotate`. `DataTable`'s sort chevron rotates instead of swapping glyphs.
+- **Chart hover dims mix toward the surface.** The bars, slices and rings
+  that are not under the pointer now step back by mixing toward the surface
+  colour instead of fading, so gridlines no longer strike through a dimmed
+  bar and a dimmed ring stays solid over its track.
+- **Deprecated: `animate` on charts.** Every chart takes `motion` instead.
+  `animate={false}` maps to `motion="subtle"` (no arrival or morph, hover
+  feedback kept); use `motion="off"` to still everything.
+- **Motion declaration is a build gate.** A component that reacts to the
+  pointer or carries state must declare its four motion slots (arrival,
+  response, transition, activity) in its meta, or decline each with a reason.
+  It used to be a report, and 36 components said nothing; all of them now
+  answer.
+- **Docs:** a new **Interactions** page shows the catalog by task (inspect,
+  select, confirm, recover, succeed, finish loading, type, point, notify).
+  Every preview has its own motion level and Replay. Playgrounds gain a Motion
+  row and **Copy for agent**, which copies the exact JSX, imports, install
+  commands, the active theme and `sable component <Name>`. The Motion page
+  sets the policy to Full, Subtle or Off and shows the two levels side by
+  side.
 
 - **New: `ToolCall`.** One tool an agent called, as a quiet row inside its
   turn: a status glyph, what it did in plain words, the tool's name in mono,

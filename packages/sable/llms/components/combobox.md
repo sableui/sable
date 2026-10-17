@@ -64,6 +64,16 @@ Use Combobox when users choose from a list that benefits from typing, filtering,
 
 `input`, `card`, `foreground`, `muted-foreground`, `ring`, `destructive`, `popover`, `popover-foreground`, `border`, `accent`, `accent-foreground`, `primary`, `secondary`, `secondary-foreground`
 
+## Motion
+
+- **arrival** · ComboboxContent · `motion-pop` — The list grows from the field it filters, its origin on Base UI's anchor. With several comboboxes in a form, that is what attaches the open list to the one being typed in.
+- **response** · ComboboxItem · `motion-interactive` — A row's ink eases as the pointer or the arrow keys reach it, so moving through a long filtered list reads as continuous movement rather than rows blinking.
+- **response** · Highlight · _custom (outside the recipe layer)_ — One highlight travels to the active row (lib/highlight-glide: a measured translate on the motion tokens) instead of each row painting its own fill. When the list re-filters under the caret, the highlight sliding to the new match is what shows the keyboard target moved.
+- **response** · Toggle · `motion-interactive` — The chevron toggle at the field's edge eases its ink on hover; the change is what tells you it is a separate target from the text box.
+- **transition** · Toggle · `motion-interactive` — The chevron turns 180° as the list opens and closes (motion-interactive lists `rotate`), in step with the popup, so it reads as one control changing direction.
+- **transition** · ComboboxContent · `motion-pop` — Closing shrinks back toward the field, returning the eye to the input that now holds the value.
+- **activity** · Root · _no motion_ — Combobox ships no loading part. A list fetched as you type shows a Spinner (motion-spin) in ComboboxEmpty or the content — where the results will land — and only the caller knows a fetch is in flight.
+
 ## Accessibility
 
 - Base UI provides role=combobox/listbox/option, roving tabindex, arrow-key navigation, and type-to-filter.

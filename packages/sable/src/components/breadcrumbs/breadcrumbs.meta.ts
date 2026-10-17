@@ -95,6 +95,32 @@ export const breadcrumbsMeta: ComponentMeta = {
 		},
 	],
 	tokensUsed: ["muted-foreground", "foreground"],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "The trail is page furniture, rendered with the page header. An entrance would replay on every navigation, which is exactly when the reader looks at it to get their bearings.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "BreadcrumbLink",
+			why: "Ancestors are muted until hovered or focused. Easing the ink makes the trail read as links answering the pointer; a hard snap across a row of small text looks like flicker.",
+		},
+		{
+			slot: "transition",
+			recipe: "none",
+			part: "Root",
+			why: "A breadcrumb has no state of its own. The current page changes by navigation, which replaces the trail; animating between two trails would imply the path itself moved.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "It never works in the background. A route that is still loading says so in the page, not in its address.",
+		},
+	],
 	a11y: [
 		"The <nav> carries aria-label=\"Breadcrumb\" so assistive tech announces the landmark.",
 		"Crumbs sit in an ordered list (<ol>) to convey hierarchy and position.",

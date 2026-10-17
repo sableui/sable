@@ -36,7 +36,8 @@ Use PieChart for a share of one total across two to six categories — traffic s
 | tooltip | boolean \| { indicator?: "dot" \| "line" \| "dashed" \| "none"; hideLabel?: boolean; labelFormatter?: (label, datum) => ReactNode; showTotal?: boolean } | true | Show a tooltip on hover and keyboard focus, or configure it: the row marker, hiding the heading, rewriting it, adding a Total row. |
 | valueFormatter | (value: number) => string | — | Format values everywhere (axis, labels, tooltip, table) — units like "$12,480". Default: compact on the axis, full elsewhere. |
 | locale | string | runtime locale | BCP 47 locale for default number and date formatting. |
-| animate | boolean | true | Sweep the slices in clockwise when the chart scrolls into view. |
+| motion | "full" \| "subtle" \| "off" | "full" | How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The sweep, the slice morph and the rolling centre number are the flourish; the hover pull-out and dim are the feedback `subtle` keeps. |
+| animate | boolean | true | Sweep the slices in clockwise when the chart scrolls into view. `animate={false}` is `motion="subtle"`. |
 | activeIndex | number \| null | — | The highlighted row (controlled); `null` for none. |
 | defaultActiveIndex | number \| null | — | The row highlighted at first — a tooltip already open before anyone hovers. |
 | onActiveIndexChange | (index: number \| null) => void | — | Called as the pointer or keyboard moves between rows. |
@@ -47,9 +48,10 @@ Use PieChart for a share of one total across two to six categories — traffic s
 
 ## Motion
 
-- **arrival** · Slices · _custom (outside the recipe layer)_ — Once on screen the slices are revealed by a mask that sweeps clockwise from 12 o'clock — the whole is read as it fills. On the motion tokens; reduced motion shows the finished chart.
-- **response** · Active slice · _no motion_ — The hovered slice pulls outward and the rest dim at once; the geometry change itself eases (see transition).
-- **transition** · Slices · _custom (outside the recipe layer)_ — Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place.
+- **arrival** · Slices · _custom (outside the recipe layer)_ — Once on screen the slices are revealed by a mask that sweeps clockwise from 12 o'clock — the whole is read as it fills. On the motion tokens; reduced motion shows the finished chart. The arrival is expressive: it plays at the full motion level only, so `motion="subtle"` (or a subtle app policy) shows the finished chart while hover feedback stays.
+- **response** · Active slice · _no motion_ — The hovered slice pulls outward and the rest dim at once (mixed toward the surface, not faded); the geometry change itself eases (see transition). Essential: `subtle` keeps it.
+- **transition** · Centre value · _custom (outside the recipe layer)_ — A numeric centre value rolls to its new total digit by digit (NumberTicker) when the data changes, so the headline is seen moving with the slices instead of being found different afterwards. Expressive: under `subtle` it updates in place.
+- **transition** · Slices · _custom (outside the recipe layer)_ — Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place. Expressive, like the arrival: under `subtle` new data swaps in place.
 - **activity** · PieChart · _no motion_ — A chart has no indeterminate state; show a Skeleton while the data loads.
 
 ## Accessibility

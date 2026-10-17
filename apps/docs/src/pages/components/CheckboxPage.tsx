@@ -73,7 +73,10 @@ export function CheckboxPage() {
 				lede={ledeFor(checkboxMeta)}
 			/>
 
-			<Section title="States">
+			<Section
+				title="States"
+				description="Checking draws the tick in from its leading stroke; the dash wipes in the same way. Unchecking just fades."
+			>
 				<Example
 					code={`<Checkbox />
 <Checkbox defaultChecked />

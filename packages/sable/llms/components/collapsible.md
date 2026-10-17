@@ -45,6 +45,14 @@ Use Collapsible for a single piece of optional content that can expand in place.
 
 `foreground`, `muted-foreground`
 
+## Motion
+
+- **arrival** · Root · _no motion_ — A collapsible is part of the page it sits in, present from first paint. Its trigger is what the reader notices, not an entrance.
+- **response** · CollapsibleTrigger · _no motion_ — The trigger is whatever the consumer renders (usually a Button), and that control brings its own response. Adding one here would double it.
+- **transition** · CollapsiblePanel · `motion-disclosure` — The height change ties the content that appears to the trigger that was pressed; snapped open, everything below jumps with nothing linking cause to effect.
+- **transition** · CollapsibleIndicator · `motion-interactive` — The chevron turns with the panel rather than flipping in one frame: motion-interactive lists `rotate`, the property rotate-180 writes.
+- **activity** · Root · _no motion_ — Nothing here is indeterminate; content that loads on open should put its own loader inside the panel.
+
 ## Accessibility
 
 - Base UI wires aria-expanded on the trigger and aria-controls/id between trigger and panel.

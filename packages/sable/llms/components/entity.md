@@ -39,6 +39,13 @@ Use Entity to show a compact identity block for a person, organization, file, pr
 
 `accent`, `accent-foreground`, `foreground`, `muted-foreground`, `ring`
 
+## Motion
+
+- **arrival** · Root · _no motion_ — Rows arrive with the list they belong to. Entering one at a time is a stagger, and a stagger on a list someone opened to scan is a delay.
+- **response** · Root · `motion-interactive` — Only the interactive row reacts: its hover fill, a step off the surface it sits on, eases in. A static row never fakes clickability, and an interactive one answers the pointer without flicker as it moves down a list.
+- **transition** · Root · `motion-interactive` — `selected` eases the fill onto the current row of a list–detail view, so opening another record reads as the selection moving rather than two rows flashing.
+- **activity** · Root · _no motion_ — A record row has nothing of its own to wait for. A row whose action is pending puts a loading Button in `action`.
+
 ## Accessibility
 
 - Default rows are presentational layout; semantics come from the content you place in title/subtitle/action.

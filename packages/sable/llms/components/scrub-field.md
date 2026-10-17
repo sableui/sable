@@ -42,6 +42,14 @@ Use ScrubField for numeric properties in tool chrome — an inspector, a propert
 
 `foreground`, `muted-foreground`, `ring`, `panel-field`, `panel-field-hover`
 
+## Motion
+
+- **arrival** · Root · _no motion_ — It arrives with the inspector row it sits in.
+- **response** · Root · `motion-interactive` — The shell eases its focus ring like every field, so tabbing through a column of numbers shows where the keyboard is without flicker.
+- **response** · Handle · `motion-interactive` — The handle's ink brightens while the field is hovered. It is the only sign that the icon or prefix can be dragged, which nobody would guess from a label.
+- **transition** · Value · _no motion_ — The number follows the drag pixel for pixel. Easing it — or rolling it with a NumberTicker — would show a value the pointer has already left, in a control whose whole point is precision.
+- **activity** · Root · _no motion_ — Scrubbing is synchronous; there is nothing to wait for.
+
 ## Accessibility
 
 - The input carries the accessible name via `label`; the glyph is aria-hidden because it is decorative.

@@ -45,10 +45,18 @@ Use CodeBlock for multiline code samples that users may read, inspect, or copy.
 
 `border`, `muted`, `muted-foreground`, `foreground`
 
+## Motion
+
+- **arrival** · Root · _no motion_ — Code is reading content and arrives with the page or message it belongs to. An entrance of its own would delay the text someone came to copy.
+- **response** · Copy button · `motion-interactive` — The copy button is a quiet ghost icon in the corner of a block. Its hover fill is what tells the pointer it is a control and not decoration.
+- **transition** · Copy glyph · `motion-icon-swap` — The copy mark turning into a check is the only proof the clipboard took the text. Snapped between frames it was easy to miss at the edge of a block; the swap reads as one mark being replaced.
+- **activity** · Root · _no motion_ — Copying is instant. There is no in-between worth showing, and a spinner for a clipboard write would read as a slow one.
+
 ## Accessibility
 
 - Code renders inside a <pre><code> for correct semantics and screen-reader handling.
 - Copy is the ghost icon Button with `useCopy`, which guards clipboard access for SSR safety.
+- A successful copy is announced as "Copied" through a polite role=status region that is always mounted; the button keeps its label, which names what it does. Both glyphs are aria-hidden.
 
 ## Related
 

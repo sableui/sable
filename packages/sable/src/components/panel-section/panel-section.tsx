@@ -1,6 +1,6 @@
 "use client";
 
-import type { ComponentProps, ReactNode } from "react"
+import { type ComponentProps, type ReactNode, useState } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
 import { beginScrub } from "../../lib/scrub-gesture"
@@ -248,14 +248,45 @@ type GroupProps = Omit<ComponentProps<typeof Collapsible>, "children" | "classNa
  *     <PropertyRow label="Tint">…</PropertyRow>
  *   </PropertyGroup>
  */
-export function PropertyGroup({ label, summary, className, children, ...props }: GroupProps) {
+export function PropertyGroup({
+	label,
+	summary,
+	className,
+	children,
+	open: openProp,
+	defaultOpen = false,
+	onOpenChange,
+	...props
+}: GroupProps) {
+	// The open state is mirrored here because the +/− swap (motion-icon-swap)
+	// needs each glyph to carry its own active flag, and Base UI only marks the
+	// trigger. A controlled `open` still wins.
+	const [openState, setOpenState] = useState(defaultOpen)
+	const open = openProp ?? openState
 	return (
-		<Collapsible className={cn("border-t border-hairline", className)} {...props}>
-			<CollapsibleTrigger className="group/property-group flex h-(--control-sm) w-full items-center gap-2 rounded-xs text-start motion-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+		<Collapsible
+			className={cn("border-t border-hairline", className)}
+			open={openProp}
+			defaultOpen={defaultOpen}
+			onOpenChange={(next, details) => {
+				setOpenState(next)
+				onOpenChange?.(next, details)
+			}}
+			{...props}
+		>
+			<CollapsibleTrigger className="flex h-(--control-sm) w-full items-center gap-2 rounded-xs text-start motion-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
 				<span className="min-w-0 flex-1 truncate text-ui-md text-foreground">{label}</span>
 				{summary != null ? <span className="flex min-w-0 shrink items-center gap-2 truncate text-ui-md text-muted-foreground">{summary}</span> : null}
-				<Icon name="plus" className="shrink-0 text-xs text-muted-foreground group-data-[panel-open]/property-group:hidden" />
-				<Icon name="minus" className="hidden shrink-0 text-xs text-muted-foreground group-data-[panel-open]/property-group:block" />
+				{/* Both glyphs stay mounted and swap as one mark, so + turning into −
+				    reads as this row's state changing, not a second icon landing. */}
+				<span aria-hidden="true" className="motion-icon-swap shrink-0 text-xs text-muted-foreground">
+					<span data-active={!open} className="inline-flex">
+						<Icon name="plus" />
+					</span>
+					<span data-active={open} className="inline-flex">
+						<Icon name="minus" />
+					</span>
+				</span>
 			</CollapsibleTrigger>
 			<CollapsiblePanel>
 				{/* The same rhythm as a PanelSection's rows, so a group opens into rows that read as the section's own. */}

@@ -130,7 +130,7 @@ The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, wh
     - **Instead of** An animated fade or a hand-written `mask-image` gradient. Use `StreamingText` first; this is for a stream rendered without it.
     - `<span className="stream-tail">{latestChunk}</span>`
 
-### motion (24)
+### motion (30)
 
 - **`motion-interactive`** — The transition for interactive chrome: colour, background, border, shadow, opacity, fill, stroke, scale and translate at the fast duration and standard easing. Also removes the mobile tap delay and the platform's grey tap flash. *Use for:* On anything clickable that changes on hover, focus, press or selection: a custom row, a tile, a link, an app-owned button. It is the `response` slot, and the only transition declarer such an element needs.
     - **Instead of** Tailwind's colour-only or all-property transition utilities with a hand-picked duration. Those ignore --motion-scale, skip the transform properties `motion-press` needs, and leave the 300ms tap delay on touch screens. sable-lint's `static-interactive` fires on a hover style with no recipe.
@@ -162,6 +162,28 @@ The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, wh
 - **`motion-icon-swap`** — Cross-fades two glyphs stacked in one cell when a control's icon changes with its state: the outgoing one shrinks and blurs out, the incoming one resolves in. The inactive glyph is the one marked `aria-hidden="true"` (or `data-active="false"`). *Use for:* Play/pause, mute/unmute, outline/fill, copy/check, menu/close: one control whose icon changes. Keep both icons mounted; the correct accessibility markup is also the animation hook.
     - **Instead of** Rendering one icon or the other (it snaps between two frames), or absolutely positioning the second icon, which collapses the wrapper. Under reduced motion the swap is instant and the glyph still changes.
     - `<span className="motion-icon-swap"><Icon name="play" aria-hidden={playing} /><Icon name="pause" aria-hidden={!playing} /></span>`
+- **`motion-glide`** — Timing for ONE element that travels to the selected option — position and size ease on the emphasized curve at the slow step. Expressive: `data-motion="subtle"` makes it snap. *Use for:* A selection indicator you position yourself: a custom nav's current-page bar, a segmented control's thumb, an active dot. Tabs, ToggleGroup `segmented`, ThemeSwitcher and Carousel already glide.
+    - **Instead of** A fill or border on each option that switches on and off (two things blink instead of one thing moving), or a hand-written transition with a literal duration.
+    - `<span aria-hidden className="motion-glide absolute bottom-0 h-0.5 bg-foreground" style={{ left: x, width: w }} />`
+- **`motion-shake`** — A short decaying horizontal shake that plays while `data-shake` is set. `useShake()` sets and clears the attribute and restarts it on a repeat refusal. Expressive: under `subtle` only the error colour remains. *Use for:* An answer the system refused: a wrong one-time code, a submit with invalid fields, a rejected password. Always alongside the error colour and message, never instead of them. OtpField's `invalid` already shakes.
+    - **Instead of** A keyframe shake with a literal duration, which keeps moving under reduced motion, or a shake with no error text.
+    - `const { shake, shakeProps } = useShake()
+<form className="motion-shake" {...shakeProps} onSubmit={(e) => { if (!valid) { e.preventDefault(); shake() } }}>…</form>`
+- **`motion-tick`** — A selection mark that draws itself in from its leading edge (a clip-path wipe, so it works on any icon set) with an essential fade, keyed to Base UI's starting/ending style. Exits only fade. The wipe is expressive. *Use for:* A check or success glyph that mounts with its state: a custom selection card's tick, a completed step. Checkbox and CheckboxCard already use it.
+    - **Instead of** A scale-from-zero pop on a check mark, which reads as a stamp rather than a tick, or a path-length draw that needs to own the SVG.
+    - `<Base.Indicator className="motion-tick"><Icon name="check" /></Base.Indicator>`
+- **`motion-appear`** — Fades and scales a small control in on first render through `@starting-style` — no data attribute, no JS. The fade is essential, the scale is expressive. Removal is instant. *Use for:* A control that mounts in place as state changes: a search field's clear button, a send button replacing a mic, a count badge that appears. Put it on a wrapper around a Sable Button or anything carrying `motion-interactive`, so the two do not fight over `transition-property`.
+    - **Instead of** Conditionally rendering a control so it pops in on one frame, or wrapping a single icon button in Presence.
+    - `{value && <span className="flex motion-appear"><Button size="icon-xs" variant="ghost" aria-label="Clear"><Icon name="xmark" /></Button></span>}`
+- **`motion-arrive`** — Items a user action brings into a list settle into place one after another: a short fade down from 0.25rem. Stagger with `--motion-arrive-delay` (raw ms; the recipe scales it). Expressive. *Use for:* Only on items that are NEW because of something the user did: a folder's children on expand, a row just added, results that load in. Tree's expand already uses it.
+    - **Instead of** A staggered entrance on every render of a list, which turns a list into a loading delay, or an inline keyframe animation with literal durations.
+    - `<li className="motion-arrive" style={{ "--motion-arrive-delay": "36ms" } as CSSProperties}>{row.name}</li>`
+- **`motion-size`** — Eases an element between sizes: between a keyword and a length (0 ↔ auto) through `interpolate-size: allow-keywords`, and between measured pixel sizes when paired with `useAutoSize()`, so a button whose label changes stretches to the new width instead of jumping. A superset of motion-interactive's transition list, so it can sit on a Button. The size is expressive. *Use for:* A control whose content changes length in place: a two-step confirm button, a Copy → Copied label, a chip that gains a count. ConfirmButton already uses it.
+    - **Instead of** A hand-written width transition, or a fixed width that clips the longer label. A content-sized box computes `width: auto` before and after its label changes, so on its own the recipe has nothing to ease — that is what `useAutoSize()` is for.
+    - `const size = useAutoSize<HTMLButtonElement, HTMLSpanElement>()
+<button type="button" ref={size.outerRef} className="motion-size">
+	<span ref={size.innerRef} className="inline-flex w-max">{copied ? "Copied" : "Copy link"}</span>
+</button>`
 - **`motion-spin`** — A continuous rotation for a spinner glyph, scaled by --motion-scale so reduced motion freezes it. *Use for:* A loading glyph that is not the Spinner component (use Spinner first), such as an icon inside a busy button.
     - **Instead of** Tailwind's built-in spin animation, which ignores --motion-scale. sable-lint's `builtin-animate` flags it.
     - `<Icon name="spinner" className="motion-spin" />`

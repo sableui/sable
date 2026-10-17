@@ -43,6 +43,7 @@ Use CheckboxCard when an option needs more visual weight, supporting text, or ic
 | tone | "neutral" \| "3" \| "2" \| "1" \| "info" \| "warning" | "neutral" | Semantic colour the checked state carries across the border, checkbox box, and icon. |
 | value | string | — | Names the card inside a group-owned CheckboxGroup: the card is checked when the group's value array includes it. Also the value submitted with a form. Inside a CheckboxGroup, `name` stands in for `value` when `value` is omitted. |
 | checked / onCheckedChange / defaultChecked / disabled | Base UI Checkbox.Root props | — | Standard checkbox state. Without a group-owned value, each card is independent — drive checked/onCheckedChange per item for multi-select. |
+| motion | "full" \| "subtle" \| "off" | "full" | How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Under `subtle` the tick fades in instead of drawing itself. |
 
 ## Variants
 
@@ -51,6 +52,13 @@ Use CheckboxCard when an option needs more visual weight, supporting text, or ic
 ## Tokens used
 
 `input`, `card`, `ring`, `primary`, `primary-foreground`, `accent`, `foreground`, `muted-foreground`, `tone-3`, `tone-3-foreground`, `tone-2`, `tone-2-foreground`, `tone-1`, `tone-1-foreground`, `tone-info`, `tone-info-foreground`, `tone-warning`, `tone-warning-foreground`
+
+## Motion
+
+- **arrival** · Root · _no motion_ — It arrives with the form it belongs to. Animating each box in turns a settings list into a title sequence.
+- **response** · Box · `motion-interactive` — The box fills with the primary colour as it is checked; easing the fill keeps the mark and the box changing as one event rather than two frames apart.
+- **transition** · Mark · `motion-tick` — The check draws itself in from its leading stroke, so checking reads as the box being ticked rather than a glyph appearing. The dash wipes the same way. Unchecking only fades, so clearing a list is quick; under `subtle` checking fades too.
+- **activity** · Root · _no motion_ — A checkbox commits instantly. A slow write belongs to the surrounding form's pending state, not the control.
 
 ## Accessibility
 

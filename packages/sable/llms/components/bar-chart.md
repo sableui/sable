@@ -34,7 +34,8 @@ Use BarChart to compare amounts across categories — the default chart for "how
 | grid | boolean | true (false for horizontal bars) | Hairline gridlines along the value axis. |
 | xAxis | boolean | true for columns; false for horizontal bars | The horizontal axis. |
 | yAxis | boolean | false for columns; true for horizontal bars | The vertical axis. |
-| animate | boolean | true | Play the arrival once the chart scrolls into view. Reduced motion shows the finished chart. |
+| motion | "full" \| "subtle" \| "off" | "full" | How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The arrival (bars rising in sequence) and the data-change morph are the flourish; the hover dim and gliding cursor are the feedback `subtle` keeps. |
+| animate | boolean | true | Play the arrival once the chart scrolls into view. Reduced motion shows the finished chart. `animate={false}` is `motion="subtle"`. |
 | activeIndex | number \| null | — | The highlighted row (controlled); `null` for none. |
 | defaultActiveIndex | number \| null | — | The row highlighted at first — a tooltip already open before anyone hovers. |
 | onActiveIndexChange | (index: number \| null) => void | — | Called as the pointer or keyboard moves between rows. |
@@ -52,9 +53,9 @@ Use BarChart to compare amounts across categories — the default chart for "how
 
 ## Motion
 
-- **arrival** · Bar · _custom (outside the recipe layer)_ — Once on screen, bars rise from the baseline in sequence on the emphasized easing (scale from the zero line) and their labels fade in. On the motion tokens; reduced motion shows the finished chart.
-- **response** · Cursor + tooltip · _no motion_ — The hovered category gets a band behind it and the other bars dim at once — a lagging highlight reads as a slow chart.
-- **transition** · Bar · _custom (outside the recipe layer)_ — Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place.
+- **arrival** · Bar · _custom (outside the recipe layer)_ — Once on screen, bars rise from the baseline in sequence on the emphasized easing (scale from the zero line) and their labels fade in. On the motion tokens; reduced motion shows the finished chart. The arrival is expressive: it plays at the full motion level only, so `motion="subtle"` (or a subtle app policy) shows the finished chart while hover feedback stays.
+- **response** · Cursor + tooltip · _no motion_ — The hovered category gets a band behind it and the other bars dim at once — a lagging highlight reads as a slow chart. The dim mixes each bar toward the surface instead of fading it, so gridlines never strike through a dimmed column and stacked segments stay solid. Essential: `subtle` keeps it.
+- **transition** · Bar · _custom (outside the recipe layer)_ — Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place. Expressive, like the arrival: under `subtle` new data swaps in place.
 - **activity** · BarChart · _no motion_ — A chart has no indeterminate state; show a Skeleton while the data loads.
 
 ## Accessibility

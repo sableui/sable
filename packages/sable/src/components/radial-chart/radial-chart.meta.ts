@@ -135,10 +135,17 @@ export const radialChartMeta: ComponentMeta = {
 			description: "BCP 47 locale for default number and date formatting."
 		},
 		{
+			name: "motion",
+			type: "\"full\" | \"subtle\" | \"off\"",
+			default: "\"full\"",
+			description: "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The draw-on, the ring morph and the rolling centre number are the flourish; the hover dim is the feedback `subtle` keeps."
+		},
+		{
 			name: "animate",
 			type: "boolean",
 			default: "true",
-			description: "Draw the rings round from their start when the chart scrolls into view."
+			description: "Draw the rings round from their start when the chart scrolls into view. `animate={false}` is `motion=\"subtle\"`.",
+			deprecated: "motion=\"subtle\" (what animate={false} now maps to: no arrival, hover kept) or motion=\"off\""
 		},
 		{
 			name: "activeIndex",
@@ -175,19 +182,25 @@ export const radialChartMeta: ComponentMeta = {
 			slot: "arrival",
 			recipe: "custom",
 			part: "Ring",
-			why: "Once on screen each ring draws round from its start (stroke-dashoffset on a round-capped arc), staggered outside in. On the motion tokens; reduced motion shows the finished chart."
+			why: "Once on screen each ring draws round from its start (stroke-dashoffset on a round-capped arc), staggered outside in. On the motion tokens; reduced motion shows the finished chart. The arrival is expressive: it plays at the full motion level only, so `motion=\"subtle\"` (or a subtle app policy) shows the finished chart while hover feedback stays."
 		},
 		{
 			slot: "response",
 			recipe: "none",
 			part: "Active ring",
-			why: "The hovered ring stays full strength and the others dim at once."
+			why: "The hovered ring stays full strength and the others dim at once — mixed toward the surface rather than faded, so a dimmed ring stays solid over its track instead of turning muddy. Essential: `subtle` keeps it."
+		},
+		{
+			slot: "transition",
+			recipe: "custom",
+			part: "Centre value",
+			why: "A numeric centre value rolls to its new total digit by digit (NumberTicker) when the data changes, so the headline is seen moving with the rings instead of being found different afterwards. Expressive: under `subtle` it updates in place."
 		},
 		{
 			slot: "transition",
 			recipe: "custom",
 			part: "Ring",
-			why: "Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place."
+			why: "Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place. Expressive, like the arrival: under `subtle` new data swaps in place."
 		},
 		{
 			slot: "activity",

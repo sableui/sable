@@ -59,6 +59,38 @@ export const relativeTimeMeta: ComponentMeta = {
 		},
 	],
 	tokensUsed: ["popover", "popover-foreground", "border", "ring"],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "It is a word in a line of text and arrives with that line.",
+		},
+		{
+			slot: "response",
+			recipe: "none",
+			part: "Root",
+			why: "The only hover change on the timestamp is a dotted underline, and text-decoration-line is discrete: CSS cannot tween it, so a transition here would animate nothing and imply the snap had been handled.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-pop",
+			part: "Tooltip",
+			why: "The pointer's real answer is the absolute time, which arrives in a Tooltip on its own fast pop. That short entrance is what makes the full date read as belonging to the word under the cursor.",
+		},
+		{
+			slot: "transition",
+			recipe: "none",
+			part: "Root",
+			why: "The label does not tick: it is computed when the component renders, so it never changes in front of the reader. A timestamp rolling from one minute to two would pull the eye off the content it dates.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "A timestamp has nothing to wait for.",
+		},
+	],
 	a11y: [
 		"Renders a semantic <time> element with a machine-readable dateTime (ISO) attribute.",
 		"The <time> carries tabIndex=0 (it is not focusable natively), so the absolute time — exposed via Base UI's Tooltip, which opens on keyboard focus as well as hover and wires aria-describedby — is reachable from the keyboard.",

@@ -1,11 +1,19 @@
 import { Checkbox as Base } from "@base-ui/react/checkbox"
 import type { ComponentProps } from "react"
 import { cn } from "../../lib/cn"
+import { type MotionLevel, motionAttribute } from "../../motion/MotionProvider"
 import { CHECK_BOX } from "../../lib/selection-card"
 import { CheckboxMark } from "./checkbox-mark"
 
 type RootProps = Omit<ComponentProps<typeof Base.Root>, "className"> & {
 	className?: string
+	/**
+	 * How much motion this component uses: `full` (default) inherits the app's
+	 * policy, `subtle` keeps feedback and drops the flourish, `off` stills it.
+	 * It can only turn motion down — it never overrides a reader's reduce-motion
+	 * setting. Under `subtle` the tick fades in instead of drawing itself.
+	 */
+	motion?: MotionLevel
 }
 
 /**
@@ -22,9 +30,10 @@ type RootProps = Omit<ComponentProps<typeof Base.Root>, "className"> & {
  * The box and its mark are shared with CheckboxCard (`CHECK_BOX` +
  * `CheckboxMark`), so the standalone control and the card's box cannot drift.
  */
-export function Checkbox({ className, children, ...props }: RootProps) {
+export function Checkbox({ className, children, motion, ...props }: RootProps) {
 	return (
 		<Base.Root
+			data-motion={motionAttribute(motion)}
 			className={cn(
 				CHECK_BOX,
 				"text-primary-foreground",

@@ -720,6 +720,85 @@ export const UTILITY_DOCS: UtilityDoc[] = [
 		pairsWith: ["motion-interactive"],
 	},
 	{
+		name: "motion-glide",
+		kind: "utility",
+		family: "motion",
+		intent:
+			"Timing for ONE element that travels to the selected option — position and size ease on the emphasized curve at the slow step. Expressive: `data-motion=\"subtle\"` makes it snap.",
+		whenToUse:
+			"A selection indicator you position yourself: a custom nav's current-page bar, a segmented control's thumb, an active dot. Tabs, ToggleGroup `segmented`, ThemeSwitcher and Carousel already glide.",
+		insteadOf:
+			"A fill or border on each option that switches on and off (two things blink instead of one thing moving), or a hand-written transition with a literal duration.",
+		example: `<span aria-hidden className="motion-glide absolute bottom-0 h-0.5 bg-foreground" style={{ left: x, width: w }} />`,
+		keywords: ["sliding indicator", "tab indicator", "segmented thumb", "active indicator", "glide", "underline animation", "selection animation"],
+		pairsWith: ["motion-interactive"],
+	},
+	{
+		name: "motion-shake",
+		kind: "utility",
+		family: "motion",
+		intent:
+			"A short decaying horizontal shake that plays while `data-shake` is set. `useShake()` sets and clears the attribute and restarts it on a repeat refusal. Expressive: under `subtle` only the error colour remains.",
+		whenToUse:
+			"An answer the system refused: a wrong one-time code, a submit with invalid fields, a rejected password. Always alongside the error colour and message, never instead of them. OtpField's `invalid` already shakes.",
+		insteadOf: "A keyframe shake with a literal duration, which keeps moving under reduced motion, or a shake with no error text.",
+		example: `const { shake, shakeProps } = useShake()
+<form className="motion-shake" {...shakeProps} onSubmit={(e) => { if (!valid) { e.preventDefault(); shake() } }}>…</form>`,
+		keywords: ["shake", "error animation", "wrong password", "invalid", "refuse", "wiggle", "nope"],
+		pairsWith: ["motion-interactive"],
+	},
+	{
+		name: "motion-tick",
+		kind: "utility",
+		family: "motion",
+		intent:
+			"A selection mark that draws itself in from its leading edge (a clip-path wipe, so it works on any icon set) with an essential fade, keyed to Base UI's starting/ending style. Exits only fade. The wipe is expressive.",
+		whenToUse: "A check or success glyph that mounts with its state: a custom selection card's tick, a completed step. Checkbox and CheckboxCard already use it.",
+		insteadOf: "A scale-from-zero pop on a check mark, which reads as a stamp rather than a tick, or a path-length draw that needs to own the SVG.",
+		example: `<Base.Indicator className="motion-tick"><Icon name="check" /></Base.Indicator>`,
+		keywords: ["check animation", "tick", "draw check", "success mark", "checkbox animation", "selection mark"],
+	},
+	{
+		name: "motion-appear",
+		kind: "utility",
+		family: "motion",
+		intent:
+			"Fades and scales a small control in on first render through `@starting-style` — no data attribute, no JS. The fade is essential, the scale is expressive. Removal is instant.",
+		whenToUse: "A control that mounts in place as state changes: a search field's clear button, a send button replacing a mic, a count badge that appears. Put it on a wrapper around a Sable Button or anything carrying `motion-interactive`, so the two do not fight over `transition-property`.",
+		insteadOf: "Conditionally rendering a control so it pops in on one frame, or wrapping a single icon button in Presence.",
+		example: `{value && <span className="flex motion-appear"><Button size="icon-xs" variant="ghost" aria-label="Clear"><Icon name="xmark" /></Button></span>}`,
+		keywords: ["appear", "mount animation", "pop in", "enter", "starting style", "clear button"],
+		pairsWith: ["motion-icon-swap"],
+	},
+	{
+		name: "motion-arrive",
+		kind: "utility",
+		family: "motion",
+		intent:
+			"Items a user action brings into a list settle into place one after another: a short fade down from 0.25rem. Stagger with `--motion-arrive-delay` (raw ms; the recipe scales it). Expressive.",
+		whenToUse:
+			"Only on items that are NEW because of something the user did: a folder's children on expand, a row just added, results that load in. Tree's expand already uses it.",
+		insteadOf: "A staggered entrance on every render of a list, which turns a list into a loading delay, or an inline keyframe animation with literal durations.",
+		example: `<li className="motion-arrive" style={{ "--motion-arrive-delay": "36ms" } as CSSProperties}>{row.name}</li>`,
+		keywords: ["stagger", "list animation", "arrival", "cascade", "new item", "expand children", "enter list"],
+		pairsWith: ["motion-interactive"],
+	},
+	{
+		name: "motion-size",
+		kind: "utility",
+		family: "motion",
+		intent:
+			"Eases an element between sizes: between a keyword and a length (0 ↔ auto) through `interpolate-size: allow-keywords`, and between measured pixel sizes when paired with `useAutoSize()`, so a button whose label changes stretches to the new width instead of jumping. A superset of motion-interactive's transition list, so it can sit on a Button. The size is expressive.",
+		whenToUse: "A control whose content changes length in place: a two-step confirm button, a Copy → Copied label, a chip that gains a count. ConfirmButton already uses it.",
+		insteadOf: "A hand-written width transition, or a fixed width that clips the longer label. A content-sized box computes `width: auto` before and after its label changes, so on its own the recipe has nothing to ease — that is what `useAutoSize()` is for.",
+		example: `const size = useAutoSize<HTMLButtonElement, HTMLSpanElement>()
+<button type="button" ref={size.outerRef} className="motion-size">
+	<span ref={size.innerRef} className="inline-flex w-max">{copied ? "Copied" : "Copy link"}</span>
+</button>`,
+		keywords: ["width animation", "auto width", "label change", "resize animation", "interpolate size", "morph button"],
+		pairsWith: ["motion-icon-swap"],
+	},
+	{
 		name: "motion-spin",
 		kind: "utility",
 		family: "motion",

@@ -41,10 +41,18 @@ Use SideNav for vertical navigation inside a settings page, documentation area, 
 | --- | --- | --- | --- |
 | size | "md" \| "lg" | — | Density shared by all items. "md" (default) = the lightweight in-content sub-nav; "lg" = chrome-weight (larger label + icon, roomier rows) for a rail that pairs with the app Sidebar. |
 | activeVariant | "content" \| "sidebar" | "content" | Active-state token vocabulary shared by all items. "content" uses bg-accent/text-accent-foreground for local rails inside the content area; "sidebar" uses bg-sidebar-accent/text-sidebar-accent-foreground for SideNavs rendered inside app chrome. |
+| motion | "full" \| "subtle" \| "off" | "full" | How much motion this component uses: `full` inherits the app's policy, `subtle` keeps feedback and drops the current-page glide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. |
 
 ## Tokens used
 
 `muted`, `muted-foreground`, `foreground`, `accent`, `accent-foreground`, `ring`, `sidebar-foreground`, `sidebar-accent`, `sidebar-accent-foreground`, `sidebar-ring`
+
+## Motion
+
+- **arrival** · Root · _no motion_ — In-page navigation arrives with the page it navigates.
+- **response** · SideNavItem · `motion-interactive` — Rows ease their hover fill and focus ring, so moving down a long nav reads as one pointer travelling rather than rows flashing in turn.
+- **transition** · SideNav · `motion-glide` — The current-item fill is one element that travels to the new row when the section changes inside a persistent layout, so the marker reads as moving rather than one row dimming while another lights. It lands in place on first paint, each row keeps its own fill as the server-render fallback, and the active row's heavier weight lands at once — font weight does not ease. Expressive: `subtle` moves it at once.
+- **activity** · Root · _no motion_ — Navigation chrome has no working state; a loading section shows it in the content.
 
 ## Accessibility
 

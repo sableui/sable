@@ -1,8 +1,8 @@
 # Motion
 
-Motion explains a change: where something came from, what responded, and that work is happening. It is subtle by default, built from named recipes, and one switch turns it off.
+Motion explains a change: where something came from, what responded, and that work is happening. Components ship crafted by default: one indicator travels instead of two blinking, numbers roll, ticks draw, a refused answer shakes. It is built from named recipes, comes in two levels, and one switch turns it off.
 
-**4 slots · 3 speeds · enter-only overshoot · 1 kill switch**
+**4 slots · 3 speeds · 2 levels · enter-only overshoot · 1 kill switch**
 
 ## Three speeds
 
@@ -26,7 +26,13 @@ Reach for one named class before writing a transition.
 | `motion-pop` | enter base · spring | Anchored or centred surfaces: popovers, menus, dialogs. |
 | `motion-slide-{up,down,left,right}` | enter base / exit fast | Directional surfaces: sheets, toasts. |
 | `motion-disclosure` | base · standard | Height changes: accordion, collapsible. |
-| `motion-icon-swap` | enter · emphasized cross-fade | Two icons of one control trading places: play/pause, outline/fill. |
+| `motion-icon-swap` | enter · emphasized cross-fade | Two icons of one control trading places: play/pause, outline/fill, copy/check. |
+| `motion-glide` | slow · emphasized · expressive | ONE indicator travelling to the selected option: tabs, segmented thumb, active dot. |
+| `motion-shake` | ~400ms decaying · expressive | A refused answer: wrong code, invalid submit. Plays while data-shake is set (useShake). Never the only signal. |
+| `motion-tick` | fast fade + base wipe · expressive | A check mark that draws itself in. Exits only fade. |
+| `motion-appear` | fast fade + base scale | A small control mounting in place: a clear button, a send arrow, a badge. @starting-style, no JS. |
+| `motion-arrive` | base · decelerate · staggered · expressive | Items a user action brings into a list: a folder's children on expand, a row just added. Never on every render. |
+| `motion-size` | base · emphasized · expressive | An element easing between intrinsic sizes when its label changes: a two-step confirm, Copy → Copied. |
 | `motion-draw` | slower · decelerate | SVG line art drawing on when a <Reveal> scrolls in. The path needs pathLength="1"; stagger siblings with --motion-draw-delay. |
 | `motion-spin · pulse · shimmer · dot-bounce · ping` | loops | Activity. Scale-aware, so reduced motion freezes them. |
 
@@ -39,6 +45,19 @@ Reach for one named class before writing a transition.
 | `ease-emphasized` | cubic-bezier(0.2, 0, 0, 1) | Large surfaces covering a lot of distance. |
 | `ease-spring` | ~4% overshoot | A gentle pop on enter. Never on exit. |
 | `ease-bounce` | ~10% overshoot | A playful pop, opt-in only. Enter only, never on exit. |
+
+## Two levels
+
+Essential motion answers the user; expressive motion narrates continuity. Expressive durations are also multiplied by --motion-expressive, which `subtle` sets to 0. Each level can only turn motion down from what surrounds it.
+
+| Name | Value | Use |
+|---|---|---|
+| `essential` | always, unless off | Colour and focus feedback, press, overlay arrival, disclosure height, loaders, chart hover. |
+| `expressive` | full only | Glides, rolling numbers (NumberTicker), drawn ticks, shakes, staggers, chart arrival and morph, scroll reveals, spring overshoot. |
+| `full` | default | Both levels play. The crafted default. |
+| `subtle` | data-motion="subtle" | Essential only; nothing overshoots. For dense tools, embedded widgets, readers who want calm without stillness. |
+| `off` | data-motion="off" · reduce-motion | Nothing moves; every state still changes. |
+| `where` | provider · scope · prop | <MotionProvider policy> for the app, <MotionScope level> for a region, `motion` on a component that owns a flourish. |
 
 ## The four slots
 
@@ -60,6 +79,10 @@ Every interactive component answers all four, by filling the slot or declining i
 5. **Durations come from tokens, so --motion-scale can stop them.** prefers-reduced-motion and <MotionProvider> off both set --motion-scale to 0. A raw duration ignores that. *Enforced by sable-lint: raw-duration, builtin-animate.*
 6. **Interactive elements always respond. Something styled for hover with no motion recipe snaps.** A snap between states reads as broken. The four prohibitive rules could not catch missing motion, so this one does. *Enforced by sable-lint: static-interactive.*
 7. **JS motion reads useMotion().enabled and does nothing when it is false.** Reduced motion is an accessibility setting, not a style preference.
+8. **One thing travels; two things do not blink. When a selection, a value or a mark changes in place, move the one element that represents it.** A fill switching off here and on there is two events the eye has to connect. A glide, a roll or a draw is one, and it is most of what makes an interface feel made rather than assembled.
+9. **Flourishes are expressive: multiply their durations by --motion-expressive and gate JS ones on useMotion().expressive.** `subtle` promises the answers without the choreography. A glide on a plain token keeps playing after someone asked for calm.
+10. **A state change finishes its story: refused shakes and says why, success confirms in place, armed asks again.** Motion that starts a change and leaves the outcome to a snap reads as unfinished. ConfirmButton, OtpField's invalid shake and the copy-to-check swap are the reference cases.
+11. **Component motion props and MotionScope only turn motion down.** `full` on a component means inherit. Nothing below the provider can switch motion back on for a reader who asked for it off.
 
 ## Never
 
@@ -81,6 +104,28 @@ Every interactive component answers all four, by filling the slot or declining i
 ```
 
 Same feel, but reduced motion now resolves it instantly.
+
+### A selection that travels
+
+```tsx
+// before
+<Tab className="data-[active]:border-b-2 data-[active]:border-foreground" />
+// after
+<Tabs.Indicator className="motion-glide left-(--active-tab-left) w-(--active-tab-width)" />
+```
+
+The underline used to vanish under one tab and appear under the next. Now it slides, and Tabs renders it for you.
+
+### A value that rolls
+
+```tsx
+// before
+<span>{total}</span>
+// after
+<NumberTicker value={total} format={{ style: "currency", currency: "USD" }} />
+```
+
+The digits that changed roll; the ones that did not stay still, so the eye goes straight to the difference.
 
 ### Faster exits
 

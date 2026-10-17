@@ -3,7 +3,7 @@ import { useState } from "react"
 import { ComponentPlayground, Example, MetaFooter, PageHeader, Section, ledeFor } from "../../components/docs-ui"
 import { BROWSERS, DAILY, DEVICES, NET, VISITORS, shortDate, shortMonth } from "../../content/chart-data"
 
-function InteractiveBar() {
+function InteractiveBar({ motion }: { motion?: "subtle" }) {
 	const [device, setDevice] = useState<"desktop" | "mobile">("desktop")
 	return (
 		<div className="flex w-full flex-col gap-4">
@@ -11,7 +11,7 @@ function InteractiveBar() {
 				<Toggle value="desktop">Desktop</Toggle>
 				<Toggle value="mobile">Mobile</Toggle>
 			</ToggleGroup>
-			<BarChart label="Daily visitors" data={DAILY.slice(-30)} index="date" series={DEVICES.filter((d) => d.key === device)} indexFormatter={shortDate} radius={3} className="h-72" />
+			<BarChart label="Daily visitors" data={DAILY.slice(-30)} index="date" series={DEVICES.filter((d) => d.key === device)} indexFormatter={shortDate} radius={3} className="h-72" motion={motion} />
 		</div>
 	)
 }
@@ -90,6 +90,12 @@ export function BarChartPage() {
 			<Section title="Interactive" description="Switching the series eases every bar to its new length.">
 				<Example>
 					<InteractiveBar />
+				</Example>
+			</Section>
+
+			<Section title="Subtle motion" description='motion="subtle" keeps the answers and drops the flourish: no arrival, new data swaps in place, and the hover dim and gliding cursor still respond.'>
+				<Example code={'<BarChart label="Daily visitors" data={daily} index="date" series={series} motion="subtle" />'}>
+					<InteractiveBar motion="subtle" />
 				</Example>
 			</Section>
 

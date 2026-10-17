@@ -37,6 +37,14 @@ Use Note for helpful supporting information that should sit near the relevant co
 
 `foreground`, `border`, `muted`, `muted-foreground`, `tone-info`, `tone-warning`, `success`, `destructive`
 
+## Motion
+
+- **arrival** · Root · _no motion_ — A note is part of the content it annotates and renders with it. A callout that animated in would pull the eye before the reader has reached it in the flow.
+- **response** · Action · `motion-interactive` — The action's focus ring eases in, and its underline thickens on hover. Inside a block of guidance, that is what separates the one thing to do from the prose around it.
+- **response** · Action · `motion-press` — A note's action usually navigates or opens something; the small settle on press is the only confirmation before the next surface paints.
+- **transition** · Root · _no motion_ — A note has no states to move between: its tone is fixed when it renders. A note that changes tone is a new message, and should arrive as one.
+- **activity** · Root · _no motion_ — Static guidance. Work in progress belongs in a Progress or a Spinner, not in a callout.
+
 ## Accessibility
 
 - Rendered with role="note" so assistive tech can announce it as an aside.

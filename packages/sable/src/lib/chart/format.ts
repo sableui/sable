@@ -31,7 +31,12 @@ export function approxTextWidth(text: string): number {
  */
 export function centerValueText(value: string | number, locale?: string): string {
 	if (typeof value === "string") return value
-	return Math.abs(value) < 10_000
-		? new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(value)
-		: new Intl.NumberFormat(locale, { notation: "compact", maximumFractionDigits: 1 }).format(value)
+	return new Intl.NumberFormat(locale, centerValueFormat(value)).format(value)
 }
+
+/** The Intl options behind centerValueText — what the centre's NumberTicker formats with. */
+export function centerValueFormat(value: number): Intl.NumberFormatOptions {
+	return Math.abs(value) < 10_000 ? FULL_CENTER : COMPACT_CENTER
+}
+const FULL_CENTER: Intl.NumberFormatOptions = { maximumFractionDigits: 1 }
+const COMPACT_CENTER: Intl.NumberFormatOptions = { notation: "compact", maximumFractionDigits: 1 }

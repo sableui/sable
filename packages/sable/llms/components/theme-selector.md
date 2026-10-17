@@ -49,6 +49,14 @@ Use ThemeSelector wherever a person picks a theme. The default `cards` layout is
 
 `input`, `card`, `border`, `background`, `primary`, `primary-foreground`, `accent`, `muted`, `muted-foreground`, `ring`
 
+## Motion
+
+- **arrival** · Root · _no motion_ — It sits in a settings panel or a popover, which owns the entrance.
+- **response** · Option (list) · `motion-interactive` — List rows ease their hover fill like Menu and Select rows, so a theme list beside a menu reads as the same kind of row.
+- **response** · Name (grid) · `motion-interactive` — In the grid, the theme's name brightens on hover, eased. The preview tile's outline steps rather than easing — outline is not in the recipe's transition list — so the name carries the motion.
+- **transition** · Check (list) · `motion-interactive` — The check fades into the chosen row and out of the old one, so the choice reads as moving, at the same moment the whole interface repaints in the new theme.
+- **activity** · Root · _no motion_ — Applying a theme is synchronous: the whole interface repaints at once, and that repaint is the feedback.
+
 ## Accessibility
 
 - The container is role="radiogroup" with an aria-label; each card is a role="radio" button with aria-checked reflecting the selected theme.

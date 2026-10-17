@@ -98,6 +98,38 @@ export const collapsibleMeta: ComponentMeta = {
 		},
 	],
 	tokensUsed: ["foreground", "muted-foreground"],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "A collapsible is part of the page it sits in, present from first paint. Its trigger is what the reader notices, not an entrance.",
+		},
+		{
+			slot: "response",
+			recipe: "none",
+			part: "CollapsibleTrigger",
+			why: "The trigger is whatever the consumer renders (usually a Button), and that control brings its own response. Adding one here would double it.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-disclosure",
+			part: "CollapsiblePanel",
+			why: "The height change ties the content that appears to the trigger that was pressed; snapped open, everything below jumps with nothing linking cause to effect.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-interactive",
+			part: "CollapsibleIndicator",
+			why: "The chevron turns with the panel rather than flipping in one frame: motion-interactive lists `rotate`, the property rotate-180 writes.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "Nothing here is indeterminate; content that loads on open should put its own loader inside the panel.",
+		},
+	],
 	a11y: [
 		"Base UI wires aria-expanded on the trigger and aria-controls/id between trigger and panel.",
 		"Trigger is a real <button>; toggles on click and Enter/Space.",

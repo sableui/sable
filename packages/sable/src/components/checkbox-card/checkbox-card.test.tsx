@@ -133,3 +133,18 @@ describe("CheckboxGroup (group-owned selection)", () => {
 		)
 	})
 })
+
+describe("CheckboxMark motion", () => {
+	it("draws the tick with motion-tick and nothing that would fight its transition", async () => {
+		const user = userEvent.setup()
+		renderWithProviders(<CheckboxCard title="Spam" motion="subtle" />)
+		const card = screen.getByRole("checkbox", { name: /Spam/ })
+		expect(card).toHaveAttribute("data-motion", "subtle")
+		await user.click(card)
+		const mark = card.querySelector(".motion-tick")
+		expect(mark).not.toBeNull()
+		// motion-interactive declares its own transition-property list; on the
+		// same element it would drop the clip-path wipe.
+		expect(mark?.className).not.toContain("motion-interactive")
+	})
+})

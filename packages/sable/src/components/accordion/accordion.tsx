@@ -50,7 +50,7 @@ type TriggerProps = Omit<ComponentProps<typeof Base.Trigger>, "className"> & {
 	 * e.g. a plus-becomes-an-× FAQ toggle:
 	 *
 	 *   indicator={
-	 *     <Icon name="plus" className="text-xs text-muted-foreground transition-transform [[data-panel-open]_&]:rotate-45" />
+	 *     <Icon name="plus" className="text-xs text-muted-foreground motion-interactive [[data-panel-open]_&]:rotate-45" />
 	 *   }
 	 *
 	 * When omitted, the default chevron (rotating 180° on open) is used.
@@ -82,7 +82,10 @@ export function AccordionTrigger({
 			>
 				{children}
 				{/* `h-[1lh]` centres the indicator on the FIRST line of the label, so a
-				    wrapping question keeps its chevron beside the line it starts on. */}
+				    wrapping question keeps its chevron beside the line it starts on.
+				    This span is what rotates (the trigger's data-slot selector above),
+				    so it is the element that carries motion-interactive — whose list
+				    includes `rotate`, the property rotate-180 writes. */}
 				<span
 					data-slot="accordion-chevron"
 					className="flex h-[1lh] shrink-0 items-center motion-interactive"

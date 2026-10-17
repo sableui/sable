@@ -30,6 +30,14 @@ Use Video to embed playable or previewable video media inside a page.
 
 `border`, `overlay`, `overlay-foreground`, `ring`
 
+## Motion
+
+- **arrival** · Root · _no motion_ — The frame arrives with its page. Once there is a source, the poster and controls are the browser's.
+- **response** · Play button · `motion-interactive` — With `onRequestPlay`, the play disc firms its scrim on hover, eased, so the mark reads as pressable over any image.
+- **response** · Play button · `motion-press` — Loading a source can take a moment; the settle on press confirms the tap before the player appears.
+- **transition** · Root · _no motion_ — Placeholder to player is a swap of elements: the native video mounts where the poster was. Animating the swap would delay the playback the person just asked for.
+- **activity** · Root · _no motion_ — Buffering belongs to the native controls, which draw their own indicator. A second loader over the frame would compete with the browser's.
+
 ## Accessibility
 
 - Mounts a native <video> element, preserving built-in keyboard controls when controls is enabled.

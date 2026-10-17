@@ -84,6 +84,13 @@ export const sidebarMeta: ComponentMeta = {
 			description:
 				"Which surface the rail is painted on. \"rail\" is its own --sidebar-* surface with a border — right for a full-height rail that frames the app, which a theme may tint or paint dark. \"page\" uses the page's surface and ink with no border — use it when a full-width header sits above the rail, where a tinted column starting under a page-coloured bar reads as pasted on. Use it instead of overriding bg-/text- classes, which the rail's re-pointed tokens defeat.",
 		},
+		{
+			name: "motion",
+			type: '"full" | "subtle" | "off"',
+			default: '"full"',
+			description:
+				"How much motion this component uses: `full` inherits the app's policy, `subtle` keeps feedback and drops the collapse ease and the current-page glide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting.",
+		},
 	],
 	subcomponents: [
 		{
@@ -103,6 +110,38 @@ export const sidebarMeta: ComponentMeta = {
 			type: "{ label: ReactNode; icon?: ReactNode; active?: boolean; badge?: ReactNode; render?: useRender.RenderProp } + button props",
 			description:
 				"A single nav row. label is the row text (inline when expanded, in a hover tooltip when collapsed); icon is the leading icon node (the consumer swaps fill weight for the active state); active marks the current route (accent fill + aria-current=\"page\"); badge is a trailing node (e.g. a count) pushed to the row end and hidden when collapsed; render composes another element, e.g. render={<Link to=\"/x\" />}.",
+		},
+	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "The rail is the app's frame, present from first paint. It is not summoned, so it has no entrance.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "SidebarItem",
+			why: "Rows ease their hover fill (SideNav's row recipe on the rail rung), so moving down the nav reads as the pointer travelling rather than rows flashing.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-glide",
+			part: "SidebarNav",
+			why: "The current-page fill is one element that travels to the new item when the page changes inside a persistent layout, so the marker reads as moving rather than one row dimming while another lights. It lands in place on first paint, and each item keeps its own fill as the server-render fallback. Expressive: `subtle` moves it at once.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-size",
+			part: "Root",
+			why: "Collapsing to the icon rail eases the width instead of jumping 192px in one frame, so the content beside it visibly takes the room the rail gave up. Nothing inside jumps — a collapsed row's centred icon and an expanded row's inset icon sit on the same column — and labels leave at once and fade back in on reopen, clipped to the rail meanwhile. It reflows the page for the length of the ease, which is acceptable for a deliberate user toggle and never happens on load. Expressive: `subtle` snaps.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "Navigation chrome has no working state; a loading route shows it in the page.",
 		},
 	],
 	a11y: [

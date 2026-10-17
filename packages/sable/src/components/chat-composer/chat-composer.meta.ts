@@ -239,6 +239,13 @@ export const chatComposerMeta: ComponentMeta = {
 				"Ref to the underlying textarea — for focusing after a send, or on mount, and the extension point for anything that listens to the field. Pass `useCaretTrigger`'s `fieldRef` here for mentions and slash commands (CaretMenu). An Enter another listener already handled (`preventDefault()`) does not send.",
 		},
 		{
+			name: "motion",
+			type: '"full" | "subtle" | "off"',
+			default: '"full"',
+			description:
+				"How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Under `subtle` the field snaps to its new height and the send/stop glyphs swap without the morph.",
+		},
+		{
 			name: "...form props",
 			type: 'Omit<ComponentPropsWithRef<"form">, "onSubmit" | "defaultValue">',
 			description:
@@ -259,6 +266,38 @@ export const chatComposerMeta: ComponentMeta = {
 		"secondary-foreground",
 		"accent",
 		"accent-foreground",
+	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "The composer is the fixed foot of a thread, there before anything else is. An entrance would only delay the first keystroke.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Root",
+			why: "The surface's focus ring and invalid border ease in, so focusing the field reads as the whole box waking up rather than a frame flicker.",
+		},
+		{
+			slot: "transition",
+			recipe: "custom",
+			part: "Field",
+			why: "As a line breaks or a paste lands, the field eases to its new height (up to its cap) instead of jumping, so the transcript above is visibly pushed rather than teleported. `field-sizing` alone cannot ease — its height stays `auto` — so a small hook measures and pins a pixel height. Expressive and short (`fast`): the text itself lands at once, and `subtle` snaps the box.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-icon-swap",
+			part: "Send button",
+			why: "Send turning into stop is the moment a reply starts, and stop turning back is the moment it is over. One button changes role in place — the fill eases, the arrow collapses into the square — so it reads as the same control changing what it does, not a different button appearing under the cursor.",
+		},
+		{
+			slot: "activity",
+			recipe: "motion-spin",
+			part: "Send button",
+			why: "Busy with no stop handler, Button's own loading Spinner replaces the arrow, so a send in flight is not mistaken for a disabled one.",
+		},
 	],
 	a11y: [
 		"A real `<form>`, so the send button is a submit button and the whole thing behaves as one control to assistive tech and to password managers alike.",

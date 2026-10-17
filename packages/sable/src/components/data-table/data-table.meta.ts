@@ -157,6 +157,38 @@ export const dataTableMeta: ComponentMeta = {
 		},
 	],
 	tokensUsed: ["muted-foreground", "foreground", "ring"],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "Rows render with the page or the query that produced them. Staggering rows in delays reading a table someone opened to scan.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Row",
+			why: "Body rows ease to a muted wash under the pointer (TableRow's recipe), which keeps the eye on the right line across a wide row of numbers. Sortable headers are ghost Buttons and answer on Button's recipe.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-interactive",
+			part: "Sort chevron",
+			why: "One chevron turns to show direction instead of two glyphs swapping, so ascending to descending reads as the same column reversing. Its opacity rises from the resting 60% as the column becomes the sort.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-interactive",
+			part: "Row",
+			why: "A checked row's fill eases in across its cells, so selecting by checkbox reads as the row being picked rather than a band stamped over it.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "DataTable has no loading state. While data is fetched, render Skeleton rows (motion-shimmer) in its place — only the caller knows a fetch is in flight.",
+		},
+	],
 	a11y: [
 		"Sorted columns set aria-sort=ascending/descending on the header cell.",
 		"Sortable headers are real <button>s with a focus-visible ring, keyboard-operable.",

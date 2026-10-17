@@ -33,6 +33,15 @@ export function ThemeSwitcherPage() {
 				</Example>
 			</Section>
 
+			<Section
+				title="Subtle motion"
+				description="The pill glides between modes by default. motion=&quot;subtle&quot; lands it in place, for a header that already has a lot moving."
+			>
+				<Example>
+					<ThemeSwitcher value={theme} onValueChange={setTheme} motion="subtle" />
+				</Example>
+			</Section>
+
 			<MetaFooter meta={themeSwitcherMeta} />
 		</>
 	)

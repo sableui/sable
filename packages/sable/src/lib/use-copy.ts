@@ -24,8 +24,16 @@ export type CopySource = string | (() => string | Promise<string>)
  *
  *   const { copy, copied } = useCopy(address)
  *   <Button variant="ghost" size="icon-sm" aria-label="Copy address" onClick={copy}>
- *     <Icon name={copied ? "check" : "copy"} />
+ *     <span aria-hidden="true" className="motion-icon-swap">
+ *       <span data-active={!copied} className="inline-flex"><Icon name="copy" /></span>
+ *       <span data-active={copied} className="inline-flex"><Icon name="check" /></span>
+ *     </span>
  *   </Button>
+ *   <span role="status" className="sr-only">{copied ? "Copied" : ""}</span>
+ *
+ * Both glyphs stay mounted so the copy mark cross-fades into the check (a
+ * ternary swap snaps between frames); the status line says it to a screen
+ * reader, which a glyph change does not. CodeBlock is the reference.
  *
  * Text that costs something to produce (a file to fetch, a document to
  * serialise) is passed as a function, called only on click:

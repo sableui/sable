@@ -63,3 +63,78 @@ describe("ToggleGroup appearance", () => {
 		expect(button.className).toContain("sable-surface-interactive")
 	})
 })
+
+describe("ToggleGroup segmented glide", () => {
+	const gliders = (el: HTMLElement) => el.querySelectorAll("[data-highlight-glide]")
+
+	it("draws ONE fill that follows the pressed option in single-select", () => {
+		renderWithProviders(
+			<ToggleGroup appearance="segmented" aria-label="Range" defaultValue={["week"]}>
+				<Toggle value="day">Day</Toggle>
+				<Toggle value="week">Week</Toggle>
+				<Toggle value="month">Month</Toggle>
+			</ToggleGroup>,
+		)
+		const group = screen.getByRole("group", { name: "Range" })
+		expect(gliders(group)).toHaveLength(1)
+		const glider = gliders(group)[0]
+		expect(glider).toHaveClass("motion-glide", "bg-accent")
+		expect(glider).toHaveAttribute("aria-hidden", "true")
+		// Mounted, it marks the track so the options' own fill steps aside.
+		expect(group).toHaveAttribute("data-glide")
+		expect(group.className).toContain("[&[data-glide]>[data-pressed]]:bg-transparent")
+		expect(glider).toHaveStyle({ opacity: "1" })
+	})
+
+	it("hides the fill when nothing is pressed", async () => {
+		const user = userEvent.setup()
+		renderWithProviders(
+			<ToggleGroup appearance="segmented" aria-label="Range" defaultValue={["day"]}>
+				<Toggle value="day">Day</Toggle>
+				<Toggle value="week">Week</Toggle>
+			</ToggleGroup>,
+		)
+		const group = screen.getByRole("group", { name: "Range" })
+		await user.click(screen.getByRole("button", { name: "Day" }))
+		expect(screen.getByRole("button", { name: "Day" })).toHaveAttribute("aria-pressed", "false")
+		expect(gliders(group)[0]).toHaveStyle({ opacity: "0" })
+	})
+
+	it("keeps a fill per option in multi-select, where there is no one place to glide to", () => {
+		renderWithProviders(
+			<ToggleGroup appearance="segmented" multiple aria-label="Format" defaultValue={["bold"]}>
+				<Toggle value="bold">Bold</Toggle>
+				<Toggle value="italic">Italic</Toggle>
+			</ToggleGroup>,
+		)
+		const group = screen.getByRole("group", { name: "Format" })
+		expect(gliders(group)).toHaveLength(0)
+		expect(group).not.toHaveAttribute("data-glide")
+		expect(screen.getByRole("button", { name: "Bold" }).className).toContain("data-[pressed]:bg-accent")
+	})
+
+	it("does not glide the default appearance", () => {
+		renderWithProviders(
+			<ToggleGroup aria-label="View" defaultValue={["list"]}>
+				<Toggle value="list">List</Toggle>
+			</ToggleGroup>,
+		)
+		expect(gliders(screen.getByRole("group", { name: "View" }))).toHaveLength(0)
+	})
+
+	it("turns motion down on its own root with the motion prop", () => {
+		const { rerender } = renderWithProviders(
+			<ToggleGroup appearance="segmented" aria-label="Range" defaultValue={["day"]}>
+				<Toggle value="day">Day</Toggle>
+			</ToggleGroup>,
+		)
+		const group = () => screen.getByRole("group", { name: "Range" })
+		expect(group()).not.toHaveAttribute("data-motion")
+		rerender(
+			<ToggleGroup appearance="segmented" motion="subtle" aria-label="Range" defaultValue={["day"]}>
+				<Toggle value="day">Day</Toggle>
+			</ToggleGroup>,
+		)
+		expect(group()).toHaveAttribute("data-motion", "subtle")
+	})
+})

@@ -36,6 +36,13 @@ Use SearchInput for text queries that filter or search a known content set.
 
 `input`, `card`, `foreground`, `muted-foreground`, `ring`, `destructive`
 
+## Motion
+
+- **arrival** · Clear button · `motion-appear` — The X mounts as the first character lands. Fading and settling in from a smaller scale keeps it from popping into the corner of the eye on every new search; removal is instant so an emptied field does not wait on it.
+- **response** · Input · `motion-interactive` — The focus ring and invalid border ease in, so focus reads as the field answering rather than a repaint.
+- **transition** · Root · _no motion_ — The field has no states of its own to move between — the clear button arriving is its only change, and arrival covers it.
+- **activity** · Root · _no motion_ — Searching is the results' job: a list skeleton or a Spinner beside them, not a field that animates while you type.
+
 ## Accessibility
 
 - Renders a native <input type="search"> — keyboard and form semantics come for free.

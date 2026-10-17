@@ -40,6 +40,13 @@ Use Radio when a user must choose exactly one option from a visible set.
 
 `input`, `card`, `primary`, `ring`
 
+## Motion
+
+- **arrival** · Root · _no motion_ — Radios arrive with the form they belong to. Animating each one in turns a question into a title sequence.
+- **response** · Root · `motion-interactive` — The ring's edge and focus ring ease, so arrowing through a group — which moves the selection with focus — reads as one choice moving down the list.
+- **transition** · Indicator · `motion-interactive` — The dot grows from the centre on a spring and shrinks out of the radio being left. A group's selection moves from one option to another, and the paired grow and shrink is what makes it read as moving rather than two dots blinking.
+- **activity** · Root · _no motion_ — A radio commits instantly. A slow write belongs to the surrounding form's pending state, not the control.
+
 ## Accessibility
 
 - Base UI provides the radiogroup/radio roles, aria-checked, hidden native inputs, and roving tabindex.

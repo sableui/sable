@@ -39,6 +39,14 @@ Use Pill for a row of filters or choices a person clicks to narrow or toggle wha
 
 `palette-wash`, `palette-wash-strong`, `palette-edge`, `palette-solid`, `palette-text`, `palette-solid-ink`, `secondary`, `secondary-foreground`, `accent`, `accent-foreground`, `primary`, `primary-foreground`, `card`, `border`, `muted-foreground`, `foreground`
 
+## Motion
+
+- **arrival** · Root · _no motion_ — Pills arrive with the filter row or the content they annotate. A chip that animated in alone would read as a filter someone just added.
+- **response** · Root · `motion-interactive` — The hover wash eases, so sweeping the pointer along a filter row reads as one cursor moving rather than chips flashing in turn.
+- **response** · Root · `motion-press` — A pill often toggles a filter that takes a moment to reach the results; the settle on press confirms the click landed before they change.
+- **transition** · Root · `motion-interactive` — `selected` lifts the chip onto its selected surface on the same ease, so toggling reads as this chip changing state, not a different chip appearing in its place.
+- **activity** · Root · _no motion_ — A chip is a choice, not a process. If applying it is slow, the results show it.
+
 ## Accessibility
 
 - Renders a native <button type="button"> for focus and keyboard activation.

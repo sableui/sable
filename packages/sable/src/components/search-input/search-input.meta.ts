@@ -102,6 +102,32 @@ export const searchInputMeta: ComponentMeta = {
 		"ring",
 		"destructive",
 	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "motion-appear",
+			part: "Clear button",
+			why: "The X mounts as the first character lands. Fading and settling in from a smaller scale keeps it from popping into the corner of the eye on every new search; removal is instant so an emptied field does not wait on it.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Input",
+			why: "The focus ring and invalid border ease in, so focus reads as the field answering rather than a repaint.",
+		},
+		{
+			slot: "transition",
+			recipe: "none",
+			part: "Root",
+			why: "The field has no states of its own to move between — the clear button arriving is its only change, and arrival covers it.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "Searching is the results' job: a list skeleton or a Spinner beside them, not a field that animates while you type.",
+		},
+	],
 	a11y: [
 		"Renders a native <input type=\"search\"> — keyboard and form semantics come for free.",
 		"Associate a <label htmlFor> (or wrap) — the magnifier glyph is decorative, not a label.",

@@ -1,10 +1,12 @@
 "use client"
 
 import { type CSSProperties, useId } from "react"
-import { ChartFrame, type ChartSize } from "../../lib/chart/chart-frame"
+import { ChartCenter } from "../../lib/chart/chart-center"
+import { ChartFrame, type ChartSize, chartMotion } from "../../lib/chart/chart-frame"
 import { ChartLegend } from "../../lib/chart/chart-legend"
 import { ChartTooltipContent } from "../../lib/chart/chart-tooltip"
-import { categoryText, centerValueText, chartFormatters } from "../../lib/chart/format"
+import { FILL_HOVER, dimmed } from "../../lib/chart/dim"
+import { categoryText, chartFormatters } from "../../lib/chart/format"
 import { arcPath, polar } from "../../lib/chart/geometry"
 import { DRAW_DURATION, morphTransition, pathStyle } from "../../lib/chart/motion"
 import {
@@ -17,6 +19,7 @@ import {
 	numberValue,
 } from "../../lib/chart/types"
 import { cn } from "../../lib/cn"
+import type { MotionLevel } from "../../motion/MotionProvider"
 
 export interface PieChartProps {
 	/** One row per slice. */
@@ -46,7 +49,19 @@ export interface PieChartProps {
 	tooltip?: boolean | ChartTooltipOptions
 	valueFormatter?: ChartValueFormatter
 	locale?: string
-	/** Sweep the slices in clockwise when the chart scrolls into view. @default true */
+	/**
+	 * How much motion this component uses: `full` (default) inherits the app's
+	 * policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It
+	 * can only turn motion down — it never overrides a reader's reduce-motion
+	 * setting. The sweep, the slice morph and the rolling centre number are the
+	 * flourish; the hover pull-out and dim are the feedback `subtle` keeps.
+	 */
+	motion?: MotionLevel
+	/**
+	 * Sweep the slices in clockwise when the chart scrolls into view.
+	 * `animate={false}` is `motion="subtle"`.
+	 * @deprecated Use `motion="subtle"` (what `animate={false}` now maps to: no arrival, hover kept) or `motion="off"`.
+	 */
 	animate?: boolean
 	/** The pulled-out slice (controlled). */
 	activeIndex?: number | null
@@ -78,7 +93,8 @@ export function PieChart({
 	tooltip = true,
 	valueFormatter,
 	locale,
-	animate = true,
+	motion,
+	animate,
 	activeIndex,
 	defaultActiveIndex,
 	onActiveIndexChange,
@@ -100,6 +116,7 @@ export function PieChart({
 		})
 	})
 	const tooltipOptions: ChartTooltipOptions = typeof tooltip === "object" ? tooltip : {}
+	const level = chartMotion(motion, animate)
 	const ratio = donut === true ? 0.6 : typeof donut === "number" ? Math.min(0.9, Math.max(0, donut)) : 0
 
 	const geometry = (size: ChartSize) => {
@@ -159,7 +176,7 @@ export function PieChart({
 			className={cn("h-64", className)}
 			count={data.length}
 			interactive={tooltip !== false}
-			animate={animate}
+			motion={level}
 			activeIndex={activeIndex}
 			defaultActiveIndex={defaultActiveIndex}
 			onActiveIndexChange={onActiveIndexChange}
@@ -171,6 +188,14 @@ export function PieChart({
 				rows: data.map((_, i) => [styles[i].label, ...keys.map((_, r) => fmt.full(rings[r][i].v))]),
 			}}
 			legend={(legend ?? labels === "none") ? <ChartLegend items={names.map((n, i) => ({ key: n, label: styles[i].label, color: styles[i].color, icon: styles[i].icon }))} /> : null}
+			overlay={
+				centerLabel && ratio > 0
+					? ({ size }) => {
+							const g = geometry(size)
+							return <ChartCenter center={centerLabel} x={g.cx} y={g.cy} locale={locale} motion={level} />
+						}
+					: undefined
+			}
 		>
 			{({ size, activeIndex: active }) => {
 				const g = geometry(size)
@@ -206,8 +231,13 @@ export function PieChart({
 											d={d}
 											strokeWidth={separator ? 2 : 0}
 											strokeLinejoin="round"
-											className={cn(separator && "stroke-(--sable-surface-bg,var(--background))", active != null && active !== i && "opacity-60")}
-											style={{ ...pathStyle(d), fill: styles[i].color, transition: morphTransition() } as CSSProperties}
+											className={cn(separator && "stroke-(--sable-surface-bg,var(--background))")}
+											style={{
+												...pathStyle(d),
+												// Stepped back toward the surface rather than faded (see lib/chart/dim).
+												fill: active != null && active !== i ? dimmed(styles[i].color, 60) : styles[i].color,
+												transition: `${morphTransition()}, ${FILL_HOVER}`,
+											} as CSSProperties}
 										/>
 									)
 								}),
@@ -236,21 +266,6 @@ export function PieChart({
 									)
 								})
 							: null}
-						{centerLabel && g.inner > 0 ? (
-							<text x={g.cx} y={g.cy} textAnchor="middle" className="[[data-reveal=out]_&]:opacity-0" style={{ transition: morphTransition() }}>
-								{/* The number holds the centre whether or not a label follows: 0.35em
-								    drops the baseline so the figures' middle sits on it. The label
-								    hangs below rather than the pair splitting the centre between them. */}
-								<tspan x={g.cx} dy="0.35em" className="fill-foreground text-heading-2 tabular-nums">
-									{centerValueText(centerLabel.value, locale)}
-								</tspan>
-								{centerLabel.label ? (
-									<tspan x={g.cx} dy="1.9em" className="fill-muted-foreground text-caption">
-										{centerLabel.label}
-									</tspan>
-								) : null}
-							</text>
-						) : null}
 					</>
 				)
 			}}

@@ -72,7 +72,7 @@ export const toggleMeta: ComponentMeta = {
 			type: '"default" | "segmented"',
 			default: '"default"',
 			description:
-				"On ToggleGroup: `default` is a loose row of toggles; `segmented` draws the capsule segmented control (one track, the pressed option filled) shared with ThemeSwitcher. Toggles inside inherit it.",
+				"On ToggleGroup: `default` is a loose row of toggles; `segmented` draws the capsule segmented control (one track, the pressed option filled) shared with ThemeSwitcher. Single-select segmented draws ONE fill that glides to the pressed option and resizes to its label; multi-select keeps a fill per pressed option. Toggles inside inherit it.",
 		},
 		{
 			name: "multiple",
@@ -80,6 +80,13 @@ export const toggleMeta: ComponentMeta = {
 			default: "false",
 			description:
 				"On ToggleGroup: allow several toggles pressed at once. The default is single-select, which behaves like a radio group.",
+		},
+		{
+			name: "motion",
+			type: '"full" | "subtle" | "off"',
+			default: '"full"',
+			description:
+				"On ToggleGroup: how much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the glide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting.",
 		},
 		{
 			name: "Toggle",
@@ -92,7 +99,7 @@ export const toggleMeta: ComponentMeta = {
 	subcomponents: [
 		{
 			name: "ToggleGroup",
-			type: "Base UI ToggleGroup props (value, defaultValue, onValueChange, multiple, disabled, orientation, loopFocus) + appearance?: \"default\" | \"segmented\" + className",
+			type: "Base UI ToggleGroup props (value, defaultValue, onValueChange, multiple, disabled, orientation, loopFocus) + appearance?: \"default\" | \"segmented\" + motion?: \"full\" | \"subtle\" | \"off\" + className",
 			description:
 				"Groups child Toggles and shares pressed state across them — each Toggle inside carries a value. Defaults to multiple: false (single-select) — the fit for view-mode switches and segmented controls; pass multiple to allow several pressed at once, e.g. a row of formatting toggles.",
 		},
@@ -107,6 +114,38 @@ export const toggleMeta: ComponentMeta = {
 		appearance: ["default", "segmented"],
 	},
 	tokensUsed: ["muted-foreground", "foreground", "accent", "accent-foreground", "card", "border", "ring"],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Toggle",
+			why: "Toggles arrive with the toolbar or header they sit in. Animating each one in would make a row of controls ripple for no reason.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Toggle",
+			why: "Hover and the pressed fill ease rather than flip, so pressing reads as the same button changing state, not a different button appearing.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-press",
+			part: "Toggle",
+			why: "The small settle under the finger confirms the press landed before the state change is read — the difference matters most on touch, where there is no hover.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-glide",
+			part: "Segmented fill",
+			why: "In a single-select segmented group one fill travels to the chosen option and stretches to its label, so a view switch reads as one control now pointing elsewhere. Measured, because labels differ in width. Expressive: motion=\"subtle\" lands it in place.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Toggle",
+			why: "A toggle commits instantly. Work that follows from the new state shows where its result appears, not on the control.",
+		},
+	],
 	a11y: [
 		"Base UI sets aria-pressed on each Toggle and manages the pressed/disabled states.",
 		"ToggleGroup provides arrow-key roving focus across its items; loopFocus wraps at the ends.",
@@ -125,6 +164,10 @@ export const toggleMeta: ComponentMeta = {
 		{
 			label: "Segmented view switch",
 			code: '<ToggleGroup appearance="segmented" defaultValue={["list"]} aria-label="View"><Toggle value="list" aria-label="List view"><Icon name="list" /></Toggle><Toggle value="grid" aria-label="Grid view"><Icon name="grid" /></Toggle></ToggleGroup>',
+		},
+		{
+			label: "Segmented with labels, subtle motion",
+			code: '<ToggleGroup appearance="segmented" motion="subtle" defaultValue={["week"]} aria-label="Range"><Toggle value="day">Day</Toggle><Toggle value="week">Week</Toggle><Toggle value="month">Month</Toggle></ToggleGroup>',
 		},
 		{
 			label: "Multi-select group",

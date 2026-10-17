@@ -13,7 +13,7 @@ Use Button when the user commits an action, submits a form, opens UI, or confirm
 ### Best practices
 
 - Do: Use a single primary button in a view or dense panel so the action hierarchy stays obvious.
-- Do: For a copy control, pair an icon Button with `useCopy(text, { timeout? })`. It takes the text when the hook is called and returns `{ copy, copied }`; `copy()` takes no argument, so pass the value the button copies to the hook, not to `copy`. Text that costs something to produce (a file to fetch) goes in as a function, `useCopy(() => fetch(url).then((r) => r.text()))`, called only on click.
+- Do: For a copy control, pair an icon Button with `useCopy(text, { timeout? })`. It takes the text when the hook is called and returns `{ copy, copied }`; `copy()` takes no argument, so pass the value the button copies to the hook, not to `copy`. Text that costs something to produce (a file to fetch) goes in as a function, `useCopy(() => fetch(url).then((r) => r.text()))`, called only on click. Keep both glyphs mounted in a `motion-icon-swap` cell so the copy mark visibly becomes a check (a `copied ? "check" : "copy"` swap snaps between frames and is easy to miss), and say "Copied" in a polite `role="status"` region: the glyph change is silent to a screen reader.
 - Do: Write labels as actions, such as "Save changes" or "Delete draft", instead of vague labels like "OK".
 - Do: Use loading with loadingLabel for async work so the action cannot double-fire and the state is announced.
 - Do: Put icons in iconStart / iconEnd rather than as children, so the button applies its optical padding. Start icons say what the action is (plus, share); end icons say where it goes (chevron-right, external).
@@ -41,10 +41,10 @@ Use Button when the user commits an action, submits a form, opens UI, or confirm
 | variant | "primary" \| "secondary" \| "ghost" \| "outline" \| "destructive" \| "link" \| "floating" \| "field" \| "on-color" \| "on-color-outline" \| "on-color-ghost" | "primary" | Visual emphasis tier. One primary per screen. The on-color tiers are for buttons ON a coloured fill: they paint with the inherited text colour (the fill's ink) — on-color is solid (ink background, fill-coloured label via the optional --on-color-fill var, else black/white), on-color-outline and on-color-ghost are transparent with an ink label. Never use them on page or card surfaces. floating is for a control that sits OVER content (carousel arrows, a marquee pause, a jump-to-latest over a conversation): its own edge, lift and translucent popover fill, so it reads on arbitrary content beneath. field is for a button docked in a workspace panel among xs fields: the inset panel-field fill and the field's corner, so a picker trigger or an add action reads as one of the row's controls; pair it with size xs or icon-xs. |
 | size | "xs" \| "sm" \| "md" \| "cta" \| "icon" \| "icon-sm" \| "icon-xs" | "md" | Reads the density ladder, so every value differs by register: page 28/32/40/44, workspace 24/28/32/36. xs and icon-xs were added in 0.31.0 for the workspace control floor and are the sizes tool chrome wants; md is the default everywhere. icon/icon-sm/icon-xs are square. |
 | render | ReactElement \| (props, state) => ReactElement | — | Compose with another element/component through the Base UI render prop. |
-| loading | boolean | false | Show a leading Spinner while an action is in flight and refuse presses. Sets aria-busy and aria-disabled, never the native disabled: disabling the focused button sent focus to <body>, so a sheet the action opened had nowhere to return it. |
+| loading | boolean | false | Show a Spinner while an action is in flight and refuse presses. The spinner takes the iconStart slot when there is one; otherwise it lays over the label, which fades out in place, so the button keeps its width. Sets aria-busy and aria-disabled, never the native disabled: disabling the focused button sent focus to <body>, so a sheet the action opened had nowhere to return it. |
 | onClick | (event: MouseEvent<HTMLButtonElement>) => unknown | — | May return a promise: the button shows `loading` until it settles and ignores further presses meanwhile, from the first click on. Prefer it to a `busy` flag in state, which takes effect a render late (three fast clicks ran three times). |
 | badge | ReactNode | — | A corner indicator (usually <NotificationBadge dot /> or a count) overlaid on the top-end corner of the glyph. For icon-only sizes; never hand-position a badge over a Button with absolute offsets. |
-| loadingLabel | ReactNode | — | Optional text shown in place of children while loading. |
+| loadingLabel | ReactNode | — | Optional text shown in place of children while loading, with the spinner beside it. The width follows the new text, so prefer no loadingLabel where the row must not move. |
 | iconStart | ReactNode | — | Icon before the label. The button takes one 2px step off its start padding so icon + label read as centred. Replaced by the spinner while loading. |
 | iconEnd | ReactNode | — | Icon after the label (disclosure, external link, next). Same optical correction on the end side. |
 | bleed | "start" \| "end" \| "both" \| "none" | — | Optical alignment for a borderless button (ghost, link, on-color-ghost): a negative inline margin of exactly its own padding on that side — --button-px, or the icon side's optical padding when an icon sits there; an icon-only size bleeds by its inset to the glyph — so the label (or glyph) lands on the content edge. Hit area and hover/focus fill keep their full size. Logical sides, so it mirrors in RTL. A no-op on variants with a visible edge (primary, secondary, outline, destructive, floating, field, on-color, on-color-outline): a filled button aligns its edge, not its label. Unset, a borderless button renders data-bleed="auto" and SectionHeader, PageHeader and CardAction bleed it when it is their outermost child; none opts out. |
@@ -63,7 +63,7 @@ Use Button when the user commits an action, submits a form, opens UI, or confirm
 - **arrival** · Root · _no motion_ — A button belongs to the layout it ships in. Whatever staged that region owns the entrance; a button that fades in on its own is a button that is briefly un-clickable for no stated reason.
 - **response** · Root · `motion-interactive` — Hover, focus ring and disabled fade all ease on one declaration. This is the reference case for the whole recipe: it lists scale and translate alongside the colours specifically so motion-press can add a transform without a second, conflicting transition-property.
 - **response** · Root · `motion-press` — The 0.97 settle on pointer-down is the only confirmation the press registered before the action's own result arrives — which on a slow network is the difference between waiting and clicking again. It skips disabled elements, so a dead button stays visibly dead.
-- **transition** · Root · _no motion_ — A button has no state of its own to move between. A control that toggles is a Switch or a Toggle, and those carry the transition.
+- **transition** · Spinner · `motion-appear` — Going busy is the one state change a button has. The spinner fades in where it mounts — in the icon slot, or laid over a plain label that fades out beneath it and keeps its place — so the width never changes and the row does not shift under the pointer that just pressed it. The label fades back when the work settles. A toggling control is a Switch or a Toggle; those carry their own transition.
 - **activity** · Root · _no motion_ — Pending work is passed in via `loading`, which renders a Spinner — the activity motion lives there rather than being duplicated here.
 
 ## Accessibility
@@ -118,10 +118,10 @@ import { Button, Icon, Menu, MenuContent, MenuItem, MenuTrigger, Row } from "@sa
 ### Copy to clipboard
 
 ```tsx
-import { Button, Icon, useCopy } from "@sableui/react"
+import { Button, Icon, Row, useCopy } from "@sableui/react"
 
 const { copy, copied } = useCopy(address)
-<Button variant="ghost" size="icon-sm" aria-label="Copy address" onClick={copy}><Icon name={copied ? "check" : "copy"} /></Button>
+<Row gap={1}><Button variant="ghost" size="icon-sm" aria-label="Copy address" onClick={copy}><span aria-hidden="true" className="motion-icon-swap"><span data-active={!copied} className="inline-flex"><Icon name="copy" /></span><span data-active={copied} className="inline-flex"><Icon name="check" /></span></span></Button><span role="status" className="sr-only">{copied ? "Copied" : ""}</span></Row>
 ```
 
 ### As link

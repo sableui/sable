@@ -1,11 +1,13 @@
 "use client"
 
 import { type CSSProperties, type ReactNode, useId } from "react"
+import type { MotionLevel } from "../../motion/MotionProvider"
 import { cn } from "../cn"
-import { ChartFrame, type ChartSize } from "./chart-frame"
+import { ChartFrame, type ChartSize, chartMotion } from "./chart-frame"
 import { ChartLegend } from "./chart-legend"
 import { ChartTooltipContent } from "./chart-tooltip"
 import { approxTextWidth, categoryText, chartFormatters } from "./format"
+import { FILL_HOVER, dimmed } from "./dim"
 import { areaPath, type ChartCurve, linePath, type Point, rectPath } from "./geometry"
 import { GLIDE, barTransition, drawTransition, morphTransition, pathStyle, riseTransition, stagger } from "./motion"
 import { bandScale, extent, linearScale, niceTicks, pointScale, stack } from "./scale"
@@ -48,7 +50,19 @@ export interface CartesianBaseProps {
 	xAxis?: boolean
 	/** The vertical axis. @default false for values (columns), true for categories (horizontal bars) */
 	yAxis?: boolean
-	/** Play the arrival when the chart scrolls into view. @default true */
+	/**
+	 * How much motion this component uses: `full` (default) inherits the app's
+	 * policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It
+	 * can only turn motion down — it never overrides a reader's reduce-motion
+	 * setting. The arrival and the data-change morph are the flourish; the hover
+	 * dim and the gliding cursor are the feedback `subtle` keeps.
+	 */
+	motion?: MotionLevel
+	/**
+	 * Play the arrival when the chart scrolls into view. `animate={false}` is
+	 * `motion="subtle"`.
+	 * @deprecated Use `motion="subtle"` (what `animate={false}` now maps to: no arrival, hover kept) or `motion="off"`.
+	 */
 	animate?: boolean
 	/** The highlighted row (controlled). `null` for none. */
 	activeIndex?: number | null
@@ -101,7 +115,8 @@ export function CartesianChart(props: CartesianChartProps) {
 		locale,
 		tooltip = true,
 		legend,
-		animate = true,
+		motion,
+		animate,
 		activeIndex,
 		defaultActiveIndex,
 		onActiveIndexChange,
@@ -231,7 +246,7 @@ export function CartesianChart(props: CartesianChartProps) {
 			className={className}
 			count={n}
 			interactive={tooltip !== false}
-			animate={animate}
+			motion={chartMotion(motion, animate)}
 			activeIndex={activeIndex}
 			defaultActiveIndex={defaultActiveIndex}
 			onActiveIndexChange={onActiveIndexChange}
@@ -357,20 +372,19 @@ export function CartesianChart(props: CartesianChartProps) {
 								d = rectPath(offset, y, thickness, h, positive ? [r, r, 0, 0] : [0, 0, r, r])
 								origin = `0px ${L.base}px`
 							}
+							// The bars off the hovered row step back toward the surface (see
+							// ./dim): solid, so gridlines never strike through a dimmed column.
 							const dim = active != null && active !== i
 							marks.push(
 								<path
 									key={`b${k}-${i}`}
 									d={d}
-									className={cn(
-										horizontal ? "[[data-reveal=out]_&]:scale-x-0" : "[[data-reveal=out]_&]:scale-y-0",
-										dim && "opacity-40",
-									)}
+									className={horizontal ? "[[data-reveal=out]_&]:scale-x-0" : "[[data-reveal=out]_&]:scale-y-0"}
 									style={{
 										...pathStyle(d),
-										fill: colorAt(k, i),
+										fill: dim ? dimmed(colorAt(k, i), 38) : colorAt(k, i),
 										transformOrigin: origin,
-										transition: barTransition(stagger(i)),
+										transition: `${barTransition(stagger(i))}, ${FILL_HOVER}`,
 									} as CSSProperties}
 								/>,
 							)
@@ -464,7 +478,7 @@ export function CartesianChart(props: CartesianChartProps) {
 											r={4}
 											strokeWidth={2}
 											className={cn(SURFACE, "[[data-reveal=out]_&]:opacity-0")}
-											style={{ fill: colorBy === "index" ? colorAt(k, i) : s.colorValue, transition: morphTransition(), transitionDelay: `calc(${300 + i * 25}ms * var(--motion-scale, 1))` }}
+											style={{ fill: colorBy === "index" ? colorAt(k, i) : s.colorValue, transition: morphTransition(), transitionDelay: `calc(${300 + i * 25}ms * var(--motion-scale, 1) * var(--motion-expressive, 1))` }}
 										/>,
 									)
 								if (labels)

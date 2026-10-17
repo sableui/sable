@@ -141,3 +141,27 @@ describe("SidebarBrand", () => {
 		expect(rail.className).not.toContain("[--background:var(--sidebar)]")
 	})
 })
+
+describe("Sidebar label fade", () => {
+	const label = () => screen.getByText("Home")
+	const rail = (collapsed: boolean) => (
+		<Sidebar collapsed={collapsed}>
+			<SidebarNav>
+				<SidebarItem icon={<span />} label="Home" />
+			</SidebarNav>
+		</Sidebar>
+	)
+
+	it("shows an expanded rail's labels at rest on first paint — @starting-style would fade them in on load", () => {
+		render(rail(false))
+		expect(label().className).not.toContain("starting:opacity-0")
+	})
+
+	it("fades labels in when the rail reopens after a collapse", () => {
+		const view = render(rail(false))
+		view.rerender(rail(true))
+		expect(screen.queryByText("Home")).not.toBeInTheDocument()
+		view.rerender(rail(false))
+		expect(label().className).toContain("starting:opacity-0")
+	})
+})

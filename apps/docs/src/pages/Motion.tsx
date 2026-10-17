@@ -1,11 +1,18 @@
 import {
 	Button,
 	Card,
+	Checkbox,
+	CodeBlock,
 	cn,
 	Collapsible,
 	CollapsiblePanel,
 	CollapsibleTrigger,
+	Field,
+	Grid,
+	Input,
+	type MotionLevel,
 	type MotionPolicy,
+	MotionScope,
 	PageLoader,
 	Popover,
 	PopoverContent,
@@ -18,11 +25,16 @@ import {
 	Skeleton,
 	Spinner,
 	StatusDot,
+	Switch,
+	Tabs,
+	TabsList,
+	TabsTrigger,
 	TextReveal,
 	Toggle,
 	ToggleGroup,
 	useInView,
 	useMotion,
+	useShake,
 } from "@sableui/react"
 import { type CSSProperties, useEffect, useState } from "react"
 import { Example, PageHeader, Section } from "../components/docs-ui"
@@ -45,11 +57,40 @@ const EASINGS = [
 	["ease-bounce", "A playful pop, used sparingly"],
 ] as const
 
+/** The site-wide level. System follows the reader's reduce-motion setting. */
 const POLICIES: { value: MotionPolicy; label: string }[] = [
-	{ value: "system", label: "Follow system" },
-	{ value: "full", label: "On" },
+	{ value: "system", label: "System" },
+	{ value: "full", label: "Full" },
+	{ value: "subtle", label: "Subtle" },
 	{ value: "off", label: "Off" },
 ]
+
+/** What the resolved level means, said once under the control. */
+const LEVEL_NOTES: Record<MotionLevel, string> = {
+	full: "Everything plays, flourishes included.",
+	subtle: "Feedback, overlays, disclosure and loaders play; glides, ticks, shakes and staggers resolve at once.",
+	off: "Nothing moves. Every state still changes.",
+}
+
+/** The two kinds of motion, for the reference beside the side-by-side demo. */
+const KINDS = [
+	{
+		title: "Essential",
+		level: "Plays at Full and Subtle",
+		items: ["Colour and focus feedback", "A press", "An overlay arriving", "A panel opening", "Loaders", "Chart hover"],
+	},
+	{
+		title: "Expressive",
+		level: "Plays at Full only",
+		items: ["An indicator gliding between options", "Rolling numbers", "A tick drawing in", "A shake on a wrong answer", "Staggers and scroll reveals", "Charts rising, springs overshooting"],
+	},
+] as const
+
+const LEVEL_CODE = `// The whole app, overlays included
+<MotionProvider defaultPolicy="subtle">{app}</MotionProvider>
+
+// One dense region
+<MotionScope level="subtle">{table}</MotionScope>`
 
 /** The Customize panel's speed, minus "Still" (that is the policy's Off). */
 const SPEEDS: { value: Motion; label: string }[] = [
@@ -148,8 +189,66 @@ function SplashBoot({ active }: { active: boolean }) {
 	)
 }
 
+/**
+ * One small composition with both kinds of motion in it, rendered twice on the
+ * page: as is, and inside <MotionScope level="subtle">. Same components, same
+ * interactions; only the level differs, so the difference IS the distinction.
+ * No overlays here: they portal out of the scope and follow the site setting.
+ */
+function LevelDemo({ title, note }: { title: string; note: string }) {
+	const { shake, shakeProps } = useShake()
+	const [error, setError] = useState<string | null>(null)
+	return (
+		<Card className="grid content-start gap-5 p-5">
+			<div className="grid gap-1">
+				<p className="text-title-sm">{title}</p>
+				<p className="text-body-sm text-muted-foreground">{note}</p>
+			</div>
+			<TextReveal as="p" className="text-heading-3" text="Your workspace is ready." />
+			<Tabs defaultValue="week">
+				<TabsList variant="pill">
+					<TabsTrigger value="day">Day</TabsTrigger>
+					<TabsTrigger value="week">Week</TabsTrigger>
+					<TabsTrigger value="month">Month</TabsTrigger>
+				</TabsList>
+			</Tabs>
+			<div className="flex flex-wrap gap-x-6 gap-y-3">
+				<Field label="Email me" orientation="horizontal">
+					<Checkbox defaultChecked />
+				</Field>
+				<Field label="Sync" orientation="horizontal">
+					<Switch defaultChecked />
+				</Field>
+			</div>
+			{/* The shake is the flourish; the error colour and message are the
+			    answer, so under Subtle the refusal still reads. */}
+			<div className="motion-shake" {...shakeProps}>
+				<Field
+					label="One-time code"
+					error={error}
+					trailing={
+						<Button
+							variant="secondary"
+							onClick={() => {
+								setError("That code didn't match.")
+								shake()
+							}}
+						>
+							Verify
+						</Button>
+					}
+				>
+					<Input defaultValue="000000" inputMode="numeric" onChange={() => setError(null)} />
+				</Field>
+			</div>
+		</Card>
+	)
+}
+
 export function MotionPage() {
-	const { policy, setPolicy, enabled, prefersReducedMotion } = useMotion()
+	const { policy, setPolicy, enabled, expressive, prefersReducedMotion } = useMotion()
+	const level: MotionLevel = !enabled ? "off" : expressive ? "full" : "subtle"
+	const [levelRun, setLevelRun] = useState(0)
 	const { look, setLook } = useCustomizer()
 	const [progress, setProgress] = useState(40)
 	const durations = useDemoRun()
@@ -175,31 +274,63 @@ export function MotionPage() {
 			<PageHeader
 				eyebrow="Foundations"
 				title="Motion"
-				lede="Motion shows where something came from, what responded, and that work is happening. It stays subtle, and one switch turns it all off."
+				lede="Motion shows where something came from, what responded, and that work is happening. It stays quiet, comes in three levels, and one switch turns it all off."
 			/>
 
 			<Section
 				title="Control"
-				description="One switch turns every animation off. Speed rescales every duration at once, the same setting as Customize → Motion."
+				description="Three levels for the whole site: Full, Subtle (essential motion only), or Off. System follows your device's reduce-motion setting. Speed rescales every duration at once, the same setting as Customize → Motion."
 			>
-				<Example className="flex-col items-start gap-5">
+				<Example className="flex-col items-start gap-5" motionControl={false}>
 					<div className="grid gap-2">
 						<span id="motion-policy-label" className="text-label-md text-muted-foreground">Motion</span>
-						<ToggleGroup aria-labelledby="motion-policy-label" value={[policy]} onValueChange={(values) => { if (values[0]) setPolicy(values[0] as MotionPolicy) }}>
+						{/* "reduced" is a synonym for off; another caller may have set it. */}
+						<ToggleGroup appearance="segmented" aria-labelledby="motion-policy-label" value={[policy === "reduced" ? "off" : policy]} onValueChange={(values) => { if (values[0]) setPolicy(values[0] as MotionPolicy) }}>
 							{POLICIES.map((p) => <Toggle key={p.value} value={p.value}>{p.label}</Toggle>)}
 						</ToggleGroup>
 					</div>
 					<div className="grid gap-2">
 						<span id="motion-speed-label" className="text-label-md text-muted-foreground">Speed</span>
-						<ToggleGroup aria-labelledby="motion-speed-label" value={[look.motion]} onValueChange={(values) => { if (values[0]) setLook({ motion: values[0] as Motion, motionBase: null }) }}>
+						<ToggleGroup appearance="segmented" aria-labelledby="motion-speed-label" value={[look.motion]} onValueChange={(values) => { if (values[0]) setLook({ motion: values[0] as Motion, motionBase: null }) }}>
 							{SPEEDS.map((speed) => <Toggle key={speed.value} value={speed.value} disabled={!enabled}>{speed.label}</Toggle>)}
 						</ToggleGroup>
 					</div>
-					<p role="status" className="text-body-sm text-muted-foreground">
-						Motion is <strong className="text-foreground">{enabled ? "on" : "off"}</strong>
-						{policy === "system" ? <> — your system {prefersReducedMotion ? "asks for reduced motion" : "allows motion"}.</> : "."}
+					<p role="status" className="text-body-sm text-muted-foreground max-w-(--measure-prose)">
+						Motion is <strong className="text-foreground">{POLICIES.find((p) => p.value === level)?.label.toLowerCase()}</strong>
+						{policy === "system" ? <> — your system {prefersReducedMotion ? "asks for reduced motion" : "allows motion"}</> : null}. {LEVEL_NOTES[level]}
 					</p>
 				</Example>
+			</Section>
+
+			<Section
+				title="Essential and expressive"
+				description="Essential motion answers you: a press, a state that changed, a surface that arrived. Expressive motion narrates: an indicator gliding to the new tab, a tick drawing in, a wrong code shaking, words arriving one by one. Subtle keeps the first and drops the second. Both halves below are the same components; try each."
+			>
+				<Example className="items-stretch" motionControl={false} onReplay={() => setLevelRun((run) => run + 1)}>
+					<div className="grid w-full gap-4 md:grid-cols-2">
+						<LevelDemo key={`full-${levelRun}`} title="Full" note="Both kinds play." />
+						<MotionScope level="subtle">
+							<LevelDemo key={`subtle-${levelRun}`} title="Subtle" note={'Inside <MotionScope level="subtle">.'} />
+						</MotionScope>
+					</div>
+				</Example>
+				<Grid cols={{ base: 1, md: 2 }} gap={2}>
+					{KINDS.map((kind) => (
+						<div key={kind.title} className="rounded-xl border border-border p-5">
+							<p className="text-title-sm">{kind.title}</p>
+							<p className="text-body-sm text-muted-foreground mb-3">{kind.level}</p>
+							<ul className="text-body-sm text-muted-foreground grid gap-1.5">
+								{kind.items.map((item) => <li key={item}>{item}</li>)}
+							</ul>
+						</div>
+					))}
+				</Grid>
+				<p className="text-body-md text-muted-foreground max-w-(--measure-prose)">
+					Set a level for the whole app, or turn one region down. A scope can only lower motion, never raise it past
+					what the reader asked for. Every preview on the component pages carries the same control, beside its copy
+					button.
+				</p>
+				<CodeBlock code={LEVEL_CODE} />
 			</Section>
 
 			<Section title="Durations" description="Small things move fast; big things take a little longer.">

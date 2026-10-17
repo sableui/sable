@@ -38,7 +38,7 @@ export const buttonMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
-					"For a copy control, pair an icon Button with `useCopy(text, { timeout? })`. It takes the text when the hook is called and returns `{ copy, copied }`; `copy()` takes no argument, so pass the value the button copies to the hook, not to `copy`. Text that costs something to produce (a file to fetch) goes in as a function, `useCopy(() => fetch(url).then((r) => r.text()))`, called only on click.",
+					"For a copy control, pair an icon Button with `useCopy(text, { timeout? })`. It takes the text when the hook is called and returns `{ copy, copied }`; `copy()` takes no argument, so pass the value the button copies to the hook, not to `copy`. Text that costs something to produce (a file to fetch) goes in as a function, `useCopy(() => fetch(url).then((r) => r.text()))`, called only on click. Keep both glyphs mounted in a `motion-icon-swap` cell so the copy mark visibly becomes a check (a `copied ? \"check\" : \"copy\"` swap snaps between frames and is easy to miss), and say \"Copied\" in a polite `role=\"status\"` region: the glyph change is silent to a screen reader.",
 			},
 			{
 				guidance: "do",
@@ -149,7 +149,7 @@ export const buttonMeta: ComponentMeta = {
 			type: "boolean",
 			default: "false",
 			description:
-				"Show a leading Spinner while an action is in flight and refuse presses. Sets aria-busy and aria-disabled, never the native disabled: disabling the focused button sent focus to <body>, so a sheet the action opened had nowhere to return it.",
+				"Show a Spinner while an action is in flight and refuse presses. The spinner takes the iconStart slot when there is one; otherwise it lays over the label, which fades out in place, so the button keeps its width. Sets aria-busy and aria-disabled, never the native disabled: disabling the focused button sent focus to <body>, so a sheet the action opened had nowhere to return it.",
 		},
 		{
 			name: "onClick",
@@ -166,7 +166,7 @@ export const buttonMeta: ComponentMeta = {
 		{
 			name: "loadingLabel",
 			type: "ReactNode",
-			description: "Optional text shown in place of children while loading.",
+			description: "Optional text shown in place of children while loading, with the spinner beside it. The width follows the new text, so prefer no loadingLabel where the row must not move.",
 		},
 		{
 			name: "iconStart",
@@ -237,9 +237,9 @@ export const buttonMeta: ComponentMeta = {
 		},
 		{
 			slot: "transition",
-			recipe: "none",
-			part: "Root",
-			why: "A button has no state of its own to move between. A control that toggles is a Switch or a Toggle, and those carry the transition.",
+			recipe: "motion-appear",
+			part: "Spinner",
+			why: "Going busy is the one state change a button has. The spinner fades in where it mounts — in the icon slot, or laid over a plain label that fades out beneath it and keeps its place — so the width never changes and the row does not shift under the pointer that just pressed it. The label fades back when the work settles. A toggling control is a Switch or a Toggle; those carry their own transition.",
 		},
 		{
 			slot: "activity",
@@ -273,7 +273,7 @@ export const buttonMeta: ComponentMeta = {
 		},
 		{
 			label: "Copy to clipboard",
-			code: 'const { copy, copied } = useCopy(address)\n<Button variant="ghost" size="icon-sm" aria-label="Copy address" onClick={copy}><Icon name={copied ? "check" : "copy"} /></Button>',
+			code: 'const { copy, copied } = useCopy(address)\n<Row gap={1}><Button variant="ghost" size="icon-sm" aria-label="Copy address" onClick={copy}><span aria-hidden="true" className="motion-icon-swap"><span data-active={!copied} className="inline-flex"><Icon name="copy" /></span><span data-active={copied} className="inline-flex"><Icon name="check" /></span></span></Button><span role="status" className="sr-only">{copied ? "Copied" : ""}</span></Row>',
 		},
 		{
 			label: "As link",

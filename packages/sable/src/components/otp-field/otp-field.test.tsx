@@ -1,6 +1,6 @@
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
-import { renderWithProviders, screen } from "../../test/render"
+import { renderWithProviders, screen, waitFor } from "../../test/render"
 import { Field } from "../form"
 import { OtpField } from "./otp-field"
 
@@ -65,6 +65,32 @@ describe("OtpField", () => {
 		for (const slot of screen.getAllByRole("textbox")) {
 			expect(slot).toHaveAttribute("aria-invalid", "true")
 		}
+	})
+
+	it("shakes once when it turns invalid, not when it mounts invalid", async () => {
+		const { rerender } = renderWithProviders(<OtpField length={4} aria-label="Code" />)
+		const group = screen.getByRole("group")
+		expect(group).toHaveClass("motion-shake")
+		expect(group).not.toHaveAttribute("data-shake")
+		rerender(<OtpField length={4} aria-label="Code" aria-invalid />)
+		await waitFor(() => expect(group).toHaveAttribute("data-shake"))
+		for (const slot of screen.getAllByRole("textbox")) {
+			expect(slot).toHaveClass("aria-[invalid=true]:text-destructive")
+		}
+	})
+
+	it("does not shake a field that arrives with an error", async () => {
+		renderWithProviders(<OtpField length={4} aria-label="Code" aria-invalid />)
+		const group = screen.getByRole("group")
+		await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+		expect(group).not.toHaveAttribute("data-shake")
+	})
+
+	it("turns its own motion down through data-motion", () => {
+		const { rerender } = renderWithProviders(<OtpField length={4} aria-label="Code" />)
+		expect(screen.getByRole("group")).not.toHaveAttribute("data-motion")
+		rerender(<OtpField length={4} aria-label="Code" motion="subtle" />)
+		expect(screen.getByRole("group")).toHaveAttribute("data-motion", "subtle")
 	})
 
 	it("hides the group gap from assistive tech", () => {

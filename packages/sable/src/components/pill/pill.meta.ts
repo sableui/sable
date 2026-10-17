@@ -104,6 +104,38 @@ export const pillMeta: ComponentMeta = {
 		"muted-foreground",
 		"foreground",
 	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "Pills arrive with the filter row or the content they annotate. A chip that animated in alone would read as a filter someone just added.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Root",
+			why: "The hover wash eases, so sweeping the pointer along a filter row reads as one cursor moving rather than chips flashing in turn.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-press",
+			part: "Root",
+			why: "A pill often toggles a filter that takes a moment to reach the results; the settle on press confirms the click landed before they change.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-interactive",
+			part: "Root",
+			why: "`selected` lifts the chip onto its selected surface on the same ease, so toggling reads as this chip changing state, not a different chip appearing in its place.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "A chip is a choice, not a process. If applying it is slow, the results show it.",
+		},
+	],
 	a11y: [
 		"Renders a native <button type=\"button\"> for focus and keyboard activation.",
 		"Selected state is exposed via aria-pressed.",

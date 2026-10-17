@@ -60,3 +60,22 @@ describe("ThemeSwitcher glide", () => {
 		expect(pill?.getAttribute("style") ?? "").not.toContain("rem")
 	})
 })
+
+describe("ThemeSwitcher motion", () => {
+	it("glides on the motion-glide recipe, so subtle can land it in place", () => {
+		// A hand-written `duration-(--motion-duration-base)` here ignored the
+		// expressive level: motion="subtle" still slid the pill.
+		const { container } = render(<ThemeSwitcher value="dark" onValueChange={() => {}} />)
+		const pill = container.querySelector<HTMLElement>("span[aria-hidden]")
+		expect(pill).toHaveClass("motion-glide")
+		expect(pill?.className).not.toContain("duration-")
+	})
+
+	it("only sets data-motion when turned down", () => {
+		const { container, rerender } = render(<ThemeSwitcher value="dark" onValueChange={() => {}} />)
+		const group = () => container.querySelector('[role="radiogroup"]')!
+		expect(group()).not.toHaveAttribute("data-motion")
+		rerender(<ThemeSwitcher value="dark" onValueChange={() => {}} motion="subtle" />)
+		expect(group()).toHaveAttribute("data-motion", "subtle")
+	})
+})

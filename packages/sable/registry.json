@@ -949,6 +949,12 @@
         "motion-slide-right",
         "motion-disclosure",
         "motion-icon-swap",
+        "motion-glide",
+        "motion-shake",
+        "motion-tick",
+        "motion-appear",
+        "motion-arrive",
+        "motion-size",
         "motion-reveal",
         "motion-draw",
         "motion-spin",
@@ -966,6 +972,7 @@
       ],
       "policy": [
         "data-motion=full",
+        "data-motion=subtle",
         "data-motion=reduced",
         "data-motion=off",
         "prefers-reduced-motion"
@@ -2810,6 +2817,12 @@
           "why": "Panel height is the only cue that content came from THIS header rather than appearing at the bottom of the page. Snapping it open moves everything below by a screenful with nothing connecting cause to effect."
         },
         {
+          "slot": "transition",
+          "recipe": "motion-interactive",
+          "part": "Chevron",
+          "why": "The chevron turning is the header's half of the same event as the panel opening. motion-interactive lists `rotate` (what Tailwind's rotate-* writes), so it turns with the panel instead of flipping 180° in one frame beside an easing panel. A custom `indicator` that rotates should carry motion-interactive itself."
+        },
+        {
           "slot": "activity",
           "recipe": "none",
           "part": "Root",
@@ -2821,7 +2834,7 @@
         "Arrow keys move roving focus between triggers; Home/End jump to the first/last; loopFocus wraps by default.",
         "Each trigger toggles its panel with Enter/Space; the panel is announced as a labelled region.",
         "A disabled AccordionItem dims and is skipped by keyboard focus while neighbouring items stay interactive.",
-        "The chevron rotation is driven by data-[panel-open] and the focus ring by focus-visible — both honor reduced-motion via the consumer's transitions."
+        "The chevron rotation is driven by data-[panel-open] and the focus ring by focus-visible; both ride motion-interactive, so reduced motion stills them with everything else."
       ],
       "examples": [
         {
@@ -2836,7 +2849,7 @@
         },
         {
           "label": "Custom indicator (plus-becomes-×)",
-          "code": "<Accordion defaultValue={[\"a\"]}><AccordionItem value=\"a\"><AccordionTrigger indicator={<Icon name=\"plus\" className=\"text-xs text-muted-foreground transition-transform [[data-panel-open]_&]:rotate-45\" />}>Can I cancel anytime?</AccordionTrigger><AccordionPanel>Yes — from billing settings.</AccordionPanel></AccordionItem></Accordion>",
+          "code": "<Accordion defaultValue={[\"a\"]}><AccordionItem value=\"a\"><AccordionTrigger indicator={<Icon name=\"plus\" className=\"text-xs text-muted-foreground motion-interactive [[data-panel-open]_&]:rotate-45\" />}>Can I cancel anytime?</AccordionTrigger><AccordionPanel>Yes — from billing settings.</AccordionPanel></AccordionItem></Accordion>",
           "imports": "import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger, Icon } from \"@sableui/react\""
         }
       ]
@@ -3215,10 +3228,17 @@
           "description": "The vertical axis."
         },
         {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The arrival (draw-on, rising fill) and the data-change morph are the flourish; the gliding cursor and tooltip are the feedback `subtle` keeps."
+        },
+        {
           "name": "animate",
           "type": "boolean",
           "default": "true",
-          "description": "Play the arrival once the chart scrolls into view. Reduced motion shows the finished chart."
+          "description": "Play the arrival once the chart scrolls into view. Reduced motion shows the finished chart. `animate={false}` is `motion=\"subtle\"`.",
+          "deprecated": "motion=\"subtle\" (what animate={false} now maps to: no arrival, hover kept) or motion=\"off\""
         },
         {
           "name": "activeIndex",
@@ -3273,7 +3293,7 @@
           "slot": "arrival",
           "recipe": "custom",
           "part": "Area + line",
-          "why": "Once on screen, each line draws on (stroke-dashoffset) and its fill rises from the baseline, series staggered — the trend is read as it is drawn. On the motion tokens; reduced motion shows the finished chart."
+          "why": "Once on screen, each line draws on (stroke-dashoffset) and its fill rises from the baseline, series staggered — the trend is read as it is drawn. On the motion tokens; reduced motion shows the finished chart. The arrival is expressive: it plays at the full motion level only, so `motion=\"subtle\"` (or a subtle app policy) shows the finished chart while hover feedback stays."
         },
         {
           "slot": "response",
@@ -3285,7 +3305,7 @@
           "slot": "transition",
           "recipe": "custom",
           "part": "Area + line",
-          "why": "Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place."
+          "why": "Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place. Expressive, like the arrival: under `subtle` new data swaps in place."
         },
         {
           "slot": "activity",
@@ -3475,6 +3495,32 @@
         "overlay",
         "overlay-foreground",
         "ring"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "An attachment lands as part of a composer or a message, and that surface owns the entrance. A card that animated in on its own would read as a second, separate event — as if another file had been added."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Root",
+          "why": "With `onOpen`, the edge steps up under the pointer; it is the only cue that the card itself opens the file, not just its actions. Eased, it reads as the card answering the cursor rather than a border flickering as the pointer crosses a busy composer."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-interactive",
+          "part": "Root",
+          "why": "Uploading to failed re-colours the edge and fill without changing the shape. The ease keeps it legible as the same file turning red; snapped, a failed card looks like a different card replaced the one that was sent."
+        },
+        {
+          "slot": "activity",
+          "recipe": "motion-pulse",
+          "part": "Progress",
+          "why": "While uploading with no known `progress`, the bar is indeterminate and pulses (Progress's own recipe); with a number, the fill eases toward each new value. A still bar at a fixed width is indistinguishable from an upload that has stalled."
+        }
       ],
       "a11y": [
         "The full-card trigger is a real stretched `<button>` with an accessible label, not a click handler on a div — so it is one tab stop, keyboard-activatable, and focus-ringed.",
@@ -4341,10 +4387,17 @@
           "description": "The vertical axis."
         },
         {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The arrival (bars rising in sequence) and the data-change morph are the flourish; the hover dim and gliding cursor are the feedback `subtle` keeps."
+        },
+        {
           "name": "animate",
           "type": "boolean",
           "default": "true",
-          "description": "Play the arrival once the chart scrolls into view. Reduced motion shows the finished chart."
+          "description": "Play the arrival once the chart scrolls into view. Reduced motion shows the finished chart. `animate={false}` is `motion=\"subtle\"`.",
+          "deprecated": "motion=\"subtle\" (what animate={false} now maps to: no arrival, hover kept) or motion=\"off\""
         },
         {
           "name": "activeIndex",
@@ -4422,19 +4475,19 @@
           "slot": "arrival",
           "recipe": "custom",
           "part": "Bar",
-          "why": "Once on screen, bars rise from the baseline in sequence on the emphasized easing (scale from the zero line) and their labels fade in. On the motion tokens; reduced motion shows the finished chart."
+          "why": "Once on screen, bars rise from the baseline in sequence on the emphasized easing (scale from the zero line) and their labels fade in. On the motion tokens; reduced motion shows the finished chart. The arrival is expressive: it plays at the full motion level only, so `motion=\"subtle\"` (or a subtle app policy) shows the finished chart while hover feedback stays."
         },
         {
           "slot": "response",
           "recipe": "none",
           "part": "Cursor + tooltip",
-          "why": "The hovered category gets a band behind it and the other bars dim at once — a lagging highlight reads as a slow chart."
+          "why": "The hovered category gets a band behind it and the other bars dim at once — a lagging highlight reads as a slow chart. The dim mixes each bar toward the surface instead of fading it, so gridlines never strike through a dimmed column and stacked segments stay solid. Essential: `subtle` keeps it."
         },
         {
           "slot": "transition",
           "recipe": "custom",
           "part": "Bar",
-          "why": "Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place."
+          "why": "Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place. Expressive, like the arrival: under `subtle` new data swaps in place."
         },
         {
           "slot": "activity",
@@ -4533,6 +4586,38 @@
         "muted-foreground",
         "foreground",
         "ring"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Fixed app chrome, present from the first paint of every screen. Animating it in on navigation would make each route change look like the app restarting."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "BottomNavItem",
+          "why": "The ink steps up on hover and the focus ring eases in, so a pointer or a keyboard on a tablet gets the same answer as every other control in the app."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-press",
+          "part": "BottomNavItem",
+          "why": "On a phone there is no hover to say a tap landed, and a route can take a beat to paint. The settle on press is the receipt; without it people tap the tab a second time."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-interactive",
+          "part": "BottomNavItem",
+          "why": "Changing tab eases the active ink out of one item and into the next. It is a cross-fade, not a travelling indicator: each item owns its colour, so there is no single mark to glide."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Navigation has no working state of its own. A slow route shows its pending state in the page it is loading, not in the tab bar."
+        }
       ],
       "a11y": [
         "BottomNav renders a <nav> landmark.",
@@ -4647,6 +4732,32 @@
       "tokensUsed": [
         "muted-foreground",
         "foreground"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "The trail is page furniture, rendered with the page header. An entrance would replay on every navigation, which is exactly when the reader looks at it to get their bearings."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "BreadcrumbLink",
+          "why": "Ancestors are muted until hovered or focused. Easing the ink makes the trail read as links answering the pointer; a hard snap across a row of small text looks like flicker."
+        },
+        {
+          "slot": "transition",
+          "recipe": "none",
+          "part": "Root",
+          "why": "A breadcrumb has no state of its own. The current page changes by navigation, which replaces the trail; animating between two trails would imply the path itself moved."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "It never works in the background. A route that is still loading says so in the page, not in its address."
+        }
       ],
       "a11y": [
         "The <nav> carries aria-label=\"Breadcrumb\" so assistive tech announces the landmark.",
@@ -4958,7 +5069,7 @@
           },
           {
             "guidance": "do",
-            "description": "For a copy control, pair an icon Button with `useCopy(text, { timeout? })`. It takes the text when the hook is called and returns `{ copy, copied }`; `copy()` takes no argument, so pass the value the button copies to the hook, not to `copy`. Text that costs something to produce (a file to fetch) goes in as a function, `useCopy(() => fetch(url).then((r) => r.text()))`, called only on click."
+            "description": "For a copy control, pair an icon Button with `useCopy(text, { timeout? })`. It takes the text when the hook is called and returns `{ copy, copied }`; `copy()` takes no argument, so pass the value the button copies to the hook, not to `copy`. Text that costs something to produce (a file to fetch) goes in as a function, `useCopy(() => fetch(url).then((r) => r.text()))`, called only on click. Keep both glyphs mounted in a `motion-icon-swap` cell so the copy mark visibly becomes a check (a `copied ? \"check\" : \"copy\"` swap snaps between frames and is easy to miss), and say \"Copied\" in a polite `role=\"status\"` region: the glyph change is silent to a screen reader."
           },
           {
             "guidance": "do",
@@ -5059,7 +5170,7 @@
           "name": "loading",
           "type": "boolean",
           "default": "false",
-          "description": "Show a leading Spinner while an action is in flight and refuse presses. Sets aria-busy and aria-disabled, never the native disabled: disabling the focused button sent focus to <body>, so a sheet the action opened had nowhere to return it."
+          "description": "Show a Spinner while an action is in flight and refuse presses. The spinner takes the iconStart slot when there is one; otherwise it lays over the label, which fades out in place, so the button keeps its width. Sets aria-busy and aria-disabled, never the native disabled: disabling the focused button sent focus to <body>, so a sheet the action opened had nowhere to return it."
         },
         {
           "name": "onClick",
@@ -5074,7 +5185,7 @@
         {
           "name": "loadingLabel",
           "type": "ReactNode",
-          "description": "Optional text shown in place of children while loading."
+          "description": "Optional text shown in place of children while loading, with the spinner beside it. The width follows the new text, so prefer no loadingLabel where the row must not move."
         },
         {
           "name": "iconStart",
@@ -5152,9 +5263,9 @@
         },
         {
           "slot": "transition",
-          "recipe": "none",
-          "part": "Root",
-          "why": "A button has no state of its own to move between. A control that toggles is a Switch or a Toggle, and those carry the transition."
+          "recipe": "motion-appear",
+          "part": "Spinner",
+          "why": "Going busy is the one state change a button has. The spinner fades in where it mounts — in the icon slot, or laid over a plain label that fades out beneath it and keeps its place — so the width never changes and the row does not shift under the pointer that just pressed it. The label fades back when the work settles. A toggling control is a Switch or a Toggle; those carry their own transition."
         },
         {
           "slot": "activity",
@@ -5195,8 +5306,8 @@
         },
         {
           "label": "Copy to clipboard",
-          "code": "const { copy, copied } = useCopy(address)\n<Button variant=\"ghost\" size=\"icon-sm\" aria-label=\"Copy address\" onClick={copy}><Icon name={copied ? \"check\" : \"copy\"} /></Button>",
-          "imports": "import { Button, Icon, useCopy } from \"@sableui/react\""
+          "code": "const { copy, copied } = useCopy(address)\n<Row gap={1}><Button variant=\"ghost\" size=\"icon-sm\" aria-label=\"Copy address\" onClick={copy}><span aria-hidden=\"true\" className=\"motion-icon-swap\"><span data-active={!copied} className=\"inline-flex\"><Icon name=\"copy\" /></span><span data-active={copied} className=\"inline-flex\"><Icon name=\"check\" /></span></span></Button><span role=\"status\" className=\"sr-only\">{copied ? \"Copied\" : \"\"}</span></Row>",
+          "imports": "import { Button, Icon, Row, useCopy } from \"@sableui/react\""
         },
         {
           "label": "As link",
@@ -5436,6 +5547,12 @@
           "description": "Drop the card frame (border, fill, padding) so the grid sits flush inside a surface that already has one, such as a Popover. DatePicker renders its Calendar this way."
         },
         {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` inherits the app's policy, `subtle` keeps feedback and drops the month slide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting."
+        },
+        {
           "name": "className",
           "type": "string",
           "description": "Merged onto the bordered card container that wraps the grid."
@@ -5468,6 +5585,38 @@
         "accent-foreground",
         "muted-foreground",
         "ring"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Inline, it arrives with its form; in a DatePicker the Popover carries the entrance. A grid that animated in by itself would put a second motion on the same opening."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Day",
+          "why": "Days ease their hover wash, and the month arrows are ghost Buttons on Button's own recipe. Across a seven-column grid the pointer crosses many cells at once, and an eased wash reads as a cursor travelling rather than a grid flashing."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-interactive",
+          "part": "Day",
+          "why": "Picking a day eases the primary fill onto it and off the previous one, so a click reads as the selection moving rather than two cells flipping. A range's band is painted on the cells, which carry the same recipe, so the band eases along with its endpoints as the range grows."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Days are resident data; nothing in the grid loads. Availability fetched per month belongs to the surface around the calendar."
+        },
+        {
+          "slot": "transition",
+          "recipe": "custom",
+          "part": "Month",
+          "why": "Paging months slides the outgoing grid toward the edge it is leaving by and brings the new one in from the other, over a short travel with a fade (react-day-picker's `animate` mode on Sable keyframes in styles.css), so forward and back read as direction rather than a grid swapping in one frame. RDP adds a single class per part, which a recipe utility cannot be; mirrored in RTL. Expressive: Calendar turns `animate` on only at full motion, and an explicit `animate` prop still wins."
+        }
       ],
       "a11y": [
         "react-day-picker manages the roving-tabindex grid, arrow-key navigation, and ARIA roles/labels for the calendar.",
@@ -5992,6 +6141,12 @@
           "name": "arrowClassName",
           "type": "string",
           "description": "Class for both prev/next arrow buttons. Merged through cn(), so a radius or shadow utility replaces the default rounded-full shadow-md rather than stacking with it."
+        },
+        {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the glide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Under subtle the slides still travel and the active dot snaps; off also cuts between slides and pauses autoplay."
         }
       ],
       "tokensUsed": [
@@ -6001,6 +6156,38 @@
         "popover-foreground",
         "foreground",
         "muted-foreground"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "A carousel arrives with its section. Its content already moves on every advance; an entrance on top would make the first view feel like an advance nobody asked for."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Dot",
+          "why": "The dot's 24px hit area eases its focus ring and the dot brightens under the pointer, which is how a 6px mark tells you it is a button."
+        },
+        {
+          "slot": "transition",
+          "recipe": "custom",
+          "part": "Track",
+          "why": "The slide track's translate is set inline from the measured slide pitch, on --motion-duration-slow and the emphasized easing, and switched off during a drag so the track follows the finger. A recipe cannot carry a measured, drag-interrupted offset. Essential: it is the answer to \"next\", so it plays under subtle."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-glide",
+          "part": "Dot",
+          "why": "The active dot stretches to a bar while the one it left shrinks, on one timeline, so the row keeps its length and the mark reads as travelling with the slide. It used to change width unanimated and jumped while the slides beside it glided. Expressive: motion=\"subtle\" snaps it."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Autoplay's progress is the slides themselves advancing and the play/pause control; a separate timer animation would put a second clock beside the first."
+        }
       ],
       "a11y": [
         "Region carries aria-roledescription='carousel'; each slide is a group with aria-roledescription='slide' and an 'N of M' label; clones are aria-hidden.",
@@ -6027,6 +6214,11 @@
         {
           "label": "Autoplay",
           "code": "<Carousel loop autoplay={4000} counter>{slides}</Carousel>",
+          "imports": "import { Carousel } from \"@sableui/react\""
+        },
+        {
+          "label": "Subtle motion",
+          "code": "<Carousel loop motion=\"subtle\" label=\"Gallery\">{slides}</Carousel>",
           "imports": "import { Carousel } from \"@sableui/react\""
         }
       ]
@@ -6247,6 +6439,12 @@
           "description": "Ref to the underlying textarea — for focusing after a send, or on mount, and the extension point for anything that listens to the field. Pass `useCaretTrigger`'s `fieldRef` here for mentions and slash commands (CaretMenu). An Enter another listener already handled (`preventDefault()`) does not send."
         },
         {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Under `subtle` the field snaps to its new height and the send/stop glyphs swap without the morph."
+        },
+        {
           "name": "...form props",
           "type": "Omit<ComponentPropsWithRef<\"form\">, \"onSubmit\" | \"defaultValue\">",
           "description": "Spread onto the form element. Use `onSend` rather than `onSubmit`."
@@ -6271,6 +6469,38 @@
         "secondary-foreground",
         "accent",
         "accent-foreground"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "The composer is the fixed foot of a thread, there before anything else is. An entrance would only delay the first keystroke."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Root",
+          "why": "The surface's focus ring and invalid border ease in, so focusing the field reads as the whole box waking up rather than a frame flicker."
+        },
+        {
+          "slot": "transition",
+          "recipe": "custom",
+          "part": "Field",
+          "why": "As a line breaks or a paste lands, the field eases to its new height (up to its cap) instead of jumping, so the transcript above is visibly pushed rather than teleported. `field-sizing` alone cannot ease — its height stays `auto` — so a small hook measures and pins a pixel height. Expressive and short (`fast`): the text itself lands at once, and `subtle` snaps the box."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-icon-swap",
+          "part": "Send button",
+          "why": "Send turning into stop is the moment a reply starts, and stop turning back is the moment it is over. One button changes role in place — the fill eases, the arrow collapses into the square — so it reads as the same control changing what it does, not a different button appearing under the cursor."
+        },
+        {
+          "slot": "activity",
+          "recipe": "motion-spin",
+          "part": "Send button",
+          "why": "Busy with no stop handler, Button's own loading Spinner replaces the arrow, so a send in flight is not mistaken for a disabled one."
+        }
       ],
       "a11y": [
         "A real `<form>`, so the send button is a submit button and the whole thing behaves as one control to assistive tech and to password managers alike.",
@@ -6406,6 +6636,12 @@
           "name": "render",
           "type": "ReactElement | (props, state) => ReactElement",
           "description": "Compose the root with another element through the Base UI render prop."
+        },
+        {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Under `subtle` the tick fades in instead of drawing itself."
         }
       ],
       "tokensUsed": [
@@ -6414,6 +6650,32 @@
         "primary",
         "primary-foreground",
         "ring"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "It arrives with the form it belongs to. Animating each box in turns a settings list into a title sequence."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Box",
+          "why": "The box fills with the primary colour as it is checked; easing the fill keeps the mark and the box changing as one event rather than two frames apart."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-tick",
+          "part": "Mark",
+          "why": "The check draws itself in from its leading stroke, so checking reads as the box being ticked rather than a glyph appearing. The dash wipes the same way. Unchecking only fades, so clearing a list is quick; under `subtle` checking fades too."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "A checkbox commits instantly. A slow write belongs to the surrounding form's pending state, not the control."
+        }
       ],
       "a11y": [
         "Base UI renders a hidden native <input type=checkbox> for keyboard, focus, and form semantics.",
@@ -6545,6 +6807,12 @@
           "name": "checked / onCheckedChange / defaultChecked / disabled",
           "type": "Base UI Checkbox.Root props",
           "description": "Standard checkbox state. Without a group-owned value, each card is independent — drive checked/onCheckedChange per item for multi-select."
+        },
+        {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Under `subtle` the tick fades in instead of drawing itself."
         }
       ],
       "subcomponents": [
@@ -6583,6 +6851,32 @@
         "tone-info-foreground",
         "tone-warning",
         "tone-warning-foreground"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "It arrives with the form it belongs to. Animating each box in turns a settings list into a title sequence."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Box",
+          "why": "The box fills with the primary colour as it is checked; easing the fill keeps the mark and the box changing as one event rather than two frames apart."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-tick",
+          "part": "Mark",
+          "why": "The check draws itself in from its leading stroke, so checking reads as the box being ticked rather than a glyph appearing. The dash wipes the same way. Unchecking only fades, so clearing a list is quick; under `subtle` checking fades too."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "A checkbox commits instantly. A slow write belongs to the surrounding form's pending state, not the control."
+        }
       ],
       "a11y": [
         "Base UI provides the checkbox role, aria-checked, hidden native input, keyboard toggle, and data-[checked]/data-disabled state.",
@@ -6777,9 +7071,36 @@
         "muted-foreground",
         "foreground"
       ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Code is reading content and arrives with the page or message it belongs to. An entrance of its own would delay the text someone came to copy."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Copy button",
+          "why": "The copy button is a quiet ghost icon in the corner of a block. Its hover fill is what tells the pointer it is a control and not decoration."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-icon-swap",
+          "part": "Copy glyph",
+          "why": "The copy mark turning into a check is the only proof the clipboard took the text. Snapped between frames it was easy to miss at the edge of a block; the swap reads as one mark being replaced."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Copying is instant. There is no in-between worth showing, and a spinner for a clipboard write would read as a slow one."
+        }
+      ],
       "a11y": [
         "Code renders inside a <pre><code> for correct semantics and screen-reader handling.",
-        "Copy is the ghost icon Button with `useCopy`, which guards clipboard access for SSR safety."
+        "Copy is the ghost icon Button with `useCopy`, which guards clipboard access for SSR safety.",
+        "A successful copy is announced as \"Copied\" through a polite role=status region that is always mounted; the button keeps its label, which names what it does. Both glyphs are aria-hidden."
       ],
       "examples": [
         {
@@ -6900,6 +7221,38 @@
       "tokensUsed": [
         "foreground",
         "muted-foreground"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "A collapsible is part of the page it sits in, present from first paint. Its trigger is what the reader notices, not an entrance."
+        },
+        {
+          "slot": "response",
+          "recipe": "none",
+          "part": "CollapsibleTrigger",
+          "why": "The trigger is whatever the consumer renders (usually a Button), and that control brings its own response. Adding one here would double it."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-disclosure",
+          "part": "CollapsiblePanel",
+          "why": "The height change ties the content that appears to the trigger that was pressed; snapped open, everything below jumps with nothing linking cause to effect."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-interactive",
+          "part": "CollapsibleIndicator",
+          "why": "The chevron turns with the panel rather than flipping in one frame: motion-interactive lists `rotate`, the property rotate-180 writes."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Nothing here is indeterminate; content that loads on open should put its own loader inside the panel."
+        }
       ],
       "a11y": [
         "Base UI wires aria-expanded on the trigger and aria-controls/id between trigger and panel.",
@@ -7041,6 +7394,32 @@
         "hairline-strong",
         "ring",
         "popover"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "motion-pop",
+          "part": "Popover",
+          "why": "The picker grows out of the swatch it edits (PopoverContent's recipe, its origin on the anchor). In a property panel with a column of swatches, that origin is what tells you which colour you are now editing."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Swatch",
+          "why": "Preset swatches lift slightly under the pointer. They are 20px chips of colour with no label, and the eased lift is what tells you which one a click will take."
+        },
+        {
+          "slot": "transition",
+          "recipe": "none",
+          "part": "Handles",
+          "why": "The saturation, hue and alpha handles follow the pointer exactly. A handle that trailed the drag would misreport the colour under the cursor, and a swatch or a typed hex moving them is the value changing, which the field should show at once."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Picking is synchronous. The EyeDropper is the browser's own modal, with its own feedback."
+        }
       ],
       "a11y": [
         "The trigger's accessible name includes the current value, so a screen reader announces the colour rather than just \"button\" — the swatch itself conveys nothing without sight.",
@@ -7287,6 +7666,50 @@
         "primary",
         "secondary",
         "secondary-foreground"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "motion-pop",
+          "part": "ComboboxContent",
+          "why": "The list grows from the field it filters, its origin on Base UI's anchor. With several comboboxes in a form, that is what attaches the open list to the one being typed in."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "ComboboxItem",
+          "why": "A row's ink eases as the pointer or the arrow keys reach it, so moving through a long filtered list reads as continuous movement rather than rows blinking."
+        },
+        {
+          "slot": "response",
+          "recipe": "custom",
+          "part": "Highlight",
+          "why": "One highlight travels to the active row (lib/highlight-glide: a measured translate on the motion tokens) instead of each row painting its own fill. When the list re-filters under the caret, the highlight sliding to the new match is what shows the keyboard target moved."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Toggle",
+          "why": "The chevron toggle at the field's edge eases its ink on hover; the change is what tells you it is a separate target from the text box."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-interactive",
+          "part": "Toggle",
+          "why": "The chevron turns 180° as the list opens and closes (motion-interactive lists `rotate`), in step with the popup, so it reads as one control changing direction."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-pop",
+          "part": "ComboboxContent",
+          "why": "Closing shrinks back toward the field, returning the eye to the input that now holds the value."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Combobox ships no loading part. A list fetched as you type shows a Spinner (motion-spin) in ComboboxEmpty or the content — where the results will land — and only the caller knows a fetch is in flight."
+        }
       ],
       "a11y": [
         "Base UI provides role=combobox/listbox/option, roving tabindex, arrow-key navigation, and type-to-filter.",
@@ -7582,6 +8005,44 @@
         "accent",
         "accent-foreground"
       ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "motion-pop",
+          "part": "Dialog",
+          "why": "The palette opens on DialogContent's recipe over a fading backdrop. It is summoned by a keystroke from nowhere on screen, and the short scale-in is what says a layer arrived rather than the page changing. The inline CommandMenuPanel has no entrance: it is part of the page."
+        },
+        {
+          "slot": "arrival",
+          "recipe": "motion-appear",
+          "part": "Clear button",
+          "why": "The clear button mounts on the first keystroke, beside the caret the eye is already on. Fading in, it reads as the field offering a way back instead of a control blinking into the header. Removal is instant, so an emptied query does not wait on its X."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "CommandItem",
+          "why": "The active row follows both the arrow keys and the pointer, and its fill eases between rows, so scanning results while typing reads as one highlight moving rather than rows flashing in turn."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "CommandMenuTrigger",
+          "why": "The search-shaped trigger eases its ink on hover like the field shell it imitates, so it reads as the field it opens."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-pop",
+          "part": "Dialog",
+          "why": "Closing on Enter or Esc shrinks the palette away fast and returns focus where it came from; the exit is the confirmation that the command ran or was dismissed."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "List",
+          "why": "Results are filtered synchronously from the items passed in. Async results are the caller's to mark with a Spinner (motion-spin) in the list, where the person is already looking."
+        }
+      ],
       "a11y": [
         "CommandMenuTrigger is a real <button> named by its visible placeholder, with aria-haspopup=dialog and aria-keyshortcuts (Meta+K on macOS, Control+K elsewhere). Its Kbd hint is aria-hidden, so the shortcut is announced once rather than read as part of the name.",
         "The shortcut never fires from inside a text field, textarea, select or contenteditable (Ctrl+K is delete-to-end-of-line in macOS text views), except the palette's own input.",
@@ -7635,6 +8096,223 @@
           "label": "Keyboard shortcut with no visible trigger",
           "code": "useCommandMenuShortcut(() => setOpen((value) => !value))\n<CommandMenu open={open} onOpenChange={setOpen} items={items} />",
           "imports": "import { CommandMenu, useCommandMenuShortcut } from \"@sableui/react\""
+        }
+      ]
+    },
+    {
+      "name": "ConfirmButton",
+      "status": "stable",
+      "group": "Actions",
+      "register": "either",
+      "path": "components/confirm-button",
+      "summary": "An inline two-step confirm for a low-stakes destructive or irreversible action: the first press arms it (\"Delete\" → \"Confirm delete?\", destructive), a second press within a few seconds runs it, and leaving it disarms it.",
+      "keywords": [
+        "confirm",
+        "confirmation",
+        "two-step",
+        "press again",
+        "click again",
+        "arm",
+        "delete",
+        "remove",
+        "destructive",
+        "inline confirm",
+        "hold to confirm"
+      ],
+      "usage": {
+        "description": "Use ConfirmButton when an action deserves one beat of second thought but not a modal: deleting a draft, removing a row, revoking one token, clearing a list that can be rebuilt. The question appears on the button the user is already pressing, so confirming costs one more press in the same place and backing out costs nothing.",
+        "bestPractices": [
+          {
+            "guidance": "do",
+            "description": "Keep the idle label a plain verb (\"Delete\", \"Remove\", \"Revoke\") and let the confirm label ask about it (\"Confirm delete?\" by default, or `confirmLabel`). The user should read the consequence on the very control they are about to press again."
+          },
+          {
+            "guidance": "do",
+            "description": "Leave room for it to grow. The button eases wider to fit the question, so give it space at the end of a row or in a table's action column rather than wedging it between fixed-width neighbours."
+          },
+          {
+            "guidance": "do",
+            "description": "Return the promise from `onConfirm` when the action is async. The button stays armed with a spinner until it settles and refuses further presses, so a slow network cannot run it twice."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not use it for high-stakes or wide-reaching actions — deleting a project, an account, anything other people depend on. Those need the consequence spelled out and a typed or deliberate confirmation; use DestructiveActionModal.",
+            "instead": [
+              "DestructiveActionModal"
+            ]
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not use it where an undo is possible. If the action can be reversed, run it on the first press and offer Undo in a Toast — no question at all is faster than a good question.",
+            "instead": [
+              "Toast"
+            ]
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not use it for a non-destructive primary action (\"Save\", \"Send\"). Asking twice for something harmless teaches people to press twice without reading, which is what defeats the confirm when it matters; use Button.",
+            "instead": [
+              "Button"
+            ]
+          }
+        ]
+      },
+      "related": {
+        "components": [
+          "Button",
+          "DestructiveActionModal",
+          "Toast",
+          "OverflowMenu"
+        ]
+      },
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "description": "The idle label — the action, e.g. \"Delete\"."
+        },
+        {
+          "name": "confirmLabel",
+          "type": "ReactNode",
+          "default": "\"Confirm <label>?\"",
+          "description": "The label while armed. Defaults to \"Confirm delete?\" for a text label \"Delete\" (first letter lowered) and \"Confirm?\" otherwise. Pass it to localise."
+        },
+        {
+          "name": "onConfirm",
+          "type": "() => unknown",
+          "description": "Runs on the second press while armed. Return a promise to hold the button armed with a spinner until it settles."
+        },
+        {
+          "name": "timeout",
+          "type": "number",
+          "default": "3000",
+          "description": "How long it waits for the second press, in ms. A decision time, so it is not scaled by motion settings."
+        },
+        {
+          "name": "variant",
+          "type": "ButtonVariant",
+          "default": "\"secondary\"",
+          "description": "The idle look — any Button variant."
+        },
+        {
+          "name": "confirmVariant",
+          "type": "ButtonVariant",
+          "default": "\"destructive\"",
+          "description": "The armed look — any Button variant."
+        },
+        {
+          "name": "size",
+          "type": "\"xs\" | \"sm\" | \"md\" | \"cta\"",
+          "default": "\"md\"",
+          "description": "A labelled Button size. Icon-only sizes are excluded: the label is the interaction."
+        },
+        {
+          "name": "icon",
+          "type": "ReactNode",
+          "description": "A leading icon kept through both states, e.g. `<Icon name=\"trash\" />`."
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disables it; disabling while armed also disarms."
+        },
+        {
+          "name": "confirmHint",
+          "type": "string",
+          "default": "\"Press again to confirm.\"",
+          "description": "Read to assistive tech after the armed label when it arms. Override to localise."
+        },
+        {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The width easing and the draining countdown are the flourish; the label cross-fade and colour change stay."
+        }
+      ],
+      "variants": {
+        "variant": [
+          "primary",
+          "secondary",
+          "ghost",
+          "outline",
+          "destructive",
+          "link",
+          "floating",
+          "field",
+          "on-color",
+          "on-color-outline",
+          "on-color-ghost"
+        ],
+        "confirmVariant": [
+          "destructive",
+          "primary",
+          "secondary",
+          "outline"
+        ],
+        "size": [
+          "xs",
+          "sm",
+          "md",
+          "cta"
+        ]
+      },
+      "tokensUsed": [
+        "secondary",
+        "secondary-foreground",
+        "destructive",
+        "destructive-foreground",
+        "ring"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "It is a button in a row of actions, and arrives with that row. Its moment is the arming, not the mount."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-press",
+          "part": "Root",
+          "why": "Inherited from Button with motion-interactive. The press settle confirms the first press landed even before the label has finished changing — which is what stops a second, accidental press."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-size",
+          "part": "Root",
+          "why": "Arming changes the label, so the button's width changes. Easing it makes the button visibly grow into the question and its neighbours travel, instead of the row jumping under the pointer that is about to press again. useAutoSize measures the content and writes a px width for motion-size to ease between (a content-sized box is width:auto before and after, which cannot transition). The labels cross-fade in one cell so there is never a frame with both or neither."
+        },
+        {
+          "slot": "activity",
+          "recipe": "custom",
+          "part": "Countdown",
+          "why": "While armed, a thin line drains along the foot of the button over the timeout — the only way to see that the question expires. A transition on scale, timed by the `timeout` prop and multiplied by the motion scale and expressive factor, so under reduced motion or `subtle` it is absent rather than frozen full."
+        }
+      ],
+      "a11y": [
+        "A native <button> through Button. Focus stays on it through both presses; Enter and Space confirm exactly as a click does.",
+        "Only the current label is in the accessible name — the other is aria-hidden — so the name changes to the question while armed.",
+        "Arming is also announced through a polite role=status region outside the button (\"Confirm delete? Press again to confirm.\"), because a focused button's name change is not read by every screen reader.",
+        "Escape disarms and is consumed, so it does not also close the dialog or popover around it. Focus leaving, a press elsewhere, or the timeout disarm it too.",
+        "A second press within 300ms of arming is ignored: a double-click is a habit, not a decision.",
+        "Under reduced motion the label still changes and the colour still turns; only the width easing and countdown are dropped."
+      ],
+      "examples": [
+        {
+          "label": "Delete a row",
+          "code": "<ConfirmButton icon={<Icon name=\"trash\" />} onConfirm={() => removeRow(id)}>Delete</ConfirmButton>",
+          "imports": "import { ConfirmButton, Icon } from \"@sableui/react\""
+        },
+        {
+          "label": "Custom question, longer wait",
+          "code": "<ConfirmButton variant=\"ghost\" size=\"sm\" confirmLabel=\"Revoke this key?\" timeout={5000} onConfirm={revokeKey}>Revoke</ConfirmButton>",
+          "imports": "import { ConfirmButton } from \"@sableui/react\""
+        },
+        {
+          "label": "Async confirm",
+          "code": "<ConfirmButton onConfirm={() => api.deleteDraft(draft.id)}>Discard draft</ConfirmButton>",
+          "imports": "import { ConfirmButton } from \"@sableui/react\""
         }
       ]
     },
@@ -8041,6 +8719,38 @@
         "muted-foreground",
         "foreground",
         "ring"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Rows render with the page or the query that produced them. Staggering rows in delays reading a table someone opened to scan."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Row",
+          "why": "Body rows ease to a muted wash under the pointer (TableRow's recipe), which keeps the eye on the right line across a wide row of numbers. Sortable headers are ghost Buttons and answer on Button's recipe."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-interactive",
+          "part": "Sort chevron",
+          "why": "One chevron turns to show direction instead of two glyphs swapping, so ascending to descending reads as the same column reversing. Its opacity rises from the resting 60% as the column becomes the sort."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-interactive",
+          "part": "Row",
+          "why": "A checked row's fill eases in across its cells, so selecting by checkbox reads as the row being picked rather than a band stamped over it."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "DataTable has no loading state. While data is fetched, render Skeleton rows (motion-shimmer) in its place — only the caller knows a fetch is in flight."
+        }
       ],
       "a11y": [
         "Sorted columns set aria-sort=ascending/descending on the header cell.",
@@ -9304,6 +10014,32 @@
         "muted-foreground",
         "ring"
       ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Rows arrive with the list they belong to. Entering one at a time is a stagger, and a stagger on a list someone opened to scan is a delay."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Root",
+          "why": "Only the interactive row reacts: its hover fill, a step off the surface it sits on, eases in. A static row never fakes clickability, and an interactive one answers the pointer without flicker as it moves down a list."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-interactive",
+          "part": "Root",
+          "why": "`selected` eases the fill onto the current row of a list–detail view, so opening another record reads as the selection moving rather than two rows flashing."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "A record row has nothing of its own to wait for. A row whose action is pending puts a loading Button in `action`."
+        }
+      ],
       "a11y": [
         "Default rows are presentational layout; semantics come from the content you place in title/subtitle/action.",
         "interactive rows render a real <button> around the leading visual and text, with its ::after stretched over the whole row — native focus, a focus-visible ring, and Enter/Space. The action slot sits outside that button and above the overlay, so a Button there stays valid HTML and keeps its own clicks.",
@@ -9330,7 +10066,7 @@
       "group": "Overlays",
       "register": "page",
       "path": "components/feedback",
-      "summary": "A compact feedback popover. Composes Popover + Textarea + Button + Toggle into a rating row plus a message field; submitting reports the rating + message and closes the popover.",
+      "summary": "A compact feedback popover. Composes Popover + Textarea + Button + Toggle into a rating row plus a message field; submitting reports the rating + message, shows a brief drawn-check thanks, and closes the popover.",
       "keywords": [
         "feedback",
         "sentiment",
@@ -9399,7 +10135,19 @@
         {
           "name": "onSubmit",
           "type": "(data: { rating?: string; message: string }) => void",
-          "description": "Called with the selected rating + message when the form is submitted."
+          "description": "Called with the selected rating + message when the form is submitted. The thanks shows right away; send the report in the background."
+        },
+        {
+          "name": "successMessage",
+          "type": "string",
+          "default": "\"Thanks for the feedback.\"",
+          "description": "The line shown, and read out, for about 1.2s after sending, before the popover closes on its own."
+        },
+        {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The drawn check is the flourish; the thanks line and its dwell stay."
         }
       ],
       "tokensUsed": [
@@ -9412,14 +10160,43 @@
         "muted-foreground",
         "accent",
         "accent-foreground",
-        "ring"
+        "ring",
+        "success"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "motion-pop",
+          "part": "Popover",
+          "why": "The form opens from its trigger, so the eye goes from the button it pressed to the field it should type in. Popover owns the recipe."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Rating toggles",
+          "why": "The rating row is a choice among a few similar marks. The eased selected fill is what makes the pick read as made, not just hovered."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-tick",
+          "part": "Thanks",
+          "why": "Sending is the one moment the person needs to know their words arrived. The form fades out in place and a check draws itself in over it, then the popover closes. Without it the popover just vanished, which looks the same as the form being dismissed or the message lost."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "The thanks shows as soon as the form is sent; delivery is the app's background work. A spinner for a one-line report would make a quick, optional gesture feel heavy."
+        }
       ],
       "a11y": [
         "Trigger opens the popover on press; Base UI manages focus into the form and restores it to the trigger on close.",
         "The rating row is a Base UI ToggleGroup with arrow-key roving focus; each toggle carries an aria-label.",
         "The form is named by its heading (aria-labelledby), so it is announced as \"Send feedback\" rather than an unnamed form.",
         "The message field carries an aria-label matching its placeholder.",
-        "Submit is disabled until there is a rating or a non-whitespace message. Either alone is a complete answer."
+        "Submit is disabled until there is a rating or a non-whitespace message. Either alone is a complete answer.",
+        "On send, focus moves to the thanks line (tabIndex=-1), which reads it out, and the form becomes inert so focus cannot land in invisible fields. The line is not also a live region, which read it twice. When the popover closes, Base UI returns focus to the trigger.",
+        "The thanks dwell (about 1.2s) is a reading time, not motion, so it is the same under reduced motion."
       ],
       "examples": [
         {
@@ -9430,6 +10207,11 @@
         {
           "label": "Custom labels",
           "code": "<Feedback label=\"Tell us\" submitLabel=\"Send it\" placeholder=\"Describe the issue…\" />",
+          "imports": "import { Feedback } from \"@sableui/react\""
+        },
+        {
+          "label": "Custom thanks",
+          "code": "<Feedback successMessage=\"Got it — thank you.\" onSubmit={({ rating, message }) => report(rating, message)} />",
           "imports": "import { Feedback } from \"@sableui/react\""
         }
       ]
@@ -10832,6 +11614,32 @@
         "muted-foreground",
         "foreground"
       ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "It arrives with the form it belongs to. A field that animated in on its own would be briefly unusable for no stated reason."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Root",
+          "why": "The shell owns one focus ring for the input and its addons and eases it in, so focusing the text, or tabbing to a copy button inside the field, reads as the one field taking focus."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-interactive",
+          "part": "Root",
+          "why": "An invalid value turns the shell's edge destructive on the same ease, so the error lands as the field changing state rather than a red box swapping in."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "A field does no work of its own. A pending check (an availability lookup) puts a Spinner in `trailing`, which is where its answer will appear."
+        }
+      ],
       "a11y": [
         "The Input stays the focusable control; the group draws the focus ring around the whole field while it is focused.",
         "Inside a Field, the label, description and error are wired to the Input itself, not the group.",
@@ -10851,7 +11659,7 @@
         },
         {
           "label": "Copy button",
-          "code": "<Field label=\"API key\"><InputGroup trailing={<Button variant=\"ghost\" size=\"icon-sm\" aria-label=\"Copy key\" onClick={copy}><Icon name={copied ? \"check\" : \"copy\"} /></Button>}><Input readOnly value={key} /></InputGroup></Field>",
+          "code": "<Field label=\"API key\"><InputGroup trailing={<Button variant=\"ghost\" size=\"icon-sm\" aria-label=\"Copy key\" onClick={copy}><span aria-hidden=\"true\" className=\"motion-icon-swap\"><span data-active={!copied} className=\"inline-flex\"><Icon name=\"copy\" /></span><span data-active={copied} className=\"inline-flex\"><Icon name=\"check\" /></span></span></Button>}><Input readOnly value={key} /></InputGroup></Field>",
           "imports": "import { Button, Field, Icon, Input, InputGroup } from \"@sableui/react\""
         },
         {
@@ -11191,10 +11999,17 @@
           "description": "The vertical axis."
         },
         {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The arrival (lines drawing on) and the data-change morph are the flourish; the gliding cursor, dots and tooltip are the feedback `subtle` keeps."
+        },
+        {
           "name": "animate",
           "type": "boolean",
           "default": "true",
-          "description": "Play the arrival once the chart scrolls into view. Reduced motion shows the finished chart."
+          "description": "Play the arrival once the chart scrolls into view. Reduced motion shows the finished chart. `animate={false}` is `motion=\"subtle\"`.",
+          "deprecated": "motion=\"subtle\" (what animate={false} now maps to: no arrival, hover kept) or motion=\"off\""
         },
         {
           "name": "activeIndex",
@@ -11255,7 +12070,7 @@
           "slot": "arrival",
           "recipe": "custom",
           "part": "Line",
-          "why": "Once on screen each line draws on from the first point (stroke-dashoffset), series staggered, then the dots and labels fade in. On the motion tokens; reduced motion shows the finished chart."
+          "why": "Once on screen each line draws on from the first point (stroke-dashoffset), series staggered, then the dots and labels fade in. On the motion tokens; reduced motion shows the finished chart. The arrival is expressive: it plays at the full motion level only, so `motion=\"subtle\"` (or a subtle app policy) shows the finished chart while hover feedback stays."
         },
         {
           "slot": "response",
@@ -11267,7 +12082,7 @@
           "slot": "transition",
           "recipe": "custom",
           "part": "Line + dots",
-          "why": "Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place."
+          "why": "Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place. Expressive, like the arrival: under `subtle` new data swaps in place."
         },
         {
           "slot": "activity",
@@ -13009,7 +13824,7 @@
         },
         {
           "label": "Copyable value",
-          "code": "const { copy, copied } = useCopy(commitHash)\n<Row gap={1}><MiddleTruncate text={commitHash} /><Button variant=\"ghost\" size=\"icon-xs\" aria-label=\"Copy commit hash\" onClick={copy}><Icon name={copied ? \"check\" : \"copy\"} /></Button></Row>",
+          "code": "const { copy, copied } = useCopy(commitHash)\n<Row gap={1}><MiddleTruncate text={commitHash} /><Button variant=\"ghost\" size=\"icon-xs\" aria-label=\"Copy commit hash\" onClick={copy}><span aria-hidden=\"true\" className=\"motion-icon-swap\"><span data-active={!copied} className=\"inline-flex\"><Icon name=\"copy\" /></span><span data-active={copied} className=\"inline-flex\"><Icon name=\"check\" /></span></span></Button><span role=\"status\" className=\"sr-only\">{copied ? \"Copied\" : \"\"}</span></Row>",
           "imports": "import { Button, Icon, MiddleTruncate, Row, useCopy } from \"@sableui/react\""
         }
       ]
@@ -13305,6 +14120,38 @@
         "success",
         "destructive"
       ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "A note is part of the content it annotates and renders with it. A callout that animated in would pull the eye before the reader has reached it in the flow."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Action",
+          "why": "The action's focus ring eases in, and its underline thickens on hover. Inside a block of guidance, that is what separates the one thing to do from the prose around it."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-press",
+          "part": "Action",
+          "why": "A note's action usually navigates or opens something; the small settle on press is the only confirmation before the next surface paints."
+        },
+        {
+          "slot": "transition",
+          "recipe": "none",
+          "part": "Root",
+          "why": "A note has no states to move between: its tone is fixed when it renders. A note that changes tone is a new message, and should arrive as one."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Static guidance. Work in progress belongs in a Progress or a Spinner, not in a callout."
+        }
+      ],
       "a11y": [
         "Rendered with role=\"note\" so assistive tech can announce it as an aside.",
         "Color is never the sole signal — the leading icon and optional title reinforce severity."
@@ -13338,7 +14185,7 @@
       "group": "Badges & pills",
       "register": "either",
       "path": "components/notification-badge",
-      "summary": "An unread indicator. Renders a bare dot or a count pill (capped as \"{max}+\"), or nothing when there's nothing to show. overlay pins it to the corner of a relative host; it is aria-hidden, so the host's name carries the count.",
+      "summary": "An unread indicator. Renders a bare dot or a count pill (capped as \"{max}+\"), or nothing when there's nothing to show. A changing count rolls to its new number, and a badge that appears after being empty pops in. overlay pins it to the corner of a relative host; it is aria-hidden, so the host's name carries the count.",
       "keywords": [
         "notification",
         "badge",
@@ -13373,7 +14220,8 @@
       "related": {
         "components": [
           "Badge",
-          "StatusDot"
+          "StatusDot",
+          "NumberTicker"
         ]
       },
       "props": [
@@ -13411,6 +14259,12 @@
           "type": "boolean",
           "default": "false",
           "description": "Pin to the top-end corner of the nearest relative host (an icon button) — one placement for every caller instead of hand-tuned absolute offsets."
+        },
+        {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Under `subtle` the count updates in place and the badge fades in without the pop."
         }
       ],
       "variants": {
@@ -13436,6 +14290,32 @@
         "primary-foreground",
         "secondary",
         "secondary-foreground"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "motion-appear",
+          "part": "root",
+          "why": "A badge that shows up after being empty is the news — something just arrived — so it fades and scales in where it sits instead of popping into existence. Never on first paint: a badge that mounts with a count is content, and a page of them popping on load is noise."
+        },
+        {
+          "slot": "response",
+          "recipe": "none",
+          "part": "root",
+          "why": "It is decorative and not interactive; the host it sits on answers the pointer."
+        },
+        {
+          "slot": "transition",
+          "recipe": "custom",
+          "part": "Count",
+          "why": "The count rolls to its new number through NumberTicker (expressive), so 3 → 4 reads as one more arriving rather than a different badge. Past the cap the ticker holds at max with a static \"+\", so a count climbing beyond 99 does not keep rolling a badge that has not changed."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "root",
+          "why": "An unread count has no working state."
+        }
       ],
       "a11y": [
         "The badge is aria-hidden: a count rendered on a control is not associated with it, so the host needs an accessible name that includes the count — \"Notifications, 3 unread\" — or a screen-reader user hears \"Notifications, button\" and never learns there is anything new. Pass aria-hidden={false} only for a standalone badge whose number is the information.",
@@ -13569,6 +14449,176 @@
       ]
     },
     {
+      "name": "NumberTicker",
+      "status": "stable",
+      "group": "Data display",
+      "register": "either",
+      "path": "components/number-ticker",
+      "summary": "A number that rolls to its new value digit by digit, like an odometer. Formatted with Intl.NumberFormat (currency, percent, compact, any locale); separators, signs and units hold still while each digit column turns, and a digit that appears or goes away eases its width so nothing around it jumps. At rest on first paint; under subtle or reduced motion the value simply updates.",
+      "keywords": [
+        "number",
+        "counter",
+        "odometer",
+        "rolling number",
+        "animated number",
+        "ticker",
+        "count up",
+        "stat",
+        "kpi",
+        "metric",
+        "price"
+      ],
+      "usage": {
+        "description": "Use NumberTicker for a figure that changes in place while someone is looking at it — a dashboard total after a filter changes, a live count, a price as a plan's options change, a score. The roll says \"this number moved, and by roughly this much\"; the reader sees the change happen instead of noticing, later, that a number is different.",
+        "bestPractices": [
+          {
+            "guidance": "do",
+            "description": "Use it for the headline figure that a control on the same screen changes — the total above a chart, the price beside a quantity stepper — so cause and effect are seen together."
+          },
+          {
+            "guidance": "do",
+            "description": "Format through `format` (currency, percent, compact) rather than pre-formatting a string, so separators and units stay put while only the digits roll."
+          },
+          {
+            "guidance": "do",
+            "description": "Pass `aria-live=\"polite\"` only when the change itself is news the reader would otherwise miss; most tickers sit beside the control that changed them and need no announcement."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not use it for values that change many times a second (a stopwatch, a stock tick, a progress percentage) — the rolls never land and read as a blur. Render the number as plain tabular text."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not use it for numbers that are names rather than amounts — an order ID, a phone number, a year, a version. Rolling implies a quantity going up or down."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not animate a number on page load to make it feel alive. The first paint is at rest on purpose; for an entrance, reveal the card it sits in (the Reveal motion primitive)."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not use it for a value inside a known range that needs a picture of how full it is — show a Meter, with the number beside it.",
+            "instead": [
+              "Meter"
+            ]
+          }
+        ]
+      },
+      "related": {
+        "components": [
+          "Meter",
+          "NotificationBadge",
+          "PieChart",
+          "RadialChart",
+          "Sparkline"
+        ]
+      },
+      "props": [
+        {
+          "name": "value",
+          "type": "number",
+          "description": "The number to show. When it changes, the digits roll to it."
+        },
+        {
+          "name": "format",
+          "type": "Intl.NumberFormatOptions",
+          "description": "How to write the number — `{ style: \"currency\", currency: \"USD\" }`, `{ style: \"percent\" }`, `{ notation: \"compact\" }`, fraction digits. Passed to Intl.NumberFormat; an inline object is fine (it is compared by value)."
+        },
+        {
+          "name": "locales",
+          "type": "string | string[]",
+          "default": "runtime locale",
+          "description": "BCP 47 locale(s) for the formatting. Digits roll through the locale's own numbering system."
+        },
+        {
+          "name": "prefix",
+          "type": "ReactNode",
+          "description": "Before the number. A string becomes part of the number's text (and rolls in or out with it); an element is rendered as given."
+        },
+        {
+          "name": "suffix",
+          "type": "ReactNode",
+          "description": "After the number (\"+\", \" pts\"). A string becomes part of the number's text; an element is rendered as given."
+        },
+        {
+          "name": "trend",
+          "type": "\"auto\" | \"up\" | \"down\"",
+          "default": "\"auto\"",
+          "description": "Which way the digits roll. `auto` rolls up as the value grows and down as it shrinks; `up` / `down` fix it (a countdown, a score that only climbs)."
+        },
+        {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The roll is expressive, so `subtle` updates the value in place."
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "description": "Merged onto the root span. Set the type tier here (`text-heading-2`, `text-display-lg`); the ticker adds tabular figures so widths hold still."
+        },
+        {
+          "name": "...span props",
+          "type": "Omit<ComponentPropsWithRef<\"span\">, \"children\" | \"prefix\">",
+          "description": "Remaining span attributes pass through to the root — `aria-live` to announce changes, `id`, data attributes."
+        }
+      ],
+      "tokensUsed": [],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "The first paint is at rest. A number counting up on page load is decoration that delays the reading; the roll is kept for the moment the value actually changes."
+        },
+        {
+          "slot": "response",
+          "recipe": "none",
+          "part": "Root",
+          "why": "It is a reading, not a control; the control that changes it gives the feedback."
+        },
+        {
+          "slot": "transition",
+          "recipe": "custom",
+          "part": "Digit",
+          "why": "Each digit column turns to its new place on the expressive roll (the slower token, emphasized easing, staggered from the ones column), and arriving or departing columns ease their width. The roll is what shows a change happened and how big it was — the hundreds turning reads as a bigger move than the ones. No recipe can translate per-digit columns, so it is custom; it is multiplied by --motion-expressive, so `subtle` and reduced motion land the value at once."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "A number has no working state; show a Skeleton while it loads."
+        }
+      ],
+      "a11y": [
+        "The whole written number (with any string prefix or suffix) is real text in a visually hidden span; the rolling columns are aria-hidden and draw their glyphs as generated content, so screen readers, find-in-page and copy all get \"$1,234.50\", never a stack of digits.",
+        "It is not a live region by default — a figure that changes because the reader moved a control is already where their attention is. Pass `aria-live=\"polite\"` when a change elsewhere should be announced.",
+        "Tabular figures keep every digit the same width, so a roll never shifts the text around it."
+      ],
+      "examples": [
+        {
+          "label": "Basic",
+          "code": "<NumberTicker value={1284} className=\"text-heading-2\" />",
+          "imports": "import { NumberTicker } from \"@sableui/react\""
+        },
+        {
+          "label": "Currency",
+          "code": "<NumberTicker value={4280.5} format={{ style: \"currency\", currency: \"USD\" }} className=\"text-display-lg\" />",
+          "imports": "import { NumberTicker } from \"@sableui/react\""
+        },
+        {
+          "label": "Percent, announced",
+          "code": "<NumberTicker value={0.428} format={{ style: \"percent\", maximumFractionDigits: 1 }} aria-live=\"polite\" />",
+          "imports": "import { NumberTicker } from \"@sableui/react\""
+        },
+        {
+          "label": "Subtle",
+          "code": "<NumberTicker value={92} suffix=\" pts\" motion=\"subtle\" />",
+          "imports": "import { NumberTicker } from \"@sableui/react\""
+        }
+      ]
+    },
+    {
       "name": "OtpField",
       "status": "stable",
       "group": "Forms",
@@ -13605,6 +14655,10 @@
           {
             "guidance": "dont",
             "description": "Do not use OtpField for a password, an arbitrary-length PIN, or anything the user types from memory. Slots promise a fixed length; use Input with `type=\"password\"` and `autocomplete=\"current-password\"` instead."
+          },
+          {
+            "guidance": "do",
+            "description": "Clear the error as soon as the user edits the code (`onValueChange` → reset the error), and set it again when the next code is refused. Each refusal is then a fresh change to invalid, so the field shakes for every wrong code, not only the first."
           },
           {
             "guidance": "dont",
@@ -13699,7 +14753,13 @@
         {
           "name": "aria-invalid",
           "type": "boolean",
-          "description": "Marks every slot invalid (destructive border). `<Field error>` sets it for you."
+          "description": "Marks every slot invalid (destructive border and digits). Turning it on after mount shakes the field once. `<Field error>` sets it for you."
+        },
+        {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The shake is the flourish; the destructive colour stays at every level."
         },
         {
           "name": "disabled / readOnly / required / name / id / form",
@@ -13737,6 +14797,12 @@
           "why": "A filled slot strengthens its border, so a pasted code visibly lands in every slot at once. Easing it reads as the code arriving rather than the field flickering."
         },
         {
+          "slot": "transition",
+          "recipe": "motion-shake",
+          "part": "Root",
+          "why": "A refused code shakes the field once as it turns invalid — the short horizontal no that makes a second wrong code feel noticed rather than ignored. It never carries the refusal alone: the digits and borders turn destructive and the Field says why. It plays on the change to invalid, not on mount, and is expressive, so `subtle` keeps only the colour."
+        },
+        {
           "slot": "activity",
           "recipe": "none",
           "part": "Root",
@@ -13747,7 +14813,8 @@
         "The root is a role=group named by the field label; the first slot shares the label through `id`/`htmlFor`, and later slots are announced by position (\"Character 2 of 6\").",
         "Only one slot is in the tab order. Arrow keys, Home/End and Backspace move between slots; Tab leaves the whole field.",
         "The first slot carries autocomplete=\"one-time-code\" and the numeric virtual keyboard, so iOS and Android offer the SMS code above the keyboard.",
-        "Slots render at 20px (`text-mono-lg`), above the 16px floor that stops iOS Safari zooming on focus."
+        "Slots render at 20px (`text-mono-lg`), above the 16px floor that stops iOS Safari zooming on focus.",
+        "An invalid code is never signalled by motion alone: every slot carries aria-invalid, the digits and borders turn destructive, and the Field's error message is wired through aria-describedby. The shake resolves instantly under reduced motion and `subtle`."
       ],
       "examples": [
         {
@@ -13763,6 +14830,11 @@
         {
           "label": "With an error",
           "code": "<Field label=\"Verification code\" error=\"That code has expired. Request a new code and try again.\"><OtpField length={6} groupSize={3} defaultValue=\"482913\" /></Field>",
+          "imports": "import { Field, OtpField } from \"@sableui/react\""
+        },
+        {
+          "label": "Verify on completion, shake on a wrong code",
+          "code": "const [code, setCode] = useState(\"\")\nconst [wrong, setWrong] = useState(false)\n<Field label=\"Verification code\" error={wrong ? \"That code does not match. Check the message and try again.\" : undefined}><OtpField length={6} groupSize={3} value={code} onValueChange={(next) => { setCode(next); setWrong(false) }} onValueComplete={(value) => setWrong(value !== expected)} /></Field>",
           "imports": "import { Field, OtpField } from \"@sableui/react\""
         },
         {
@@ -14355,6 +15427,32 @@
         "hairline",
         "hairline-strong"
       ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Panels are the app's frame, present from first paint. A dock that slid in on load would make the workspace look like it is still assembling."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "PanelResizer",
+          "why": "The hairline widens into a visible bar on hover and turns primary on keyboard focus, eased, so a 1px edge says it can be grabbed before the pointer commits."
+        },
+        {
+          "slot": "transition",
+          "recipe": "none",
+          "part": "Panel",
+          "why": "Width tracks the pointer one-to-one while dragging, and keyboard steps land at once. An eased width would trail the cursor, and resizing is a layout change: easing it would reflow the canvas beside the panel on every frame."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Layout chrome has no working state."
+        }
+      ],
       "a11y": [
         "PanelResizer is a role=separator with aria-orientation, aria-valuenow/min/max, and is focusable — a pointer-only resizer is a keyboard trap.",
         "Arrow keys resize by `step`; Home and End jump to the minimum and maximum.",
@@ -14494,6 +15592,38 @@
         "foreground",
         "muted-foreground",
         "hairline"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Sections are part of the inspector they sit in and arrive with it. Animating each in would make a panel switch look like a page load."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "PropertyGroup trigger",
+          "why": "The fold row eases its focus ring, so arrowing down a dense inspector shows where the keyboard is without the ring flickering from row to row."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-disclosure",
+          "part": "PropertyGroup panel",
+          "why": "The group opens by easing its height, so the rows below slide down to make room instead of jumping. In an inspector, the next section moving is otherwise how you lose your place."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-icon-swap",
+          "part": "PropertyGroup indicator",
+          "why": "The + collapses into − as the group opens, both glyphs stacked as one mark, so the indicator reads as this row changing state rather than a different icon landing."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "The inspector edits values in place; nothing in it loads."
+        }
       ],
       "a11y": [
         "PropertyGroup's row is a real button with aria-expanded (Collapsible); its summary is part of the button's name, so a closed group still announces its value.",
@@ -14741,10 +15871,17 @@
           "description": "BCP 47 locale for default number and date formatting."
         },
         {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The sweep, the slice morph and the rolling centre number are the flourish; the hover pull-out and dim are the feedback `subtle` keeps."
+        },
+        {
           "name": "animate",
           "type": "boolean",
           "default": "true",
-          "description": "Sweep the slices in clockwise when the chart scrolls into view."
+          "description": "Sweep the slices in clockwise when the chart scrolls into view. `animate={false}` is `motion=\"subtle\"`.",
+          "deprecated": "motion=\"subtle\" (what animate={false} now maps to: no arrival, hover kept) or motion=\"off\""
         },
         {
           "name": "activeIndex",
@@ -14781,19 +15918,25 @@
           "slot": "arrival",
           "recipe": "custom",
           "part": "Slices",
-          "why": "Once on screen the slices are revealed by a mask that sweeps clockwise from 12 o'clock — the whole is read as it fills. On the motion tokens; reduced motion shows the finished chart."
+          "why": "Once on screen the slices are revealed by a mask that sweeps clockwise from 12 o'clock — the whole is read as it fills. On the motion tokens; reduced motion shows the finished chart. The arrival is expressive: it plays at the full motion level only, so `motion=\"subtle\"` (or a subtle app policy) shows the finished chart while hover feedback stays."
         },
         {
           "slot": "response",
           "recipe": "none",
           "part": "Active slice",
-          "why": "The hovered slice pulls outward and the rest dim at once; the geometry change itself eases (see transition)."
+          "why": "The hovered slice pulls outward and the rest dim at once (mixed toward the surface, not faded); the geometry change itself eases (see transition). Essential: `subtle` keeps it."
+        },
+        {
+          "slot": "transition",
+          "recipe": "custom",
+          "part": "Centre value",
+          "why": "A numeric centre value rolls to its new total digit by digit (NumberTicker) when the data changes, so the headline is seen moving with the slices instead of being found different afterwards. Expressive: under `subtle` it updates in place."
         },
         {
           "slot": "transition",
           "recipe": "custom",
           "part": "Slices",
-          "why": "Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place."
+          "why": "Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place. Expressive, like the arrival: under `subtle` new data swaps in place."
         },
         {
           "slot": "activity",
@@ -14942,6 +16085,38 @@
         "border",
         "muted-foreground",
         "foreground"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Pills arrive with the filter row or the content they annotate. A chip that animated in alone would read as a filter someone just added."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Root",
+          "why": "The hover wash eases, so sweeping the pointer along a filter row reads as one cursor moving rather than chips flashing in turn."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-press",
+          "part": "Root",
+          "why": "A pill often toggles a filter that takes a moment to reach the results; the settle on press confirms the click landed before they change."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-interactive",
+          "part": "Root",
+          "why": "`selected` lifts the chip onto its selected surface on the same ease, so toggling reads as this chip changing state, not a different chip appearing in its place."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "A chip is a choice, not a process. If applying it is slow, the results show it."
+        }
       ],
       "a11y": [
         "Renders a native <button type=\"button\"> for focus and keyboard activation.",
@@ -15424,10 +16599,17 @@
           "description": "BCP 47 locale for default number and date formatting."
         },
         {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The polygons growing in and morphing are the flourish; the hover highlight is the feedback `subtle` keeps."
+        },
+        {
           "name": "animate",
           "type": "boolean",
           "default": "true",
-          "description": "Grow the polygons from the centre when the chart scrolls into view."
+          "description": "Grow the polygons from the centre when the chart scrolls into view. `animate={false}` is `motion=\"subtle\"`.",
+          "deprecated": "motion=\"subtle\" (what animate={false} now maps to: no arrival, hover kept) or motion=\"off\""
         },
         {
           "name": "activeIndex",
@@ -15464,7 +16646,7 @@
           "slot": "arrival",
           "recipe": "custom",
           "part": "Polygon",
-          "why": "Once on screen each polygon grows from the centre and fades in, series staggered, on the emphasized easing. On the motion tokens; reduced motion shows the finished chart."
+          "why": "Once on screen each polygon grows from the centre and fades in, series staggered, on the emphasized easing. On the motion tokens; reduced motion shows the finished chart. The arrival is expressive: it plays at the full motion level only, so `motion=\"subtle\"` (or a subtle app policy) shows the finished chart while hover feedback stays."
         },
         {
           "slot": "response",
@@ -15476,7 +16658,7 @@
           "slot": "transition",
           "recipe": "custom",
           "part": "Polygon",
-          "why": "Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place."
+          "why": "Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place. Expressive, like the arrival: under `subtle` new data swaps in place."
         },
         {
           "slot": "activity",
@@ -15641,10 +16823,17 @@
           "description": "BCP 47 locale for default number and date formatting."
         },
         {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The draw-on, the ring morph and the rolling centre number are the flourish; the hover dim is the feedback `subtle` keeps."
+        },
+        {
           "name": "animate",
           "type": "boolean",
           "default": "true",
-          "description": "Draw the rings round from their start when the chart scrolls into view."
+          "description": "Draw the rings round from their start when the chart scrolls into view. `animate={false}` is `motion=\"subtle\"`.",
+          "deprecated": "motion=\"subtle\" (what animate={false} now maps to: no arrival, hover kept) or motion=\"off\""
         },
         {
           "name": "activeIndex",
@@ -15681,19 +16870,25 @@
           "slot": "arrival",
           "recipe": "custom",
           "part": "Ring",
-          "why": "Once on screen each ring draws round from its start (stroke-dashoffset on a round-capped arc), staggered outside in. On the motion tokens; reduced motion shows the finished chart."
+          "why": "Once on screen each ring draws round from its start (stroke-dashoffset on a round-capped arc), staggered outside in. On the motion tokens; reduced motion shows the finished chart. The arrival is expressive: it plays at the full motion level only, so `motion=\"subtle\"` (or a subtle app policy) shows the finished chart while hover feedback stays."
         },
         {
           "slot": "response",
           "recipe": "none",
           "part": "Active ring",
-          "why": "The hovered ring stays full strength and the others dim at once."
+          "why": "The hovered ring stays full strength and the others dim at once — mixed toward the surface rather than faded, so a dimmed ring stays solid over its track instead of turning muddy. Essential: `subtle` keeps it."
+        },
+        {
+          "slot": "transition",
+          "recipe": "custom",
+          "part": "Centre value",
+          "why": "A numeric centre value rolls to its new total digit by digit (NumberTicker) when the data changes, so the headline is seen moving with the rings instead of being found different afterwards. Expressive: under `subtle` it updates in place."
         },
         {
           "slot": "transition",
           "recipe": "custom",
           "part": "Ring",
-          "why": "Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place."
+          "why": "Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place. Expressive, like the arrival: under `subtle` new data swaps in place."
         },
         {
           "slot": "activity",
@@ -15798,6 +16993,32 @@
         "card",
         "primary",
         "ring"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Radios arrive with the form they belong to. Animating each one in turns a question into a title sequence."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Root",
+          "why": "The ring's edge and focus ring ease, so arrowing through a group — which moves the selection with focus — reads as one choice moving down the list."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-interactive",
+          "part": "Indicator",
+          "why": "The dot grows from the centre on a spring and shrinks out of the radio being left. A group's selection moves from one option to another, and the paired grow and shrink is what makes it read as moving rather than two dots blinking."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "A radio commits instantly. A slow write belongs to the surrounding form's pending state, not the control."
+        }
       ],
       "a11y": [
         "Base UI provides the radiogroup/radio roles, aria-checked, hidden native inputs, and roving tabindex.",
@@ -15951,6 +17172,44 @@
         "tone-info",
         "tone-warning"
       ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Cards arrive with the form. A plan picker that animated each card in would delay the choice it exists to make."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Root",
+          "why": "The edge steps toward the ring colour on hover, eased. On a card-sized target a hard snap across the whole border reads as the layout flickering."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-press",
+          "part": "Root",
+          "why": "The settle on press confirms a click anywhere in the card — the radio is small, and without it a click in the card's body can feel like it missed the control."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-interactive",
+          "part": "Root",
+          "why": "Checking eases the tone ring and wash onto the new card as the old one releases, so the choice reads as moving between cards rather than two cards repainting."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-interactive",
+          "part": "Indicator",
+          "why": "The radio dot grows in on a spring, the same mark as Radio, so a card and a plain radio confirm a choice the same way."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "A choice commits instantly. A slow write belongs to the surrounding form's pending state."
+        }
+      ],
       "a11y": [
         "Base UI provides the radiogroup/radio roles, aria-checked, hidden native inputs, and roving tabindex.",
         "Arrow keys move and select between cards; Space selects the focused card; Tab enters/leaves the group.",
@@ -16038,6 +17297,38 @@
         "popover-foreground",
         "border",
         "ring"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "It is a word in a line of text and arrives with that line."
+        },
+        {
+          "slot": "response",
+          "recipe": "none",
+          "part": "Root",
+          "why": "The only hover change on the timestamp is a dotted underline, and text-decoration-line is discrete: CSS cannot tween it, so a transition here would animate nothing and imply the snap had been handled."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-pop",
+          "part": "Tooltip",
+          "why": "The pointer's real answer is the absolute time, which arrives in a Tooltip on its own fast pop. That short entrance is what makes the full date read as belonging to the word under the cursor."
+        },
+        {
+          "slot": "transition",
+          "recipe": "none",
+          "part": "Root",
+          "why": "The label does not tick: it is computed when the component renders, so it never changes in front of the reader. A timestamp rolling from one minute to two would pull the eye off the content it dates."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "A timestamp has nothing to wait for."
+        }
       ],
       "a11y": [
         "Renders a semantic <time> element with a machine-readable dateTime (ISO) attribute.",
@@ -16162,6 +17453,38 @@
       },
       "tokensUsed": [
         "ring"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "It is a region, not an event; its content arrives with whatever fills it."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Viewport",
+          "why": "The region is focusable so the keyboard can scroll it, and its focus ring eases in like any control's. It is the one sign the region, not the page, now takes the arrow keys."
+        },
+        {
+          "slot": "response",
+          "recipe": "custom",
+          "part": "Scrollbar",
+          "why": "The vertical bar (`scrollbar-quiet`) stays hidden until the region is hovered, focused or scrolled, then fades its thumb in on the motion tokens. A bar that appeared in one frame would flash every time the pointer crossed the list."
+        },
+        {
+          "slot": "transition",
+          "recipe": "none",
+          "part": "Edge fade",
+          "why": "The edge fades switch on and off as you scroll, in the frame the content is already moving, so the change is carried by the scroll itself. They are a mask gradient, which CSS cannot interpolate without registered custom properties."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "A scroll region does no work of its own. Content still loading inside it brings its own Skeleton or Spinner."
+        }
       ],
       "a11y": [
         "The edge fades are a CSS mask-image on the scrolling element, not overlay elements — there is nothing in the DOM to intercept a pointer or be read by assistive tech, and the content under a fade stays fully interactive.",
@@ -16330,6 +17653,38 @@
         "panel-field",
         "panel-field-hover"
       ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "It arrives with the inspector row it sits in."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Root",
+          "why": "The shell eases its focus ring like every field, so tabbing through a column of numbers shows where the keyboard is without flicker."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Handle",
+          "why": "The handle's ink brightens while the field is hovered. It is the only sign that the icon or prefix can be dragged, which nobody would guess from a label."
+        },
+        {
+          "slot": "transition",
+          "recipe": "none",
+          "part": "Value",
+          "why": "The number follows the drag pixel for pixel. Easing it — or rolling it with a NumberTicker — would show a value the pointer has already left, in a control whose whole point is precision."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Scrubbing is synchronous; there is nothing to wait for."
+        }
+      ],
       "a11y": [
         "The input carries the accessible name via `label`; the glyph is aria-hidden because it is decorative.",
         "Every scrub gesture is reachable from the keyboard: ArrowUp/ArrowDown step by `step`, Shift+Arrow by ten steps.",
@@ -16459,6 +17814,32 @@
         "muted-foreground",
         "ring",
         "destructive"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "motion-appear",
+          "part": "Clear button",
+          "why": "The X mounts as the first character lands. Fading and settling in from a smaller scale keeps it from popping into the corner of the eye on every new search; removal is instant so an emptied field does not wait on it."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Input",
+          "why": "The focus ring and invalid border ease in, so focus reads as the field answering rather than a repaint."
+        },
+        {
+          "slot": "transition",
+          "recipe": "none",
+          "part": "Root",
+          "why": "The field has no states of its own to move between — the clear button arriving is its only change, and arrival covers it."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Searching is the results' job: a list skeleton or a Spinner beside them, not a field that animates while you type."
+        }
       ],
       "a11y": [
         "Renders a native <input type=\"search\"> — keyboard and form semantics come for free.",
@@ -17619,6 +19000,44 @@
         "foreground",
         "ring"
       ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "The preview arrives with the content it clips. Its fade and toggle appear only once a measurement proves the content overflows."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Toggle",
+          "why": "The toggle is a link Button, so its hover and focus ease on Button's recipe."
+        },
+        {
+          "slot": "transition",
+          "recipe": "custom",
+          "part": "Content",
+          "why": "The region eases its max-height between the collapsed and the measured full height on the slow motion token. motion-disclosure keys on Base UI's starting and ending styles, which this self-contained toggle does not have. The text unrolling in place keeps the reader's line; a snap drops them at a different scroll position."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-interactive",
+          "part": "Fade",
+          "why": "The bottom fade dissolves as the region opens and returns as it closes, so the cut edge and the reveal read as one movement."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-interactive",
+          "part": "Chevron",
+          "why": "The chevron turns 180° in step with the region (motion-interactive lists `rotate`), so the toggle visibly points at what it will do next."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Expanding is local and instant; nothing loads."
+        }
+      ],
       "a11y": [
         "The toggle is a real <button> with aria-expanded reflecting the open state.",
         "The fade overlay is pointer-events-none and decorative; it never traps clicks.",
@@ -17718,6 +19137,12 @@
           "type": "\"rail\" | \"page\"",
           "default": "\"rail\"",
           "description": "Which surface the rail is painted on. \"rail\" is its own --sidebar-* surface with a border — right for a full-height rail that frames the app, which a theme may tint or paint dark. \"page\" uses the page's surface and ink with no border — use it when a full-width header sits above the rail, where a tinted column starting under a page-coloured bar reads as pasted on. Use it instead of overriding bg-/text- classes, which the rail's re-pointed tokens defeat."
+        },
+        {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` inherits the app's policy, `subtle` keeps feedback and drops the collapse ease and the current-page glide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting."
         }
       ],
       "subcomponents": [
@@ -17750,6 +19175,38 @@
         "sidebar-accent",
         "sidebar-accent-foreground",
         "sidebar-ring"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "The rail is the app's frame, present from first paint. It is not summoned, so it has no entrance."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "SidebarItem",
+          "why": "Rows ease their hover fill (SideNav's row recipe on the rail rung), so moving down the nav reads as the pointer travelling rather than rows flashing."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-glide",
+          "part": "SidebarNav",
+          "why": "The current-page fill is one element that travels to the new item when the page changes inside a persistent layout, so the marker reads as moving rather than one row dimming while another lights. It lands in place on first paint, and each item keeps its own fill as the server-render fallback. Expressive: `subtle` moves it at once."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-size",
+          "part": "Root",
+          "why": "Collapsing to the icon rail eases the width instead of jumping 192px in one frame, so the content beside it visibly takes the room the rail gave up. Nothing inside jumps — a collapsed row's centred icon and an expanded row's inset icon sit on the same column — and labels leave at once and fade back in on reopen, clipped to the rail meanwhile. It reflows the page for the length of the ease, which is acceptable for a deliberate user toggle and never happens on load. Expressive: `subtle` snaps."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Navigation chrome has no working state; a loading route shows it in the page."
+        }
       ],
       "a11y": [
         "SidebarNav renders a <nav> landmark.",
@@ -17870,6 +19327,12 @@
           "type": "\"content\" | \"sidebar\"",
           "default": "\"content\"",
           "description": "Active-state token vocabulary shared by all items. \"content\" uses bg-accent/text-accent-foreground for local rails inside the content area; \"sidebar\" uses bg-sidebar-accent/text-sidebar-accent-foreground for SideNavs rendered inside app chrome."
+        },
+        {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` inherits the app's policy, `subtle` keeps feedback and drops the current-page glide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting."
         }
       ],
       "subcomponents": [
@@ -17895,6 +19358,32 @@
         "sidebar-accent",
         "sidebar-accent-foreground",
         "sidebar-ring"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "In-page navigation arrives with the page it navigates."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "SideNavItem",
+          "why": "Rows ease their hover fill and focus ring, so moving down a long nav reads as one pointer travelling rather than rows flashing in turn."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-glide",
+          "part": "SideNav",
+          "why": "The current-item fill is one element that travels to the new row when the section changes inside a persistent layout, so the marker reads as moving rather than one row dimming while another lights. It lands in place on first paint, each row keeps its own fill as the server-render fallback, and the active row's heavier weight lands at once — font weight does not ease. Expressive: `subtle` moves it at once."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Navigation chrome has no working state; a loading section shows it in the content."
+        }
       ],
       "a11y": [
         "SideNav renders a <nav> landmark; pair multiple navs with aria-label to distinguish them.",
@@ -18208,6 +19697,32 @@
         "background",
         "ring"
       ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "It arrives with the form or panel it sits in."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Thumb",
+          "why": "The thumb's dot grows from 12px to full size on hover and keyboard focus, and a little past it while dragging, on a spring. Only the paint resizes, never the hit target, so the growth says the thumb is live without moving where you have to aim."
+        },
+        {
+          "slot": "transition",
+          "recipe": "none",
+          "part": "Thumb",
+          "why": "The thumb and the filled range follow the pointer one-to-one, and keyboard steps land at once. An eased position would trail the drag and show a value the user has already moved past."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "A slider commits as it moves; there is nothing to wait for."
+        }
+      ],
       "a11y": [
         "Base UI provides role=slider, aria-valuemin/max/now, and arrow-key / Page Up-Down / Home-End control.",
         "Each thumb is a focusable input[type=range] nested in the thumb element; keyboard focus raises a 2px ring on the thumb via has-[:focus-visible] (a bare focus-visible: on the thumb never fires, since the div itself is not focusable).",
@@ -18325,10 +19840,17 @@
           "description": "Sizes it; the drawing stretches to fit."
         },
         {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Drawing on (or rising) is the flourish, so `subtle` and `off` show the finished line."
+        },
+        {
           "name": "animate",
           "type": "boolean",
           "default": "true",
-          "description": "Draw on (or rise) when it scrolls into view."
+          "description": "Draw on (or rise) when it scrolls into view. `animate={false}` is `motion=\"subtle\"`.",
+          "deprecated": "motion=\"subtle\" (what animate={false} now maps to) or motion=\"off\""
         },
         {
           "name": "locale",
@@ -18360,7 +19882,7 @@
           "slot": "arrival",
           "recipe": "custom",
           "part": "Line / bars",
-          "why": "Once on screen the line draws on (or the bars rise, in sequence). On the motion tokens; reduced motion shows the finished drawing."
+          "why": "Once on screen the line draws on (or the bars rise, in sequence). On the motion tokens; reduced motion shows the finished drawing. The arrival is expressive: it plays at the full motion level only, so `motion=\"subtle\"` (or a subtle app policy) shows the finished line."
         },
         {
           "slot": "response",
@@ -19425,6 +20947,32 @@
         "muted",
         "muted-foreground"
       ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "A table renders with the page it sits in. Staggering rows in delays reading data someone opened to scan."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "TableRow",
+          "why": "Body rows ease to a muted wash under the pointer. Across a wide row, the wash is what keeps the eye on the right line, and eased it follows the cursor down the table rather than strobing."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-interactive",
+          "part": "TableCell",
+          "why": "A `data-selected` row's fill eases in on every cell together, so the selected row reads as one band being set rather than a stamp."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Table is markup. Loading rows are Skeletons, which carry the shimmer."
+        }
+      ],
       "a11y": [
         "Renders semantic native table elements (thead/tbody/tfoot/th/td/caption) preserving built-in table semantics.",
         "Use TableHead (th) for column headers and TableCaption for an accessible description.",
@@ -19459,7 +21007,7 @@
       "group": "Navigation",
       "register": "either",
       "path": "components/tabs",
-      "summary": "Tabs over Base UI Tabs (roving focus, arrow-key nav, ARIA tablist wiring) in two styles: underline (page sections) or pill (compact switchers). Tabs (Root) + TabsList + TabsTrigger + TabsPanel.",
+      "summary": "Tabs over Base UI Tabs (roving focus, arrow-key nav, ARIA tablist wiring) in two styles: underline (page sections) or pill (compact switchers), with one indicator that glides to the active tab. Tabs (Root) + TabsList + TabsTrigger + TabsPanel.",
       "keywords": [
         "tabs",
         "tablist",
@@ -19533,13 +21081,19 @@
           "type": "Base UI Tabs.Root props (value, defaultValue, onValueChange, orientation)",
           "default": "defaultValue: 0",
           "description": "Controls the active tab. Uncontrolled via defaultValue; controlled via value + onValueChange."
+        },
+        {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "On Tabs: how much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the glide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting."
         }
       ],
       "subcomponents": [
         {
           "name": "TabsList",
           "type": "Base UI Tabs.List props (activateOnFocus, loopFocus) + variant?: \"underline\" | \"pill\" + className",
-          "description": "The tablist row. variant=\"underline\" (default) draws a divider rule beneath the triggers; variant=\"pill\" drops the rule and fills the active trigger, which takes the theme's button shape (--button-radius). Triggers inherit the variant."
+          "description": "The tablist row. variant=\"underline\" (default) draws a divider rule beneath the triggers; variant=\"pill\" drops the rule and fills the active trigger, which takes the theme's button shape (--button-radius). Triggers inherit the variant. It renders the gliding indicator (Base UI Tabs.Indicator) itself, so do not add one."
         },
         {
           "name": "TabsTrigger",
@@ -19564,11 +21118,44 @@
         "foreground",
         "ring"
       ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Tabs arrive with the section they organise. An entrance of their own would announce navigation chrome louder than the content it navigates."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "TabsTrigger",
+          "why": "The label steps from muted to foreground under the pointer; the ease is what makes that read as an answer rather than a repaint."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-glide",
+          "part": "Indicator",
+          "why": "One underline (or pill) travels to the new tab and stretches to its width. A mark that teleports makes the reader re-find the selection on every click; one that moves is tracked without looking. Expressive: motion=\"subtle\" lands it in place. Each tab's own mark is the fallback until the indicator has measured, so the server render is already right."
+        },
+        {
+          "slot": "transition",
+          "recipe": "animate-fade-in",
+          "part": "TabsPanel",
+          "why": "The incoming panel fades in, opacity only, so a switch between two similar panels still registers. Skipped on first render (activation direction \"none\") so a page of tabs does not fade in on load, and the outgoing panel leaves layout at once so a quick second click never stacks both."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Switching tabs is synchronous. A panel that loads data shows its own Skeleton or Spinner inside the panel, where the wait is."
+        }
+      ],
       "a11y": [
         "Base UI provides the tablist/tab/tabpanel roles, aria-selected, and roving tabindex.",
         "Arrow keys move between tabs; Home/End jump to first/last; panels are linked via aria-controls.",
         "Active tab styling reads from the data-active attribute; disabled tabs from data-disabled. Disabled tabs are skipped by arrow-key navigation.",
-        "Keyboard focus shows a ring on the focused trigger in both variants; the panel remains focusable."
+        "Keyboard focus shows a ring on the focused trigger in both variants; the panel remains focusable.",
+        "The gliding indicator is role=\"presentation\" decoration; aria-selected on the tab carries the state."
       ],
       "examples": [
         {
@@ -19584,6 +21171,11 @@
         {
           "label": "With a disabled tab",
           "code": "<Tabs defaultValue=\"overview\"><TabsList><TabsTrigger value=\"overview\">Overview</TabsTrigger><TabsTrigger value=\"billing\" disabled>Billing</TabsTrigger></TabsList><TabsPanel value=\"overview\">Overview content</TabsPanel></Tabs>",
+          "imports": "import { Tabs, TabsList, TabsPanel, TabsTrigger } from \"@sableui/react\""
+        },
+        {
+          "label": "Subtle motion",
+          "code": "<Tabs defaultValue=\"table\" motion=\"subtle\"><TabsList><TabsTrigger value=\"table\">Table</TabsTrigger><TabsTrigger value=\"chart\">Chart</TabsTrigger></TabsList><TabsPanel value=\"table\">Rows</TabsPanel><TabsPanel value=\"chart\">Trend</TabsPanel></Tabs>",
           "imports": "import { Tabs, TabsList, TabsPanel, TabsTrigger } from \"@sableui/react\""
         }
       ]
@@ -19835,6 +21427,38 @@
         "muted-foreground",
         "ring"
       ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "It sits in a settings panel or a popover, which owns the entrance."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Option (list)",
+          "why": "List rows ease their hover fill like Menu and Select rows, so a theme list beside a menu reads as the same kind of row."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Name (grid)",
+          "why": "In the grid, the theme's name brightens on hover, eased. The preview tile's outline steps rather than easing — outline is not in the recipe's transition list — so the name carries the motion."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-interactive",
+          "part": "Check (list)",
+          "why": "The check fades into the chosen row and out of the old one, so the choice reads as moving, at the same moment the whole interface repaints in the new theme."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Applying a theme is synchronous: the whole interface repaints at once, and that repaint is the feedback."
+        }
+      ],
       "a11y": [
         "The container is role=\"radiogroup\" with an aria-label; each card is a role=\"radio\" button with aria-checked reflecting the selected theme.",
         "Standard radio keyboard: arrow keys move the check — calling onValueChange on each press — and Space checks the focused option. That instant switching is right for a free, reversible choice; where a switch has a cost, use a DisclosurePicker list (a listbox: arrows move, Enter commits) with ThemePreview tiles instead.",
@@ -19933,6 +21557,12 @@
           "description": "Accessible label for the radiogroup."
         },
         {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the glide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting."
+        },
+        {
           "name": "className",
           "type": "string",
           "description": "Merged onto the outer radiogroup container."
@@ -19946,6 +21576,38 @@
         "accent",
         "accent-foreground",
         "ring"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "It arrives with the header or settings row it lives in; a theme control that announces itself competes with the page it themes."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Option",
+          "why": "The icon steps from muted to foreground under the pointer, which is what tells an icon-only segment it is a control."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-press",
+          "part": "Option",
+          "why": "A settle under the press confirms the tap on a 28px target before the theme change repaints the page around it."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-glide",
+          "part": "Active pill",
+          "why": "One pill slides to the chosen mode, stepping by option + gap on the spacing scale, so light → dark reads as the same control moving, not three icons trading a fill. Expressive: motion=\"subtle\" lands it in place."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Changing the theme is synchronous; the repaint is the feedback."
+        }
       ],
       "a11y": [
         "The container is role=\"radiogroup\" with an aria-label; each option is role=\"radio\" with aria-checked reflecting the selected value.",
@@ -19967,6 +21629,11 @@
         {
           "label": "Light selected",
           "code": "<ThemeSwitcher value=\"light\" onValueChange={setTheme} />",
+          "imports": "import { ThemeSwitcher } from \"@sableui/react\""
+        },
+        {
+          "label": "Subtle motion",
+          "code": "<ThemeSwitcher value={theme} onValueChange={setTheme} motion=\"subtle\" />",
           "imports": "import { ThemeSwitcher } from \"@sableui/react\""
         }
       ]
@@ -20489,13 +22156,19 @@
           "name": "appearance",
           "type": "\"default\" | \"segmented\"",
           "default": "\"default\"",
-          "description": "On ToggleGroup: `default` is a loose row of toggles; `segmented` draws the capsule segmented control (one track, the pressed option filled) shared with ThemeSwitcher. Toggles inside inherit it."
+          "description": "On ToggleGroup: `default` is a loose row of toggles; `segmented` draws the capsule segmented control (one track, the pressed option filled) shared with ThemeSwitcher. Single-select segmented draws ONE fill that glides to the pressed option and resizes to its label; multi-select keeps a fill per pressed option. Toggles inside inherit it."
         },
         {
           "name": "multiple",
           "type": "boolean",
           "default": "false",
           "description": "On ToggleGroup: allow several toggles pressed at once. The default is single-select, which behaves like a radio group."
+        },
+        {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "On ToggleGroup: how much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the glide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting."
         },
         {
           "name": "Toggle",
@@ -20507,7 +22180,7 @@
       "subcomponents": [
         {
           "name": "ToggleGroup",
-          "type": "Base UI ToggleGroup props (value, defaultValue, onValueChange, multiple, disabled, orientation, loopFocus) + appearance?: \"default\" | \"segmented\" + className",
+          "type": "Base UI ToggleGroup props (value, defaultValue, onValueChange, multiple, disabled, orientation, loopFocus) + appearance?: \"default\" | \"segmented\" + motion?: \"full\" | \"subtle\" | \"off\" + className",
           "description": "Groups child Toggles and shares pressed state across them — each Toggle inside carries a value. Defaults to multiple: false (single-select) — the fit for view-mode switches and segmented controls; pass multiple to allow several pressed at once, e.g. a row of formatting toggles."
         },
         {
@@ -20531,6 +22204,38 @@
         "border",
         "ring"
       ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Toggle",
+          "why": "Toggles arrive with the toolbar or header they sit in. Animating each one in would make a row of controls ripple for no reason."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Toggle",
+          "why": "Hover and the pressed fill ease rather than flip, so pressing reads as the same button changing state, not a different button appearing."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-press",
+          "part": "Toggle",
+          "why": "The small settle under the finger confirms the press landed before the state change is read — the difference matters most on touch, where there is no hover."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-glide",
+          "part": "Segmented fill",
+          "why": "In a single-select segmented group one fill travels to the chosen option and stretches to its label, so a view switch reads as one control now pointing elsewhere. Measured, because labels differ in width. Expressive: motion=\"subtle\" lands it in place."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Toggle",
+          "why": "A toggle commits instantly. Work that follows from the new state shows where its result appears, not on the control."
+        }
+      ],
       "a11y": [
         "Base UI sets aria-pressed on each Toggle and manages the pressed/disabled states.",
         "ToggleGroup provides arrow-key roving focus across its items; loopFocus wraps at the ends.",
@@ -20552,6 +22257,11 @@
           "label": "Segmented view switch",
           "code": "<ToggleGroup appearance=\"segmented\" defaultValue={[\"list\"]} aria-label=\"View\"><Toggle value=\"list\" aria-label=\"List view\"><Icon name=\"list\" /></Toggle><Toggle value=\"grid\" aria-label=\"Grid view\"><Icon name=\"grid\" /></Toggle></ToggleGroup>",
           "imports": "import { Icon, Toggle, ToggleGroup } from \"@sableui/react\""
+        },
+        {
+          "label": "Segmented with labels, subtle motion",
+          "code": "<ToggleGroup appearance=\"segmented\" motion=\"subtle\" defaultValue={[\"week\"]} aria-label=\"Range\"><Toggle value=\"day\">Day</Toggle><Toggle value=\"week\">Week</Toggle><Toggle value=\"month\">Month</Toggle></ToggleGroup>",
+          "imports": "import { Toggle, ToggleGroup } from \"@sableui/react\""
         },
         {
           "label": "Multi-select group",
@@ -21152,7 +22862,12 @@
         {
           "name": "SimpleTooltip",
           "type": "Base UI Tooltip.Root props + content: ReactNode + children: ReactElement + side | align | sideOffset",
-          "description": "Shorthand wrapping Root + Trigger + Content for the common case. The single child becomes the trigger (via Base UI render); content sets the body; side / align / sideOffset forward to the content with the same defaults. Composition parts remain for advanced use."
+          "description": "Shorthand wrapping Root + Trigger + Content for the common case. The single child becomes the trigger (via Base UI render); content sets the body; side / align / sideOffset forward to the content with the same defaults. Composition parts remain for advanced use. Inside a TooltipGroup it becomes a trigger of the group's shared tooltip instead."
+        },
+        {
+          "name": "TooltipGroup",
+          "type": "{ children: ReactNode; motion?: \"full\" | \"subtle\" | \"off\" }",
+          "description": "One tooltip shared by every SimpleTooltip inside it — for a toolbar or a row of icon buttons. Moving the pointer along the row glides the tooltip to the next trigger and swaps its label (old fades out, new fades in, each sliding toward the direction of travel), instead of closing one tooltip and opening another a few pixels away. Renders no element. Each SimpleTooltip keeps its own content / side / align / sideOffset and `disabled`; root props such as open / onOpenChange belong to the shared tooltip and are ignored inside a group. `motion` turns it down: `subtle` jumps between triggers and only cross-fades the label. The composable Tooltip parts are unaffected."
         }
       ],
       "tokensUsed": [
@@ -21184,6 +22899,12 @@
           "recipe": "none",
           "part": "Content",
           "why": "Tooltip copy is resident before the tooltip opens. Anything that has to be fetched is a Popover with its own loading state."
+        },
+        {
+          "slot": "transition",
+          "recipe": "custom",
+          "part": "TooltipGroup",
+          "why": "Moving between triggers in a group, the one tooltip glides to the next trigger, resizes to its label and cross-fades the text with a short slide toward the direction of travel. Separate tooltips would close here and open there, two surfaces blinking side by side; the glide says it is the same hint following the pointer. Base UI's handle + Viewport supply the shared popup and the previous/current content; the timing is the expressive glide (slow, emphasized), so `subtle` keeps only the cross-fade."
         }
       ],
       "a11y": [
@@ -21207,6 +22928,11 @@
           "label": "Shorthand (SimpleTooltip)",
           "code": "<SimpleTooltip content=\"Saved to your workspace.\"><Button variant=\"ghost\" size=\"icon-sm\" aria-label=\"Info\"><Icon name=\"info\" /></Button></SimpleTooltip>",
           "imports": "import { Button, Icon, SimpleTooltip } from \"@sableui/react\""
+        },
+        {
+          "label": "One tooltip gliding along a toolbar (TooltipGroup)",
+          "code": "<TooltipGroup><Toolbar aria-label=\"Formatting\"><SimpleTooltip content=\"Bold\"><ToolbarButton size=\"icon-sm\" aria-label=\"Bold\"><Icon name=\"bold\" /></ToolbarButton></SimpleTooltip><SimpleTooltip content=\"Italic\"><ToolbarButton size=\"icon-sm\" aria-label=\"Italic\"><Icon name=\"italic\" /></ToolbarButton></SimpleTooltip><SimpleTooltip content=\"Insert link\"><ToolbarButton size=\"icon-sm\" aria-label=\"Insert link\"><Icon name=\"link\" /></ToolbarButton></SimpleTooltip></Toolbar></TooltipGroup>",
+          "imports": "import { Icon, SimpleTooltip, Toolbar, ToolbarButton, TooltipGroup } from \"@sableui/react\""
         }
       ]
     },
@@ -21387,6 +23113,12 @@
           "name": "label",
           "type": "ReactNode",
           "description": "TreeAddRow's visible label. Name what gets added — 'Add effect', not 'Add'."
+        },
+        {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "On Tree. How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Under `subtle` expanded rows appear at once instead of unfolding; the chevron still turns."
         }
       ],
       "subcomponents": [
@@ -21423,6 +23155,32 @@
         "muted-foreground",
         "primary",
         "ring"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "motion-arrive",
+          "part": "TreeRow",
+          "why": "Rows a user's expand reveals fade down into place in document order (a capped 18ms stagger), so the eye can follow where the children came from. An animation (motion-arrive) rather than a transition, because the rows already wear motion-interactive and a second transition list would fight it. Only on a user expand of a `subtree` — a tree that mounts open shows its rows at once, and rows added later to an open folder do not cascade. Expressive: `subtle` shows them at once."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "TreeRow",
+          "why": "Hover and selection fills ease, so sweeping the pointer down a dense panel reads as a highlight following it rather than rows flickering."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-interactive",
+          "part": "Disclosure",
+          "why": "The chevron turns with the rows arriving under it; motion-interactive lists `rotate`, which is what -rotate-90 writes, so it no longer flips in one frame."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Tree",
+          "why": "A tree has no indeterminate state of its own; a branch that loads its children should render a TreeEmpty or a loading row inside it."
+        }
       ],
       "a11y": [
         "Tree implements the ARIA tree view pattern: Tree is role=\"tree\", each TreeRow and TreeAddRow is role=\"treeitem\" with aria-level, expandable rows carry aria-expanded, and a TreeSection is a role=\"group\" labelled by its heading. Rows stay flat in the DOM — hierarchy is aria-level — so the fills span the panel's full width.",
@@ -21537,6 +23295,38 @@
         "overlay",
         "overlay-foreground",
         "ring"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "The frame arrives with its page. Once there is a source, the poster and controls are the browser's."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Play button",
+          "why": "With `onRequestPlay`, the play disc firms its scrim on hover, eased, so the mark reads as pressable over any image."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-press",
+          "part": "Play button",
+          "why": "Loading a source can take a moment; the settle on press confirms the tap before the player appears."
+        },
+        {
+          "slot": "transition",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Placeholder to player is a swap of elements: the native video mounts where the poster was. Animating the swap would delay the playback the person just asked for."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Buffering belongs to the native controls, which draw their own indicator. A second loader over the frame would compete with the browser's."
+        }
       ],
       "a11y": [
         "Mounts a native <video> element, preserving built-in keyboard controls when controls is enabled.",
@@ -23479,8 +25269,8 @@
     {
       "slug": "motion",
       "title": "Motion",
-      "summary": "Motion explains a change: where something came from, what responded, and that work is happening. It is subtle by default, built from named recipes, and one switch turns it off.",
-      "headline": "4 slots · 3 speeds · enter-only overshoot · 1 kill switch",
+      "summary": "Motion explains a change: where something came from, what responded, and that work is happening. Components ship crafted by default: one indicator travels instead of two blinking, numbers roll, ticks draw, a refused answer shakes. It is built from named recipes, comes in two levels, and one switch turns it off.",
+      "headline": "4 slots · 3 speeds · 2 levels · enter-only overshoot · 1 kill switch",
       "retrieve": "sable docs motion",
       "vocabularies": [
         {
@@ -23541,7 +25331,37 @@
             {
               "name": "motion-icon-swap",
               "value": "enter · emphasized cross-fade",
-              "use": "Two icons of one control trading places: play/pause, outline/fill."
+              "use": "Two icons of one control trading places: play/pause, outline/fill, copy/check."
+            },
+            {
+              "name": "motion-glide",
+              "value": "slow · emphasized · expressive",
+              "use": "ONE indicator travelling to the selected option: tabs, segmented thumb, active dot."
+            },
+            {
+              "name": "motion-shake",
+              "value": "~400ms decaying · expressive",
+              "use": "A refused answer: wrong code, invalid submit. Plays while data-shake is set (useShake). Never the only signal."
+            },
+            {
+              "name": "motion-tick",
+              "value": "fast fade + base wipe · expressive",
+              "use": "A check mark that draws itself in. Exits only fade."
+            },
+            {
+              "name": "motion-appear",
+              "value": "fast fade + base scale",
+              "use": "A small control mounting in place: a clear button, a send arrow, a badge. @starting-style, no JS."
+            },
+            {
+              "name": "motion-arrive",
+              "value": "base · decelerate · staggered · expressive",
+              "use": "Items a user action brings into a list: a folder's children on expand, a row just added. Never on every render."
+            },
+            {
+              "name": "motion-size",
+              "value": "base · emphasized · expressive",
+              "use": "An element easing between intrinsic sizes when its label changes: a two-step confirm, Copy → Copied."
             },
             {
               "name": "motion-draw",
@@ -23582,6 +25402,42 @@
               "name": "ease-bounce",
               "value": "~10% overshoot",
               "use": "A playful pop, opt-in only. Enter only, never on exit."
+            }
+          ]
+        },
+        {
+          "title": "Two levels",
+          "note": "Essential motion answers the user; expressive motion narrates continuity. Expressive durations are also multiplied by --motion-expressive, which `subtle` sets to 0. Each level can only turn motion down from what surrounds it.",
+          "terms": [
+            {
+              "name": "essential",
+              "value": "always, unless off",
+              "use": "Colour and focus feedback, press, overlay arrival, disclosure height, loaders, chart hover."
+            },
+            {
+              "name": "expressive",
+              "value": "full only",
+              "use": "Glides, rolling numbers (NumberTicker), drawn ticks, shakes, staggers, chart arrival and morph, scroll reveals, spring overshoot."
+            },
+            {
+              "name": "full",
+              "value": "default",
+              "use": "Both levels play. The crafted default."
+            },
+            {
+              "name": "subtle",
+              "value": "data-motion=\"subtle\"",
+              "use": "Essential only; nothing overshoots. For dense tools, embedded widgets, readers who want calm without stillness."
+            },
+            {
+              "name": "off",
+              "value": "data-motion=\"off\" · reduce-motion",
+              "use": "Nothing moves; every state still changes."
+            },
+            {
+              "name": "where",
+              "value": "provider · scope · prop",
+              "use": "<MotionProvider policy> for the app, <MotionScope level> for a region, `motion` on a component that owns a flourish."
             }
           ]
         },
@@ -23643,6 +25499,22 @@
         {
           "rule": "JS motion reads useMotion().enabled and does nothing when it is false.",
           "why": "Reduced motion is an accessibility setting, not a style preference."
+        },
+        {
+          "rule": "One thing travels; two things do not blink. When a selection, a value or a mark changes in place, move the one element that represents it.",
+          "why": "A fill switching off here and on there is two events the eye has to connect. A glide, a roll or a draw is one, and it is most of what makes an interface feel made rather than assembled."
+        },
+        {
+          "rule": "Flourishes are expressive: multiply their durations by --motion-expressive and gate JS ones on useMotion().expressive.",
+          "why": "`subtle` promises the answers without the choreography. A glide on a plain token keeps playing after someone asked for calm."
+        },
+        {
+          "rule": "A state change finishes its story: refused shakes and says why, success confirms in place, armed asks again.",
+          "why": "Motion that starts a change and leaves the outcome to a snap reads as unfinished. ConfirmButton, OtpField's invalid shake and the copy-to-check swap are the reference cases."
+        },
+        {
+          "rule": "Component motion props and MotionScope only turn motion down.",
+          "why": "`full` on a component means inherit. Nothing below the provider can switch motion back on for a reader who asked for it off."
         }
       ],
       "noGos": [
@@ -24721,6 +26593,126 @@
         ]
       },
       {
+        "name": "motion-glide",
+        "kind": "utility",
+        "family": "motion",
+        "intent": "Timing for ONE element that travels to the selected option — position and size ease on the emphasized curve at the slow step. Expressive: `data-motion=\"subtle\"` makes it snap.",
+        "whenToUse": "A selection indicator you position yourself: a custom nav's current-page bar, a segmented control's thumb, an active dot. Tabs, ToggleGroup `segmented`, ThemeSwitcher and Carousel already glide.",
+        "insteadOf": "A fill or border on each option that switches on and off (two things blink instead of one thing moving), or a hand-written transition with a literal duration.",
+        "example": "<span aria-hidden className=\"motion-glide absolute bottom-0 h-0.5 bg-foreground\" style={{ left: x, width: w }} />",
+        "keywords": [
+          "sliding indicator",
+          "tab indicator",
+          "segmented thumb",
+          "active indicator",
+          "glide",
+          "underline animation",
+          "selection animation"
+        ],
+        "pairsWith": [
+          "motion-interactive"
+        ]
+      },
+      {
+        "name": "motion-shake",
+        "kind": "utility",
+        "family": "motion",
+        "intent": "A short decaying horizontal shake that plays while `data-shake` is set. `useShake()` sets and clears the attribute and restarts it on a repeat refusal. Expressive: under `subtle` only the error colour remains.",
+        "whenToUse": "An answer the system refused: a wrong one-time code, a submit with invalid fields, a rejected password. Always alongside the error colour and message, never instead of them. OtpField's `invalid` already shakes.",
+        "insteadOf": "A keyframe shake with a literal duration, which keeps moving under reduced motion, or a shake with no error text.",
+        "example": "const { shake, shakeProps } = useShake()\n<form className=\"motion-shake\" {...shakeProps} onSubmit={(e) => { if (!valid) { e.preventDefault(); shake() } }}>…</form>",
+        "keywords": [
+          "shake",
+          "error animation",
+          "wrong password",
+          "invalid",
+          "refuse",
+          "wiggle",
+          "nope"
+        ],
+        "pairsWith": [
+          "motion-interactive"
+        ]
+      },
+      {
+        "name": "motion-tick",
+        "kind": "utility",
+        "family": "motion",
+        "intent": "A selection mark that draws itself in from its leading edge (a clip-path wipe, so it works on any icon set) with an essential fade, keyed to Base UI's starting/ending style. Exits only fade. The wipe is expressive.",
+        "whenToUse": "A check or success glyph that mounts with its state: a custom selection card's tick, a completed step. Checkbox and CheckboxCard already use it.",
+        "insteadOf": "A scale-from-zero pop on a check mark, which reads as a stamp rather than a tick, or a path-length draw that needs to own the SVG.",
+        "example": "<Base.Indicator className=\"motion-tick\"><Icon name=\"check\" /></Base.Indicator>",
+        "keywords": [
+          "check animation",
+          "tick",
+          "draw check",
+          "success mark",
+          "checkbox animation",
+          "selection mark"
+        ]
+      },
+      {
+        "name": "motion-appear",
+        "kind": "utility",
+        "family": "motion",
+        "intent": "Fades and scales a small control in on first render through `@starting-style` — no data attribute, no JS. The fade is essential, the scale is expressive. Removal is instant.",
+        "whenToUse": "A control that mounts in place as state changes: a search field's clear button, a send button replacing a mic, a count badge that appears. Put it on a wrapper around a Sable Button or anything carrying `motion-interactive`, so the two do not fight over `transition-property`.",
+        "insteadOf": "Conditionally rendering a control so it pops in on one frame, or wrapping a single icon button in Presence.",
+        "example": "{value && <span className=\"flex motion-appear\"><Button size=\"icon-xs\" variant=\"ghost\" aria-label=\"Clear\"><Icon name=\"xmark\" /></Button></span>}",
+        "keywords": [
+          "appear",
+          "mount animation",
+          "pop in",
+          "enter",
+          "starting style",
+          "clear button"
+        ],
+        "pairsWith": [
+          "motion-icon-swap"
+        ]
+      },
+      {
+        "name": "motion-arrive",
+        "kind": "utility",
+        "family": "motion",
+        "intent": "Items a user action brings into a list settle into place one after another: a short fade down from 0.25rem. Stagger with `--motion-arrive-delay` (raw ms; the recipe scales it). Expressive.",
+        "whenToUse": "Only on items that are NEW because of something the user did: a folder's children on expand, a row just added, results that load in. Tree's expand already uses it.",
+        "insteadOf": "A staggered entrance on every render of a list, which turns a list into a loading delay, or an inline keyframe animation with literal durations.",
+        "example": "<li className=\"motion-arrive\" style={{ \"--motion-arrive-delay\": \"36ms\" } as CSSProperties}>{row.name}</li>",
+        "keywords": [
+          "stagger",
+          "list animation",
+          "arrival",
+          "cascade",
+          "new item",
+          "expand children",
+          "enter list"
+        ],
+        "pairsWith": [
+          "motion-interactive"
+        ]
+      },
+      {
+        "name": "motion-size",
+        "kind": "utility",
+        "family": "motion",
+        "intent": "Eases an element between sizes: between a keyword and a length (0 ↔ auto) through `interpolate-size: allow-keywords`, and between measured pixel sizes when paired with `useAutoSize()`, so a button whose label changes stretches to the new width instead of jumping. A superset of motion-interactive's transition list, so it can sit on a Button. The size is expressive.",
+        "whenToUse": "A control whose content changes length in place: a two-step confirm button, a Copy → Copied label, a chip that gains a count. ConfirmButton already uses it.",
+        "insteadOf": "A hand-written width transition, or a fixed width that clips the longer label. A content-sized box computes `width: auto` before and after its label changes, so on its own the recipe has nothing to ease — that is what `useAutoSize()` is for.",
+        "example": "const size = useAutoSize<HTMLButtonElement, HTMLSpanElement>()\n<button type=\"button\" ref={size.outerRef} className=\"motion-size\">\n\t<span ref={size.innerRef} className=\"inline-flex w-max\">{copied ? \"Copied\" : \"Copy link\"}</span>\n</button>",
+        "keywords": [
+          "width animation",
+          "auto width",
+          "label change",
+          "resize animation",
+          "interpolate size",
+          "morph button"
+        ],
+        "pairsWith": [
+          "motion-icon-swap"
+        ]
+      },
+      {
         "name": "motion-spin",
         "kind": "utility",
         "family": "motion",
@@ -25205,6 +27197,7 @@
         "label",
         "legend",
         "locale",
+        "motion",
         "onActiveIndexChange",
         "series",
         "stacked",
@@ -25309,6 +27302,7 @@
         "labels",
         "legend",
         "locale",
+        "motion",
         "negativeTone",
         "onActiveIndexChange",
         "orientation",
@@ -25403,6 +27397,7 @@
         "modifiersClassNames",
         "modifiersStyles",
         "month",
+        "motion",
         "navLayout",
         "nonce",
         "noonSafe",
@@ -25490,6 +27485,7 @@
         "index",
         "label",
         "loop",
+        "motion",
         "onIndexChange",
         "slideClassName",
         "slidesToShow"
@@ -25509,6 +27505,7 @@
         "invalid",
         "label",
         "leading",
+        "motion",
         "onAttach",
         "onSend",
         "onStop",
@@ -25528,6 +27525,7 @@
         "id",
         "indeterminate",
         "inputRef",
+        "motion",
         "name",
         "nativeButton",
         "onCheckedChange",
@@ -25550,6 +27548,7 @@
         "id",
         "indeterminate",
         "inputRef",
+        "motion",
         "name",
         "nativeButton",
         "onCheckedChange",
@@ -25809,6 +27808,21 @@
         "placeholder",
         "shortcut",
         "size"
+      ],
+      "ConfirmButton": [
+        "badge",
+        "bleed",
+        "children",
+        "confirmHint",
+        "confirmLabel",
+        "confirmVariant",
+        "icon",
+        "iconEnd",
+        "motion",
+        "onConfirm",
+        "size",
+        "timeout",
+        "variant"
       ],
       "ContextCard": [
         "actionsRef",
@@ -26106,10 +28120,12 @@
       "Feedback": [
         "heading",
         "label",
+        "motion",
         "onSubmit",
         "placeholder",
         "ratings",
-        "submitLabel"
+        "submitLabel",
+        "successMessage"
       ],
       "Field": [
         "children",
@@ -26261,6 +28277,7 @@
         "labels",
         "legend",
         "locale",
+        "motion",
         "onActiveIndexChange",
         "series",
         "tooltip",
@@ -26566,6 +28583,10 @@
         "policy",
         "target"
       ],
+      "MotionScope": [
+        "children",
+        "level"
+      ],
       "NavigationMenu": [
         "actionsRef",
         "align",
@@ -26622,6 +28643,7 @@
         "count",
         "dot",
         "max",
+        "motion",
         "overlay",
         "size",
         "tone"
@@ -26652,6 +28674,15 @@
         "style",
         "value"
       ],
+      "NumberTicker": [
+        "format",
+        "locales",
+        "motion",
+        "prefix",
+        "suffix",
+        "trend",
+        "value"
+      ],
       "OtpField": [
         "aria-invalid",
         "autoComplete",
@@ -26666,6 +28697,7 @@
         "inputMode",
         "length",
         "mask",
+        "motion",
         "name",
         "normalizeValue",
         "onValueChange",
@@ -26753,6 +28785,7 @@
         "labels",
         "legend",
         "locale",
+        "motion",
         "onActiveIndexChange",
         "separator",
         "tooltip",
@@ -26909,6 +28942,7 @@
         "label",
         "legend",
         "locale",
+        "motion",
         "onActiveIndexChange",
         "radiusAxis",
         "series",
@@ -26929,6 +28963,7 @@
         "legend",
         "locale",
         "max",
+        "motion",
         "onActiveIndexChange",
         "stacked",
         "sweep",
@@ -27253,6 +29288,7 @@
       "Sidebar": [
         "collapsed",
         "icons",
+        "motion",
         "surface",
         "variant"
       ],
@@ -27270,6 +29306,7 @@
       ],
       "SideNav": [
         "activeVariant",
+        "motion",
         "size"
       ],
       "SideNavGroup": [
@@ -27395,6 +29432,7 @@
         "data",
         "label",
         "locale",
+        "motion",
         "tone",
         "variant"
       ],
@@ -27470,6 +29508,7 @@
       "Tabs": [
         "className",
         "defaultValue",
+        "motion",
         "onValueChange",
         "orientation",
         "render",
@@ -27534,6 +29573,7 @@
       ],
       "ThemeSwitcher": [
         "label",
+        "motion",
         "onValueChange",
         "value"
       ],
@@ -27611,6 +29651,7 @@
         "defaultValue",
         "disabled",
         "loopFocus",
+        "motion",
         "multiple",
         "onValueChange",
         "orientation",
@@ -27714,6 +29755,10 @@
         "sideOffset",
         "style"
       ],
+      "TooltipGroup": [
+        "children",
+        "motion"
+      ],
       "TooltipPortal": [
         "className",
         "container",
@@ -27737,6 +29782,9 @@
         "payload",
         "render",
         "style"
+      ],
+      "Tree": [
+        "motion"
       ],
       "TreeAddRow": [
         "depth",
@@ -27882,19 +29930,19 @@
       },
       {
         "name": "MotionProvider",
-        "summary": "Holds the app's motion policy and writes it as `data-motion` on <html>, which drives the `--motion-scale` switch every Sable motion recipe reads. Lets an app offer its own reduce-motion setting.",
+        "summary": "Holds the app's motion policy and writes it as `data-motion` on <html>, which drives the `--motion-scale` and `--motion-expressive` switches every Sable motion recipe reads. Lets an app offer its own motion setting: full, subtle (feedback without flourishes) or off.",
         "required": "Optional. Without it, motion follows the visitor's OS `prefers-reduced-motion` setting, and useMotion() still works (its setPolicy does nothing).",
         "placement": "Once, at the app root, when the app has an in-app motion setting.",
         "props": [
           {
             "name": "defaultPolicy",
-            "type": "\"system\" | \"full\" | \"reduced\" | \"off\"",
+            "type": "\"system\" | \"full\" | \"subtle\" | \"reduced\" | \"off\"",
             "default": "\"system\"",
-            "description": "Initial policy when uncontrolled. \"system\" defers to the OS preference."
+            "description": "Initial policy when uncontrolled. \"system\" defers to the OS preference. \"subtle\" keeps essential motion (feedback, overlays, disclosure, loaders) and drops expressive motion (glides, rolling numbers, drawn ticks, shakes, staggers, overshoot)."
           },
           {
             "name": "policy",
-            "type": "\"system\" | \"full\" | \"reduced\" | \"off\"",
+            "type": "\"system\" | \"full\" | \"subtle\" | \"reduced\" | \"off\"",
             "description": "Controlled policy. Pair with onPolicyChange."
           },
           {
@@ -27911,13 +29959,17 @@
         ],
         "companions": [
           "useMotion",
-          "useReducedMotion"
+          "useMotionLevel",
+          "useReducedMotion",
+          "MotionScope"
         ],
         "notes": [
-          "JavaScript motion must read useMotion().enabled and do nothing when it is false; CSS recipes stop on their own."
+          "JavaScript motion must read useMotion().enabled and do nothing when it is false; JavaScript flourishes read useMotion().expressive, which is also false under \"subtle\". CSS recipes follow on their own.",
+          "Mapping the app's \"full\" choice back to \"system\" keeps honouring the OS reduce-motion preference; \"full\" itself forces motion on."
         ],
         "related": [
-          "Switch"
+          "Switch",
+          "ToggleGroup"
         ],
         "import": "import { MotionProvider } from \"@sableui/react\"",
         "examples": [
@@ -27930,6 +29982,42 @@
             "label": "A reduce-motion setting",
             "code": "function ReduceMotionSetting() {\n\tconst { policy, setPolicy } = useMotion()\n\treturn (\n\t\t<Switch\n\t\t\tchecked={policy === \"reduced\"}\n\t\t\tonCheckedChange={(on) => setPolicy(on ? \"reduced\" : \"system\")}\n\t\t\taria-label=\"Reduce motion\"\n\t\t/>\n\t)\n}",
             "imports": "import { Switch, useMotion } from \"@sableui/react\""
+          },
+          {
+            "label": "A three-way motion setting",
+            "code": "function MotionSetting() {\n\tconst { policy, setPolicy } = useMotion()\n\treturn (\n\t\t<ToggleGroup\n\t\t\tappearance=\"segmented\"\n\t\t\tvalue={[policy === \"system\" ? \"full\" : policy]}\n\t\t\tonValueChange={(next) => next[0] && setPolicy(next[0] === \"full\" ? \"system\" : (next[0] as \"subtle\" | \"off\"))}\n\t\t\taria-label=\"Motion\"\n\t\t>\n\t\t\t<Toggle value=\"full\">Full</Toggle>\n\t\t\t<Toggle value=\"subtle\">Subtle</Toggle>\n\t\t\t<Toggle value=\"off\">Off</Toggle>\n\t\t</ToggleGroup>\n\t)\n}",
+            "imports": "import { Toggle, ToggleGroup, useMotion } from \"@sableui/react\""
+          }
+        ]
+      },
+      {
+        "name": "MotionScope",
+        "summary": "Turns motion down for one region — a dense data view, an embedded widget, a screen a test captures — by writing `data-motion` on a box-less wrapper and passing the same level to useMotion() below it.",
+        "required": "Optional. Reach for it when a whole region should be calmer than the app; for one component, use that component's `motion` prop.",
+        "placement": "Around the region. It renders a `display: contents` element, so it adds no box to the layout.",
+        "props": [
+          {
+            "name": "level",
+            "type": "\"subtle\" | \"off\"",
+            "description": "\"subtle\" keeps feedback, overlays, disclosure and loaders and drops glides, rolling numbers, drawn ticks, shakes and staggers. \"off\" stills everything. A scope can only turn motion down."
+          }
+        ],
+        "companions": [
+          "useMotionLevel",
+          "MotionProvider"
+        ],
+        "notes": [
+          "Overlays portal out of the DOM subtree, so their CSS follows the app-level policy; set it on MotionProvider to cover them too."
+        ],
+        "related": [
+          "MotionProvider"
+        ],
+        "import": "import { MotionScope } from \"@sableui/react\"",
+        "examples": [
+          {
+            "label": "A calm data view",
+            "code": "export function Dashboard({ children }: { children: ReactNode }) {\n\treturn <MotionScope level=\"subtle\">{children}</MotionScope>\n}",
+            "imports": "import type { ReactNode } from \"react\"\nimport { MotionScope } from \"@sableui/react\""
           }
         ]
       },

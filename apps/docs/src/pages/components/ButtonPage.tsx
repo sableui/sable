@@ -31,9 +31,40 @@ function CopyDemo() {
 		<div className="flex items-center gap-2">
 			<code className="text-mono-sm text-muted-foreground">{address}</code>
 			<Button variant="ghost" size="icon-sm" aria-label="Copy address" onClick={copy}>
-				<Icon name={copied ? "check" : "copy"} />
+				<span aria-hidden="true" className="motion-icon-swap">
+					<span data-active={!copied} className="inline-flex">
+						<Icon name="copy" />
+					</span>
+					<span data-active={copied} className="inline-flex">
+						<Icon name="check" />
+					</span>
+				</span>
 			</Button>
+			<span role="status" className="sr-only">
+				{copied ? "Copied" : ""}
+			</span>
 		</div>
+	)
+}
+
+/** Toggle loading on and off, so the hand-over can be watched both ways. */
+function LoadingToggleDemo() {
+	const [loading, setLoading] = useState(true)
+	return (
+		<Stack gap={3} className="items-start">
+			<Row gap={2} className="flex-wrap">
+				<Button loading={loading}>Save changes</Button>
+				<Button variant="secondary" loading={loading} iconStart={<Icon name="download" />}>
+					Export
+				</Button>
+				<Button variant="outline" loading={loading} loadingLabel="Publishing">
+					Publish
+				</Button>
+			</Row>
+			<Button variant="ghost" size="sm" onClick={() => setLoading((l) => !l)}>
+				{loading ? "Stop loading" : "Start loading"}
+			</Button>
+		</Stack>
 	)
 }
 
@@ -256,14 +287,18 @@ export function ButtonPage() {
 
 			<Section
 				title="Copy"
-				description="Copying is behavior, not a kind of button: the ordinary icon button with useCopy, which flips the icon to a check for a moment."
+				description="Copying is behavior, not a kind of button: the ordinary icon button with useCopy. Both glyphs stay mounted in a motion-icon-swap cell, so the copy mark visibly turns into a check, and a polite status line says Copied to a screen reader."
 			>
 				<Example
 					code={`const { copy, copied } = useCopy(address)
 
 <Button variant="ghost" size="icon-sm" aria-label="Copy address" onClick={copy}>
-  <Icon name={copied ? "check" : "copy"} />
-</Button>`}
+  <span aria-hidden="true" className="motion-icon-swap">
+    <span data-active={!copied} className="inline-flex"><Icon name="copy" /></span>
+    <span data-active={copied} className="inline-flex"><Icon name="check" /></span>
+  </span>
+</Button>
+<span role="status" className="sr-only">{copied ? "Copied" : ""}</span>`}
 				>
 					<CopyDemo />
 				</Example>
@@ -271,16 +306,14 @@ export function ButtonPage() {
 
 			<Section
 				title="Loading"
-				description="Shows a spinner and blocks a second click."
+				description="Shows a spinner and blocks a second click. With no icon and no loadingLabel the spinner lays over the label, which fades out in place, so the button keeps its width; with an icon it takes the icon's slot. A loadingLabel changes the text, and the width with it."
 			>
 				<Example
-					code={`<Button loading loadingLabel="Saving">Save changes</Button>
-<Button variant="secondary" loading loadingLabel="Exporting">Export</Button>`}
+					code={`<Button loading>Save changes</Button>
+<Button variant="secondary" loading iconStart={<Icon name="download" />}>Export</Button>
+<Button variant="outline" loading loadingLabel="Publishing">Publish</Button>`}
 				>
-					<Button loading loadingLabel="Saving">Save changes</Button>
-					<Button variant="secondary" loading loadingLabel="Exporting">
-						Export
-					</Button>
+					<LoadingToggleDemo />
 				</Example>
 			</Section>
 

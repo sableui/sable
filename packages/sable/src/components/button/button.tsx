@@ -33,7 +33,9 @@ export interface ButtonProps
 	 */
 	render?: useRender.RenderProp
 	/**
-	 * Show a leading Spinner while an action is in flight, and ignore presses.
+	 * Show a Spinner while an action is in flight, and ignore presses. It takes
+	 * the `iconStart` slot, or lays over a plain label (faded in place) so the
+	 * button keeps its width.
 	 * Sets `aria-busy` and `aria-disabled`, not the native `disabled`: disabling
 	 * the focused button dropped focus to the page, so a sheet opened by the
 	 * action had nowhere to return it. @default false
@@ -106,6 +108,13 @@ const BLEED_CLASS: Record<Exclude<ButtonBleed, "none">, string> = {
 	both: "-ms-(--button-ps,var(--button-px)) -me-(--button-pe,var(--button-px))",
 }
 
+/*
+ * The label's own opacity fade, for the hand-over to a loading spinner. Fast
+ * and essential: it says the press landed, so it stays under `subtle`.
+ */
+const LABEL_FADE =
+	"[&>.sable-label-trim]:transition-opacity [&>.sable-label-trim]:duration-(--motion-duration-fast) [&>.sable-label-trim]:ease-standard"
+
 /**
  * The primary action primitive. Pill-shaped by default; one `primary` per screen.
  * Corner radius is theme-driven via `--button-radius` (falls back to full pill) —
@@ -176,20 +185,35 @@ export function Button({
 	const stacked = useContext(StackedActionsContext) && !String(size ?? "md").startsWith("icon")
 	const resolvedSize = stacked ? "cta" : (size ?? "md")
 	const hasLabel = children != null && children !== false
-	// The spinner takes the icon slot's size and an icon-weight ring, so it
-	// reads as the icon it replaced rather than a heavier foreign object.
-	const spinner = <Spinner className="size-(--button-icon)" thickness={2} />
-	const start = busy ? spinner : iconStart
 	// An icon-only button has one glyph slot: while loading, the spinner IS the
 	// icon. Rendering it beside the glyph put two icons in a square button.
 	const iconOnly = String(resolvedSize).startsWith("icon")
+	// A plain labelled button has no icon slot for the spinner to take, and
+	// adding one beside the label widened the button the instant it went busy —
+	// the whole row shifted under the pointer that had just pressed it. Instead
+	// the spinner lays over the label, which stays in place (and in the
+	// accessible name) at opacity 0, so the width never changes. With an icon
+	// slot or a loadingLabel the spinner keeps its old place: there it replaces
+	// a glyph of its own size, or the label was asked to change anyway.
+	const overlay = busy && !iconOnly && hasLabel && iconStart == null && loadingLabel == null && badge == null
+	// The spinner takes the icon slot's size and an icon-weight ring, so it
+	// reads as the icon it replaced rather than a heavier foreign object.
+	// motion-appear: it fades (and, at full motion, grows) in where it mounts
+	// rather than popping; removal is instant, which is right for a loader.
+	const spinner = (
+		<Spinner
+			className={cn("size-(--button-icon) motion-appear", overlay && "absolute inset-0 m-auto")}
+			thickness={2}
+		/>
+	)
+	const start = busy ? spinner : iconStart
 	const inner =
 		busy && iconOnly ? (
 			spinner
 		) : (
 			<>
 				{start}
-				{trimLabel(busy ? (loadingLabel ?? children) : children)}
+				{trimLabel(busy && !overlay ? (loadingLabel ?? children) : children)}
 				{iconEnd}
 			</>
 		)
@@ -206,7 +230,9 @@ export function Button({
 			inner
 		)
 	const optical = cn(
-		start && hasLabel && !iconOnly ? OPTICAL_START : null,
+		// An overlaid spinner is not a leading glyph: trimming the padding for it
+		// changed the width by 2px, the exact shift the overlay exists to avoid.
+		start && hasLabel && !iconOnly && !overlay ? OPTICAL_START : null,
 		iconEnd && hasLabel && !iconOnly ? OPTICAL_END : null,
 	)
 	// Only a borderless button can bleed, and not one stretched across a stacked
@@ -231,6 +257,13 @@ export function Button({
 				// double-fire, but fading it to 50% made a working button read as an
 				// unavailable one. It keeps full colour; the spinner says "working".
 				busy ? "cursor-progress disabled:opacity-100 aria-disabled:opacity-100" : null,
+				// The label hands over to the spinner laid on top of it (see
+				// `overlay`). Its fade is declared at rest too, so the label also
+				// fades BACK when the work settles instead of snapping in. Only the
+				// trimLabel span is targeted: a caller's icon may carry a transition
+				// of its own (a chevron's rotate) that a child selector would clobber.
+				LABEL_FADE,
+				overlay ? "relative [&>:not([role=status])]:opacity-0" : null,
 				className,
 			),
 			children: content,

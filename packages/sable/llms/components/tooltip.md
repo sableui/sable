@@ -35,7 +35,8 @@ Use Tooltip for brief nonessential hints tied to a specific control or piece of 
 | TooltipTrigger | Base UI Trigger props + render | The anchor element. Use render={<Button/>} to compose with another component. |
 | TooltipContent | Base UI Popup props + side \| align \| sideOffset + className | Portals + positions + paints the popup. side ("top" \| "bottom" \| "left" \| "right" \| "inline-*") picks which side of the trigger to render against, defaults to "top", and auto-flips on collision; align ("start" \| "center" \| "end") defaults to "center"; sideOffset (gap between trigger and popup, in pixels) defaults to 6. |
 | TooltipArrow | Base UI Arrow props + className | Optional pointer connecting the popup to its trigger — a popover-coloured square turned 45° that carries the border on its outward edges. Place inside TooltipContent. |
-| SimpleTooltip | Base UI Tooltip.Root props + content: ReactNode + children: ReactElement + side \| align \| sideOffset | Shorthand wrapping Root + Trigger + Content for the common case. The single child becomes the trigger (via Base UI render); content sets the body; side / align / sideOffset forward to the content with the same defaults. Composition parts remain for advanced use. |
+| SimpleTooltip | Base UI Tooltip.Root props + content: ReactNode + children: ReactElement + side \| align \| sideOffset | Shorthand wrapping Root + Trigger + Content for the common case. The single child becomes the trigger (via Base UI render); content sets the body; side / align / sideOffset forward to the content with the same defaults. Composition parts remain for advanced use. Inside a TooltipGroup it becomes a trigger of the group's shared tooltip instead. |
+| TooltipGroup | { children: ReactNode; motion?: "full" \| "subtle" \| "off" } | One tooltip shared by every SimpleTooltip inside it — for a toolbar or a row of icon buttons. Moving the pointer along the row glides the tooltip to the next trigger and swaps its label (old fades out, new fades in, each sliding toward the direction of travel), instead of closing one tooltip and opening another a few pixels away. Renders no element. Each SimpleTooltip keeps its own content / side / align / sideOffset and `disabled`; root props such as open / onOpenChange belong to the shared tooltip and are ignored inside a group. `motion` turns it down: `subtle` jumps between triggers and only cross-fades the label. The composable Tooltip parts are unaffected. |
 
 ## Props
 
@@ -53,6 +54,7 @@ Use Tooltip for brief nonessential hints tied to a specific control or piece of 
 - **arrival** · Content · `motion-pop` — The transform-origin follows the anchor, so the tooltip appears to grow out of the element it describes. That is what binds it to its trigger — a bubble that materialises at full size near two possible triggers belongs to neither.
 - **response** · Content · _no motion_ — The tooltip is not a hover target; pointing at it is how you dismiss it. Styling it for the pointer would suggest otherwise.
 - **transition** · Content · `motion-pop` — Same recipe, exit direction — it collapses back toward the anchor. Content that fades from a fixed size on close reads as a second, unrelated element disappearing.
+- **transition** · TooltipGroup · _custom (outside the recipe layer)_ — Moving between triggers in a group, the one tooltip glides to the next trigger, resizes to its label and cross-fades the text with a short slide toward the direction of travel. Separate tooltips would close here and open there, two surfaces blinking side by side; the glide says it is the same hint following the pointer. Base UI's handle + Viewport supply the shared popup and the previous/current content; the timing is the expressive glide (slow, emphasized), so `subtle` keeps only the cross-fade.
 - **activity** · Content · _no motion_ — Tooltip copy is resident before the tooltip opens. Anything that has to be fetched is a Popover with its own loading state.
 
 ## Accessibility
@@ -90,4 +92,12 @@ import { Button, Tooltip, TooltipContent, TooltipTrigger } from "@sableui/react"
 import { Button, Icon, SimpleTooltip } from "@sableui/react"
 
 <SimpleTooltip content="Saved to your workspace."><Button variant="ghost" size="icon-sm" aria-label="Info"><Icon name="info" /></Button></SimpleTooltip>
+```
+
+### One tooltip gliding along a toolbar (TooltipGroup)
+
+```tsx
+import { Icon, SimpleTooltip, Toolbar, ToolbarButton, TooltipGroup } from "@sableui/react"
+
+<TooltipGroup><Toolbar aria-label="Formatting"><SimpleTooltip content="Bold"><ToolbarButton size="icon-sm" aria-label="Bold"><Icon name="bold" /></ToolbarButton></SimpleTooltip><SimpleTooltip content="Italic"><ToolbarButton size="icon-sm" aria-label="Italic"><Icon name="italic" /></ToolbarButton></SimpleTooltip><SimpleTooltip content="Insert link"><ToolbarButton size="icon-sm" aria-label="Insert link"><Icon name="link" /></ToolbarButton></SimpleTooltip></Toolbar></TooltipGroup>
 ```

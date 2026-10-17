@@ -101,19 +101,27 @@ export function SearchInput({
 				{...props}
 			/>
 			{hasValue && !props.disabled ? (
-				// Sable's own icon button, not a hand-sized <button>: the hit area,
-				// focus ring, press and disabled fade follow the control ladder with
-				// every other icon button. Muted ink until hovered, so the X never
-				// out-shouts the query it clears.
-				<Button
-					variant="ghost"
-					size="icon-xs"
-					onClick={handleClear}
-					aria-label="Clear search"
-					className="absolute end-2 text-muted-foreground hover:text-foreground"
-				>
-					<Icon name="xmark" />
-				</Button>
+				// The wrapper carries the arrival, the button keeps its own response.
+				// motion-appear declares a transition list of its own, and on the
+				// Button it would fight motion-interactive for the one
+				// transition-property slot — whichever sorted last would win, and
+				// either the hover ease or the arrival would silently go. Removal
+				// stays instant: an emptied field should not wait on its X.
+				<span className="absolute end-2 flex motion-appear">
+					{/* Sable's own icon button, not a hand-sized <button>: the hit area,
+					    focus ring, press and disabled fade follow the control ladder with
+					    every other icon button. Muted ink until hovered, so the X never
+					    out-shouts the query it clears. */}
+					<Button
+						variant="ghost"
+						size="icon-xs"
+						onClick={handleClear}
+						aria-label="Clear search"
+						className="text-muted-foreground hover:text-foreground"
+					>
+						<Icon name="xmark" />
+					</Button>
+				</span>
 			) : null}
 		</div>
 	)

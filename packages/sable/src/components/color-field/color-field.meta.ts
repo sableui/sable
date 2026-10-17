@@ -108,6 +108,32 @@ export const colorFieldMeta: ComponentMeta = {
 			description: "Accessible name for the trigger; the current value is appended to it.",
 		},
 	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "motion-pop",
+			part: "Popover",
+			why: "The picker grows out of the swatch it edits (PopoverContent's recipe, its origin on the anchor). In a property panel with a column of swatches, that origin is what tells you which colour you are now editing.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Swatch",
+			why: "Preset swatches lift slightly under the pointer. They are 20px chips of colour with no label, and the eased lift is what tells you which one a click will take.",
+		},
+		{
+			slot: "transition",
+			recipe: "none",
+			part: "Handles",
+			why: "The saturation, hue and alpha handles follow the pointer exactly. A handle that trailed the drag would misreport the colour under the cursor, and a swatch or a typed hex moving them is the value changing, which the field should show at once.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "Picking is synchronous. The EyeDropper is the browser's own modal, with its own feedback.",
+		},
+	],
 	a11y: [
 		"The trigger's accessible name includes the current value, so a screen reader announces the colour rather than just \"button\" — the swatch itself conveys nothing without sight.",
 		"The Transparent entry is a toggle with aria-pressed, because it is a state of the value and not a navigation action.",

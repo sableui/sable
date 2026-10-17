@@ -10,6 +10,7 @@
 	"themes": "/llms/tasks/using-presets.md",
 	"colors": "/llms/reference/token-intent.md",
 	"typography": "/llms/foundations/typography.md",
+	"interactions": "/llms/foundations/motion.md",
 	"dimensions": "/llms/foundations/spacing.md",
 	"shape": "/llms/foundations/shape.md",
 	"elevation": "/llms/foundations/surfaces.md",

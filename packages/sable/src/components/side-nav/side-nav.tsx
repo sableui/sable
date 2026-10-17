@@ -4,6 +4,8 @@ import { useRender } from "@base-ui/react/use-render"
 import { createContext, useContext } from "react"
 import type { ComponentPropsWithRef, ReactNode } from "react"
 import { cn } from "../../lib/cn"
+import { HighlightGlide } from "../../lib/highlight-glide"
+import { type MotionLevel, motionAttribute } from "../../motion/MotionProvider"
 import { sideNavItemIconVariants, sideNavItemVariants } from "./side-nav.variants"
 
 /**
@@ -32,6 +34,31 @@ export interface SideNavProps extends ComponentPropsWithRef<"nav"> {
 	 * local rails; `sidebar` matches the app Sidebar for sub-navs inside chrome.
 	 */
 	activeVariant?: SideNavActiveVariant
+	/**
+	 * How much motion this component uses: `full` (default) inherits the app's
+	 * policy, `subtle` keeps feedback and drops the glide, `off` stills it. It
+	 * can only turn motion down — it never overrides a reader's reduce-motion
+	 * setting.
+	 * @default "full"
+	 */
+	motion?: MotionLevel
+}
+
+/**
+ * The current-page fill, once, travelling to whichever row is active instead
+ * of one row's fill switching off and another's on — the same engine and
+ * hand-off as ToggleGroup's segmented fill. It lands on the active row on
+ * first paint and glides only when the current page changes in place (a
+ * sub-nav inside a persistent layout). Each row keeps its own
+ * `data-[active]` fill as the server-render and no-JS fallback; once the glide
+ * has mounted it marks the nav `data-glide` and this clears the row's fill,
+ * keeping its ink. A nav whose page remounts on navigation simply shows the
+ * fill on the new row, with nothing to glide from.
+ */
+const GLIDE_HANDOFF = "[&[data-glide]_[data-active]]:bg-transparent"
+const GLIDE_FILL: Record<SideNavActiveVariant, string> = {
+	content: "rounded-sm bg-accent motion-glide",
+	sidebar: "rounded-sm bg-sidebar-accent motion-glide",
 }
 
 /**
@@ -52,11 +79,20 @@ export function SideNav({
 	className,
 	size = "md",
 	activeVariant = "content",
+	motion,
+	children,
 	...props
 }: SideNavProps) {
 	return (
 		<SideNavContext.Provider value={{ size, activeVariant }}>
-			<nav className={cn("flex flex-col gap-0.5", className)} {...props} />
+			<nav
+				data-motion={motionAttribute(motion)}
+				className={cn("flex flex-col gap-0.5", GLIDE_HANDOFF, className)}
+				{...props}
+			>
+				<HighlightGlide follow="data-active" timing="selection" className={GLIDE_FILL[activeVariant]} />
+				{children}
+			</nav>
 		</SideNavContext.Provider>
 	)
 }

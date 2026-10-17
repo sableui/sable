@@ -43,7 +43,8 @@ export function Reveal({
 	...props
 }: RevealProps) {
 	const Comp = (as ?? "div") as ElementType
-	const { enabled } = useMotion()
+	// A scroll reveal is a flourish: under "subtle" the content is simply there.
+	const { expressive: enabled } = useMotion()
 	const { ref, inView } = useInView({ once, amount, rootMargin })
 	const shown = (inView && when) || !enabled
 	return (

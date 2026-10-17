@@ -5,9 +5,22 @@
 // `@sableui/motion` adapter (peer-dep `motion`).
 
 // Policy
-export { MotionProvider, useMotion } from "./MotionProvider"
-export type { MotionPolicy, MotionProviderProps } from "./MotionProvider"
+export {
+	MotionProvider,
+	MotionScope,
+	motionAttribute,
+	useMotion,
+	useMotionLevel,
+} from "./MotionProvider"
+export type {
+	MotionLevel,
+	MotionPolicy,
+	MotionProviderProps,
+	MotionScopeProps,
+} from "./MotionProvider"
 export { useReducedMotion } from "./useReducedMotion"
+export { useShake } from "./useShake"
+export { useAutoSize } from "./useAutoSize"
 
 // Browser-native primitives
 export { useInView, type UseInViewOptions } from "./useInView"

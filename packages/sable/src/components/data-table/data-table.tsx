@@ -205,15 +205,19 @@ export function DataTable<Row>({
 										)}
 									>
 										{col.header}
+										{/* One chevron that turns, not two glyphs swapped: flipping
+										    asc to desc rotates the mark (motion-interactive lists
+										    `rotate`), so the reader sees the same column reverse
+										    rather than a different icon land in its place. */}
 										<Icon
-											name={
-												active && sort.direction === "desc"
-													? "chevron-down"
-													: "chevron-up"
-											}
+											name="chevron-up"
 											// Resting at 60%: still clearly quieter than the active
 											// chevron, but a visible mark (30% fell under 3:1).
-											className={cn("text-xs", !active && "opacity-60")}
+											className={cn(
+												"text-xs motion-interactive",
+												active && sort.direction === "desc" && "rotate-180",
+												!active && "opacity-60",
+											)}
 										/>
 									</Button>
 								) : (

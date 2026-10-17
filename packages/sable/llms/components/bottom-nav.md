@@ -34,6 +34,14 @@ Use BottomNav for a small set of top-level mobile destinations that should remai
 
 `background`, `border`, `muted-foreground`, `foreground`, `ring`
 
+## Motion
+
+- **arrival** · Root · _no motion_ — Fixed app chrome, present from the first paint of every screen. Animating it in on navigation would make each route change look like the app restarting.
+- **response** · BottomNavItem · `motion-interactive` — The ink steps up on hover and the focus ring eases in, so a pointer or a keyboard on a tablet gets the same answer as every other control in the app.
+- **response** · BottomNavItem · `motion-press` — On a phone there is no hover to say a tap landed, and a route can take a beat to paint. The settle on press is the receipt; without it people tap the tab a second time.
+- **transition** · BottomNavItem · `motion-interactive` — Changing tab eases the active ink out of one item and into the next. It is a cross-fade, not a travelling indicator: each item owns its colour, so there is no single mark to glide.
+- **activity** · Root · _no motion_ — Navigation has no working state of its own. A slow route shows its pending state in the page it is loading, not in the tab bar.
+
 ## Accessibility
 
 - BottomNav renders a <nav> landmark.

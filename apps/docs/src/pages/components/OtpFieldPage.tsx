@@ -72,7 +72,7 @@ export function OtpFieldPage() {
 
 			<Section
 				title="Checked when complete"
-				description="A wrong code stays on screen so the typo is easy to spot."
+				description="A wrong code stays on screen so the typo is easy to spot. The field shakes once as it turns invalid and the digits turn red; editing clears the error, so the next wrong code shakes again. Try any code but 123456."
 			>
 				<Example>
 					<VerifyDemo />

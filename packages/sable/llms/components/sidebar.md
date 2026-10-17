@@ -41,6 +41,7 @@ Use Sidebar for persistent desktop navigation or application chrome outside the 
 | icons | boolean | true | Render the leading icon on each SidebarItem. Set false for a text-only rail. Ignored while collapsed (icon-only by definition). |
 | variant | "app" \| "inline" | "app" | Where the rail lives. "app" is the page's chrome column — sticky, full viewport height, hidden below lg where AppHeader + BottomNav take over. "inline" is always visible and fills its parent's height, for a rail inside a bounded frame (a nested shell, an embedded preview). Use it instead of overriding the layout with !important classes. |
 | surface | "rail" \| "page" | "rail" | Which surface the rail is painted on. "rail" is its own --sidebar-* surface with a border — right for a full-height rail that frames the app, which a theme may tint or paint dark. "page" uses the page's surface and ink with no border — use it when a full-width header sits above the rail, where a tinted column starting under a page-coloured bar reads as pasted on. Use it instead of overriding bg-/text- classes, which the rail's re-pointed tokens defeat. |
+| motion | "full" \| "subtle" \| "off" | "full" | How much motion this component uses: `full` inherits the app's policy, `subtle` keeps feedback and drops the collapse ease and the current-page glide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. |
 
 ## Variants
 
@@ -49,6 +50,14 @@ Use Sidebar for persistent desktop navigation or application chrome outside the 
 ## Tokens used
 
 `sidebar`, `sidebar-foreground`, `sidebar-border`, `sidebar-accent`, `sidebar-accent-foreground`, `sidebar-ring`
+
+## Motion
+
+- **arrival** · Root · _no motion_ — The rail is the app's frame, present from first paint. It is not summoned, so it has no entrance.
+- **response** · SidebarItem · `motion-interactive` — Rows ease their hover fill (SideNav's row recipe on the rail rung), so moving down the nav reads as the pointer travelling rather than rows flashing.
+- **transition** · SidebarNav · `motion-glide` — The current-page fill is one element that travels to the new item when the page changes inside a persistent layout, so the marker reads as moving rather than one row dimming while another lights. It lands in place on first paint, and each item keeps its own fill as the server-render fallback. Expressive: `subtle` moves it at once.
+- **transition** · Root · `motion-size` — Collapsing to the icon rail eases the width instead of jumping 192px in one frame, so the content beside it visibly takes the room the rail gave up. Nothing inside jumps — a collapsed row's centred icon and an expanded row's inset icon sit on the same column — and labels leave at once and fade back in on reopen, clipped to the rail meanwhile. It reflows the page for the length of the ease, which is acceptable for a deliberate user toggle and never happens on load. Expressive: `subtle` snaps.
+- **activity** · Root · _no motion_ — Navigation chrome has no working state; a loading route shows it in the page.
 
 ## Accessibility
 

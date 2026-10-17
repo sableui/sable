@@ -129,10 +129,17 @@ export const pieChartMeta: ComponentMeta = {
 			description: "BCP 47 locale for default number and date formatting."
 		},
 		{
+			name: "motion",
+			type: "\"full\" | \"subtle\" | \"off\"",
+			default: "\"full\"",
+			description: "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The sweep, the slice morph and the rolling centre number are the flourish; the hover pull-out and dim are the feedback `subtle` keeps."
+		},
+		{
 			name: "animate",
 			type: "boolean",
 			default: "true",
-			description: "Sweep the slices in clockwise when the chart scrolls into view."
+			description: "Sweep the slices in clockwise when the chart scrolls into view. `animate={false}` is `motion=\"subtle\"`.",
+			deprecated: "motion=\"subtle\" (what animate={false} now maps to: no arrival, hover kept) or motion=\"off\""
 		},
 		{
 			name: "activeIndex",
@@ -169,19 +176,25 @@ export const pieChartMeta: ComponentMeta = {
 			slot: "arrival",
 			recipe: "custom",
 			part: "Slices",
-			why: "Once on screen the slices are revealed by a mask that sweeps clockwise from 12 o'clock — the whole is read as it fills. On the motion tokens; reduced motion shows the finished chart."
+			why: "Once on screen the slices are revealed by a mask that sweeps clockwise from 12 o'clock — the whole is read as it fills. On the motion tokens; reduced motion shows the finished chart. The arrival is expressive: it plays at the full motion level only, so `motion=\"subtle\"` (or a subtle app policy) shows the finished chart while hover feedback stays."
 		},
 		{
 			slot: "response",
 			recipe: "none",
 			part: "Active slice",
-			why: "The hovered slice pulls outward and the rest dim at once; the geometry change itself eases (see transition)."
+			why: "The hovered slice pulls outward and the rest dim at once (mixed toward the surface, not faded); the geometry change itself eases (see transition). Essential: `subtle` keeps it."
+		},
+		{
+			slot: "transition",
+			recipe: "custom",
+			part: "Centre value",
+			why: "A numeric centre value rolls to its new total digit by digit (NumberTicker) when the data changes, so the headline is seen moving with the slices instead of being found different afterwards. Expressive: under `subtle` it updates in place."
 		},
 		{
 			slot: "transition",
 			recipe: "custom",
 			part: "Slices",
-			why: "Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place."
+			why: "Geometry eases from the old shape to the new one through a CSS `d` transition on the motion tokens (no recipe animates path geometry); browsers without `d` transitions update in place. Expressive, like the arrival: under `subtle` new data swaps in place."
 		},
 		{
 			slot: "activity",

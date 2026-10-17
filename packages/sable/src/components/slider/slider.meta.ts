@@ -185,6 +185,32 @@ export const sliderMeta: ComponentMeta = {
 		},
 	],
 	tokensUsed: ["secondary", "primary", "background", "ring"],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "It arrives with the form or panel it sits in.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Thumb",
+			why: "The thumb's dot grows from 12px to full size on hover and keyboard focus, and a little past it while dragging, on a spring. Only the paint resizes, never the hit target, so the growth says the thumb is live without moving where you have to aim.",
+		},
+		{
+			slot: "transition",
+			recipe: "none",
+			part: "Thumb",
+			why: "The thumb and the filled range follow the pointer one-to-one, and keyboard steps land at once. An eased position would trail the drag and show a value the user has already moved past.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "A slider commits as it moves; there is nothing to wait for.",
+		},
+	],
 	a11y: [
 		"Base UI provides role=slider, aria-valuemin/max/now, and arrow-key / Page Up-Down / Home-End control.",
 		"Each thumb is a focusable input[type=range] nested in the thumb element; keyboard focus raises a 2px ring on the thumb via has-[:focus-visible] (a bare focus-visible: on the thumb never fires, since the div itself is not focusable).",

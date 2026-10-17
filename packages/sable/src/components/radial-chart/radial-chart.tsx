@@ -1,12 +1,14 @@
 "use client"
 
 import type { CSSProperties } from "react"
-import { ChartFrame, type ChartSize } from "../../lib/chart/chart-frame"
+import { ChartCenter } from "../../lib/chart/chart-center"
+import { ChartFrame, type ChartSize, chartMotion } from "../../lib/chart/chart-frame"
 import { ChartLegend } from "../../lib/chart/chart-legend"
 import { ChartTooltipContent } from "../../lib/chart/chart-tooltip"
-import { categoryText, centerValueText, chartFormatters } from "../../lib/chart/format"
+import { STROKE_HOVER, dimmed } from "../../lib/chart/dim"
+import { categoryText, chartFormatters } from "../../lib/chart/format"
 import { polar, strokeArcPath } from "../../lib/chart/geometry"
-import { drawTransition, morphTransition, pathStyle, stagger } from "../../lib/chart/motion"
+import { drawTransition, pathStyle, stagger } from "../../lib/chart/motion"
 import {
 	type ChartCategories,
 	type ChartCenterLabel,
@@ -17,6 +19,7 @@ import {
 	numberValue,
 } from "../../lib/chart/types"
 import { cn } from "../../lib/cn"
+import type { MotionLevel } from "../../motion/MotionProvider"
 
 export interface RadialChartProps {
 	/** One row per ring, outermost first. */
@@ -48,7 +51,19 @@ export interface RadialChartProps {
 	tooltip?: boolean | ChartTooltipOptions
 	valueFormatter?: ChartValueFormatter
 	locale?: string
-	/** Draw the rings round from their start when the chart scrolls into view. @default true */
+	/**
+	 * How much motion this component uses: `full` (default) inherits the app's
+	 * policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It
+	 * can only turn motion down — it never overrides a reader's reduce-motion
+	 * setting. The draw-on, the ring morph and the rolling centre number are the
+	 * flourish; the hover dim is the feedback `subtle` keeps.
+	 */
+	motion?: MotionLevel
+	/**
+	 * Draw the rings round from their start when the chart scrolls into view.
+	 * `animate={false}` is `motion="subtle"`.
+	 * @deprecated Use `motion="subtle"` (what `animate={false}` now maps to: no arrival, hover kept) or `motion="off"`.
+	 */
 	animate?: boolean
 	activeIndex?: number | null
 	defaultActiveIndex?: number | null
@@ -78,7 +93,8 @@ export function RadialChart({
 	tooltip = true,
 	valueFormatter,
 	locale,
-	animate = true,
+	motion,
+	animate,
 	activeIndex,
 	defaultActiveIndex,
 	onActiveIndexChange,
@@ -95,6 +111,7 @@ export function RadialChart({
 	const start = -span / 2 + (sweep >= 360 ? span / 2 : 0)
 	const tooltipOptions: ChartTooltipOptions = typeof tooltip === "object" ? tooltip : {}
 	const gauge = sweep < 360
+	const level = chartMotion(motion, animate)
 
 	const geometry = (size: ChartSize) => {
 		// A gauge sits on its flat edge, so it can use nearly the full height.
@@ -155,7 +172,7 @@ export function RadialChart({
 			className={cn("h-64", className)}
 			count={data.length}
 			interactive={tooltip !== false}
-			animate={animate}
+			motion={level}
 			activeIndex={activeIndex}
 			defaultActiveIndex={defaultActiveIndex}
 			onActiveIndexChange={onActiveIndexChange}
@@ -167,6 +184,19 @@ export function RadialChart({
 				rows: data.map((_, i) => [styles[i].label, fmt.full(values[i])]),
 			}}
 			legend={(legend ?? !labels) ? <ChartLegend items={names.map((n, i) => ({ key: n, label: styles[i].label, color: styles[i].color, icon: styles[i].icon }))} /> : null}
+			overlay={
+				centerLabel
+					? ({ size }) => {
+							const g = geometry(size)
+							// A gauge's centre stands on its flat edge; a full ring's sits in the middle.
+							return gauge && sweep <= 180 ? (
+								<ChartCenter center={centerLabel} x={g.cx} y={g.cy - 6} placement="gauge" locale={locale} motion={level} />
+							) : (
+								<ChartCenter center={centerLabel} x={g.cx} y={g.cy} locale={locale} motion={level} />
+							)
+						}
+					: undefined
+			}
 		>
 			{({ size, activeIndex: active }) => {
 				const g = geometry(size)
@@ -196,8 +226,14 @@ export function RadialChart({
 									fill="none"
 									strokeWidth={g.thickness}
 									strokeLinecap={stacked ? "butt" : "round"}
-									className={cn("[stroke-dasharray:1] [stroke-dashoffset:0] [[data-reveal=out]_&]:[stroke-dashoffset:1]", active != null && active !== a.i && "opacity-60")}
-									style={{ ...pathStyle(d), stroke: styles[a.i].color, transition: drawTransition(stagger(a.i, 90)) } as CSSProperties}
+									className="[stroke-dasharray:1] [stroke-dashoffset:0] [[data-reveal=out]_&]:[stroke-dashoffset:1]"
+									style={{
+										...pathStyle(d),
+										// Stepped back toward the surface rather than faded: a faded ring
+										// lets its muted track show through and turns muddy (lib/chart/dim).
+										stroke: active != null && active !== a.i ? dimmed(styles[a.i].color, 60) : styles[a.i].color,
+										transition: `${drawTransition(stagger(a.i, 90))}, ${STROKE_HOVER}`,
+									} as CSSProperties}
 								/>
 							)
 						})}
@@ -211,24 +247,6 @@ export function RadialChart({
 									)
 								})
 							: null}
-						{centerLabel ? (
-							<text
-								x={g.cx}
-								y={gauge && sweep <= 180 ? g.cy - 6 : g.cy}
-								textAnchor="middle"
-								className="[[data-reveal=out]_&]:opacity-0"
-								style={{ transition: morphTransition() }}
-							>
-								<tspan x={g.cx} dy={gauge && sweep <= 180 ? (centerLabel.label ? "-1.4em" : "0") : "0.35em"} className="fill-foreground text-heading-2 tabular-nums">
-									{centerValueText(centerLabel.value, locale)}
-								</tspan>
-								{centerLabel.label ? (
-									<tspan x={g.cx} dy={gauge && sweep <= 180 ? "1.6em" : "1.9em"} className="fill-muted-foreground text-caption">
-										{centerLabel.label}
-									</tspan>
-								) : null}
-							</text>
-						) : null}
 					</>
 				)
 			}}

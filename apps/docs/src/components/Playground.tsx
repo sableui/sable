@@ -2,17 +2,23 @@ import {
 	Button,
 	CodeBlock,
 	type ComponentMeta,
+	Icon,
 	Input,
+	type MotionLevel,
 	type PropMeta,
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
+	SimpleTooltip,
 	Switch,
 	cn,
+	useCopy,
 } from "@sableui/react"
 import { type ReactNode, useMemo, useState } from "react"
 import { Segmented } from "../customizer/controls"
+import { type SnippetMotion, agentPrompt, useAgentTheme } from "./agent-prompt"
+import { PREVIEW_LEVELS, PreviewMotionScope, usePreviewMotion } from "./preview-motion"
 
 /**
  * The prop playground.
@@ -172,6 +178,21 @@ function toSnippet(
 	const oneLine = `${open}>${text}</${name}>`
 	if (oneLine.length <= 72) return oneLine
 	return `${attrs.length ? `<${name}\n\t${attrs.join("\n\t")}\n>` : `<${name}>`}\n\t${text}\n</${name}>`
+}
+
+/**
+ * The snippet at the preview's motion level, and how the level got there: as
+ * the component's own `motion` prop when it has one, as a <MotionScope> around
+ * JSX otherwise, and not at all for an imperative call (a toast), which only
+ * the app-wide provider can reach. The code under the preview is always the
+ * code for what the preview is doing.
+ */
+function withMotion(snippet: string, level: MotionLevel, viaProp: boolean): { code: string; how: SnippetMotion } {
+	if (level === "full") return { code: snippet, how: "none" }
+	if (viaProp) return { code: snippet, how: "prop" }
+	if (!snippet.trimStart().startsWith("<")) return { code: snippet, how: "provider" }
+	const body = snippet.split("\n").map((line) => `\t${line}`).join("\n")
+	return { code: `<MotionScope level="${level}">\n${body}\n</MotionScope>`, how: "scope" }
 }
 
 /*
@@ -338,15 +359,36 @@ export function Playground({
 		slots.filter((slot) => slotOn[slot.prop]).map((slot) => [slot.prop, slot.element]),
 	)
 
+	// The preview's motion level. A component whose meta derives a `motion`
+	// control already plays it through its own prop, so the extra row is only
+	// for the rest; one with a `motion` prop the panel can't derive gets the
+	// level written into its snippet as that prop.
+	const motion = usePreviewMotion()
+	const ownMotionControl = controls.some((control) => control.prop === "motion")
+	const hasMotionProp = meta.props.some((prop) => prop.name === "motion")
+	const level: MotionLevel = ownMotionControl ? "full" : motion.level
+
 	const dirty =
 		text !== (initialText ?? "") ||
+		level !== "full" ||
 		slots.some((slot) => slotOn[slot.prop]) ||
 		controls.some((control) => values[control.prop] !== defaults[control.prop])
 
 	const slotAttrs = slots.filter((slot) => slotOn[slot.prop]).map((slot) => `${slot.prop}={${slot.source}}`)
-	const snippet =
-		customSnippet?.(values, text, slotOn) ??
-		toSnippet(meta.name, controls, values, text || undefined, [...(fixed ?? []), ...slotAttrs])
+	const custom = customSnippet?.(values, text, slotOn) ?? null
+	const viaProp = hasMotionProp && custom === null && level !== "full"
+	const generated =
+		custom ??
+		toSnippet(meta.name, controls, values, text || undefined, [
+			...(fixed ?? []),
+			...slotAttrs,
+			...(viaProp ? [`motion="${level}"`] : []),
+		])
+	const { code: snippet, how } = withMotion(generated, level, viaProp)
+
+	const theme = useAgentTheme()
+	const code = useCopy(snippet)
+	const agent = useCopy(() => agentPrompt({ name: meta.name, snippet, level, motion: how, theme }))
 
 	if (!controls.length) return null
 
@@ -359,23 +401,33 @@ export function Playground({
 						stageClassName,
 					)}
 				>
-					{render(values, text, slotElements)}
+					<PreviewMotionScope level={level} replayKey={motion.replayKey}>
+						{render(values, text, slotElements)}
+					</PreviewMotionScope>
 				</div>
 				<div className="border-t border-border bg-muted/30 p-4 lg:border-t-0 lg:border-l">
 					<div className="mb-2 flex items-center justify-between gap-2">
 						<h3 className="text-label-md">Properties</h3>
-						<Button
-							variant="ghost"
-							size="xs"
-							disabled={!dirty}
-							onClick={() => {
-								setValues(defaults)
-								setText(initialText ?? "")
-								setSlotOn({})
-							}}
-						>
-							Reset
-						</Button>
+						<div className="flex items-center gap-1">
+							{/* Remounts the preview, so arrival choreography (a chart
+							    rising, a reveal) can be watched again. */}
+							<Button variant="ghost" size="xs" iconStart={<Icon name="refresh" />} onClick={motion.replay}>
+								Replay
+							</Button>
+							<Button
+								variant="ghost"
+								size="xs"
+								disabled={!dirty}
+								onClick={() => {
+									setValues(defaults)
+									setText(initialText ?? "")
+									setSlotOn({})
+									motion.setLevel("full")
+								}}
+							>
+								Reset
+							</Button>
+						</div>
 					</div>
 					{initialText !== undefined ? (
 						<div className="flex min-h-(--control-md) items-center justify-between gap-3 py-1.5">
@@ -412,9 +464,64 @@ export function Playground({
 							}
 						/>
 					))}
+					{ownMotionControl ? null : (
+						// Not a prop of most components: a <MotionScope> around the
+						// preview, written into the snippet so the code still matches.
+						<div className="flex min-h-(--control-md) items-center justify-between gap-3 py-1.5">
+							<label
+								htmlFor="playground-motion"
+								className="text-body-sm text-muted-foreground"
+								title="Motion level for this preview: Subtle keeps feedback, overlays and loaders and drops the flourishes"
+							>
+								Motion
+							</label>
+							<Segmented
+								id="playground-motion"
+								label="Motion"
+								value={motion.level}
+								onChange={motion.setLevel}
+								track="muted"
+								fill={false}
+								options={PREVIEW_LEVELS.map((option) => ({ value: option.value, label: option.label, title: option.hint }))}
+							/>
+						</div>
+					)}
 				</div>
 			</div>
-			<CodeBlock code={snippet} className="rounded-none border-0 border-t" />
+			{/* The code's own bar: copy the JSX, or copy it as a request for a
+			    coding agent (imports, setup, the CLI that prints the contract). */}
+			<div className="flex items-center justify-between gap-2 border-t border-border px-2 py-1.5">
+				<span className="text-label-md text-muted-foreground ps-2">Code</span>
+				<div className="flex items-center gap-1">
+					<SimpleTooltip content="The JSX, imports and setup steps, as a prompt">
+						<Button
+							variant="ghost"
+							size="xs"
+							iconStart={<Icon name={agent.copied ? "check" : "sparkles"} />}
+							onClick={agent.copy}
+							className="text-muted-foreground"
+						>
+							{agent.copied ? "Copied" : "Copy for agent"}
+						</Button>
+					</SimpleTooltip>
+					<Button variant="ghost" size="icon-sm" aria-label="Copy code" onClick={code.copy} className="text-muted-foreground">
+						{/* Both glyphs mounted so copy cross-fades to check (the
+						    use-copy / CodeBlock pattern), and the status says it aloud. */}
+						<span aria-hidden="true" className="motion-icon-swap">
+							<span data-active={!code.copied} className="inline-flex">
+								<Icon name="copy" />
+							</span>
+							<span data-active={code.copied} className="inline-flex">
+								<Icon name="check" />
+							</span>
+						</span>
+					</Button>
+					<span role="status" className="sr-only">
+						{code.copied ? "Copied" : ""}
+					</span>
+				</div>
+			</div>
+			<CodeBlock code={snippet} showCopy={false} className="rounded-none border-0 border-t" />
 		</div>
 	)
 }

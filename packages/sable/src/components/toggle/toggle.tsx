@@ -2,7 +2,9 @@ import { Toggle as BaseToggle } from "@base-ui/react/toggle"
 import { ToggleGroup as BaseToggleGroup } from "@base-ui/react/toggle-group"
 import { type ComponentProps, createContext, useContext } from "react"
 import { cn } from "../../lib/cn"
-import { SEGMENTED_ITEM, SEGMENTED_TRACK } from "../../lib/segmented"
+import { HighlightGlide } from "../../lib/highlight-glide"
+import { SEGMENTED_INNER_RADIUS, SEGMENTED_ITEM, SEGMENTED_TRACK } from "../../lib/segmented"
+import { type MotionLevel, motionAttribute } from "../../motion/MotionProvider"
 
 /** How a ToggleGroup draws its toggles. */
 export type ToggleGroupAppearance = "default" | "segmented"
@@ -74,22 +76,70 @@ type ToggleGroupProps = Omit<
 	 * @default "default"
 	 */
 	appearance?: ToggleGroupAppearance
+	/**
+	 * How much motion this component uses: `full` (default) inherits the app's
+	 * policy, `subtle` keeps feedback and drops the glide, `off` stills it. It
+	 * can only turn motion down — it never overrides a reader's reduce-motion
+	 * setting.
+	 * @default "full"
+	 */
+	motion?: MotionLevel
 }
 
-export function ToggleGroup({ className, appearance = "default", ...props }: ToggleGroupProps) {
+/**
+ * A single-select segmented group draws its pressed fill ONCE, as a glider that
+ * travels to the chosen option (lib/highlight-glide, `follow="data-pressed"`),
+ * instead of every option toggling its own `bg-accent`. One fill that moves is
+ * what makes a view switch read as "the same control, now pointing here"; two
+ * fills swapping read as two controls.
+ *
+ * The options keep `data-[pressed]:bg-accent` as the fallback for the frame
+ * before the glider mounts (server render, no JS). Once it does, it marks the
+ * track `data-glide` and this selector clears the options' own fill — the same
+ * hand-off the menus use (styles.css → "Highlight glide"). The ink stays on the
+ * option: the glider is decoration, `aria-pressed` is the state.
+ *
+ * Multi-select has no single place for a fill to travel to, so it keeps one
+ * fill per pressed option.
+ */
+const SEGMENTED_GLIDE_HANDOFF = "[&[data-glide]>[data-pressed]]:bg-transparent"
+
+export function ToggleGroup({
+	className,
+	appearance = "default",
+	motion,
+	children,
+	...props
+}: ToggleGroupProps) {
+	const glide = appearance === "segmented" && !props.multiple
 	return (
 		<ToggleAppearanceContext.Provider value={appearance}>
 			<BaseToggleGroup
 				data-appearance={appearance}
+				data-motion={motionAttribute(motion)}
 				className={cn(
 					appearance === "segmented" ? SEGMENTED_TRACK : "inline-flex items-center gap-1",
+					glide && SEGMENTED_GLIDE_HANDOFF,
 					className,
 				)}
 				{...props}
 				// Base UI's composite emits orientation, but role=group does not
 				// support that ARIA attribute. Keep the keyboard orientation prop.
 				aria-orientation={props.role === "toolbar" ? props.orientation ?? "horizontal" : undefined}
-			/>
+			>
+				{/* Options can differ in width (labels), so the glider is measured
+				    rather than stepped by SEGMENTED_STEP as ThemeSwitcher's fixed
+				    icon segments are. `selection` timing: it lands on the first
+				    choice with no transition and glides (motion-glide) after. */}
+				{glide && (
+					<HighlightGlide
+						follow="data-pressed"
+						timing="selection"
+						className={cn(SEGMENTED_INNER_RADIUS, "bg-accent motion-glide")}
+					/>
+				)}
+				{children}
+			</BaseToggleGroup>
 		</ToggleAppearanceContext.Provider>
 	)
 }

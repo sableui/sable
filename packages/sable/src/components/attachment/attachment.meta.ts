@@ -172,6 +172,32 @@ export const attachmentMeta: ComponentMeta = {
 		"overlay-foreground",
 		"ring",
 	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "An attachment lands as part of a composer or a message, and that surface owns the entrance. A card that animated in on its own would read as a second, separate event — as if another file had been added.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Root",
+			why: "With `onOpen`, the edge steps up under the pointer; it is the only cue that the card itself opens the file, not just its actions. Eased, it reads as the card answering the cursor rather than a border flickering as the pointer crosses a busy composer.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-interactive",
+			part: "Root",
+			why: "Uploading to failed re-colours the edge and fill without changing the shape. The ease keeps it legible as the same file turning red; snapped, a failed card looks like a different card replaced the one that was sent.",
+		},
+		{
+			slot: "activity",
+			recipe: "motion-pulse",
+			part: "Progress",
+			why: "While uploading with no known `progress`, the bar is indeterminate and pulses (Progress's own recipe); with a number, the fill eases toward each new value. A still bar at a fixed width is indistinguishable from an upload that has stalled.",
+		},
+	],
 	a11y: [
 		"The full-card trigger is a real stretched `<button>` with an accessible label, not a click handler on a div — so it is one tab stop, keyboard-activatable, and focus-ringed.",
 		"Actions sit above that trigger in the stacking order, which keeps them individually focusable and stops a click on `remove` from also opening the file. Text is only made click-through when a trigger is present, so a filename stays selectable otherwise.",

@@ -58,5 +58,5 @@ import { MiddleTruncate } from "@sableui/react"
 import { Button, Icon, MiddleTruncate, Row, useCopy } from "@sableui/react"
 
 const { copy, copied } = useCopy(commitHash)
-<Row gap={1}><MiddleTruncate text={commitHash} /><Button variant="ghost" size="icon-xs" aria-label="Copy commit hash" onClick={copy}><Icon name={copied ? "check" : "copy"} /></Button></Row>
+<Row gap={1}><MiddleTruncate text={commitHash} /><Button variant="ghost" size="icon-xs" aria-label="Copy commit hash" onClick={copy}><span aria-hidden="true" className="motion-icon-swap"><span data-active={!copied} className="inline-flex"><Icon name="copy" /></span><span data-active={copied} className="inline-flex"><Icon name="check" /></span></span></Button><span role="status" className="sr-only">{copied ? "Copied" : ""}</span></Row>
 ```

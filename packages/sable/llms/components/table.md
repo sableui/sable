@@ -50,6 +50,13 @@ Use Table for structured data with consistent columns and rows. Use DataTable wh
 
 `border`, `muted`, `muted-foreground`
 
+## Motion
+
+- **arrival** · Root · _no motion_ — A table renders with the page it sits in. Staggering rows in delays reading data someone opened to scan.
+- **response** · TableRow · `motion-interactive` — Body rows ease to a muted wash under the pointer. Across a wide row, the wash is what keeps the eye on the right line, and eased it follows the cursor down the table rather than strobing.
+- **transition** · TableCell · `motion-interactive` — A `data-selected` row's fill eases in on every cell together, so the selected row reads as one band being set rather than a stamp.
+- **activity** · Root · _no motion_ — Table is markup. Loading rows are Skeletons, which carry the shimmer.
+
 ## Accessibility
 
 - Renders semantic native table elements (thead/tbody/tfoot/th/td/caption) preserving built-in table semantics.

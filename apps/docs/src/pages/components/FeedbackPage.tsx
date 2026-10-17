@@ -18,7 +18,7 @@ export function FeedbackPage() {
 
 			<Section
 				title="Basic"
-				description="Opens a small form with a rating row and a message."
+				description="Opens a small form with a rating row and a message. Sending swaps the form for a drawn check and a thanks line in the same box, then the popover closes on its own."
 			>
 				<Example>
 					<Feedback

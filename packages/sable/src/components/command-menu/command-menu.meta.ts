@@ -265,6 +265,44 @@ export const commandMenuMeta: ComponentMeta = {
 		"accent",
 		"accent-foreground",
 	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "motion-pop",
+			part: "Dialog",
+			why: "The palette opens on DialogContent's recipe over a fading backdrop. It is summoned by a keystroke from nowhere on screen, and the short scale-in is what says a layer arrived rather than the page changing. The inline CommandMenuPanel has no entrance: it is part of the page.",
+		},
+		{
+			slot: "arrival",
+			recipe: "motion-appear",
+			part: "Clear button",
+			why: "The clear button mounts on the first keystroke, beside the caret the eye is already on. Fading in, it reads as the field offering a way back instead of a control blinking into the header. Removal is instant, so an emptied query does not wait on its X.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "CommandItem",
+			why: "The active row follows both the arrow keys and the pointer, and its fill eases between rows, so scanning results while typing reads as one highlight moving rather than rows flashing in turn.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "CommandMenuTrigger",
+			why: "The search-shaped trigger eases its ink on hover like the field shell it imitates, so it reads as the field it opens.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-pop",
+			part: "Dialog",
+			why: "Closing on Enter or Esc shrinks the palette away fast and returns focus where it came from; the exit is the confirmation that the command ran or was dismissed.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "List",
+			why: "Results are filtered synchronously from the items passed in. Async results are the caller's to mark with a Spinner (motion-spin) in the list, where the person is already looking.",
+		},
+	],
 	a11y: [
 		"CommandMenuTrigger is a real <button> named by its visible placeholder, with aria-haspopup=dialog and aria-keyshortcuts (Meta+K on macOS, Control+K elsewhere). Its Kbd hint is aria-hidden, so the shortcut is announced once rather than read as part of the name.",
 		"The shortcut never fires from inside a text field, textarea, select or contenteditable (Ctrl+K is delete-to-end-of-line in macOS text views), except the palette's own input.",

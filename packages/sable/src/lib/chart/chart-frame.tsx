@@ -1,7 +1,7 @@
 "use client"
 
 import { type KeyboardEvent, type PointerEvent, type ReactNode, useEffect, useId, useRef, useState } from "react"
-import { useMotion } from "../../motion/MotionProvider"
+import { type MotionLevel, motionAttribute, useMotionLevel } from "../../motion/MotionProvider"
 import { useArrival } from "./use-arrival"
 import { cn } from "../cn"
 
@@ -25,8 +25,13 @@ export interface ChartFrameProps {
 	count: number
 	/** Whether hovering or focusing shows a tooltip and a cursor. */
 	interactive: boolean
-	/** Play the arrival when the chart scrolls into view. */
-	animate: boolean
+	/**
+	 * The chart's `motion` prop (already merged with the deprecated `animate`
+	 * through `chartMotion`). The arrival is expressive, so it plays only at
+	 * `full`; the value is written to the figure's `data-motion`, so the CSS on
+	 * every mark agrees.
+	 */
+	motion?: MotionLevel
 	activeIndex?: number | null
 	defaultActiveIndex?: number | null
 	onActiveIndexChange?: (index: number | null) => void
@@ -40,6 +45,25 @@ export interface ChartFrameProps {
 	/** The same data as a table, for assistive tech. */
 	table: { headers: string[]; rows: string[][] }
 	children: (state: { size: ChartSize; activeIndex: number | null }) => ReactNode
+	/**
+	 * HTML laid over the plot, in plot coordinates — a donut's centre figure,
+	 * which renders through NumberTicker and so cannot live inside the SVG
+	 * (`<text>` holds no HTML, and a foreignObject mispositions transformed
+	 * content in WebKit). Decorative, like the drawing: aria-hidden and
+	 * pointer-transparent, so hover and hit-testing still reach the plot.
+	 */
+	overlay?: (state: { size: ChartSize; activeIndex: number | null }) => ReactNode
+}
+
+/**
+ * A chart's motion level from its `motion` prop and the deprecated `animate`.
+ * `animate={false}` used to skip the arrival and nothing else, so it maps to
+ * `subtle` — no arrival, no morph, hover feedback kept — rather than `off`,
+ * which would also have stilled the hover dim it never touched. An explicit
+ * `motion` wins.
+ */
+export function chartMotion(motion: MotionLevel | undefined, animate: boolean | undefined): MotionLevel | undefined {
+	return motion ?? (animate === false ? "subtle" : undefined)
 }
 
 /**
@@ -54,7 +78,7 @@ export function ChartFrame({
 	className,
 	count,
 	interactive,
-	animate,
+	motion,
 	activeIndex: controlled,
 	defaultActiveIndex = null,
 	onActiveIndexChange,
@@ -64,12 +88,14 @@ export function ChartFrame({
 	legend,
 	table,
 	children,
+	overlay,
 }: ChartFrameProps) {
-	const { enabled } = useMotion()
+	const { expressive } = useMotionLevel(motion)
 	const [viewRef, inView] = useArrival<HTMLElement>()
 	const plotRef = useRef<HTMLDivElement>(null)
 	const [size, setSize] = useState<ChartSize | null>(null)
-	const [shown, setShown] = useState(!animate)
+	// Decided from the prop alone, so the server and the first client render agree.
+	const [shown, setShown] = useState(motion === "off" || motion === "subtle")
 	const [uncontrolled, setUncontrolled] = useState<number | null>(defaultActiveIndex)
 	const [viaKeyboard, setViaKeyboard] = useState(false)
 	const appeared = useRef(true)
@@ -99,10 +125,12 @@ export function ChartFrame({
 	}, [])
 
 	// Arrival: the marks render in their "out" pose first, then flip to "in" a
-	// painted frame later so the transition runs. With motion off they start in.
+	// painted frame later so the transition runs. The arrival is EXPRESSIVE, so
+	// under subtle (or off, or reduced motion) the finished chart shows at once
+	// rather than waiting to scroll into view for a transition that lasts 0s.
 	useEffect(() => {
 		if (shown) return
-		if (!animate || !enabled) {
+		if (!expressive) {
 			setShown(true)
 			return
 		}
@@ -115,7 +143,7 @@ export function ChartFrame({
 			cancelAnimationFrame(outer)
 			cancelAnimationFrame(inner)
 		}
-	}, [shown, animate, enabled, size, inView])
+	}, [shown, expressive, size, inView])
 
 	const local = (event: PointerEvent<HTMLDivElement>) => {
 		const r = event.currentTarget.getBoundingClientRect()
@@ -152,6 +180,7 @@ export function ChartFrame({
 		<figure
 			ref={viewRef}
 			data-reveal={shown ? "in" : "out"}
+			data-motion={motionAttribute(motion)}
 			className={cn("m-0 flex h-60 w-full min-w-0 flex-col gap-3", className)}
 		>
 			<div
@@ -180,6 +209,11 @@ export function ChartFrame({
 					>
 						{children({ size, activeIndex: interactive ? active : null })}
 					</svg>
+				) : null}
+				{overlay && size && size.width > 0 && size.height > 0 ? (
+					<div aria-hidden className="pointer-events-none absolute inset-0">
+						{overlay({ size, activeIndex: interactive ? active : null })}
+					</div>
 				) : null}
 				{placement ? (
 					<div

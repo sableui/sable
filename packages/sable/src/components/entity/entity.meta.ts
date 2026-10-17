@@ -92,6 +92,32 @@ export const entityMeta: ComponentMeta = {
 		density: ["compact", "comfortable"],
 	},
 	tokensUsed: ["accent", "accent-foreground", "foreground", "muted-foreground", "ring"],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "Rows arrive with the list they belong to. Entering one at a time is a stagger, and a stagger on a list someone opened to scan is a delay.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Root",
+			why: "Only the interactive row reacts: its hover fill, a step off the surface it sits on, eases in. A static row never fakes clickability, and an interactive one answers the pointer without flicker as it moves down a list.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-interactive",
+			part: "Root",
+			why: "`selected` eases the fill onto the current row of a list–detail view, so opening another record reads as the selection moving rather than two rows flashing.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "A record row has nothing of its own to wait for. A row whose action is pending puts a loading Button in `action`.",
+		},
+	],
 	a11y: [
 		"Default rows are presentational layout; semantics come from the content you place in title/subtitle/action.",
 		"interactive rows render a real <button> around the leading visual and text, with its ::after stretched over the whole row — native focus, a focus-visible ring, and Enter/Space. The action slot sits outside that button and above the overlay, so a Button there stays valid HTML and keeps its own clicks.",

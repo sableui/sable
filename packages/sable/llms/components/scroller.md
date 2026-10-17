@@ -41,6 +41,14 @@ Use Scroller to create a contained overflow region for content that naturally ex
 
 `ring`
 
+## Motion
+
+- **arrival** · Root · _no motion_ — It is a region, not an event; its content arrives with whatever fills it.
+- **response** · Viewport · `motion-interactive` — The region is focusable so the keyboard can scroll it, and its focus ring eases in like any control's. It is the one sign the region, not the page, now takes the arrow keys.
+- **response** · Scrollbar · _custom (outside the recipe layer)_ — The vertical bar (`scrollbar-quiet`) stays hidden until the region is hovered, focused or scrolled, then fades its thumb in on the motion tokens. A bar that appeared in one frame would flash every time the pointer crossed the list.
+- **transition** · Edge fade · _no motion_ — The edge fades switch on and off as you scroll, in the frame the content is already moving, so the change is carried by the scroll itself. They are a mask gradient, which CSS cannot interpolate without registered custom properties.
+- **activity** · Root · _no motion_ — A scroll region does no work of its own. Content still loading inside it brings its own Skeleton or Spinner.
+
 ## Accessibility
 
 - The edge fades are a CSS mask-image on the scrolling element, not overlay elements — there is nothing in the DOM to intercept a pointer or be read by assistive tech, and the content under a fade stays fully interactive.

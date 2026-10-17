@@ -39,6 +39,13 @@ Use PanelGroup for the body of a tool workspace: fixed-width Panels docked left 
 
 `primary`, `panel`, `hairline`, `hairline-strong`
 
+## Motion
+
+- **arrival** · Root · _no motion_ — Panels are the app's frame, present from first paint. A dock that slid in on load would make the workspace look like it is still assembling.
+- **response** · PanelResizer · `motion-interactive` — The hairline widens into a visible bar on hover and turns primary on keyboard focus, eased, so a 1px edge says it can be grabbed before the pointer commits.
+- **transition** · Panel · _no motion_ — Width tracks the pointer one-to-one while dragging, and keyboard steps land at once. An eased width would trail the cursor, and resizing is a layout change: easing it would reflow the canvas beside the panel on every frame.
+- **activity** · Root · _no motion_ — Layout chrome has no working state.
+
 ## Accessibility
 
 - PanelResizer is a role=separator with aria-orientation, aria-valuenow/min/max, and is focusable — a pointer-only resizer is a keyboard trap.

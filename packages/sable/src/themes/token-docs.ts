@@ -328,7 +328,7 @@ const MOTION: Record<string, TokenDoc> = {
 		whenToUse:
 			"Set to 0 to disable motion (the reduced-motion path), or tune globally to speed the whole system up or down. Every duration token is expressed against it.",
 		insteadOf:
-			"per-component overrides, and `@media (prefers-reduced-motion)` scattered through components. One multiplier is auditable; fifty local checks are not.",
+			"per-component overrides, and `@media (prefers-reduced-motion)` scattered through components. One multiplier is auditable; fifty local checks are not. To keep feedback but drop flourishes, use the `subtle` policy (it zeroes the separate `--motion-expressive` factor that glides, rolling numbers, drawn ticks and shakes also multiply by) rather than lowering this.",
 	},
 	"motion-duration-instant": {
 		intent: "Effectively no delay, but still a transition.",

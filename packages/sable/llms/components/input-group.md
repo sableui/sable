@@ -32,6 +32,13 @@ Use InputGroup when something belongs inside the field with the text: a unit, a 
 
 `input`, `card`, `ring`, `destructive`, `muted-foreground`, `foreground`
 
+## Motion
+
+- **arrival** · Root · _no motion_ — It arrives with the form it belongs to. A field that animated in on its own would be briefly unusable for no stated reason.
+- **response** · Root · `motion-interactive` — The shell owns one focus ring for the input and its addons and eases it in, so focusing the text, or tabbing to a copy button inside the field, reads as the one field taking focus.
+- **transition** · Root · `motion-interactive` — An invalid value turns the shell's edge destructive on the same ease, so the error lands as the field changing state rather than a red box swapping in.
+- **activity** · Root · _no motion_ — A field does no work of its own. A pending check (an availability lookup) puts a Spinner in `trailing`, which is where its answer will appear.
+
 ## Accessibility
 
 - The Input stays the focusable control; the group draws the focus ring around the whole field while it is focused.
@@ -66,7 +73,7 @@ import { Field, Icon, Input, InputGroup } from "@sableui/react"
 ```tsx
 import { Button, Field, Icon, Input, InputGroup } from "@sableui/react"
 
-<Field label="API key"><InputGroup trailing={<Button variant="ghost" size="icon-sm" aria-label="Copy key" onClick={copy}><Icon name={copied ? "check" : "copy"} /></Button>}><Input readOnly value={key} /></InputGroup></Field>
+<Field label="API key"><InputGroup trailing={<Button variant="ghost" size="icon-sm" aria-label="Copy key" onClick={copy}><span aria-hidden="true" className="motion-icon-swap"><span data-active={!copied} className="inline-flex"><Icon name="copy" /></span><span data-active={copied} className="inline-flex"><Icon name="check" /></span></span></Button>}><Input readOnly value={key} /></InputGroup></Field>
 ```
 
 ### Password with reveal

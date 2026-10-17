@@ -11,18 +11,27 @@
  *     simply updates.
  * No recipe in styles.css animates `d` or flex-grow geometry, so these are
  * declared as `"custom"` in each chart's meta.motion.
+ *
+ * Arrival, morph and stagger are EXPRESSIVE: they are also multiplied by
+ * --motion-expressive, so `data-motion="subtle"` (or `motion="subtle"` on the
+ * chart) shows the finished chart and swaps new data in place, while hover
+ * feedback (HOVER, GLIDE) keeps answering the pointer.
  */
 
+/** An expressive duration: a token, scaled again by --motion-expressive. */
+const expressive = (token: string, factor = 1) =>
+	`calc(var(${token}) * ${factor} * var(--motion-expressive, 1))`
+
 /** The draw-on length: two "slower" steps, so a long line does not whip across. */
-export const DRAW_DURATION = "calc(var(--motion-duration-slower) * 1.8)"
-const RISE = "var(--motion-duration-slower) var(--motion-ease-emphasized)"
-const MORPH = "var(--motion-duration-slow) var(--motion-ease-standard)"
+export const DRAW_DURATION = expressive("--motion-duration-slower", 1.8)
+const RISE = `${expressive("--motion-duration-slower")} var(--motion-ease-emphasized)`
+const MORPH = `${expressive("--motion-duration-slow")} var(--motion-ease-standard)`
 /**
  * Hover feedback: quick, and never delayed. It must not share the arrival's
  * timing — a dim that waited out a bar's arrival stagger cascaded across the
  * row as the pointer moved, which read as lag.
  */
-const HOVER = "var(--motion-duration-fast) var(--motion-ease-standard)"
+export const HOVER = "var(--motion-duration-fast) var(--motion-ease-standard)"
 
 /** A cursor, active dot or tooltip moving between data positions. */
 export const GLIDE = `transform ${HOVER}, opacity ${HOVER}, cx ${HOVER}, cy ${HOVER}`
@@ -34,7 +43,7 @@ export function barTransition(delay = "0ms"): string {
 
 /** Stagger arrivals by position, scaled so reduced motion has no dead delay. */
 export function stagger(index: number, stepMs = 35): string {
-	return `calc(${Math.min(index, 24) * stepMs}ms * var(--motion-scale, 1))`
+	return `calc(${Math.min(index, 24) * stepMs}ms * var(--motion-scale, 1) * var(--motion-expressive, 1))`
 }
 
 /** A stroked line that draws on and morphs (needs pathLength="1"). */

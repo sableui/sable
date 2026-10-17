@@ -7,23 +7,46 @@ import {
 	type ReactElement,
 	type ReactNode,
 	useContext,
+	useState,
 } from "react"
 import { cn } from "../../lib/cn"
+import { HighlightGlide } from "../../lib/highlight-glide"
+import { type MotionLevel, motionAttribute } from "../../motion/MotionProvider"
 import { RAIL_ROW_INLINE, sideNavItemIconVariants, sideNavItemVariants } from "../side-nav/side-nav.variants"
 import { SimpleTooltip } from "../tooltip"
 
-type SidebarContextValue = { collapsed: boolean; icons: boolean }
+type SidebarContextValue = {
+	collapsed: boolean
+	icons: boolean
+	/**
+	 * The rail has been collapsed at some point in this mount, so labels that
+	 * mount now are coming back on a reopen and may fade in. False on first
+	 * paint, so an expanded rail's labels are simply there on load.
+	 */
+	reopened?: boolean
+}
 const SidebarContext = createContext<SidebarContextValue>({
 	collapsed: false,
 	icons: true,
 })
 
 /** Read the rail's collapsed state — e.g. to swap a full wordmark for a mark. */
+/** A label coming back as the rail reopens fades in rather than appearing. */
+const LABEL_FADE = "starting:opacity-0 transition-opacity duration-(--motion-duration-base) ease-decelerate"
+
 export function useSidebar(): SidebarContextValue {
 	return useContext(SidebarContext)
 }
 
 export interface SidebarProps extends ComponentPropsWithRef<"aside"> {
+	/**
+	 * How much motion this component uses: `full` (default) inherits the app's
+	 * policy, `subtle` keeps feedback and drops the collapse ease and the
+	 * current-page glide, `off` stills it. It can only turn motion down — it
+	 * never overrides a reader's reduce-motion setting.
+	 * @default "full"
+	 */
+	motion?: MotionLevel
 	/**
 	 * Collapse the rail to an icon-only width. Controlled — drive it from app
 	 * state and wire a toggle (e.g. a Button in the header or footer). Collapsed,
@@ -114,13 +137,20 @@ export function Sidebar({
 	icons = true,
 	variant = "app",
 	surface = "rail",
+	motion,
 	className,
 	children,
 	...props
 }: SidebarProps) {
+	// Labels fade back in only on a REOPEN. @starting-style also fires on an
+	// element's first render, so an always-on fade played on every page load;
+	// it is applied only once the rail has been collapsed in this mount.
+	const [hasCollapsed, setHasCollapsed] = useState(collapsed)
+	if (collapsed && !hasCollapsed) setHasCollapsed(true)
 	return (
-		<SidebarContext.Provider value={{ collapsed, icons }}>
+		<SidebarContext.Provider value={{ collapsed, icons, reopened: hasCollapsed && !collapsed }}>
 			<aside
+				data-motion={motionAttribute(motion)}
 				data-collapsed={collapsed || undefined}
 				data-variant={variant}
 				data-surface={surface}
@@ -137,6 +167,15 @@ export function Sidebar({
 					surface === "rail" ? cn("border-r border-sidebar-border", SIDEBAR_INK) : PAGE_INK,
 					SIDEBAR_VARIANT[variant],
 					"w-[var(--sidebar-width,16rem)] data-[collapsed]:w-[var(--sidebar-width-collapsed,4rem)]",
+					// Collapsing eases the width (`motion-size`, expressive) rather than
+					// jumping 192px in one frame. It reflows the page beside the rail for
+					// the length of the ease, which is the point: the content visibly
+					// takes the room the rail gave up. Nothing inside jumps, because a
+					// collapsed row's centred icon and an expanded row's inset icon sit
+					// on the same column (measured: 21px from the rail edge in both).
+					// Labels leave at once and fade back in as the rail reopens; the
+					// clip keeps them from painting past the rail while it is narrow.
+					"overflow-x-clip motion-size",
 					className,
 				)}
 				{...props}
@@ -193,7 +232,7 @@ export interface SidebarBrandProps extends Omit<ComponentPropsWithRef<"div">, "c
  *   </SidebarHeader>
  */
 export function SidebarBrand({ mark, label, render, className, "aria-label": ariaLabel, ...props }: SidebarBrandProps) {
-	const { collapsed } = useSidebar()
+	const { collapsed, reopened } = useSidebar()
 	return useRender({
 		render: render ?? <div />,
 		props: {
@@ -211,7 +250,7 @@ export function SidebarBrand({ mark, label, render, className, "aria-label": ari
 			children: (
 				<>
 					<span className={sideNavItemIconVariants({ size: "rail" })}>{mark}</span>
-					{collapsed ? null : <span className="min-w-0 truncate text-title-sm">{label}</span>}
+					{collapsed ? null : <span className={cn("min-w-0 truncate text-title-sm", reopened && LABEL_FADE)}>{label}</span>}
 				</>
 			),
 		},
@@ -220,9 +259,18 @@ export function SidebarBrand({ mark, label, render, className, "aria-label": ari
 }
 SidebarBrand.displayName = "SidebarBrand"
 
-/** The scrollable nav region — grows to fill the rail between header and footer. */
+/**
+ * The scrollable nav region — grows to fill the rail between header and footer.
+ *
+ * The current-page fill is ONE element that glides to the active item (the
+ * same engine and hand-off as SideNav), so a page change inside a persistent
+ * layout reads as the marker moving rather than one row dimming and another
+ * lighting. Each item keeps its own `data-[active]` fill as the server-render
+ * fallback until the glide mounts.
+ */
 export function SidebarNav({
 	className,
+	children,
 	...props
 }: ComponentPropsWithRef<"nav">) {
 	return (
@@ -232,10 +280,14 @@ export function SidebarNav({
 					// narrow rail, and contained overscroll so a wheel gesture that runs
 					// out of nav stops there instead of scrolling the page behind it.
 					"flex flex-1 flex-col gap-1 overflow-y-auto overscroll-contain px-3 py-4 scrollbar-quiet",
+					"[&[data-glide]_[data-active]]:bg-transparent",
 					className,
 				)}
 			{...props}
-		/>
+		>
+			<HighlightGlide follow="data-active" timing="selection" className="rounded-sm bg-sidebar-accent motion-glide" />
+			{children}
+		</nav>
 	)
 }
 SidebarNav.displayName = "SidebarNav"
@@ -286,7 +338,7 @@ export function SidebarItem({
 	"aria-label": ariaLabel,
 	...props
 }: SidebarItemProps) {
-	const { collapsed, icons } = useSidebar()
+	const { collapsed, icons, reopened } = useSidebar()
 	// Collapsed is icon-only, so it always shows the icon; otherwise the rail's
 	// `icons` flag decides (a text-only rail drops it).
 	const showIcon = icon != null && (icons || collapsed)
@@ -316,7 +368,7 @@ export function SidebarItem({
 					) : null}
 					{collapsed ? null : (
 						<>
-							<span className="min-w-0 flex-1 truncate">{label}</span>
+							<span className={cn("min-w-0 flex-1 truncate", reopened && LABEL_FADE)}>{label}</span>
 							{badge ? <span className="ms-auto shrink-0">{badge}</span> : null}
 						</>
 					)}

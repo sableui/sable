@@ -132,6 +132,38 @@ export const themeSelectorMeta: ComponentMeta = {
 		"muted-foreground",
 		"ring",
 	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "It sits in a settings panel or a popover, which owns the entrance.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Option (list)",
+			why: "List rows ease their hover fill like Menu and Select rows, so a theme list beside a menu reads as the same kind of row.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Name (grid)",
+			why: "In the grid, the theme's name brightens on hover, eased. The preview tile's outline steps rather than easing — outline is not in the recipe's transition list — so the name carries the motion.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-interactive",
+			part: "Check (list)",
+			why: "The check fades into the chosen row and out of the old one, so the choice reads as moving, at the same moment the whole interface repaints in the new theme.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "Applying a theme is synchronous: the whole interface repaints at once, and that repaint is the feedback.",
+		},
+	],
 	a11y: [
 		'The container is role="radiogroup" with an aria-label; each card is a role="radio" button with aria-checked reflecting the selected theme.',
 		"Standard radio keyboard: arrow keys move the check — calling onValueChange on each press — and Space checks the focused option. That instant switching is right for a free, reversible choice; where a switch has a cost, use a DisclosurePicker list (a listbox: arrows move, Enter commits) with ThemePreview tiles instead.",

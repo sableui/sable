@@ -133,6 +133,44 @@ export const radioCardMeta: ComponentMeta = {
 		"tone-info",
 		"tone-warning",
 	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "Cards arrive with the form. A plan picker that animated each card in would delay the choice it exists to make.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Root",
+			why: "The edge steps toward the ring colour on hover, eased. On a card-sized target a hard snap across the whole border reads as the layout flickering.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-press",
+			part: "Root",
+			why: "The settle on press confirms a click anywhere in the card — the radio is small, and without it a click in the card's body can feel like it missed the control.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-interactive",
+			part: "Root",
+			why: "Checking eases the tone ring and wash onto the new card as the old one releases, so the choice reads as moving between cards rather than two cards repainting.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-interactive",
+			part: "Indicator",
+			why: "The radio dot grows in on a spring, the same mark as Radio, so a card and a plain radio confirm a choice the same way.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "A choice commits instantly. A slow write belongs to the surrounding form's pending state.",
+		},
+	],
 	a11y: [
 		"Base UI provides the radiogroup/radio roles, aria-checked, hidden native inputs, and roving tabindex.",
 		"Arrow keys move and select between cards; Space selects the focused card; Tab enters/leaves the group.",

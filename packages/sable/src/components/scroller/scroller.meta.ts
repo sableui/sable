@@ -102,6 +102,38 @@ export const scrollerMeta: ComponentMeta = {
 		wheelScroll: ["true", "false"],
 	},
 	tokensUsed: ["ring"],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "It is a region, not an event; its content arrives with whatever fills it.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Viewport",
+			why: "The region is focusable so the keyboard can scroll it, and its focus ring eases in like any control's. It is the one sign the region, not the page, now takes the arrow keys.",
+		},
+		{
+			slot: "response",
+			recipe: "custom",
+			part: "Scrollbar",
+			why: "The vertical bar (`scrollbar-quiet`) stays hidden until the region is hovered, focused or scrolled, then fades its thumb in on the motion tokens. A bar that appeared in one frame would flash every time the pointer crossed the list.",
+		},
+		{
+			slot: "transition",
+			recipe: "none",
+			part: "Edge fade",
+			why: "The edge fades switch on and off as you scroll, in the frame the content is already moving, so the change is carried by the scroll itself. They are a mask gradient, which CSS cannot interpolate without registered custom properties.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "A scroll region does no work of its own. Content still loading inside it brings its own Skeleton or Spinner.",
+		},
+	],
 	a11y: [
 		"The edge fades are a CSS mask-image on the scrolling element, not overlay elements — there is nothing in the DOM to intercept a pointer or be read by assistive tech, and the content under a fade stays fully interactive.",
 		"Two boxes: a chrome box carrying `className` (border, background, radius, sizing) and, inside it, the element that actually scrolls and carries the fade mask. They are split because a `mask-image` applies to its element's own border — so with both on one box, a bordered Scroller watched its frame dissolve at the scrolling edge. The axis is published as `data-orientation`, not `aria-orientation`, which is invalid on `role=\"group\"`.",

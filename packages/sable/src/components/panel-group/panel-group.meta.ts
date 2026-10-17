@@ -98,6 +98,32 @@ export const panelGroupMeta: ComponentMeta = {
 				"Controlled width for a Panel, clamped and optionally persisted to localStorage (only when `storageKey` is passed). Read through useSyncExternalStore, so there is no server/client hydration mismatch and no setState in an effect; do not hand-roll a localStorage read during render or a write from an effect. Without `storageKey` the width is kept in memory per hook instance. The third element is the `{ min, max }` it clamps to: spread it onto the paired PanelResizer so the separator's aria-valuemin/max and Home/End match the real clamp.",
 		},
 	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "Panels are the app's frame, present from first paint. A dock that slid in on load would make the workspace look like it is still assembling.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "PanelResizer",
+			why: "The hairline widens into a visible bar on hover and turns primary on keyboard focus, eased, so a 1px edge says it can be grabbed before the pointer commits.",
+		},
+		{
+			slot: "transition",
+			recipe: "none",
+			part: "Panel",
+			why: "Width tracks the pointer one-to-one while dragging, and keyboard steps land at once. An eased width would trail the cursor, and resizing is a layout change: easing it would reflow the canvas beside the panel on every frame.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "Layout chrome has no working state.",
+		},
+	],
 	a11y: [
 		"PanelResizer is a role=separator with aria-orientation, aria-valuenow/min/max, and is focusable — a pointer-only resizer is a keyboard trap.",
 		"Arrow keys resize by `step`; Home and End jump to the minimum and maximum.",

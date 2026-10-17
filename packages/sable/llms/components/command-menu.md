@@ -70,6 +70,15 @@ Use CommandMenu for global or contextual keyboard-driven actions: navigation, cr
 
 `card`, `card-foreground`, `border`, `foreground`, `muted-foreground`, `accent`, `accent-foreground`
 
+## Motion
+
+- **arrival** · Dialog · `motion-pop` — The palette opens on DialogContent's recipe over a fading backdrop. It is summoned by a keystroke from nowhere on screen, and the short scale-in is what says a layer arrived rather than the page changing. The inline CommandMenuPanel has no entrance: it is part of the page.
+- **arrival** · Clear button · `motion-appear` — The clear button mounts on the first keystroke, beside the caret the eye is already on. Fading in, it reads as the field offering a way back instead of a control blinking into the header. Removal is instant, so an emptied query does not wait on its X.
+- **response** · CommandItem · `motion-interactive` — The active row follows both the arrow keys and the pointer, and its fill eases between rows, so scanning results while typing reads as one highlight moving rather than rows flashing in turn.
+- **response** · CommandMenuTrigger · `motion-interactive` — The search-shaped trigger eases its ink on hover like the field shell it imitates, so it reads as the field it opens.
+- **transition** · Dialog · `motion-pop` — Closing on Enter or Esc shrinks the palette away fast and returns focus where it came from; the exit is the confirmation that the command ran or was dismissed.
+- **activity** · List · _no motion_ — Results are filtered synchronously from the items passed in. Async results are the caller's to mark with a Spinner (motion-spin) in the list, where the person is already looking.
+
 ## Accessibility
 
 - CommandMenuTrigger is a real <button> named by its visible placeholder, with aria-haspopup=dialog and aria-keyshortcuts (Meta+K on macOS, Control+K elsewhere). Its Kbd hint is aria-hidden, so the shortcut is announced once rather than read as part of the name.

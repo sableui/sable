@@ -96,6 +96,13 @@ export const sideNavMeta: ComponentMeta = {
 			description:
 				'Active-state token vocabulary shared by all items. "content" uses bg-accent/text-accent-foreground for local rails inside the content area; "sidebar" uses bg-sidebar-accent/text-sidebar-accent-foreground for SideNavs rendered inside app chrome.',
 		},
+		{
+			name: "motion",
+			type: '"full" | "subtle" | "off"',
+			default: '"full"',
+			description:
+				"How much motion this component uses: `full` inherits the app's policy, `subtle` keeps feedback and drops the current-page glide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting.",
+		},
 	],
 	subcomponents: [
 		{
@@ -109,6 +116,32 @@ export const sideNavMeta: ComponentMeta = {
 			type: "{ label?: ReactNode } + div props",
 			description:
 				"A labelled section within a SideNav - groups settings into areas. label renders an optional sentence-case caption heading above the group's items.",
+		},
+	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "In-page navigation arrives with the page it navigates.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "SideNavItem",
+			why: "Rows ease their hover fill and focus ring, so moving down a long nav reads as one pointer travelling rather than rows flashing in turn.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-glide",
+			part: "SideNav",
+			why: "The current-item fill is one element that travels to the new row when the section changes inside a persistent layout, so the marker reads as moving rather than one row dimming while another lights. It lands in place on first paint, each row keeps its own fill as the server-render fallback, and the active row's heavier weight lands at once — font weight does not ease. Expressive: `subtle` moves it at once.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "Navigation chrome has no working state; a loading section shows it in the content.",
 		},
 	],
 	a11y: [

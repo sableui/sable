@@ -61,10 +61,18 @@ Use Tree for the hierarchy panel in a workspace: layers, objects, an inspector o
 | disclosureIcon | ReactNode | — | Replaces TreeRow's semantic chevron-down icon. Omit to use the chevron-down from the app's IconProvider set. |
 | actions | ReactNode | — | Right-rail controls for a TreeRow: visibility, solo, a row menu. |
 | label | ReactNode | — | TreeAddRow's visible label. Name what gets added — 'Add effect', not 'Add'. |
+| motion | "full" \| "subtle" \| "off" | "full" | On Tree. How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Under `subtle` expanded rows appear at once instead of unfolding; the chevron still turns. |
 
 ## Tokens used
 
 `panel-raised`, `hairline`, `foreground`, `muted-foreground`, `primary`, `ring`
+
+## Motion
+
+- **arrival** · TreeRow · `motion-arrive` — Rows a user's expand reveals fade down into place in document order (a capped 18ms stagger), so the eye can follow where the children came from. An animation (motion-arrive) rather than a transition, because the rows already wear motion-interactive and a second transition list would fight it. Only on a user expand of a `subtree` — a tree that mounts open shows its rows at once, and rows added later to an open folder do not cascade. Expressive: `subtle` shows them at once.
+- **response** · TreeRow · `motion-interactive` — Hover and selection fills ease, so sweeping the pointer down a dense panel reads as a highlight following it rather than rows flickering.
+- **transition** · Disclosure · `motion-interactive` — The chevron turns with the rows arriving under it; motion-interactive lists `rotate`, which is what -rotate-90 writes, so it no longer flips in one frame.
+- **activity** · Tree · _no motion_ — A tree has no indeterminate state of its own; a branch that loads its children should render a TreeEmpty or a loading row inside it.
 
 ## Accessibility
 

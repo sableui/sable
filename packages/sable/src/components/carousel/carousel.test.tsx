@@ -113,3 +113,27 @@ describe("Carousel arrows", () => {
 		expect(box.contains(screen.getByRole("group", { name: "Choose slide" }))).toBe(false)
 	})
 })
+
+describe("Carousel motion", () => {
+	const slides = ["A", "B", "C"].map((s) => <div key={s}>{s}</div>)
+
+	it("eases the active dot's width instead of snapping it", () => {
+		// The dot grew w-1.5 → w-4 under motion-interactive, which does not list
+		// width: the bar jumped while the slides beside it glided.
+		renderWithProviders(<Carousel label="Gallery">{slides}</Carousel>)
+		const dot = screen.getByRole("button", { name: "Go to slide 1" }).querySelector("span")
+		expect(dot).toHaveClass("motion-glide", "w-4")
+	})
+
+	it("turns motion down on its own root with the motion prop", () => {
+		const { container, rerender } = renderWithProviders(<Carousel label="Gallery">{slides}</Carousel>)
+		const root = () => container.querySelector('[aria-roledescription="carousel"]')!
+		expect(root()).not.toHaveAttribute("data-motion")
+		rerender(
+			<Carousel label="Gallery" motion="subtle">
+				{slides}
+			</Carousel>,
+		)
+		expect(root()).toHaveAttribute("data-motion", "subtle")
+	})
+})

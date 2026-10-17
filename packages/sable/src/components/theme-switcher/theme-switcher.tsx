@@ -3,6 +3,7 @@
 import { Radio as RadioBase } from "@base-ui/react/radio"
 import type { ComponentPropsWithRef, CSSProperties } from "react"
 import { Icon } from "../../icon"
+import { type MotionLevel, motionAttribute } from "../../motion/MotionProvider"
 import { cn } from "../../lib/cn"
 import {
 	SEGMENTED_INNER_RADIUS,
@@ -35,6 +36,14 @@ export interface ThemeSwitcherProps
 	onValueChange: (value: ThemeMode) => void
 	/** Accessible label for the group. @default "Theme" */
 	label?: string
+	/**
+	 * How much motion this component uses: `full` (default) inherits the app's
+	 * policy, `subtle` keeps feedback and drops the glide, `off` stills it. It
+	 * can only turn motion down — it never overrides a reader's reduce-motion
+	 * setting.
+	 * @default "full"
+	 */
+	motion?: MotionLevel
 }
 
 /**
@@ -56,6 +65,7 @@ export function ThemeSwitcher({
 	value,
 	onValueChange,
 	label = "Theme",
+	motion,
 	className,
 	ref,
 	...props
@@ -66,6 +76,7 @@ export function ThemeSwitcher({
 		<RadioGroup
 			ref={ref}
 			aria-label={label}
+			data-motion={motionAttribute(motion)}
 			value={value}
 			onValueChange={(next) => onValueChange(next as ThemeMode)}
 			className={cn(
@@ -87,11 +98,13 @@ export function ThemeSwitcher({
 			{/* The active pill slides between options. Each step is one option plus
 			    the gap (SEGMENTED_STEP), on the spacing scale — a fixed rem here
 			    drifted off the selected icon as soon as density moved --spacing.
-			    The step is negated in RTL, where the options run from the right. */}
+			    The step is negated in RTL, where the options run from the right.
+			    `motion-glide` carries the timing: the travel is expressive, so
+			    `motion="subtle"` (or a MotionScope) lands it without the slide. */}
 			<span
 				aria-hidden
 				className={cn(
-					"pointer-events-none absolute start-0.5 top-0.5 size-7 bg-accent transition-[translate,opacity] duration-(--motion-duration-base) ease-emphasized",
+					"pointer-events-none absolute start-0.5 top-0.5 size-7 bg-accent motion-glide",
 					SEGMENTED_INNER_RADIUS,
 					"[translate:calc(var(--segment-index)*var(--segment-step))_0] rtl:[translate:calc(var(--segment-index)*var(--segment-step)*-1)_0]",
 					activeIndex < 0 && "opacity-0",

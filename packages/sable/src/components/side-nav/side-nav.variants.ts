@@ -16,7 +16,9 @@ import { cva } from "class-variance-authority"
 export const RAIL_ROW_INLINE = "gap-3 px-3"
 
 export const sideNavItemVariants = cva(
-	"flex w-full items-center text-start motion-interactive focus-visible:outline-none focus-visible:ring-2 data-[active]:font-semibold",
+	// `relative`: a row paints above SideNav's gliding current-page fill, which is
+	// absolutely positioned and earlier in the DOM.
+	"relative flex w-full items-center text-start motion-interactive focus-visible:outline-none focus-visible:ring-2 data-[active]:font-semibold",
 	{
 		variants: {
 			size: {

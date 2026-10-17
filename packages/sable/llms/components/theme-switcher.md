@@ -25,11 +25,20 @@ Use ThemeSwitcher for light, dark, and system color mode preference.
 | value | "light" \| "dark" \| "system" | — | The currently selected color preference. |
 | onValueChange | (value: ThemeMode) => void | — | Called with the next color preference when an option is chosen. |
 | label | string | "Theme" | Accessible label for the radiogroup. |
+| motion | "full" \| "subtle" \| "off" | "full" | How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the glide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. |
 | className | string | — | Merged onto the outer radiogroup container. |
 
 ## Tokens used
 
 `border`, `card`, `muted-foreground`, `foreground`, `accent`, `accent-foreground`, `ring`
+
+## Motion
+
+- **arrival** · Root · _no motion_ — It arrives with the header or settings row it lives in; a theme control that announces itself competes with the page it themes.
+- **response** · Option · `motion-interactive` — The icon steps from muted to foreground under the pointer, which is what tells an icon-only segment it is a control.
+- **response** · Option · `motion-press` — A settle under the press confirms the tap on a 28px target before the theme change repaints the page around it.
+- **transition** · Active pill · `motion-glide` — One pill slides to the chosen mode, stepping by option + gap on the spacing scale, so light → dark reads as the same control moving, not three icons trading a fill. Expressive: motion="subtle" lands it in place.
+- **activity** · Root · _no motion_ — Changing the theme is synchronous; the repaint is the feedback.
 
 ## Accessibility
 
@@ -68,4 +77,12 @@ const { preference, setPreference } = useSableTheme()
 import { ThemeSwitcher } from "@sableui/react"
 
 <ThemeSwitcher value="light" onValueChange={setTheme} />
+```
+
+### Subtle motion
+
+```tsx
+import { ThemeSwitcher } from "@sableui/react"
+
+<ThemeSwitcher value={theme} onValueChange={setTheme} motion="subtle" />
 ```

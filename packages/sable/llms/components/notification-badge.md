@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-An unread indicator. Renders a bare dot or a count pill (capped as "{max}+"), or nothing when there's nothing to show. overlay pins it to the corner of a relative host; it is aria-hidden, so the host's name carries the count.
+An unread indicator. Renders a bare dot or a count pill (capped as "{max}+"), or nothing when there's nothing to show. A changing count rolls to its new number, and a badge that appears after being empty pops in. overlay pins it to the corner of a relative host; it is aria-hidden, so the host's name carries the count.
 
 **Keywords:** notification, badge, count, unread
 
@@ -28,6 +28,7 @@ Use NotificationBadge to show a compact unread count, alert count, or attention 
 | tone | "destructive" \| "primary" \| "neutral" | "destructive" | Fill color. destructive for alarming counts; primary/neutral for non-alarming ones. |
 | size | "sm" \| "md" \| "lg" | "md" | Scales the dot/pill on the spacing scale (count pill: sm 16px, md 18px, lg 20px at the default density). |
 | overlay | boolean | false | Pin to the top-end corner of the nearest relative host (an icon button) — one placement for every caller instead of hand-tuned absolute offsets. |
+| motion | "full" \| "subtle" \| "off" | "full" | How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Under `subtle` the count updates in place and the badge fades in without the pop. |
 
 ## Variants
 
@@ -39,6 +40,13 @@ Use NotificationBadge to show a compact unread count, alert count, or attention 
 
 `destructive`, `destructive-foreground`, `primary`, `primary-foreground`, `secondary`, `secondary-foreground`
 
+## Motion
+
+- **arrival** · root · `motion-appear` — A badge that shows up after being empty is the news — something just arrived — so it fades and scales in where it sits instead of popping into existence. Never on first paint: a badge that mounts with a count is content, and a page of them popping on load is noise.
+- **response** · root · _no motion_ — It is decorative and not interactive; the host it sits on answers the pointer.
+- **transition** · Count · _custom (outside the recipe layer)_ — The count rolls to its new number through NumberTicker (expressive), so 3 → 4 reads as one more arriving rather than a different badge. Past the cap the ticker holds at max with a static "+", so a count climbing beyond 99 does not keep rolling a badge that has not changed.
+- **activity** · root · _no motion_ — An unread count has no working state.
+
 ## Accessibility
 
 - The badge is aria-hidden: a count rendered on a control is not associated with it, so the host needs an accessible name that includes the count — "Notifications, 3 unread" — or a screen-reader user hears "Notifications, button" and never learns there is anything new. Pass aria-hidden={false} only for a standalone badge whose number is the information.
@@ -46,7 +54,7 @@ Use NotificationBadge to show a compact unread count, alert count, or attention 
 
 ## Related
 
-- Components: Badge, StatusDot
+- Components: Badge, StatusDot, NumberTicker
 
 ## Examples
 

@@ -71,6 +71,32 @@ export const radioMeta: ComponentMeta = {
 		},
 	],
 	tokensUsed: ["input", "card", "primary", "ring"],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "Radios arrive with the form they belong to. Animating each one in turns a question into a title sequence.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Root",
+			why: "The ring's edge and focus ring ease, so arrowing through a group — which moves the selection with focus — reads as one choice moving down the list.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-interactive",
+			part: "Indicator",
+			why: "The dot grows from the centre on a spring and shrinks out of the radio being left. A group's selection moves from one option to another, and the paired grow and shrink is what makes it read as moving rather than two dots blinking.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "A radio commits instantly. A slow write belongs to the surrounding form's pending state, not the control.",
+		},
+	],
 	a11y: [
 		"Base UI provides the radiogroup/radio roles, aria-checked, hidden native inputs, and roving tabindex.",
 		"Arrow keys move and select between items; Space selects the focused item; Tab enters/leaves the group.",

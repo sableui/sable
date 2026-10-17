@@ -1543,8 +1543,22 @@ const motionScores = components.map((c) => {
 	}
 })
 
+/* Declaration is now a gate, not a report. The report above made silence
+ * visible and silence stayed: 77 metas carried no `motion` at all, among them
+ * Tabs, Toggle, Checkbox and Tree — the components whose snaps were the most
+ * visible in the library (a chevron that jumped, a tick that stamped, a tab
+ * fill that blinked). An interactive or stateful component must answer the
+ * four slots; "none" with a why is an answer. */
+for (const s of motionScores) {
+	if ((s.interactive || s.stateful) && !s.declared) {
+		contractErrors.push(
+			`${s.name}: ${s.interactive ? "reacts to the pointer" : "has state"} but its meta declares no \`motion\`. Fill each slot (arrival, response, transition, activity) with a recipe, or decline it with recipe "none" and a why.`,
+		)
+	}
+}
+
 if (process.argv.includes("--motion-report")) {
-	const missing = (pred, slot) => motionScores.filter((s) => pred(s) && !s.filled.has(slot))
+	const missing =(pred, slot) => motionScores.filter((s) => pred(s) && !s.filled.has(slot))
 	const undeclared = motionScores.filter((s) => !s.declared)
 	console.log(`\n[motion-report] ${components.length} components\n`)
 	console.log(`  declared motion:        ${components.length - undeclared.length}`)

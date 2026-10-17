@@ -62,6 +62,44 @@ export const showMoreMeta: ComponentMeta = {
 		},
 	],
 	tokensUsed: ["background", "foreground", "ring"],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Root",
+			why: "The preview arrives with the content it clips. Its fade and toggle appear only once a measurement proves the content overflows.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-interactive",
+			part: "Toggle",
+			why: "The toggle is a link Button, so its hover and focus ease on Button's recipe.",
+		},
+		{
+			slot: "transition",
+			recipe: "custom",
+			part: "Content",
+			why: "The region eases its max-height between the collapsed and the measured full height on the slow motion token. motion-disclosure keys on Base UI's starting and ending styles, which this self-contained toggle does not have. The text unrolling in place keeps the reader's line; a snap drops them at a different scroll position.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-interactive",
+			part: "Fade",
+			why: "The bottom fade dissolves as the region opens and returns as it closes, so the cut edge and the reveal read as one movement.",
+		},
+		{
+			slot: "transition",
+			recipe: "motion-interactive",
+			part: "Chevron",
+			why: "The chevron turns 180° in step with the region (motion-interactive lists `rotate`), so the toggle visibly points at what it will do next.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Root",
+			why: "Expanding is local and instant; nothing loads.",
+		},
+	],
 	a11y: [
 		"The toggle is a real <button> with aria-expanded reflecting the open state.",
 		"The fade overlay is pointer-events-none and decorative; it never traps clicks.",

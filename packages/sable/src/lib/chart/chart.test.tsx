@@ -137,6 +137,27 @@ describe("charts", () => {
 		expect(screen.getByRole("table", { name: "Goals" }).textContent).toContain("Move80")
 	})
 
+	it("take a motion level onto the figure, and read animate={false} as subtle", () => {
+		const { container } = render(
+			<>
+				<BarChart label="A" data={DATA} index="month" series={SERIES} motion="subtle" />
+				<AreaChart label="B" data={DATA} index="month" series={SERIES} motion="off" />
+				<LineChart label="C" data={DATA} index="month" series={SERIES} animate={false} />
+				<PieChart label="D" data={[{ s: "Search", v: 3 }]} index="s" valueKey="v" motion="subtle" />
+				<RadarChart label="E" data={[{ k: "Speed", a: 4 }]} index="k" series={[{ key: "a", label: "Atlas" }]} motion="off" />
+				<RadialChart label="F" data={[{ g: "Move", p: 80 }]} index="g" valueKey="p" motion="subtle" />
+				<LineChart label="G" data={DATA} index="month" series={SERIES} />
+			</>,
+		)
+		const figures = [...container.querySelectorAll("figure")]
+		expect(figures.map((f) => f.getAttribute("data-motion"))).toEqual(["subtle", "off", "subtle", "subtle", "off", "subtle", null])
+		// Below full the arrival does not wait for the viewport: the finished chart shows at once.
+		expect(figures[0].getAttribute("data-reveal")).toBe("in")
+		const { container: spark } = render(<Sparkline label="Revenue" data={[1, 2]} motion="subtle" />)
+		expect(spark.querySelector("svg")?.getAttribute("data-motion")).toBe("subtle")
+		expect(spark.querySelector("svg")?.getAttribute("data-reveal")).toBe("in")
+	})
+
 	it("sparkline speaks its range", () => {
 		render(<Sparkline label="Revenue" data={[3, 9, 1, 6]} locale="en-US" />)
 		expect(screen.getByRole("img").getAttribute("aria-label")).toBe("Revenue: from 3 to 6, low 1, high 9")

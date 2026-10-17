@@ -18,7 +18,7 @@ import { Icon } from "../../icon/Icon"
 import { cn } from "../../lib/cn"
 import { PlayPauseGlyph } from "../../lib/glyphs"
 import { useResizeObserver } from "../../lib/use-resize-observer"
-import { useMotion } from "../../motion/MotionProvider"
+import { type MotionLevel, useMotionLevel } from "../../motion/MotionProvider"
 import { Button } from "../button/button"
 
 /** Tailwind's default min-width breakpoints, smallest first. */
@@ -113,6 +113,16 @@ export interface CarouselProps {
 	 * the arrows only; the dots and the autoplay toggle keep their own shells.
 	 */
 	arrowClassName?: string
+	/**
+	 * How much motion this component uses: `full` (default) inherits the app's
+	 * policy, `subtle` keeps feedback and drops the glide, `off` stills it. It
+	 * can only turn motion down — it never overrides a reader's reduce-motion
+	 * setting. Under `subtle` the slides still travel (that is the answer to
+	 * "next") and the active dot snaps; `off` also makes the slides cut and
+	 * pauses autoplay, as reduced motion does.
+	 * @default "full"
+	 */
+	motion?: MotionLevel
 }
 
 /** Prev/next overlay arrow — shared shell so the two arrows can't drift. */
@@ -179,8 +189,9 @@ export function Carousel({
 	className,
 	slideClassName,
 	arrowClassName,
+	motion,
 }: CarouselProps) {
-	const { enabled } = useMotion()
+	const { enabled, attribute: motionAttr } = useMotionLevel(motion)
 	const slides = Children.toArray(children)
 	const count = slides.length
 	const perView = Math.min(
@@ -438,6 +449,7 @@ export function Carousel({
 		<section
 			aria-roledescription="carousel"
 			aria-label={label ?? "Slides"}
+			data-motion={motionAttr}
 			// Flex column so the viewport's negative bleed margin can't collapse
 			// through the section into the consumer's own margin.
 			className={cn("relative flex flex-col", className)}
@@ -568,10 +580,16 @@ export function Carousel({
 									// 24px hit area (WCAG 2.2 target size) around the small visual dot.
 									className="group/dot flex size-6 items-center justify-center rounded-full motion-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 								>
+									{/* The active dot stretches to a bar and the one it left
+									    shrinks back, on one timeline (`motion-glide` lists
+									    width), so the row keeps its length and the mark reads as
+									    travelling to the new slide. It used to change width with
+									    nothing easing it: the bar jumped while the slide beside
+									    it glided. Expressive — under "subtle" the dot snaps. */}
 									<span
 										aria-hidden
 										className={cn(
-											"h-1.5 rounded-full motion-interactive",
+											"h-1.5 rounded-full motion-glide",
 											i === logical
 												? "w-4 bg-foreground"
 												: "w-1.5 bg-muted-foreground/40 group-hover/dot:bg-muted-foreground/70",

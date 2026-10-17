@@ -72,8 +72,10 @@ export function BottomNavItem({
 			"data-active": active ? "" : undefined,
 			"aria-current": active ? "page" : undefined,
 			className: cn(
+				// motion-press: on a phone there is no hover to say the tap landed, and
+				// a route change can take a beat to paint — the settle is the receipt.
 				// design-lint-disable-next-line raw-control-height -- the WCAG 2.5.5 touch-target floor, deliberately density-independent: a compact register still owes a 44px hit area.
-				"relative flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-0.5 rounded-lg text-muted-foreground motion-interactive hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[active]:text-foreground",
+				"relative flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-0.5 rounded-lg text-muted-foreground motion-interactive motion-press hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[active]:text-foreground",
 				className,
 			),
 			children: (

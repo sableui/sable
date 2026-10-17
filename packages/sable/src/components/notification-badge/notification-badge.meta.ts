@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const notificationBadgeMeta: ComponentMeta = {
 	name: "NotificationBadge",
 	summary:
-		"An unread indicator. Renders a bare dot or a count pill (capped as \"{max}+\"), or nothing when there's nothing to show. overlay pins it to the corner of a relative host; it is aria-hidden, so the host's name carries the count.",
+		"An unread indicator. Renders a bare dot or a count pill (capped as \"{max}+\"), or nothing when there's nothing to show. A changing count rolls to its new number, and a badge that appears after being empty pops in. overlay pins it to the corner of a relative host; it is aria-hidden, so the host's name carries the count.",
 	status: "stable",
 	keywords: [
 		"notification",
@@ -37,7 +37,7 @@ export const notificationBadgeMeta: ComponentMeta = {
 		],
 	},
 	related: {
-		components: ["Badge", "StatusDot"],
+		components: ["Badge", "StatusDot", "NumberTicker"],
 	},
 	props: [
 		{
@@ -78,6 +78,13 @@ export const notificationBadgeMeta: ComponentMeta = {
 			description:
 				"Pin to the top-end corner of the nearest relative host (an icon button) — one placement for every caller instead of hand-tuned absolute offsets.",
 		},
+		{
+			name: "motion",
+			type: '"full" | "subtle" | "off"',
+			default: '"full"',
+			description:
+				"How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Under `subtle` the count updates in place and the badge fades in without the pop.",
+		},
 	],
 	variants: {
 		tone: ["destructive", "primary", "neutral"],
@@ -91,6 +98,32 @@ export const notificationBadgeMeta: ComponentMeta = {
 		"primary-foreground",
 		"secondary",
 		"secondary-foreground",
+	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "motion-appear",
+			part: "root",
+			why: "A badge that shows up after being empty is the news — something just arrived — so it fades and scales in where it sits instead of popping into existence. Never on first paint: a badge that mounts with a count is content, and a page of them popping on load is noise.",
+		},
+		{
+			slot: "response",
+			recipe: "none",
+			part: "root",
+			why: "It is decorative and not interactive; the host it sits on answers the pointer.",
+		},
+		{
+			slot: "transition",
+			recipe: "custom",
+			part: "Count",
+			why: "The count rolls to its new number through NumberTicker (expressive), so 3 → 4 reads as one more arriving rather than a different badge. Past the cap the ticker holds at max with a static \"+\", so a count climbing beyond 99 does not keep rolling a badge that has not changed.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "root",
+			why: "An unread count has no working state.",
+		},
 	],
 	a11y: [
 		"The badge is aria-hidden: a count rendered on a control is not associated with it, so the host needs an accessible name that includes the count — \"Notifications, 3 unread\" — or a screen-reader user hears \"Notifications, button\" and never learns there is anything new. Pass aria-hidden={false} only for a standalone badge whose number is the information.",

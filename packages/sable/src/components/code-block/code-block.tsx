@@ -16,6 +16,42 @@ export type CodeHighlighter = (code: string) => ReactNode
 
 const CodeHighlightContext = createContext<CodeHighlighter | null>(null)
 
+/*
+ * The copy affordance's glyph. Both marks stay mounted and cross-fade through
+ * motion-icon-swap: the plain `copied ? "check" : "copy"` swap changed the
+ * icon between two frames, so the confirmation was easy to miss at the corner
+ * of a block. The wrapper is aria-hidden — the button's own label names it, and
+ * the outcome is announced by the block's live region (see CopiedStatus).
+ */
+function CopyGlyph({ copied }: { copied: boolean }) {
+	return (
+		<span aria-hidden="true" className="motion-icon-swap">
+			<span data-active={!copied} className="inline-flex">
+				<Icon name="copy" />
+			</span>
+			<span data-active={copied} className="inline-flex">
+				<Icon name="check" />
+			</span>
+		</span>
+	)
+}
+
+/*
+ * "Copied", for assistive tech. A glyph change is silent to a screen reader, so
+ * the copy otherwise happened without a word. A polite live region that is
+ * always mounted (an announcement only lands in a region that already exists)
+ * rather than a changing aria-label: a focused button's name changing is read
+ * by some screen readers and not others, and the label is also the button's
+ * description of what it does, which "Copied" is not.
+ */
+function CopiedStatus({ copied }: { copied: boolean }) {
+	return (
+		<span role="status" className="sr-only">
+			{copied ? "Copied" : ""}
+		</span>
+	)
+}
+
 /** Supplies a highlighter to every CodeBlock beneath it. */
 export function CodeHighlightProvider({ highlight, children }: { highlight: CodeHighlighter; children: ReactNode }) {
 	return <CodeHighlightContext.Provider value={highlight}>{children}</CodeHighlightContext.Provider>
@@ -81,9 +117,10 @@ export function CodeBlock({
 				</code>
 				{showCopy ? (
 					<Button variant="ghost" size="icon-sm" aria-label="Copy command" onClick={copy} className="shrink-0 text-muted-foreground">
-						<Icon name={copied ? "check" : "copy"} />
+						<CopyGlyph copied={copied} />
 					</Button>
 				) : null}
+				{showCopy ? <CopiedStatus copied={copied} /> : null}
 			</div>
 		)
 	}
@@ -103,7 +140,7 @@ export function CodeBlock({
 					<span className="text-mono-caption text-muted-foreground">{filename}</span>
 					{showCopy ? (
 						<Button variant="ghost" size="icon-sm" aria-label="Copy code" onClick={copy} className="text-muted-foreground">
-							<Icon name={copied ? "check" : "copy"} />
+							<CopyGlyph copied={copied} />
 						</Button>
 					) : null}
 				</div>
@@ -127,9 +164,10 @@ export function CodeBlock({
 			</pre>
 			{copyColumn ? (
 				<Button variant="ghost" size="icon-sm" aria-label="Copy code" onClick={copy} className="m-2 ms-0 shrink-0 text-muted-foreground">
-					<Icon name={copied ? "check" : "copy"} />
+					<CopyGlyph copied={copied} />
 				</Button>
 			) : null}
+			{showCopy ? <CopiedStatus copied={copied} /> : null}
 		</div>
 	)
 }

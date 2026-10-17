@@ -26,7 +26,8 @@ Use Sparkline next to a number to show where it has been — a KPI's last 30 day
 | variant | "line" \| "area" \| "bar" | "line" | A line, a line over a soft fill, or columns. |
 | tone | "1" \| "2" \| "3" \| "info" \| "warning" \| "primary" \| "neutral" \| "success" \| "destructive" | "primary" | Colour by role. |
 | className | string | "h-8 w-24" | Sizes it; the drawing stretches to fit. |
-| animate | boolean | true | Draw on (or rise) when it scrolls into view. |
+| motion | "full" \| "subtle" \| "off" | "full" | How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Drawing on (or rising) is the flourish, so `subtle` and `off` show the finished line. |
+| animate | boolean | true | Draw on (or rise) when it scrolls into view. `animate={false}` is `motion="subtle"`. |
 | locale | string | runtime locale | BCP 47 locale for default number and date formatting. |
 
 ## Variants
@@ -39,7 +40,7 @@ Use Sparkline next to a number to show where it has been — a KPI's last 30 day
 
 ## Motion
 
-- **arrival** · Line / bars · _custom (outside the recipe layer)_ — Once on screen the line draws on (or the bars rise, in sequence). On the motion tokens; reduced motion shows the finished drawing.
+- **arrival** · Line / bars · _custom (outside the recipe layer)_ — Once on screen the line draws on (or the bars rise, in sequence). On the motion tokens; reduced motion shows the finished drawing. The arrival is expressive: it plays at the full motion level only, so `motion="subtle"` (or a subtle app policy) shows the finished line.
 - **response** · Sparkline · _no motion_ — Not interactive: it has no tooltip or focus.
 - **transition** · Sparkline · _no motion_ — New data redraws in place; a word-sized chart animating on every update would distract from the number beside it.
 - **activity** · Sparkline · _no motion_ — No indeterminate state.

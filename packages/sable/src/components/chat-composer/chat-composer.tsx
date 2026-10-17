@@ -6,9 +6,11 @@ import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
 import { useTypeTier } from "../../lib/density"
 import { setRef } from "../../lib/refs"
+import { type MotionLevel, motionAttribute } from "../../motion/MotionProvider"
 import { Button } from "../button"
 import { Textarea } from "../textarea"
 import { chatComposerVariants } from "./chat-composer.variants"
+import { useEasedGrowth } from "./use-eased-growth"
 
 export interface ChatComposerProps
 	extends Omit<ComponentPropsWithRef<"form">, "onSubmit" | "defaultValue"> {
@@ -78,6 +80,14 @@ export interface ChatComposerProps
 	footer?: ReactNode | ((state: { sendOn: "enter" | "mod-enter" }) => ReactNode)
 	/** Ref to the underlying textarea — for focusing after a send, or on mount. */
 	fieldRef?: ComponentPropsWithRef<"textarea">["ref"]
+	/**
+	 * How much motion this component uses: `full` (default) inherits the app's
+	 * policy, `subtle` keeps feedback and drops the flourish, `off` stills it.
+	 * It can only turn motion down — it never overrides a reader's reduce-motion
+	 * setting. Under `subtle` the field snaps to its new height and the send and
+	 * stop glyphs fade rather than morph.
+	 */
+	motion?: MotionLevel
 }
 
 /**
@@ -133,6 +143,7 @@ export function ChatComposer({
 	stopLabel = "Stop generating",
 	footer,
 	fieldRef,
+	motion,
 	className,
 	children,
 	...props
@@ -206,8 +217,11 @@ export function ChatComposer({
 
 	const showStop = busy && Boolean(onStop)
 
+	useEasedGrowth(field, text)
+
 	return (
 		<form
+			data-motion={motionAttribute(motion)}
 			onSubmit={handleSubmit}
 			className={cn(chatComposerVariants({ invalid }), className)}
 			{...props}
@@ -243,6 +257,9 @@ export function ChatComposer({
 					// Inline padding puts the text on the attach glyph's edge: an
 					// icon-sm button centres a 1.125rem glyph in --control-sm.
 					"min-h-0 max-h-40 resize-none border-0 bg-transparent px-[calc((var(--control-sm)-1.125rem)/2)] py-1 focus-visible:ring-0",
+					// Past the cap the field scrolls; the platform bar (stepper arrows on
+					// Windows) would poke into the composer's rounded corner.
+					"scrollbar-quiet",
 					// What you type has to match what it becomes: the field and the
 					// Bubble it turns into both read `prose`, so the message does not
 					// change size the moment it is sent.
@@ -266,38 +283,49 @@ export function ChatComposer({
 				{leading}
 				<div className="flex-1" />
 				{actions}
-				{showStop ? (
-					<Button
-						type="button"
-						variant="secondary"
-						size="icon-sm"
-						aria-label={stopLabel}
-						onClick={() => {
-							onStop?.()
-							// This button turns back into send, disabled while the field
-							// is empty, and a disabled element drops focus to the page.
-							// So focus goes to the field, where the next message starts.
-							// Not on touch: that would raise the soft keyboard unasked.
-							if (!coarse) field.current?.focus()
-						}}
-					>
-						{/* A filled square, the universal stop (xmark read as close or clear),
-						    drawn smaller than the box so it sits in the button as a mark. */}
-						<Icon name="stop" variant="solid" className="text-[0.75em]" />
-					</Button>
-				) : (
-					// Busy without a stop handler: Button's own `loading` swaps the glyph
-					// for its Spinner and keeps full colour, rather than a hand-spun icon.
-					<Button
-						type="submit"
-						size="icon-sm"
-						aria-label={sendLabel}
-						disabled={!canSend}
-						loading={busy}
-					>
-						<Icon name="arrow-up" />
-					</Button>
-				)}
+				{/* One button that changes role, not two that take turns: the element
+				    (and the focus ring, if it is on it) stays put, the fill eases from
+				    secondary to primary, and the glyph swaps in place. Both glyphs stay
+				    mounted for motion-icon-swap; the label carries the meaning, so the
+				    pair is aria-hidden. Busy with no stop handler is Button's own
+				    `loading`, which swaps the glyph for its Spinner at full colour. */}
+				<Button
+					type={showStop ? "button" : "submit"}
+					variant={showStop ? "secondary" : "primary"}
+					size="icon-sm"
+					aria-label={showStop ? stopLabel : sendLabel}
+					disabled={showStop ? false : !canSend}
+					loading={!showStop && busy}
+					onClick={
+						showStop
+							? (event) => {
+									// The same element becomes the submit button. If onStop clears
+									// `busy` synchronously, React re-renders it to type="submit"
+									// before the click's default action runs, and that action would
+									// then submit the form — sending a draft typed while it worked.
+									event.preventDefault()
+									onStop?.()
+									// This button turns back into send, disabled while the field
+									// is empty, and a disabled element drops focus to the page.
+									// So focus goes to the field, where the next message starts.
+									// Not on touch: that would raise the soft keyboard unasked.
+									if (!coarse) field.current?.focus()
+								}
+							: undefined
+					}
+				>
+					<span aria-hidden="true" className="motion-icon-swap">
+						<span data-active={!showStop} className="inline-flex">
+							<Icon name="arrow-up" />
+						</span>
+						<span data-active={showStop} className="inline-flex">
+							{/* A filled square, the universal stop (xmark read as close or
+							    clear), drawn smaller than the box so it sits in the button as
+							    a mark. */}
+							<Icon name="stop" variant="solid" className="text-[0.75em]" />
+						</span>
+					</span>
+				</Button>
 			</div>
 
 			{footerContent ? (

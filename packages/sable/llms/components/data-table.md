@@ -50,6 +50,14 @@ Use DataTable when a data array and column definition should render a sortable, 
 
 `muted-foreground`, `foreground`, `ring`
 
+## Motion
+
+- **arrival** · Root · _no motion_ — Rows render with the page or the query that produced them. Staggering rows in delays reading a table someone opened to scan.
+- **response** · Row · `motion-interactive` — Body rows ease to a muted wash under the pointer (TableRow's recipe), which keeps the eye on the right line across a wide row of numbers. Sortable headers are ghost Buttons and answer on Button's recipe.
+- **transition** · Sort chevron · `motion-interactive` — One chevron turns to show direction instead of two glyphs swapping, so ascending to descending reads as the same column reversing. Its opacity rises from the resting 60% as the column becomes the sort.
+- **transition** · Row · `motion-interactive` — A checked row's fill eases in across its cells, so selecting by checkbox reads as the row being picked rather than a band stamped over it.
+- **activity** · Root · _no motion_ — DataTable has no loading state. While data is fetched, render Skeleton rows (motion-shimmer) in its place — only the caller knows a fetch is in flight.
+
 ## Accessibility
 
 - Sorted columns set aria-sort=ascending/descending on the header cell.

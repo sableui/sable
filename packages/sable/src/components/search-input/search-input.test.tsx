@@ -36,3 +36,12 @@ describe("SearchInput", () => {
 		expect(queryByRole("button", { name: "Clear search" })).toBeNull()
 	})
 })
+
+describe("SearchInput clear button motion", () => {
+	it("mounts the clear button inside a motion-appear wrapper, keeping the Button's own response", () => {
+		const { getByRole } = render(<SearchInput value="q" onValueChange={() => {}} />)
+		const button = getByRole("button", { name: "Clear search" })
+		expect(button.parentElement).toHaveClass("motion-appear")
+		expect(button).not.toHaveClass("motion-appear")
+	})
+})

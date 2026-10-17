@@ -29,6 +29,14 @@ Use RelativeTime to show recent activity or timestamps in conversational relativ
 
 `popover`, `popover-foreground`, `border`, `ring`
 
+## Motion
+
+- **arrival** · Root · _no motion_ — It is a word in a line of text and arrives with that line.
+- **response** · Root · _no motion_ — The only hover change on the timestamp is a dotted underline, and text-decoration-line is discrete: CSS cannot tween it, so a transition here would animate nothing and imply the snap had been handled.
+- **response** · Tooltip · `motion-pop` — The pointer's real answer is the absolute time, which arrives in a Tooltip on its own fast pop. That short entrance is what makes the full date read as belonging to the word under the cursor.
+- **transition** · Root · _no motion_ — The label does not tick: it is computed when the component renders, so it never changes in front of the reader. A timestamp rolling from one minute to two would pull the eye off the content it dates.
+- **activity** · Root · _no motion_ — A timestamp has nothing to wait for.
+
 ## Accessibility
 
 - Renders a semantic <time> element with a machine-readable dateTime (ISO) attribute.
