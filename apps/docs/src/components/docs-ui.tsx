@@ -227,11 +227,11 @@ export function Section({
  * the caption needs (a filename bar, a different scroll cap) belongs in
  * `CodeBlock`, where consumers get it too.
  *
- * A frame with code also carries the preview's motion controls (see
- * preview-motion): the level this one preview plays at, and Replay, which
- * remounts it so its arrival can be watched again. They sit with the copy
- * button, show only on the Preview tab, and stay icon-sized until a level is
- * picked, so a frame left alone looks as it always did.
+ * A frame with code also carries the preview's motion level (see
+ * preview-motion), with the copy button, on the Preview tab only. Replay is
+ * opt-in (`replayable` or `onReplay`) and sits beside it: only a preview that
+ * plays something on its own has anything to replay. A code-less frame puts
+ * the same controls in its top-right corner.
  *
  * `rounded-none border-0 border-t` is a seam override, not a restyle: the frame
  * already owns the outer radius and border, so the block joins it flush.
@@ -243,48 +243,48 @@ export function Example({
 	flush = false,
 	onReplay,
 	replayable = false,
-	motionControl = true,
+	motionControl,
 }: {
 	children: ReactNode
 	code?: string
 	className?: string
 	flush?: boolean
 	/**
-	 * A time-based demo (an entrance, an exit, a draw-on) plays once on its own;
-	 * this puts the one way to see it again in the frame's top-right corner, so
-	 * every demo on every page replays from the same place with the same label.
-	 * With code, Replay is in the header instead; without this, it remounts the
-	 * preview.
+	 * A time-based demo that restarts itself (a stream, a sequence of steps):
+	 * Replay calls this instead of remounting the preview. Implies `replayable`.
 	 */
 	onReplay?: () => void
 	/**
-	 * Give a code-less frame the corner controls (motion level and Replay)
-	 * without a caller-owned replay: Replay remounts the preview. For pages
-	 * whose whole point is the motion, where every frame should offer both.
+	 * Offer Replay, which remounts the preview so its arrival plays again. Only
+	 * for a preview that plays something on its own — a chart drawing on, a
+	 * reveal. A demo that moves only when the reader acts has nothing to replay.
 	 */
 	replayable?: boolean
 	/**
-	 * Offer the per-preview motion level. Off for a demo that already sets its
-	 * own levels (the Motion page's side-by-side), where a scope around both
-	 * halves would only confuse the comparison.
+	 * Offer the per-preview motion level. On by default for a frame with code
+	 * or Replay; a code-less frame asks for it with `motionControl`. Off for a
+	 * demo that sets its own levels (the Motion page's side-by-side), where a
+	 * scope around both halves would only confuse the comparison.
 	 */
 	motionControl?: boolean
 }) {
 	const { copy, copied } = useCopy(code ?? "")
 	const motion = usePreviewMotion()
 	const [tab, setTab] = useState("preview")
-	const replay = onReplay ?? motion.replay
+	const replay = onReplay ?? (replayable ? motion.replay : undefined)
+	const leveled = motionControl ?? Boolean(code || replay)
 	// A caller's onReplay re-keys its own demo; only the generic replay re-keys here.
-	const preview = motionControl ? (
+	const preview = leveled ? (
 		<PreviewMotionScope level={motion.level} replayKey={onReplay ? 0 : motion.replayKey}>
 			{children}
 		</PreviewMotionScope>
 	) : (
 		children
 	)
-	const menu = motionControl ? <PreviewMotionMenu level={motion.level} onLevelChange={motion.setLevel} /> : null
-	// Code-less frames keep their old corner control, now with the level beside it.
-	const corner = !code && (onReplay || replayable)
+	const menu = leveled ? <PreviewMotionMenu level={motion.level} onLevelChange={motion.setLevel} /> : null
+	const replayButton = replay ? <PreviewReplayButton onReplay={replay} /> : null
+	// A code-less frame has no header, so its controls sit in the corner.
+	const corner = !code && (menu || replayButton)
 	const stage = (
 		<div
 			className={cn(
@@ -300,9 +300,7 @@ export function Example({
 			{corner ? (
 				<div className="absolute end-3 top-3 z-10 flex items-center gap-1">
 					{menu}
-					<Button variant="secondary" size="xs" iconStart={<Icon name="refresh" />} onClick={replay}>
-						Replay
-					</Button>
+					{replayButton}
 				</div>
 			) : null}
 			{preview}
@@ -331,7 +329,7 @@ export function Example({
 					{tab === "preview" ? (
 						<>
 							{menu}
-							<PreviewReplayButton onReplay={replay} />
+							{replayButton}
 						</>
 					) : null}
 					<Button variant="ghost" size="icon-sm" aria-label="Copy code" onClick={copy} className="text-muted-foreground">
@@ -376,6 +374,7 @@ export function ComponentPlayground({ meta }: { meta: ComponentMeta }) {
 				fixed={entry.fixed}
 				slots={entry.slots}
 				snippet={entry.snippet}
+				replayable={entry.replayable}
 			/>
 		</Section>
 	)

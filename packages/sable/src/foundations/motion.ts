@@ -33,6 +33,8 @@ const motion: Foundation = {
 				{ name: "motion-appear", value: "fast fade + base scale", use: "A small control mounting in place: a clear button, a send arrow, a badge. @starting-style, no JS." },
 				{ name: "motion-arrive", value: "base · decelerate · staggered · expressive", use: "Items a user action brings into a list: a folder's children on expand, a row just added. Never on every render." },
 				{ name: "motion-size", value: "base · emphasized · expressive", use: "An element easing between intrinsic sizes when its label changes: a two-step confirm, Copy → Copied." },
+				{ name: "motion-bloom", value: "slower · 0 → 1.2 → 1 · expressive", use: "A small glyph landing in its on state: a liked heart, a picked rating, a toast's status icon. Remount it (key) to replay; never on the resting state." },
+				{ name: "<Burst>", value: "slower ring + thrown dots · expressive", use: "The follow-through behind a bloom, in the theme's palette families. Only on a choice a person made: a like, a star, a finished task." },
 				{ name: "motion-draw", value: "slower · decelerate", use: "SVG line art drawing on when a <Reveal> scrolls in. The path needs pathLength=\"1\"; stagger siblings with --motion-draw-delay." },
 				{ name: "motion-spin · pulse · shimmer · dot-bounce · ping", value: "loops", use: "Activity. Scale-aware, so reduced motion freezes them." },
 			],
@@ -52,7 +54,7 @@ const motion: Foundation = {
 			note: "Essential motion answers the user; expressive motion narrates continuity. Expressive durations are also multiplied by --motion-expressive, which `subtle` sets to 0. Each level can only turn motion down from what surrounds it.",
 			terms: [
 				{ name: "essential", value: "always, unless off", use: "Colour and focus feedback, press, overlay arrival, disclosure height, loaders, chart hover." },
-				{ name: "expressive", value: "full only", use: "Glides, rolling numbers (NumberTicker), drawn ticks, shakes, staggers, chart arrival and morph, scroll reveals, spring overshoot." },
+				{ name: "expressive", value: "full only", use: "Glides, rolling numbers (NumberTicker), drawn ticks, blooms and bursts, shakes, staggers, chart arrival and morph, scroll reveals, spring overshoot." },
 				{ name: "full", value: "default", use: "Both levels play. The crafted default." },
 				{ name: "subtle", value: "data-motion=\"subtle\"", use: "Essential only; nothing overshoots. For dense tools, embedded widgets, readers who want calm without stillness." },
 				{ name: "off", value: "data-motion=\"off\" · reduce-motion", use: "Nothing moves; every state still changes." },
@@ -115,6 +117,18 @@ const motion: Foundation = {
 			why: "Motion that starts a change and leaves the outcome to a snap reads as unfinished. ConfirmButton, OtpField's invalid shake and the copy-to-check swap are the reference cases.",
 		},
 		{
+			rule: "Amplitude scales with smallness. A 16px glyph that turns on grows from nothing past its size; a surface travels from 0.96 and a press settles to 0.97.",
+			why: "The same 4% that is right for a dialog is invisible on an icon, which is why a state change on a small control used to read as a colour swap with no life in it. A dialog that overshot 20% would lurch. Size, not importance, sets how far a thing moves.",
+		},
+		{
+			rule: "Stage a moment: the main object lands first, the follow-through after it.",
+			why: "A ring that opens, a glyph that blooms 90ms later, dots thrown 60ms after that read as one event with a cause and an effect. Everything starting on the same frame reads as a flash. LikeButton and the toast's status glyph are the reference cases.",
+		},
+		{
+			rule: "Celebrate only what a person chose, and only at full motion.",
+			why: "A burst is a reply. On a like it is delight; on a system event, on load, or on every row of a list it is a notification wearing confetti. Under subtle the fill alone answers.",
+		},
+		{
 			rule: "Component motion props and MotionScope only turn motion down.",
 			why: "`full` on a component means inherit. Nothing below the provider can switch motion back on for a reader who asked for it off.",
 		},
@@ -167,6 +181,12 @@ const motion: Foundation = {
 			before: "<span>{total}</span>",
 			after: '<NumberTicker value={total} format={{ style: "currency", currency: "USD" }} />',
 			why: "The digits that changed roll; the ones that did not stay still, so the eye goes straight to the difference.",
+		},
+		{
+			title: "A glyph that lands",
+			before: '<Icon name="heart" variant={liked ? "solid" : "regular"} />',
+			after: '<LikeButton count={likes} defaultPressed={liked} />',
+			why: "The heart used to swap fill in one frame. Now it blooms past its size and settles while a ring and dots burst from it, and the count rolls: the same state, told as an event.",
 		},
 		{
 			title: "Faster exits",

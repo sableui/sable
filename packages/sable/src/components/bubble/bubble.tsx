@@ -1,7 +1,24 @@
-import type { ComponentPropsWithRef, ReactNode } from "react"
+"use client"
+
+import {
+	Children,
+	type ComponentPropsWithRef,
+	type CSSProperties,
+	createContext,
+	type ReactNode,
+	useContext,
+	useEffect,
+	useState,
+} from "react"
+import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
 import { useTypeTier } from "../../lib/density"
+import { Burst } from "../../motion/Burst"
+import { type MotionLevel, motionAttribute } from "../../motion/MotionProvider"
+import { NumberTicker } from "../number-ticker/number-ticker"
 import { Pill } from "../pill/pill"
+import { Popover, PopoverContent, PopoverTrigger } from "../popover/popover"
+import { DEFAULT_REACTIONS, type Reaction, ReactionPicker } from "../reaction-picker/reaction-picker"
 import {
 	bubbleTailVariants,
 	bubbleReactionsVariants,
@@ -43,8 +60,9 @@ export interface BubbleProps extends ComponentPropsWithRef<"div"> {
  *   <Message>
  *     <Bubble>Shipping it now.</Bubble>
  *     <BubbleReactions>
- *       <BubbleReaction emoji="🎉" count={3} active onClick={() => toggle("🎉")} />
- *       <BubbleReaction emoji="👀" count={1} onClick={() => toggle("👀")} />
+ *       <BubbleReaction emoji="🎉" label="Party" count={3} active onClick={() => toggle("🎉")} />
+ *       <BubbleReaction emoji="👀" label="Eyes" count={1} onClick={() => toggle("👀")} />
+ *       <BubbleReactionAdd selected={mine} onSelect={toggle} />
  *     </BubbleReactions>
  *   </Message>
  *
@@ -121,22 +139,42 @@ function BubbleTail({ variant, align }: { variant: "muted" | "primary" | "outlin
 }
 Bubble.displayName = "Bubble"
 
+/*
+ * Whether the reaction row has finished its first render. A pill that mounts
+ * after that is one the reader just added (or someone else did, live), so it
+ * may celebrate on arrival; the pills a page loads with must stay still.
+ */
+const ReactionRowLive = createContext(false)
+
 export interface BubbleReactionsProps extends ComponentPropsWithRef<"div"> {
 	/** Match the enclosing `<Bubble align>` so the row hangs off the right edge. @default "start" */
 	align?: "start" | "end"
 }
 
-/** The row of reaction pills belonging to one bubble. */
+/**
+ * The row of reaction pills belonging to one bubble. Render it for every
+ * message, even one with no reactions yet: it hides itself while empty, and
+ * staying mounted is how it knows the first reaction someone adds is new
+ * (and so celebrates) rather than one the page loaded with.
+ */
 export function BubbleReactions({
 	align = "start",
 	className,
+	children,
 	...props
 }: BubbleReactionsProps) {
+	const [live, setLive] = useState(false)
+	useEffect(() => setLive(true), [])
 	return (
-		<div
-			className={cn(bubbleReactionsVariants({ align }), className)}
-			{...props}
-		/>
+		<ReactionRowLive.Provider value={live}>
+			<div
+				hidden={Children.toArray(children).length === 0 || undefined}
+				className={cn(bubbleReactionsVariants({ align }), className)}
+				{...props}
+			>
+				{children}
+			</div>
+		</ReactionRowLive.Provider>
 	)
 }
 BubbleReactions.displayName = "BubbleReactions"
@@ -145,27 +183,59 @@ export interface BubbleReactionProps
 	extends Omit<ComponentPropsWithRef<"button">, "children"> {
 	/** The reaction glyph. Rendered as text, so any emoji works with no icon mapping. */
 	emoji: ReactNode
+	/**
+	 * What the emoji means, for the accessible name ("Party, 3"). An emoji's own
+	 * spoken name varies by platform; without a label the pill is named by its
+	 * count alone.
+	 */
+	label?: string
 	/** How many people reacted this way. Hidden at 1 — the pill already says "one". */
 	count?: number
 	/** The reader reacted this way. Drives `aria-pressed`, not just the styling. */
 	active?: boolean
+	/**
+	 * How much motion this component uses: `full` (default) inherits the app's
+	 * policy, `subtle` keeps the tint and the count changing and drops the
+	 * bloom and the spray of emoji, `off` stills it. It can only turn motion down.
+	 */
+	motion?: MotionLevel
 }
 
 /**
  * One reaction pill — a toggle, not a label. It reports `aria-pressed` because
  * "did I react to this" is state a screen-reader user needs before deciding
  * whether pressing it adds or removes their reaction.
+ *
+ * When it becomes the reader's own — pressed on, or added from a picker — the
+ * emoji blooms and a spray of copies of it bursts out, the way a chat app
+ * answers a reaction, and the count rolls. Pressing it off is quiet. A pill
+ * the page loads with never plays.
  */
 export function BubbleReaction({
 	emoji,
+	label,
 	count,
 	active = false,
+	motion,
 	className,
 	...props
 }: BubbleReactionProps) {
 	// The pill's own height already reads the density ladder; its label has to
 	// follow, or a 24px pill in a compact scope carries page-register type.
 	const tier = useTypeTier()
+	// Each time it turns on is one shot: it keys the emoji (remounting replays
+	// the bloom) and fires the burst. A pill that mounts into a live row
+	// already on was just added, so it starts with a shot of its own.
+	const live = useContext(ReactionRowLive)
+	const [arrived] = useState(() => live && active)
+	const [shots, setShots] = useState(arrived ? 1 : 0)
+	const [wasActive, setWasActive] = useState(active)
+	if (active !== wasActive) {
+		setWasActive(active)
+		if (active) setShots((n) => n + 1)
+	}
+	const shown = count !== undefined && count > 1 ? count : undefined
+	const named = label === undefined ? undefined : shown === undefined ? label : `${label}, ${shown}`
 	return (
 		// Pill's own quiet chip: outline (a hairline at rest, a primary tint when
 		// it is the reader's) at the xs control height. No overrides — a reaction
@@ -174,14 +244,100 @@ export function BubbleReaction({
 			appearance="outline"
 			size="sm"
 			selected={active}
+			aria-label={named}
+			data-motion={motionAttribute(motion)}
 			className={cn(tier.secondary, className)}
 			{...props}
 		>
-			<span aria-hidden="true">{emoji}</span>
-			{count !== undefined && count > 1 ? (
-				<span className="text-mono-caption tabular-nums">{count}</span>
-			) : null}
+			<span className="relative inline-flex">
+				<span
+					key={shots}
+					aria-hidden="true"
+					// The spray leads; the emoji holds at nothing for a beat, then blooms.
+					style={{ "--motion-bloom-delay": "60ms" } as CSSProperties}
+					className={cn("inline-flex text-body-lg leading-none", active && shots > 0 && "motion-bloom")}
+				>
+					{emoji}
+				</span>
+				<Burst
+					trigger={shots}
+					playOnMount={arrived}
+					particle={emoji}
+					count={5}
+					motion={motion}
+					className="[--burst-size:4em]"
+				/>
+			</span>
+			{shown === undefined ? null : (
+				<NumberTicker value={shown} motion={motion} className="text-mono-caption tabular-nums" />
+			)}
 		</Pill>
 	)
 }
 BubbleReaction.displayName = "BubbleReaction"
+
+export interface BubbleReactionAddProps
+	extends Omit<ComponentPropsWithRef<"button">, "children" | "onSelect"> {
+	/** The choices the picker offers. @default DEFAULT_REACTIONS */
+	reactions?: readonly Reaction[]
+	/** The emoji the reader has already reacted with, shown pressed in the picker. */
+	selected?: readonly string[]
+	/** Called with the emoji the reader chose; the picker closes. Toggle it in or out of `selected`. */
+	onSelect?: (emoji: string) => void
+	/** The accessible name. @default "Add reaction" */
+	label?: string
+	/** Passed to the picker: how much motion it uses. */
+	motion?: MotionLevel
+}
+
+/**
+ * The add-reaction pill at the end of a reaction row: a smiley that opens a
+ * ReactionPicker above it. Choosing an emoji closes the picker and hands the
+ * emoji to `onSelect`; add it to the row and the new pill celebrates as it
+ * arrives.
+ *
+ *   <BubbleReactions>
+ *     {pills}
+ *     <BubbleReactionAdd selected={mine} onSelect={toggle} />
+ *   </BubbleReactions>
+ */
+export function BubbleReactionAdd({
+	reactions = DEFAULT_REACTIONS,
+	selected,
+	onSelect,
+	label = "Add reaction",
+	motion,
+	className,
+	...props
+}: BubbleReactionAddProps) {
+	const [open, setOpen] = useState(false)
+	return (
+		<Popover open={open} onOpenChange={setOpen}>
+			<PopoverTrigger
+				render={
+					<Pill
+						appearance="outline"
+						size="sm"
+						aria-label={label}
+						className={cn("text-muted-foreground", className)}
+						{...props}
+					/>
+				}
+			>
+				<Icon name="emoji" className="size-4" />
+			</PopoverTrigger>
+			<PopoverContent side="top" align="start" sideOffset={6} className="w-auto rounded-full p-1">
+				<ReactionPicker
+					reactions={reactions}
+					selected={selected}
+					motion={motion}
+					onSelect={(emoji) => {
+						setOpen(false)
+						onSelect?.(emoji)
+					}}
+				/>
+			</PopoverContent>
+		</Popover>
+	)
+}
+BubbleReactionAdd.displayName = "BubbleReactionAdd"

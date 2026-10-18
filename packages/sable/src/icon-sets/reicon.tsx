@@ -79,6 +79,9 @@ import { Pause } from "reicon-react/icons/Pause"
 import { Play } from "reicon-react/icons/Play"
 import { Previous } from "reicon-react/icons/Previous"
 import { Refresh } from "reicon-react/icons/Refresh"
+import { Restart } from "reicon-react/icons/Restart"
+import { EmojiHappy } from "reicon-react/icons/EmojiHappy"
+import { PlaybackSpeed } from "reicon-react/icons/PlaybackSpeed"
 import { Send } from "reicon-react/icons/Send"
 import { Star } from "reicon-react/icons/Star"
 import { Trash } from "reicon-react/icons/Trash"
@@ -198,6 +201,13 @@ const ICONS: Record<string, IconComponent> = {
 	chart: ChartBar,
 	flag: Flag,
 	"at-sign": AtSign,
+	// Added when the docs' preview controls borrowed `sparkles` (which reads
+	// as AI) for a motion level and `refresh` (which reads as fetching again)
+	// for watching an animation from its first frame.
+	replay: Restart,
+	motion: PlaybackSpeed,
+	// Added for the add-reaction pill under a chat bubble.
+	emoji: EmojiHappy,
 }
 
 /** Sable's `variant` → Reicon's weight names. */

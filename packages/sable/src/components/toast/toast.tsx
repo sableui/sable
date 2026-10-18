@@ -4,6 +4,7 @@ import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
 import { Button } from "../button/button"
 import { hitTargetMin } from "../../lib/hit-target"
+import { STATUS_TONE_ICON, type StatusTone } from "../../lib/status-tone"
 import { withPortalThemeScope } from "../../lib/portal-theme-scope"
 import { Spinner } from "../spinner/spinner"
 
@@ -45,7 +46,7 @@ import { Spinner } from "../spinner/spinner"
  */
 const toastManager = Base.createToastManager()
 
-/** Visual/semantic type of a toast — drives the accent and (for loading) a spinner. */
+/** Visual/semantic type of a toast — drives the status glyph and (for loading) a spinner. */
 export type ToastType = "success" | "error" | "warning" | "info" | "loading"
 
 /** Screen anchor for the toast stack. */
@@ -128,7 +129,11 @@ const STACKED_ROOT = [
 	// steps down to shadow-md and the cards behind to shadow-sm; fanned out,
 	// each is a toast again and takes the full step back.
 	"not-data-expanded:shadow-md not-data-expanded:has-[>[data-behind]]:shadow-sm",
-	"transition-[transform,translate,opacity,height,box-shadow] duration-(--motion-duration-slow) ease-emphasized",
+	// The deck springs: cards stepping back and fanning out overshoot a touch
+	// and settle, which is what makes them read as cards rather than rows. A
+	// leaving toast takes the standard curve (nothing overshoots on its way
+	// out), and under "subtle" the spring is a plain decelerate.
+	"transition-[transform,translate,opacity,height,box-shadow] duration-(--motion-duration-slow) ease-spring data-ending-style:ease-standard",
 ].join(" ")
 
 /** The edge a stacked toast is pinned to, and the side its hover bridge reaches. */
@@ -516,12 +521,18 @@ export function ToastProvider({
 	)
 }
 
-/** Left-edge accent per toast type (semantic tones; loading uses a spinner instead). */
-const TYPE_ACCENT: Record<string, string> = {
-	success: "bg-success",
-	error: "bg-destructive",
-	warning: "bg-tone-warning",
-	info: "bg-tone-info",
+/**
+ * The status each toast type speaks in — the same glyph and ink as Note,
+ * InlineStatus and Banner, from the shared tone list, so a failed save looks
+ * the same in a toast as on the page. It replaced a coloured bar down the
+ * leading edge, which told the type by colour alone. Loading shows a spinner
+ * instead.
+ */
+const TYPE_TONE: Record<string, StatusTone> = {
+	success: "success",
+	error: "destructive",
+	warning: "warning",
+	info: "info",
 }
 
 function ToastList({
@@ -539,7 +550,8 @@ function ToastList({
 	return (
 		<ToastViewport position={position} stacked={stacked} className={viewportClassName}>
 			{toasts.map((item) => {
-				const accent = item.type ? TYPE_ACCENT[item.type] : undefined
+				const tone = item.type ? TYPE_TONE[item.type] : undefined
+				const status = tone ? STATUS_TONE_ICON[tone] : undefined
 				return (
 					<ToastRoot key={item.id} toast={item}>
 						<ToastContent>
@@ -548,11 +560,16 @@ function ToastList({
 									aria-hidden={true}
 									className="mt-0.5 size-4 shrink-0 text-muted-foreground"
 								/>
-							) : accent ? (
+							) : status ? (
+								// Blooms in once the card has landed, and again when a
+								// loading toast settles into success or failure: the
+								// glyph mounts in the spinner's place.
 								<span
 									aria-hidden={true}
-									className={cn("w-1 shrink-0 self-stretch rounded-full", accent)}
-								/>
+									className="mt-0.5 flex shrink-0 motion-bloom [--motion-bloom-delay:120ms]"
+								>
+									<Icon name={status.name} className={cn("text-base", status.className)} />
+								</span>
 							) : null}
 							<div className="flex min-w-0 flex-1 flex-col gap-1">
 								{item.title ? <ToastTitle>{item.title}</ToastTitle> : null}

@@ -954,6 +954,7 @@
         "motion-tick",
         "motion-appear",
         "motion-arrive",
+        "motion-bloom",
         "motion-size",
         "motion-reveal",
         "motion-draw",
@@ -1785,7 +1786,10 @@
       "paperclip",
       "chart",
       "flag",
-      "at-sign"
+      "at-sign",
+      "replay",
+      "motion",
+      "emoji"
     ]
   },
   "layoutPrimitives": {
@@ -4924,7 +4928,12 @@
           {
             "name": "BubbleReaction",
             "required": false,
-            "description": "One reaction pill — emoji, count (hidden at 1), and pressed state."
+            "description": "One reaction pill — emoji, count (hidden at 1), and pressed state. Celebrates when it becomes the reader's own."
+          },
+          {
+            "name": "BubbleReactionAdd",
+            "required": false,
+            "description": "The add-reaction pill at the end of the row: opens a ReactionPicker above it."
           }
         ]
       },
@@ -4933,7 +4942,8 @@
           "Message",
           "MessageScroller",
           "Marker",
-          "Attachment"
+          "Attachment",
+          "ReactionPicker"
         ]
       },
       "props": [
@@ -4969,8 +4979,13 @@
         },
         {
           "name": "BubbleReaction",
-          "type": "{ emoji: ReactNode; count?: number; active?: boolean } & ComponentPropsWithRef<\"button\">",
-          "description": "One reaction pill. A toggle, not a label: `active` drives `aria-pressed` as well as the styling, and `count` is hidden at 1 because the pill already says \"one\"."
+          "type": "{ emoji: ReactNode; label?: string; count?: number; active?: boolean; motion?: MotionLevel } & ComponentPropsWithRef<\"button\">",
+          "description": "One reaction pill. A toggle, not a label: `active` drives `aria-pressed` as well as the styling, `label` names it (\"Party, 3\"), and `count` is hidden at 1 because the pill already says \"one\". When it turns on — pressed, or newly added already on — the emoji blooms, copies of it burst out and the count rolls; pills the page loads with stay still."
+        },
+        {
+          "name": "BubbleReactionAdd",
+          "type": "{ reactions?: Reaction[]; selected?: string[]; onSelect?: (emoji: string) => void; label?: string; motion?: MotionLevel } & ComponentPropsWithRef<\"button\">",
+          "description": "The add-reaction pill: a smiley that opens a ReactionPicker above it. Choosing an emoji closes the picker and calls `onSelect`; add the emoji to the row and its new pill celebrates on arrival."
         }
       ],
       "variants": {
@@ -5002,9 +5017,35 @@
         "muted-foreground",
         "ring"
       ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Bubble",
+          "why": "A bubble arrives with its Message row, which owns how a new message enters the transcript. A reaction pill that the reader just added arrives with its own celebration (below)."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-bloom",
+          "part": "BubbleReaction",
+          "why": "Reacting is the reader's choice, so it is answered like a like: the emoji grows from nothing past its size and settles, while copies of it spray outward and fade (Burst with the emoji as its particle, the way chat apps answer a reaction). Plays when a pill turns on and when a pill mounts already on into a row that has rendered — never for the pills a page loads with. Pills inherit Pill's motion-interactive and motion-press."
+        },
+        {
+          "slot": "transition",
+          "recipe": "custom",
+          "part": "BubbleReaction",
+          "why": "The count rolls with NumberTicker as people react. Turning a reaction off is quiet: the tint eases out and the count rolls back, with no burst. Under `subtle` or reduced motion the bloom and the spray are dropped and the tint and count alone answer."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Bubble",
+          "why": "A bubble is static content; a message still being written is StreamingText or a Marker, not a state of the surface."
+        }
+      ],
       "a11y": [
         "The surface is a plain container with no imposed role — a bubble is presentation, and announcing one as a region would put a landmark around every line of a conversation.",
-        "Reaction pills are real buttons reporting `aria-pressed`, so the reader's own reaction is state rather than colour alone; the emoji is hidden from AT and the count is left readable.",
+        "Reaction pills are real buttons reporting `aria-pressed`, so the reader's own reaction is state rather than colour alone. Give each a `label`: it is named \"Party, 3\", with the emoji and its burst hidden from AT. The add-reaction pill is named \"Add reaction\" and opens a toolbar picker.",
         "`whitespace-pre-wrap` and `break-words` keep pasted logs, long URLs, and hard-wrapped text inside the surface instead of overflowing the conversation.",
         "Every variant meets AA against its own surface, including `primary`, which pairs the primary fill with its paired foreground token rather than a hardcoded white."
       ],
@@ -5021,8 +5062,8 @@
         },
         {
           "label": "With reactions",
-          "code": "<Message messageId=\"m3\">\n\t<Bubble>Shipped 0.45.0.</Bubble>\n\t<BubbleReactions>\n\t\t<BubbleReaction emoji=\"🎉\" count={3} active onClick={() => toggle(\"🎉\")} />\n\t\t<BubbleReaction emoji=\"👀\" count={1} onClick={() => toggle(\"👀\")} />\n\t</BubbleReactions>\n</Message>",
-          "imports": "import { Bubble, BubbleReaction, BubbleReactions, Message } from \"@sableui/react\""
+          "code": "<Message messageId=\"m3\">\n\t<Bubble>Shipped 0.45.0.</Bubble>\n\t<BubbleReactions>\n\t\t<BubbleReaction emoji=\"🎉\" label=\"Party\" count={3} active onClick={() => toggle(\"🎉\")} />\n\t\t<BubbleReaction emoji=\"👀\" label=\"Eyes\" count={1} onClick={() => toggle(\"👀\")} />\n\t\t<BubbleReactionAdd selected={mine} onSelect={toggle} />\n\t</BubbleReactions>\n</Message>",
+          "imports": "import { Bubble, BubbleReaction, BubbleReactionAdd, BubbleReactions, Message } from \"@sableui/react\""
         },
         {
           "label": "A grouped run drops the repeated tail",
@@ -10177,6 +10218,12 @@
           "why": "The rating row is a choice among a few similar marks. The eased selected fill is what makes the pick read as made, not just hovered."
         },
         {
+          "slot": "response",
+          "recipe": "motion-bloom",
+          "part": "Chosen rating mark",
+          "why": "The mark itself answers the pick: it blooms past its size and settles, so choosing reads as a small decision landing rather than a fill changing. Only the chosen mark, only on choosing — nothing blooms when the form opens or a pick is let go. Expressive: under subtle the fill alone answers."
+        },
+        {
           "slot": "transition",
           "recipe": "motion-tick",
           "part": "Thanks",
@@ -11876,6 +11923,217 @@
           "label": "With hint",
           "code": "<Label htmlFor=\"discount\" hint=\"Taken off every order this code is used on.\">Discount</Label>",
           "imports": "import { Label } from \"@sableui/react\""
+        }
+      ]
+    },
+    {
+      "name": "LikeButton",
+      "status": "stable",
+      "group": "Actions",
+      "register": "either",
+      "path": "components/like-button",
+      "summary": "A pressed-or-not toggle for a like, a star or a save, with its count. Pressing it on fills the glyph, which blooms while a ring and a spray of dots burst from it and the count rolls up; pressing it off is quiet.",
+      "keywords": [
+        "like",
+        "heart",
+        "favorite",
+        "favourite",
+        "love",
+        "star",
+        "bookmark",
+        "save",
+        "upvote",
+        "reaction",
+        "count",
+        "toggle"
+      ],
+      "usage": {
+        "description": "Use LikeButton for a personal, reversible endorsement that other people can see the tally of: liking a post, starring a repository, saving a recipe. It is the one place in Sable that celebrates, because the person chose it and it costs nothing to undo.",
+        "bestPractices": [
+          {
+            "guidance": "do",
+            "description": "Pass the server's total as `count` and update it when the save lands. The button shows the viewer's own like at once, before the save, and goes back to `count` exactly whenever it changes, so a failed save that leaves `count` alone can also turn `pressed` back off."
+          },
+          {
+            "guidance": "do",
+            "description": "Match the glyph, family and label to the meaning: `icon=\"star\" tone=\"yellow\" label=\"Star\"` for a star. The label is the accessible name, so it must say what pressing does."
+          },
+          {
+            "guidance": "do",
+            "description": "Use `format={{ notation: \"compact\" }}` once counts pass a few thousand, so a feed of buttons keeps one width."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not use it for a setting or a view switch (bold, mute, grid or list). Those are tools, not endorsements, and a burst on every press of a formatting control is noise; use Toggle.",
+            "instead": [
+              "Toggle"
+            ]
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not use it for a rating or a verdict on an answer (helpful, not helpful). That is a question with two sides; use Feedback.",
+            "instead": [
+              "Feedback"
+            ]
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not press it for the user. A burst is a reply to a person's choice — liking something on their behalf, or on load, turns delight into a notification."
+          }
+        ]
+      },
+      "related": {
+        "components": [
+          "Toggle",
+          "Feedback",
+          "NumberTicker",
+          "Button"
+        ]
+      },
+      "props": [
+        {
+          "name": "count",
+          "type": "number",
+          "description": "The total, rolled when it changes. Pressing adds or removes the viewer's like at once; the button shows `count` exactly again whenever `count` changes. Omit it for a bare glyph (an icon-size button)."
+        },
+        {
+          "name": "pressed",
+          "type": "boolean",
+          "description": "Controlled pressed state."
+        },
+        {
+          "name": "defaultPressed",
+          "type": "boolean",
+          "default": "false",
+          "description": "Initial pressed state when uncontrolled."
+        },
+        {
+          "name": "onPressedChange",
+          "type": "(pressed: boolean, event) => void",
+          "description": "Called when the user presses it, with the new state."
+        },
+        {
+          "name": "icon",
+          "type": "string",
+          "default": "\"heart\"",
+          "description": "The glyph, by icon name. Its `solid` variant is shown while pressed."
+        },
+        {
+          "name": "tone",
+          "type": "PaletteColor",
+          "default": "\"red\"",
+          "description": "The palette family the glyph fills with while pressed, and the burst blooms from. A family, so it follows the theme."
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "default": "\"Like\"",
+          "description": "The accessible name, read before the count."
+        },
+        {
+          "name": "format",
+          "type": "Intl.NumberFormatOptions",
+          "description": "How to write the count, e.g. `{ notation: \"compact\" }`."
+        },
+        {
+          "name": "variant",
+          "type": "\"ghost\" | \"outline\" | \"secondary\"",
+          "default": "\"ghost\"",
+          "description": "The Button surface."
+        },
+        {
+          "name": "size",
+          "type": "\"xs\" | \"sm\" | \"md\"",
+          "default": "\"sm\"",
+          "description": "A Button size; without a count, the matching icon size."
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disables it."
+        },
+        {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The bloom and the burst are the flourish; the fill and the count changing stay."
+        }
+      ],
+      "variants": {
+        "variant": [
+          "ghost",
+          "outline",
+          "secondary"
+        ],
+        "size": [
+          "xs",
+          "sm",
+          "md"
+        ],
+        "tone": [
+          "red",
+          "orange",
+          "yellow",
+          "green",
+          "teal",
+          "blue",
+          "purple",
+          "pink"
+        ]
+      },
+      "tokensUsed": [
+        "palette-dot",
+        "accent",
+        "ring"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "It arrives with the post or row it belongs to. A page that loads with likes already given must be still: nothing blooms on mount."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-bloom",
+          "part": "Glyph",
+          "why": "Pressing it on is the moment. The glyph is 16px, so it needs real amplitude to read as an event: it grows from nothing past its size and settles, after a 90ms beat in which the ring leads. Inherits Button's motion-press for the press itself. Pressing off has no bloom — taking a like back is not a celebration."
+        },
+        {
+          "slot": "transition",
+          "recipe": "custom",
+          "part": "Burst",
+          "why": "The follow-through: <Burst> draws a disc that hollows into a ring and shifts colour, then dots thrown outward in the theme's palette families. Expressive only — under `subtle` or reduced motion it renders nothing and the fill alone answers the press. The count rolls with NumberTicker."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "There is no in-between state to show: the like is shown at once, before it is saved."
+        }
+      ],
+      "a11y": [
+        "A native <button> through Button, with `aria-pressed`. Enter and Space press it.",
+        "The accessible name is the label then the count (\"Like 1,301\"); the burst is aria-hidden and the rolling digits are hidden behind the count's real text.",
+        "The pressed state is carried by the filled glyph and `aria-pressed`, never by colour alone.",
+        "Under reduced motion the glyph fills and the count changes at once; the bloom and the burst are dropped."
+      ],
+      "examples": [
+        {
+          "label": "A post's likes",
+          "code": "<LikeButton count={post.likes} defaultPressed={post.liked} onPressedChange={(on) => api.like(post.id, on)} />",
+          "imports": "import { LikeButton } from \"@sableui/react\""
+        },
+        {
+          "label": "Star a repository",
+          "code": "<LikeButton icon=\"star\" tone=\"yellow\" label=\"Star\" variant=\"outline\" count={repo.stars} format={{ notation: \"compact\" }} />",
+          "imports": "import { LikeButton } from \"@sableui/react\""
+        },
+        {
+          "label": "Bare glyph",
+          "code": "<LikeButton label=\"Save recipe\" />",
+          "imports": "import { LikeButton } from \"@sableui/react\""
         }
       ]
     },
@@ -17236,6 +17494,178 @@
       ]
     },
     {
+      "name": "ReactionPicker",
+      "status": "stable",
+      "group": "Actions",
+      "register": "either",
+      "path": "components/reaction-picker",
+      "summary": "The quick row of emoji you react to a message with: a toolbar of large emoji toggles that bloom in one after another as it opens and magnify under the pointer, with MenuReactions as the same row inside a right-click menu.",
+      "keywords": [
+        "reaction",
+        "reactions",
+        "emoji",
+        "emoji picker",
+        "react",
+        "tapback",
+        "quick reactions",
+        "message actions",
+        "chat"
+      ],
+      "usage": {
+        "description": "Use ReactionPicker wherever a reader chooses a reaction for something: in a Popover from an add-reaction control (BubbleReactionAdd is that, ready-made), or as a hover bar over a message. Use MenuReactions for the same row as the first group of the menu a message opens on right-click or long-press, above Reply and Copy. Both report which emoji the reader has already used, so choosing one again removes it.",
+        "bestPractices": [
+          {
+            "guidance": "do",
+            "description": "Keep the quick set short — six to eight. It is the reactions people actually use; a full emoji catalogue belongs behind a trailing \"more\" control passed as children."
+          },
+          {
+            "guidance": "do",
+            "description": "Give every reaction a `label`. It is the accessible name and the menu's typeahead, and an emoji's own spoken name differs between platforms."
+          },
+          {
+            "guidance": "do",
+            "description": "Pass `selected` so the reader's own reactions show pressed, and toggle in `onSelect`: choosing a reaction you already gave takes it back."
+          },
+          {
+            "guidance": "do",
+            "description": "Offer the right-click menu and a visible add-reaction control together. A context menu is invisible until you know it is there; the pill is how a first-time reader finds reactions."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not put a ReactionPicker inside a Menu or ContextMenu. A toolbar is not a menu item, so the menu's arrow keys would skip it; use MenuReactions there.",
+            "instead": [
+              "MenuReactions"
+            ]
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not use it to rate an answer or collect a verdict. Reactions are social and many-valued; a helpful / not-helpful question is Feedback.",
+            "instead": [
+              "Feedback"
+            ]
+          }
+        ],
+        "anatomy": [
+          {
+            "name": "ReactionPicker",
+            "required": true,
+            "description": "The toolbar: one tab stop, arrow keys move between emoji, each a toggle with `aria-pressed`."
+          },
+          {
+            "name": "MenuReactions",
+            "required": false,
+            "description": "The same row as a group of checkbox menu items, for MenuContent and ContextMenuContent. Choosing one closes the menu."
+          }
+        ]
+      },
+      "related": {
+        "components": [
+          "Bubble",
+          "ContextMenu",
+          "Popover",
+          "Toolbar",
+          "Feedback"
+        ]
+      },
+      "props": [
+        {
+          "name": "reactions",
+          "type": "readonly { emoji: string; label: string }[]",
+          "default": "DEFAULT_REACTIONS",
+          "description": "The choices, in order. The default is 👍 ❤️ 😂 🎉 😮 😢 🙏."
+        },
+        {
+          "name": "selected",
+          "type": "readonly string[]",
+          "default": "[]",
+          "description": "The emoji the reader has already reacted with: shown pressed, and choosing one again removes it."
+        },
+        {
+          "name": "onSelect",
+          "type": "(emoji: string) => void",
+          "description": "Called with the emoji the reader chose. Toggle it in or out of `selected`."
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "description": "ReactionPicker only: trailing controls after the emoji, such as a button that opens a full emoji picker."
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "default": "\"Reactions\"",
+          "description": "The name of the toolbar or menu group."
+        },
+        {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps the press and drops the wave of emoji blooming in and the magnify, `off` stills it. It can only turn motion down."
+        }
+      ],
+      "subcomponents": [
+        {
+          "name": "MenuReactions",
+          "type": "{ reactions?; selected?; onSelect?; motion? } & ComponentProps<typeof Menu.Group>",
+          "description": "The quick row as checkbox menu items, for the first group of a MenuContent or ContextMenuContent. Same props as ReactionPicker, without children."
+        }
+      ],
+      "tokensUsed": [
+        "accent",
+        "primary",
+        "ring"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "motion-bloom",
+          "part": "Glyph",
+          "why": "Opening the picker is the reader's own action, so the emoji answer it: each blooms in 24ms after the one before, a short wave from first to last. The surface it sits in (a Popover or a menu) arrives with its own motion-pop. Expressive only — under `subtle` the emoji are simply there."
+        },
+        {
+          "slot": "response",
+          "recipe": "custom",
+          "part": "Glyph",
+          "why": "The emoji under the pointer or the keyboard highlight magnifies to 1.25 on a fast standard ease, so you can see which one a release will choose; each cell also carries motion-interactive and motion-press. The magnify rides an inner layer so it never fights the bloom over `scale`."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-interactive",
+          "part": "Cell",
+          "why": "Pressed and not pressed differ by a tint, eased by motion-interactive. The celebration belongs to the reaction that lands under the message (BubbleReaction), not to the picker that chose it."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Choosing is instant; there is no in-between state to show."
+        }
+      ],
+      "a11y": [
+        "ReactionPicker is a Base UI toolbar: one tab stop, Left/Right move between emoji, Home/End jump to the ends.",
+        "Each emoji is a button named by its `label` and reporting `aria-pressed`, so a screen-reader user hears whether choosing it adds or removes their reaction. The glyph itself is aria-hidden.",
+        "MenuReactions renders checkbox menu items (`menuitemcheckbox` with `aria-checked`), reached by the menu's arrow keys and typeahead like every other row.",
+        "Under reduced motion the emoji appear at once and do not magnify; pressed state is carried by `aria-pressed` and a tint, never motion."
+      ],
+      "examples": [
+        {
+          "label": "In a popover",
+          "code": "<Popover>\n\t<PopoverTrigger render={<Button variant=\"ghost\" size=\"icon-sm\" aria-label=\"Add reaction\" />}>\n\t\t<Icon name=\"emoji\" />\n\t</PopoverTrigger>\n\t<PopoverContent side=\"top\" className=\"w-auto rounded-full p-1\">\n\t\t<ReactionPicker selected={mine} onSelect={toggle} />\n\t</PopoverContent>\n</Popover>",
+          "imports": "import { Button, Icon, Popover, PopoverContent, PopoverTrigger, ReactionPicker } from \"@sableui/react\""
+        },
+        {
+          "label": "In a right-click menu",
+          "code": "<ContextMenu>\n\t<ContextMenuTrigger render={<Bubble />}>See you at 6.</ContextMenuTrigger>\n\t<ContextMenuContent>\n\t\t<MenuReactions selected={mine} onSelect={toggle} />\n\t\t<ContextMenuSeparator />\n\t\t<ContextMenuItem>Reply</ContextMenuItem>\n\t\t<ContextMenuItem>Copy text</ContextMenuItem>\n\t</ContextMenuContent>\n</ContextMenu>",
+          "imports": "import { Bubble, ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger, MenuReactions } from \"@sableui/react\""
+        },
+        {
+          "label": "A custom set",
+          "code": "<ReactionPicker\n\treactions={[\n\t\t{ emoji: \"✅\", label: \"Done\" },\n\t\t{ emoji: \"👀\", label: \"Looking\" },\n\t\t{ emoji: \"🚀\", label: \"Shipped\" },\n\t]}\n\tselected={mine}\n\tonSelect={toggle}\n/>",
+          "imports": "import { ReactionPicker } from \"@sableui/react\""
+        }
+      ]
+    },
+    {
       "name": "RelativeTime",
       "status": "stable",
       "group": "Data display",
@@ -21953,7 +22383,7 @@
           "name": "type (toast option)",
           "type": "\"success\" | \"error\" | \"warning\" | \"info\" | \"loading\"",
           "default": "—",
-          "description": "Set by the toast.* helpers. Drives a semantic left accent (success→success, error→destructive, warning→tone-warning, info→tone-info); loading shows a spinner. Both loading and error persist until updated or dismissed unless the call supplies a timeout."
+          "description": "Set by the toast.* helpers. Drives a leading status glyph from the shared tone list, the same one Note and InlineStatus use (success→success, error→destructive, warning→warning, info→info), which blooms in as the toast lands; loading shows a spinner, and the glyph blooms in its place when the toast settles. Both loading and error persist until updated or dismissed unless the call supplies a timeout."
         }
       ],
       "subcomponents": [
@@ -22027,6 +22457,12 @@
           "recipe": "custom",
           "part": "ToastRoot (stacked)",
           "why": "A stacked toast arrives from the anchored edge in front of the others, which step back and shrink to make room; hovering fans the deck out into the list. Moving every card, rather than snapping them, shows that the new one went on top and the old ones are still there."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-bloom",
+          "part": "Status glyph",
+          "why": "The glyph is what says how it went, so it lands as its own beat: it blooms in 120ms after the card, and blooms again in the spinner's place when a loading toast settles. A 16px glyph needs that amplitude to read as an answer; the card itself only slides."
         },
         {
           "slot": "activity",
@@ -24112,6 +24548,31 @@
         "code": "// `cover` is the artwork URL; left empty, the cover paints art seeded by the title.\nconst track = { title: \"Low tide, high noon\", artist: \"Juno Avery\", cover: \"\", duration: 220, position: 84 }\n\n/** Seconds → m:ss, the way the readout and the screen reader both say it. */\nfunction formatTime(seconds: number) {\n\treturn `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, \"0\")}`\n}\n\n\nexport interface MediaPlayerBlockProps {\n\tclassName?: string\n\t/** false drops the card's surface and border — for a Sheet or muted section that already frames it. */\n\tframed?: boolean\n\t/** Called with the new playing state. */\n\tonPlayingChange?: (playing: boolean) => void\n\tonPrevious?: () => void\n\tonNext?: () => void\n}\n\nexport function MediaPlayerBlock({ className, framed = true, onPlayingChange, onPrevious, onNext }: MediaPlayerBlockProps) {\n\tconst [playing, setPlaying] = useState(true)\n\tconst [position, setPosition] = useState(track.position)\n\treturn (\n\t\t<Card variant={framed ? \"default\" : \"flat\"} className={cn(\"w-full max-w-xs\", className)}>\n\t\t\t<CardContent className=\"flex flex-col gap-4\">\n\t\t\t\t{/* Entity's own row padding is for lists; inside a card's content the\n\t\t\t\t    card already pads it. */}\n\t\t\t\t<Entity\n\t\t\t\t\tclassName=\"p-0\"\n\t\t\t\t\tleading={<MediaImage src={track.cover} seed={track.title} className=\"size-14 shrink-0 rounded-md\" />}\n\t\t\t\t\ttitle={track.title}\n\t\t\t\t\tsubtitle={track.artist}\n\t\t\t\t\taction={\n\t\t\t\t\t\t<Button variant=\"ghost\" size=\"icon-sm\" aria-label=\"Like\">\n\t\t\t\t\t\t\t<Icon name=\"heart\" />\n\t\t\t\t\t\t</Button>\n\t\t\t\t\t}\n\t\t\t\t/>\n\t\t\t\t<div className=\"flex flex-col gap-1.5\">\n\t\t\t\t\t<Slider\n\t\t\t\t\t\tvalue={position}\n\t\t\t\t\t\tmax={track.duration}\n\t\t\t\t\t\tonValueChange={setPosition}\n\t\t\t\t\t\taria-label=\"Position\"\n\t\t\t\t\t\t// Spoken as a time, not \"38\": the number alone means nothing.\n\t\t\t\t\t\tgetAriaValueText={(_, value) => `${formatTime(value)} of ${formatTime(track.duration)}`}\n\t\t\t\t\t/>\n\t\t\t\t\t<div className=\"flex justify-between text-mono-caption text-muted-foreground\">\n\t\t\t\t\t\t<span>{formatTime(position)}</span>\n\t\t\t\t\t\t<span>-{formatTime(track.duration - position)}</span>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t\t<div className=\"flex items-center justify-center gap-3\">\n\t\t\t\t\t<Button variant=\"ghost\" size=\"icon\" aria-label=\"Previous\" onClick={onPrevious}>\n\t\t\t\t\t\t<Icon name=\"previous\" variant=\"solid\" />\n\t\t\t\t\t</Button>\n\t\t\t\t\t<Button\n\t\t\t\t\t\tsize=\"icon\"\n\t\t\t\t\t\taria-label={playing ? \"Pause\" : \"Play\"}\n\t\t\t\t\t\tonClick={() => {\n\t\t\t\t\t\t\tsetPlaying(!playing)\n\t\t\t\t\t\t\tonPlayingChange?.(!playing)\n\t\t\t\t\t\t}}\n\t\t\t\t\t>\n\t\t\t\t\t\t<Icon name={playing ? \"pause\" : \"play\"} variant=\"solid\" />\n\t\t\t\t\t</Button>\n\t\t\t\t\t<Button variant=\"ghost\" size=\"icon\" aria-label=\"Next\" onClick={onNext}>\n\t\t\t\t\t\t<Icon name=\"next\" variant=\"solid\" />\n\t\t\t\t\t</Button>\n\t\t\t\t</div>\n\t\t\t</CardContent>\n\t\t</Card>\n\t)\n}"
       },
       {
+        "name": "MessageReactionsBlock",
+        "path": "blocks/message-reactions-block.tsx",
+        "summary": "A short thread you can react to: right-click or long-press a bubble for a menu with a row of quick reactions above Reply and Copy, or use the add-reaction pill under a message. A new reaction blooms in and sprays copies of its emoji.",
+        "intent": "Reach for this when a conversation excerpt should be reactable — a team thread, a comment card, a support transcript. A read-only excerpt is ChatThreadBlock; a working chat with a composer and history is the ChatPanel page shell.",
+        "family": "Social & messaging",
+        "kind": "card",
+        "width": {
+          "min": "18rem",
+          "max": "24rem"
+        },
+        "notes": [
+          "Two ways in, on purpose: the right-click / long-press menu is fast once you know it is there, and the add-reaction pill is how a first-time reader finds reactions at all.",
+          "The quick row in the menu is MenuReactions (checkbox menu items) and the one in the pill's popover is ReactionPicker (a toolbar), so each is reachable by the keyboard model of the surface it sits in.",
+          "Only the reader's own reaction celebrates. Counts from other people roll quietly, and the reactions a page loads with never play.",
+          "The add-reaction pill appears only on messages that already have reactions; a message with none is reacted to from its menu, which keeps quiet rows quiet."
+        ],
+        "a11y": [
+          "Each bubble is focusable, and its menu opens on right click, long press, Shift+F10 or the Menu key; its reactions are checkbox items reporting whether the reader has used each one.",
+          "Each reaction pill is a toggle named by its meaning and count (\"Party, 3\") with `aria-pressed`; the emoji and the burst are hidden from assistive tech.",
+          "Under reduced motion the reaction appears and the count changes at once; nothing else is lost."
+        ],
+        "imports": "import { Bubble, BubbleReaction, BubbleReactionAdd, BubbleReactions, Card, CardContent, CardFooter, cn, ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger, DEFAULT_REACTIONS, MenuReactions, Message } from \"@sableui/react\"",
+        "code": "const messages: { id: string; text: string; mine: boolean; reactions: Record<string, number> }[] = [\n\t{ id: \"m1\", text: \"The new onboarding flow is live on staging 🚀\", mine: false, reactions: { \"🎉\": 2, \"👀\": 1 } },\n\t{ id: \"m2\", text: \"Clicked through it twice. The progress bar is so smooth.\", mine: true, reactions: {} },\n\t{ id: \"m3\", text: \"Ship it Friday?\", mine: false, reactions: { \"👍\": 1 } },\n]\nconst hint = \"Right-click or long-press a message to react.\"\n// Every emoji that can appear needs a name: it is the pill's accessible label.\nconst labels: Record<string, string> = {\n\t...Object.fromEntries(DEFAULT_REACTIONS.map((r) => [r.emoji, r.label])),\n\t\"👀\": \"Eyes\",\n}\n\nexport interface MessageReactionsBlockProps {\n\tclassName?: string\n\t/** false drops the card's surface and border. Keep it framed on a muted page: incoming bubbles are the muted surface too. */\n\tframed?: boolean\n\t/** Called when the reader adds or removes a reaction, with the message, the emoji and whether it is now on. */\n\tonReact?: (messageId: string, emoji: string, on: boolean) => void\n}\n\nexport function MessageReactionsBlock({ className, framed = true, onReact }: MessageReactionsBlockProps) {\n\t// The reader's own reactions, per message. Everyone else's are the counts above.\n\tconst [mine, setMine] = useState<Record<string, string[]>>({ m1: [\"🎉\"] })\n\tconst toggle = (messageId: string, emoji: string) => {\n\t\tconst on = !(mine[messageId] ?? []).includes(emoji)\n\t\t// Decided again from `prev`, so two toggles in one batch cannot add an emoji twice.\n\t\tsetMine((prev) => {\n\t\t\tconst current = prev[messageId] ?? []\n\t\t\tconst next = current.includes(emoji) ? current.filter((e) => e !== emoji) : [...current, emoji]\n\t\t\treturn { ...prev, [messageId]: next }\n\t\t})\n\t\tonReact?.(messageId, emoji, on)\n\t}\n\n\treturn (\n\t\t<Card variant={framed ? \"default\" : \"flat\"} className={cn(\"w-full max-w-sm\", className)}>\n\t\t\t<CardContent className=\"flex flex-col gap-3\">\n\t\t\t\t{messages.map((m) => {\n\t\t\t\t\tconst align = m.mine ? \"end\" : \"start\"\n\t\t\t\t\tconst chosen = mine[m.id] ?? []\n\t\t\t\t\t// Others' counts, plus the reader's own: a reaction only the reader gave\n\t\t\t\t\t// is a pill of its own, ordered after the ones already there.\n\t\t\t\t\tconst counts: Record<string, number> = { ...m.reactions }\n\t\t\t\t\tfor (const emoji of chosen) counts[emoji] = (counts[emoji] ?? 0)\n\t\t\t\t\tconst pills = Object.entries(counts).map(([emoji, others]) => ({\n\t\t\t\t\t\temoji,\n\t\t\t\t\t\tactive: chosen.includes(emoji),\n\t\t\t\t\t\tcount: others + (chosen.includes(emoji) ? 1 : 0),\n\t\t\t\t\t}))\n\t\t\t\t\treturn (\n\t\t\t\t\t\t<Message key={m.id} messageId={m.id} align={m.mine ? \"end\" : undefined}>\n\t\t\t\t\t\t\t<ContextMenu>\n\t\t\t\t\t\t\t\t<ContextMenuTrigger\n\t\t\t\t\t\t\t\t\t// Focusable, so Shift+F10 or the Menu key opens the same menu.\n\t\t\t\t\t\t\t\t\trender={<Bubble tabIndex={0} variant={m.mine ? \"primary\" : undefined} align={align} />}\n\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t\t{m.text}\n\t\t\t\t\t\t\t\t</ContextMenuTrigger>\n\t\t\t\t\t\t\t\t<ContextMenuContent>\n\t\t\t\t\t\t\t\t\t<MenuReactions selected={chosen} onSelect={(emoji) => toggle(m.id, emoji)} />\n\t\t\t\t\t\t\t\t\t<ContextMenuSeparator />\n\t\t\t\t\t\t\t\t\t<ContextMenuItem>Reply</ContextMenuItem>\n\t\t\t\t\t\t\t\t\t<ContextMenuItem>Copy text</ContextMenuItem>\n\t\t\t\t\t\t\t\t</ContextMenuContent>\n\t\t\t\t\t\t\t</ContextMenu>\n\t\t\t\t\t\t\t{/* Rendered even while empty (it hides itself), so the first reaction still celebrates. */}\n\t\t\t\t\t\t\t<BubbleReactions align={align}>\n\t\t\t\t\t\t\t\t{pills.map((p) => (\n\t\t\t\t\t\t\t\t\t<BubbleReaction\n\t\t\t\t\t\t\t\t\t\tkey={p.emoji}\n\t\t\t\t\t\t\t\t\t\temoji={p.emoji}\n\t\t\t\t\t\t\t\t\t\tlabel={labels[p.emoji]}\n\t\t\t\t\t\t\t\t\t\tcount={p.count}\n\t\t\t\t\t\t\t\t\t\tactive={p.active}\n\t\t\t\t\t\t\t\t\t\tonClick={() => toggle(m.id, p.emoji)}\n\t\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t\t\t{pills.length > 0 ? (\n\t\t\t\t\t\t\t\t\t<BubbleReactionAdd selected={chosen} onSelect={(emoji) => toggle(m.id, emoji)} />\n\t\t\t\t\t\t\t\t) : null}\n\t\t\t\t\t\t\t</BubbleReactions>\n\t\t\t\t\t\t</Message>\n\t\t\t\t\t)\n\t\t\t\t})}\n\t\t\t</CardContent>\n\t\t\t<CardFooter className=\"text-caption text-muted-foreground\">{hint}</CardFooter>\n\t\t</Card>\n\t)\n}"
+      },
+      {
         "name": "NewsletterBlock",
         "path": "blocks/newsletter-block.tsx",
         "summary": "A newsletter sign-up card: the list's name, what it sends and how often, and an email field with Subscribe.",
@@ -25364,6 +25825,16 @@
               "use": "An element easing between intrinsic sizes when its label changes: a two-step confirm, Copy → Copied."
             },
             {
+              "name": "motion-bloom",
+              "value": "slower · 0 → 1.2 → 1 · expressive",
+              "use": "A small glyph landing in its on state: a liked heart, a picked rating, a toast's status icon. Remount it (key) to replay; never on the resting state."
+            },
+            {
+              "name": "<Burst>",
+              "value": "slower ring + thrown dots · expressive",
+              "use": "The follow-through behind a bloom, in the theme's palette families. Only on a choice a person made: a like, a star, a finished task."
+            },
+            {
               "name": "motion-draw",
               "value": "slower · decelerate",
               "use": "SVG line art drawing on when a <Reveal> scrolls in. The path needs pathLength=\"1\"; stagger siblings with --motion-draw-delay."
@@ -25417,7 +25888,7 @@
             {
               "name": "expressive",
               "value": "full only",
-              "use": "Glides, rolling numbers (NumberTicker), drawn ticks, shakes, staggers, chart arrival and morph, scroll reveals, spring overshoot."
+              "use": "Glides, rolling numbers (NumberTicker), drawn ticks, blooms and bursts, shakes, staggers, chart arrival and morph, scroll reveals, spring overshoot."
             },
             {
               "name": "full",
@@ -25511,6 +25982,18 @@
         {
           "rule": "A state change finishes its story: refused shakes and says why, success confirms in place, armed asks again.",
           "why": "Motion that starts a change and leaves the outcome to a snap reads as unfinished. ConfirmButton, OtpField's invalid shake and the copy-to-check swap are the reference cases."
+        },
+        {
+          "rule": "Amplitude scales with smallness. A 16px glyph that turns on grows from nothing past its size; a surface travels from 0.96 and a press settles to 0.97.",
+          "why": "The same 4% that is right for a dialog is invisible on an icon, which is why a state change on a small control used to read as a colour swap with no life in it. A dialog that overshot 20% would lurch. Size, not importance, sets how far a thing moves."
+        },
+        {
+          "rule": "Stage a moment: the main object lands first, the follow-through after it.",
+          "why": "A ring that opens, a glyph that blooms 90ms later, dots thrown 60ms after that read as one event with a cause and an effect. Everything starting on the same frame reads as a flash. LikeButton and the toast's status glyph are the reference cases."
+        },
+        {
+          "rule": "Celebrate only what a person chose, and only at full motion.",
+          "why": "A burst is a reply. On a like it is delight; on a system event, on load, or on every row of a list it is a notification wearing confetti. Under subtle the fill alone answers."
         },
         {
           "rule": "Component motion props and MotionScope only turn motion down.",
@@ -26693,6 +27176,29 @@
         ]
       },
       {
+        "name": "motion-bloom",
+        "kind": "utility",
+        "family": "motion",
+        "intent": "A small glyph landing in its \"on\" state grows from nothing past its size (1.2) and settles. The amplitude a 16px glyph needs to read as an event; surfaces never bloom. A keyframe that plays on mount, so remount the glyph (a changing `key`) to replay it. `--motion-bloom-delay` holds it at nothing first (raw ms; the recipe scales it). Expressive.",
+        "whenToUse": "A glyph that a person's choice turns on: a liked heart, a starred item, a status icon arriving in a toast. LikeButton and Toast already use it. Pair with <Burst> for the follow-through on a celebratory toggle.",
+        "insteadOf": "A bigger motion-press or motion-pop on the whole control (a button or card that overshoots 20% lurches), or a hand-written scale keyframe with literal durations. Never on the resting state: a page that loads with a post already liked must not bloom every heart.",
+        "example": "<span key={likes} className={liked ? \"motion-bloom\" : undefined}><Icon name=\"heart\" variant={liked ? \"solid\" : \"regular\"} /></span>",
+        "keywords": [
+          "pop",
+          "overshoot",
+          "like",
+          "heart",
+          "star",
+          "celebrate",
+          "glyph",
+          "icon pop",
+          "delight"
+        ],
+        "pairsWith": [
+          "motion-interactive"
+        ]
+      },
+      {
         "name": "motion-size",
         "kind": "utility",
         "family": "motion",
@@ -27339,10 +27845,28 @@
       "BubbleReaction": [
         "active",
         "count",
-        "emoji"
+        "emoji",
+        "label",
+        "motion"
+      ],
+      "BubbleReactionAdd": [
+        "label",
+        "motion",
+        "onSelect",
+        "reactions",
+        "selected"
       ],
       "BubbleReactions": [
         "align"
+      ],
+      "Burst": [
+        "className",
+        "count",
+        "motion",
+        "palette",
+        "particle",
+        "playOnMount",
+        "trigger"
       ],
       "Button": [
         "badge",
@@ -28261,6 +28785,21 @@
         "hint",
         "size"
       ],
+      "LikeButton": [
+        "bleed",
+        "count",
+        "defaultPressed",
+        "format",
+        "icon",
+        "label",
+        "motion",
+        "onClick",
+        "onPressedChange",
+        "pressed",
+        "size",
+        "tone",
+        "variant"
+      ],
       "LineChart": [
         "activeIndex",
         "animate",
@@ -28461,6 +29000,15 @@
         "render",
         "style",
         "value"
+      ],
+      "MenuReactions": [
+        "className",
+        "motion",
+        "onSelect",
+        "reactions",
+        "render",
+        "selected",
+        "style"
       ],
       "MenuSeparator": [
         "className",
@@ -29014,6 +29562,19 @@
         "required",
         "style",
         "value"
+      ],
+      "ReactionPicker": [
+        "children",
+        "className",
+        "disabled",
+        "loopFocus",
+        "motion",
+        "onSelect",
+        "orientation",
+        "reactions",
+        "render",
+        "selected",
+        "style"
       ],
       "Region": [
         "as",

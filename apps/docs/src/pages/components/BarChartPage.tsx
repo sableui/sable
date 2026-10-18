@@ -23,19 +23,19 @@ export function BarChartPage() {
 			<ComponentPlayground meta={barChartMeta} />
 
 			<Section title="Default" description="Bars rise from the baseline in sequence as the chart scrolls into view.">
-				<Example>
+				<Example replayable>
 					<BarChart label="Desktop visitors" data={VISITORS} index="month" series={[DEVICES[0]]} indexFormatter={shortMonth} />
 				</Example>
 			</Section>
 
 			<Section title="Multiple" description="Series side by side, to compare them category by category.">
-				<Example>
+				<Example replayable>
 					<BarChart label="Visitors by device" data={VISITORS} index="month" series={DEVICES} indexFormatter={shortMonth} />
 				</Example>
 			</Section>
 
 			<Section title="Stacked" description="A total and its parts; only the outer segment rounds.">
-				<Example>
+				<Example replayable>
 					<div className="grid w-full gap-6 md:grid-cols-2">
 						<BarChart label="Visitors by device" data={VISITORS} index="month" series={DEVICES} indexFormatter={shortMonth} stacked tooltip={{ showTotal: true }} />
 						<BarChart label="Share of visitors by device" data={VISITORS} index="month" series={DEVICES} indexFormatter={shortMonth} stacked="expand" />
@@ -44,7 +44,7 @@ export function BarChartPage() {
 			</Section>
 
 			<Section title="Horizontal" description="For long category names; labels can sit inside the bars.">
-				<Example>
+				<Example replayable>
 					<div className="grid w-full gap-6 md:grid-cols-2">
 						<BarChart label="Visitors by browser" data={BROWSERS} index="browser" series={[{ key: "visitors", label: "Visitors" }]} orientation="horizontal" labels />
 						<BarChart label="Visitors by browser" data={BROWSERS} index="browser" series={[{ key: "visitors", label: "Visitors" }]} orientation="horizontal" labels="inside" yAxis={false} grid={false} />
@@ -53,31 +53,31 @@ export function BarChartPage() {
 			</Section>
 
 			<Section title="Labels" description="Values at the end of each bar.">
-				<Example>
+				<Example replayable>
 					<BarChart label="Desktop visitors" data={VISITORS} index="month" series={[DEVICES[0]]} indexFormatter={shortMonth} labels grid={false} />
 				</Example>
 			</Section>
 
 			<Section title="Colour by category" description="One series, each bar its own tone.">
-				<Example>
+				<Example replayable>
 					<BarChart label="Visitors by browser" data={BROWSERS} index="browser" series={[{ key: "visitors", label: "Visitors" }]} colorBy="index" />
 				</Example>
 			</Section>
 
 			<Section title="Active" description="A row can start highlighted — the tooltip is open before anyone hovers.">
-				<Example>
+				<Example replayable>
 					<BarChart label="Visitors by browser" data={BROWSERS} index="browser" series={[{ key: "visitors", label: "Visitors" }]} defaultActiveIndex={1} />
 				</Example>
 			</Section>
 
 			<Section title="Negative" description="Diverging around zero, with losses in their own tone.">
-				<Example>
+				<Example replayable>
 					<BarChart label="Net revenue by month" data={NET} index="month" series={[{ key: "net", label: "Net", tone: "success" }]} negativeTone="destructive" indexFormatter={shortMonth} labels />
 				</Example>
 			</Section>
 
 			<Section title="Tooltip" description="Row markers (dot, line, dashed, none), no heading, a formatted heading, values in units, and a total.">
-				<Example>
+				<Example replayable>
 					<Grid cols={{ base: 1, md: 2 }} gap={3} className="w-full">
 						<BarChart label="Visitors by device, line indicator" data={VISITORS} index="month" series={DEVICES} indexFormatter={shortMonth} stacked tooltip={{ indicator: "line" }} defaultActiveIndex={2} legend={false} />
 						<BarChart label="Visitors by device, dashed indicator" data={VISITORS} index="month" series={DEVICES} indexFormatter={shortMonth} stacked tooltip={{ indicator: "dashed", labelFormatter: (m) => `${m} 2026` }} defaultActiveIndex={2} legend={false} />
@@ -88,13 +88,13 @@ export function BarChartPage() {
 			</Section>
 
 			<Section title="Interactive" description="Switching the series eases every bar to its new length.">
-				<Example>
+				<Example replayable>
 					<InteractiveBar />
 				</Example>
 			</Section>
 
 			<Section title="Subtle motion" description='motion="subtle" keeps the answers and drops the flourish: no arrival, new data swaps in place, and the hover dim and gliding cursor still respond.'>
-				<Example code={'<BarChart label="Daily visitors" data={daily} index="date" series={series} motion="subtle" />'}>
+				<Example replayable code={'<BarChart label="Daily visitors" data={daily} index="date" series={series} motion="subtle" />'}>
 					<InteractiveBar motion="subtle" />
 				</Example>
 			</Section>

@@ -28,14 +28,16 @@ The tinted (or untinted) surface a turn's content sits on. Kept separate from Me
 | --- | --- | --- |
 | Bubble | yes | The surface itself. Holds the variant, the side, and the tail. |
 | BubbleReactions | no | The row of reaction pills, just under the bubble at the message column's small gap, so it reads as belonging to that message rather than the next row. |
-| BubbleReaction | no | One reaction pill — emoji, count (hidden at 1), and pressed state. |
+| BubbleReaction | no | One reaction pill — emoji, count (hidden at 1), and pressed state. Celebrates when it becomes the reader's own. |
+| BubbleReactionAdd | no | The add-reaction pill at the end of the row: opens a ReactionPicker above it. |
 
 ## Subcomponents
 
 | Name | Type | Description |
 | --- | --- | --- |
 | BubbleReactions | { align?: "start" \| "end" } & ComponentPropsWithRef<"div"> | Row container for reaction pills. Match `align` to the Bubble so the row hangs off the same edge. |
-| BubbleReaction | { emoji: ReactNode; count?: number; active?: boolean } & ComponentPropsWithRef<"button"> | One reaction pill. A toggle, not a label: `active` drives `aria-pressed` as well as the styling, and `count` is hidden at 1 because the pill already says "one". |
+| BubbleReaction | { emoji: ReactNode; label?: string; count?: number; active?: boolean; motion?: MotionLevel } & ComponentPropsWithRef<"button"> | One reaction pill. A toggle, not a label: `active` drives `aria-pressed` as well as the styling, `label` names it ("Party, 3"), and `count` is hidden at 1 because the pill already says "one". When it turns on — pressed, or newly added already on — the emoji blooms, copies of it burst out and the count rolls; pills the page loads with stay still. |
+| BubbleReactionAdd | { reactions?: Reaction[]; selected?: string[]; onSelect?: (emoji: string) => void; label?: string; motion?: MotionLevel } & ComponentPropsWithRef<"button"> | The add-reaction pill: a smiley that opens a ReactionPicker above it. Choosing an emoji closes the picker and calls `onSelect`; add the emoji to the row and its new pill celebrates on arrival. |
 
 ## Props
 
@@ -56,16 +58,23 @@ The tinted (or untinted) surface a turn's content sits on. Kept separate from Me
 
 `muted`, `foreground`, `primary`, `primary-foreground`, `border`, `card`, `card-foreground`, `accent`, `accent-foreground`, `muted-foreground`, `ring`
 
+## Motion
+
+- **arrival** · Bubble · _no motion_ — A bubble arrives with its Message row, which owns how a new message enters the transcript. A reaction pill that the reader just added arrives with its own celebration (below).
+- **response** · BubbleReaction · `motion-bloom` — Reacting is the reader's choice, so it is answered like a like: the emoji grows from nothing past its size and settles, while copies of it spray outward and fade (Burst with the emoji as its particle, the way chat apps answer a reaction). Plays when a pill turns on and when a pill mounts already on into a row that has rendered — never for the pills a page loads with. Pills inherit Pill's motion-interactive and motion-press.
+- **transition** · BubbleReaction · _custom (outside the recipe layer)_ — The count rolls with NumberTicker as people react. Turning a reaction off is quiet: the tint eases out and the count rolls back, with no burst. Under `subtle` or reduced motion the bloom and the spray are dropped and the tint and count alone answer.
+- **activity** · Bubble · _no motion_ — A bubble is static content; a message still being written is StreamingText or a Marker, not a state of the surface.
+
 ## Accessibility
 
 - The surface is a plain container with no imposed role — a bubble is presentation, and announcing one as a region would put a landmark around every line of a conversation.
-- Reaction pills are real buttons reporting `aria-pressed`, so the reader's own reaction is state rather than colour alone; the emoji is hidden from AT and the count is left readable.
+- Reaction pills are real buttons reporting `aria-pressed`, so the reader's own reaction is state rather than colour alone. Give each a `label`: it is named "Party, 3", with the emoji and its burst hidden from AT. The add-reaction pill is named "Add reaction" and opens a toolbar picker.
 - `whitespace-pre-wrap` and `break-words` keep pasted logs, long URLs, and hard-wrapped text inside the surface instead of overflowing the conversation.
 - Every variant meets AA against its own surface, including `primary`, which pairs the primary fill with its paired foreground token rather than a hardcoded white.
 
 ## Related
 
-- Components: Message, MessageScroller, Marker, Attachment
+- Components: Message, MessageScroller, Marker, Attachment, ReactionPicker
 
 ## Examples
 
@@ -96,13 +105,14 @@ import { Avatar, Bubble, CodeBlock, Message } from "@sableui/react"
 ### With reactions
 
 ```tsx
-import { Bubble, BubbleReaction, BubbleReactions, Message } from "@sableui/react"
+import { Bubble, BubbleReaction, BubbleReactionAdd, BubbleReactions, Message } from "@sableui/react"
 
 <Message messageId="m3">
 	<Bubble>Shipped 0.45.0.</Bubble>
 	<BubbleReactions>
-		<BubbleReaction emoji="🎉" count={3} active onClick={() => toggle("🎉")} />
-		<BubbleReaction emoji="👀" count={1} onClick={() => toggle("👀")} />
+		<BubbleReaction emoji="🎉" label="Party" count={3} active onClick={() => toggle("🎉")} />
+		<BubbleReaction emoji="👀" label="Eyes" count={1} onClick={() => toggle("👀")} />
+		<BubbleReactionAdd selected={mine} onSelect={toggle} />
 	</BubbleReactions>
 </Message>
 ```

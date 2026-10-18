@@ -1,6 +1,6 @@
 # Sable (@sableui/react)
 
-> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 119 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
+> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 121 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
 
 ## Start here — brief, composition, evidence
 
@@ -3882,6 +3882,8 @@ Reach for one named class before writing a transition.
 | `motion-appear` | fast fade + base scale | A small control mounting in place: a clear button, a send arrow, a badge. @starting-style, no JS. |
 | `motion-arrive` | base · decelerate · staggered · expressive | Items a user action brings into a list: a folder's children on expand, a row just added. Never on every render. |
 | `motion-size` | base · emphasized · expressive | An element easing between intrinsic sizes when its label changes: a two-step confirm, Copy → Copied. |
+| `motion-bloom` | slower · 0 → 1.2 → 1 · expressive | A small glyph landing in its on state: a liked heart, a picked rating, a toast's status icon. Remount it (key) to replay; never on the resting state. |
+| `<Burst>` | slower ring + thrown dots · expressive | The follow-through behind a bloom, in the theme's palette families. Only on a choice a person made: a like, a star, a finished task. |
 | `motion-draw` | slower · decelerate | SVG line art drawing on when a <Reveal> scrolls in. The path needs pathLength="1"; stagger siblings with --motion-draw-delay. |
 | `motion-spin · pulse · shimmer · dot-bounce · ping` | loops | Activity. Scale-aware, so reduced motion freezes them. |
 
@@ -3902,7 +3904,7 @@ Essential motion answers the user; expressive motion narrates continuity. Expres
 | Name | Value | Use |
 |---|---|---|
 | `essential` | always, unless off | Colour and focus feedback, press, overlay arrival, disclosure height, loaders, chart hover. |
-| `expressive` | full only | Glides, rolling numbers (NumberTicker), drawn ticks, shakes, staggers, chart arrival and morph, scroll reveals, spring overshoot. |
+| `expressive` | full only | Glides, rolling numbers (NumberTicker), drawn ticks, blooms and bursts, shakes, staggers, chart arrival and morph, scroll reveals, spring overshoot. |
 | `full` | default | Both levels play. The crafted default. |
 | `subtle` | data-motion="subtle" | Essential only; nothing overshoots. For dense tools, embedded widgets, readers who want calm without stillness. |
 | `off` | data-motion="off" · reduce-motion | Nothing moves; every state still changes. |
@@ -3931,7 +3933,10 @@ Every interactive component answers all four, by filling the slot or declining i
 8. **One thing travels; two things do not blink. When a selection, a value or a mark changes in place, move the one element that represents it.** A fill switching off here and on there is two events the eye has to connect. A glide, a roll or a draw is one, and it is most of what makes an interface feel made rather than assembled.
 9. **Flourishes are expressive: multiply their durations by --motion-expressive and gate JS ones on useMotion().expressive.** `subtle` promises the answers without the choreography. A glide on a plain token keeps playing after someone asked for calm.
 10. **A state change finishes its story: refused shakes and says why, success confirms in place, armed asks again.** Motion that starts a change and leaves the outcome to a snap reads as unfinished. ConfirmButton, OtpField's invalid shake and the copy-to-check swap are the reference cases.
-11. **Component motion props and MotionScope only turn motion down.** `full` on a component means inherit. Nothing below the provider can switch motion back on for a reader who asked for it off.
+11. **Amplitude scales with smallness. A 16px glyph that turns on grows from nothing past its size; a surface travels from 0.96 and a press settles to 0.97.** The same 4% that is right for a dialog is invisible on an icon, which is why a state change on a small control used to read as a colour swap with no life in it. A dialog that overshot 20% would lurch. Size, not importance, sets how far a thing moves.
+12. **Stage a moment: the main object lands first, the follow-through after it.** A ring that opens, a glyph that blooms 90ms later, dots thrown 60ms after that read as one event with a cause and an effect. Everything starting on the same frame reads as a flash. LikeButton and the toast's status glyph are the reference cases.
+13. **Celebrate only what a person chose, and only at full motion.** A burst is a reply. On a like it is delight; on a system event, on load, or on every row of a list it is a notification wearing confetti. Under subtle the fill alone answers.
+14. **Component motion props and MotionScope only turn motion down.** `full` on a component means inherit. Nothing below the provider can switch motion back on for a reader who asked for it off.
 
 ## Never
 
@@ -3975,6 +3980,17 @@ The underline used to vanish under one tab and appear under the next. Now it sli
 ```
 
 The digits that changed roll; the ones that did not stay still, so the eye goes straight to the difference.
+
+### A glyph that lands
+
+```tsx
+// before
+<Icon name="heart" variant={liked ? "solid" : "regular"} />
+// after
+<LikeButton count={likes} defaultPressed={liked} />
+```
+
+The heart used to swap fill in one frame. Now it blooms past its size and settles while a ring and dots burst from it, and the count rolls: the same state, told as an event.
 
 ### Faster exits
 
@@ -8289,6 +8305,125 @@ export function MediaPlayerBlock({ className, framed = true, onPlayingChange, on
 
 ---
 
+# MessageReactionsBlock
+
+A short thread you can react to: right-click or long-press a bubble for a menu with a row of quick reactions above Reply and Copy, or use the add-reaction pill under a message. A new reaction blooms in and sprays copies of its emoji.
+
+**Intent:** Reach for this when a conversation excerpt should be reactable — a team thread, a comment card, a support transcript. A read-only excerpt is ChatThreadBlock; a working chat with a composer and history is the ChatPanel page shell.
+
+**Block:** Social & messaging · card · designed for 18rem–24rem wide (fills its container up to the max)
+
+## Notes
+
+- Two ways in, on purpose: the right-click / long-press menu is fast once you know it is there, and the add-reaction pill is how a first-time reader finds reactions at all.
+- The quick row in the menu is MenuReactions (checkbox menu items) and the one in the pill's popover is ReactionPicker (a toolbar), so each is reachable by the keyboard model of the surface it sits in.
+- Only the reader's own reaction celebrates. Counts from other people roll quietly, and the reactions a page loads with never play.
+- The add-reaction pill appears only on messages that already have reactions; a message with none is reacted to from its menu, which keeps quiet rows quiet.
+
+## Accessibility
+
+- Each bubble is focusable, and its menu opens on right click, long press, Shift+F10 or the Menu key; its reactions are checkbox items reporting whether the reader has used each one.
+- Each reaction pill is a toggle named by its meaning and count ("Party, 3") with `aria-pressed`; the emoji and the burst are hidden from assistive tech.
+- Under reduced motion the reaction appears and the count changes at once; nothing else is lost.
+
+## Source
+
+```tsx
+import { Bubble, BubbleReaction, BubbleReactionAdd, BubbleReactions, Card, CardContent, CardFooter, cn, ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger, DEFAULT_REACTIONS, MenuReactions, Message } from "@sableui/react"
+
+const messages: { id: string; text: string; mine: boolean; reactions: Record<string, number> }[] = [
+	{ id: "m1", text: "The new onboarding flow is live on staging 🚀", mine: false, reactions: { "🎉": 2, "👀": 1 } },
+	{ id: "m2", text: "Clicked through it twice. The progress bar is so smooth.", mine: true, reactions: {} },
+	{ id: "m3", text: "Ship it Friday?", mine: false, reactions: { "👍": 1 } },
+]
+const hint = "Right-click or long-press a message to react."
+// Every emoji that can appear needs a name: it is the pill's accessible label.
+const labels: Record<string, string> = {
+	...Object.fromEntries(DEFAULT_REACTIONS.map((r) => [r.emoji, r.label])),
+	"👀": "Eyes",
+}
+
+export interface MessageReactionsBlockProps {
+	className?: string
+	/** false drops the card's surface and border. Keep it framed on a muted page: incoming bubbles are the muted surface too. */
+	framed?: boolean
+	/** Called when the reader adds or removes a reaction, with the message, the emoji and whether it is now on. */
+	onReact?: (messageId: string, emoji: string, on: boolean) => void
+}
+
+export function MessageReactionsBlock({ className, framed = true, onReact }: MessageReactionsBlockProps) {
+	// The reader's own reactions, per message. Everyone else's are the counts above.
+	const [mine, setMine] = useState<Record<string, string[]>>({ m1: ["🎉"] })
+	const toggle = (messageId: string, emoji: string) => {
+		const on = !(mine[messageId] ?? []).includes(emoji)
+		// Decided again from `prev`, so two toggles in one batch cannot add an emoji twice.
+		setMine((prev) => {
+			const current = prev[messageId] ?? []
+			const next = current.includes(emoji) ? current.filter((e) => e !== emoji) : [...current, emoji]
+			return { ...prev, [messageId]: next }
+		})
+		onReact?.(messageId, emoji, on)
+	}
+
+	return (
+		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-sm", className)}>
+			<CardContent className="flex flex-col gap-3">
+				{messages.map((m) => {
+					const align = m.mine ? "end" : "start"
+					const chosen = mine[m.id] ?? []
+					// Others' counts, plus the reader's own: a reaction only the reader gave
+					// is a pill of its own, ordered after the ones already there.
+					const counts: Record<string, number> = { ...m.reactions }
+					for (const emoji of chosen) counts[emoji] = (counts[emoji] ?? 0)
+					const pills = Object.entries(counts).map(([emoji, others]) => ({
+						emoji,
+						active: chosen.includes(emoji),
+						count: others + (chosen.includes(emoji) ? 1 : 0),
+					}))
+					return (
+						<Message key={m.id} messageId={m.id} align={m.mine ? "end" : undefined}>
+							<ContextMenu>
+								<ContextMenuTrigger
+									// Focusable, so Shift+F10 or the Menu key opens the same menu.
+									render={<Bubble tabIndex={0} variant={m.mine ? "primary" : undefined} align={align} />}
+								>
+									{m.text}
+								</ContextMenuTrigger>
+								<ContextMenuContent>
+									<MenuReactions selected={chosen} onSelect={(emoji) => toggle(m.id, emoji)} />
+									<ContextMenuSeparator />
+									<ContextMenuItem>Reply</ContextMenuItem>
+									<ContextMenuItem>Copy text</ContextMenuItem>
+								</ContextMenuContent>
+							</ContextMenu>
+							{/* Rendered even while empty (it hides itself), so the first reaction still celebrates. */}
+							<BubbleReactions align={align}>
+								{pills.map((p) => (
+									<BubbleReaction
+										key={p.emoji}
+										emoji={p.emoji}
+										label={labels[p.emoji]}
+										count={p.count}
+										active={p.active}
+										onClick={() => toggle(m.id, p.emoji)}
+									/>
+								))}
+								{pills.length > 0 ? (
+									<BubbleReactionAdd selected={chosen} onSelect={(emoji) => toggle(m.id, emoji)} />
+								) : null}
+							</BubbleReactions>
+						</Message>
+					)
+				})}
+			</CardContent>
+			<CardFooter className="text-caption text-muted-foreground">{hint}</CardFooter>
+		</Card>
+	)
+}
+```
+
+---
+
 # NewsletterBlock
 
 A newsletter sign-up card: the list's name, what it sends and how often, and an email field with Subscribe.
@@ -12180,14 +12315,16 @@ The tinted (or untinted) surface a turn's content sits on. Kept separate from Me
 | --- | --- | --- |
 | Bubble | yes | The surface itself. Holds the variant, the side, and the tail. |
 | BubbleReactions | no | The row of reaction pills, just under the bubble at the message column's small gap, so it reads as belonging to that message rather than the next row. |
-| BubbleReaction | no | One reaction pill — emoji, count (hidden at 1), and pressed state. |
+| BubbleReaction | no | One reaction pill — emoji, count (hidden at 1), and pressed state. Celebrates when it becomes the reader's own. |
+| BubbleReactionAdd | no | The add-reaction pill at the end of the row: opens a ReactionPicker above it. |
 
 ## Subcomponents
 
 | Name | Type | Description |
 | --- | --- | --- |
 | BubbleReactions | { align?: "start" \| "end" } & ComponentPropsWithRef<"div"> | Row container for reaction pills. Match `align` to the Bubble so the row hangs off the same edge. |
-| BubbleReaction | { emoji: ReactNode; count?: number; active?: boolean } & ComponentPropsWithRef<"button"> | One reaction pill. A toggle, not a label: `active` drives `aria-pressed` as well as the styling, and `count` is hidden at 1 because the pill already says "one". |
+| BubbleReaction | { emoji: ReactNode; label?: string; count?: number; active?: boolean; motion?: MotionLevel } & ComponentPropsWithRef<"button"> | One reaction pill. A toggle, not a label: `active` drives `aria-pressed` as well as the styling, `label` names it ("Party, 3"), and `count` is hidden at 1 because the pill already says "one". When it turns on — pressed, or newly added already on — the emoji blooms, copies of it burst out and the count rolls; pills the page loads with stay still. |
+| BubbleReactionAdd | { reactions?: Reaction[]; selected?: string[]; onSelect?: (emoji: string) => void; label?: string; motion?: MotionLevel } & ComponentPropsWithRef<"button"> | The add-reaction pill: a smiley that opens a ReactionPicker above it. Choosing an emoji closes the picker and calls `onSelect`; add the emoji to the row and its new pill celebrates on arrival. |
 
 ## Props
 
@@ -12208,16 +12345,23 @@ The tinted (or untinted) surface a turn's content sits on. Kept separate from Me
 
 `muted`, `foreground`, `primary`, `primary-foreground`, `border`, `card`, `card-foreground`, `accent`, `accent-foreground`, `muted-foreground`, `ring`
 
+## Motion
+
+- **arrival** · Bubble · _no motion_ — A bubble arrives with its Message row, which owns how a new message enters the transcript. A reaction pill that the reader just added arrives with its own celebration (below).
+- **response** · BubbleReaction · `motion-bloom` — Reacting is the reader's choice, so it is answered like a like: the emoji grows from nothing past its size and settles, while copies of it spray outward and fade (Burst with the emoji as its particle, the way chat apps answer a reaction). Plays when a pill turns on and when a pill mounts already on into a row that has rendered — never for the pills a page loads with. Pills inherit Pill's motion-interactive and motion-press.
+- **transition** · BubbleReaction · _custom (outside the recipe layer)_ — The count rolls with NumberTicker as people react. Turning a reaction off is quiet: the tint eases out and the count rolls back, with no burst. Under `subtle` or reduced motion the bloom and the spray are dropped and the tint and count alone answer.
+- **activity** · Bubble · _no motion_ — A bubble is static content; a message still being written is StreamingText or a Marker, not a state of the surface.
+
 ## Accessibility
 
 - The surface is a plain container with no imposed role — a bubble is presentation, and announcing one as a region would put a landmark around every line of a conversation.
-- Reaction pills are real buttons reporting `aria-pressed`, so the reader's own reaction is state rather than colour alone; the emoji is hidden from AT and the count is left readable.
+- Reaction pills are real buttons reporting `aria-pressed`, so the reader's own reaction is state rather than colour alone. Give each a `label`: it is named "Party, 3", with the emoji and its burst hidden from AT. The add-reaction pill is named "Add reaction" and opens a toolbar picker.
 - `whitespace-pre-wrap` and `break-words` keep pasted logs, long URLs, and hard-wrapped text inside the surface instead of overflowing the conversation.
 - Every variant meets AA against its own surface, including `primary`, which pairs the primary fill with its paired foreground token rather than a hardcoded white.
 
 ## Related
 
-- Components: Message, MessageScroller, Marker, Attachment
+- Components: Message, MessageScroller, Marker, Attachment, ReactionPicker
 
 ## Examples
 
@@ -12248,13 +12392,14 @@ import { Avatar, Bubble, CodeBlock, Message } from "@sableui/react"
 ### With reactions
 
 ```tsx
-import { Bubble, BubbleReaction, BubbleReactions, Message } from "@sableui/react"
+import { Bubble, BubbleReaction, BubbleReactionAdd, BubbleReactions, Message } from "@sableui/react"
 
 <Message messageId="m3">
 	<Bubble>Shipped 0.45.0.</Bubble>
 	<BubbleReactions>
-		<BubbleReaction emoji="🎉" count={3} active onClick={() => toggle("🎉")} />
-		<BubbleReaction emoji="👀" count={1} onClick={() => toggle("👀")} />
+		<BubbleReaction emoji="🎉" label="Party" count={3} active onClick={() => toggle("🎉")} />
+		<BubbleReaction emoji="👀" label="Eyes" count={1} onClick={() => toggle("👀")} />
+		<BubbleReactionAdd selected={mine} onSelect={toggle} />
 	</BubbleReactions>
 </Message>
 ```
@@ -15235,6 +15380,7 @@ Use Feedback to collect lightweight sentiment, usefulness, or quality signals fr
 
 - **arrival** · Popover · `motion-pop` — The form opens from its trigger, so the eye goes from the button it pressed to the field it should type in. Popover owns the recipe.
 - **response** · Rating toggles · `motion-interactive` — The rating row is a choice among a few similar marks. The eased selected fill is what makes the pick read as made, not just hovered.
+- **response** · Chosen rating mark · `motion-bloom` — The mark itself answers the pick: it blooms past its size and settles, so choosing reads as a small decision landing rather than a fill changing. Only the chosen mark, only on choosing — nothing blooms when the form opens or a pick is let go. Expressive: under subtle the fill alone answers.
 - **transition** · Thanks · `motion-tick` — Sending is the one moment the person needs to know their words arrived. The form fades out in place and a check draws itself in over it, then the popover closes. Without it the popover just vanished, which looks the same as the form being dismissed or the message lost.
 - **activity** · Root · _no motion_ — The thanks shows as soon as the form is sent; delivery is the app's background work. A spinner for a one-line report would make a quick, optional gesture feel heavy.
 
@@ -16359,6 +16505,100 @@ import { Field, Input } from "@sableui/react"
 import { Label } from "@sableui/react"
 
 <Label htmlFor="discount" hint="Taken off every order this code is used on.">Discount</Label>
+```
+
+---
+
+# LikeButton
+
+**Status:** stable
+
+A pressed-or-not toggle for a like, a star or a save, with its count. Pressing it on fills the glyph, which blooms while a ring and a spray of dots burst from it and the count rolls up; pressing it off is quiet.
+
+**Keywords:** like, heart, favorite, favourite, love, star, bookmark, save, upvote, reaction, count, toggle
+
+## Usage
+
+Use LikeButton for a personal, reversible endorsement that other people can see the tally of: liking a post, starring a repository, saving a recipe. It is the one place in Sable that celebrates, because the person chose it and it costs nothing to undo.
+
+### Best practices
+
+- Do: Pass the server's total as `count` and update it when the save lands. The button shows the viewer's own like at once, before the save, and goes back to `count` exactly whenever it changes, so a failed save that leaves `count` alone can also turn `pressed` back off.
+- Do: Match the glyph, family and label to the meaning: `icon="star" tone="yellow" label="Star"` for a star. The label is the accessible name, so it must say what pressing does.
+- Do: Use `format={{ notation: "compact" }}` once counts pass a few thousand, so a feed of buttons keeps one width.
+- Don't: Do not use it for a setting or a view switch (bold, mute, grid or list). Those are tools, not endorsements, and a burst on every press of a formatting control is noise; use Toggle. → use **Toggle**
+- Don't: Do not use it for a rating or a verdict on an answer (helpful, not helpful). That is a question with two sides; use Feedback. → use **Feedback**
+- Don't: Do not press it for the user. A burst is a reply to a person's choice — liking something on their behalf, or on load, turns delight into a notification.
+
+## Props
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| count | number | — | The total, rolled when it changes. Pressing adds or removes the viewer's like at once; the button shows `count` exactly again whenever `count` changes. Omit it for a bare glyph (an icon-size button). |
+| pressed | boolean | — | Controlled pressed state. |
+| defaultPressed | boolean | false | Initial pressed state when uncontrolled. |
+| onPressedChange | (pressed: boolean, event) => void | — | Called when the user presses it, with the new state. |
+| icon | string | "heart" | The glyph, by icon name. Its `solid` variant is shown while pressed. |
+| tone | PaletteColor | "red" | The palette family the glyph fills with while pressed, and the burst blooms from. A family, so it follows the theme. |
+| label | string | "Like" | The accessible name, read before the count. |
+| format | Intl.NumberFormatOptions | — | How to write the count, e.g. `{ notation: "compact" }`. |
+| variant | "ghost" \| "outline" \| "secondary" | "ghost" | The Button surface. |
+| size | "xs" \| "sm" \| "md" | "sm" | A Button size; without a count, the matching icon size. |
+| disabled | boolean | false | Disables it. |
+| motion | "full" \| "subtle" \| "off" | "full" | How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The bloom and the burst are the flourish; the fill and the count changing stay. |
+
+## Variants
+
+- **variant**: ghost, outline, secondary
+- **size**: xs, sm, md
+- **tone**: red, orange, yellow, green, teal, blue, purple, pink
+
+## Tokens used
+
+`palette-dot`, `accent`, `ring`
+
+## Motion
+
+- **arrival** · Root · _no motion_ — It arrives with the post or row it belongs to. A page that loads with likes already given must be still: nothing blooms on mount.
+- **response** · Glyph · `motion-bloom` — Pressing it on is the moment. The glyph is 16px, so it needs real amplitude to read as an event: it grows from nothing past its size and settles, after a 90ms beat in which the ring leads. Inherits Button's motion-press for the press itself. Pressing off has no bloom — taking a like back is not a celebration.
+- **transition** · Burst · _custom (outside the recipe layer)_ — The follow-through: <Burst> draws a disc that hollows into a ring and shifts colour, then dots thrown outward in the theme's palette families. Expressive only — under `subtle` or reduced motion it renders nothing and the fill alone answers the press. The count rolls with NumberTicker.
+- **activity** · Root · _no motion_ — There is no in-between state to show: the like is shown at once, before it is saved.
+
+## Accessibility
+
+- A native <button> through Button, with `aria-pressed`. Enter and Space press it.
+- The accessible name is the label then the count ("Like 1,301"); the burst is aria-hidden and the rolling digits are hidden behind the count's real text.
+- The pressed state is carried by the filled glyph and `aria-pressed`, never by colour alone.
+- Under reduced motion the glyph fills and the count changes at once; the bloom and the burst are dropped.
+
+## Related
+
+- Components: Toggle, Feedback, NumberTicker, Button
+
+## Examples
+
+### A post's likes
+
+```tsx
+import { LikeButton } from "@sableui/react"
+
+<LikeButton count={post.likes} defaultPressed={post.liked} onPressedChange={(on) => api.like(post.id, on)} />
+```
+
+### Star a repository
+
+```tsx
+import { LikeButton } from "@sableui/react"
+
+<LikeButton icon="star" tone="yellow" label="Star" variant="outline" count={repo.stars} format={{ notation: "compact" }} />
+```
+
+### Bare glyph
+
+```tsx
+import { LikeButton } from "@sableui/react"
+
+<LikeButton label="Save recipe" />
 ```
 
 ---
@@ -19674,6 +19914,124 @@ import { RadioCard, RadioGroup } from "@sableui/react"
 
 ---
 
+# ReactionPicker
+
+**Status:** stable
+
+The quick row of emoji you react to a message with: a toolbar of large emoji toggles that bloom in one after another as it opens and magnify under the pointer, with MenuReactions as the same row inside a right-click menu.
+
+**Keywords:** reaction, reactions, emoji, emoji picker, react, tapback, quick reactions, message actions, chat
+
+## Usage
+
+Use ReactionPicker wherever a reader chooses a reaction for something: in a Popover from an add-reaction control (BubbleReactionAdd is that, ready-made), or as a hover bar over a message. Use MenuReactions for the same row as the first group of the menu a message opens on right-click or long-press, above Reply and Copy. Both report which emoji the reader has already used, so choosing one again removes it.
+
+### Best practices
+
+- Do: Keep the quick set short — six to eight. It is the reactions people actually use; a full emoji catalogue belongs behind a trailing "more" control passed as children.
+- Do: Give every reaction a `label`. It is the accessible name and the menu's typeahead, and an emoji's own spoken name differs between platforms.
+- Do: Pass `selected` so the reader's own reactions show pressed, and toggle in `onSelect`: choosing a reaction you already gave takes it back.
+- Do: Offer the right-click menu and a visible add-reaction control together. A context menu is invisible until you know it is there; the pill is how a first-time reader finds reactions.
+- Don't: Do not put a ReactionPicker inside a Menu or ContextMenu. A toolbar is not a menu item, so the menu's arrow keys would skip it; use MenuReactions there. → use **MenuReactions**
+- Don't: Do not use it to rate an answer or collect a verdict. Reactions are social and many-valued; a helpful / not-helpful question is Feedback. → use **Feedback**
+
+### Anatomy
+
+| Part | Required | Description |
+| --- | --- | --- |
+| ReactionPicker | yes | The toolbar: one tab stop, arrow keys move between emoji, each a toggle with `aria-pressed`. |
+| MenuReactions | no | The same row as a group of checkbox menu items, for MenuContent and ContextMenuContent. Choosing one closes the menu. |
+
+## Subcomponents
+
+| Name | Type | Description |
+| --- | --- | --- |
+| MenuReactions | { reactions?; selected?; onSelect?; motion? } & ComponentProps<typeof Menu.Group> | The quick row as checkbox menu items, for the first group of a MenuContent or ContextMenuContent. Same props as ReactionPicker, without children. |
+
+## Props
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| reactions | readonly { emoji: string; label: string }[] | DEFAULT_REACTIONS | The choices, in order. The default is 👍 ❤️ 😂 🎉 😮 😢 🙏. |
+| selected | readonly string[] | [] | The emoji the reader has already reacted with: shown pressed, and choosing one again removes it. |
+| onSelect | (emoji: string) => void | — | Called with the emoji the reader chose. Toggle it in or out of `selected`. |
+| children | ReactNode | — | ReactionPicker only: trailing controls after the emoji, such as a button that opens a full emoji picker. |
+| aria-label | string | "Reactions" | The name of the toolbar or menu group. |
+| motion | "full" \| "subtle" \| "off" | "full" | How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps the press and drops the wave of emoji blooming in and the magnify, `off` stills it. It can only turn motion down. |
+
+## Tokens used
+
+`accent`, `primary`, `ring`
+
+## Motion
+
+- **arrival** · Glyph · `motion-bloom` — Opening the picker is the reader's own action, so the emoji answer it: each blooms in 24ms after the one before, a short wave from first to last. The surface it sits in (a Popover or a menu) arrives with its own motion-pop. Expressive only — under `subtle` the emoji are simply there.
+- **response** · Glyph · _custom (outside the recipe layer)_ — The emoji under the pointer or the keyboard highlight magnifies to 1.25 on a fast standard ease, so you can see which one a release will choose; each cell also carries motion-interactive and motion-press. The magnify rides an inner layer so it never fights the bloom over `scale`.
+- **transition** · Cell · `motion-interactive` — Pressed and not pressed differ by a tint, eased by motion-interactive. The celebration belongs to the reaction that lands under the message (BubbleReaction), not to the picker that chose it.
+- **activity** · Root · _no motion_ — Choosing is instant; there is no in-between state to show.
+
+## Accessibility
+
+- ReactionPicker is a Base UI toolbar: one tab stop, Left/Right move between emoji, Home/End jump to the ends.
+- Each emoji is a button named by its `label` and reporting `aria-pressed`, so a screen-reader user hears whether choosing it adds or removes their reaction. The glyph itself is aria-hidden.
+- MenuReactions renders checkbox menu items (`menuitemcheckbox` with `aria-checked`), reached by the menu's arrow keys and typeahead like every other row.
+- Under reduced motion the emoji appear at once and do not magnify; pressed state is carried by `aria-pressed` and a tint, never motion.
+
+## Related
+
+- Components: Bubble, ContextMenu, Popover, Toolbar, Feedback
+
+## Examples
+
+### In a popover
+
+```tsx
+import { Button, Icon, Popover, PopoverContent, PopoverTrigger, ReactionPicker } from "@sableui/react"
+
+<Popover>
+	<PopoverTrigger render={<Button variant="ghost" size="icon-sm" aria-label="Add reaction" />}>
+		<Icon name="emoji" />
+	</PopoverTrigger>
+	<PopoverContent side="top" className="w-auto rounded-full p-1">
+		<ReactionPicker selected={mine} onSelect={toggle} />
+	</PopoverContent>
+</Popover>
+```
+
+### In a right-click menu
+
+```tsx
+import { Bubble, ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger, MenuReactions } from "@sableui/react"
+
+<ContextMenu>
+	<ContextMenuTrigger render={<Bubble />}>See you at 6.</ContextMenuTrigger>
+	<ContextMenuContent>
+		<MenuReactions selected={mine} onSelect={toggle} />
+		<ContextMenuSeparator />
+		<ContextMenuItem>Reply</ContextMenuItem>
+		<ContextMenuItem>Copy text</ContextMenuItem>
+	</ContextMenuContent>
+</ContextMenu>
+```
+
+### A custom set
+
+```tsx
+import { ReactionPicker } from "@sableui/react"
+
+<ReactionPicker
+	reactions={[
+		{ emoji: "✅", label: "Done" },
+		{ emoji: "👀", label: "Looking" },
+		{ emoji: "🚀", label: "Shipped" },
+	]}
+	selected={mine}
+	onSelect={toggle}
+/>
+```
+
+---
+
 # RelativeTime
 
 **Status:** stable
@@ -22593,7 +22951,7 @@ Use Toast for transient feedback caused by a user action: saved, failed, copied,
 | closeIcon | ReactNode | <Icon name="xmark" /> | Override the dismiss-button glyph. The default already follows the injected icon set. |
 | useToast / useToastManager | () => { toasts, add, close, update, promise } | — | Manager hook for use inside components. add({ title, description, timeout?, type?, priority?, actionProps? }) returns the new toast id and applies the same persistence default as toast.* — an error, loading, or actionProps toast stays until dismissed unless you pass a timeout. close(id), update(id, opts), and promise(p, opts) round out the API. |
 | toast | (message, options?) => string  &  { success, error, warning, info, message, loading, promise, dismiss, update, add, custom } | — | Imperative singleton callable OUTSIDE React (event handlers, utilities, non-React code) — the Sonner-shaped surface that makes migrating a lib/toast wrapper a near drop-in. Requires a mounted <ToastProvider> (it binds the shared manager). Each call returns the toast id; toast.dismiss(id?) closes one or all; toast.promise(p, { loading, success, error }) and toast.update(id, opts) handle async + in-place updates. |
-| type (toast option) | "success" \| "error" \| "warning" \| "info" \| "loading" | — | Set by the toast.* helpers. Drives a semantic left accent (success→success, error→destructive, warning→tone-warning, info→tone-info); loading shows a spinner. Both loading and error persist until updated or dismissed unless the call supplies a timeout. |
+| type (toast option) | "success" \| "error" \| "warning" \| "info" \| "loading" | — | Set by the toast.* helpers. Drives a leading status glyph from the shared tone list, the same one Note and InlineStatus use (success→success, error→destructive, warning→warning, info→info), which blooms in as the toast lands; loading shows a spinner, and the glyph blooms in its place when the toast settles. Both loading and error persist until updated or dismissed unless the call supplies a timeout. |
 
 ## Tokens used
 
@@ -22603,6 +22961,7 @@ Use Toast for transient feedback caused by a user action: saved, failed, copied,
 
 - **arrival** · ToastRoot · `motion-slide-left` — A toast interrupts without being asked, so where it came from is the reader's first question. Sliding in from the viewport edge answers it and marks the toast as belonging to the edge rather than to whatever it happens to cover.
 - **response** · ToastAction · `motion-interactive` — Toasts are on a timer, so the action has to look actionable at a glance — there is no time to hunt for the hit target.
+- **response** · Status glyph · `motion-bloom` — The glyph is what says how it went, so it lands as its own beat: it blooms in 120ms after the card, and blooms again in the spinner's place when a loading toast settles. A 16px glyph needs that amplitude to read as an answer; the card itself only slides.
 - **transition** · ToastRoot · `motion-slide-left` — Leaving the same way it entered keeps the stack legible when several dismiss at once; toasts that fade in place leave the remaining ones jumping to fill gaps with no visible cause.
 - **transition** · ToastRoot (stacked) · _custom (outside the recipe layer)_ — A stacked toast arrives from the anchored edge in front of the others, which step back and shrink to make room; hovering fans the deck out into the list. Moving every card, rather than snapping them, shows that the new one went on top and the old ones are still there.
 - **activity** · ToastRoot · _no motion_ — A toast reports a result that has already happened. Anything still in flight belongs in the surface that started it, where the reader is still looking.
@@ -24135,7 +24494,7 @@ The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, wh
     - **Instead of** An animated fade or a hand-written `mask-image` gradient. Use `StreamingText` first; this is for a stream rendered without it.
     - `<span className="stream-tail">{latestChunk}</span>`
 
-### motion (30)
+### motion (31)
 
 - **`motion-interactive`** — The transition for interactive chrome: colour, background, border, shadow, opacity, fill, stroke, scale and translate at the fast duration and standard easing. Also removes the mobile tap delay and the platform's grey tap flash. *Use for:* On anything clickable that changes on hover, focus, press or selection: a custom row, a tile, a link, an app-owned button. It is the `response` slot, and the only transition declarer such an element needs.
     - **Instead of** Tailwind's colour-only or all-property transition utilities with a hand-picked duration. Those ignore --motion-scale, skip the transform properties `motion-press` needs, and leave the 300ms tap delay on touch screens. sable-lint's `static-interactive` fires on a hover style with no recipe.
@@ -24183,6 +24542,9 @@ The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, wh
 - **`motion-arrive`** — Items a user action brings into a list settle into place one after another: a short fade down from 0.25rem. Stagger with `--motion-arrive-delay` (raw ms; the recipe scales it). Expressive. *Use for:* Only on items that are NEW because of something the user did: a folder's children on expand, a row just added, results that load in. Tree's expand already uses it.
     - **Instead of** A staggered entrance on every render of a list, which turns a list into a loading delay, or an inline keyframe animation with literal durations.
     - `<li className="motion-arrive" style={{ "--motion-arrive-delay": "36ms" } as CSSProperties}>{row.name}</li>`
+- **`motion-bloom`** — A small glyph landing in its "on" state grows from nothing past its size (1.2) and settles. The amplitude a 16px glyph needs to read as an event; surfaces never bloom. A keyframe that plays on mount, so remount the glyph (a changing `key`) to replay it. `--motion-bloom-delay` holds it at nothing first (raw ms; the recipe scales it). Expressive. *Use for:* A glyph that a person's choice turns on: a liked heart, a starred item, a status icon arriving in a toast. LikeButton and Toast already use it. Pair with <Burst> for the follow-through on a celebratory toggle.
+    - **Instead of** A bigger motion-press or motion-pop on the whole control (a button or card that overshoots 20% lurches), or a hand-written scale keyframe with literal durations. Never on the resting state: a page that loads with a post already liked must not bloom every heart.
+    - `<span key={likes} className={liked ? "motion-bloom" : undefined}><Icon name="heart" variant={liked ? "solid" : "regular"} /></span>`
 - **`motion-size`** — Eases an element between sizes: between a keyword and a length (0 ↔ auto) through `interpolate-size: allow-keywords`, and between measured pixel sizes when paired with `useAutoSize()`, so a button whose label changes stretches to the new width instead of jumping. A superset of motion-interactive's transition list, so it can sit on a Button. The size is expressive. *Use for:* A control whose content changes length in place: a two-step confirm button, a Copy → Copied label, a chip that gains a count. ConfirmButton already uses it.
     - **Instead of** A hand-written width transition, or a fixed width that clips the longer label. A content-sized box computes `width: auto` before and after its label changes, so on its own the recipe has nothing to ease — that is what `useAutoSize()` is for.
     - `const size = useAutoSize<HTMLButtonElement, HTMLSpanElement>()

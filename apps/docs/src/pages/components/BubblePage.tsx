@@ -2,8 +2,10 @@ import {
 	Avatar,
 	Bubble,
 	BubbleReaction,
+	BubbleReactionAdd,
 	BubbleReactions,
 	bubbleMeta,
+	DEFAULT_REACTIONS,
 	Card,
 	CardContent,
 	CodeBlock,
@@ -37,26 +39,36 @@ function Frame({
 	)
 }
 
+const LABELS: Record<string, string> = {
+	...Object.fromEntries(DEFAULT_REACTIONS.map((r) => [r.emoji, r.label])),
+	"👀": "Eyes",
+	"🚢": "Ship",
+}
+
 function ReactionsDemo() {
-	const [mine, setMine] = useState<Record<string, boolean>>({ "🎉": true })
-	const counts: Record<string, number> = { "🎉": 3, "👀": 1, "🚢": 2 }
+	// Everyone else's counts; the reader's own reactions are added on top.
+	const others: Record<string, number> = { "🎉": 2, "👀": 1, "🚢": 2 }
+	const [mine, setMine] = useState<string[]>(["🎉"])
+	const toggle = (emoji: string) =>
+		setMine((prev) => (prev.includes(emoji) ? prev.filter((e) => e !== emoji) : [...prev, emoji]))
+	const shown = [...Object.keys(others), ...mine.filter((e) => !(e in others))]
 
 	return (
 		<Frame>
 			<Message messageId="r1" avatar={<Avatar size="sm" fallback="JR" />}>
 				<Bubble>Shipped 0.45.0.</Bubble>
 				<BubbleReactions>
-					{Object.entries(counts).map(([emoji, base]) => (
+					{shown.map((emoji) => (
 						<BubbleReaction
 							key={emoji}
 							emoji={emoji}
-							count={base + (mine[emoji] ? 1 : 0)}
-							active={Boolean(mine[emoji])}
-							onClick={() =>
-								setMine((prev) => ({ ...prev, [emoji]: !prev[emoji] }))
-							}
+							label={LABELS[emoji]}
+							count={(others[emoji] ?? 0) + (mine.includes(emoji) ? 1 : 0)}
+							active={mine.includes(emoji)}
+							onClick={() => toggle(emoji)}
 						/>
 					))}
+					<BubbleReactionAdd selected={mine} onSelect={toggle} />
 				</BubbleReactions>
 			</Message>
 		</Frame>
@@ -132,9 +144,23 @@ export function BubblePage() {
 
 			<Section
 				title="Reactions"
-				description="Tap to add or remove your own reaction."
+				description="Tap a pill to add or take back your own reaction, or pick a new one from the smiley. When a reaction becomes yours the emoji blooms and copies of it spray out; taking it back is quiet. Reactions the page loads with stay still."
 			>
-				<Example>
+				<Example
+					code={`<BubbleReactions>
+	{reactions.map((r) => (
+		<BubbleReaction
+			key={r.emoji}
+			emoji={r.emoji}
+			label={r.label}
+			count={r.count}
+			active={mine.includes(r.emoji)}
+			onClick={() => toggle(r.emoji)}
+		/>
+	))}
+	<BubbleReactionAdd selected={mine} onSelect={toggle} />
+</BubbleReactions>`}
+				>
 					<ReactionsDemo />
 				</Example>
 			</Section>

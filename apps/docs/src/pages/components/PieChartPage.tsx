@@ -30,19 +30,19 @@ export function PieChartPage() {
 			<ComponentPlayground meta={pieChartMeta} />
 
 			<Section title="Default" description="Slices sweep in clockwise from 12 o'clock as the chart scrolls into view.">
-				<Example>
+				<Example replayable>
 					<PieChart label="Visitors by browser" data={BROWSERS} index="browser" valueKey="visitors" />
 				</Example>
 			</Section>
 
 			<Section title="Without separators">
-				<Example>
+				<Example replayable>
 					<PieChart label="Visitors by browser" data={BROWSERS} index="browser" valueKey="visitors" separator={false} />
 				</Example>
 			</Section>
 
 			<Section title="Labels" description="Outside with the share, or inside with the value.">
-				<Example>
+				<Example replayable>
 					<div className="grid w-full gap-6 md:grid-cols-2">
 						<PieChart label="Share of visitors by browser" data={BROWSERS} index="browser" valueKey="visitors" labels="outside" labelContent="percent" />
 						<PieChart label="Visitors by browser" data={BROWSERS} index="browser" valueKey="visitors" labels="inside" legend />
@@ -51,25 +51,25 @@ export function PieChartPage() {
 			</Section>
 
 			<Section title="Donut" description="With the total in the middle.">
-				<Example>
+				<Example replayable>
 					<PieChart label="Visitors by browser" data={BROWSERS} index="browser" valueKey="visitors" donut centerLabel={{ value: TOTAL, label: "Visitors" }} />
 				</Example>
 			</Section>
 
 			<Section title="Active slice" description="The active slice pulls outward; hover another and the centre follows.">
-				<Example>
+				<Example replayable>
 					<InteractivePie />
 				</Example>
 			</Section>
 
 			<Section title="Stacked rings" description="Several measures as concentric rings, outer first.">
-				<Example>
+				<Example replayable>
 					<PieChart label="Visitors by month, desktop and mobile" data={RINGS} index="month" valueKey={["desktop", "mobile"]} donut={0.35} />
 				</Example>
 			</Section>
 
 			<Section title="Icons and tones" description="categories sets each slice's name, tone and icon.">
-				<Example>
+				<Example replayable>
 					<PieChart
 						label="Visitors by browser"
 						data={BROWSERS}

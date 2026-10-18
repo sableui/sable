@@ -38,6 +38,7 @@ Use Feedback to collect lightweight sentiment, usefulness, or quality signals fr
 
 - **arrival** · Popover · `motion-pop` — The form opens from its trigger, so the eye goes from the button it pressed to the field it should type in. Popover owns the recipe.
 - **response** · Rating toggles · `motion-interactive` — The rating row is a choice among a few similar marks. The eased selected fill is what makes the pick read as made, not just hovered.
+- **response** · Chosen rating mark · `motion-bloom` — The mark itself answers the pick: it blooms past its size and settles, so choosing reads as a small decision landing rather than a fill changing. Only the chosen mark, only on choosing — nothing blooms when the form opens or a pick is let go. Expressive: under subtle the fill alone answers.
 - **transition** · Thanks · `motion-tick` — Sending is the one moment the person needs to know their words arrived. The form fades out in place and a check draws itself in over it, then the popover closes. Without it the popover just vanished, which looks the same as the form being dismissed or the message lost.
 - **activity** · Root · _no motion_ — The thanks shows as soon as the form is sent; delivery is the app's background work. A spinner for a one-line report would make a quick, optional gesture feel heavy.
 

@@ -1,6 +1,6 @@
 # Sable (@sableui/react)
 
-> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 119 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
+> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 121 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
 
 ## Start here — brief, composition, evidence
 
@@ -288,7 +288,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **ListDetailPage** — Searchable list beside the selected record's detail: interactive Entity rows in a CardList (5 of 12 columns) and a sticky detail pane (7) with an editable field, a label/value list, record actions with a destructive confirmation, and recent activity. → [`llms/patterns/list-detail-page.md`](./llms/patterns/list-detail-page.md)
 - **SettingsPage** — Account settings inside the app shell: a sticky SideNav section rail beside a column of section Cards — a Profile form with the page's one explicit save, Card + CardList + Entity rows with Switches that apply instantly, a read-only payouts summary, account rows, and a delete card confirmed through DestructiveActionModal. → [`llms/patterns/settings-page.md`](./llms/patterns/settings-page.md)
 
-### Blocks (41) — section-sized compositions (cards, forms, lists), copy as starting points (registry.json → blocks; importable from `@sableui/react/blocks`; `sable block <Name>`)
+### Blocks (42) — section-sized compositions (cards, forms, lists), copy as starting points (registry.json → blocks; importable from `@sableui/react/blocks`; `sable block <Name>`)
 
 - **ApiKeysBlock** (Settings & team) — An API keys card: each key's name with its masked hint in Code, when it was created and last used, and an OverflowMenu to rename, roll or revoke. → [`llms/blocks/api-keys-block.md`](./llms/blocks/api-keys-block.md)
 - **ApprovalBlock** (AI & agents) — An agent asking permission for one tool call: the question, what will happen and what can't be undone, the call's details, an "allow for the rest of this chat" Checkbox, and Deny / Allow. → [`llms/blocks/approval-block.md`](./llms/blocks/approval-block.md)
@@ -307,6 +307,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **InvoiceHistoryBlock** (Commerce) — A billing history card: a flush Table of date, plan, amount and status per invoice, with a download button on each row. → [`llms/blocks/invoice-history-block.md`](./llms/blocks/invoice-history-block.md)
 - **KpiSparklineBlock** (Dashboard) — A KPI row with trends: three stat cards, each the value in the metric mono tier, a Sparkline of its last twelve weeks, and the change as a Badge. → [`llms/blocks/kpi-sparkline-block.md`](./llms/blocks/kpi-sparkline-block.md)
 - **MediaPlayerBlock** (Media & files) — A now-playing card: cover, title and artist as an Entity with a Like action, a position Slider with elapsed and remaining time, and previous / play-pause / next. → [`llms/blocks/media-player-block.md`](./llms/blocks/media-player-block.md)
+- **MessageReactionsBlock** (Social & messaging) — A short thread you can react to: right-click or long-press a bubble for a menu with a row of quick reactions above Reply and Copy, or use the add-reaction pill under a message. → [`llms/blocks/message-reactions-block.md`](./llms/blocks/message-reactions-block.md)
 - **NewsletterBlock** (Marketing) — A newsletter sign-up card: the list's name, what it sends and how often, and an email field with Subscribe. → [`llms/blocks/newsletter-block.md`](./llms/blocks/newsletter-block.md)
 - **NotFoundBlock** (System) — A not-found page body: the status code in mono, a plain-language h1, what probably happened, and two ways on — home and search. → [`llms/blocks/not-found-block.md`](./llms/blocks/not-found-block.md)
 - **NotificationListBlock** (Social & messaging) — An activity list: Entity rows with the actor's Avatar, who did what, and a compact time with an unread StatusDot. → [`llms/blocks/notification-list-block.md`](./llms/blocks/notification-list-block.md)
@@ -348,7 +349,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **SafeArea** — Pads for device safe-areas (notch, home indicator) on fixed or native-shell surfaces. → [`llms/layout/safe-area.md`](./llms/layout/safe-area.md)
 - **GridOverlay** — Dev/docs structure visualizer — overlays the column grid so the layout skeleton is legible. → [`llms/layout/grid-overlay.md`](./llms/layout/grid-overlay.md)
 
-### Utilities (71) — relative surfaces, frames, state variants, scroll policies, chrome type, motion recipes; reach for these before hand-written CSS (registry.json → utilities; `sable utility <name>`) → [`llms/reference/utilities.md`](./llms/reference/utilities.md)
+### Utilities (72) — relative surfaces, frames, state variants, scroll policies, chrome type, motion recipes; reach for these before hand-written CSS (registry.json → utilities; `sable utility <name>`) → [`llms/reference/utilities.md`](./llms/reference/utilities.md)
 
 - **relative surface** — `sable-surface`, `sable-surface-muted`, `sable-surface-popover`, `sable-surface-accent`, `sable-surface-interactive`, `sable-well`
 - **frame** — `sable-frame`, `sable-frame-popover`, `sable-frame-tool`, `sable-frame-borderless`, `sable-frame-r-*`, `sable-frame-p-*`, `sable-frame-inner`
@@ -356,7 +357,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **state variant** — `sable-highlighted:`, `sable-selected:`, `sable-open:`, `sable-disabled:`, `sable-invalid:`
 - **scroll** — `scrollbar-quiet`, `scrollbar-hidden`
 - **text** — `sable-list`, `sable-list-numbered`, `sable-list-dl`, `sable-list-dl-2`, `text-overline`, `text-ui-md`, `text-ui-sm`, `text-ui-body`, `text-ui-section`, `text-ui-micro`, `text-ui-num`, `stream-tail`
-- **motion** — `motion-interactive`, `motion-press`, `motion-fade`, `motion-pop`, `motion-slide-up`, `motion-slide-down`, `motion-slide-left`, `motion-slide-right`, `motion-disclosure`, `motion-icon-swap`, `motion-glide`, `motion-shake`, `motion-tick`, `motion-appear`, `motion-arrive`, `motion-size`, `motion-spin`, `motion-orbit`, `motion-pulse`, `motion-shimmer`, `motion-text-shimmer`, `motion-dot-bounce`, `motion-ping`, `animate-fade-in`, `animate-fade-up`, `animate-fade-down`, `motion-stream-in`, `motion-caret`, `motion-reveal`, `motion-draw`
+- **motion** — `motion-interactive`, `motion-press`, `motion-fade`, `motion-pop`, `motion-slide-up`, `motion-slide-down`, `motion-slide-left`, `motion-slide-right`, `motion-disclosure`, `motion-icon-swap`, `motion-glide`, `motion-shake`, `motion-tick`, `motion-appear`, `motion-arrive`, `motion-bloom`, `motion-size`, `motion-spin`, `motion-orbit`, `motion-pulse`, `motion-shimmer`, `motion-text-shimmer`, `motion-dot-bounce`, `motion-ping`, `animate-fade-in`, `animate-fade-up`, `animate-fade-down`, `motion-stream-in`, `motion-caret`, `motion-reveal`, `motion-draw`
 - **helper** — `hit-target`, `reveal-on-hover`, `stretched-link`, `link-underline`, `checkerboard`
 - **elsewhere** — paired `text-*` page tiers: registry.json → tokens.typography (also `sable utility text-heading-1`).
 
@@ -372,7 +373,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **ToastProvider** (part of Toast) — Wraps Base UI Toast.Provider and renders the themed Viewport + toast list.
 - **TooltipProvider** (part of Tooltip) — Wraps an app or group of Tooltips to share open/close delays.
 
-### Components (119) — full props/subcomponents/variants/guidance/a11y/examples in registry.json → components
+### Components (121) — full props/subcomponents/variants/guidance/a11y/examples in registry.json → components
 
 - **Accordion** — Stacked, collapsible disclosure sections over Base UI Accordion — roving focus, arrow-key navigation, ARIA region/heading/button wiring, and an animated height transition. *Parts:* AccordionItem, AccordionTrigger, AccordionPanel. → [`llms/components/accordion.md`](./llms/components/accordion.md)
 - **AppHeader** — Mobile top bar (sticky, hidden at lg) with leading / title / actions slots on a 3-column grid that keeps the title optically centered. → [`llms/components/app-header.md`](./llms/components/app-header.md)
@@ -386,7 +387,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **BottomNav** — Mobile bottom tab bar (fixed, hidden at lg), with home-indicator safe-area padding and evenly distributed BottomNavItem tabs. *Parts:* BottomNavItem. → [`llms/components/bottom-nav.md`](./llms/components/bottom-nav.md)
 - **Breadcrumbs** — Navigation trail showing the path to the current page. *Parts:* BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator. → [`llms/components/breadcrumbs.md`](./llms/components/breadcrumbs.md)
 - **Browser** — A generic, current browser window: one compact toolbar (window controls, back/forward/reload, a centered address field) around page content. → [`llms/components/browser.md`](./llms/components/browser.md)
-- **Bubble** — The surface a message's content sits on: four treatments, an align-aware tail, a readable measure cap, and an optional row of reaction pills. *Parts:* BubbleReactions, BubbleReaction. → [`llms/components/bubble.md`](./llms/components/bubble.md)
+- **Bubble** — The surface a message's content sits on: four treatments, an align-aware tail, a readable measure cap, and an optional row of reaction pills. *Parts:* BubbleReactions, BubbleReaction, BubbleReactionAdd. → [`llms/components/bubble.md`](./llms/components/bubble.md)
 - **Button** — Pill-shaped action primitive (theme-driven radius via --button-radius, defaults to full). → [`llms/components/button.md`](./llms/components/button.md)
 - **ButtonGroup** — Buttons joined into one control: a split button (an action beside the chevron that opens its menu) or a short run of related actions. → [`llms/components/button-group.md`](./llms/components/button-group.md)
 - **Calendar** — Date picker grid wrapping react-day-picker v9, themed entirely with semantic tokens (no external stylesheet). → [`llms/components/calendar.md`](./llms/components/calendar.md)
@@ -425,6 +426,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **InputGroup** — An Input with addons inside the same field: a prefix or suffix ("https://", ".com", "$"), an icon, or a borderless Button such as copy or reveal. → [`llms/components/input-group.md`](./llms/components/input-group.md)
 - **Kbd** — A keyboard key indicator. → [`llms/components/kbd.md`](./llms/components/kbd.md)
 - **Label** — Styled native <label>. → [`llms/components/label.md`](./llms/components/label.md)
+- **LikeButton** — A pressed-or-not toggle for a like, a star or a save, with its count. → [`llms/components/like-button.md`](./llms/components/like-button.md)
 - **LineChart** — **BETA.** Lines over a sequence — for comparing how measures move. → [`llms/components/line-chart.md`](./llms/components/line-chart.md)
 - **Marker** — A non-message row in a conversation: streaming status, system note, bordered notice, or a labelled rule for date breaks. → [`llms/components/marker.md`](./llms/components/marker.md)
 - **Marquee** — Seamless, constant-speed infinite loop (logos, tags, testimonials). → [`llms/components/marquee.md`](./llms/components/marquee.md)
@@ -457,6 +459,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **RadialChart** — **BETA.** Progress or share as rings: one ring per row against a muted track, a full circle or a gauge (`sweep`), one ring split between rows (`stacked`), ring labels and a value in the middle. → [`llms/components/radial-chart.md`](./llms/components/radial-chart.md)
 - **Radio** — Single-select control over Base UI RadioGroup + Radio (roving focus, arrow-key nav, ARIA radiogroup wiring, form integration). *Parts:* RadioGroup. → [`llms/components/radio.md`](./llms/components/radio.md)
 - **RadioCard** — A selectable card option (radio-card) over Base UI RadioGroup + Radio. *Parts:* RadioGroup. → [`llms/components/radio-card.md`](./llms/components/radio-card.md)
+- **ReactionPicker** — The quick row of emoji you react to a message with: a toolbar of large emoji toggles that bloom in one after another as it opens and magnify under the pointer, with MenuReactions as the same row inside a right-click menu. *Parts:* MenuReactions. → [`llms/components/reaction-picker.md`](./llms/components/reaction-picker.md)
 - **RelativeTime** — A human relative timestamp (e.g. → [`llms/components/relative-time.md`](./llms/components/relative-time.md)
 - **Scroller** — Scroll container that fades its leading/trailing edges when content overflows. → [`llms/components/scroller.md`](./llms/components/scroller.md)
 - **ScrubField** — The compact numeric field a property grid is built from: a leading glyph inside the field that doubles as a drag-to-scrub handle, the value, and an optional unit. → [`llms/components/scrub-field.md`](./llms/components/scrub-field.md)

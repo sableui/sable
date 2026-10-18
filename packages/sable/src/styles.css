@@ -2475,6 +2475,147 @@
 		var(--motion-ease-standard), var(--motion-ease-standard), var(--motion-ease-standard);
 }
 
+/* Bloom — a small glyph landing in its "on" state: a liked heart, a starred
+   item, a toast's status icon. It grows from nothing past its size and settles
+   back, the amplitude a 16px glyph needs to read as an event. Surfaces never
+   bloom: a dialog that overshot 20% would be a lurch, which is why the overlay
+   recipes travel from 0.96. Size is what sets the amplitude.
+
+   A keyframe animation, so it plays whenever the element MOUNTS: remount the
+   glyph (a changing `key`) to replay it on each "on", and leave it off the
+   resting state so a page that loads with a liked post does not bloom every
+   heart. --motion-bloom-delay holds the glyph at nothing first (a raw delay;
+   the recipe scales it), so a ring or burst can lead. Expressive: "subtle"
+   and reduced motion land the glyph at once. Put it on a wrapper around a
+   glyph that carries motion-press or motion-interactive: an animation holds
+   `scale` while it runs. */
+@keyframes sable-bloom {
+	0% {
+		scale: 0;
+	}
+	55% {
+		scale: 1.2;
+	}
+	80% {
+		scale: 0.95;
+	}
+	100% {
+		scale: 1;
+	}
+}
+@utility motion-bloom {
+	animation: sable-bloom calc(var(--motion-duration-slower) * var(--motion-expressive, 1))
+		var(--motion-ease-decelerate)
+		calc(var(--motion-bloom-delay, 0ms) * var(--motion-scale, 1) * var(--motion-expressive, 1))
+		backwards;
+}
+
+/* Burst — the follow-through behind a bloom, drawn by <Burst> (src/motion): a
+   disc that hollows into a ring and shifts colour, then dots thrown outward
+   that shrink as they go. Plain classes, not utilities: the component owns the
+   markup and the per-dot angles. Sized by --burst-size (the ring's diameter,
+   about twice the glyph's). Coloured from the themed palette through
+   `data-palette` scopes, never a step: the ring blooms in currentColor and
+   fades into its scope's dot colour, and each dot carries a family of its
+   own. Every duration is expressive, so under
+   "subtle" or reduced motion it ends on its invisible last frame at once; the
+   component also renders nothing then. */
+.sable-burst {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+/* Centred on the glyph by `translate`, which applies before the animated
+   `scale` and `transform`, so each piece grows and travels from the centre.
+   (A grid cell sized itself to the 2x ring and pinned it off-centre.) */
+.sable-burst > * {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	translate: -50% -50%;
+}
+@keyframes sable-burst-ring {
+	0% {
+		scale: 0.2;
+		border-width: calc(var(--burst-size) / 2);
+		border-color: currentColor;
+		opacity: 1;
+	}
+	45% {
+		scale: 1;
+		border-width: calc(var(--burst-size) / 2);
+	}
+	100% {
+		scale: 1.1;
+		border-width: 0;
+		border-color: var(--palette-dot, currentColor);
+		opacity: 0;
+	}
+}
+.sable-burst-ring {
+	width: var(--burst-size);
+	height: var(--burst-size);
+	border-radius: 9999px;
+	border-style: solid;
+	border-width: 0;
+	opacity: 0;
+	animation: sable-burst-ring calc(var(--motion-duration-slower) * var(--motion-expressive, 1))
+		var(--motion-ease-decelerate) forwards;
+}
+@keyframes sable-burst-dot {
+	0% {
+		opacity: 1;
+		transform: rotate(var(--burst-dot-angle)) translateX(calc(var(--burst-size) * 0.4)) scale(1);
+	}
+	100% {
+		opacity: 1;
+		transform: rotate(var(--burst-dot-angle)) translateX(calc(var(--burst-size) * var(--burst-dot-reach)))
+			scale(0);
+	}
+}
+.sable-burst-dot {
+	width: var(--burst-dot-size);
+	height: var(--burst-dot-size);
+	border-radius: 9999px;
+	background-color: var(--palette-dot, currentColor);
+	opacity: 0;
+	/* Thrown as the ring opens, not with it. */
+	animation: sable-burst-dot calc(var(--motion-duration-slower) * 1.3 * var(--motion-expressive, 1))
+		var(--motion-ease-decelerate) calc(var(--motion-duration-fast) * var(--motion-expressive, 1)) forwards;
+}
+/* A thrown glyph (Burst's `particle`) instead of a disc: the emoji itself,
+   sized by the same --burst-dot-size, so a reaction sprays copies of what was
+   chosen. Counter-rotated on its way out so it travels upright, and it fades
+   at the end of its flight rather than shrinking to a point. */
+@keyframes sable-burst-particle {
+	0% {
+		opacity: 1;
+		transform: rotate(var(--burst-dot-angle)) translateX(calc(var(--burst-size) * 0.3))
+			rotate(calc(var(--burst-dot-angle) * -1)) scale(0.4);
+	}
+	60% {
+		opacity: 1;
+		transform: rotate(var(--burst-dot-angle)) translateX(calc(var(--burst-size) * var(--burst-dot-reach) * 0.9))
+			rotate(calc(var(--burst-dot-angle) * -1)) scale(1);
+	}
+	100% {
+		opacity: 0;
+		transform: rotate(var(--burst-dot-angle)) translateX(calc(var(--burst-size) * var(--burst-dot-reach)))
+			rotate(calc(var(--burst-dot-angle) * -1)) scale(0.7);
+	}
+}
+.sable-burst-dot[data-particle] {
+	display: grid;
+	place-items: center;
+	width: auto;
+	height: auto;
+	border-radius: 0;
+	background-color: transparent;
+	font-size: var(--burst-dot-size);
+	line-height: 1;
+	animation-name: sable-burst-particle;
+}
+
 /* --------------------------------------------------------------------------
    Loader recipes — looping indicators. Durations scale with --motion-scale, so
    the policy switch freezes them to a static first frame.

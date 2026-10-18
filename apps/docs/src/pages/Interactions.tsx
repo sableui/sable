@@ -13,6 +13,7 @@ import {
 	ConfirmButton,
 	Field,
 	Icon,
+	LikeButton,
 	NotificationBadge,
 	NumberTicker,
 	OtpField,
@@ -295,7 +296,7 @@ export function InteractionsPage() {
 		<>
 			<PageHeader
 				title="Interactions"
-				lede="The catalog by task. Each scene is composed only from shipped components, so this is the motion an app gets on install. Every frame has its own motion level — try Subtle and Off — and Replay."
+				lede="The catalog by task. Each scene is composed only from shipped components, so this is the motion an app gets on install. Every frame has its own motion level — try Subtle and Off."
 			/>
 
 			<Section
@@ -311,7 +312,7 @@ export function InteractionsPage() {
 				title="Select"
 				description="One element travels to the selection instead of one fill switching off and another on: the tab indicator, the segmented thumb. A check draws itself in. Under Subtle each lands in place, still with its colour change."
 			>
-				<Example replayable>
+				<Example motionControl>
 					<SelectScene />
 				</Example>
 			</Section>
@@ -330,10 +331,23 @@ export function InteractionsPage() {
 			</Section>
 
 			<Section
+				title="React"
+				description="The one place Sable celebrates, because the person chose it and it costs nothing to undo. The glyph blooms past its size and settles while a ring opens and dots spray out in the theme's palette, and the count rolls. Taking it back is quiet. Under Subtle the glyph just fills."
+			>
+				<Example
+					code={`<LikeButton count={post.likes} defaultPressed={post.liked} onPressedChange={(on) => api.like(post.id, on)} />
+<LikeButton icon="star" tone="yellow" label="Star" variant="outline" count={repo.stars} format={{ notation: "compact" }} />`}
+				>
+					<LikeButton count={1300} />
+					<LikeButton icon="star" tone="yellow" label="Star" variant="outline" count={12400} format={{ notation: "compact" }} />
+				</Example>
+			</Section>
+
+			<Section
 				title="Recover"
 				description="A refused answer finishes its story: the field shakes once, the digits turn destructive and the message says why. Typing again clears the error, so the next wrong code shakes again. The shake is never the only signal."
 			>
-				<Example replayable>
+				<Example motionControl>
 					<RecoverScene />
 				</Example>
 			</Section>
@@ -342,7 +356,7 @@ export function InteractionsPage() {
 				title="Succeed"
 				description="Success confirms where it happened. Copy turns into a check in place — the two glyphs trade through one cell — and assistive tech hears “Copied”."
 			>
-				<Example replayable>
+				<Example motionControl>
 					<CodeBlock code={`pnpm add @sableui/react\npnpm exec sable init`} className="w-full max-w-md" />
 				</Example>
 			</Section>
@@ -351,7 +365,7 @@ export function InteractionsPage() {
 				title="Finish loading"
 				description="The placeholder predicts the content's shape, and the content cross-fades over it in the same cell, so nothing below moves when it arrives."
 			>
-				<Example replayable>
+				<Example motionControl>
 					<LoadingScene />
 				</Example>
 			</Section>
@@ -360,7 +374,7 @@ export function InteractionsPage() {
 				title="Type"
 				description="The clear button appears with the first character instead of popping in. The composer grows with its text, and the send arrow resolves in as soon as there is something to send."
 			>
-				<Example replayable>
+				<Example motionControl>
 					<TypeScene />
 				</Example>
 			</Section>
@@ -369,7 +383,7 @@ export function InteractionsPage() {
 				title="Point"
 				description="A toolbar's tooltips share one tooltip. Move along the row: it glides to the next button and its label slides across, instead of closing and opening again."
 			>
-				<Example replayable>
+				<Example motionControl>
 					<PointScene />
 				</Example>
 			</Section>
@@ -378,7 +392,7 @@ export function InteractionsPage() {
 				title="Notify"
 				description="A count rolls to its new value; a badge that was empty arrives instead of appearing. Past the cap it shows 99+ and stops rolling."
 			>
-				<Example replayable>
+				<Example motionControl>
 					<NotifyScene />
 				</Example>
 			</Section>

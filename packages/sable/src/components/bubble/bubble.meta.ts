@@ -81,12 +81,18 @@ export const bubbleMeta: ComponentMeta = {
 				name: "BubbleReaction",
 				required: false,
 				description:
-					"One reaction pill — emoji, count (hidden at 1), and pressed state.",
+					"One reaction pill — emoji, count (hidden at 1), and pressed state. Celebrates when it becomes the reader's own.",
+			},
+			{
+				name: "BubbleReactionAdd",
+				required: false,
+				description:
+					"The add-reaction pill at the end of the row: opens a ReactionPicker above it.",
 			},
 		],
 	},
 	related: {
-		components: ["Message", "MessageScroller", "Marker", "Attachment"],
+		components: ["Message", "MessageScroller", "Marker", "Attachment", "ReactionPicker"],
 	},
 	props: [
 		{
@@ -125,9 +131,15 @@ export const bubbleMeta: ComponentMeta = {
 		},
 		{
 			name: "BubbleReaction",
-			type: '{ emoji: ReactNode; count?: number; active?: boolean } & ComponentPropsWithRef<"button">',
+			type: '{ emoji: ReactNode; label?: string; count?: number; active?: boolean; motion?: MotionLevel } & ComponentPropsWithRef<"button">',
 			description:
-				"One reaction pill. A toggle, not a label: `active` drives `aria-pressed` as well as the styling, and `count` is hidden at 1 because the pill already says \"one\".",
+				"One reaction pill. A toggle, not a label: `active` drives `aria-pressed` as well as the styling, `label` names it (\"Party, 3\"), and `count` is hidden at 1 because the pill already says \"one\". When it turns on — pressed, or newly added already on — the emoji blooms, copies of it burst out and the count rolls; pills the page loads with stay still.",
+		},
+		{
+			name: "BubbleReactionAdd",
+			type: '{ reactions?: Reaction[]; selected?: string[]; onSelect?: (emoji: string) => void; label?: string; motion?: MotionLevel } & ComponentPropsWithRef<"button">',
+			description:
+				"The add-reaction pill: a smiley that opens a ReactionPicker above it. Choosing an emoji closes the picker and calls `onSelect`; add the emoji to the row and its new pill celebrates on arrival.",
 		},
 	],
 	variants: {
@@ -148,9 +160,35 @@ export const bubbleMeta: ComponentMeta = {
 		"muted-foreground",
 		"ring",
 	],
+	motion: [
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Bubble",
+			why: "A bubble arrives with its Message row, which owns how a new message enters the transcript. A reaction pill that the reader just added arrives with its own celebration (below).",
+		},
+		{
+			slot: "response",
+			recipe: "motion-bloom",
+			part: "BubbleReaction",
+			why: "Reacting is the reader's choice, so it is answered like a like: the emoji grows from nothing past its size and settles, while copies of it spray outward and fade (Burst with the emoji as its particle, the way chat apps answer a reaction). Plays when a pill turns on and when a pill mounts already on into a row that has rendered — never for the pills a page loads with. Pills inherit Pill's motion-interactive and motion-press.",
+		},
+		{
+			slot: "transition",
+			recipe: "custom",
+			part: "BubbleReaction",
+			why: "The count rolls with NumberTicker as people react. Turning a reaction off is quiet: the tint eases out and the count rolls back, with no burst. Under `subtle` or reduced motion the bloom and the spray are dropped and the tint and count alone answer.",
+		},
+		{
+			slot: "activity",
+			recipe: "none",
+			part: "Bubble",
+			why: "A bubble is static content; a message still being written is StreamingText or a Marker, not a state of the surface.",
+		},
+	],
 	a11y: [
 		"The surface is a plain container with no imposed role — a bubble is presentation, and announcing one as a region would put a landmark around every line of a conversation.",
-		"Reaction pills are real buttons reporting `aria-pressed`, so the reader's own reaction is state rather than colour alone; the emoji is hidden from AT and the count is left readable.",
+		"Reaction pills are real buttons reporting `aria-pressed`, so the reader's own reaction is state rather than colour alone. Give each a `label`: it is named \"Party, 3\", with the emoji and its burst hidden from AT. The add-reaction pill is named \"Add reaction\" and opens a toolbar picker.",
 		"`whitespace-pre-wrap` and `break-words` keep pasted logs, long URLs, and hard-wrapped text inside the surface instead of overflowing the conversation.",
 		"Every variant meets AA against its own surface, including `primary`, which pairs the primary fill with its paired foreground token rather than a hardcoded white.",
 	],
@@ -165,7 +203,7 @@ export const bubbleMeta: ComponentMeta = {
 		},
 		{
 			label: "With reactions",
-			code: '<Message messageId="m3">\n\t<Bubble>Shipped 0.45.0.</Bubble>\n\t<BubbleReactions>\n\t\t<BubbleReaction emoji="🎉" count={3} active onClick={() => toggle("🎉")} />\n\t\t<BubbleReaction emoji="👀" count={1} onClick={() => toggle("👀")} />\n\t</BubbleReactions>\n</Message>',
+			code: '<Message messageId="m3">\n\t<Bubble>Shipped 0.45.0.</Bubble>\n\t<BubbleReactions>\n\t\t<BubbleReaction emoji="🎉" label="Party" count={3} active onClick={() => toggle("🎉")} />\n\t\t<BubbleReaction emoji="👀" label="Eyes" count={1} onClick={() => toggle("👀")} />\n\t\t<BubbleReactionAdd selected={mine} onSelect={toggle} />\n\t</BubbleReactions>\n</Message>',
 		},
 		{
 			label: "A grouped run drops the repeated tail",

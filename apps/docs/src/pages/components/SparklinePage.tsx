@@ -12,7 +12,7 @@ export function SparklinePage() {
 			<ComponentPlayground meta={sparklineMeta} />
 
 			<Section title="Variants" description="A line, a line over a soft fill, or columns.">
-				<Example>
+				<Example replayable>
 					<div className="flex flex-wrap items-center gap-8">
 						<Sparkline label="Revenue, last 12 weeks" data={REVENUE} />
 						<Sparkline label="Revenue, last 12 weeks" data={REVENUE} variant="area" tone="success" />
@@ -22,7 +22,7 @@ export function SparklinePage() {
 			</Section>
 
 			<Section title="In a stat card" description="Beside the number it explains — the sparkline shows only the shape.">
-				<Example>
+				<Example replayable>
 					<div className="grid w-full max-w-2xl gap-3 sm:grid-cols-2">
 						<Card>
 							<CardHeader>

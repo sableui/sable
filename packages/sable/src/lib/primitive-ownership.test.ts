@@ -39,7 +39,10 @@ const OWNERS: Record<string, { owners: string[]; why?: string }> = {
 	"@base-ui/react/fieldset": { owners: ["fieldset"] },
 	"@base-ui/react/form": { owners: ["form"] },
 	"@base-ui/react/input": { owners: ["input"] },
-	"@base-ui/react/menu": { owners: ["menu"] },
+	"@base-ui/react/menu": {
+		owners: ["menu", "reaction-picker"],
+		why: "MenuReactions renders checkbox items inside Sable's MenuContent / ContextMenuContent, not a second menu: an emoji cell in a row, where MenuCheckboxItem is a full-width row with a check column and a truncating label.",
+	},
 	"@base-ui/react/menubar": { owners: ["menubar"] },
 	"@base-ui/react/navigation-menu": { owners: ["navigation-menu"] },
 	"@base-ui/react/meter": { owners: ["meter"] },

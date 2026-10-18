@@ -289,6 +289,7 @@ const pages: Record<string, ComponentType> = {
 	button: page(() => import("./pages/components/ButtonPage"), "ButtonPage"),
 	"button-group": page(() => import("./pages/components/ButtonGroupPage"), "ButtonGroupPage"),
 	"confirm-button": page(() => import("./pages/components/ConfirmButtonPage"), "ConfirmButtonPage"),
+	"like-button": page(() => import("./pages/components/LikeButtonPage"), "LikeButtonPage"),
 	badge: page(() => import("./pages/components/BadgePage"), "BadgePage"),
 	card: page(() => import("./pages/components/CardPage"), "CardPage"),
 	carousel: page(
@@ -305,6 +306,7 @@ const pages: Record<string, ComponentType> = {
 	),
 	message: page(() => import("./pages/components/MessagePage"), "MessagePage"),
 	bubble: page(() => import("./pages/components/BubblePage"), "BubblePage"),
+	"reaction-picker": page(() => import("./pages/components/ReactionPickerPage"), "ReactionPickerPage"),
 	attachment: page(
 		() => import("./pages/components/AttachmentPage"),
 		"AttachmentPage",

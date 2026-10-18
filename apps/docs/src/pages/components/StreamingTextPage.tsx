@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Button, StreamingText, streamingTextMeta } from "@sableui/react"
+import { StreamingText, streamingTextMeta } from "@sableui/react"
 import {
 	Example,
 	MetaFooter,
@@ -29,6 +29,7 @@ function useStream(full: string, msPerWord = 90) {
 
 export function StreamingTextPage() {
 	const answer = useStream(ANSWER)
+	const bare = useStream(ANSWER)
 	const headline = useStream("Permanent by design.", 140)
 
 	return (
@@ -43,11 +44,8 @@ export function StreamingTextPage() {
 				title="Basic"
 				description="Each word comes into focus as it arrives. A steady caret marks where it's writing."
 			>
-				<Example className="flex-col items-start gap-3">
+				<Example onReplay={answer.restart}>
 					<StreamingText text={answer.text} streaming={answer.streaming} />
-					<Button size="sm" variant="secondary" onClick={answer.restart}>
-						Replay
-					</Button>
 				</Example>
 			</Section>
 
@@ -55,10 +53,10 @@ export function StreamingTextPage() {
 				title="Without a caret"
 				description="Hide the caret when something nearby already shows the wait."
 			>
-				<Example className="flex-col items-start gap-3">
+				<Example onReplay={bare.restart}>
 					<StreamingText
-						text={answer.text}
-						streaming={answer.streaming}
+						text={bare.text}
+						streaming={bare.streaming}
 						caret={false}
 					/>
 				</Example>
@@ -68,7 +66,7 @@ export function StreamingTextPage() {
 				title="Character split"
 				description="Letter by letter, for short headlines only."
 			>
-				<Example>
+				<Example onReplay={headline.restart}>
 					<StreamingText
 						as="h2"
 						split="char"

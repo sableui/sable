@@ -15,31 +15,31 @@ export function RadarChartPage() {
 			<ComponentPlayground meta={radarChartMeta} />
 
 			<Section title="Default" description="The polygon grows from the centre as the chart scrolls into view.">
-				<Example>
+				<Example replayable>
 					<RadarChart label="Atlas scores" data={SCORES} index="skill" series={ATLAS} />
 				</Example>
 			</Section>
 
 			<Section title="Dots">
-				<Example>
+				<Example replayable>
 					<RadarChart label="Atlas scores" data={SCORES} index="skill" series={ATLAS} dots />
 				</Example>
 			</Section>
 
 			<Section title="Multiple" description="Two profiles compared, with a legend.">
-				<Example>
+				<Example replayable>
 					<RadarChart label="Product scores compared" data={SCORES} index="skill" series={BOTH} />
 				</Example>
 			</Section>
 
 			<Section title="Lines only" description="Outlines keep both shapes readable where they overlap.">
-				<Example>
+				<Example replayable>
 					<RadarChart label="Product scores compared" data={SCORES} index="skill" series={BOTH} filled={false} dots />
 				</Example>
 			</Section>
 
 			<Section title="Grid" description="Circular, filled, or none — and a radius scale.">
-				<Example>
+				<Example replayable>
 					<Grid cols={{ base: 1, md: 2 }} gap={3} className="w-full">
 						<RadarChart label="Atlas scores, circular grid" data={SCORES} index="skill" series={ATLAS} grid="circle" />
 						<RadarChart label="Atlas scores, filled grid" data={SCORES} index="skill" series={ATLAS} gridFill filled={false} dots />

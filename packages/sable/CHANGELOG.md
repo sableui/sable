@@ -1,5 +1,63 @@
 # What's new
 
+## 0.15.0
+
+Motion with some life in it: small things that turn on now land like events,
+told through the theme rather than one-off styles, and chat reactions that
+answer you the way a messaging app does.
+
+- **New: `LikeButton`.** A pressed-or-not toggle for a like, a star or a
+  save, with its count. Pressing it on fills the glyph, which blooms past
+  its size and settles while a ring opens and dots spray out in the theme's
+  palette families, and the count rolls up a digit; pressing it off is quiet.
+  It shows the viewer's like at once and goes back to `count` exactly
+  whenever `count` changes, so pass the server's total. `icon`, `tone` (a
+  palette family) and `label` make it a star or a save; `motion="subtle"`
+  keeps the fill and drops the flourish.
+- **New recipe: `motion-bloom`.** A small glyph landing in its on state grows
+  from nothing to 1.2 and settles. Remount the glyph (a changing `key`) to
+  replay it; `--motion-bloom-delay` lets a ring lead. Expressive.
+- **New: `<Burst>`.** The follow-through behind a bloom — a disc that hollows
+  into a ring, then dots thrown outward — coloured by palette families, so it
+  re-themes. Plays when its `trigger` changes, never on mount, and renders
+  nothing below full motion.
+- **Toast: a status glyph instead of an accent bar.** A typed toast now leads
+  with the same glyph and ink as Note and InlineStatus (success, info,
+  warning, and the destructive glyph for errors), and it blooms in once the
+  card has landed — and again in the spinner's place when a loading toast
+  settles. The coloured bar down the leading edge told the type by colour
+  alone. A stacked deck now springs as cards step back and fan out; leaving
+  toasts still take the standard curve.
+- **Feedback:** the chosen rating mark blooms as it is picked.
+- **Icons: `replay` and `motion`.** A single circular arrow for watching
+  something again from its start (`refresh` reads as fetching again), and
+  a play mark in a dashed ring for a motion or playback setting (`sparkles`
+  reads as AI).
+- **New: `ReactionPicker` and `MenuReactions`.** The quick row of emoji you
+  react to a message with. `ReactionPicker` is a toolbar for a popover or a
+  hover bar; `MenuReactions` is the same row as checkbox menu items, for the
+  top of the menu a message opens on right click or long press. The emoji
+  bloom in one after another as it opens and magnify under the pointer.
+- **Bubble reactions celebrate.** When a `BubbleReaction` becomes the
+  reader's own — pressed, or added already on to a row that has rendered —
+  the emoji blooms and copies of it spray out, and the count rolls. Taking
+  a reaction back is quiet, and the reactions a page loads with stay still.
+  New `label` names a pill ("Party, 3"); new `BubbleReactionAdd` is the
+  smiley pill that opens a picker. `BubbleReactions` now hides itself while
+  empty, so render it for every message: staying mounted is how the first
+  reaction still celebrates. A Bubble shows a focus ring when it is made
+  focusable as a menu trigger.
+- **New block: `MessageReactionsBlock`.** A thread you can react to from a
+  right-click / long-press menu or the add-reaction pill.
+- **`<Burst>`: `particle` and `playOnMount`.** Throw copies of a glyph
+  instead of dots (no ring, travelling upright), and play once on mount for
+  a glyph that exists because of the action.
+- **Icon: `emoji`.** A smiley, for an add-reaction control.
+- **Motion guidance:** amplitude scales with smallness (a glyph travels far, a
+  surface barely), a moment is staged (main object first, follow-through
+  after), and only a person's own choice is celebrated. In `sable docs
+  motion` and DESIGN.md.
+
 ## 0.14.0
 
 Motion that is crafted by default and calm on request, and the first pieces for agent products.

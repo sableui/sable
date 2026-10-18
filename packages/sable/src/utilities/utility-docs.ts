@@ -784,6 +784,20 @@ export const UTILITY_DOCS: UtilityDoc[] = [
 		pairsWith: ["motion-interactive"],
 	},
 	{
+		name: "motion-bloom",
+		kind: "utility",
+		family: "motion",
+		intent:
+			"A small glyph landing in its \"on\" state grows from nothing past its size (1.2) and settles. The amplitude a 16px glyph needs to read as an event; surfaces never bloom. A keyframe that plays on mount, so remount the glyph (a changing `key`) to replay it. `--motion-bloom-delay` holds it at nothing first (raw ms; the recipe scales it). Expressive.",
+		whenToUse:
+			"A glyph that a person's choice turns on: a liked heart, a starred item, a status icon arriving in a toast. LikeButton and Toast already use it. Pair with <Burst> for the follow-through on a celebratory toggle.",
+		insteadOf:
+			"A bigger motion-press or motion-pop on the whole control (a button or card that overshoots 20% lurches), or a hand-written scale keyframe with literal durations. Never on the resting state: a page that loads with a post already liked must not bloom every heart.",
+		example: `<span key={likes} className={liked ? "motion-bloom" : undefined}><Icon name="heart" variant={liked ? "solid" : "regular"} /></span>`,
+		keywords: ["pop", "overshoot", "like", "heart", "star", "celebrate", "glyph", "icon pop", "delight"],
+		pairsWith: ["motion-interactive"],
+	},
+	{
 		name: "motion-size",
 		kind: "utility",
 		family: "motion",

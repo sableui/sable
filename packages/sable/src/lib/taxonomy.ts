@@ -80,8 +80,10 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 	Button: ["Actions", "either"],
 	ButtonGroup: ["Actions", "either"],
 	ConfirmButton: ["Actions", "either"],
+	LikeButton: ["Actions", "either"],
 	Menubar: ["Actions", "either"],
 	OverflowMenu: ["Actions", "either"],
+	ReactionPicker: ["Actions", "either"],
 	Toolbar: ["Actions", "either"],
 
 	/* ── Forms ────────────────────────────────────────────────────────────────

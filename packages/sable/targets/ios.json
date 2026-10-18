@@ -552,6 +552,15 @@
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
+    "LikeButton": {
+      "source": "LikeButton",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "LikeButton"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
     "LineChart": {
       "source": "LineChart",
       "strategy": "preserve",
@@ -849,6 +858,15 @@
       "importFrom": "@sableui/react",
       "components": [
         "RadioCard"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
+    "ReactionPicker": {
+      "source": "ReactionPicker",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "ReactionPicker"
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },

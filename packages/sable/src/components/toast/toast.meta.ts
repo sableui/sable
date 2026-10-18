@@ -159,7 +159,7 @@ export const toastMeta: ComponentMeta = {
 			type: '"success" | "error" | "warning" | "info" | "loading"',
 			default: "—",
 			description:
-				"Set by the toast.* helpers. Drives a semantic left accent (success→success, error→destructive, warning→tone-warning, info→tone-info); loading shows a spinner. Both loading and error persist until updated or dismissed unless the call supplies a timeout.",
+				"Set by the toast.* helpers. Drives a leading status glyph from the shared tone list, the same one Note and InlineStatus use (success→success, error→destructive, warning→warning, info→info), which blooms in as the toast lands; loading shows a spinner, and the glyph blooms in its place when the toast settles. Both loading and error persist until updated or dismissed unless the call supplies a timeout.",
 		},
 	],
 	subcomponents: [
@@ -239,6 +239,12 @@ export const toastMeta: ComponentMeta = {
 			recipe: "custom",
 			part: "ToastRoot (stacked)",
 			why: "A stacked toast arrives from the anchored edge in front of the others, which step back and shrink to make room; hovering fans the deck out into the list. Moving every card, rather than snapping them, shows that the new one went on top and the old ones are still there.",
+		},
+		{
+			slot: "response",
+			recipe: "motion-bloom",
+			part: "Status glyph",
+			why: "The glyph is what says how it went, so it lands as its own beat: it blooms in 120ms after the card, and blooms again in the spinner's place when a loading toast settles. A 16px glyph needs that amplitude to read as an answer; the card itself only slides.",
 		},
 		{
 			slot: "activity",

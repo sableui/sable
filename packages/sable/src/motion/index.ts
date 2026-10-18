@@ -27,6 +27,7 @@ export { useInView, type UseInViewOptions } from "./useInView"
 export { Reveal, type RevealProps } from "./Reveal"
 export { TextReveal, type TextRevealProps } from "./TextReveal"
 export { Presence, type PresenceProps } from "./Presence"
+export { Burst, type BurstProps } from "./Burst"
 export {
 	startViewTransition,
 	supportsViewTransitions,

@@ -288,3 +288,29 @@ describe("stacked, beside an open Sheet", () => {
 		expect(row.closest("[data-sable-toast-viewport]")).toHaveAttribute("data-position", "bottom-right")
 	})
 })
+
+describe("status glyph", () => {
+	it("leads each typed toast with its tone's glyph, blooming in", async () => {
+		mount()
+		toast.success("Exported")
+		toast.error("Payment failed")
+		// The status glyph, not the dismiss button's xmark.
+		const glyphOf = async (text: string) =>
+			((await screen.findByText(text)).closest("[role=dialog]") as HTMLElement).querySelector(
+				"[data-icon]:not([data-icon=xmark])",
+			) as HTMLElement
+		const success = await glyphOf("Exported")
+		expect(success).toHaveAttribute("data-icon", "circle-check")
+		expect(success).toHaveClass("text-success")
+		expect(success.parentElement).toHaveClass("motion-bloom")
+		// The same glyph and ink as Note and InlineStatus, not a colour bar.
+		expect(await glyphOf("Payment failed")).toHaveClass("text-destructive")
+	})
+
+	it("draws no glyph for a neutral toast", async () => {
+		mount()
+		toast("Saved")
+		const row = (await screen.findByText("Saved")).closest("[role=dialog]") as HTMLElement
+		expect(row.querySelector("[data-icon]:not([data-icon=xmark])")).toBeNull()
+	})
+})

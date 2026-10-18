@@ -106,10 +106,16 @@ function StackTrigger({ stacked }: { stacked: boolean }) {
 		<Button
 			variant="secondary"
 			onClick={() => {
-				toast.add({ title: "Saved", description: "Draft #1" })
-				toast.add({ title: "Saved", description: "Draft #2" })
-				toast.add({ title: "Saved", description: "Draft #3" })
-				toast.add({ title: "Saved", description: "Draft #4 (evicts the oldest)" })
+				toast.add({ type: "success", title: "Report exported", description: "Saved to Downloads.", timeout: 8000 })
+				toast.add({ type: "info", title: "Maya joined the project", description: "She can view and comment.", timeout: 8000 })
+				toast.add({
+					type: "error",
+					title: "Payment failed",
+					description: "Check the card and try again.",
+					actionProps: { children: "Retry" },
+					timeout: 8000,
+				})
+				toast.add({ type: "success", title: "Draft saved", description: "The fourth evicts the oldest.", timeout: 8000 })
 			}}
 		>
 			Add four

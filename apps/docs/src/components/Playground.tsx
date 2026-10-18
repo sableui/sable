@@ -18,7 +18,7 @@ import {
 import { type ReactNode, useMemo, useState } from "react"
 import { Segmented } from "../customizer/controls"
 import { type SnippetMotion, agentPrompt, useAgentTheme } from "./agent-prompt"
-import { PREVIEW_LEVELS, PreviewMotionScope, usePreviewMotion } from "./preview-motion"
+import { PREVIEW_LEVELS, PreviewMotionScope, PreviewReplayButton, usePreviewMotion } from "./preview-motion"
 
 /**
  * The prop playground.
@@ -323,6 +323,12 @@ export interface PlaygroundProps {
 	 * copy-pasteable.
 	 */
 	fixed?: string[]
+	/**
+	 * Offer Replay, which remounts the preview so its arrival plays again. Only
+	 * for a component that plays something on mount (a chart drawing on);
+	 * changing a control already shows the rest.
+	 */
+	replayable?: boolean
 }
 
 export function Playground({
@@ -336,6 +342,7 @@ export function Playground({
 	fixed,
 	slots = [],
 	snippet: customSnippet,
+	replayable = false,
 }: PlaygroundProps) {
 	const controls = useMemo(() => {
 		const all = [...deriveControls(meta), ...(extra ?? [])]
@@ -409,11 +416,7 @@ export function Playground({
 					<div className="mb-2 flex items-center justify-between gap-2">
 						<h3 className="text-label-md">Properties</h3>
 						<div className="flex items-center gap-1">
-							{/* Remounts the preview, so arrival choreography (a chart
-							    rising, a reveal) can be watched again. */}
-							<Button variant="ghost" size="xs" iconStart={<Icon name="refresh" />} onClick={motion.replay}>
-								Replay
-							</Button>
+							{replayable ? <PreviewReplayButton onReplay={motion.replay} /> : null}
 							<Button
 								variant="ghost"
 								size="xs"

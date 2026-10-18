@@ -1,6 +1,8 @@
 export {
 	Bubble,
 	BubbleReaction,
+	BubbleReactionAdd,
+	type BubbleReactionAddProps,
 	type BubbleReactionProps,
 	BubbleReactions,
 	type BubbleReactionsProps,

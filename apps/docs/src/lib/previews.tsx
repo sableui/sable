@@ -242,6 +242,8 @@ export interface PreviewEntry {
 	slots?: PlaygroundSlot[]
 	/** Custom snippet for previews the generic serializer cannot express. */
 	snippet?: (values: Record<string, PlaygroundValue>, text: string, slots: Record<string, boolean>) => string | null
+	/** Offer Replay: only for a component that plays something on mount. */
+	replayable?: boolean
 }
 
 export const PREVIEWS: Record<string, PreviewEntry> = {

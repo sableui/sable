@@ -192,7 +192,15 @@ export function Feedback({
 								aria-label={option.value}
 								className="flex-1 text-base"
 							>
-								{option.label}
+								{/* The pick blooms: keyed by whether it is chosen, so
+								    choosing remounts it with motion-bloom and letting go
+								    remounts it at rest. Nothing blooms on open. */}
+								<span
+									key={rating === option.value ? "chosen" : "rest"}
+									className={cn("inline-flex", rating === option.value && "motion-bloom")}
+								>
+									{option.label}
+								</span>
 							</Toggle>
 						))}
 					</ToggleGroup>

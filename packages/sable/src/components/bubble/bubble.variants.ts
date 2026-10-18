@@ -50,8 +50,10 @@ export const bubbleTailVariants = cva(
 	},
 )
 
+// The focus ring is for a bubble that is a trigger: the right-click / long-press
+// target of a message's menu, made focusable so Shift+F10 opens it too.
 export const bubbleVariants = cva(
-	"relative w-fit max-w-[42rem] whitespace-pre-wrap break-words rounded-lg px-3.5 py-2.5 text-body-md",
+	"relative w-fit max-w-[42rem] whitespace-pre-wrap break-words rounded-lg px-3.5 py-2.5 text-body-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
 	{
 		variants: {
 			variant: {

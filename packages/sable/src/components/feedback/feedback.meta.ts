@@ -120,6 +120,12 @@ export const feedbackMeta: ComponentMeta = {
 			why: "The rating row is a choice among a few similar marks. The eased selected fill is what makes the pick read as made, not just hovered.",
 		},
 		{
+			slot: "response",
+			recipe: "motion-bloom",
+			part: "Chosen rating mark",
+			why: "The mark itself answers the pick: it blooms past its size and settles, so choosing reads as a small decision landing rather than a fill changing. Only the chosen mark, only on choosing — nothing blooms when the form opens or a pick is let go. Expressive: under subtle the fill alone answers.",
+		},
+		{
 			slot: "transition",
 			recipe: "motion-tick",
 			part: "Thanks",

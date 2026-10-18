@@ -33,6 +33,8 @@ Reach for one named class before writing a transition.
 | `motion-appear` | fast fade + base scale | A small control mounting in place: a clear button, a send arrow, a badge. @starting-style, no JS. |
 | `motion-arrive` | base · decelerate · staggered · expressive | Items a user action brings into a list: a folder's children on expand, a row just added. Never on every render. |
 | `motion-size` | base · emphasized · expressive | An element easing between intrinsic sizes when its label changes: a two-step confirm, Copy → Copied. |
+| `motion-bloom` | slower · 0 → 1.2 → 1 · expressive | A small glyph landing in its on state: a liked heart, a picked rating, a toast's status icon. Remount it (key) to replay; never on the resting state. |
+| `<Burst>` | slower ring + thrown dots · expressive | The follow-through behind a bloom, in the theme's palette families. Only on a choice a person made: a like, a star, a finished task. |
 | `motion-draw` | slower · decelerate | SVG line art drawing on when a <Reveal> scrolls in. The path needs pathLength="1"; stagger siblings with --motion-draw-delay. |
 | `motion-spin · pulse · shimmer · dot-bounce · ping` | loops | Activity. Scale-aware, so reduced motion freezes them. |
 
@@ -53,7 +55,7 @@ Essential motion answers the user; expressive motion narrates continuity. Expres
 | Name | Value | Use |
 |---|---|---|
 | `essential` | always, unless off | Colour and focus feedback, press, overlay arrival, disclosure height, loaders, chart hover. |
-| `expressive` | full only | Glides, rolling numbers (NumberTicker), drawn ticks, shakes, staggers, chart arrival and morph, scroll reveals, spring overshoot. |
+| `expressive` | full only | Glides, rolling numbers (NumberTicker), drawn ticks, blooms and bursts, shakes, staggers, chart arrival and morph, scroll reveals, spring overshoot. |
 | `full` | default | Both levels play. The crafted default. |
 | `subtle` | data-motion="subtle" | Essential only; nothing overshoots. For dense tools, embedded widgets, readers who want calm without stillness. |
 | `off` | data-motion="off" · reduce-motion | Nothing moves; every state still changes. |
@@ -82,7 +84,10 @@ Every interactive component answers all four, by filling the slot or declining i
 8. **One thing travels; two things do not blink. When a selection, a value or a mark changes in place, move the one element that represents it.** A fill switching off here and on there is two events the eye has to connect. A glide, a roll or a draw is one, and it is most of what makes an interface feel made rather than assembled.
 9. **Flourishes are expressive: multiply their durations by --motion-expressive and gate JS ones on useMotion().expressive.** `subtle` promises the answers without the choreography. A glide on a plain token keeps playing after someone asked for calm.
 10. **A state change finishes its story: refused shakes and says why, success confirms in place, armed asks again.** Motion that starts a change and leaves the outcome to a snap reads as unfinished. ConfirmButton, OtpField's invalid shake and the copy-to-check swap are the reference cases.
-11. **Component motion props and MotionScope only turn motion down.** `full` on a component means inherit. Nothing below the provider can switch motion back on for a reader who asked for it off.
+11. **Amplitude scales with smallness. A 16px glyph that turns on grows from nothing past its size; a surface travels from 0.96 and a press settles to 0.97.** The same 4% that is right for a dialog is invisible on an icon, which is why a state change on a small control used to read as a colour swap with no life in it. A dialog that overshot 20% would lurch. Size, not importance, sets how far a thing moves.
+12. **Stage a moment: the main object lands first, the follow-through after it.** A ring that opens, a glyph that blooms 90ms later, dots thrown 60ms after that read as one event with a cause and an effect. Everything starting on the same frame reads as a flash. LikeButton and the toast's status glyph are the reference cases.
+13. **Celebrate only what a person chose, and only at full motion.** A burst is a reply. On a like it is delight; on a system event, on load, or on every row of a list it is a notification wearing confetti. Under subtle the fill alone answers.
+14. **Component motion props and MotionScope only turn motion down.** `full` on a component means inherit. Nothing below the provider can switch motion back on for a reader who asked for it off.
 
 ## Never
 
@@ -126,6 +131,17 @@ The underline used to vanish under one tab and appear under the next. Now it sli
 ```
 
 The digits that changed roll; the ones that did not stay still, so the eye goes straight to the difference.
+
+### A glyph that lands
+
+```tsx
+// before
+<Icon name="heart" variant={liked ? "solid" : "regular"} />
+// after
+<LikeButton count={likes} defaultPressed={liked} />
+```
+
+The heart used to swap fill in one frame. Now it blooms past its size and settles while a ring and dots burst from it, and the count rolls: the same state, told as an event.
 
 ### Faster exits
 

@@ -70,13 +70,13 @@ export function PreviewMotionMenu({ level, onLevelChange }: { level: MotionLevel
 						<Button
 							variant="ghost"
 							size={scoped ? "xs" : "icon-sm"}
-							iconStart={scoped ? <Icon name="sparkles" /> : undefined}
+							iconStart={scoped ? <Icon name="motion" /> : undefined}
 							aria-label={`Motion in this preview: ${LEVEL_LABEL[level]}`}
 							className="text-muted-foreground"
 						/>
 					}
 				>
-					{scoped ? LEVEL_LABEL[level] : <Icon name="sparkles" />}
+					{scoped ? LEVEL_LABEL[level] : <Icon name="motion" />}
 				</MenuTrigger>
 			</SimpleTooltip>
 			<MenuContent align="end" className="w-56">
@@ -95,13 +95,20 @@ export function PreviewMotionMenu({ level, onLevelChange }: { level: MotionLevel
 	)
 }
 
-/** Watch the preview again from its first frame. */
+/**
+ * Watch the preview again from its first frame. The one Replay on the site:
+ * the Playground's header, a code frame's header and a code-less frame's
+ * corner all render this, so it reads the same wherever it is.
+ *
+ * Offered only where a preview plays something on its own — a chart drawing
+ * on, a reply streaming in. A demo that moves only when the reader acts (a
+ * press, a hover, a toggle) has nothing to replay: the reader replays it by
+ * acting again, so the button would only reset it.
+ */
 export function PreviewReplayButton({ onReplay }: { onReplay: () => void }) {
 	return (
-		<SimpleTooltip content="Replay">
-			<Button variant="ghost" size="icon-sm" aria-label="Replay preview" onClick={onReplay} className="text-muted-foreground">
-				<Icon name="refresh" />
-			</Button>
-		</SimpleTooltip>
+		<Button variant="ghost" size="xs" iconStart={<Icon name="replay" />} onClick={onReplay} className="text-muted-foreground">
+			Replay
+		</Button>
 	)
 }
