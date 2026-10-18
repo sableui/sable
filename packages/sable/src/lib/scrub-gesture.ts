@@ -73,6 +73,9 @@ export function beginScrub(
 	const startValue = value
 	const target = e.currentTarget
 	let moved = false
+	// One controller per gesture: releasing aborts all three window listeners.
+	const gesture = new AbortController()
+	const { signal } = gesture
 
 	function onMove(ev: PointerEvent) {
 		const dx = ev.clientX - startX
@@ -102,12 +105,10 @@ export function beginScrub(
 				{ capture: true, once: true },
 			)
 		}
-		window.removeEventListener("pointermove", onMove)
-		window.removeEventListener("pointerup", onUp)
-		window.removeEventListener("pointercancel", onUp)
+		gesture.abort()
 	}
 
-	window.addEventListener("pointermove", onMove)
-	window.addEventListener("pointerup", onUp)
-	window.addEventListener("pointercancel", onUp)
+	window.addEventListener("pointermove", onMove, { signal })
+	window.addEventListener("pointerup", onUp, { signal })
+	window.addEventListener("pointercancel", onUp, { signal })
 }

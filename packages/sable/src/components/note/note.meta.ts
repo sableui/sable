@@ -94,6 +94,10 @@ export const noteMeta: ComponentMeta = {
 		"tone-warning",
 		"success",
 		"destructive",
+		"destructive-mark",
+		"success-mark",
+		"tone-warning-mark",
+		"tone-info-mark",
 	],
 	motion: [
 		{

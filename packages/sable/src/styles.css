@@ -86,6 +86,16 @@
 	--color-border-strong: var(--border-strong);
 	--color-border-floating: var(--border-floating);
 	--color-input: var(--input);
+	--color-field: var(--field);
+	--color-field-border: var(--field-border);
+	--color-shell-ground: var(--shell-ground);
+	--color-destructive-mark: var(--destructive-mark);
+	--color-success-mark: var(--success-mark);
+	--color-tone-warning-mark: var(--tone-warning-mark);
+	--color-tone-info-mark: var(--tone-info-mark);
+	--color-tone-1-mark: var(--tone-1-mark);
+	--color-tone-2-mark: var(--tone-2-mark);
+	--color-tone-3-mark: var(--tone-3-mark);
 	--color-control-border: var(--control-border);
 	--color-ring: var(--ring);
 
@@ -377,6 +387,33 @@
 	   Alpha-based, so it defines the shape on a same-colour page in light mode
 	   and reads as a faint lit edge in dark mode, where shadows barely show. */
 	--border-floating: var(--theme-border-floating, color-mix(in oklch, transparent 92%, var(--foreground)));
+
+	/* The text field: its fill and its outline. Outlined on the card by default;
+	   a theme fills its fields instead with `--theme-field: var(--muted)` and
+	   `--theme-field-border: transparent`. Every field reads the pair through
+	   lib/field-shell, so one choice restyles them all. */
+	--field: var(--theme-field, var(--card));
+	--field-border: var(--theme-field-border, var(--input));
+
+	/* The ground of an inset app frame (`AppShell frame="inset"`): the rail and
+	   the gap around the raised main panel. One step off the rail toward its ink,
+	   because most themes paint the rail the page's colour and the panel would
+	   otherwise sit on its own colour. */
+	--shell-ground: var(--theme-shell-ground, color-mix(in oklch, var(--sidebar) 97%, var(--sidebar-foreground)));
+
+	/* Status and tone colours at graphic strength: a meter's fill, a segmented
+	   bar, a status dot, a chart series, a soft tint. The label fill is dark
+	   enough for white ink; a mark carries no ink, so it is the same hue lifted
+	   and saturated (MARK_TOKENS in themes/_contract.ts). Every bundled theme
+	   tunes its own through the hooks; this derivation is the fallback for a
+	   preset that does not. */
+	--destructive-mark: var(--theme-destructive-mark, oklch(from var(--destructive) max(l, 0.62) calc(c * 1.25) h));
+	--success-mark: var(--theme-success-mark, oklch(from var(--success) max(l, 0.68) calc(c * 1.25) h));
+	--tone-warning-mark: var(--theme-tone-warning-mark, oklch(from var(--tone-warning) max(l, 0.71) calc(c * 1.25) h));
+	--tone-info-mark: var(--theme-tone-info-mark, oklch(from var(--tone-info) max(l, 0.63) calc(c * 1.25) h));
+	--tone-1-mark: var(--theme-tone-1-mark, oklch(from var(--tone-1) max(l, 0.62) calc(c * 1.25) h));
+	--tone-2-mark: var(--theme-tone-2-mark, oklch(from var(--tone-2) max(l, 0.6) calc(c * 1.25) h));
+	--tone-3-mark: var(--theme-tone-3-mark, oklch(from var(--tone-3) max(l, 0.66) calc(c * 1.25) h));
 
 	/* The Switch knob when OFF: light in BOTH modes, like every physical toggle.
 	   It used to be `--background`, which in a dark theme is a near-black knob on
@@ -846,6 +883,24 @@
 		   cramped at the 0.4em a Pill wants). */
 		padding-block: var(--sable-optical-pad, 0.4em);
 	}
+}
+
+/* ==========================================================================
+   Search matches — the paint behind `useMatchHighlight` (lib/use-match-highlight),
+   which Combobox and CommandMenu run on their rows and a consumer can run on any
+   results list. The CSS Custom Highlight API marks text Ranges, so nothing is
+   wrapped in a <mark> and React's text nodes stay as rendered.
+
+   On `highlight` because that token exists for exactly this ("search hits" in
+   its intent). A tint of it, not the solid pair: a solid fill behind a few
+   letters is what a text selection looks like, and a list where every row
+   seems half-selected reads as a bug. The tint leaves the row's own ink, so
+   contrast stays the row's. Where the API is missing no ranges are registered
+   and this rule matches nothing.
+   ========================================================================== */
+
+::highlight(sable-match) {
+	background-color: color-mix(in oklab, var(--highlight) 36%, transparent);
 }
 
 /* ==========================================================================
@@ -1993,6 +2048,51 @@
 	);
 	background-size: var(--checkerboard-size, 16px) var(--checkerboard-size, 16px);
 	background-position: 0 0;
+}
+
+/* texture-dither — a faint field of tiny squares that dissolves, the pixel /
+   halftone texture products lay over the top of a content area or behind an
+   empty-state heading. Pure CSS and static: the dots are the element's own
+   background, cut out by a mask of a small pixel tile intersected with a fade.
+
+   The tile is 12×12 cells of one square each on a 2-unit pitch, about 40%
+   filled at random (no runs of three, no 2×2 clumps) and a third of the dots at
+   half strength, so it reads as dither rather than as a grid of dots. It is a
+   MASK, so the SVG carries no colour of its own: the dots paint in
+   `--border-strong`, the structural-divider ink, which every theme tunes for
+   both modes — faint on a light page, a soft grey on a dark one.
+
+   Decoration only: put it on its own absolutely-positioned, aria-hidden element
+   (it sets pointer-events: none but no position, so it never takes layout),
+   first in a `relative isolate` parent and at -z-10, so the content after it
+   paints on top without a z-index of its own:
+
+     <div class="relative isolate">
+       <div aria-hidden class="texture-dither absolute inset-x-0 top-0 -z-10 h-40" />
+       …content…
+     </div>
+
+   Three hooks, all optional, read with fallbacks (the checkerboard pattern):
+     --dither-fade   the fade's direction, any linear-gradient side or angle
+                     (default `to bottom`: dense at the top, gone at the bottom)
+     --dither-size   the tile (default 48px → 2px squares on a 4px pitch)
+     --dither-color  the dot ink (default var(--border-strong))
+
+   Not `bg-dither`, for the reason `checkerboard` is not `bg-checkerboard`: a
+   `bg-` name joins tailwind-merge's background group and would evict, or be
+   evicted by, a real colour class. */
+@utility texture-dither {
+	pointer-events: none;
+	background-color: var(--dither-color, var(--border-strong));
+	--dither-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' shape-rendering='crispEdges'%3E%3Cpath d='M4 0h1v1H4zM8 0h1v1H8zM16 0h1v1H16zM2 2h1v1H2zM6 2h1v1H6zM14 2h1v1H14zM6 4h1v1H6zM10 4h1v1H10zM22 4h1v1H22zM2 6h1v1H2zM8 6h1v1H8zM14 6h1v1H14zM20 6h1v1H20zM2 8h1v1H2zM12 8h1v1H12zM18 8h1v1H18zM20 8h1v1H20zM12 10h1v1H12zM8 12h1v1H8zM2 14h1v1H2zM6 14h1v1H6zM16 14h1v1H16zM18 14h1v1H18zM0 16h1v1H0zM4 16h1v1H4zM6 16h1v1H6zM22 16h1v1H22zM10 18h1v1H10zM12 18h1v1H12zM16 18h1v1H16zM4 20h1v1H4zM20 20h1v1H20zM22 20h1v1H22zM0 22h1v1H0zM8 22h1v1H8zM12 22h1v1H12zM14 22h1v1H14zM20 22h1v1H20z'/%3E%3Cpath fill-opacity='.5' d='M0 0h1v1H0zM22 0h1v1H22zM20 2h1v1H20zM8 8h1v1H8zM14 8h1v1H14zM0 10h1v1H0zM4 10h1v1H4zM16 10h1v1H16zM22 10h1v1H22zM2 12h1v1H2zM4 12h1v1H4zM10 12h1v1H10zM18 12h1v1H18zM10 14h1v1H10zM0 18h1v1H0zM18 18h1v1H18zM10 20h1v1H10zM16 20h1v1H16zM18 22h1v1H18z'/%3E%3C/svg%3E");
+	-webkit-mask-image: var(--dither-tile), linear-gradient(var(--dither-fade, to bottom), rgb(0 0 0), rgb(0 0 0 / 0.45) 35%, rgb(0 0 0 / 0));
+	mask-image: var(--dither-tile), linear-gradient(var(--dither-fade, to bottom), rgb(0 0 0), rgb(0 0 0 / 0.45) 35%, rgb(0 0 0 / 0));
+	-webkit-mask-size: var(--dither-size, 48px) var(--dither-size, 48px), 100% 100%;
+	mask-size: var(--dither-size, 48px) var(--dither-size, 48px), 100% 100%;
+	-webkit-mask-repeat: repeat, no-repeat;
+	mask-repeat: repeat, no-repeat;
+	-webkit-mask-composite: source-in;
+	mask-composite: intersect;
 }
 
 /* The default transition for interactive chrome — hover/focus/selection colour

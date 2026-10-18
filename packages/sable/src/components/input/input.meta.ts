@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const inputMeta: ComponentMeta = {
 	name: "Input",
 	summary:
-		"Styled native text input. Soft-square (rounded-sm), card surface, 2px focus ring; aria-invalid raises the destructive error treatment.",
+		"Styled native text input. Soft-square (rounded-sm), the theme's field surface (outlined or filled), 2px focus ring; aria-invalid raises the destructive error treatment.",
 	keywords: [
 		"input",
 		"text input",
@@ -38,6 +38,16 @@ export const inputMeta: ComponentMeta = {
 				guidance: "do",
 				description:
 					"Keep a focusable field at 16px or larger on mobile. iOS Safari zooms the whole page when a focused input computes under 16px and never zooms back out. Input handles this itself — below the sm breakpoint it renders text-body-lg (17px) and returns to text-body-md at sm and up. Build a custom field the same way: a second paired tier under a max-sm: variant, never a hand-set font-size.",
+			},
+			{
+				guidance: "do",
+				description:
+					"Choose outlined or filled fields once, in the theme: `--theme-field: var(--muted)` with `--theme-field-border: transparent` turns every Input, Textarea, Select, Combobox, SearchInput, InputGroup and ChatComposer into a borderless filled well; unset, they are outlined on the card. Every field reads the `field` / `field-border` pair, so they change together.",
+			},
+			{
+				guidance: "dont",
+				description:
+					"Restyle one Input as a filled chip with `bg-muted border-transparent`. It drifts from every other field on the page, and the theme can no longer move them together; set the field tokens instead.",
 			},
 			{
 				guidance: "dont",
@@ -121,8 +131,8 @@ export const inputMeta: ComponentMeta = {
 		},
 	],
 	tokensUsed: [
-		"input",
-		"card",
+		"field-border",
+		"field",
 		"foreground",
 		"muted-foreground",
 		"ring",

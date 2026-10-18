@@ -181,7 +181,12 @@ export const lineChartMeta: ComponentMeta = {
 		"popover",
 		"popover-foreground",
 		"foreground",
-		"background"
+		"background",
+		"tone-warning-mark",
+		"tone-info-mark",
+		"tone-1-mark",
+		"tone-2-mark",
+		"tone-3-mark",
 	],
 	motion: [
 		{

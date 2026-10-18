@@ -97,6 +97,15 @@
 	--tone-1-foreground: oklch(100.00000% 0.000000 89.8756);
 	--tone-info-foreground: oklch(100.00000% 0.000000 89.8756);
 	--tone-warning-foreground: oklch(100.00000% 0.000000 89.8756);
+	/* Graphic strength (MARK_TOKENS): meters, bars, dots, chart series and soft tints.
+	   The same hues lifted and saturated; held to 2:1 on the page, not a text ratio. */
+	--theme-destructive-mark: oklch(62.0% 0.238 13.5);
+	--theme-success-mark: oklch(70.0% 0.111 159.0);
+	--theme-tone-warning-mark: oklch(76.0% 0.132 75.1);
+	--theme-tone-info-mark: oklch(63.0% 0.152 253.8);
+	--theme-tone-1-mark: oklch(62.0% 0.196 344.9);
+	--theme-tone-2-mark: oklch(62.0% 0.208 301.6);
+	--theme-tone-3-mark: oklch(63.0% 0.065 265.7);
 	--highlight-foreground: oklch(27.91553% 0.070219 323.8141);
 	--overlay: oklch(23.10300% 0.056738 321.2844);
 	--overlay-foreground: oklch(100.00000% 0.000000 89.8756);
@@ -198,6 +207,15 @@
 	--tone-1-foreground: oklch(27.91553% 0.070219 323.8141);
 	--tone-info-foreground: oklch(27.91553% 0.070219 323.8141);
 	--tone-warning-foreground: oklch(27.91553% 0.070219 323.8141);
+	/* Graphic strength (MARK_TOKENS): meters, bars, dots, chart series and soft tints.
+	   The same hues lifted and saturated; held to 2:1 on the page, not a text ratio. */
+	--theme-destructive-mark: oklch(80.1% 0.118 6.9);
+	--theme-success-mark: oklch(83.1% 0.092 158.2);
+	--theme-tone-warning-mark: oklch(86.6% 0.136 86.7);
+	--theme-tone-info-mark: oklch(85.2% 0.074 252.9);
+	--theme-tone-1-mark: oklch(82.6% 0.111 343.4);
+	--theme-tone-2-mark: oklch(81.8% 0.108 306.5);
+	--theme-tone-3-mark: oklch(82.6% 0.068 270.3);
 }
 
 /* Art direction for generated imagery (GradientArt; ART_TOKENS in

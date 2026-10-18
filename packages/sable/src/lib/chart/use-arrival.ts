@@ -36,13 +36,14 @@ export function useArrival<T extends Element>(): [(el: T | null) => void, boolea
 			cancelAnimationFrame(frame)
 			frame = requestAnimationFrame(() => onScreen() && setArrived(true))
 		}
-		window.addEventListener("scroll", check, { passive: true, capture: true })
-		window.addEventListener("resize", check, { passive: true })
+		const listeners = new AbortController()
+		const { signal } = listeners
+		window.addEventListener("scroll", check, { passive: true, capture: true, signal })
+		window.addEventListener("resize", check, { passive: true, signal })
 		return () => {
 			observer.disconnect()
 			cancelAnimationFrame(frame)
-			window.removeEventListener("scroll", check, { capture: true })
-			window.removeEventListener("resize", check)
+			listeners.abort()
 		}
 	}, [el, arrived])
 

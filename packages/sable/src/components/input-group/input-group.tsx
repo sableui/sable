@@ -83,7 +83,7 @@ export function InputGroup({
 				"flex h-(--control-md) w-full items-center",
 				// The field shell, moved from the input to the group: focus is the
 				// ring on the whole field, and so are the error and disabled states.
-				"rounded-sm border border-input bg-card motion-interactive focus-within:ring-2 focus-within:ring-ring",
+				"rounded-sm border border-field-border bg-field motion-interactive focus-within:ring-2 focus-within:ring-ring",
 				"has-[>input[aria-invalid=true]]:border-destructive has-[>input[aria-invalid=true]]:ring-destructive/30",
 				"has-[>input:disabled]:cursor-not-allowed has-[>input:disabled]:opacity-50",
 				// The Input keeps its type, padding and behaviour; the box is the group's.

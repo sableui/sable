@@ -104,9 +104,32 @@ const SEMANTIC_BASES: Record<string, TokenDoc> = {
 		insteadOf:
 			"`border`. A full hairline plus a shadow stacks into a heavy outline around anything that floats. `border` is for resting edges: inputs, cards, badges.",
 	},
+	field: {
+		intent: "The fill of a text field: Input, Textarea, Select, Combobox, SearchInput, InputGroup, ChatComposer.",
+		whenToUse:
+			"Read by every field through its shell, so you rarely name it. Derived for every theme (`card`, an outlined field on the card); a theme fills its fields instead with `--theme-field: var(--muted)` and `--theme-field-border: transparent`, and every field changes at once. Name it only for a field-shaped surface of your own that must match.",
+		insteadOf:
+			"`card` or `muted` on a hand-built field. A field that paints `card` keeps its outline when the theme fills the rest, and one that paints `muted` stays filled when the theme outlines them.",
+		pairsWith: ["field-border"],
+	},
+	"field-border": {
+		intent: "The outline of a text field. Derived from `input`; `transparent` in a theme with filled fields.",
+		whenToUse: "With `field`, on the same field-shaped surfaces. Tune it with `--theme-field-border`.",
+		insteadOf:
+			"`input` on a text field. `input` stays the theme's outline colour for form chrome; this is the field's outline, which a filled theme turns off.",
+		pairsWith: ["field"],
+	},
+	"shell-ground": {
+		intent: "The ground of an inset app frame: the rail and the gap around the raised main panel.",
+		whenToUse:
+			'Painted by `<AppShell frame="inset">` and the Sidebar in its slot; you rarely name it. Derived for every theme as one step off `sidebar` toward its ink, so the panel reads as lifted even where the rail is the page colour. Tune it with `--theme-shell-ground`.',
+		insteadOf:
+			"`sidebar` or `canvas` behind an inset panel. `sidebar` is the page colour in most themes, so the panel would sit on itself; `canvas` is a workspace's artboard, not app chrome.",
+		pairsWith: ["sidebar"],
+	},
 	input: {
 		intent: "The outline of a form control specifically.",
-		whenToUse: "Text inputs, textareas and selects. Not the edge of a checkbox, radio or switch — that is `control-border`.",
+		whenToUse: "Text inputs, textareas and selects (through `field-border`, which derives from it). Not the edge of a checkbox, radio or switch — that is `control-border`.",
 		insteadOf:
 			"`border`. They are often the same value, but a theme is entitled to make form controls read differently from other chrome, and only this token gives it the hook.",
 	},
@@ -663,6 +686,17 @@ export const TOKEN_DOCS: Record<string, TokenDoc> = {
 				whenToUse: `Write \`text-${base}\`, \`border-${base}\` or \`ring-${base}\` — they read this token; only \`bg-${base}\` reads the fill.`,
 				insteadOf: `\`${base}\` itself for marks on a page. The fill is tuned to carry a label (dark mode lowers it under white ink), which can leave it too dark to read on a dark card.`,
 				pairsWith: ["background", "card", "popover", "muted"],
+			} satisfies TokenDoc,
+		]),
+	),
+	...Object.fromEntries(
+		["destructive", "success", "tone-warning", "tone-info", "tone-1", "tone-2", "tone-3"].map((base) => [
+			`${base}-mark`,
+			{
+				intent: `\`${base}\` at graphic strength: the same hue lifted and saturated, for a mark that carries no text.`,
+				whenToUse: `A meter's or progress fill, a segmented bar, a status dot, a chart series, and the soft tint behind a badge or note (\`bg-${base}-mark/15\`). Held to 2:1 on the page — visibility, not a text ratio — because each of these sits beside text that says the same thing. Every bundled theme tunes its own; a preset sets \`--theme-${base}-mark\` or gets one derived from \`${base}\`.`,
+				insteadOf: `\`bg-${base}\` on a mark. The fill is pinned dark enough to carry a white label, so a meter or dot painted with it reads brown, forest or plum. And not for text — that is \`text-${base}\` — nor for a graphic that is the only carrier of its meaning, which owes 3:1 (WCAG 1.4.11): use the fill or add the text.`,
+				pairsWith: ["background", "card"],
 			} satisfies TokenDoc,
 		]),
 	),

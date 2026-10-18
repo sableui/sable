@@ -229,24 +229,27 @@ export function useSmoothWheel({
 	const activeRef = useRef(active)
 	activeRef.current = active
 	const attached = useRef<HTMLElement | null>(null)
+	// One controller per attachment, so detaching is a single abort.
+	const listeners = useRef<AbortController | null>(null)
 	const sync = useCallback(() => {
 		const want = activeRef.current ? nodeRef.current : null
 		if (attached.current === want) return
-		const was = attached.current
-		if (was) {
-			was.removeEventListener("wheel", onWheel)
-			was.removeEventListener("scroll", onScroll)
-			was.removeEventListener("pointerdown", stop)
+		if (attached.current) {
+			listeners.current?.abort()
+			listeners.current = null
 			stop()
 		}
 		attached.current = want
 		if (want) {
+			const controller = new AbortController()
+			listeners.current = controller
+			const { signal } = controller
 			// Non-passive: preventDefault is the point. Chrome treats wheel
 			// listeners as passive by default, so omitting this disables it.
-			want.addEventListener("wheel", onWheel, { passive: false })
-			want.addEventListener("scroll", onScroll, { passive: true })
+			want.addEventListener("wheel", onWheel, { passive: false, signal })
+			want.addEventListener("scroll", onScroll, { passive: true, signal })
 			// A press on the scrollbar is a drag about to start: hand it over now.
-			want.addEventListener("pointerdown", stop, { passive: true })
+			want.addEventListener("pointerdown", stop, { passive: true, signal })
 		}
 	}, [onWheel, onScroll, stop])
 	useEffect(sync, [active, sync])

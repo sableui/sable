@@ -181,6 +181,13 @@ export const commandMenuMeta: ComponentMeta = {
 				"Replaces or disables the built-in match. A function ranks and filters items itself and its order is kept verbatim; null renders items exactly as given. Either also stops declarative CommandMenuItem children self-filtering. The query arrives raw — trimming and case are policy, and this is the prop that hands policy over.",
 		},
 		{
+			name: "highlightMatches",
+			type: "boolean",
+			default: "true",
+			description:
+				"Paints the query wherever it appears in a row's label (not its detail or hint), on the `highlight` / `highlight-foreground` pair, through the CSS Custom Highlight API — no `<mark>` in the row, and the accessible name is unchanged. A literal, case-insensitive match, so under a fuzzy `filter` a row that matched as a subsequence keeps an unpainted label. `false` turns it off. Applies to CommandMenuPanel too.",
+		},
+		{
 			name: "listClassName",
 			type: "string",
 			description:
@@ -230,7 +237,7 @@ export const commandMenuMeta: ComponentMeta = {
 			name: "CommandMenuTrigger",
 			type: '{ onOpen?: () => void; placeholder?: string; shortcut?: string | false; size?: "sm" | "md"; disabled?: boolean }',
 			description:
-				"The search field in a header that is really a button. Wears SearchInput's shell (border-input, card surface, leading magnifier, muted placeholder) on the control ladder, with a trailing Kbd: ⌘K on macOS, Ctrl K elsewhere. onOpen runs on click and on the shortcut, which it listens for page-wide (useCommandMenuShortcut). shortcut is the key (default \"k\"); false drops both the hint and the listener. size is sm in a header beside small buttons, md (default) beside Input and SearchInput. It sits outside CommandMenu, so the Dialog returns focus to it on close.",
+				"The search field in a header that is really a button. Wears SearchInput's shell (the field fill and outline, leading magnifier, muted placeholder) on the control ladder, with a trailing Kbd: ⌘K on macOS, Ctrl K elsewhere. onOpen runs on click and on the shortcut, which it listens for page-wide (useCommandMenuShortcut). shortcut is the key (default \"k\"); false drops both the hint and the listener. size is sm in a header beside small buttons, md (default) beside Input and SearchInput. It sits outside CommandMenu, so the Dialog returns focus to it on close.",
 		},
 		{
 			name: "useCommandMenuShortcut",
@@ -257,6 +264,8 @@ export const commandMenuMeta: ComponentMeta = {
 		},
 	],
 	tokensUsed: [
+		"highlight",
+		"highlight-foreground",
 		"card",
 		"card-foreground",
 		"border",

@@ -93,6 +93,13 @@ export const statusDotMeta: ComponentMeta = {
 		"tone-1",
 		"tone-2",
 		"destructive",
+		"destructive-mark",
+		"success-mark",
+		"tone-warning-mark",
+		"tone-info-mark",
+		"tone-1-mark",
+		"tone-2-mark",
+		"tone-3-mark",
 	],
 	a11y: [
 		"Rendered aria-hidden — purely decorative. Convey status in adjacent text, not color alone.",

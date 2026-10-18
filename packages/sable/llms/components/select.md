@@ -50,7 +50,7 @@ Use Select when users choose one value from a known, finite set. Use Combobox fo
 
 ## Tokens used
 
-`input`, `card`, `foreground`, `ring`, `border`, `popover`, `popover-foreground`, `accent`, `accent-foreground`, `muted-foreground`
+`field-border`, `field`, `foreground`, `ring`, `border`, `popover`, `popover-foreground`, `accent`, `accent-foreground`, `muted-foreground`
 
 ## Motion
 

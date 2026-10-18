@@ -1,5 +1,78 @@
 # What's new
 
+## 0.16.0
+
+Five pieces of the calm, product-chrome look that AI and B2B tools share:
+tick-bar budgets, pastel art, filled fields, an inset frame and a dither
+texture. Each is told through the theme, so every preset can wear it.
+
+- **New: segmented meters.** `<Meter segments={40} />` draws the bar as a row
+  of ticks — a spend limit, credits left, a lead score, months of data — read
+  at a glance. Any reading above `min` shows at least one tick, and when the
+  value changes the fill runs through the ticks from the edge it is leaving.
+  Size the count to the track (about one tick per 8px) so a tick stays taller
+  than it is wide. `shape="ring"` ignores it.
+- **New: `GradientArt intensity="soft"`.** The same art as a pastel of itself:
+  lifted and quieted, bright in dark mode too. It is a stage for floating
+  chips, logo tiles and card header bands, not a surface for text.
+- **New: the field tokens, `field` and `field-border`.** Every text field —
+  Input, Textarea, Select, Combobox, SearchInput, NumberField, OTPField,
+  DatePicker, InputGroup, ChatComposer and CommandMenuTrigger — now paints
+  this pair, outlined on the card by default exactly as before. A theme fills
+  them all at once with `--theme-field: var(--muted)` and
+  `--theme-field-border: transparent`. Canvas has a matching **Fields**
+  control (Preset / Outline / Filled), and presets may set both hooks.
+  A hand-built field wearing `border-field-border` is caught by
+  `lookalike-control` like one wearing `border-input`.
+- **New: `AppShell frame="inset"`.** From `lg`, the rail and a small gap sit on
+  one ground and main becomes a rounded, bordered panel that scrolls inside
+  itself while the rail stays put. The Sidebar in the slot drops its border
+  and fills the row, and its footer rule spans the content column rather than
+  running out into the gap; below `lg` nothing changes. The ground is a new derived
+  token, `shell-ground` — one step off the rail, so the panel reads as lifted
+  even in themes whose rail is the page colour; tune it with
+  `--theme-shell-ground`. Inset moves the desktop scroll from `window` to
+  `#main-content`, so scroll listeners (restoration, scroll-to-top, scrollspy)
+  must target `main`.
+- **New utility: `texture-dither`.** A faint field of tiny squares that
+  dissolves, painted in `border-strong` so it follows every theme — decoration
+  for behind an empty state or a page header. `--dither-fade`,
+  `--dither-size` and `--dither-color` tune it.
+- **Status and tone colours at graphic strength.** Meters, segmented bars,
+  status dots, chart series and the soft tints behind badges, banners and
+  notes were painted with the label fills — dark enough to carry white text,
+  so in light mode they read brown, forest green and plum. They now read new
+  `-mark` tokens (`success-mark`, `tone-warning-mark`, `destructive-mark`,
+  `tone-info-mark`, `tone-1/2/3-mark`): the same hue lifted and saturated,
+  held to a 2:1 visibility floor on the page instead of a text ratio. Every
+  bundled theme tunes its own in both modes, and keeps its character —
+  Ember's olive, Poppy's pastels and Atelier's grey tone stay theirs; a
+  preset sets `--theme-*-mark` or gets one derived from its fill. Labels are
+  unchanged: solid badges, banners and buttons keep their fills, and text
+  keeps `-text`. `markFor` (from `@sableui/react/presets`) derives a mark the
+  same way, and Canvas moves the marks with any tone it generates.
+- **Canvas: a brand colour no longer flattens the tones.** Info is treated
+  as the status it is: it leans toward the brand within the blues instead of
+  being repainted (Brand only made it the brand, so a green brand's info read
+  as success; the schemes spun it anywhere). A status also keeps 25° off the
+  brand's own hue when its band allows, so a green brand gets a teal success
+  rather than a second copy of itself. And Brand only is a family you can tell
+  apart — a deep brand, a lighter neighbour and a muted sibling — instead of
+  one hue in four near-identical depths.
+- **Table:** `numeric` on TableHead and TableCell is now documented.
+- **New: search matches light up.** Combobox and CommandMenu paint the typed
+  text in each row's label, on a tint of the theme's `highlight`. It uses the CSS
+  Custom Highlight API, so rows get no `<mark>` wrappers and their accessible
+  names stay whole; browsers without it simply show no paint. Combobox lights
+  only what was typed, not a label a pick filled in. `highlightMatches={false}`
+  turns it off on either.
+- **New hook: `useMatchHighlight(query, { selector })`.** The same paint for a
+  results list you filter yourself, such as a SearchInput over a table: it
+  returns a callback ref for the results container.
+- **Textarea:** text you are editing no longer rewraps above the caret when
+  the field sits inside a `text-pretty` or `text-balance` block
+  (`text-wrap-style: stable`). ChatComposer gets the same fix.
+
 ## 0.15.0
 
 Motion with some life in it: small things that turn on now land like events,

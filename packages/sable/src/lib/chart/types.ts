@@ -35,27 +35,27 @@ export function chartColor(index: number): string {
 }
 
 const TONE_VAR: Record<ChartTone, string> = {
-	"1": "var(--tone-1)",
-	"2": "var(--tone-2)",
-	"3": "var(--tone-3)",
-	info: "var(--tone-info)",
-	warning: "var(--tone-warning)",
+	"1": "var(--tone-1-mark)",
+	"2": "var(--tone-2-mark)",
+	"3": "var(--tone-3-mark)",
+	info: "var(--tone-info-mark)",
+	warning: "var(--tone-warning-mark)",
 	primary: "var(--primary)",
 	neutral: "var(--muted-foreground)",
-	success: "var(--success)",
-	destructive: "var(--destructive)",
+	success: "var(--success-mark)",
+	destructive: "var(--destructive-mark)",
 }
 
 /**
  * The CSS colour for a tone as a chart fill — for a series that names its role
- * (`tone: "success"`), not for default series (see chartColor). Tones are
- * tuned to be legible as TEXT (dark, restrained); a plotted mark keeps the hue
- * but is lifted into the chart lightness band with a chroma floor, so a quiet
+ * (`tone: "success"`), not for default series (see chartColor). Status and
+ * decorative tones plot at graphic strength (their `-mark` tokens, which each
+ * theme tunes), held in the chart lightness band with a chroma floor, so a quiet
  * tone (a slate "3") still reads as colour rather than grey.
  */
 export function toneColor(tone: ChartTone): string {
 	// design-lint-disable-next-line inline-color -- relative colour derived from the theme's own token, so it follows every look
-	return `oklch(from ${TONE_VAR[tone]} clamp(0.5, calc(l + 0.1), 0.72) max(calc(c * 1.1), 0.1) h)`
+	return `oklch(from ${TONE_VAR[tone]} clamp(0.5, l, 0.78) max(c, 0.1) h)`
 }
 
 /** One plotted measure: which field of each datum, what to call it, how to colour it. */

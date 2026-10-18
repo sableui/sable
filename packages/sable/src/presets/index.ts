@@ -1,14 +1,14 @@
 import {
 	SEMANTIC_TOKENS, MOTION_TOKENS, RADIUS_TOKENS, TYPE_SCALE_TOKENS,
 	TYPE_REFINEMENT_TOKENS, TYPE_OVERLINE_TOKENS, DENSITY_TOKENS, RHYTHM_TOKENS,
-	LAYERING_TOKENS, WORKSPACE_SURFACE_TOKENS, DERIVED_EDGE_TOKENS, TYPE_UI_TOKENS, ART_TOKENS, PALETTE_TOKENS,
+	LAYERING_TOKENS, WORKSPACE_SURFACE_TOKENS, DERIVED_EDGE_TOKENS, FIELD_TOKENS, APP_SHELL_TOKENS, MARK_TOKENS, TYPE_UI_TOKENS, ART_TOKENS, PALETTE_TOKENS,
 	type ThemeManifest,
 } from "../themes/_contract"
 import { LABEL_CONTRAST_RULE, LABELLED_FILLS, checkLabelledFills, type LabelFinding } from "../themes/contrast"
 
 /** Label-on-fill contrast: build a preset's filled colours with these, not a lightness cut. */
 export {
-	BRAND_FILLS, LABEL_CONTRAST_RULE, LABELLED_FILLS, STATUS_FILLS, checkLabelledFills, fitFillToInk, inkFor, inkPolarity, labelContrast,
+	BRAND_FILLS, LABEL_CONTRAST_RULE, LABELLED_FILLS, STATUS_FILLS, checkLabelledFills, fitFillToInk, inkFor, inkPolarity, labelContrast, MARK_FLOOR, markFor,
 	type LabelFinding, type OklchColor,
 } from "../themes/contrast"
 
@@ -26,10 +26,16 @@ export const PRESET_TOKEN_NAMES: readonly string[] = [...new Set([
 	...SEMANTIC_TOKENS,
 	...WORKSPACE_SURFACE_TOKENS.map(name => `theme-${name}`),
 	...DERIVED_EDGE_TOKENS.map(name => `theme-${name}`),
+	// The field's fill and outline: optional — a preset without them keeps outlined fields.
+	...FIELD_TOKENS.map(name => `theme-${name}`),
+	// The inset frame's ground: optional — a preset without it keeps the derived step off the rail.
+	...APP_SHELL_TOKENS.map(name => `theme-${name}`),
+	// Graphic-strength status colours: optional — a preset without them derives them from its fills.
+	...MARK_TOKENS.map(name => `theme-${name}`),
 	// Art direction: optional hooks — a preset without them paints the default art.
 	...ART_TOKENS.map(name => `theme-${name}`),
 	...PALETTE_TOKENS.map(name => `theme-${name}`),
-	...WORKSPACE_SURFACE_TOKENS, ...DERIVED_EDGE_TOKENS,
+	...WORKSPACE_SURFACE_TOKENS, ...DERIVED_EDGE_TOKENS, ...FIELD_TOKENS, ...APP_SHELL_TOKENS, ...MARK_TOKENS,
 	...RADIUS_TOKENS, ...MOTION_TOKENS, ...TYPE_SCALE_TOKENS,
 	...TYPE_REFINEMENT_TOKENS, ...TYPE_OVERLINE_TOKENS, ...DENSITY_TOKENS, ...RHYTHM_TOKENS,
 	...LAYERING_TOKENS, ...TYPE_UI_TOKENS,

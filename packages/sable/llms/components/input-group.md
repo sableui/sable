@@ -30,7 +30,7 @@ Use InputGroup when something belongs inside the field with the text: a unit, a 
 
 ## Tokens used
 
-`input`, `card`, `ring`, `destructive`, `muted-foreground`, `foreground`
+`field-border`, `field`, `ring`, `destructive`, `muted-foreground`, `foreground`
 
 ## Motion
 

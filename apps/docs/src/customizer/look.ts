@@ -13,7 +13,7 @@
  */
 
 import { GAMUT_SAFETY, NEUTRAL_TOKENS, type Oklch, type ResolvedTheme, formatOklch as formatRaw, hexToOklch, hueDelta, isNeutral, maxChroma, mix, toGamut } from "./color"
-import { STATUS_FILLS, fitFillToInk, inkFor, inkPolarity, labelContrast } from "@sableui/react/presets"
+import { STATUS_FILLS, fitFillToInk, inkFor, inkPolarity, labelContrast, markFor } from "@sableui/react/presets"
 import { chartPalette } from "./chart-palette"
 import { type FontEntry, findFont, googleFontsUrl, stackFor } from "./fonts"
 import { SHADOW_STEPS, type ShadowLadder, type ShadowStyle, anchorLadder, definingDrop, densityFor, depthFactors, formatShadow, isFlat, recipeLadder, rotateLadder, scaleLadder, shadowInk, shadowToken } from "./shadow"
@@ -21,6 +21,8 @@ import { SHADOW_STEPS, type ShadowLadder, type ShadowStyle, anchorLadder, defini
 export type { ShadowStyle } from "./shadow"
 
 export type ButtonShape = "theme" | "pill" | "match"
+/** How text fields read: the preset's own, outlined on the card, or a filled borderless well. */
+export type FieldStyle = "theme" | "outline" | "filled"
 export type Motion = "off" | "snappy" | "default" | "relaxed"
 export type IconSet = "reicon"
 export type Neutrals = "theme" | "mono" | "warm" | "cool" | "brand"
@@ -67,6 +69,7 @@ export interface Look {
 	primary: PrimaryAction
 	neutrals: Neutrals
 	buttons: ButtonShape
+	fields: FieldStyle
 	/** Primary font (body + interface): "theme" or a Google Fonts family. */
 	sans: string
 	/** Mono font: "theme" or a family. */
@@ -117,6 +120,7 @@ export const DEFAULT_LOOK: Look = {
 	primary: "brand",
 	neutrals: "theme",
 	buttons: "theme",
+	fields: "theme",
 	sans: "theme",
 	mono: "theme",
 	display: "theme",
@@ -294,16 +298,23 @@ function harmonize(color: Oklch, brandHue: number, amount = 0.5, cap = 15): Oklc
  * Each has a hue band: the span the shipped presets already use for it (Ember's
  * crimson destructive at 7° to Sable's 25°; Ember's orange warning at 52° to
  * Prism's gold at 87°; success 159–173°), widened a little at each end. Every
- * hue in a band still reads as error, caution or done. Success stops at 175°:
+ * hue in a band still reads as error, caution, done or information. Success stops at 175°:
  * past it, a blue brand pulled success into teal, which reads as info. A status moves from the
  * preset's hue toward the point of its band nearest the brand, by the lean.
+ *
+ * Info is a status here, not a decorative tone. It names a state ("Informational
+ * state", with its own `-text`), and it used to be generated like tones 1–3: Brand
+ * only painted it the brand (a green brand made info green, which reads as
+ * success) and the schemes spun it anywhere on the wheel. Its band is the blues
+ * every preset ships it in (Sable 235–250°, Prism 259°).
  */
-export type StatusToken = "destructive" | "tone-warning" | "success"
-export const STATUS_TOKENS: readonly StatusToken[] = ["destructive", "tone-warning", "success"]
+export type StatusToken = "destructive" | "tone-warning" | "success" | "tone-info"
+export const STATUS_TOKENS: readonly StatusToken[] = ["destructive", "tone-warning", "success", "tone-info"]
 export const STATUS_BANDS: Record<StatusToken, readonly [number, number]> = {
 	destructive: [5, 30],
 	"tone-warning": [50, 90],
 	success: [140, 175],
+	"tone-info": [205, 265],
 }
 /**
  * Warning and destructive sit ~30° apart, so a brand between them (a red-orange)
@@ -316,7 +327,7 @@ const WARNING_GAP = 30
  * brand never turns destructive brown or pink, or warning into mud. A preset
  * that ships its status quieter than this keeps its own.
  */
-const STATUS_CHROMA_FLOOR: Record<StatusToken, number> = { destructive: 0.14, "tone-warning": 0.1, success: 0.08 }
+const STATUS_CHROMA_FLOOR: Record<StatusToken, number> = { destructive: 0.14, "tone-warning": 0.1, success: 0.08, "tone-info": 0.08 }
 /**
  * How much of the lean chroma follows. Hue carries the family resemblance;
  * following a muted brand's saturation one-for-one drained status to its floor
@@ -354,6 +365,23 @@ function nearestInBand(hue: number, [lo, hi]: readonly [number, number]): number
 	return Math.abs(hueDelta(hue, lo)) <= Math.abs(hueDelta(hue, hi)) ? lo : hi
 }
 
+const inBand = (hue: number, [lo, hi]: readonly [number, number]) => hueDelta(lo, hue) >= 0 && hueDelta(hue, hi) >= 0
+
+/**
+ * Where a status leans to: the point of its band nearest the brand, but never
+ * onto the brand's own hue when the band has room to stand off. A green brand
+ * leaned success to within 10° of itself, so the success badge, the highlight
+ * and every primary button were one green; a status that looks like the brand
+ * stops reading as a status. Held STATUS_CLEARANCE away when the band allows.
+ */
+function leanTarget(brandHue: number, band: readonly [number, number]): number {
+	const target = nearestInBand(brandHue, band)
+	if (Math.abs(hueDelta(target, brandHue)) >= STATUS_CLEARANCE) return target
+	const options = [norm360(brandHue + STATUS_CLEARANCE), norm360(brandHue - STATUS_CLEARANCE)].filter((h) => inBand(h, band))
+	if (!options.length) return target
+	return options.reduce((a, b) => (Math.abs(hueDelta(target, a)) <= Math.abs(hueDelta(target, b)) ? a : b))
+}
+
 /** How saturated a colour is for its lightness and hue: chroma over the most sRGB allows there. */
 function relativeChroma(color: Oklch): number {
 	const max = maxChroma(color.l, color.h)
@@ -374,7 +402,7 @@ export function leanStatus(resolved: Partial<Record<string, Oklch>>, brandHue: n
 	for (const token of STATUS_TOKENS) {
 		const value = resolved[token]
 		if (!value) continue
-		const target = nearestInBand(brandHue, bandFor(token, value))
+		const target = leanTarget(brandHue, bandFor(token, value))
 		const h = norm360(value.h + hueDelta(value.h, target) * t)
 		const max = maxChroma(value.l, h)
 		const rel = relativeChroma(value)
@@ -420,33 +448,35 @@ function clearOfStatus(hue: number, statusHues: readonly number[]): number {
 	return norm(hue)
 }
 
-const DECORATIVE_TONES = ["tone-info", "tone-1", "tone-2", "tone-3"] as const
+const DECORATIVE_TONES = ["tone-1", "tone-2", "tone-3"] as const
 
 /**
- * Brand-only steps: an even lightness ramp, darkest to lightest, in the order
- * the tones usually stack (1 → 2 → 3 → info). Chroma
- * eases off a little toward the light end so the ramp stays one family
- * instead of one shade dropping out as grey.
+ * Brand-only steps: one family, three roles a chart or a set of tags can tell
+ * apart — a deep brand, a lighter and more vivid neighbour a short turn along
+ * the wheel, and a soft muted sibling. They used to be an even 0.08 lightness
+ * ramp at one hue, and side by side tones 1–3 read as the same colour twice.
  */
-const MONO_STEPS: Record<string, { dl: number; c: number }> = {
-	"tone-1": { dl: -0.12, c: 1 },
-	"tone-2": { dl: -0.04, c: 0.95 },
-	"tone-3": { dl: 0.04, c: 0.85 },
-	"tone-info": { dl: 0.12, c: 0.75 },
+const MONO_STEPS: Record<string, { dl: number; dh: number; c: number }> = {
+	"tone-1": { dl: -0.1, dh: 0, c: 1 },
+	"tone-2": { dl: 0.06, dh: 22, c: 1 },
+	"tone-3": { dl: 0.16, dh: -14, c: 0.45 },
 }
 
-function monoTone(brand: Oklch, step: { dl: number; c: number }, mode: "light" | "dark"): Oklch {
-	const base = toneAt(brand.h, brand.c, mode)
+function monoTone(brand: Oklch, step: { dl: number; dh: number; c: number }, mode: "light" | "dark", statusHues: readonly number[]): Oklch {
+	// A turned sibling keeps clear of the status hues, so a green brand's
+	// neighbour never lands on success; the brand step itself stays the brand.
+	const h = step.dh ? clearOfStatus(brand.h + step.dh, statusHues) : brand.h
+	const base = toneAt(h, brand.c, mode)
 	// Dark mode reads lighter tones as the "front", so the ladder flips.
 	const dl = mode === "light" ? step.dl : -step.dl
 	const l = Math.min(0.9, Math.max(0.3, base.l + dl))
 	return { ...base, l, c: fitChroma(l, base.c * step.c, base.h) }
 }
 
-/** Hue offsets from the brand for each decorative tone. */
+/** Hue offsets from the brand for each decorative tone. Info is a status: it leans, it is not generated. */
 const SCHEMES: Record<"analogous" | "triadic", Record<string, number>> = {
-	analogous: { "tone-info": 30, "tone-1": -30, "tone-2": 60, "tone-3": -60 },
-	triadic: { "tone-info": 120, "tone-1": -120, "tone-2": 180, "tone-3": 60 },
+	analogous: { "tone-1": -30, "tone-2": 60, "tone-3": -60 },
+	triadic: { "tone-1": -120, "tone-2": 180, "tone-3": 60 },
 }
 
 /** The two label inks, carrying the fill's hue. */
@@ -517,13 +547,25 @@ const isStatus = (token: string) => (STATUS_FILLS as readonly string[]).includes
  * since text-tone-info reads that and not the fill.
  */
 function toneDecls(token: string, tone: Oklch, mode: "light" | "dark", surfaces: (Oklch | undefined)[]): string[] {
-	if (!isStatus(token)) return [`--${token}: ${formatOklch(tone)};`, `--${token}-foreground: ${formatOklch(inkOn(tone))};`]
+	if (!isStatus(token)) return [`--${token}: ${formatOklch(tone)};`, `--${token}-foreground: ${formatOklch(inkOn(tone))};`, markDecl(token, tone, mode, surfaces)]
 	const pair = statusFill(tone, mode)
 	return [
 		`--${token}: ${formatOklch(pair.fill)};`,
 		`--${token}-foreground: ${formatOklch(pair.ink)};`,
 		`--${token}-text: ${formatOklch(textOn(toneAt(tone.h, tone.c, mode), surfaces, mode))};`,
+		markDecl(token, pair.fill, mode, surfaces),
 	]
+}
+
+/**
+ * A tone's mark: the same hue at graphic strength, for meters, dots, charts and
+ * soft tints. Every bundled preset tunes its own `--theme-*-mark`, so a look that
+ * moves a tone must move its mark too, or the meters keep the preset's old hue.
+ * Held against the page and the card, the surfaces a mark sits on.
+ */
+function markDecl(token: string, fill: Oklch, mode: "light" | "dark", surfaces: (Oklch | undefined)[]): string {
+	const page = surfaces.slice(0, 2).filter((s): s is Oklch => !!s && s.a >= 0.999)
+	return `--theme-${token}-mark: ${formatOklch(toGamut(markFor(fill, mode, page)))};`
 }
 
 const NEUTRAL_TINT: Record<Exclude<Neutrals, "theme">, { c: number; h: number | "brand" }> = {
@@ -638,7 +680,7 @@ function colorDecls(look: Look, base: ThemeBase, mode: "light" | "dark"): string
 			if (!value || !tone) continue
 			// A new hue and chroma move the label's contrast; keep the preset's label and refit.
 			const pair = statusFill(tone, mode, resolved[`${token}-foreground`])
-			out.push(`--${token}: ${formatOklch(pair.fill)};`, `--${token}-foreground: ${formatOklch(pair.ink)};`)
+			out.push(`--${token}: ${formatOklch(pair.fill)};`, `--${token}-foreground: ${formatOklch(pair.ink)};`, markDecl(token, pair.fill, mode, surfaces))
 			// The colour on the page turns with it, at the preset's own depth, its
 			// chroma scaled as the fill's was.
 			const text = resolved[`${token}-text`]
@@ -650,11 +692,11 @@ function colorDecls(look: Look, base: ThemeBase, mode: "light" | "dark"): string
 
 		// The rest of the palette, built from the brand.
 		if (look.palette === "preset") {
-			// Brand only: the decorative tones become one family, the brand hue at
-			// different depths plus a muted member, so charts and badges read as
-			// monochrome brand rather than the preset's own colours.
+			// Brand only: the decorative tones become one family — a deep brand, a
+			// lighter neighbour and a muted sibling (MONO_STEPS) — so charts and
+			// badges read as the brand's own rather than the preset's colours.
 			for (const [token, step] of Object.entries(MONO_STEPS)) {
-				out.push(...toneDecls(token, monoTone(brand, step, mode), mode, surfaces))
+				out.push(...toneDecls(token, monoTone(brand, step, mode, statusHues), mode, surfaces))
 			}
 		} else if (look.palette === "harmonize") {
 			// Decorative tones keep their own identity but lean well toward the
@@ -790,6 +832,9 @@ function shapeDecls(look: Look, base: ThemeBase): string[] {
 			}
 		}
 	}
+	// Fields: the theme's field pair, which every text field reads through its shell.
+	if (look.fields === "filled") out.push("--theme-field: var(--muted);", "--theme-field-border: transparent;")
+	if (look.fields === "outline") out.push("--theme-field: var(--card);", "--theme-field-border: var(--input);")
 	if (look.buttons === "pill") out.push("--button-radius: 9999px;")
 	if (look.buttons === "match") {
 		// Buttons echo the small corner. But nothing nests inside a button, so the

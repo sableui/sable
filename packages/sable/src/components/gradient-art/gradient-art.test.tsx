@@ -40,6 +40,37 @@ describe("GradientArt", () => {
 		expect(background).not.toContain("var(--tone-info)")
 	})
 
+	it("leaves vivid art exactly as it was: the default intensity changes nothing", () => {
+		const paint = (intensity?: "vivid") => root(renderWithProviders(<GradientArt seed="gold rush" intensity={intensity} />).container)
+		const vivid = paint("vivid")
+		expect(vivid.style.background).toBe(paint().style.background)
+		expect(vivid).toHaveAttribute("data-intensity", "vivid")
+		expect(vivid.style.background).not.toContain("calc(c * 0.5)")
+		expect(vivid.style.background).not.toContain("clamp(0.84")
+	})
+
+	it("washes every colour and the ground to a pastel of itself when soft", () => {
+		const vivid = root(renderWithProviders(<GradientArt seed="gold rush" />).container).style.background
+		const element = root(renderWithProviders(<GradientArt seed="gold rush" intensity="soft" />).container)
+		const soft = element.style.background
+		expect(element).toHaveAttribute("data-intensity", "soft")
+		expect(soft).not.toBe(vivid)
+		// Still the preset's own art tokens underneath, so it follows every theme and mode.
+		expect(soft).toContain("var(--art-1)")
+		expect(soft).toContain("var(--art-ground)")
+		// One pastel per palette slot (six) and one for the ground: nothing is left vivid.
+		// High lightness, half the chroma (capped so it stays in gamut), the same hue.
+		const pastel = /clamp\(0\.84, calc\(0\.8 \+ l \* 0\.15\), 0\.95\) min\(calc\(c \* 0\.5\), 0\.09\) h\)/g
+		expect(soft.match(pastel)).toHaveLength(7)
+	})
+
+	it("washes `tones` overrides as well", () => {
+		const { container } = renderWithProviders(<GradientArt tones={["1", "info"]} intensity="soft" />)
+		const background = root(container).style.background
+		expect(background).toContain("var(--tone-1)")
+		expect(background.match(/calc\(c \* 0\.5\)/g)).toHaveLength(3)
+	})
+
 	it("hides the art from assistive tech and renders children above it", () => {
 		renderWithProviders(
 			<GradientArt seed="Mara Okafor" aria-label="Mara Okafor" role="img">

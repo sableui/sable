@@ -51,7 +51,7 @@ Use Stepper above or beside a flow that is split into a known, small number of n
 
 ## Tokens used
 
-`primary`, `primary-foreground`, `background`, `foreground`, `muted-foreground`, `border-strong`, `destructive`, `destructive-foreground`, `ring`
+`primary`, `primary-foreground`, `background`, `foreground`, `muted-foreground`, `border-strong`, `destructive`, `destructive-foreground`, `ring`, `destructive-mark`
 
 ## Motion
 

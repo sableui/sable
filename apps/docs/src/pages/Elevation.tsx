@@ -1,4 +1,4 @@
-import { cn, Grid } from "@sableui/react"
+import { Button, cn, EmptyState, Grid, Icon } from "@sableui/react"
 import { PageHeader, Section } from "../components/docs-ui"
 
 const SURFACES: [string, string, string][] = [
@@ -126,6 +126,28 @@ export function ElevationPage() {
 						</div>
 					))}
 				</Grid>
+			</Section>
+
+			<Section
+				title="Texture"
+				description="texture-dither lays a faint field of tiny squares that dissolves, painted in the border-strong ink so it follows every theme. It is decoration: its own aria-hidden layer behind the content. The --dither-fade hook turns it."
+			>
+				<div className="grid gap-4 md:grid-cols-2">
+					<div className="relative isolate overflow-hidden rounded-lg border border-border bg-card">
+						<div aria-hidden className="texture-dither absolute inset-x-0 top-0 -z-10 h-40" />
+						<EmptyState
+							icon={<Icon name="inbox" />}
+							title="No messages yet"
+							description="When someone writes to you, it lands here."
+							action={<Button variant="secondary">Invite your team</Button>}
+						/>
+					</div>
+					<div className="relative isolate grid content-end gap-1 overflow-hidden rounded-lg border border-border bg-card p-5 min-h-56">
+						<div aria-hidden className="texture-dither absolute inset-x-0 bottom-0 -z-10 h-32 [--dither-fade:to_top]" />
+						<p className="text-title-sm">Faded from the bottom</p>
+						<code className="text-mono-caption text-muted-foreground">[--dither-fade:to_top]</code>
+					</div>
+				</div>
 			</Section>
 
 			<Section title="Layers" description="What sits on top of what, from top to bottom.">

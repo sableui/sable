@@ -216,12 +216,11 @@ export function CaretMenu({ trigger, label, status, children, className }: Caret
 			if (popupRef.current?.contains(event.target as Node)) return
 			place()
 		}
-		view.addEventListener("resize", place)
-		view.addEventListener("scroll", onScroll, true)
-		return () => {
-			view.removeEventListener("resize", place)
-			view.removeEventListener("scroll", onScroll, true)
-		}
+		const listeners = new AbortController()
+		const { signal } = listeners
+		view.addEventListener("resize", place, { signal })
+		view.addEventListener("scroll", onScroll, { capture: true, signal })
+		return () => listeners.abort()
 	}, [open, field, place])
 
 	// Enter: render with data-starting-style, then drop it so motion-pop

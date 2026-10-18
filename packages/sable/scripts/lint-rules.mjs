@@ -861,7 +861,7 @@ export function makeRules({ semanticTokens, motionTokens, labelContrast = null, 
 			file: true,
 			code: true,
 			why:
-				"A raw element dressed as a Sable component. `border-input` is the field shell (Input, Textarea, SearchInput, Select…); a `bg-primary` / `bg-secondary` / `bg-destructive` fill or a `--control-*` height on a <button> or <a> is a Button. Hand-built, they drift from the component — no density, no loading or disabled states, no focus contract — and every token on them still passes lint. Use the component: Button (a link takes `render={<a href=… />}`), Input / SearchInput, or CommandMenuTrigger for a search-shaped button that opens a palette. If none fits, that is a library gap: say so, then take the escape hatch with the reason.",
+				"A raw element dressed as a Sable component. `border-field-border` (or the older `border-input`) is the field shell (Input, Textarea, SearchInput, Select…); a `bg-primary` / `bg-secondary` / `bg-destructive` fill or a `--control-*` height on a <button> or <a> is a Button. Hand-built, they drift from the component — no density, no loading or disabled states, no focus contract — and every token on them still passes lint. Use the component: Button (a link takes `render={<a href=… />}`), Input / SearchInput, or CommandMenuTrigger for a search-shaped button that opens a palette. If none fits, that is a library gap: say so, then take the escape hatch with the reason.",
 			scan(text) {
 				const out = []
 				for (const m of openingTags(text, /^[a-z][a-z0-9]*$/)) {
@@ -869,8 +869,11 @@ export function makeRules({ semanticTokens, motionTokens, labelContrast = null, 
 					if (m.tag === "input" || m.tag === "textarea" || m.tag === "select") continue
 					const cls = /\bclassName\s*=\s*\{?\s*(?:cn\()?\s*["'`]([^"'`]*)["'`]/.exec(m.attrs)?.[1] ?? ""
 					if (!cls) continue
-					if (/(?:^|\s)border-input(?=\s|$)/.test(cls)) {
-						out.push({ index: m.index, match: `<${m.tag}> with the field shell (border-input) → use Input / SearchInput / CommandMenuTrigger` })
+					// The shell's outline is `border-field-border` (since the field tokens);
+					// `border-input` is what it was, and what a hand copy still reaches for.
+					const shell = /(?:^|\s)(border-input|border-field-border)(?=\s|$)/.exec(cls)?.[1]
+					if (shell) {
+						out.push({ index: m.index, match: `<${m.tag}> with the field shell (${shell}) → use Input / SearchInput / CommandMenuTrigger` })
 						continue
 					}
 					if (m.tag !== "button" && m.tag !== "a") continue

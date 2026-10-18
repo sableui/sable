@@ -40,7 +40,7 @@ Use SegmentedBar when a stat card or row needs to show how a total divides into 
 
 ## Tokens used
 
-`tone-1`, `tone-2`, `tone-3`, `tone-info`, `primary`, `muted-foreground`, `success`, `tone-warning`, `destructive`
+`tone-1`, `tone-2`, `tone-3`, `tone-info`, `primary`, `muted-foreground`, `success`, `tone-warning`, `destructive`, `destructive-mark`, `success-mark`, `tone-warning-mark`, `tone-info-mark`, `tone-1-mark`, `tone-2-mark`, `tone-3-mark`
 
 ## Motion
 

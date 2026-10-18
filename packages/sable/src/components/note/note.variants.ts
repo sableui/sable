@@ -14,10 +14,10 @@ export const noteVariants = cva(
 	{
 		variants: {
 			tone: {
-				info: "border-tone-info/30 bg-tone-info/10",
-				warning: "border-tone-warning/30 bg-tone-warning/10",
-				success: "border-success/30 bg-success/10",
-				destructive: "border-destructive/30 bg-destructive/10",
+				info: "border-tone-info-mark/30 bg-tone-info-mark/10",
+				warning: "border-tone-warning-mark/30 bg-tone-warning-mark/10",
+				success: "border-success-mark/30 bg-success-mark/10",
+				destructive: "border-destructive-mark/30 bg-destructive-mark/10",
 				neutral: "border-border bg-muted/40",
 			},
 		},

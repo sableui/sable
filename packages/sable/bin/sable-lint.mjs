@@ -44,7 +44,11 @@ if (!existsSync(registryPath)) {
 }
 const REGISTRY = JSON.parse(readFileSync(registryPath, "utf8"))
 
-const semanticTokens = new Set((REGISTRY.tokens?.semantic ?? []).map((t) => t.name))
+// Derived colours (`tone-warning-mark`, `field`, `shell-ground`…) are real tokens
+// too: every theme gets them, so a utility naming one is not a typo.
+const semanticTokens = new Set(
+	[...(REGISTRY.tokens?.semantic ?? []), ...(REGISTRY.tokens?.derived ?? [])].map((t) => (typeof t === "string" ? t : t.name)),
+)
 // Motion token NAMES are reassembled from the registry's durations/easings lists.
 // A test in the package asserts this reconstruction equals _contract.ts exactly,
 // so the consumer linter can never validate against a drifted vocabulary.

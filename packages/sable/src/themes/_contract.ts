@@ -512,6 +512,69 @@ export const PALETTE_SLOT_TOKENS = [
 export const DERIVED_EDGE_TOKENS = ["border-floating"] as const
 
 /**
+ * The text field's surface — derived like the edges, with a `--theme-*` hook.
+ *
+ * - `field` is the fill of every text-entry field (Input, Textarea, Select,
+ *   Combobox, SearchInput, InputGroup, ChatComposer…). It defaults to `card`.
+ * - `field-border` is that field's outline. It defaults to `input`.
+ *
+ * Together they are the one choice a theme makes about how a field reads:
+ * outlined on the card (the default), or filled — `--theme-field: var(--muted)`
+ * with `--theme-field-border: transparent` — the borderless grey well some
+ * product UIs use for every input. Every field wears the pair through
+ * lib/field-shell, so the choice reaches them all at once instead of being
+ * restyled per control.
+ */
+export const FIELD_TOKENS = ["field", "field-border"] as const
+
+export type FieldToken = (typeof FIELD_TOKENS)[number]
+
+/**
+ * The ground of an inset app frame — derived, with a `--theme-*` hook.
+ *
+ * `<AppShell frame="inset">` lifts main into a rounded panel and paints the
+ * rail and the gap around it as one surface. That surface cannot simply be
+ * `sidebar`: most themes paint the rail the page's own colour, so the panel
+ * sat on a ground of the same colour and only its hairline told them apart.
+ * `shell-ground` is one small step off the rail toward its ink, so the panel
+ * reads as lifted in every theme, and a theme sets `--theme-shell-ground` for
+ * a stronger or tinted ground.
+ */
+export const APP_SHELL_TOKENS = ["shell-ground"] as const
+
+/**
+ * Status and tone colours at GRAPHIC strength — derived, with `--theme-*` hooks.
+ *
+ * Each status colour already comes in two: the fill, which carries a label
+ * (dark enough for white ink at 4.5:1 in light mode), and `-text`, the colour
+ * as ink on a surface. Neither is right for a mark that carries no text — a
+ * meter's fill, a segmented bar, a status dot, a chart series, the soft tint
+ * behind a badge. Those were painted with the label fill, so in light mode
+ * every one of them was a deep brown, forest green or plum: muddy, and 5–9:1
+ * against the page when a graphic needs far less.
+ *
+ * A mark is the same hue lifted and saturated. It is held to a VISIBILITY floor
+ * of 2:1 against `background` and `card` (NON_TEXT_HARD_FLOOR, the `graphic`
+ * tier in contrast.ts), not to a text ratio: every mark that uses it sits
+ * beside text that states the same thing (a meter's reading, a dot's label).
+ * A graphic that is the ONLY carrier of its meaning still owes WCAG 1.4.11's
+ * 3:1 — use the fill, or add the text.
+ */
+export const MARK_TOKENS = [
+	"destructive-mark",
+	"success-mark",
+	"tone-warning-mark",
+	"tone-info-mark",
+	"tone-1-mark",
+	"tone-2-mark",
+	"tone-3-mark",
+] as const
+
+export type MarkToken = (typeof MARK_TOKENS)[number]
+
+export type AppShellToken = (typeof APP_SHELL_TOKENS)[number]
+
+/**
  * UI type tiers (mode-independent) — the chrome typography register.
  *
  * A separate ramp from TYPE_SCALE_TOKENS on purpose. Tool chrome runs 10-12px at

@@ -32,7 +32,7 @@ Use NumberField for numeric values that benefit from validation, min/max bounds,
 
 ## Tokens used
 
-`input`, `card`, `foreground`, `muted-foreground`, `accent`, `accent-foreground`, `ring`
+`field-border`, `field`, `foreground`, `muted-foreground`, `accent`, `accent-foreground`, `ring`
 
 ## Accessibility
 

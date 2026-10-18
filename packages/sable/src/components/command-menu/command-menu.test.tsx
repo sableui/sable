@@ -879,3 +879,51 @@ describe("CommandMenu — leading visuals and clearing", () => {
 		expect(screen.queryByRole("button", { name: "Clear search" })).toBeNull()
 	})
 })
+
+describe("CommandMenu — match highlighting", () => {
+	// jsdom has no Custom Highlight API; stand in the two shapes the hook uses.
+	class FakeHighlight extends Set<Range> {}
+	const painted = () =>
+		Array.from((globalThis.CSS as unknown as { highlights: Map<string, Set<Range>> }).highlights.get("sable-match") ?? [], (r) =>
+			r.toString(),
+		)
+
+	function withRegistry(run: () => Promise<void>) {
+		return async () => {
+			const original = globalThis.CSS
+			;(globalThis as { CSS?: unknown }).CSS = { highlights: new Map() }
+			;(globalThis as { Highlight?: unknown }).Highlight = FakeHighlight
+			try {
+				await run()
+			} finally {
+				;(globalThis as { CSS?: unknown }).CSS = original
+				delete (globalThis as { Highlight?: unknown }).Highlight
+			}
+		}
+	}
+
+	const items: CommandItem[] = [
+		{ group: "Navigation", label: "Go to profile", hint: "Profile page", onSelect: () => {} },
+		{ group: "Actions", label: "Edit profile", onSelect: () => {} },
+	]
+
+	it(
+		"paints the query in row labels and not in their hints",
+		withRegistry(async () => {
+			const user = userEvent.setup()
+			renderWithProviders(<CommandMenuPanel items={items} />)
+			await user.type(screen.getByRole("combobox"), "profile")
+			expect(painted()).toEqual(["profile", "profile"])
+		}),
+	)
+
+	it(
+		"stays off with highlightMatches={false}",
+		withRegistry(async () => {
+			const user = userEvent.setup()
+			renderWithProviders(<CommandMenuPanel items={items} highlightMatches={false} />)
+			await user.type(screen.getByRole("combobox"), "profile")
+			expect(painted()).toEqual([])
+		}),
+	)
+})

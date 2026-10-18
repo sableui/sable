@@ -1,6 +1,8 @@
 import type { ComponentProps, ReactNode } from "react"
 import { cn } from "../../lib/cn"
 import { AppShellDock } from "./app-shell-dock"
+import { type AppShellFrame, AppShellFrameProvider } from "./app-shell-frame"
+import { AppShellMain } from "./app-shell-main"
 import { SkipLink } from "./skip-link"
 
 export interface AppShellProps extends Omit<ComponentProps<"div">, "title"> {
@@ -35,6 +37,23 @@ export interface AppShellProps extends Omit<ComponentProps<"div">, "title"> {
 	dock?: ReactNode
 	/** Floating overlays (a message launcher, FAB, modal mount points). */
 	overlays?: ReactNode
+	/**
+	 * How the desktop frame (`lg` and up) holds the content. Below `lg` the two
+	 * are identical: mobile header, plain main, page scroll, bottom nav.
+	 * - `flush` (default) — main sits directly on the page beside the rail and
+	 *   the document scrolls.
+	 * - `inset` — the shell's ground (`shell-ground`, one step off the rail's
+	 *   surface) holds the rail and the gap, and main
+	 *   is a raised, rounded, bordered panel inset from the window edges that
+	 *   scrolls inside itself while the rail stays put. For dense, multi-pane
+	 *   product apps. The Sidebar in the `sidebar` slot reads the frame (see
+	 *   `app-shell-frame.tsx`), drops its right border — the gap is the divider
+	 *   now — and fills the body row. Pair it with `surface="rail"`; with
+	 *   `surface="page"` the ground turns page-coloured and the panel's border
+	 *   alone lifts it.
+	 * @default "flush"
+	 */
+	frame?: AppShellFrame
 	/** Main content. */
 	children?: ReactNode
 }
@@ -47,7 +66,9 @@ export interface AppShellProps extends Omit<ComponentProps<"div">, "title"> {
  * It is layout-agnostic about the breakpoint switch: each slot component owns
  * its own `hidden`/`lg:*` visibility (Sidebar is `hidden lg:flex`, AppHeader and
  * BottomNav are `lg:hidden`), so the same shell drives mobile and desktop. The
- * only coupling AppShell adds is reserving bottom space for a fixed `bottomNav`.
+ * only couplings AppShell adds are reserving bottom space for a fixed
+ * `bottomNav` and, with `frame="inset"`, telling the Sidebar in its slot to drop
+ * its border and fill the row (`AppShellFrameProvider`, app-shell-frame.tsx).
  *
  *   <AppShell
  *     banners={<NetworkBanner />}
@@ -65,17 +86,27 @@ export function AppShell({
 	bottomNav,
 	dock,
 	overlays,
+	frame = "flush",
 	className,
 	children,
 	...rest
 }: AppShellProps) {
+	const inset = frame === "inset"
 	return (
 		<div
+			data-frame={inset ? "inset" : undefined}
 			className={cn(
 				// `overflow-x-clip` (not `-hidden`) contains horizontal bleed WITHOUT
 				// establishing a scroll container — `-hidden` forces `overflow-y: auto`,
 				// which breaks `position: sticky` on a descendant Sidebar.
 				"flex min-h-screen flex-col overflow-x-clip bg-background text-foreground",
+				// Inset, from lg: the shell IS the viewport and never scrolls — main
+				// does. The ground is the rail's surface, so the rail and the gap
+				// around the panel read as one plane. A page-surface rail (Sidebar
+				// surface="page") is page-coloured, so the ground follows it and the
+				// panel's border carries the lift.
+				inset &&
+					"lg:h-dvh lg:min-h-0 lg:bg-shell-ground lg:[&:has(>[data-app-shell-body]>[data-surface=page])]:bg-background",
 				className,
 			)}
 			{...rest}
@@ -86,10 +117,16 @@ export function AppShell({
 
 			{header}
 
-			<div className="flex min-h-0 flex-1">
-				{sidebar}
-				<main
+			<div data-app-shell-body={inset ? "" : undefined} className="flex min-h-0 flex-1">
+				{inset ? <AppShellFrameProvider frame="inset">{sidebar}</AppShellFrameProvider> : sidebar}
+				<AppShellMain
 					id="main-content"
+					scrolls={inset}
+					// Inset, main is the scroll container, so the skip link has to land
+					// focus IN it or PageDown and the arrows have nothing to scroll. -1
+					// keeps it out of the tab order (Chrome's focusable-scroller rule
+					// would otherwise add a tab stop for the whole panel).
+					tabIndex={inset ? -1 : undefined}
 					// A query container so layout primitives can size to the content
 					// area, not the raw viewport — chiefly `Bleed`, which then fills the
 					// space beside a fixed Sidebar instead of bleeding under it.
@@ -101,10 +138,22 @@ export function AppShell({
 						"min-w-0 flex-1",
 						bottomNav &&
 							"pb-[calc(var(--nav-height)+env(safe-area-inset-bottom,0px))] lg:pb-0",
+						// The inset panel. A spacing-step gap on the open sides (the rail
+						// is the leading one). Banners and the dock are in flow in the
+						// shell's column, so the bottom gap already sits above a dock.
+						// Sticky children stick to the panel's top, and the overflow
+						// clips them to its rounded corners. A resting surface: a hairline
+						// edge and the subtlest raise, never a floating shadow.
+						inset &&
+							cn(
+								"outline-none lg:m-2 lg:overflow-y-auto lg:overscroll-contain scrollbar-quiet",
+								"lg:rounded-lg lg:border lg:border-border lg:bg-background lg:shadow-sm",
+								sidebar && "lg:ms-0",
+							),
 					)}
 				>
 					{children}
-				</main>
+				</AppShellMain>
 			</div>
 
 			{dock ? <AppShellDock aboveBottomNav={Boolean(bottomNav)}>{dock}</AppShellDock> : null}

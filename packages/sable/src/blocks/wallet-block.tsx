@@ -11,7 +11,10 @@ const activity = [
 	{ title: "Subscription", detail: "Team plan · 2h ago", amount: "+49.00", tone: "1" },
 	{ title: "Refund", detail: "Order 1042 · Yesterday", amount: "-24.00", tone: "2" },
 	{ title: "Payout", detail: "To checking · Mon", amount: "-850.00", tone: "3" },
-]
+] as const
+
+/** Each row's mark: its tone at graphic strength, which every theme tunes. */
+const TONE_MARK = { "1": "bg-tone-1-mark", "2": "bg-tone-2-mark", "3": "bg-tone-3-mark" } as const
 
 export interface WalletBlockProps {
 	className?: string
@@ -45,9 +48,7 @@ export function WalletBlock({ className, framed = true, onSend, onReceive }: Wal
 							leading={
 								<span
 									aria-hidden
-									className="block size-8 rounded-full"
-									// design-lint-disable-next-line inline-color -- relative colour derived from the theme's own --tone token, so it follows every look
-									style={{ background: `oklch(from var(--tone-${item.tone}) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h)` }}
+									className={cn("block size-8 rounded-full", TONE_MARK[item.tone])}
 								/>
 							}
 							title={item.title}

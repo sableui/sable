@@ -67,7 +67,7 @@ Pairs with MessageScroller to make a working chat. A single surface rather than 
 
 ## Tokens used
 
-`card`, `input`, `ring`, `destructive`, `foreground`, `muted-foreground`, `primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `accent`, `accent-foreground`
+`field`, `field-border`, `ring`, `destructive`, `foreground`, `muted-foreground`, `primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `accent`, `accent-foreground`
 
 ## Motion
 

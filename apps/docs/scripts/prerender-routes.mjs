@@ -143,7 +143,24 @@ for (const [slug, { file, exportName }] of appPages) {
 	routes.set(slug, meta)
 }
 for (const slug of ["customize", "guidelines"]) routes.set(slug, { ...extra[slug], markdown: markdownTwins[slug], index: true })
+/**
+ * Previews that are not patterns — a component shown at full page size — and
+ * the twin each one publishes: the component's own, since that is what it shows.
+ */
+const COMPONENT_PREVIEWS = {
+	"app-shell-inset": { title: "App shell inset frame preview", component: "app-shell" },
+}
 for (const slug of previewSlugs) {
+	const own = COMPONENT_PREVIEWS[slug]
+	if (own) {
+		routes.set(`preview/${slug}`, {
+			title: own.title,
+			description: `A full-page preview of ${own.title.replace(/ preview$/, "").toLowerCase()}.`,
+			markdown: `/llms/components/${own.component}.md`,
+			index: false,
+		})
+		continue
+	}
 	const pattern = catalogPatterns.find((p) => p.path === `patterns/${slug}.tsx`)
 	const name = (pattern?.name ?? slug).replace(/Page$/, "").split(/(?=[A-Z])/).join(" ").toLowerCase()
 	routes.set(`preview/${slug}`, {

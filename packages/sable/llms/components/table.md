@@ -36,8 +36,8 @@ Use Table for structured data with consistent columns and rows. Use DataTable wh
 | TableBody | ComponentPropsWithRef<"tbody"> | The data row group (tbody). |
 | TableFooter | ComponentPropsWithRef<"tfoot"> | Summary row group (tfoot) with a muted fill. |
 | TableRow | ComponentPropsWithRef<"tr"> | A row (tr) — hairline bottom border, hover lift, and a selected state via the data-selected attribute. |
-| TableHead | ComponentPropsWithRef<"th"> | A column header cell (th) in muted label styling. |
-| TableCell | ComponentPropsWithRef<"td"> | A data cell (td). |
+| TableHead | ComponentPropsWithRef<"th"> & { numeric?: boolean } | A column header cell (th) in muted label styling. `numeric` marks a number column: end-aligned, tabular figures — set it on the column's cells too. |
+| TableCell | ComponentPropsWithRef<"td"> & { numeric?: boolean } | A data cell (td). `numeric` end-aligns it with tabular figures, matching its column's header. |
 | TableCaption | ComponentPropsWithRef<"caption"> | Accessible description of the table (caption), muted. |
 
 ## Props

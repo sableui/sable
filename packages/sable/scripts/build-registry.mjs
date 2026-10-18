@@ -1315,6 +1315,9 @@ const REGISTRY_TOKENS = JSON.parse(readFileSync(REGISTRY_PATH, "utf8")).tokens
 	REGISTRY_TOKENS.derived = [
 		...readContractArray(contractSrc, "WORKSPACE_SURFACE_TOKENS"),
 		...readContractArray(contractSrc, "DERIVED_EDGE_TOKENS"),
+		...readContractArray(contractSrc, "FIELD_TOKENS"),
+		...readContractArray(contractSrc, "APP_SHELL_TOKENS"),
+		...readContractArray(contractSrc, "MARK_TOKENS"),
 	]
 
 	const contractMotion = new Set(readContractArray(contractSrc, "MOTION_TOKENS"))

@@ -136,7 +136,7 @@ export interface CommandMenuTriggerProps
 
 /**
  * CommandMenuTrigger — the search field in a header that is really a button:
- * it wears SearchInput's shell (border-input, card surface, leading magnifier,
+ * it wears SearchInput's shell (the field fill and outline, leading magnifier,
  * muted placeholder) and opens a `CommandMenu` on click or on ⌘K / Ctrl+K.
  *
  *   const [open, setOpen] = useState(false)

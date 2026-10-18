@@ -1,4 +1,4 @@
-import { Grid } from "@sableui/react"
+import { Button, Card, CardDescription, CardFooter, CardHeader, CardTitle, Grid, Icon } from "@sableui/react"
 import { GradientArt, gradientArtMeta } from "@sableui/react"
 import { ComponentPlayground, Example, MetaFooter, PageHeader, Section, ledeFor } from "../../components/docs-ui"
 import { useTheme } from "../../theme"
@@ -13,6 +13,9 @@ const PEOPLE = [
 ]
 
 const COVERS = ["Low tide, high noon", "Untitled (gold rush)", "Dusk, no. 4", "Field recordings"]
+
+const PROMPTS = ["Summarise this thread", "Draft a reply", "Find the action items"]
+const TOOLS = ["mail", "calendar", "chart"]
 
 export function GradientArtPage() {
 	const { themes, mode } = useTheme()
@@ -32,6 +35,50 @@ export function GradientArtPage() {
 							</figure>
 						))}
 					</Grid>
+				</Example>
+			</Section>
+
+			<Section
+				title="Soft"
+				description="intensity=&quot;soft&quot; washes the same art to a pastel of itself: every colour and the ground lifted light and half as saturated. It is a stage, not a surface for text: a card header band, or a field for chips and logo tiles to float on. It stays light in dark mode too."
+			>
+				<Example>
+					<div className="grid w-full max-w-2xl gap-6">
+						<Grid cols={2} gap={2}>
+							{(["vivid", "soft"] as const).map((intensity) => (
+								<figure key={intensity} className="grid gap-2">
+									<GradientArt intensity={intensity} seed="Untitled (gold rush)" className="aspect-[4/3] rounded-lg" />
+									<figcaption className="text-caption text-muted-foreground">{intensity}</figcaption>
+								</figure>
+							))}
+						</Grid>
+						<Grid cols={{ base: 1, sm: 2 }} gap={3}>
+							<Card>
+								<GradientArt intensity="soft" seed="Integrations" className="flex h-32 items-center justify-center gap-3 rounded-t-lg">
+									{TOOLS.map((name) => (
+										<span key={name} className="grid size-12 place-items-center rounded-lg border border-border-floating bg-popover text-popover-foreground shadow-md">
+											<Icon name={name} className="text-xl" />
+										</span>
+									))}
+								</GradientArt>
+								<CardHeader>
+									<CardTitle>Connect your tools</CardTitle>
+									<CardDescription>Bring mail, calendar and analytics into one place.</CardDescription>
+								</CardHeader>
+								<CardFooter>
+									<Button>Connect</Button>
+								</CardFooter>
+							</Card>
+							<GradientArt intensity="soft" seed="Ask anything" className="flex min-h-56 flex-col items-center justify-center gap-2 rounded-lg p-6">
+								{PROMPTS.map((prompt) => (
+									<Button key={prompt} variant="floating" size="sm">
+										<Icon name="sparkles" />
+										{prompt}
+									</Button>
+								))}
+							</GradientArt>
+						</Grid>
+					</div>
 				</Example>
 			</Section>
 

@@ -105,6 +105,7 @@ export const feedbackMeta: ComponentMeta = {
 		"accent-foreground",
 		"ring",
 		"success",
+		"success-mark",
 	],
 	motion: [
 		{

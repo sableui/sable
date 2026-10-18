@@ -35,7 +35,7 @@ Use Note for helpful supporting information that should sit near the relevant co
 
 ## Tokens used
 
-`foreground`, `border`, `muted`, `muted-foreground`, `tone-info`, `tone-warning`, `success`, `destructive`
+`foreground`, `border`, `muted`, `muted-foreground`, `tone-info`, `tone-warning`, `success`, `destructive`, `destructive-mark`, `success-mark`, `tone-warning-mark`, `tone-info-mark`
 
 ## Motion
 

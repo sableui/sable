@@ -26,6 +26,7 @@ import {
 	DialogTitle,
 } from "../dialog/dialog";
 import { mergeRefs } from "../../lib/refs";
+import { useMatchHighlight } from "../../lib/use-match-highlight";
 import { Button } from "../button";
 import { Scroller } from "../scroller/scroller";
 
@@ -177,6 +178,14 @@ export interface CommandMenuProps
 	 */
 	filter?: CommandFilter;
 	/**
+	 * Paint the query wherever it appears in a row's label, on the `highlight`
+	 * token pair. A literal, case-insensitive match — so under a fuzzy `filter`
+	 * a row that matched as a subsequence keeps an unpainted label, which is
+	 * honest: nothing in it reads as the query. See useMatchHighlight.
+	 * @default true
+	 */
+	highlightMatches?: boolean;
+	/**
 	 * Classes for the scrolling list, which is a `Scroller` — so `className`
 	 * (which lands on the dialog surface) cannot reach it, and the list's own
 	 * height cap is what a caller most often wants to change.
@@ -287,7 +296,7 @@ function useCommandQuery(
 interface CommandMenuBodyProps
 	extends Pick<
 		CommandMenuProps,
-		"items" | "filter" | "listClassName" | "scope" | "inputProps" | "children"
+		"items" | "filter" | "highlightMatches" | "listClassName" | "scope" | "inputProps" | "children"
 	> {
 	query: string;
 	setQuery: (next: string) => void;
@@ -331,6 +340,7 @@ function CommandMenuBody({
 	setQuery,
 	items,
 	filter,
+	highlightMatches = true,
 	listClassName,
 	placeholder,
 	emptyMessage,
@@ -427,6 +437,13 @@ function CommandMenuBody({
 		},
 		[seedActive],
 	);
+	// Row labels only (`data-sable-match`): a hint or a detail that happens to
+	// contain the query is not what the filter matched.
+	const paintMatches = useMatchHighlight<HTMLDivElement>(query, {
+		selector: "[data-sable-match]",
+		enabled: highlightMatches,
+	});
+	const listRefs = useMemo(() => mergeRefs(attachList, paintMatches), [attachList, paintMatches]);
 
 	// Re-seed to the first match as the query narrows the visible set. Keyed on
 	// open+query only, so arrow-key moves (which set activeId) survive re-renders.
@@ -605,7 +622,7 @@ function CommandMenuBody({
 			</div>
 
 			<Scroller
-				ref={attachList}
+				ref={listRefs}
 				role="listbox"
 				id={listboxId}
 				aria-label={title}
@@ -676,6 +693,7 @@ export function CommandMenu({
 	query: queryProp,
 	onQueryChange,
 	filter,
+	highlightMatches,
 	listClassName,
 	placeholder = "Type a command or search…",
 	emptyMessage = "No results found.",
@@ -729,6 +747,7 @@ export function CommandMenu({
 					setQuery={setQuery}
 					items={items}
 					filter={filter}
+					highlightMatches={highlightMatches}
 					listClassName={listClassName}
 					placeholder={placeholder}
 					emptyMessage={emptyMessage}
@@ -767,6 +786,7 @@ export function CommandMenuPanel({
 	query: queryProp,
 	onQueryChange,
 	filter,
+	highlightMatches,
 	listClassName,
 	placeholder = "Type a command or search…",
 	emptyMessage = "No results found.",
@@ -792,6 +812,7 @@ export function CommandMenuPanel({
 				setQuery={setQuery}
 				items={items}
 				filter={filter}
+				highlightMatches={highlightMatches}
 				listClassName={listClassName}
 				placeholder={placeholder}
 				emptyMessage={emptyMessage}
@@ -960,12 +981,12 @@ export function CommandMenuItem({
 			)}
 			{stacked ? (
 				<span className="flex min-w-0 flex-1 flex-col">
-					<span className="truncate">{children}</span>
+					<span data-sable-match="" className="truncate">{children}</span>
 					{detail && <span className="truncate text-body-sm text-muted-foreground">{detail}</span>}
 				</span>
 			) : (
 				<>
-					<span className="truncate">{children}</span>
+					<span data-sable-match="" className="truncate">{children}</span>
 					{/* The detail starts from zero width and only grows into what the label
 					    leaves: shrinking in proportion to its own length, a long summary
 					    squeezed the label to a single letter. */}

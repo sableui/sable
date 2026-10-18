@@ -361,6 +361,11 @@ describe("sable-lint bin", () => {
 		expect(r.out).toContain("unknown-token")
 	})
 
+	it("knows the derived colours, a status colour's mark among them", () => {
+		const r = lint(`export const A = () => <div className="bg-tone-warning-mark/15 bg-tone-1-mark" />`)
+		expect(r.out).not.toContain("unknown-token")
+	})
+
 	/* ── native-ui-import: iOS screens are Sable; Konsta is chrome only. ───── */
 	it("catches a direct Konsta import in an iOS prototype", () => {
 		for (const src of [
@@ -480,6 +485,9 @@ export const A = () => <div role="slider" />`,
 		)
 		expect(field.out).toContain("lookalike-control")
 		expect(field.out).toContain("field shell")
+		// The shell's current outline token is caught the same way.
+		const current = lint(`export const A = () => <div className="flex h-8 rounded-sm border border-field-border bg-field px-2.5">Search</div>`)
+		expect(current.out).toContain("field shell (border-field-border)")
 		const fill = lint(`export const A = () => <a href="/x" className="rounded-full bg-primary px-4 text-primary-foreground">Go</a>`)
 		expect(fill.out).toContain("use Button")
 		const sized = lint(`export const A = () => <button className="h-(--control-md) rounded-sm px-3">Save</button>`)

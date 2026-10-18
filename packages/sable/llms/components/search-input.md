@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-Styled search field with a leading magnifier and a clearable X. Soft-square (rounded-sm), card surface, 2px focus ring; the clear button appears only when there is a value.
+Styled search field with a leading magnifier and a clearable X. Soft-square (rounded-sm), the theme's field surface, 2px focus ring; the clear button appears only when there is a value.
 
 **Keywords:** search, input, filter, query
 
@@ -15,6 +15,7 @@ Use SearchInput for text queries that filter or search a known content set.
 - Do: Use a clear placeholder that names the content being searched.
 - Do: Provide a visible clear affordance when query state persists.
 - Do: When a button stands in for search (a header trigger that opens CommandMenu with ⌘K), use CommandMenuTrigger. It wears this field's shell from the same source, so the two cannot drift; a hand-styled button already did once, into a borderless chip that matched neither the field nor a button.
+- Do: Light the query in the results it filters with `useMatchHighlight(query)` — a callback ref for the results container, with `selector` to keep it to titles. It paints on the `highlight` pair without wrapping matches in `<mark>`, the same paint Combobox and CommandMenu use for their rows.
 - Don't: Do not use SearchInput as a command palette; use CommandMenu for global commands, opened from the header by CommandMenuTrigger. A SearchInput that opens a dialog on focus is a text box you cannot type in.
 - Don't: Do not search on every keystroke against an expensive backend without debouncing. The user sees results flicker and reorder under them, and you send a request per character.
 
@@ -34,7 +35,7 @@ Use SearchInput for text queries that filter or search a known content set.
 
 ## Tokens used
 
-`input`, `card`, `foreground`, `muted-foreground`, `ring`, `destructive`
+`field-border`, `field`, `foreground`, `muted-foreground`, `ring`, `destructive`
 
 ## Motion
 
@@ -80,6 +81,23 @@ import { SearchInput } from "@sableui/react"
 import { Field, SearchInput } from "@sableui/react"
 
 <Field label="Search posts"><SearchInput defaultValue="roadmap" className="max-w-80" /></Field>
+```
+
+### Highlighting matches in the results
+
+```tsx
+import { SearchInput, useMatchHighlight } from "@sableui/react"
+
+const [q, setQ] = useState("")
+const results = useMatchHighlight<HTMLUListElement>(q, { selector: "[data-title]" })
+const shown = posts.filter((post) => post.title.toLowerCase().includes(q.trim().toLowerCase()))
+
+<SearchInput value={q} onValueChange={setQ} placeholder="Search posts" />
+<ul ref={results}>
+	{shown.map((post) => (
+		<li key={post.id}><span data-title>{post.title}</span></li>
+	))}
+</ul>
 ```
 
 ### Disabled

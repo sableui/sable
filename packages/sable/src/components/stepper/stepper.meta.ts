@@ -132,6 +132,7 @@ export const stepperMeta: ComponentMeta = {
 		"destructive",
 		"destructive-foreground",
 		"ring",
+		"destructive-mark",
 	],
 	motion: [
 		{

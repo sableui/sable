@@ -1,10 +1,12 @@
 import { Meter as Base } from "@base-ui/react/meter"
-import { type ComponentProps, createContext, useContext } from "react"
+import { type ComponentProps, createContext, useContext, useState } from "react"
 import { cn } from "../../lib/cn"
 import {
 	meterIndicatorVariants,
 	meterRingValueVariants,
 	meterRingVariants,
+	meterSegmentedTrackVariants,
+	meterTickVariants,
 	meterTrackVariants,
 } from "./meter.variants"
 
@@ -14,6 +16,21 @@ export type MeterSize = "sm" | "md" | "lg"
 
 const ToneContext = createContext<MeterTone>("primary")
 const SizeContext = createContext<MeterSize | undefined>(undefined)
+
+/** Set by a bar Meter with `segments`: what MeterTrack needs to draw its ticks. */
+type SegmentsState = { count: number; value: number | null; min: number; max: number }
+const SegmentsContext = createContext<SegmentsState | null>(null)
+
+/**
+ * How many of `count` ticks a reading fills. None at (or below) the minimum;
+ * otherwise at least one, so a non-zero reading never looks empty — €2 of a
+ * €2,000 limit is one tick, not none.
+ */
+function filledTicks({ count, value, min, max }: SegmentsState): number {
+	if (value == null || value <= min) return 0
+	const ratio = max === min ? 1 : Math.min(1, (value - min) / (max - min))
+	return Math.min(count, Math.max(1, Math.round(ratio * count)))
+}
 
 type RootProps = Omit<ComponentProps<typeof Base.Root>, "className"> & {
 	className?: string
@@ -37,14 +54,20 @@ type RootProps = Omit<ComponentProps<typeof Base.Root>, "className"> & {
 	strokeWidth?: number
 	/** Print the value in the ring's centre. */
 	showValue?: boolean
+	/**
+	 * Draw the bar as this many separate ticks instead of a continuous fill —
+	 * a quota, score or spend limit read at a glance (▮▮▮▮▮▮▯▯▯▯). Any reading
+	 * above `min` fills at least one tick. Bar only: ignored for `shape="ring"`.
+	 */
+	segments?: number
 }
 
 const RING_TONE_STROKE: Record<MeterTone, string> = {
 	primary: "var(--primary)",
-	"3": "var(--tone-3)",
-	success: "var(--success)",
-	warning: "var(--tone-warning)",
-	destructive: "var(--destructive)",
+	"3": "var(--tone-3-mark)",
+	success: "var(--success-mark)",
+	warning: "var(--tone-warning-mark)",
+	destructive: "var(--destructive-mark)",
 }
 
 /** A circular meter: the same value semantics as the bar, drawn as an arc. */
@@ -105,8 +128,10 @@ function MeterRing({
  *   </Meter>
  *
  * `shape="ring"` draws the same measurement as a circular gauge (it was Gauge).
+ * `segments={20}` draws the bar as a row of ticks — a spend limit or a score
+ * read at a glance (bar only).
  */
-export function Meter({ className, children, tone = "primary", shape = "bar", size, strokeWidth = 6, showValue, ...props }: RootProps) {
+export function Meter({ className, children, tone = "primary", shape = "bar", size, strokeWidth = 6, showValue, segments, ...props }: RootProps) {
 	if (shape === "ring") {
 		return (
 			<ToneContext.Provider value={tone}>
@@ -118,12 +143,18 @@ export function Meter({ className, children, tone = "primary", shape = "bar", si
 			</ToneContext.Provider>
 		)
 	}
+	const count = segments != null && Number.isFinite(segments) && segments >= 1 ? Math.floor(segments) : 0
+	const segmented: SegmentsState | null = count
+		? { count, value: props.value ?? null, min: props.min ?? 0, max: props.max ?? 100 }
+		: null
 	return (
 		<ToneContext.Provider value={tone}>
 			<SizeContext.Provider value={size}>
-				<Base.Root className={cn("w-full", className)} {...props}>
-					{children ?? <MeterTrack />}
-				</Base.Root>
+				<SegmentsContext.Provider value={segmented}>
+					<Base.Root className={cn("w-full", className)} {...props}>
+						{children ?? <MeterTrack />}
+					</Base.Root>
+				</SegmentsContext.Provider>
 			</SizeContext.Provider>
 		</ToneContext.Provider>
 	)
@@ -136,9 +167,26 @@ type TrackProps = Omit<ComponentProps<typeof Base.Track>, "className"> & {
 	size?: MeterSize
 }
 
-/** The rail. Renders a MeterIndicator child by default. */
+/**
+ * The rail. Renders a MeterIndicator child by default — or, when the Meter has
+ * `segments`, its row of ticks (children are not rendered then: there is no
+ * single fill to put in it).
+ */
 export function MeterTrack({ className, children, size, ...props }: TrackProps) {
 	const inherited = useContext(SizeContext)
+	const tone = useContext(ToneContext)
+	const segments = useContext(SegmentsContext)
+	if (segments) {
+		return (
+			<Base.Track
+				data-segmented=""
+				className={cn(meterSegmentedTrackVariants({ size: size ?? inherited }), className)}
+				{...props}
+			>
+				<MeterTicks count={segments.count} filled={filledTicks(segments)} tone={tone} />
+			</Base.Track>
+		)
+	}
 	return (
 		<Base.Track
 			className={cn(meterTrackVariants({ size: size ?? inherited }), className)}
@@ -149,6 +197,49 @@ export function MeterTrack({ className, children, size, ...props }: TrackProps) 
 	)
 }
 MeterTrack.displayName = "MeterTrack"
+
+/**
+ * The ticks of a segmented track. When the reading changes, the fill runs
+ * through the ticks from the edge it is leaving — left to right as it grows,
+ * right to left as it shrinks — instead of every tick switching at once, so
+ * the eye follows the change rather than meeting a different bar.
+ *
+ * The stagger is EXPRESSIVE: a share of the slow token (a full 0 → N sweep
+ * takes one slow duration, whatever N is), multiplied by --motion-expressive.
+ * The token already carries --motion-scale, so `subtle` lands every tick
+ * together on the fast colour ease, and off / reduced motion is instant.
+ */
+function MeterTicks({ count, filled, tone }: { count: number; filled: number; tone: MeterTone }) {
+	// The previous reading, so the stagger can start from its edge. Derived
+	// during render (React's "adjusting state on a prop change"), so the new
+	// fill and its delays land in the same paint.
+	const [shown, setShown] = useState(filled)
+	const [from, setFrom] = useState(filled)
+	if (filled !== shown) {
+		setFrom(shown)
+		setShown(filled)
+	}
+	return Array.from({ length: count }, (_, i) => {
+		const isFilled = i < filled
+		const step =
+			filled > from && i >= from && i < filled ? i - from : filled < from && i >= filled && i < from ? from - 1 - i : 0
+		return (
+			<span
+				// biome-ignore lint/suspicious/noArrayIndexKey: ticks are positional and never reorder.
+				key={i}
+				aria-hidden="true"
+				data-slot="meter-tick"
+				data-filled={isFilled ? "" : undefined}
+				className={meterTickVariants({ tone, filled: isFilled })}
+				style={
+					step
+						? { transitionDelay: `calc(var(--motion-duration-slow) * ${Number((step / count).toFixed(4))} * var(--motion-expressive, 1))` }
+						: undefined
+				}
+			/>
+		)
+	})
+}
 
 type IndicatorProps = Omit<ComponentProps<typeof Base.Indicator>, "className"> & {
 	className?: string

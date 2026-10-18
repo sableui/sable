@@ -47,15 +47,14 @@ function useAreaDrag(onChange: (x: number, y: number) => void) {
 
 				emit(event.clientX, event.clientY)
 
+				// One controller per drag: releasing aborts all three at once.
+				const drag = new AbortController()
+				const { signal } = drag
 				const onMove = (e: PointerEvent) => emit(e.clientX, e.clientY)
-				const onUp = () => {
-					window.removeEventListener("pointermove", onMove)
-					window.removeEventListener("pointerup", onUp)
-					window.removeEventListener("pointercancel", onUp)
-				}
-				window.addEventListener("pointermove", onMove)
-				window.addEventListener("pointerup", onUp)
-				window.addEventListener("pointercancel", onUp)
+				const onUp = () => drag.abort()
+				window.addEventListener("pointermove", onMove, { signal })
+				window.addEventListener("pointerup", onUp, { signal })
+				window.addEventListener("pointercancel", onUp, { signal })
 			},
 			[onChange],
 		),

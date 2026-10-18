@@ -36,8 +36,8 @@ describe("CommandMenuTrigger", () => {
 		const caps = [...button.querySelectorAll('[data-slot="kbd"]')].map((k) => k.textContent)
 		expect(caps).toEqual(["Ctrl", "K"])
 		// The field's shell, not a chip.
-		expect(button.className).toContain("border-input")
-		expect(button.className).toContain("bg-card")
+		expect(button.className).toContain("border-field-border")
+		expect(button.className).toContain("bg-field")
 	})
 
 	it("defaults the label to Search and the size to the md rung", () => {

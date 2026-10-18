@@ -349,7 +349,7 @@
       {
         "name": "input",
         "intent": "The outline of a form control specifically.",
-        "whenToUse": "Text inputs, textareas and selects. Not the edge of a checkbox, radio or switch — that is `control-border`.",
+        "whenToUse": "Text inputs, textareas and selects (through `field-border`, which derives from it). Not the edge of a checkbox, radio or switch — that is `control-border`.",
         "insteadOf": "`border`. They are often the same value, but a theme is entitled to make form controls read differently from other chrome, and only this token gives it the hook."
       },
       {
@@ -1413,6 +1413,103 @@
         "intent": "The edge of a floating surface. Fainter than `border`: the shadow carries the elevation.",
         "whenToUse": "Every floating surface — popover, menu, select, tooltip, dialog, sheet, toast, a floating panel — as `border-border-floating` or `ring-border-floating`, together with `bg-popover` and a `shadow-md`+ shadow. Derived for every theme (a faint alpha of the foreground); a theme may tune it with `--theme-border-floating`.",
         "insteadOf": "`border`. A full hairline plus a shadow stacks into a heavy outline around anything that floats. `border` is for resting edges: inputs, cards, badges."
+      },
+      {
+        "name": "field",
+        "intent": "The fill of a text field: Input, Textarea, Select, Combobox, SearchInput, InputGroup, ChatComposer.",
+        "whenToUse": "Read by every field through its shell, so you rarely name it. Derived for every theme (`card`, an outlined field on the card); a theme fills its fields instead with `--theme-field: var(--muted)` and `--theme-field-border: transparent`, and every field changes at once. Name it only for a field-shaped surface of your own that must match.",
+        "insteadOf": "`card` or `muted` on a hand-built field. A field that paints `card` keeps its outline when the theme fills the rest, and one that paints `muted` stays filled when the theme outlines them.",
+        "pairsWith": [
+          "field-border"
+        ]
+      },
+      {
+        "name": "field-border",
+        "intent": "The outline of a text field. Derived from `input`; `transparent` in a theme with filled fields.",
+        "whenToUse": "With `field`, on the same field-shaped surfaces. Tune it with `--theme-field-border`.",
+        "insteadOf": "`input` on a text field. `input` stays the theme's outline colour for form chrome; this is the field's outline, which a filled theme turns off.",
+        "pairsWith": [
+          "field"
+        ]
+      },
+      {
+        "name": "shell-ground",
+        "intent": "The ground of an inset app frame: the rail and the gap around the raised main panel.",
+        "whenToUse": "Painted by `<AppShell frame=\"inset\">` and the Sidebar in its slot; you rarely name it. Derived for every theme as one step off `sidebar` toward its ink, so the panel reads as lifted even where the rail is the page colour. Tune it with `--theme-shell-ground`.",
+        "insteadOf": "`sidebar` or `canvas` behind an inset panel. `sidebar` is the page colour in most themes, so the panel would sit on itself; `canvas` is a workspace's artboard, not app chrome.",
+        "pairsWith": [
+          "sidebar"
+        ]
+      },
+      {
+        "name": "destructive-mark",
+        "intent": "`destructive` at graphic strength: the same hue lifted and saturated, for a mark that carries no text.",
+        "whenToUse": "A meter's or progress fill, a segmented bar, a status dot, a chart series, and the soft tint behind a badge or note (`bg-destructive-mark/15`). Held to 2:1 on the page — visibility, not a text ratio — because each of these sits beside text that says the same thing. Every bundled theme tunes its own; a preset sets `--theme-destructive-mark` or gets one derived from `destructive`.",
+        "insteadOf": "`bg-destructive` on a mark. The fill is pinned dark enough to carry a white label, so a meter or dot painted with it reads brown, forest or plum. And not for text — that is `text-destructive` — nor for a graphic that is the only carrier of its meaning, which owes 3:1 (WCAG 1.4.11): use the fill or add the text.",
+        "pairsWith": [
+          "background",
+          "card"
+        ]
+      },
+      {
+        "name": "success-mark",
+        "intent": "`success` at graphic strength: the same hue lifted and saturated, for a mark that carries no text.",
+        "whenToUse": "A meter's or progress fill, a segmented bar, a status dot, a chart series, and the soft tint behind a badge or note (`bg-success-mark/15`). Held to 2:1 on the page — visibility, not a text ratio — because each of these sits beside text that says the same thing. Every bundled theme tunes its own; a preset sets `--theme-success-mark` or gets one derived from `success`.",
+        "insteadOf": "`bg-success` on a mark. The fill is pinned dark enough to carry a white label, so a meter or dot painted with it reads brown, forest or plum. And not for text — that is `text-success` — nor for a graphic that is the only carrier of its meaning, which owes 3:1 (WCAG 1.4.11): use the fill or add the text.",
+        "pairsWith": [
+          "background",
+          "card"
+        ]
+      },
+      {
+        "name": "tone-warning-mark",
+        "intent": "`tone-warning` at graphic strength: the same hue lifted and saturated, for a mark that carries no text.",
+        "whenToUse": "A meter's or progress fill, a segmented bar, a status dot, a chart series, and the soft tint behind a badge or note (`bg-tone-warning-mark/15`). Held to 2:1 on the page — visibility, not a text ratio — because each of these sits beside text that says the same thing. Every bundled theme tunes its own; a preset sets `--theme-tone-warning-mark` or gets one derived from `tone-warning`.",
+        "insteadOf": "`bg-tone-warning` on a mark. The fill is pinned dark enough to carry a white label, so a meter or dot painted with it reads brown, forest or plum. And not for text — that is `text-tone-warning` — nor for a graphic that is the only carrier of its meaning, which owes 3:1 (WCAG 1.4.11): use the fill or add the text.",
+        "pairsWith": [
+          "background",
+          "card"
+        ]
+      },
+      {
+        "name": "tone-info-mark",
+        "intent": "`tone-info` at graphic strength: the same hue lifted and saturated, for a mark that carries no text.",
+        "whenToUse": "A meter's or progress fill, a segmented bar, a status dot, a chart series, and the soft tint behind a badge or note (`bg-tone-info-mark/15`). Held to 2:1 on the page — visibility, not a text ratio — because each of these sits beside text that says the same thing. Every bundled theme tunes its own; a preset sets `--theme-tone-info-mark` or gets one derived from `tone-info`.",
+        "insteadOf": "`bg-tone-info` on a mark. The fill is pinned dark enough to carry a white label, so a meter or dot painted with it reads brown, forest or plum. And not for text — that is `text-tone-info` — nor for a graphic that is the only carrier of its meaning, which owes 3:1 (WCAG 1.4.11): use the fill or add the text.",
+        "pairsWith": [
+          "background",
+          "card"
+        ]
+      },
+      {
+        "name": "tone-1-mark",
+        "intent": "`tone-1` at graphic strength: the same hue lifted and saturated, for a mark that carries no text.",
+        "whenToUse": "A meter's or progress fill, a segmented bar, a status dot, a chart series, and the soft tint behind a badge or note (`bg-tone-1-mark/15`). Held to 2:1 on the page — visibility, not a text ratio — because each of these sits beside text that says the same thing. Every bundled theme tunes its own; a preset sets `--theme-tone-1-mark` or gets one derived from `tone-1`.",
+        "insteadOf": "`bg-tone-1` on a mark. The fill is pinned dark enough to carry a white label, so a meter or dot painted with it reads brown, forest or plum. And not for text — that is `text-tone-1` — nor for a graphic that is the only carrier of its meaning, which owes 3:1 (WCAG 1.4.11): use the fill or add the text.",
+        "pairsWith": [
+          "background",
+          "card"
+        ]
+      },
+      {
+        "name": "tone-2-mark",
+        "intent": "`tone-2` at graphic strength: the same hue lifted and saturated, for a mark that carries no text.",
+        "whenToUse": "A meter's or progress fill, a segmented bar, a status dot, a chart series, and the soft tint behind a badge or note (`bg-tone-2-mark/15`). Held to 2:1 on the page — visibility, not a text ratio — because each of these sits beside text that says the same thing. Every bundled theme tunes its own; a preset sets `--theme-tone-2-mark` or gets one derived from `tone-2`.",
+        "insteadOf": "`bg-tone-2` on a mark. The fill is pinned dark enough to carry a white label, so a meter or dot painted with it reads brown, forest or plum. And not for text — that is `text-tone-2` — nor for a graphic that is the only carrier of its meaning, which owes 3:1 (WCAG 1.4.11): use the fill or add the text.",
+        "pairsWith": [
+          "background",
+          "card"
+        ]
+      },
+      {
+        "name": "tone-3-mark",
+        "intent": "`tone-3` at graphic strength: the same hue lifted and saturated, for a mark that carries no text.",
+        "whenToUse": "A meter's or progress fill, a segmented bar, a status dot, a chart series, and the soft tint behind a badge or note (`bg-tone-3-mark/15`). Held to 2:1 on the page — visibility, not a text ratio — because each of these sits beside text that says the same thing. Every bundled theme tunes its own; a preset sets `--theme-tone-3-mark` or gets one derived from `tone-3`.",
+        "insteadOf": "`bg-tone-3` on a mark. The fill is pinned dark enough to carry a white label, so a meter or dot painted with it reads brown, forest or plum. And not for text — that is `text-tone-3` — nor for a graphic that is the only carrier of its meaning, which owes 3:1 (WCAG 1.4.11): use the fill or add the text.",
+        "pairsWith": [
+          "background",
+          "card"
+        ]
       }
     ],
     "palette": {
@@ -2959,7 +3056,12 @@
         "dock",
         "player bar",
         "now playing",
-        "persistent"
+        "persistent",
+        "inset",
+        "inset frame",
+        "floating panel",
+        "rounded content",
+        "scroll container"
       ],
       "usage": {
         "description": "Use AppShell as the outer product frame for authenticated or app-like experiences. It coordinates responsive chrome slots and guarantees a skip link plus main landmark; put route content inside the children and let AppHeader, Sidebar, BottomNav, and Banner own their own semantics.",
@@ -2981,8 +3083,23 @@
             "description": "Wrap EVERY return of a route in its own Page or Region — including early returns for loading, empty and error states. AppShell's <main> deliberately carries no padding (it is a frame, and padding belongs to the region that chose the width), so a route that returns a bare spinner or error renders flush against the chrome. This is the most common conversion bug: the happy path gets a Page, the three early returns do not."
           },
           {
+            "guidance": "do",
+            "description": "Use frame=\"inset\" for dense, multi-pane product apps — a CRM, an issue tracker, an AI workspace — where framing the content as one raised panel on the rail's ground helps it read as the workspace and the rail as chrome. Keep the Sidebar on surface=\"rail\" so its tint is the ground. Inset moves the page scroll from the window to <main id=\"main-content\"> on desktop: point scroll listeners, scroll restoration and scroll-to-top at that element, not window."
+          },
+          {
             "guidance": "dont",
             "description": "Nest AppShell inside route cards or panels. It is page chrome, not local content."
+          },
+          {
+            "guidance": "dont",
+            "description": "Wrap a route in its own h-full overflow-y-auto box inside an inset shell. main is already the page's scroll container; a second one traps the scrollbar inside a smaller box and breaks sticky headers and the skip link's scroll target. Scroll a genuinely separate pane (a list beside a detail view) with Scroller.",
+            "instead": [
+              "Scroller"
+            ]
+          },
+          {
+            "guidance": "dont",
+            "description": "Combine frame=\"inset\" with a full-width header bar above the rail. The inset ground is the rail running the full height of the window; a bar across the top cuts it off. Use the flush frame with Sidebar surface=\"page\" for that layout."
           },
           {
             "guidance": "dont",
@@ -3008,7 +3125,7 @@
           {
             "name": "Main",
             "required": true,
-            "description": "The route content landmark with id main-content."
+            "description": "The route content landmark with id main-content. With frame=\"inset\", from lg it is a rounded, bordered panel that scrolls inside itself."
           },
           {
             "name": "Bottom nav",
@@ -3066,6 +3183,12 @@
           "name": "overlays",
           "type": "ReactNode",
           "description": "Floating overlays — a message launcher, FAB, or modal mount points."
+        },
+        {
+          "name": "frame",
+          "type": "\"flush\" | \"inset\"",
+          "default": "\"flush\"",
+          "description": "How the desktop frame (lg and up) holds the content; below lg both are the same mobile layout with page scroll. \"flush\": main sits on the page beside the rail and the document scrolls. \"inset\": the shell fills the viewport and paints the shell-ground token (one step off the rail's surface, tunable with --theme-shell-ground) behind the rail and around the panel; main becomes a rounded-lg panel with a hairline border and shadow-sm, inset by a spacing step from the window edges, that scrolls inside itself (scrollbar-quiet) while the rail stays put. The Sidebar in the sidebar slot drops its right border and fills the row. main stays the #main-content target (tabIndex -1, so the skip link lands focus in the scroller) and the inline-size query container; sticky children stick to the panel's top; banners and the dock stay in flow, so the panel's bottom gap sits above a dock. With Sidebar surface=\"page\" the ground is the page colour and the panel's border alone lifts it."
         }
       ],
       "subcomponents": [
@@ -3079,19 +3202,28 @@
         "background",
         "foreground",
         "primary",
-        "primary-foreground"
+        "primary-foreground",
+        "sidebar",
+        "shell-ground",
+        "border"
       ],
       "a11y": [
         "Renders a skip link to #main-content as the first focusable element.",
         "Wraps content in a <main id=\"main-content\"> landmark.",
         "Slot components own their own ARIA (nav landmarks, labels).",
-        "The dock follows <main> in DOM order, so keyboard and screen-reader users reach the player after the page content, not before it."
+        "The dock follows <main> in DOM order, so keyboard and screen-reader users reach the player after the page content, not before it.",
+        "With frame=\"inset\", <main> is the desktop scroll container and takes tabIndex -1: the skip link moves focus into it, so PageDown and the arrow keys scroll the content, without adding a tab stop."
       ],
       "examples": [
         {
           "label": "Full frame",
           "code": "<AppShell\n  banners={<Banner tone=\"warning\">Sync is delayed — changes may be slow to appear.</Banner>}\n  header={<AppHeader title=\"Studio\" />}\n  sidebar={\n    <Sidebar>\n      <SidebarNav>\n        <SidebarItem icon={<Icon name=\"home\" />} label=\"Home\" active render={<Link to=\"/\" />} />\n        <SidebarItem icon={<Icon name=\"bell\" />} label=\"Notifications\" render={<Link to=\"/notifications\" />} />\n        <SidebarItem icon={<Icon name=\"gear\" />} label=\"Settings\" render={<Link to=\"/settings\" />} />\n      </SidebarNav>\n    </Sidebar>\n  }\n  bottomNav={\n    <BottomNav>\n      <BottomNavItem icon={<Icon name=\"home\" />} label=\"Home\" active render={<Link to=\"/\" />} />\n      <BottomNavItem icon={<Icon name=\"bell\" />} label=\"Alerts\" render={<Link to=\"/notifications\" />} />\n    </BottomNav>\n  }\n>\n  <Region max=\"feed\">\n    <PageHeader title=\"Home\" description=\"Latest posts from people you follow.\" />\n  </Region>\n</AppShell>",
           "imports": "import { AppHeader, AppShell, Banner, BottomNav, BottomNavItem, Icon, PageHeader, Region, Sidebar, SidebarItem, SidebarNav } from \"@sableui/react\"\n// <Link> = your router's link (react-router, next/link, @tanstack/router, …)"
+        },
+        {
+          "label": "Inset frame",
+          "code": "<AppShell\n  frame=\"inset\"\n  header={<AppHeader title=\"Pipeline\" />}\n  sidebar={\n    <Sidebar>\n      <SidebarHeader>\n        <SidebarBrand mark={<Icon name=\"gem\" variant=\"solid\" />} label=\"Relay\" render={<Link to=\"/\" />} />\n      </SidebarHeader>\n      <SidebarNav>\n        <SidebarItem icon={<Icon name=\"inbox\" />} label=\"Inbox\" render={<Link to=\"/inbox\" />} />\n        <SidebarItem icon={<Icon name=\"user\" />} label=\"People\" active render={<Link to=\"/people\" />} />\n        <SidebarItem icon={<Icon name=\"folder\" />} label=\"Companies\" render={<Link to=\"/companies\" />} />\n      </SidebarNav>\n    </Sidebar>\n  }\n  bottomNav={\n    <BottomNav>\n      <BottomNavItem icon={<Icon name=\"inbox\" />} label=\"Inbox\" render={<Link to=\"/inbox\" />} />\n      <BottomNavItem icon={<Icon name=\"user\" />} label=\"People\" active render={<Link to=\"/people\" />} />\n      <BottomNavItem icon={<Icon name=\"folder\" />} label=\"Companies\" render={<Link to=\"/companies\" />} />\n    </BottomNav>\n  }\n>\n  <Page max=\"wide\" gap={4} className=\"py-6\">\n    <PageHeader\n      title=\"People\"\n      description=\"Everyone in your pipeline, newest first.\"\n      actions={<Button><Icon name=\"plus\" />Add person</Button>}\n    />\n    <Card>\n      <CardContent flush>\n        <Table>\n          <TableHeader>\n            <TableRow>\n              <TableHead>Name</TableHead>\n              <TableHead>Company</TableHead>\n              <TableHead numeric>Deals</TableHead>\n            </TableRow>\n          </TableHeader>\n          <TableBody>\n            <TableRow>\n              <TableCell>Ada Lovelace</TableCell>\n              <TableCell>Northwind</TableCell>\n              <TableCell numeric>4</TableCell>\n            </TableRow>\n            <TableRow>\n              <TableCell>Grace Hopper</TableCell>\n              <TableCell>Harbor Labs</TableCell>\n              <TableCell numeric>2</TableCell>\n            </TableRow>\n          </TableBody>\n        </Table>\n      </CardContent>\n    </Card>\n  </Page>\n</AppShell>",
+          "imports": "import { AppHeader, AppShell, BottomNav, BottomNavItem, Button, Card, CardContent, Icon, Page, PageHeader, Sidebar, SidebarBrand, SidebarHeader, SidebarItem, SidebarNav, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from \"@sableui/react\"\n// <Link> = your router's link (react-router, next/link, @tanstack/router, …)"
         },
         {
           "label": "SkipLink in a layout of your own",
@@ -3290,7 +3422,12 @@
         "popover",
         "popover-foreground",
         "foreground",
-        "background"
+        "background",
+        "tone-warning-mark",
+        "tone-info-mark",
+        "tone-1-mark",
+        "tone-2-mark",
+        "tone-3-mark"
       ],
       "motion": [
         {
@@ -3498,7 +3635,8 @@
         "destructive",
         "overlay",
         "overlay-foreground",
-        "ring"
+        "ring",
+        "destructive-mark"
       ],
       "motion": [
         {
@@ -4016,7 +4154,14 @@
         "tone-info-foreground",
         "success-foreground",
         "tone-warning-foreground",
-        "destructive-foreground"
+        "destructive-foreground",
+        "destructive-mark",
+        "success-mark",
+        "tone-warning-mark",
+        "tone-info-mark",
+        "tone-1-mark",
+        "tone-2-mark",
+        "tone-3-mark"
       ],
       "a11y": [
         "Badges are static text by default; do not rely on color alone for meaning.",
@@ -4224,7 +4369,12 @@
         "tone-1",
         "tone-1-foreground",
         "destructive",
-        "destructive-foreground"
+        "destructive-foreground",
+        "destructive-mark",
+        "success-mark",
+        "tone-warning-mark",
+        "tone-info-mark",
+        "tone-1-mark"
       ],
       "a11y": [
         "Static banners render as a labelled region (role=region); set `live` to announce dynamic status bars (role=status / role=alert) when they appear or change.",
@@ -4472,7 +4622,12 @@
         "popover",
         "popover-foreground",
         "foreground",
-        "background"
+        "background",
+        "tone-warning-mark",
+        "tone-info-mark",
+        "tone-1-mark",
+        "tone-2-mark",
+        "tone-3-mark"
       ],
       "motion": [
         {
@@ -6498,8 +6653,8 @@
         ]
       },
       "tokensUsed": [
-        "card",
-        "input",
+        "field",
+        "field-border",
         "ring",
         "destructive",
         "foreground",
@@ -7627,6 +7782,12 @@
           "description": "How items match the query. `null` turns matching off, for items a server already filtered: pair it with `onInputValueChange` to fetch."
         },
         {
+          "name": "highlightMatches",
+          "type": "boolean",
+          "default": "true",
+          "description": "Paints the typed text wherever it appears in a row's label, on the `highlight` / `highlight-foreground` pair, through the CSS Custom Highlight API — no `<mark>` in the row, and the accessible name is unchanged. Only typed text counts: a field still holding the selected item's label lists everything and lights nothing. A literal, case-insensitive match within the label; a `filter` that matches differently leaves rows it kept unpainted. `false` turns it off."
+        },
+        {
           "name": "onInputValueChange",
           "type": "(inputValue: string, eventDetails) => void",
           "default": "—",
@@ -7693,8 +7854,10 @@
         }
       ],
       "tokensUsed": [
-        "input",
-        "card",
+        "highlight",
+        "highlight-foreground",
+        "field-border",
+        "field",
         "foreground",
         "muted-foreground",
         "ring",
@@ -7971,6 +8134,12 @@
           "description": "Replaces or disables the built-in match. A function ranks and filters items itself and its order is kept verbatim; null renders items exactly as given. Either also stops declarative CommandMenuItem children self-filtering. The query arrives raw — trimming and case are policy, and this is the prop that hands policy over."
         },
         {
+          "name": "highlightMatches",
+          "type": "boolean",
+          "default": "true",
+          "description": "Paints the query wherever it appears in a row's label (not its detail or hint), on the `highlight` / `highlight-foreground` pair, through the CSS Custom Highlight API — no `<mark>` in the row, and the accessible name is unchanged. A literal, case-insensitive match, so under a fuzzy `filter` a row that matched as a subsequence keeps an unpainted label. `false` turns it off. Applies to CommandMenuPanel too."
+        },
+        {
           "name": "listClassName",
           "type": "string",
           "description": "Classes for the scrolling list. className lands on the dialog surface, so this is the seam for the list's own height cap — listClassName=\"max-h-[60vh]\". The list is a Scroller, so the cap lands on the element that scrolls and the edge fades come free."
@@ -8014,7 +8183,7 @@
         {
           "name": "CommandMenuTrigger",
           "type": "{ onOpen?: () => void; placeholder?: string; shortcut?: string | false; size?: \"sm\" | \"md\"; disabled?: boolean }",
-          "description": "The search field in a header that is really a button. Wears SearchInput's shell (border-input, card surface, leading magnifier, muted placeholder) on the control ladder, with a trailing Kbd: ⌘K on macOS, Ctrl K elsewhere. onOpen runs on click and on the shortcut, which it listens for page-wide (useCommandMenuShortcut). shortcut is the key (default \"k\"); false drops both the hint and the listener. size is sm in a header beside small buttons, md (default) beside Input and SearchInput. It sits outside CommandMenu, so the Dialog returns focus to it on close."
+          "description": "The search field in a header that is really a button. Wears SearchInput's shell (the field fill and outline, leading magnifier, muted placeholder) on the control ladder, with a trailing Kbd: ⌘K on macOS, Ctrl K elsewhere. onOpen runs on click and on the shortcut, which it listens for page-wide (useCommandMenuShortcut). shortcut is the key (default \"k\"); false drops both the hint and the listener. size is sm in a header beside small buttons, md (default) beside Input and SearchInput. It sits outside CommandMenu, so the Dialog returns focus to it on close."
         },
         {
           "name": "useCommandMenuShortcut",
@@ -8038,6 +8207,8 @@
         }
       ],
       "tokensUsed": [
+        "highlight",
+        "highlight-foreground",
         "card",
         "card-foreground",
         "border",
@@ -8960,8 +9131,8 @@
         "popover",
         "popover-foreground",
         "border",
-        "input",
-        "card",
+        "field-border",
+        "field",
         "ring"
       ],
       "a11y": [
@@ -10202,7 +10373,8 @@
         "accent",
         "accent-foreground",
         "ring",
-        "success"
+        "success",
+        "success-mark"
       ],
       "motion": [
         {
@@ -11152,7 +11324,7 @@
         "generative"
       ],
       "usage": {
-        "description": "Use GradientArt where a real image belongs but none exists yet, or where the image is decoration: a product cover before upload, a profile banner, an album tile, an avatar with no photo. It reads the theme's own tokens, so it follows every preset, mode and live edit; `seed` fixes each item's composition so a list of covers or avatars stays individually recognisable.",
+        "description": "Use GradientArt where a real image belongs but none exists yet, or where the image is decoration: a product cover before upload, a profile banner, an album tile, an avatar with no photo. It reads the theme's own tokens, so it follows every preset, mode and live edit; `seed` fixes each item's composition so a list of covers or avatars stays individually recognisable. `intensity=\"soft\"` paints the same art as a pastel wash — the iridescent aura AI products use as a card or modal header band, and as a stage for floating chips and logo tiles.",
         "bestPractices": [
           {
             "guidance": "do",
@@ -11165,6 +11337,14 @@
           {
             "guidance": "do",
             "description": "Keep the default `mesh` for covers, tiles and avatars. Reach for `grain` where a printed, tactile surface suits — a banner, a hero card — and keep one variant per surface type so art reads as a system."
+          },
+          {
+            "guidance": "do",
+            "description": "Use `intensity=\"soft\"` as a stage: a card or modal header band, the art on an integration or pricing card, a field behind floating prompt chips or rounded logo tiles. Make the tiles and chips floating surfaces (`bg-popover` with `border-border-floating` and a shadow, or a `floating` Button) so they lift off the wash; soft stays light in dark mode too, so the same composition holds in both."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not put text straight on soft art with `text-overlay-foreground` ink. Soft is a light ground in every mode, so overlay ink washes out on it; put the content on a Card or a chip over the art, or use the default vivid intensity for a short overlay label."
           },
           {
             "guidance": "dont",
@@ -11205,6 +11385,12 @@
           "description": "Fixes the composition: the same seed paints the same art in every theme. Pass a stable id."
         },
         {
+          "name": "intensity",
+          "type": "\"vivid\" | \"soft\"",
+          "default": "\"vivid\"",
+          "description": "vivid: the preset's art at full strength. soft: every colour and the ground lifted to a light pastel of itself (high lightness, half chroma) — a wash for header bands and for staging chips and logo tiles, light in both modes."
+        },
+        {
           "name": "children",
           "type": "ReactNode",
           "description": "Rendered above the art — initials, a glyph, a short label."
@@ -11219,6 +11405,10 @@
         "variant": [
           "mesh",
           "grain"
+        ],
+        "intensity": [
+          "vivid",
+          "soft"
         ]
       },
       "tokensUsed": [
@@ -11284,6 +11474,11 @@
           "label": "Avatar with initials",
           "code": "<GradientArt seed=\"Mara Okafor\" className=\"grid size-10 place-items-center rounded-full text-label-md text-overlay-foreground\">MO</GradientArt>",
           "imports": "import { GradientArt } from \"@sableui/react\""
+        },
+        {
+          "label": "Soft header band with logo tiles",
+          "code": "<Card className=\"w-full max-w-sm\">\n\t<GradientArt intensity=\"soft\" seed=\"Integrations\" className=\"flex h-32 items-center justify-center gap-3 rounded-t-lg\">\n\t\t{[\"mail\", \"calendar\", \"chart\"].map((name) => (\n\t\t\t<span key={name} className=\"grid size-12 place-items-center rounded-lg border border-border-floating bg-popover text-popover-foreground shadow-md\">\n\t\t\t\t<Icon name={name} className=\"text-xl\" />\n\t\t\t</span>\n\t\t))}\n\t</GradientArt>\n\t<CardHeader>\n\t\t<CardTitle>Connect your tools</CardTitle>\n\t\t<CardDescription>Bring mail, calendar and analytics into one place.</CardDescription>\n\t</CardHeader>\n\t<CardFooter>\n\t\t<Button>Connect</Button>\n\t</CardFooter>\n</Card>",
+          "imports": "import { Button, Card, CardDescription, CardFooter, CardHeader, CardTitle, GradientArt, Icon } from \"@sableui/react\""
         }
       ]
     },
@@ -11394,7 +11589,7 @@
       "group": "Forms",
       "register": "either",
       "path": "components/input",
-      "summary": "Styled native text input. Soft-square (rounded-sm), card surface, 2px focus ring; aria-invalid raises the destructive error treatment.",
+      "summary": "Styled native text input. Soft-square (rounded-sm), the theme's field surface (outlined or filled), 2px focus ring; aria-invalid raises the destructive error treatment.",
       "keywords": [
         "input",
         "text input",
@@ -11424,6 +11619,14 @@
           {
             "guidance": "do",
             "description": "Keep a focusable field at 16px or larger on mobile. iOS Safari zooms the whole page when a focused input computes under 16px and never zooms back out. Input handles this itself — below the sm breakpoint it renders text-body-lg (17px) and returns to text-body-md at sm and up. Build a custom field the same way: a second paired tier under a max-sm: variant, never a hand-set font-size."
+          },
+          {
+            "guidance": "do",
+            "description": "Choose outlined or filled fields once, in the theme: `--theme-field: var(--muted)` with `--theme-field-border: transparent` turns every Input, Textarea, Select, Combobox, SearchInput, InputGroup and ChatComposer into a borderless filled well; unset, they are outlined on the card. Every field reads the `field` / `field-border` pair, so they change together."
+          },
+          {
+            "guidance": "dont",
+            "description": "Restyle one Input as a filled chip with `bg-muted border-transparent`. It drifts from every other field on the page, and the theme can no longer move them together; set the field tokens instead."
           },
           {
             "guidance": "dont",
@@ -11511,8 +11714,8 @@
         ]
       },
       "tokensUsed": [
-        "input",
-        "card",
+        "field-border",
+        "field",
         "foreground",
         "muted-foreground",
         "ring",
@@ -11654,8 +11857,8 @@
         }
       ],
       "tokensUsed": [
-        "input",
-        "card",
+        "field-border",
+        "field",
         "ring",
         "destructive",
         "muted-foreground",
@@ -12321,7 +12524,12 @@
         "popover",
         "popover-foreground",
         "foreground",
-        "background"
+        "background",
+        "tone-warning-mark",
+        "tone-info-mark",
+        "tone-1-mark",
+        "tone-2-mark",
+        "tone-3-mark"
       ],
       "motion": [
         {
@@ -13781,7 +13989,12 @@
         "capacity",
         "limit",
         "password strength",
-        "level"
+        "level",
+        "segmented",
+        "tick bar",
+        "score",
+        "credits",
+        "spend limit"
       ],
       "usage": {
         "description": "Use Meter to show a static measurement against a known maximum — storage used, seats taken, API quota, password strength. It is announced as a meter, not a progress bar, so a screen-reader user hears a level rather than a task underway.",
@@ -13808,6 +14021,17 @@
           {
             "guidance": "do",
             "description": "Use shape=\"ring\" when the reading is a score that belongs in a small, glanceable spot on a card. It is the same measurement drawn as a circular gauge, not a different component."
+          },
+          {
+            "guidance": "do",
+            "description": "Use `segments` (a tick bar, ▮▮▮▮▮▮▯▯▯▯) for a discrete budget, score or quota read at a glance — a spend limit, credits left, an ICP lead score, months of data coverage. Pick a count that matches the unit when there is one (10 for a score out of 10, 12 for months) and otherwise size it to the track: a tick reads as a tick when it is taller than it is wide, about one per 8px of track (40 across a card row, 20 in a narrow table cell). Any reading above min shows at least one tick."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not segment a fine-grained continuous value where the exact proportion matters (disk at 73.4%) — ticks round it to the nearest mark; use the continuous bar. And do not use a tick bar for a task in flight or steps completed: that is Progress, or a Stepper for named steps.",
+            "instead": [
+              "Progress"
+            ]
           }
         ],
         "anatomy": [
@@ -13819,7 +14043,7 @@
           {
             "name": "MeterIndicator",
             "required": true,
-            "description": "The fill, sized from value and coloured by tone."
+            "description": "The fill, sized from value and coloured by tone. Not used with `segments`: the track draws its ticks instead."
           },
           {
             "name": "MeterLabel",
@@ -13881,6 +14105,11 @@
           "description": "Print the value in the ring's centre (formatted like MeterValue)."
         },
         {
+          "name": "segments",
+          "type": "number",
+          "description": "Draw the bar as this many separate ticks instead of a continuous fill (a quota, score or spend limit). Filled ticks = round(share × N), at least one for any reading above min, none at min. Ticks take the tone; empty ones sit on the rail colour. The segmented track has its own, taller sm / md / lg ladder. Bar only: ignored for shape=\"ring\"."
+        },
+        {
           "name": "strokeWidth",
           "type": "number",
           "default": "6",
@@ -13906,7 +14135,7 @@
         {
           "name": "MeterTrack",
           "type": "Base UI Track props + className + size",
-          "description": "The rail. Rendered automatically when Meter has no children; renders a MeterIndicator by default."
+          "description": "The rail. Rendered automatically when Meter has no children; renders a MeterIndicator by default — or, when the Meter has `segments`, its row of ticks (children are not rendered then)."
         },
         {
           "name": "MeterIndicator",
@@ -13945,11 +14174,16 @@
       "tokensUsed": [
         "secondary",
         "primary",
+        "tone-3",
         "success",
         "tone-warning",
         "destructive",
         "foreground",
-        "muted-foreground"
+        "muted-foreground",
+        "destructive-mark",
+        "success-mark",
+        "tone-warning-mark",
+        "tone-3-mark"
       ],
       "motion": [
         {
@@ -13969,6 +14203,12 @@
           "recipe": "custom",
           "part": "MeterIndicator",
           "why": "Width and colour ease on the motion tokens (no recipe animates width) when the reading changes — freeing space after a delete visibly shrinks the bar, so the user sees the cause and effect rather than a different bar."
+        },
+        {
+          "slot": "transition",
+          "recipe": "custom",
+          "part": "MeterTrack (segments)",
+          "why": "With segments, the fill runs through the ticks from the edge it is leaving — left to right as it grows, right to left as it shrinks — each tick easing its colour on the fast token after a stagger that is a share of the slow token (a full sweep is one slow duration) × --motion-expressive. Every tick switching at once would read as a different bar, not the same budget moving; `subtle` lands them together and off is instant."
         },
         {
           "slot": "activity",
@@ -13997,6 +14237,16 @@
           "label": "Storage with label and reading",
           "code": "<Meter value={7.2} max={10} tone=\"warning\" getAriaValueText={(_, v) => `${v} of 10 gigabytes used`}>\n\t<div className=\"mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1\">\n\t\t<MeterLabel>Storage</MeterLabel>\n\t\t<MeterValue>{(_, value) => `${value} of 10 GB`}</MeterValue>\n\t</div>\n\t<MeterTrack />\n</Meter>",
           "imports": "import { Meter, MeterLabel, MeterTrack, MeterValue } from \"@sableui/react\""
+        },
+        {
+          "label": "Segmented spend limit",
+          "code": "<Meter value={1240} max={2000} segments={40} getAriaValueText={() => \"€1,240 of €2,000 spent this month\"}>\n\t<div className=\"mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1\">\n\t\t<MeterLabel>Monthly spend limit</MeterLabel>\n\t\t<MeterValue>{() => \"€1,240 / €2,000\"}</MeterValue>\n\t</div>\n\t<MeterTrack />\n</Meter>",
+          "imports": "import { Meter, MeterLabel, MeterTrack, MeterValue } from \"@sableui/react\""
+        },
+        {
+          "label": "Segmented score cell",
+          "code": "<div className=\"flex items-center gap-3\">\n\t<Meter value={8} max={10} segments={10} size=\"sm\" tone=\"success\" className=\"w-24\" aria-label=\"ICP score\" getAriaValueText={(_, v) => `${v} out of 10`} />\n\t<span className=\"text-mono-sm text-foreground\">8/10</span>\n</div>",
+          "imports": "import { Meter } from \"@sableui/react\""
         },
         {
           "label": "Tones",
@@ -14376,7 +14626,11 @@
         "tone-info",
         "tone-warning",
         "success",
-        "destructive"
+        "destructive",
+        "destructive-mark",
+        "success-mark",
+        "tone-warning-mark",
+        "tone-info-mark"
       ],
       "motion": [
         {
@@ -14676,8 +14930,8 @@
         }
       ],
       "tokensUsed": [
-        "input",
-        "card",
+        "field-border",
+        "field",
         "foreground",
         "muted-foreground",
         "accent",
@@ -15026,8 +15280,8 @@
         }
       ],
       "tokensUsed": [
-        "input",
-        "card",
+        "field-border",
+        "field",
         "foreground",
         "muted-foreground",
         "border-strong",
@@ -16169,7 +16423,12 @@
         "popover",
         "popover-foreground",
         "foreground",
-        "background"
+        "background",
+        "tone-warning-mark",
+        "tone-info-mark",
+        "tone-1-mark",
+        "tone-2-mark",
+        "tone-3-mark"
       ],
       "motion": [
         {
@@ -16897,7 +17156,12 @@
         "popover",
         "popover-foreground",
         "foreground",
-        "background"
+        "background",
+        "tone-warning-mark",
+        "tone-info-mark",
+        "tone-1-mark",
+        "tone-2-mark",
+        "tone-3-mark"
       ],
       "motion": [
         {
@@ -17121,7 +17385,12 @@
         "popover",
         "popover-foreground",
         "foreground",
-        "background"
+        "background",
+        "tone-warning-mark",
+        "tone-info-mark",
+        "tone-1-mark",
+        "tone-2-mark",
+        "tone-3-mark"
       ],
       "motion": [
         {
@@ -18149,7 +18418,7 @@
       "group": "Forms",
       "register": "either",
       "path": "components/search-input",
-      "summary": "Styled search field with a leading magnifier and a clearable X. Soft-square (rounded-sm), card surface, 2px focus ring; the clear button appears only when there is a value.",
+      "summary": "Styled search field with a leading magnifier and a clearable X. Soft-square (rounded-sm), the theme's field surface, 2px focus ring; the clear button appears only when there is a value.",
       "keywords": [
         "search",
         "input",
@@ -18170,6 +18439,10 @@
           {
             "guidance": "do",
             "description": "When a button stands in for search (a header trigger that opens CommandMenu with ⌘K), use CommandMenuTrigger. It wears this field's shell from the same source, so the two cannot drift; a hand-styled button already did once, into a borderless chip that matched neither the field nor a button."
+          },
+          {
+            "guidance": "do",
+            "description": "Light the query in the results it filters with `useMatchHighlight(query)` — a callback ref for the results container, with `selector` to keep it to titles. It paints on the `highlight` pair without wrapping matches in `<mark>`, the same paint Combobox and CommandMenu use for their rows."
           },
           {
             "guidance": "dont",
@@ -18238,8 +18511,8 @@
         }
       ],
       "tokensUsed": [
-        "input",
-        "card",
+        "field-border",
+        "field",
         "foreground",
         "muted-foreground",
         "ring",
@@ -18293,6 +18566,11 @@
           "label": "Uncontrolled, sized as a whole",
           "code": "<Field label=\"Search posts\"><SearchInput defaultValue=\"roadmap\" className=\"max-w-80\" /></Field>",
           "imports": "import { Field, SearchInput } from \"@sableui/react\""
+        },
+        {
+          "label": "Highlighting matches in the results",
+          "code": "const [q, setQ] = useState(\"\")\nconst results = useMatchHighlight<HTMLUListElement>(q, { selector: \"[data-title]\" })\nconst shown = posts.filter((post) => post.title.toLowerCase().includes(q.trim().toLowerCase()))\n\n<SearchInput value={q} onValueChange={setQ} placeholder=\"Search posts\" />\n<ul ref={results}>\n\t{shown.map((post) => (\n\t\t<li key={post.id}><span data-title>{post.title}</span></li>\n\t))}\n</ul>",
+          "imports": "import { SearchInput, useMatchHighlight } from \"@sableui/react\""
         },
         {
           "label": "Disabled",
@@ -18603,7 +18881,14 @@
         "muted-foreground",
         "success",
         "tone-warning",
-        "destructive"
+        "destructive",
+        "destructive-mark",
+        "success-mark",
+        "tone-warning-mark",
+        "tone-info-mark",
+        "tone-1-mark",
+        "tone-2-mark",
+        "tone-3-mark"
       ],
       "motion": [
         {
@@ -18789,8 +19074,8 @@
         }
       ],
       "tokensUsed": [
-        "input",
-        "card",
+        "field-border",
+        "field",
         "foreground",
         "ring",
         "border",
@@ -19515,6 +19800,10 @@
             "description": "Set surface=\"page\" when a full-width top bar sits above the rail. A theme's tinted or dark rail is for a full-height rail that frames the app."
           },
           {
+            "guidance": "do",
+            "description": "Keep surface=\"rail\" inside AppShell frame=\"inset\": the rail's tint becomes the ground the main panel floats on. Do not add a border-r class back — the gap is the divider."
+          },
+          {
             "guidance": "dont",
             "description": "Do not use Sidebar for page-local settings, filters, or temporary action groups."
           },
@@ -19566,7 +19855,7 @@
           "name": "surface",
           "type": "\"rail\" | \"page\"",
           "default": "\"rail\"",
-          "description": "Which surface the rail is painted on. \"rail\" is its own --sidebar-* surface with a border — right for a full-height rail that frames the app, which a theme may tint or paint dark. \"page\" uses the page's surface and ink with no border — use it when a full-width header sits above the rail, where a tinted column starting under a page-coloured bar reads as pasted on. Use it instead of overriding bg-/text- classes, which the rail's re-pointed tokens defeat."
+          "description": "Which surface the rail is painted on. \"rail\" is its own --sidebar-* surface with a border — right for a full-height rail that frames the app, which a theme may tint or paint dark. \"page\" uses the page's surface and ink with no border — use it when a full-width header sits above the rail, where a tinted column starting under a page-coloured bar reads as pasted on. Use it instead of overriding bg-/text- classes, which the rail's re-pointed tokens defeat. In AppShell's sidebar slot with frame=\"inset\", the rail's surface is also the shell's ground: from lg a \"rail\" rail drops its border (the gap around the main panel divides them) and either surface stretches to the shell's body row instead of sizing to the viewport. AppShell signals this to its sidebar slot only, so a Sidebar elsewhere in the page is unaffected."
         },
         {
           "name": "motion",
@@ -19604,7 +19893,8 @@
         "sidebar-border",
         "sidebar-accent",
         "sidebar-accent-foreground",
-        "sidebar-ring"
+        "sidebar-ring",
+        "shell-ground"
       ],
       "motion": [
         {
@@ -20305,7 +20595,14 @@
         "tone-warning",
         "muted-foreground",
         "success",
-        "destructive"
+        "destructive",
+        "destructive-mark",
+        "success-mark",
+        "tone-warning-mark",
+        "tone-info-mark",
+        "tone-1-mark",
+        "tone-2-mark",
+        "tone-3-mark"
       ],
       "motion": [
         {
@@ -20718,7 +21015,14 @@
         "tone-info",
         "tone-1",
         "tone-2",
-        "destructive"
+        "destructive",
+        "destructive-mark",
+        "success-mark",
+        "tone-warning-mark",
+        "tone-info-mark",
+        "tone-1-mark",
+        "tone-2-mark",
+        "tone-3-mark"
       ],
       "a11y": [
         "Rendered aria-hidden — purely decorative. Convey status in adjacent text, not color alone.",
@@ -20876,7 +21180,8 @@
         "border-strong",
         "destructive",
         "destructive-foreground",
-        "ring"
+        "ring",
+        "destructive-mark"
       ],
       "motion": [
         {
@@ -21358,13 +21663,13 @@
         },
         {
           "name": "TableHead",
-          "type": "ComponentPropsWithRef<\"th\">",
-          "description": "A column header cell (th) in muted label styling."
+          "type": "ComponentPropsWithRef<\"th\"> & { numeric?: boolean }",
+          "description": "A column header cell (th) in muted label styling. `numeric` marks a number column: end-aligned, tabular figures — set it on the column's cells too."
         },
         {
           "name": "TableCell",
-          "type": "ComponentPropsWithRef<\"td\">",
-          "description": "A data cell (td)."
+          "type": "ComponentPropsWithRef<\"td\"> & { numeric?: boolean }",
+          "description": "A data cell (td). `numeric` end-aligns it with tabular figures, matching its column's header."
         },
         {
           "name": "TableCaption",
@@ -21616,7 +21921,7 @@
       "group": "Forms",
       "register": "either",
       "path": "components/textarea",
-      "summary": "Styled native multi-line text control. Soft-square, card surface, --ring focus, and an aria-invalid destructive error state.",
+      "summary": "Styled native multi-line text control. Soft-square, the theme's field surface, --ring focus, and an aria-invalid destructive error state.",
       "keywords": [
         "textarea",
         "multi line input",
@@ -21689,8 +21994,8 @@
         }
       ],
       "tokensUsed": [
-        "input",
-        "card",
+        "field-border",
+        "field",
         "foreground",
         "muted-foreground",
         "ring",
@@ -25097,7 +25402,7 @@
           "Amounts keep their sign in text (+49.00 / -850.00), so the direction does not depend on colour."
         ],
         "imports": "import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Entity, Icon } from \"@sableui/react\"",
-        "code": "const balance = \"$2,418.50\"\n\nconst activity = [\n\t{ title: \"Subscription\", detail: \"Team plan · 2h ago\", amount: \"+49.00\", tone: \"1\" },\n\t{ title: \"Refund\", detail: \"Order 1042 · Yesterday\", amount: \"-24.00\", tone: \"2\" },\n\t{ title: \"Payout\", detail: \"To checking · Mon\", amount: \"-850.00\", tone: \"3\" },\n]\n\nexport interface WalletBlockProps {\n\tclassName?: string\n\t/** false drops the card's surface and border — for a Sheet or muted section that already frames it. */\n\tframed?: boolean\n\tonSend?: () => void\n\tonReceive?: () => void\n}\n\nexport function WalletBlock({ className, framed = true, onSend, onReceive }: WalletBlockProps) {\n\treturn (\n\t\t<Card variant={framed ? \"default\" : \"flat\"} className={cn(\"w-full max-w-xs\", className)}>\n\t\t\t<CardHeader>\n\t\t\t\t<CardDescription>Balance</CardDescription>\n\t\t\t\t<CardTitle className=\"text-mono-xl\">{balance}</CardTitle>\n\t\t\t</CardHeader>\n\t\t\t<CardContent className=\"flex flex-col gap-3\">\n\t\t\t\t<div className=\"grid grid-cols-2 gap-2\">\n\t\t\t\t\t<Button iconStart={<Icon name=\"arrow-up\" />} onClick={onSend}>\n\t\t\t\t\t\tSend\n\t\t\t\t\t</Button>\n\t\t\t\t\t<Button variant=\"secondary\" iconStart={<Icon name=\"arrow-down\" />} onClick={onReceive}>\n\t\t\t\t\t\tReceive\n\t\t\t\t\t</Button>\n\t\t\t\t</div>\n\t\t\t\t<div className=\"flex flex-col\">\n\t\t\t\t\t{activity.map((item) => (\n\t\t\t\t\t\t<Entity\n\t\t\t\t\t\t\tkey={item.title}\n\t\t\t\t\t\t\tclassName=\"px-0\"\n\t\t\t\t\t\t\tleading={\n\t\t\t\t\t\t\t\t<span\n\t\t\t\t\t\t\t\t\taria-hidden\n\t\t\t\t\t\t\t\t\tclassName=\"block size-8 rounded-full\"\n\t\t\t\t\t\t\t\t\t// design-lint-disable-next-line inline-color -- relative colour derived from the theme's own --tone token, so it follows every look\n\t\t\t\t\t\t\t\t\tstyle={{ background: `oklch(from var(--tone-${item.tone}) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h)` }}\n\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\ttitle={item.title}\n\t\t\t\t\t\t\tsubtitle={item.detail}\n\t\t\t\t\t\t\taction={\n\t\t\t\t\t\t\t\t<span className={cn(\"text-mono-md\", item.amount.startsWith(\"+\") ? \"text-success\" : \"text-muted-foreground\")}>\n\t\t\t\t\t\t\t\t\t{item.amount}\n\t\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t/>\n\t\t\t\t\t))}\n\t\t\t\t</div>\n\t\t\t</CardContent>\n\t\t</Card>\n\t)\n}"
+        "code": "const balance = \"$2,418.50\"\n\nconst activity = [\n\t{ title: \"Subscription\", detail: \"Team plan · 2h ago\", amount: \"+49.00\", tone: \"1\" },\n\t{ title: \"Refund\", detail: \"Order 1042 · Yesterday\", amount: \"-24.00\", tone: \"2\" },\n\t{ title: \"Payout\", detail: \"To checking · Mon\", amount: \"-850.00\", tone: \"3\" },\n] as const\n\n/** Each row's mark: its tone at graphic strength, which every theme tunes. */\nconst TONE_MARK = { \"1\": \"bg-tone-1-mark\", \"2\": \"bg-tone-2-mark\", \"3\": \"bg-tone-3-mark\" } as const\n\nexport interface WalletBlockProps {\n\tclassName?: string\n\t/** false drops the card's surface and border — for a Sheet or muted section that already frames it. */\n\tframed?: boolean\n\tonSend?: () => void\n\tonReceive?: () => void\n}\n\nexport function WalletBlock({ className, framed = true, onSend, onReceive }: WalletBlockProps) {\n\treturn (\n\t\t<Card variant={framed ? \"default\" : \"flat\"} className={cn(\"w-full max-w-xs\", className)}>\n\t\t\t<CardHeader>\n\t\t\t\t<CardDescription>Balance</CardDescription>\n\t\t\t\t<CardTitle className=\"text-mono-xl\">{balance}</CardTitle>\n\t\t\t</CardHeader>\n\t\t\t<CardContent className=\"flex flex-col gap-3\">\n\t\t\t\t<div className=\"grid grid-cols-2 gap-2\">\n\t\t\t\t\t<Button iconStart={<Icon name=\"arrow-up\" />} onClick={onSend}>\n\t\t\t\t\t\tSend\n\t\t\t\t\t</Button>\n\t\t\t\t\t<Button variant=\"secondary\" iconStart={<Icon name=\"arrow-down\" />} onClick={onReceive}>\n\t\t\t\t\t\tReceive\n\t\t\t\t\t</Button>\n\t\t\t\t</div>\n\t\t\t\t<div className=\"flex flex-col\">\n\t\t\t\t\t{activity.map((item) => (\n\t\t\t\t\t\t<Entity\n\t\t\t\t\t\t\tkey={item.title}\n\t\t\t\t\t\t\tclassName=\"px-0\"\n\t\t\t\t\t\t\tleading={\n\t\t\t\t\t\t\t\t<span\n\t\t\t\t\t\t\t\t\taria-hidden\n\t\t\t\t\t\t\t\t\tclassName={cn(\"block size-8 rounded-full\", TONE_MARK[item.tone])}\n\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\ttitle={item.title}\n\t\t\t\t\t\t\tsubtitle={item.detail}\n\t\t\t\t\t\t\taction={\n\t\t\t\t\t\t\t\t<span className={cn(\"text-mono-md\", item.amount.startsWith(\"+\") ? \"text-success\" : \"text-muted-foreground\")}>\n\t\t\t\t\t\t\t\t\t{item.amount}\n\t\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t/>\n\t\t\t\t\t))}\n\t\t\t\t</div>\n\t\t\t</CardContent>\n\t\t</Card>\n\t)\n}"
       }
     ]
   },
@@ -26186,6 +26491,11 @@
           "instead": "A label that clears 4.5:1 and APCA Lc 60 in both modes. Move the fill's lightness, not its hue, keeping the ink its colour takes. A status colour on a surface is its own token (`--destructive-text`), so the fill can move freely.",
           "why": "The ratio alone passes labels that read muddy. A deliberate brand pair is allowed with a recorded reason (lint disable or preset exceptions).",
           "enforcedBy": "sable-lint: label-contrast"
+        },
+        {
+          "never": "A label fill painted on a mark that carries no text — a meter, a segmented bar, a status dot, a chart series, a soft tint.",
+          "instead": "The colour's `-mark` token (`bg-success-mark`, `bg-tone-warning-mark/15`): the same hue lifted and saturated, held to 2:1 on the page. Text contrast is for text; a graphic owes visibility, and 3:1 (WCAG 1.4.11) only when it is the sole carrier of its meaning.",
+          "why": "A fill is pinned dark enough for a white label. On a bar or dot with nothing to label, that darkness only reads as mud: a brown warning, a forest-green success."
         },
         {
           "never": "Blocking paste, or type=\"number\" for codes and card numbers.",
@@ -27580,6 +27890,29 @@
           "transparent pattern",
           "swatch background"
         ]
+      },
+      {
+        "name": "texture-dither",
+        "kind": "utility",
+        "family": "helper",
+        "intent": "A faint pixel / halftone dither field that dissolves: a small pseudo-random tile of squares painted in `--border-strong` and faded out by a gradient mask. Static, pure CSS, follows every theme and mode. Hooks: `--dither-fade` (direction, any linear-gradient side or angle, default `to bottom`), `--dither-size` (tile, default 48px = 2px squares) and `--dither-color` (default `var(--border-strong)`).",
+        "whenToUse": "Decoration at the top of a content area, a panel or a card, or behind an empty-state heading. Put it on its own `aria-hidden` element, `absolute -z-10` as the first child of a `relative isolate` parent, so the content after it paints on top with no z-index of its own. It sets `pointer-events: none` and no position, so it never takes layout or catches clicks.",
+        "insteadOf": "A hand-written `radial-gradient` dot grid (reads as graph paper, not dither), a PNG noise texture, a canvas, or hardcoded greys. Deliberately not named `bg-dither`, so `cn()` never merges it away against a real `bg-*` colour class.",
+        "example": "<div className=\"relative isolate\"><div aria-hidden className=\"texture-dither absolute inset-x-0 top-0 -z-10 h-40\" /></div>",
+        "keywords": [
+          "dither",
+          "halftone",
+          "pixel pattern",
+          "dot pattern",
+          "noise texture",
+          "texture",
+          "fade pattern",
+          "empty state background",
+          "decorative background"
+        ],
+        "pairsWith": [
+          "checkerboard"
+        ]
       }
     ]
   },
@@ -27685,6 +28018,7 @@
         "bottomNav",
         "children",
         "dock",
+        "frame",
         "header",
         "overlays",
         "sidebar"
@@ -28163,6 +28497,7 @@
         "form",
         "grid",
         "highlightItemOnHover",
+        "highlightMatches",
         "id",
         "inline",
         "inputRef",
@@ -28289,6 +28624,7 @@
         "emptyMessage",
         "filter",
         "finalFocus",
+        "highlightMatches",
         "inputProps",
         "items",
         "listClassName",
@@ -28318,6 +28654,7 @@
         "children",
         "emptyMessage",
         "filter",
+        "highlightMatches",
         "inputProps",
         "items",
         "listClassName",
@@ -28729,6 +29066,7 @@
         "orientation"
       ],
       "GradientArt": [
+        "intensity",
         "seed",
         "tones",
         "variant"
@@ -29088,6 +29426,7 @@
         "max",
         "min",
         "render",
+        "segments",
         "shape",
         "showValue",
         "size",

@@ -142,7 +142,7 @@ export const MENU_ITEM_DESTRUCTIVE =
 	// enough for a white label, and ink mixed from them measured 3.8:1 on
 	// Meridian's popover. From the text token every theme clears 4.5:1 (worst
 	// 5.4:1, Prism dark, on the 10% red wash).
-	"text-[color-mix(in_oklch,var(--destructive-text)_75%,var(--foreground))] data-[highlighted]:bg-destructive/10 data-[highlighted]:text-[color-mix(in_oklch,var(--destructive-text)_75%,var(--foreground))]"
+	"text-[color-mix(in_oklch,var(--destructive-text)_75%,var(--foreground))] data-[highlighted]:bg-destructive-mark/10 data-[highlighted]:text-[color-mix(in_oklch,var(--destructive-text)_75%,var(--foreground))]"
 
 /** A single interactive row. Highlights via Base UI's data-[highlighted]. */
 export function MenuItem({ className, variant = "default", icon, description, children, ...props }: ItemProps) {

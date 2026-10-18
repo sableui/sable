@@ -188,7 +188,7 @@ export function SelectTrigger({
 				mobileTier,
 				size === "xs"
 					? cn("h-(--control-xs) gap-1 px-1.5", FIELD_SHELL_XS)
-					: "h-(--control-md) gap-2 rounded-sm border border-input bg-card px-3",
+					: "h-(--control-md) gap-2 rounded-sm border border-field-border bg-field px-3",
 				"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
 				"data-[popup-open]:ring-2 data-[popup-open]:ring-ring",
 				// Invalid like every other field: Base UI marks the trigger

@@ -46,7 +46,7 @@ Use Badge for any short static label: metadata, categories, tone-coded labels, a
 
 ## Tokens used
 
-`palette-wash`, `palette-wash-strong`, `palette-edge`, `palette-dot`, `palette-solid`, `palette-text`, `palette-solid-ink`, `secondary`, `secondary-foreground`, `border`, `foreground`, `background`, `muted`, `muted-foreground`, `tone-1`, `tone-2`, `tone-3`, `tone-info`, `success`, `tone-warning`, `destructive`, `overlay`, `overlay-foreground`, `tone-1-foreground`, `tone-2-foreground`, `tone-3-foreground`, `tone-info-foreground`, `success-foreground`, `tone-warning-foreground`, `destructive-foreground`
+`palette-wash`, `palette-wash-strong`, `palette-edge`, `palette-dot`, `palette-solid`, `palette-text`, `palette-solid-ink`, `secondary`, `secondary-foreground`, `border`, `foreground`, `background`, `muted`, `muted-foreground`, `tone-1`, `tone-2`, `tone-3`, `tone-info`, `success`, `tone-warning`, `destructive`, `overlay`, `overlay-foreground`, `tone-1-foreground`, `tone-2-foreground`, `tone-3-foreground`, `tone-info-foreground`, `success-foreground`, `tone-warning-foreground`, `destructive-foreground`, `destructive-mark`, `success-mark`, `tone-warning-mark`, `tone-info-mark`, `tone-1-mark`, `tone-2-mark`, `tone-3-mark`
 
 ## Accessibility
 

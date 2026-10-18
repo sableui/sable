@@ -56,13 +56,14 @@ Use Combobox when users choose from a list that benefits from typing, filtering,
 | items | readonly any[] \| readonly ComboboxItemGroup[] | — | The pool of options, flat or grouped ({ value, items }). Drives type-to-filter and is required for ComboboxEmpty to render its fallback. |
 | multiple | boolean | false | Select several items instead of one. `value` / `defaultValue` / `onValueChange` become arrays, choosing an item toggles its membership, and the popup stays open between picks. Pair it with ComboboxChips in place of ComboboxInput; every other part is unchanged. |
 | filter | null \| ((item, query, itemToString?) => boolean) | Base UI's locale-aware contains | How items match the query. `null` turns matching off, for items a server already filtered: pair it with `onInputValueChange` to fetch. |
+| highlightMatches | boolean | true | Paints the typed text wherever it appears in a row's label, on the `highlight` / `highlight-foreground` pair, through the CSS Custom Highlight API — no `<mark>` in the row, and the accessible name is unchanged. Only typed text counts: a field still holding the selected item's label lists everything and lights nothing. A literal, case-insensitive match within the label; a `filter` that matches differently leaves rows it kept unpainted. `false` turns it off. |
 | onInputValueChange | (inputValue: string, eventDetails) => void | — | Fires as the reader types. The place to fetch results for a server-backed combobox. |
 | itemToStringLabel | (item) => string | item.label for { value, label } items | The text an object item shows in the input once chosen, and is matched by. Needed for object items without a `label` field. |
 | virtualized | boolean | false | Tells Base UI the DOM holds only part of the list. Required when using ComboboxVirtualList. |
 
 ## Tokens used
 
-`input`, `card`, `foreground`, `muted-foreground`, `ring`, `destructive`, `popover`, `popover-foreground`, `border`, `accent`, `accent-foreground`, `primary`, `secondary`, `secondary-foreground`
+`highlight`, `highlight-foreground`, `field-border`, `field`, `foreground`, `muted-foreground`, `ring`, `destructive`, `popover`, `popover-foreground`, `border`, `accent`, `accent-foreground`, `primary`, `secondary`, `secondary-foreground`
 
 ## Motion
 

@@ -18,7 +18,7 @@ describe("Badge", () => {
 				<Badge appearance="solid" tone="1">Solid</Badge>
 			</>,
 		)
-		expect((screen.getByText("Soft").closest(".rounded-full") as HTMLElement).className).toContain("bg-tone-1/15")
+		expect((screen.getByText("Soft").closest(".rounded-full") as HTMLElement).className).toContain("bg-tone-1-mark/15")
 		expect((screen.getByText("Outline").closest(".rounded-full") as HTMLElement).className).toContain("border-tone-1/50")
 		expect((screen.getByText("Solid").closest(".rounded-full") as HTMLElement).className).toContain("text-tone-1-foreground")
 	})
@@ -51,6 +51,6 @@ describe("Badge", () => {
 		const badge = container.firstElementChild as HTMLElement
 		expect(badge.className).not.toContain("px-2.5")
 		// The dot takes the badge's tone, and replaces any icon.
-		expect(badge.querySelector(".bg-success")).not.toBeNull()
+		expect(badge.querySelector(".bg-success-mark")).not.toBeNull()
 	})
 })

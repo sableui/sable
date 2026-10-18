@@ -83,7 +83,7 @@ export const inputGroupMeta: ComponentMeta = {
 			description: "Layout classes for the group (width, margins).",
 		},
 	],
-	tokensUsed: ["input", "card", "ring", "destructive", "muted-foreground", "foreground"],
+	tokensUsed: ["field-border", "field", "ring", "destructive", "muted-foreground", "foreground"],
 	motion: [
 		{
 			slot: "arrival",

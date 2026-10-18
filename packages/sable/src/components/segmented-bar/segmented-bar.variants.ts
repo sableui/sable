@@ -11,15 +11,15 @@ export const segmentedBarSegmentVariants = cva(
 	{
 		variants: {
 			tone: {
-				"1": "bg-tone-1",
-				"2": "bg-tone-2",
-				"3": "bg-tone-3",
-				info: "bg-tone-info",
+				"1": "bg-tone-1-mark",
+				"2": "bg-tone-2-mark",
+				"3": "bg-tone-3-mark",
+				info: "bg-tone-info-mark",
 				primary: "bg-primary",
 				neutral: "bg-muted-foreground",
-				success: "bg-success",
-				warning: "bg-tone-warning",
-				destructive: "bg-destructive",
+				success: "bg-success-mark",
+				warning: "bg-tone-warning-mark",
+				destructive: "bg-destructive-mark",
 			},
 		},
 		defaultVariants: {

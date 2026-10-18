@@ -230,7 +230,7 @@ The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, wh
     - **Instead of** A hand-written dash-offset animation with literal timing, which keeps animating, or keeps its delay, under reduced motion.
     - `<Reveal><svg viewBox="0 0 100 100"><path className="motion-draw" pathLength="1" d="M10 50 L90 50" /></svg></Reveal>`
 
-### helper (5)
+### helper (6)
 
 - **`hit-target`** — Grows an element's tap target to 44px with a transparent `::after`, without moving its layout by a pixel. `--hit-target-size` overrides the size. *Use for:* A deliberately small mark — a tag's remove ×, a tiny disclosure, a toast close — that must still meet the WCAG touch floor. Shrink it (`[--hit-target-size:32px]`) where targets sit side by side, or the later one steals the taps.
     - **Instead of** Padding the glyph up (moves it off the row's grid and pushes siblings) or a bigger icon. Never on an `<input>` or other replaced element — pseudo-elements silently do nothing there; wrap it in a label.
@@ -247,3 +247,6 @@ The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, wh
 - **`checkerboard`** — The transparency checkerboard, painted from `--panel` and a derived darker step so it reads in both modes. `--checkerboard-size` (default 16px) and `--checkerboard-alt` tune it. *Use for:* Behind anything that can be translucent: a colour swatch with alpha, an image or artboard preview, an alpha slider track.
     - **Instead of** A hand-rolled `repeating-conic-gradient` with two hardcoded greys. Deliberately not named `bg-checkerboard`, so `cn()` never merges it away against a real `bg-*` colour — you can layer a colour over it.
     - `<div className="checkerboard [--checkerboard-size:8px] size-6 rounded-sm" />`
+- **`texture-dither`** — A faint pixel / halftone dither field that dissolves: a small pseudo-random tile of squares painted in `--border-strong` and faded out by a gradient mask. Static, pure CSS, follows every theme and mode. Hooks: `--dither-fade` (direction, any linear-gradient side or angle, default `to bottom`), `--dither-size` (tile, default 48px = 2px squares) and `--dither-color` (default `var(--border-strong)`). *Use for:* Decoration at the top of a content area, a panel or a card, or behind an empty-state heading. Put it on its own `aria-hidden` element, `absolute -z-10` as the first child of a `relative isolate` parent, so the content after it paints on top with no z-index of its own. It sets `pointer-events: none` and no position, so it never takes layout or catches clicks.
+    - **Instead of** A hand-written `radial-gradient` dot grid (reads as graph paper, not dither), a PNG noise texture, a canvas, or hardcoded greys. Deliberately not named `bg-dither`, so `cn()` never merges it away against a real `bg-*` colour class.
+    - `<div className="relative isolate"><div aria-hidden className="texture-dither absolute inset-x-0 top-0 -z-10 h-40" /></div>`

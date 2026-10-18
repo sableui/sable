@@ -47,7 +47,7 @@ Use Banner for page-level or app-level messages that affect the current experien
 
 ## Tokens used
 
-`secondary`, `secondary-foreground`, `foreground`, `background`, `tone-info`, `tone-info-foreground`, `success`, `success-foreground`, `tone-warning`, `tone-warning-foreground`, `tone-1`, `tone-1-foreground`, `destructive`, `destructive-foreground`
+`secondary`, `secondary-foreground`, `foreground`, `background`, `tone-info`, `tone-info-foreground`, `success`, `success-foreground`, `tone-warning`, `tone-warning-foreground`, `tone-1`, `tone-1-foreground`, `destructive`, `destructive-foreground`, `destructive-mark`, `success-mark`, `tone-warning-mark`, `tone-info-mark`, `tone-1-mark`
 
 ## Accessibility
 

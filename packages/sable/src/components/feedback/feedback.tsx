@@ -229,7 +229,7 @@ export function Feedback({
 					>
 						<span
 							aria-hidden="true"
-							className="inline-flex size-10 items-center justify-center rounded-full bg-success/15 text-2xl text-success"
+							className="inline-flex size-10 items-center justify-center rounded-full bg-success-mark/15 text-2xl text-success"
 						>
 							{/* The wipe is on the glyph, not the disc: a disc that wipes in
 							    reads as a progress bar. */}

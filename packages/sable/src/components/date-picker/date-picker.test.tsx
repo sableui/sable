@@ -113,6 +113,6 @@ describe("DatePicker", () => {
 		renderWithProviders(<DatePicker />)
 		const trigger = screen.getByRole("button", { name: /pick a date/i })
 		expect(trigger.className).toContain("rounded-sm")
-		expect(trigger.className).toContain("border-input")
+		expect(trigger.className).toContain("border-field-border")
 	})
 })

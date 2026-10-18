@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-Styled native text input. Soft-square (rounded-sm), card surface, 2px focus ring; aria-invalid raises the destructive error treatment.
+Styled native text input. Soft-square (rounded-sm), the theme's field surface (outlined or filled), 2px focus ring; aria-invalid raises the destructive error treatment.
 
 **Keywords:** input, text input, field, form, email, search, file, invalid, validation
 
@@ -16,6 +16,8 @@ Use Input for short freeform text, search, email, password, file, and native inp
 - Do: Use type, inputMode, autoComplete, and placeholder as progressive hints, not as the only label.
 - Do: Set aria-invalid or use Field error copy when validation fails.
 - Do: Keep a focusable field at 16px or larger on mobile. iOS Safari zooms the whole page when a focused input computes under 16px and never zooms back out. Input handles this itself — below the sm breakpoint it renders text-body-lg (17px) and returns to text-body-md at sm and up. Build a custom field the same way: a second paired tier under a max-sm: variant, never a hand-set font-size.
+- Do: Choose outlined or filled fields once, in the theme: `--theme-field: var(--muted)` with `--theme-field-border: transparent` turns every Input, Textarea, Select, Combobox, SearchInput, InputGroup and ChatComposer into a borderless filled well; unset, they are outlined on the card. Every field reads the `field` / `field-border` pair, so they change together.
+- Don't: Restyle one Input as a filled chip with `bg-muted border-transparent`. It drifts from every other field on the page, and the theme can no longer move them together; set the field tokens instead.
 - Don't: Override an Input's type with a page tier below 16px (text-body-md, text-body-sm, text-label-*) without a >=16px mobile arm — that reintroduces the iOS focus zoom.
 - Don't: Use placeholder text as the label; it disappears once the user types and is not enough context.
 - Don't: Use Input for long body copy. Use Textarea for multi-line content.
@@ -45,7 +47,7 @@ Use Input for short freeform text, search, email, password, file, and native inp
 
 ## Tokens used
 
-`input`, `card`, `foreground`, `muted-foreground`, `ring`, `destructive`
+`field-border`, `field`, `foreground`, `muted-foreground`, `ring`, `destructive`
 
 ## Accessibility
 

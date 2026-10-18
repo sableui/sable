@@ -52,7 +52,7 @@ The card a file takes in a conversation — in the composer while it uploads, an
 
 ## Tokens used
 
-`card`, `border`, `border-strong`, `muted`, `muted-foreground`, `foreground`, `destructive`, `overlay`, `overlay-foreground`, `ring`
+`card`, `border`, `border-strong`, `muted`, `muted-foreground`, `foreground`, `destructive`, `overlay`, `overlay-foreground`, `ring`, `destructive-mark`
 
 ## Motion
 

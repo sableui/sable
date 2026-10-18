@@ -78,6 +78,13 @@ export const segmentedBarMeta: ComponentMeta = {
 		"success",
 		"tone-warning",
 		"destructive",
+		"destructive-mark",
+		"success-mark",
+		"tone-warning-mark",
+		"tone-info-mark",
+		"tone-1-mark",
+		"tone-2-mark",
+		"tone-3-mark",
 	],
 	motion: [
 		{

@@ -72,6 +72,11 @@ const accessibility: Foundation = {
 			enforcedBy: "sable-lint: label-contrast",
 		},
 		{
+			never: "A label fill painted on a mark that carries no text — a meter, a segmented bar, a status dot, a chart series, a soft tint.",
+			instead: "The colour's `-mark` token (`bg-success-mark`, `bg-tone-warning-mark/15`): the same hue lifted and saturated, held to 2:1 on the page. Text contrast is for text; a graphic owes visibility, and 3:1 (WCAG 1.4.11) only when it is the sole carrier of its meaning.",
+			why: "A fill is pinned dark enough for a white label. On a bar or dot with nothing to label, that darkness only reads as mud: a brown warning, a forest-green success.",
+		},
+		{
 			never: "Blocking paste, or type=\"number\" for codes and card numbers.",
 			instead: "type=\"text\" inputMode=\"numeric\" with the right autocomplete.",
 			why: "Blocking paste breaks password managers; number inputs scroll-change identifiers.",

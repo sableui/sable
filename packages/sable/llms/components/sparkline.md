@@ -36,7 +36,7 @@ Use Sparkline next to a number to show where it has been — a KPI's last 30 day
 
 ## Tokens used
 
-`primary`, `tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `muted-foreground`, `success`, `destructive`
+`primary`, `tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `muted-foreground`, `success`, `destructive`, `destructive-mark`, `success-mark`, `tone-warning-mark`, `tone-info-mark`, `tone-1-mark`, `tone-2-mark`, `tone-3-mark`
 
 ## Motion
 

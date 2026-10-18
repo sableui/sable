@@ -28,7 +28,7 @@ export const attachmentVariants = cva(
 			status: {
 				idle: "border-border bg-card",
 				uploading: "border-border bg-card",
-				error: "border-destructive/40 bg-destructive/5",
+				error: "border-destructive-mark/40 bg-destructive-mark/5",
 			},
 			interactive: {
 				true: "hover:border-border-strong",

@@ -18,6 +18,11 @@ export const appShellMeta: ComponentMeta = {
 		"player bar",
 		"now playing",
 		"persistent",
+		"inset",
+		"inset frame",
+		"floating panel",
+		"rounded content",
+		"scroll container",
 	],
 	usage: {
 		description:
@@ -44,9 +49,25 @@ export const appShellMeta: ComponentMeta = {
 					"Wrap EVERY return of a route in its own Page or Region — including early returns for loading, empty and error states. AppShell's <main> deliberately carries no padding (it is a frame, and padding belongs to the region that chose the width), so a route that returns a bare spinner or error renders flush against the chrome. This is the most common conversion bug: the happy path gets a Page, the three early returns do not.",
 			},
 			{
+				guidance: "do",
+				description:
+					"Use frame=\"inset\" for dense, multi-pane product apps — a CRM, an issue tracker, an AI workspace — where framing the content as one raised panel on the rail's ground helps it read as the workspace and the rail as chrome. Keep the Sidebar on surface=\"rail\" so its tint is the ground. Inset moves the page scroll from the window to <main id=\"main-content\"> on desktop: point scroll listeners, scroll restoration and scroll-to-top at that element, not window.",
+			},
+			{
 				guidance: "dont",
 				description:
 					"Nest AppShell inside route cards or panels. It is page chrome, not local content.",
+			},
+			{
+				guidance: "dont",
+				description:
+					"Wrap a route in its own h-full overflow-y-auto box inside an inset shell. main is already the page's scroll container; a second one traps the scrollbar inside a smaller box and breaks sticky headers and the skip link's scroll target. Scroll a genuinely separate pane (a list beside a detail view) with Scroller.",
+				instead: ["Scroller"],
+			},
+			{
+				guidance: "dont",
+				description:
+					"Combine frame=\"inset\" with a full-width header bar above the rail. The inset ground is the rail running the full height of the window; a bar across the top cuts it off. Use the flush frame with Sidebar surface=\"page\" for that layout.",
 			},
 			{
 				guidance: "dont",
@@ -77,7 +98,7 @@ export const appShellMeta: ComponentMeta = {
 				name: "Main",
 				required: true,
 				description:
-					"The route content landmark with id main-content.",
+					"The route content landmark with id main-content. With frame=\"inset\", from lg it is a rounded, bordered panel that scrolls inside itself.",
 			},
 			{
 				name: "Bottom nav",
@@ -135,6 +156,13 @@ export const appShellMeta: ComponentMeta = {
 			description:
 				"Floating overlays — a message launcher, FAB, or modal mount points.",
 		},
+		{
+			name: "frame",
+			type: '"flush" | "inset"',
+			default: '"flush"',
+			description:
+				"How the desktop frame (lg and up) holds the content; below lg both are the same mobile layout with page scroll. \"flush\": main sits on the page beside the rail and the document scrolls. \"inset\": the shell fills the viewport and paints the shell-ground token (one step off the rail's surface, tunable with --theme-shell-ground) behind the rail and around the panel; main becomes a rounded-lg panel with a hairline border and shadow-sm, inset by a spacing step from the window edges, that scrolls inside itself (scrollbar-quiet) while the rail stays put. The Sidebar in the sidebar slot drops its right border and fills the row. main stays the #main-content target (tabIndex -1, so the skip link lands focus in the scroller) and the inline-size query container; sticky children stick to the panel's top; banners and the dock stay in flow, so the panel's bottom gap sits above a dock. With Sidebar surface=\"page\" the ground is the page colour and the panel's border alone lifts it.",
+		},
 	],
 	subcomponents: [
 		{
@@ -149,8 +177,9 @@ export const appShellMeta: ComponentMeta = {
 		"Wraps content in a <main id=\"main-content\"> landmark.",
 		"Slot components own their own ARIA (nav landmarks, labels).",
 		"The dock follows <main> in DOM order, so keyboard and screen-reader users reach the player after the page content, not before it.",
+		"With frame=\"inset\", <main> is the desktop scroll container and takes tabIndex -1: the skip link moves focus into it, so PageDown and the arrow keys scroll the content, without adding a tab stop.",
 	],
-	tokensUsed: ["background", "foreground", "primary", "primary-foreground"],
+	tokensUsed: ["background", "foreground", "primary", "primary-foreground", "sidebar", "shell-ground", "border"],
 	examples: [
 		{
 			label: "Full frame",
@@ -176,6 +205,65 @@ export const appShellMeta: ComponentMeta = {
   <Region max="feed">
     <PageHeader title="Home" description="Latest posts from people you follow." />
   </Region>
+</AppShell>`,
+		},
+		{
+			label: "Inset frame",
+			code: `<AppShell
+  frame="inset"
+  header={<AppHeader title="Pipeline" />}
+  sidebar={
+    <Sidebar>
+      <SidebarHeader>
+        <SidebarBrand mark={<Icon name="gem" variant="solid" />} label="Relay" render={<Link to="/" />} />
+      </SidebarHeader>
+      <SidebarNav>
+        <SidebarItem icon={<Icon name="inbox" />} label="Inbox" render={<Link to="/inbox" />} />
+        <SidebarItem icon={<Icon name="user" />} label="People" active render={<Link to="/people" />} />
+        <SidebarItem icon={<Icon name="folder" />} label="Companies" render={<Link to="/companies" />} />
+      </SidebarNav>
+    </Sidebar>
+  }
+  bottomNav={
+    <BottomNav>
+      <BottomNavItem icon={<Icon name="inbox" />} label="Inbox" render={<Link to="/inbox" />} />
+      <BottomNavItem icon={<Icon name="user" />} label="People" active render={<Link to="/people" />} />
+      <BottomNavItem icon={<Icon name="folder" />} label="Companies" render={<Link to="/companies" />} />
+    </BottomNav>
+  }
+>
+  <Page max="wide" gap={4} className="py-6">
+    <PageHeader
+      title="People"
+      description="Everyone in your pipeline, newest first."
+      actions={<Button><Icon name="plus" />Add person</Button>}
+    />
+    <Card>
+      <CardContent flush>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Company</TableHead>
+              <TableHead numeric>Deals</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell>Ada Lovelace</TableCell>
+              <TableCell>Northwind</TableCell>
+              <TableCell numeric>4</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Grace Hopper</TableCell>
+              <TableCell>Harbor Labs</TableCell>
+              <TableCell numeric>2</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  </Page>
 </AppShell>`,
 		},
 		{

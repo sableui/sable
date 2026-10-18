@@ -306,8 +306,12 @@ export const HAIRLINE_VISIBILITY_FLOOR = 1.1
  *   stand in for the boundary.
  * - `hairline` — the visibility floor above. A divider is entitled to be quiet;
  *   it is not entitled to be absent.
+ * - `graphic` — a status or tone at graphic strength (MARK_TOKENS): a meter's
+ *   fill, a dot, a chart series. NON_TEXT_HARD_FLOOR (2:1), ratio only. Every
+ *   mark sits beside text stating the same thing, so it owes visibility, not
+ *   1.4.11's 3:1 — which a graphic that is the ONLY carrier still owes.
  */
-export type NonTextTier = "focus" | "control" | "hairline"
+export type NonTextTier = "focus" | "control" | "hairline" | "graphic"
 
 /**
  * Which structural tokens must be visible against which surfaces, and how hard.
@@ -342,6 +346,15 @@ export const NON_TEXT_PAIRS: Record<
 	// why it exists as a family (see token-docs: "tuned against `sidebar`").
 	"sidebar-border": { surfaces: ["sidebar"], tier: "hairline" },
 	"sidebar-ring": { surfaces: ["sidebar"], tier: "focus" },
+	// Status and tone colours at graphic strength, on the surfaces a meter, dot
+	// or chart sits on. Bundled themes declare these as `--theme-*-mark` hooks.
+	"destructive-mark": { surfaces: ["background", "card"], tier: "graphic" },
+	"success-mark": { surfaces: ["background", "card"], tier: "graphic" },
+	"tone-warning-mark": { surfaces: ["background", "card"], tier: "graphic" },
+	"tone-info-mark": { surfaces: ["background", "card"], tier: "graphic" },
+	"tone-1-mark": { surfaces: ["background", "card"], tier: "graphic" },
+	"tone-2-mark": { surfaces: ["background", "card"], tier: "graphic" },
+	"tone-3-mark": { surfaces: ["background", "card"], tier: "graphic" },
 }
 
 /**
@@ -364,6 +377,10 @@ export function evaluateNonTextContrast(
 	}
 	if (tier === "control") {
 		return { ratio, lc, wcagRatioPasses, passes: wcagRatioPasses, basis: wcagRatioPasses ? "wcag" : "none" }
+	}
+	if (tier === "graphic") {
+		const passes = ratio >= NON_TEXT_HARD_FLOOR
+		return { ratio, lc, wcagRatioPasses, passes, basis: wcagRatioPasses ? "wcag" : passes ? "visibility" : "none" }
 	}
 	if (wcagRatioPasses) return { ratio, lc, wcagRatioPasses, passes: true, basis: "wcag" }
 	if (Math.abs(lc) >= NON_TEXT_PERCEPTUAL_FLOOR && ratio >= NON_TEXT_HARD_FLOOR) {
@@ -501,6 +518,67 @@ export function inkPolarity<T extends OklchColor>(color: OklchColor, inks: reado
 		return (v.reads ? 0 : 10) + Math.abs(fitted.l - color.l) - Math.abs(v.lc) / 1e4
 	}
 	return inks.reduce((best, ink) => (cost(ink) < cost(best) ? ink : best))
+}
+
+/* ──────────────────────────────────────────────────────────────────────────────
+   Graphic strength (MARK_TOKENS).
+
+   A status or tone fill is pinned dark in light mode by the label it carries.
+   A mark carries no label — a meter's fill, a dot, a chart series, a soft tint
+   — so it takes the same hue at the strength a graphic wants: lifted toward
+   the brightest it can sit and still read as itself, and saturated toward the
+   gamut edge. It owes the page visibility, not a text ratio.
+   ────────────────────────────────────────────────────────────────────────────── */
+
+/** A mark's floor against the surfaces it sits on: visibility, not text contrast. */
+export const MARK_FLOOR = NON_TEXT_HARD_FLOOR
+
+/** Below this chroma a tone is a neutral (a grey tone), and a mark keeps it grey. */
+const MARK_NEUTRAL_CHROMA = 0.03
+
+/**
+ * The lightness a light-mode mark lifts to, by hue: ambers and greens read as
+ * themselves much lighter than reds, blues and violets, which wash out to pink
+ * and lavender long before an amber stops being amber.
+ */
+function markLightness(h: number): number {
+	const hue = ((h % 360) + 360) % 360
+	if (hue < 38 || hue >= 350) return 0.62 // red
+	if (hue < 70) return 0.71 // orange
+	if (hue < 110) return 0.78 // amber, yellow
+	if (hue < 190) return 0.7 // green, teal
+	if (hue < 268) return 0.63 // blue
+	if (hue < 300) return 0.6 // violet
+	return 0.62 // magenta
+}
+
+/**
+ * The mark for a fill: its hue at graphic strength. In light mode the fill is
+ * lifted to its hue's mark lightness and its chroma raised 1.3× (never past the
+ * gamut, never below its own); in dark mode, where fills are already light, a
+ * red is lifted a little and every hue gains 1.15×. A grey tone stays grey.
+ * Then it steps back toward the ink until it clears MARK_FLOOR on every surface
+ * given, so a pale amber never vanishes into a cream page.
+ */
+export function markFor<T extends OklchColor>(fill: T, mode: "light" | "dark", surfaces: readonly OklchColor[] = []): T {
+	const neutral = fill.c < MARK_NEUTRAL_CHROMA
+	const hue = ((fill.h % 360) + 360) % 360
+	let l = fill.l
+	if (mode === "light") l = neutral ? Math.max(l, 0.6) : Math.max(l, markLightness(hue))
+	else if (!neutral && (hue < 38 || hue >= 350)) l = Math.max(l, 0.65)
+	const lift = mode === "light" ? 1.3 : 1.15
+	const chromaAt = (lightness: number) => {
+		if (neutral) return fill.c
+		const max = maxChromaAt(lightness, fill.h)
+		return Math.max(Math.min(fill.c, max), Math.min(max * FILL_GAMUT_SAFETY, fill.c * lift))
+	}
+	let mark: T = { ...fill, l, c: chromaAt(l) }
+	const reads = (m: OklchColor) => surfaces.every((s) => contrastRatio(linearOf(m), linearOf(s)) >= MARK_FLOOR)
+	for (let i = 0; i < 60 && !reads(mark); i++) {
+		l = Math.min(0.98, Math.max(0.05, l + (mode === "light" ? -0.01 : 0.01)))
+		mark = { ...mark, l, c: neutral ? fill.c : Math.min(mark.c, maxChromaAt(l, fill.h)) }
+	}
+	return mark
 }
 
 /** Linear sRGB → OKLCH (Ottosson), so a measured colour can be moved and written back. */

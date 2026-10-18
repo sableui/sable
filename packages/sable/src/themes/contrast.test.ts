@@ -18,6 +18,8 @@ import {
 	inkFor,
 	inkPolarity,
 	labelContrast,
+	MARK_FLOOR,
+	markFor,
 	maxChromaAt,
 	gamutExcursion,
 	isInSrgbGamut,
@@ -25,6 +27,53 @@ import {
 	parseColor,
 	parseColorWithAlpha,
 } from "./contrast"
+import { MARK_TOKENS } from "./_contract"
+
+describe("markFor — a status or tone at graphic strength", () => {
+	const WHITE_PAGE = { l: 1, c: 0, h: 0 }
+	const BLACK_PAGE = { l: 0.15, c: 0.003, h: 264 }
+	const onPage = (m: { l: number; c: number; h: number }, page: { l: number; c: number; h: number }) =>
+		contrastRatio(oklchToLinearRgb(m.l, m.c, m.h), oklchToLinearRgb(page.l, page.c, page.h))
+
+	it("lifts a light-mode fill that a white label pinned dark, keeping its hue", () => {
+		// Sable's warning fill, orange-700: brown, 7.8:1 on white, for its white label.
+		const fill = { l: 0.45, c: 0.13, h: 52 }
+		const mark = markFor(fill, "light", [WHITE_PAGE])
+		expect(mark.h).toBe(52)
+		expect(mark.l).toBeGreaterThan(0.65)
+		expect(mark.c).toBeGreaterThan(fill.c)
+		expect(onPage(mark, WHITE_PAGE)).toBeGreaterThanOrEqual(MARK_FLOOR)
+		expect(isInSrgbGamut(oklchToLinearRgb(mark.l, mark.c, mark.h))).toBe(true)
+	})
+
+	it("lifts an amber further than a red, each to where it still reads as itself", () => {
+		const amber = markFor({ l: 0.48, c: 0.1, h: 80 }, "light", [WHITE_PAGE])
+		const red = markFor({ l: 0.53, c: 0.225, h: 22 }, "light", [WHITE_PAGE])
+		expect(amber.l).toBeGreaterThan(red.l)
+	})
+
+	it("never drops below its floor on a pale page, stepping back toward the ink", () => {
+		const cream = { l: 0.97, c: 0.02, h: 86 }
+		const mark = markFor({ l: 0.5, c: 0.12, h: 75 }, "light", [cream])
+		expect(onPage(mark, cream)).toBeGreaterThanOrEqual(MARK_FLOOR)
+	})
+
+	it("keeps a grey tone grey", () => {
+		const mark = markFor({ l: 0.45, c: 0, h: 0 }, "light", [WHITE_PAGE])
+		expect(mark.c).toBe(0)
+	})
+
+	it("leaves a dark-mode fill light, never duller than it was", () => {
+		const fill = { l: 0.78, c: 0.15, h: 168 }
+		const mark = markFor(fill, "dark", [BLACK_PAGE])
+		expect(mark.l).toBe(fill.l)
+		expect(mark.c).toBeGreaterThanOrEqual(fill.c)
+	})
+
+	it("names one graphic-tier pair per mark token", () => {
+		for (const token of MARK_TOKENS) expect(NON_TEXT_PAIRS[token]?.tier).toBe("graphic")
+	})
+})
 
 const c = (v: string) => {
 	const parsed = parseColor(v)
@@ -213,11 +262,14 @@ describe("evaluateNonTextContrast — the structural gate", () => {
 		// A token added to the contract and forgotten here is a gate that silently
 		// does not run — the exact shape of the gap this whole file closes.
 		expect(Object.keys(NON_TEXT_PAIRS).sort()).toEqual(
-			["border", "border-strong", "control-border", "input", "ring", "sidebar-border", "sidebar-ring"],
+			[
+				"border", "border-strong", "control-border", "input", "ring", "sidebar-border", "sidebar-ring",
+				...MARK_TOKENS,
+			].sort(),
 		)
 		for (const [token, pair] of Object.entries(NON_TEXT_PAIRS)) {
 			expect(pair.surfaces.length, `${token} pairs with no surface`).toBeGreaterThan(0)
-			expect(["focus", "control", "hairline"]).toContain(pair.tier)
+			expect(["focus", "control", "hairline", "graphic"]).toContain(pair.tier)
 		}
 	})
 })

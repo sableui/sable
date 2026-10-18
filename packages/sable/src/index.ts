@@ -43,6 +43,9 @@ export {
 	DENSITY_TOKENS,
 	RHYTHM_TOKENS,
 	WORKSPACE_SURFACE_TOKENS,
+	FIELD_TOKENS,
+	APP_SHELL_TOKENS,
+	MARK_TOKENS,
 	ART_TOKENS,
 	PALETTE_TOKENS,
 	TYPE_UI_TOKENS,
@@ -243,6 +246,10 @@ export { PresentationProvider, usePresentation, type Presentation } from "./lib/
 // a consumer building their own scroll container needs it to honour the policy
 // the six hard rules require of ours. See DESIGN.md → Scrolling.
 export { useScrollActivity } from "./lib/use-scroll-activity"
+// The match paint Combobox and CommandMenu run on their rows, for a results list
+// a consumer filters itself (a SearchInput over a table). See
+// lib/use-match-highlight.ts.
+export { useMatchHighlight, type UseMatchHighlightOptions } from "./lib/use-match-highlight"
 export { useCopy, type CopySource, type UseCopyOptions, type UseCopyResult } from "./lib/use-copy"
 export { useSmoothWheel, type SmoothWheelOptions } from "./lib/use-smooth-wheel"
 export {

@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const searchInputMeta: ComponentMeta = {
 	name: "SearchInput",
 	summary:
-		"Styled search field with a leading magnifier and a clearable X. Soft-square (rounded-sm), card surface, 2px focus ring; the clear button appears only when there is a value.",
+		"Styled search field with a leading magnifier and a clearable X. Soft-square (rounded-sm), the theme's field surface, 2px focus ring; the clear button appears only when there is a value.",
 	status: "stable",
 	keywords: [
 		"search",
@@ -25,6 +25,10 @@ export const searchInputMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description: "When a button stands in for search (a header trigger that opens CommandMenu with ⌘K), use CommandMenuTrigger. It wears this field's shell from the same source, so the two cannot drift; a hand-styled button already did once, into a borderless chip that matched neither the field nor a button.",
+			},
+			{
+				guidance: "do",
+				description: "Light the query in the results it filters with `useMatchHighlight(query)` — a callback ref for the results container, with `selector` to keep it to titles. It paints on the `highlight` pair without wrapping matches in `<mark>`, the same paint Combobox and CommandMenu use for their rows.",
 			},
 			{
 				guidance: "dont",
@@ -95,8 +99,8 @@ export const searchInputMeta: ComponentMeta = {
 		},
 	],
 	tokensUsed: [
-		"input",
-		"card",
+		"field-border",
+		"field",
 		"foreground",
 		"muted-foreground",
 		"ring",
@@ -147,6 +151,10 @@ export const searchInputMeta: ComponentMeta = {
 		{
 			label: "Uncontrolled, sized as a whole",
 			code: '<Field label="Search posts"><SearchInput defaultValue="roadmap" className="max-w-80" /></Field>',
+		},
+		{
+			label: "Highlighting matches in the results",
+			code: 'const [q, setQ] = useState("")\nconst results = useMatchHighlight<HTMLUListElement>(q, { selector: "[data-title]" })\nconst shown = posts.filter((post) => post.title.toLowerCase().includes(q.trim().toLowerCase()))\n\n<SearchInput value={q} onValueChange={setQ} placeholder="Search posts" />\n<ul ref={results}>\n\t{shown.map((post) => (\n\t\t<li key={post.id}><span data-title>{post.title}</span></li>\n\t))}\n</ul>',
 		},
 		{
 			label: "Disabled",

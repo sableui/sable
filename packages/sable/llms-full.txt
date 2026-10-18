@@ -4083,6 +4083,7 @@ Sable's components ship accessible behavior from Base UI. These rules cover what
 - **Never:** Color as the only signal (a red border with no message). **Instead:** Color plus text or an icon. Roughly 1 in 12 men cannot tell red from green.
 - **Never:** Opacity on the focus ring. **Instead:** ring-ring at full opacity; tune the token in the theme. A faded ring loses the contrast the theme tested. *Enforced by sable-lint: faded-focus-ring.*
 - **Never:** A brand or status fill retuned under its old label — dark ink on a bright red that passes 4.5:1 at APCA Lc 42. **Instead:** A label that clears 4.5:1 and APCA Lc 60 in both modes. Move the fill's lightness, not its hue, keeping the ink its colour takes. A status colour on a surface is its own token (`--destructive-text`), so the fill can move freely. The ratio alone passes labels that read muddy. A deliberate brand pair is allowed with a recorded reason (lint disable or preset exceptions). *Enforced by sable-lint: label-contrast.*
+- **Never:** A label fill painted on a mark that carries no text — a meter, a segmented bar, a status dot, a chart series, a soft tint. **Instead:** The colour's `-mark` token (`bg-success-mark`, `bg-tone-warning-mark/15`): the same hue lifted and saturated, held to 2:1 on the page. Text contrast is for text; a graphic owes visibility, and 3:1 (WCAG 1.4.11) only when it is the sole carrier of its meaning. A fill is pinned dark enough for a white label. On a bar or dot with nothing to label, that darkness only reads as mud: a brown warning, a forest-green success.
 - **Never:** Blocking paste, or type="number" for codes and card numbers. **Instead:** type="text" inputMode="numeric" with the right autocomplete. Blocking paste breaks password managers; number inputs scroll-change identifiers.
 - **Never:** forced-color-adjust: none to 'fix' high-contrast mode. **Instead:** Let the system colors apply; verify the result. It removes the user's chosen colors exactly where they need them.
 - **Never:** outline: none without a replacement. **Instead:** focus-visible:ring-2 ring-ring. Keyboard users lose their place.
@@ -10269,7 +10270,10 @@ const activity = [
 	{ title: "Subscription", detail: "Team plan · 2h ago", amount: "+49.00", tone: "1" },
 	{ title: "Refund", detail: "Order 1042 · Yesterday", amount: "-24.00", tone: "2" },
 	{ title: "Payout", detail: "To checking · Mon", amount: "-850.00", tone: "3" },
-]
+] as const
+
+/** Each row's mark: its tone at graphic strength, which every theme tunes. */
+const TONE_MARK = { "1": "bg-tone-1-mark", "2": "bg-tone-2-mark", "3": "bg-tone-3-mark" } as const
 
 export interface WalletBlockProps {
 	className?: string
@@ -10303,9 +10307,7 @@ export function WalletBlock({ className, framed = true, onSend, onReceive }: Wal
 							leading={
 								<span
 									aria-hidden
-									className="block size-8 rounded-full"
-									// design-lint-disable-next-line inline-color -- relative colour derived from the theme's own --tone token, so it follows every look
-									style={{ background: `oklch(from var(--tone-${item.tone}) clamp(0.5, calc(l + 0.16), 0.9) max(calc(c * 1.25), 0.1) h)` }}
+									className={cn("block size-8 rounded-full", TONE_MARK[item.tone])}
 								/>
 							}
 							title={item.title}
@@ -11102,7 +11104,7 @@ import { AppHeader, AppShell, PageHeader, Region } from "@sableui/react"
 
 The application frame: slots for status banners, a mobile header, a desktop sidebar, main content, a mobile bottom nav, a persistent dock (a now-playing or call bar), and floating overlays — plus a built-in skip link and #main-content target.
 
-**Keywords:** app shell, layout, frame, sidebar, header, bottom nav, mobile, banners, main, dock, player bar, now playing, persistent
+**Keywords:** app shell, layout, frame, sidebar, header, bottom nav, mobile, banners, main, dock, player bar, now playing, persistent, inset, inset frame, floating panel, rounded content, scroll container
 
 ## Usage
 
@@ -11114,7 +11116,10 @@ Use AppShell as the outer product frame for authenticated or app-like experience
 - Do: Pass app-wide outage or status messages through banners so they remain above the frame.
 - Do: Use Region inside the main content to choose each route's reading width.
 - Do: Wrap EVERY return of a route in its own Page or Region — including early returns for loading, empty and error states. AppShell's <main> deliberately carries no padding (it is a frame, and padding belongs to the region that chose the width), so a route that returns a bare spinner or error renders flush against the chrome. This is the most common conversion bug: the happy path gets a Page, the three early returns do not.
+- Do: Use frame="inset" for dense, multi-pane product apps — a CRM, an issue tracker, an AI workspace — where framing the content as one raised panel on the rail's ground helps it read as the workspace and the rail as chrome. Keep the Sidebar on surface="rail" so its tint is the ground. Inset moves the page scroll from the window to <main id="main-content"> on desktop: point scroll listeners, scroll restoration and scroll-to-top at that element, not window.
 - Don't: Nest AppShell inside route cards or panels. It is page chrome, not local content.
+- Don't: Wrap a route in its own h-full overflow-y-auto box inside an inset shell. main is already the page's scroll container; a second one traps the scrollbar inside a smaller box and breaks sticky headers and the skip link's scroll target. Scroll a genuinely separate pane (a list beside a detail view) with Scroller. → use **Scroller**
+- Don't: Combine frame="inset" with a full-width header bar above the rail. The inset ground is the rail running the full height of the window; a bar across the top cuts it off. Use the flush frame with Sidebar surface="page" for that layout.
 - Don't: Put desktop-only navigation in the mobile header slot or mobile-only controls in the sidebar slot.
 
 ### Anatomy
@@ -11124,7 +11129,7 @@ Use AppShell as the outer product frame for authenticated or app-like experience
 | Banners | no | Full-width app status messages rendered above the shell. |
 | Header | no | Mobile top chrome, usually AppHeader. |
 | Sidebar | no | Desktop navigation chrome, usually Sidebar. |
-| Main | yes | The route content landmark with id main-content. |
+| Main | yes | The route content landmark with id main-content. With frame="inset", from lg it is a rounded, bordered panel that scrolls inside itself. |
 | Bottom nav | no | Mobile fixed navigation with reserved bottom space. |
 | Dock | no | Persistent bottom chrome that outlives routes — a now-playing bar, a call bar. Sticky above the bottom nav; the desktop Sidebar shortens to clear it. |
 
@@ -11144,10 +11149,11 @@ Use AppShell as the outer product frame for authenticated or app-like experience
 | bottomNav | ReactNode | — | Mobile bottom navigation (e.g. BottomNav); fixed to the bottom edge. main reserves space for it. |
 | dock | ReactNode | — | Persistent chrome kept on screen across routes (a now-playing bar, an active-call bar, an upload tray). Full width, sticky to the bottom edge and above bottomNav on mobile; its height is published as --dock-height and the app Sidebar subtracts it. In flow, so main needs no reserved space. The contents paint their own surface and top border, and name themselves (e.g. <section aria-label="Player">). Mount AppShell in a layout that survives navigation, or the playback restarts. |
 | overlays | ReactNode | — | Floating overlays — a message launcher, FAB, or modal mount points. |
+| frame | "flush" \| "inset" | "flush" | How the desktop frame (lg and up) holds the content; below lg both are the same mobile layout with page scroll. "flush": main sits on the page beside the rail and the document scrolls. "inset": the shell fills the viewport and paints the shell-ground token (one step off the rail's surface, tunable with --theme-shell-ground) behind the rail and around the panel; main becomes a rounded-lg panel with a hairline border and shadow-sm, inset by a spacing step from the window edges, that scrolls inside itself (scrollbar-quiet) while the rail stays put. The Sidebar in the sidebar slot drops its right border and fills the row. main stays the #main-content target (tabIndex -1, so the skip link lands focus in the scroller) and the inline-size query container; sticky children stick to the panel's top; banners and the dock stay in flow, so the panel's bottom gap sits above a dock. With Sidebar surface="page" the ground is the page colour and the panel's border alone lifts it. |
 
 ## Tokens used
 
-`background`, `foreground`, `primary`, `primary-foreground`
+`background`, `foreground`, `primary`, `primary-foreground`, `sidebar`, `shell-ground`, `border`
 
 ## Accessibility
 
@@ -11155,6 +11161,7 @@ Use AppShell as the outer product frame for authenticated or app-like experience
 - Wraps content in a <main id="main-content"> landmark.
 - Slot components own their own ARIA (nav landmarks, labels).
 - The dock follows <main> in DOM order, so keyboard and screen-reader users reach the player after the page content, not before it.
+- With frame="inset", <main> is the desktop scroll container and takes tabIndex -1: the skip link moves focus into it, so PageDown and the arrow keys scroll the content, without adding a tab stop.
 
 ## Related
 
@@ -11191,6 +11198,70 @@ import { AppHeader, AppShell, Banner, BottomNav, BottomNavItem, Icon, PageHeader
   <Region max="feed">
     <PageHeader title="Home" description="Latest posts from people you follow." />
   </Region>
+</AppShell>
+```
+
+### Inset frame
+
+```tsx
+import { AppHeader, AppShell, BottomNav, BottomNavItem, Button, Card, CardContent, Icon, Page, PageHeader, Sidebar, SidebarBrand, SidebarHeader, SidebarItem, SidebarNav, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@sableui/react"
+// <Link> = your router's link (react-router, next/link, @tanstack/router, …)
+
+<AppShell
+  frame="inset"
+  header={<AppHeader title="Pipeline" />}
+  sidebar={
+    <Sidebar>
+      <SidebarHeader>
+        <SidebarBrand mark={<Icon name="gem" variant="solid" />} label="Relay" render={<Link to="/" />} />
+      </SidebarHeader>
+      <SidebarNav>
+        <SidebarItem icon={<Icon name="inbox" />} label="Inbox" render={<Link to="/inbox" />} />
+        <SidebarItem icon={<Icon name="user" />} label="People" active render={<Link to="/people" />} />
+        <SidebarItem icon={<Icon name="folder" />} label="Companies" render={<Link to="/companies" />} />
+      </SidebarNav>
+    </Sidebar>
+  }
+  bottomNav={
+    <BottomNav>
+      <BottomNavItem icon={<Icon name="inbox" />} label="Inbox" render={<Link to="/inbox" />} />
+      <BottomNavItem icon={<Icon name="user" />} label="People" active render={<Link to="/people" />} />
+      <BottomNavItem icon={<Icon name="folder" />} label="Companies" render={<Link to="/companies" />} />
+    </BottomNav>
+  }
+>
+  <Page max="wide" gap={4} className="py-6">
+    <PageHeader
+      title="People"
+      description="Everyone in your pipeline, newest first."
+      actions={<Button><Icon name="plus" />Add person</Button>}
+    />
+    <Card>
+      <CardContent flush>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Company</TableHead>
+              <TableHead numeric>Deals</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell>Ada Lovelace</TableCell>
+              <TableCell>Northwind</TableCell>
+              <TableCell numeric>4</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Grace Hopper</TableCell>
+              <TableCell>Harbor Labs</TableCell>
+              <TableCell numeric>2</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  </Page>
 </AppShell>
 ```
 
@@ -11292,7 +11363,7 @@ Use AreaChart for volume over time — visitors, revenue, usage — where the fi
 
 ## Tokens used
 
-`tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
+`tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`, `tone-warning-mark`, `tone-info-mark`, `tone-1-mark`, `tone-2-mark`, `tone-3-mark`
 
 ## Motion
 
@@ -11415,7 +11486,7 @@ The card a file takes in a conversation — in the composer while it uploads, an
 
 ## Tokens used
 
-`card`, `border`, `border-strong`, `muted`, `muted-foreground`, `foreground`, `destructive`, `overlay`, `overlay-foreground`, `ring`
+`card`, `border`, `border-strong`, `muted`, `muted-foreground`, `foreground`, `destructive`, `overlay`, `overlay-foreground`, `ring`, `destructive-mark`
 
 ## Motion
 
@@ -11702,7 +11773,7 @@ Use Badge for any short static label: metadata, categories, tone-coded labels, a
 
 ## Tokens used
 
-`palette-wash`, `palette-wash-strong`, `palette-edge`, `palette-dot`, `palette-solid`, `palette-text`, `palette-solid-ink`, `secondary`, `secondary-foreground`, `border`, `foreground`, `background`, `muted`, `muted-foreground`, `tone-1`, `tone-2`, `tone-3`, `tone-info`, `success`, `tone-warning`, `destructive`, `overlay`, `overlay-foreground`, `tone-1-foreground`, `tone-2-foreground`, `tone-3-foreground`, `tone-info-foreground`, `success-foreground`, `tone-warning-foreground`, `destructive-foreground`
+`palette-wash`, `palette-wash-strong`, `palette-edge`, `palette-dot`, `palette-solid`, `palette-text`, `palette-solid-ink`, `secondary`, `secondary-foreground`, `border`, `foreground`, `background`, `muted`, `muted-foreground`, `tone-1`, `tone-2`, `tone-3`, `tone-info`, `success`, `tone-warning`, `destructive`, `overlay`, `overlay-foreground`, `tone-1-foreground`, `tone-2-foreground`, `tone-3-foreground`, `tone-info-foreground`, `success-foreground`, `tone-warning-foreground`, `destructive-foreground`, `destructive-mark`, `success-mark`, `tone-warning-mark`, `tone-info-mark`, `tone-1-mark`, `tone-2-mark`, `tone-3-mark`
 
 ## Accessibility
 
@@ -11831,7 +11902,7 @@ Use Banner for page-level or app-level messages that affect the current experien
 
 ## Tokens used
 
-`secondary`, `secondary-foreground`, `foreground`, `background`, `tone-info`, `tone-info-foreground`, `success`, `success-foreground`, `tone-warning`, `tone-warning-foreground`, `tone-1`, `tone-1-foreground`, `destructive`, `destructive-foreground`
+`secondary`, `secondary-foreground`, `foreground`, `background`, `tone-info`, `tone-info-foreground`, `success`, `success-foreground`, `tone-warning`, `tone-warning-foreground`, `tone-1`, `tone-1-foreground`, `destructive`, `destructive-foreground`, `destructive-mark`, `success-mark`, `tone-warning-mark`, `tone-info-mark`, `tone-1-mark`
 
 ## Accessibility
 
@@ -11955,7 +12026,7 @@ Use BarChart to compare amounts across categories — the default chart for "how
 
 ## Tokens used
 
-`tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
+`tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`, `tone-warning-mark`, `tone-info-mark`, `tone-1-mark`, `tone-2-mark`, `tone-3-mark`
 
 ## Motion
 
@@ -13214,7 +13285,7 @@ Pairs with MessageScroller to make a working chat. A single surface rather than 
 
 ## Tokens used
 
-`card`, `input`, `ring`, `destructive`, `foreground`, `muted-foreground`, `primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `accent`, `accent-foreground`
+`field`, `field-border`, `ring`, `destructive`, `foreground`, `muted-foreground`, `primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `accent`, `accent-foreground`
 
 ## Motion
 
@@ -13930,13 +14001,14 @@ Use Combobox when users choose from a list that benefits from typing, filtering,
 | items | readonly any[] \| readonly ComboboxItemGroup[] | — | The pool of options, flat or grouped ({ value, items }). Drives type-to-filter and is required for ComboboxEmpty to render its fallback. |
 | multiple | boolean | false | Select several items instead of one. `value` / `defaultValue` / `onValueChange` become arrays, choosing an item toggles its membership, and the popup stays open between picks. Pair it with ComboboxChips in place of ComboboxInput; every other part is unchanged. |
 | filter | null \| ((item, query, itemToString?) => boolean) | Base UI's locale-aware contains | How items match the query. `null` turns matching off, for items a server already filtered: pair it with `onInputValueChange` to fetch. |
+| highlightMatches | boolean | true | Paints the typed text wherever it appears in a row's label, on the `highlight` / `highlight-foreground` pair, through the CSS Custom Highlight API — no `<mark>` in the row, and the accessible name is unchanged. Only typed text counts: a field still holding the selected item's label lists everything and lights nothing. A literal, case-insensitive match within the label; a `filter` that matches differently leaves rows it kept unpainted. `false` turns it off. |
 | onInputValueChange | (inputValue: string, eventDetails) => void | — | Fires as the reader types. The place to fetch results for a server-backed combobox. |
 | itemToStringLabel | (item) => string | item.label for { value, label } items | The text an object item shows in the input once chosen, and is matched by. Needed for object items without a `label` field. |
 | virtualized | boolean | false | Tells Base UI the DOM holds only part of the list. Required when using ComboboxVirtualList. |
 
 ## Tokens used
 
-`input`, `card`, `foreground`, `muted-foreground`, `ring`, `destructive`, `popover`, `popover-foreground`, `border`, `accent`, `accent-foreground`, `primary`, `secondary`, `secondary-foreground`
+`highlight`, `highlight-foreground`, `field-border`, `field`, `foreground`, `muted-foreground`, `ring`, `destructive`, `popover`, `popover-foreground`, `border`, `accent`, `accent-foreground`, `primary`, `secondary`, `secondary-foreground`
 
 ## Motion
 
@@ -14058,7 +14130,7 @@ Use CommandMenu for global or contextual keyboard-driven actions: navigation, cr
 
 | Name | Type | Description |
 | --- | --- | --- |
-| CommandMenuTrigger | { onOpen?: () => void; placeholder?: string; shortcut?: string \| false; size?: "sm" \| "md"; disabled?: boolean } | The search field in a header that is really a button. Wears SearchInput's shell (border-input, card surface, leading magnifier, muted placeholder) on the control ladder, with a trailing Kbd: ⌘K on macOS, Ctrl K elsewhere. onOpen runs on click and on the shortcut, which it listens for page-wide (useCommandMenuShortcut). shortcut is the key (default "k"); false drops both the hint and the listener. size is sm in a header beside small buttons, md (default) beside Input and SearchInput. It sits outside CommandMenu, so the Dialog returns focus to it on close. |
+| CommandMenuTrigger | { onOpen?: () => void; placeholder?: string; shortcut?: string \| false; size?: "sm" \| "md"; disabled?: boolean } | The search field in a header that is really a button. Wears SearchInput's shell (the field fill and outline, leading magnifier, muted placeholder) on the control ladder, with a trailing Kbd: ⌘K on macOS, Ctrl K elsewhere. onOpen runs on click and on the shortcut, which it listens for page-wide (useCommandMenuShortcut). shortcut is the key (default "k"); false drops both the hint and the listener. size is sm in a header beside small buttons, md (default) beside Input and SearchInput. It sits outside CommandMenu, so the Dialog returns focus to it on close. |
 | useCommandMenuShortcut | (onShortcut: (event: KeyboardEvent) => void, key?: string \| false) => void | The page-wide ⌘K / Ctrl+K listener CommandMenuTrigger installs, for a palette with no visible trigger. Ignored while focus is in a text field, textarea, select or contenteditable (Ctrl+K belongs to the field there) except the palette's own input, so the callback may toggle. It calls preventDefault() on a match and skips an event already prevented, so two listeners on one page fire once. key defaults to "k"; false turns it off. Removed on unmount. |
 | CommandMenuPanel | { items?: CommandItem[]; query?: string; onQueryChange?: (query: string) => void; filter?: CommandFilter; listClassName?: string; placeholder?: string; emptyMessage?: string; title?: string; scope?: ReactNode; inputProps?: ComponentProps<'input'>; className?: string; children?: ReactNode } | The palette rendered in place: the same search header, filtered and grouped listbox, keyboard model and result-count live region, on a static card (border-border, bg-card, no shadow) instead of in a Dialog. Takes every CommandMenu prop except open, onOpenChange, finalFocus and description; className lands on the card, title names the listbox. Focus is not trapped and the input does not take focus on mount (inputProps.autoFocus opts in). Esc clears the query, and passes through once it is empty, so a Popover around the panel still closes. A chosen row runs its onSelect and the panel stays as it was. The page-wide shortcut does not fire from its input. |
 | CommandMenuGroup | { label: string; children } | A labelled group of command rows. |
@@ -14076,6 +14148,7 @@ Use CommandMenu for global or contextual keyboard-driven actions: navigation, cr
 | query | string | — | Controlled query. Leave undefined to let the palette own it; either way it resets on close (a controlled caller gets onQueryChange('')). |
 | onQueryChange | (query: string) => void | — | Called on every query change. Required to control query, optional otherwise. |
 | filter | ((items: CommandItem[], query: string) => CommandItem[]) \| null | case-insensitive substring match on label | Replaces or disables the built-in match. A function ranks and filters items itself and its order is kept verbatim; null renders items exactly as given. Either also stops declarative CommandMenuItem children self-filtering. The query arrives raw — trimming and case are policy, and this is the prop that hands policy over. |
+| highlightMatches | boolean | true | Paints the query wherever it appears in a row's label (not its detail or hint), on the `highlight` / `highlight-foreground` pair, through the CSS Custom Highlight API — no `<mark>` in the row, and the accessible name is unchanged. A literal, case-insensitive match, so under a fuzzy `filter` a row that matched as a subsequence keeps an unpainted label. `false` turns it off. Applies to CommandMenuPanel too. |
 | listClassName | string | — | Classes for the scrolling list. className lands on the dialog surface, so this is the seam for the list's own height cap — listClassName="max-h-[60vh]". The list is a Scroller, so the cap lands on the element that scrolls and the edge fades come free. |
 | placeholder | string | "Type a command or search…" | Placeholder for the search input. |
 | emptyMessage | string | "No results found." | Copy shown when the query matches nothing. |
@@ -14086,7 +14159,7 @@ Use CommandMenu for global or contextual keyboard-driven actions: navigation, cr
 
 ## Tokens used
 
-`card`, `card-foreground`, `border`, `foreground`, `muted-foreground`, `accent`, `accent-foreground`
+`highlight`, `highlight-foreground`, `card`, `card-foreground`, `border`, `foreground`, `muted-foreground`, `accent`, `accent-foreground`
 
 ## Motion
 
@@ -14622,7 +14695,7 @@ Use DatePicker when users need to choose one date — or, with granularity="minu
 
 ## Tokens used
 
-`primary`, `primary-foreground`, `accent`, `accent-foreground`, `foreground`, `muted-foreground`, `popover`, `popover-foreground`, `border`, `input`, `card`, `ring`
+`primary`, `primary-foreground`, `accent`, `accent-foreground`, `foreground`, `muted-foreground`, `popover`, `popover-foreground`, `border`, `field-border`, `field`, `ring`
 
 ## Accessibility
 
@@ -15374,7 +15447,7 @@ Use Feedback to collect lightweight sentiment, usefulness, or quality signals fr
 
 ## Tokens used
 
-`popover`, `popover-foreground`, `border`, `input`, `card`, `foreground`, `muted-foreground`, `accent`, `accent-foreground`, `ring`, `success`
+`popover`, `popover-foreground`, `border`, `input`, `card`, `foreground`, `muted-foreground`, `accent`, `accent-foreground`, `ring`, `success`, `success-mark`
 
 ## Motion
 
@@ -16005,13 +16078,15 @@ Placeholder artwork painted by a static WebGL shader from the preset's own art d
 
 ## Usage
 
-Use GradientArt where a real image belongs but none exists yet, or where the image is decoration: a product cover before upload, a profile banner, an album tile, an avatar with no photo. It reads the theme's own tokens, so it follows every preset, mode and live edit; `seed` fixes each item's composition so a list of covers or avatars stays individually recognisable.
+Use GradientArt where a real image belongs but none exists yet, or where the image is decoration: a product cover before upload, a profile banner, an album tile, an avatar with no photo. It reads the theme's own tokens, so it follows every preset, mode and live edit; `seed` fixes each item's composition so a list of covers or avatars stays individually recognisable. `intensity="soft"` paints the same art as a pastel wash — the iridescent aura AI products use as a card or modal header band, and as a stage for floating chips and logo tiles.
 
 ### Best practices
 
 - Do: Pass a stable `seed` per item — the name for an avatar, the title for a cover. Each item then keeps the same art across renders, reloads and themes, which is what lets someone recognise it.
 - Do: Size it with layout classes (`aspect-[4/3]`, `h-20`, `size-10 rounded-full`) and put any glyph or initials inside as children; they render above the art.
 - Do: Keep the default `mesh` for covers, tiles and avatars. Reach for `grain` where a printed, tactile surface suits — a banner, a hero card — and keep one variant per surface type so art reads as a system.
+- Do: Use `intensity="soft"` as a stage: a card or modal header band, the art on an integration or pricing card, a field behind floating prompt chips or rounded logo tiles. Make the tiles and chips floating surfaces (`bg-popover` with `border-border-floating` and a shadow, or a `floating` Button) so they lift off the wash; soft stays light in dark mode too, so the same composition holds in both.
+- Don't: Do not put text straight on soft art with `text-overlay-foreground` ink. Soft is a light ground in every mode, so overlay ink washes out on it; put the content on a Card or a chip over the art, or use the default vivid intensity for a short overlay label.
 - Don't: Do not put body text over it. The art spans the palette's lightest and most saturated tones, so no single ink is guaranteed to clear contrast across it; reserve overlays for a short label on a scrim or an avatar's initials.
 - Don't: Do not pass colours, and reach for `tones` rarely. The art follows the preset's --art-* tokens on purpose; to change how a product's art looks, set the --theme-art-* hooks in its theme or preset, so every cover, banner and avatar changes together.
 - Don't: Do not use it as a page or hero background. It paints at the element's pixel size, so a full-viewport instance costs a large frame on every theme change; it is sized for covers, banners and tiles.
@@ -16023,12 +16098,14 @@ Use GradientArt where a real image belongs but none exists yet, or where the ima
 | variant | "mesh" \| "grain" | "mesh" | mesh: soft spots of colour pulled together by gentle waves. grain: glowing light over deep corners with a printed texture. |
 | tones | ("info" \| "3" \| "2" \| "1" \| "warning")[] | — | Paint these `--tone-*` colours instead of the preset's art palette. Leave unset to follow the preset's art direction. |
 | seed | string \| number | — | Fixes the composition: the same seed paints the same art in every theme. Pass a stable id. |
+| intensity | "vivid" \| "soft" | "vivid" | vivid: the preset's art at full strength. soft: every colour and the ground lifted to a light pastel of itself (high lightness, half chroma) — a wash for header bands and for staging chips and logo tiles, light in both modes. |
 | children | ReactNode | — | Rendered above the art — initials, a glyph, a short label. |
 | className | string | — | Size and shape: aspect, height, rounding. |
 
 ## Variants
 
 - **variant**: mesh, grain
+- **intensity**: vivid, soft
 
 ## Tokens used
 
@@ -16074,6 +16151,29 @@ import { GradientArt } from "@sableui/react"
 import { GradientArt } from "@sableui/react"
 
 <GradientArt seed="Mara Okafor" className="grid size-10 place-items-center rounded-full text-label-md text-overlay-foreground">MO</GradientArt>
+```
+
+### Soft header band with logo tiles
+
+```tsx
+import { Button, Card, CardDescription, CardFooter, CardHeader, CardTitle, GradientArt, Icon } from "@sableui/react"
+
+<Card className="w-full max-w-sm">
+	<GradientArt intensity="soft" seed="Integrations" className="flex h-32 items-center justify-center gap-3 rounded-t-lg">
+		{["mail", "calendar", "chart"].map((name) => (
+			<span key={name} className="grid size-12 place-items-center rounded-lg border border-border-floating bg-popover text-popover-foreground shadow-md">
+				<Icon name={name} className="text-xl" />
+			</span>
+		))}
+	</GradientArt>
+	<CardHeader>
+		<CardTitle>Connect your tools</CardTitle>
+		<CardDescription>Bring mail, calendar and analytics into one place.</CardDescription>
+	</CardHeader>
+	<CardFooter>
+		<Button>Connect</Button>
+	</CardFooter>
+</Card>
 ```
 
 ---
@@ -16147,7 +16247,7 @@ import { InlineStatus, Spinner } from "@sableui/react"
 
 **Status:** stable
 
-Styled native text input. Soft-square (rounded-sm), card surface, 2px focus ring; aria-invalid raises the destructive error treatment.
+Styled native text input. Soft-square (rounded-sm), the theme's field surface (outlined or filled), 2px focus ring; aria-invalid raises the destructive error treatment.
 
 **Keywords:** input, text input, field, form, email, search, file, invalid, validation
 
@@ -16161,6 +16261,8 @@ Use Input for short freeform text, search, email, password, file, and native inp
 - Do: Use type, inputMode, autoComplete, and placeholder as progressive hints, not as the only label.
 - Do: Set aria-invalid or use Field error copy when validation fails.
 - Do: Keep a focusable field at 16px or larger on mobile. iOS Safari zooms the whole page when a focused input computes under 16px and never zooms back out. Input handles this itself — below the sm breakpoint it renders text-body-lg (17px) and returns to text-body-md at sm and up. Build a custom field the same way: a second paired tier under a max-sm: variant, never a hand-set font-size.
+- Do: Choose outlined or filled fields once, in the theme: `--theme-field: var(--muted)` with `--theme-field-border: transparent` turns every Input, Textarea, Select, Combobox, SearchInput, InputGroup and ChatComposer into a borderless filled well; unset, they are outlined on the card. Every field reads the `field` / `field-border` pair, so they change together.
+- Don't: Restyle one Input as a filled chip with `bg-muted border-transparent`. It drifts from every other field on the page, and the theme can no longer move them together; set the field tokens instead.
 - Don't: Override an Input's type with a page tier below 16px (text-body-md, text-body-sm, text-label-*) without a >=16px mobile arm — that reintroduces the iOS focus zoom.
 - Don't: Use placeholder text as the label; it disappears once the user types and is not enough context.
 - Don't: Use Input for long body copy. Use Textarea for multi-line content.
@@ -16190,7 +16292,7 @@ Use Input for short freeform text, search, email, password, file, and native inp
 
 ## Tokens used
 
-`input`, `card`, `foreground`, `muted-foreground`, `ring`, `destructive`
+`field-border`, `field`, `foreground`, `muted-foreground`, `ring`, `destructive`
 
 ## Accessibility
 
@@ -16305,7 +16407,7 @@ Use InputGroup when something belongs inside the field with the text: a unit, a 
 
 ## Tokens used
 
-`input`, `card`, `ring`, `destructive`, `muted-foreground`, `foreground`
+`field-border`, `field`, `ring`, `destructive`, `muted-foreground`, `foreground`
 
 ## Motion
 
@@ -16651,7 +16753,7 @@ Use LineChart to compare how two or more measures change over the same sequence,
 
 ## Tokens used
 
-`tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
+`tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`, `tone-warning-mark`, `tone-info-mark`, `tone-1-mark`, `tone-2-mark`, `tone-3-mark`
 
 ## Motion
 
@@ -17648,7 +17750,7 @@ import { Bubble, Button, Message, MessageScroller } from "@sableui/react"
 
 A role=meter reading over Base UI Meter, drawn as a bar or a ring — how full something is within a known range (storage, quota, strength), with a tone for good/caution/bad. Not task progress.
 
-**Keywords:** meter, usage bar, storage, quota, capacity, limit, password strength, level
+**Keywords:** meter, usage bar, storage, quota, capacity, limit, password strength, level, segmented, tick bar, score, credits, spend limit
 
 ## Usage
 
@@ -17659,15 +17761,17 @@ Use Meter to show a static measurement against a known maximum — storage used,
 - Do: Label it and show the reading in units people use ("7.2 of 10 GB"), with MeterLabel and MeterValue. The bar shows proportion; the number is what gets acted on.
 - Do: Pick `tone` from thresholds you own and apply them consistently across the page — warning near the limit, destructive at or over it. The component does not guess where good becomes bad.
 - Do: Use shape="ring" when the reading is a score that belongs in a small, glanceable spot on a card. It is the same measurement drawn as a circular gauge, not a different component.
+- Do: Use `segments` (a tick bar, ▮▮▮▮▮▮▯▯▯▯) for a discrete budget, score or quota read at a glance — a spend limit, credits left, an ICP lead score, months of data coverage. Pick a count that matches the unit when there is one (10 for a score out of 10, 12 for months) and otherwise size it to the track: a tick reads as a tick when it is taller than it is wide, about one per 8px of track (40 across a card row, 20 in a narrow table cell). Any reading above min shows at least one tick.
 - Don't: Do not use Meter for a task in flight — an upload, an install, a step count. That is Progress; Meter tells assistive tech nothing is happening. → use **Progress**
 - Don't: Do not use it for a value without a meaningful maximum (followers, total spend). A bar implies a full scale; an unbounded count is a stat.
+- Don't: Do not segment a fine-grained continuous value where the exact proportion matters (disk at 73.4%) — ticks round it to the nearest mark; use the continuous bar. And do not use a tick bar for a task in flight or steps completed: that is Progress, or a Stepper for named steps. → use **Progress**
 
 ### Anatomy
 
 | Part | Required | Description |
 | --- | --- | --- |
 | MeterTrack | yes | The rail that represents the full range. |
-| MeterIndicator | yes | The fill, sized from value and coloured by tone. |
+| MeterIndicator | yes | The fill, sized from value and coloured by tone. Not used with `segments`: the track draws its ticks instead. |
 | MeterLabel | no | The visible name; also names the meter for assistive tech. |
 | MeterValue | no | The formatted reading. |
 
@@ -17675,7 +17779,7 @@ Use Meter to show a static measurement against a known maximum — storage used,
 
 | Name | Type | Description |
 | --- | --- | --- |
-| MeterTrack | Base UI Track props + className + size | The rail. Rendered automatically when Meter has no children; renders a MeterIndicator by default. |
+| MeterTrack | Base UI Track props + className + size | The rail. Rendered automatically when Meter has no children; renders a MeterIndicator by default — or, when the Meter has `segments`, its row of ticks (children are not rendered then). |
 | MeterIndicator | Base UI Indicator props + className + tone | The fill. Inherits the Meter's tone unless given its own. |
 | MeterLabel | Base UI Label props + className | Visible label; wires aria-labelledby on the root. |
 | MeterValue | Base UI Value props + className | Formatted reading. Accepts a `(formatted, value) => ReactNode` child. |
@@ -17691,6 +17795,7 @@ Use Meter to show a static measurement against a known maximum — storage used,
 | shape | "bar" \| "ring" | "bar" | bar is a horizontal track; ring is a circular gauge for a small, glanceable reading — the same value, min, max and tones. |
 | size | "sm" \| "md" \| "lg" | "md" | Ring diameter (40 / 64 / 96px at the default spacing; the centre value steps with it), or bar thickness on the same sm / md / lg rails as Progress. |
 | showValue | boolean | — | Print the value in the ring's centre (formatted like MeterValue). |
+| segments | number | — | Draw the bar as this many separate ticks instead of a continuous fill (a quota, score or spend limit). Filled ticks = round(share × N), at least one for any reading above min, none at min. Ticks take the tone; empty ones sit on the rail colour. The segmented track has its own, taller sm / md / lg ladder. Bar only: ignored for shape="ring". |
 | strokeWidth | number | 6 | Ring stroke width, in viewBox units of 100. |
 | format | Intl.NumberFormatOptions | — | Formatting for MeterValue and aria-valuetext (percent, unit, currency). |
 | getAriaValueText | (formatted: string, value: number) => string | — | Human-readable reading for assistive tech ("7.2 of 10 gigabytes used"). |
@@ -17704,13 +17809,14 @@ Use Meter to show a static measurement against a known maximum — storage used,
 
 ## Tokens used
 
-`secondary`, `primary`, `success`, `tone-warning`, `destructive`, `foreground`, `muted-foreground`
+`secondary`, `primary`, `tone-3`, `success`, `tone-warning`, `destructive`, `foreground`, `muted-foreground`, `destructive-mark`, `success-mark`, `tone-warning-mark`, `tone-3-mark`
 
 ## Motion
 
 - **arrival** · Meter · _no motion_ — A meter is a reading, present with the page that reports it. Animating the fill up from zero on load would act out a change that did not happen.
 - **response** · Meter · _no motion_ — It reports and accepts no input. A bar that reacted to the pointer would read as a Slider the user could drag.
 - **transition** · MeterIndicator · _custom (outside the recipe layer)_ — Width and colour ease on the motion tokens (no recipe animates width) when the reading changes — freeing space after a delete visibly shrinks the bar, so the user sees the cause and effect rather than a different bar.
+- **transition** · MeterTrack (segments) · _custom (outside the recipe layer)_ — With segments, the fill runs through the ticks from the edge it is leaving — left to right as it grows, right to left as it shrinks — each tick easing its colour on the fast token after a stagger that is a share of the slow token (a full sweep is one slow duration) × --motion-expressive. Every tick switching at once would read as a different bar, not the same budget moving; `subtle` lands them together and off is instant.
 - **activity** · Meter · _no motion_ — A meter has no indeterminate state; a reading is either known or not shown. Unknown-but-working is Progress with no value.
 
 ## Accessibility
@@ -17753,6 +17859,31 @@ import { Meter, MeterLabel, MeterTrack, MeterValue } from "@sableui/react"
 	</div>
 	<MeterTrack />
 </Meter>
+```
+
+### Segmented spend limit
+
+```tsx
+import { Meter, MeterLabel, MeterTrack, MeterValue } from "@sableui/react"
+
+<Meter value={1240} max={2000} segments={40} getAriaValueText={() => "€1,240 of €2,000 spent this month"}>
+	<div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+		<MeterLabel>Monthly spend limit</MeterLabel>
+		<MeterValue>{() => "€1,240 / €2,000"}</MeterValue>
+	</div>
+	<MeterTrack />
+</Meter>
+```
+
+### Segmented score cell
+
+```tsx
+import { Meter } from "@sableui/react"
+
+<div className="flex items-center gap-3">
+	<Meter value={8} max={10} segments={10} size="sm" tone="success" className="w-24" aria-label="ICP score" getAriaValueText={(_, v) => `${v} out of 10`} />
+	<span className="text-mono-sm text-foreground">8/10</span>
+</div>
 ```
 
 ### Tones
@@ -17987,7 +18118,7 @@ Use Note for helpful supporting information that should sit near the relevant co
 
 ## Tokens used
 
-`foreground`, `border`, `muted`, `muted-foreground`, `tone-info`, `tone-warning`, `success`, `destructive`
+`foreground`, `border`, `muted`, `muted-foreground`, `tone-info`, `tone-warning`, `success`, `destructive`, `destructive-mark`, `success-mark`, `tone-warning-mark`, `tone-info-mark`
 
 ## Motion
 
@@ -18154,7 +18285,7 @@ Use NumberField for numeric values that benefit from validation, min/max bounds,
 
 ## Tokens used
 
-`input`, `card`, `foreground`, `muted-foreground`, `accent`, `accent-foreground`, `ring`
+`field-border`, `field`, `foreground`, `muted-foreground`, `accent`, `accent-foreground`, `ring`
 
 ## Accessibility
 
@@ -18332,7 +18463,7 @@ Use OtpField for a short, fixed-length code the user copies from somewhere else 
 
 ## Tokens used
 
-`input`, `card`, `foreground`, `muted-foreground`, `border-strong`, `primary`, `ring`, `destructive`
+`field-border`, `field`, `foreground`, `muted-foreground`, `border-strong`, `primary`, `ring`, `destructive`
 
 ## Motion
 
@@ -19159,7 +19290,7 @@ Use PieChart for a share of one total across two to six categories — traffic s
 
 ## Tokens used
 
-`tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
+`tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`, `tone-warning-mark`, `tone-info-mark`, `tone-1-mark`, `tone-2-mark`, `tone-3-mark`
 
 ## Motion
 
@@ -19543,7 +19674,7 @@ Use RadarChart to compare the shape of a profile across five to eight dimensions
 
 ## Tokens used
 
-`tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
+`tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`, `tone-warning-mark`, `tone-info-mark`, `tone-1-mark`, `tone-2-mark`, `tone-3-mark`
 
 ## Motion
 
@@ -19655,7 +19786,7 @@ Use RadialChart for progress toward goals (several rings), a single score or usa
 
 ## Tokens used
 
-`tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`
+`tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `primary`, `muted-foreground`, `border`, `popover`, `popover-foreground`, `foreground`, `background`, `tone-warning-mark`, `tone-info-mark`, `tone-1-mark`, `tone-2-mark`, `tone-3-mark`
 
 ## Motion
 
@@ -20315,7 +20446,7 @@ import { PropertyRow, ScrubField, Slider } from "@sableui/react"
 
 **Status:** stable
 
-Styled search field with a leading magnifier and a clearable X. Soft-square (rounded-sm), card surface, 2px focus ring; the clear button appears only when there is a value.
+Styled search field with a leading magnifier and a clearable X. Soft-square (rounded-sm), the theme's field surface, 2px focus ring; the clear button appears only when there is a value.
 
 **Keywords:** search, input, filter, query
 
@@ -20328,6 +20459,7 @@ Use SearchInput for text queries that filter or search a known content set.
 - Do: Use a clear placeholder that names the content being searched.
 - Do: Provide a visible clear affordance when query state persists.
 - Do: When a button stands in for search (a header trigger that opens CommandMenu with ⌘K), use CommandMenuTrigger. It wears this field's shell from the same source, so the two cannot drift; a hand-styled button already did once, into a borderless chip that matched neither the field nor a button.
+- Do: Light the query in the results it filters with `useMatchHighlight(query)` — a callback ref for the results container, with `selector` to keep it to titles. It paints on the `highlight` pair without wrapping matches in `<mark>`, the same paint Combobox and CommandMenu use for their rows.
 - Don't: Do not use SearchInput as a command palette; use CommandMenu for global commands, opened from the header by CommandMenuTrigger. A SearchInput that opens a dialog on focus is a text box you cannot type in.
 - Don't: Do not search on every keystroke against an expensive backend without debouncing. The user sees results flicker and reorder under them, and you send a request per character.
 
@@ -20347,7 +20479,7 @@ Use SearchInput for text queries that filter or search a known content set.
 
 ## Tokens used
 
-`input`, `card`, `foreground`, `muted-foreground`, `ring`, `destructive`
+`field-border`, `field`, `foreground`, `muted-foreground`, `ring`, `destructive`
 
 ## Motion
 
@@ -20393,6 +20525,23 @@ import { SearchInput } from "@sableui/react"
 import { Field, SearchInput } from "@sableui/react"
 
 <Field label="Search posts"><SearchInput defaultValue="roadmap" className="max-w-80" /></Field>
+```
+
+### Highlighting matches in the results
+
+```tsx
+import { SearchInput, useMatchHighlight } from "@sableui/react"
+
+const [q, setQ] = useState("")
+const results = useMatchHighlight<HTMLUListElement>(q, { selector: "[data-title]" })
+const shown = posts.filter((post) => post.title.toLowerCase().includes(q.trim().toLowerCase()))
+
+<SearchInput value={q} onValueChange={setQ} placeholder="Search posts" />
+<ul ref={results}>
+	{shown.map((post) => (
+		<li key={post.id}><span data-title>{post.title}</span></li>
+	))}
+</ul>
 ```
 
 ### Disabled
@@ -20594,7 +20743,7 @@ Use SegmentedBar when a stat card or row needs to show how a total divides into 
 
 ## Tokens used
 
-`tone-1`, `tone-2`, `tone-3`, `tone-info`, `primary`, `muted-foreground`, `success`, `tone-warning`, `destructive`
+`tone-1`, `tone-2`, `tone-3`, `tone-info`, `primary`, `muted-foreground`, `success`, `tone-warning`, `destructive`, `destructive-mark`, `success-mark`, `tone-warning-mark`, `tone-info-mark`, `tone-1-mark`, `tone-2-mark`, `tone-3-mark`
 
 ## Motion
 
@@ -20709,7 +20858,7 @@ Use Select when users choose one value from a known, finite set. Use Combobox fo
 
 ## Tokens used
 
-`input`, `card`, `foreground`, `ring`, `border`, `popover`, `popover-foreground`, `accent`, `accent-foreground`, `muted-foreground`
+`field-border`, `field`, `foreground`, `ring`, `border`, `popover`, `popover-foreground`, `accent`, `accent-foreground`, `muted-foreground`
 
 ## Motion
 
@@ -21194,6 +21343,7 @@ Use Sidebar for persistent desktop navigation or application chrome outside the 
 - Do: Use it for stable app destinations that should remain visible while content changes.
 - Do: Keep item labels predictable and active state obvious.
 - Do: Set surface="page" when a full-width top bar sits above the rail. A theme's tinted or dark rail is for a full-height rail that frames the app.
+- Do: Keep surface="rail" inside AppShell frame="inset": the rail's tint becomes the ground the main panel floats on. Do not add a border-r class back — the gap is the divider.
 - Don't: Do not use Sidebar for page-local settings, filters, or temporary action groups.
 - Don't: Do not put page content in it. It is fixed-width chrome OUTSIDE the content grid, so anything in it is exempt from the page's measure and rhythm.
 
@@ -21219,7 +21369,7 @@ Use Sidebar for persistent desktop navigation or application chrome outside the 
 | collapsed | boolean | false | Collapse the rail to an icon-only width (--sidebar-width-collapsed). Items hide their label + badge and reveal the label in a hover tooltip; the content area reflows. Controlled — wire a toggle from app state. Read the state in custom header/footer content via useSidebar(). |
 | icons | boolean | true | Render the leading icon on each SidebarItem. Set false for a text-only rail. Ignored while collapsed (icon-only by definition). |
 | variant | "app" \| "inline" | "app" | Where the rail lives. "app" is the page's chrome column — sticky, full viewport height, hidden below lg where AppHeader + BottomNav take over. "inline" is always visible and fills its parent's height, for a rail inside a bounded frame (a nested shell, an embedded preview). Use it instead of overriding the layout with !important classes. |
-| surface | "rail" \| "page" | "rail" | Which surface the rail is painted on. "rail" is its own --sidebar-* surface with a border — right for a full-height rail that frames the app, which a theme may tint or paint dark. "page" uses the page's surface and ink with no border — use it when a full-width header sits above the rail, where a tinted column starting under a page-coloured bar reads as pasted on. Use it instead of overriding bg-/text- classes, which the rail's re-pointed tokens defeat. |
+| surface | "rail" \| "page" | "rail" | Which surface the rail is painted on. "rail" is its own --sidebar-* surface with a border — right for a full-height rail that frames the app, which a theme may tint or paint dark. "page" uses the page's surface and ink with no border — use it when a full-width header sits above the rail, where a tinted column starting under a page-coloured bar reads as pasted on. Use it instead of overriding bg-/text- classes, which the rail's re-pointed tokens defeat. In AppShell's sidebar slot with frame="inset", the rail's surface is also the shell's ground: from lg a "rail" rail drops its border (the gap around the main panel divides them) and either surface stretches to the shell's body row instead of sizing to the viewport. AppShell signals this to its sidebar slot only, so a Sidebar elsewhere in the page is unaffected. |
 | motion | "full" \| "subtle" \| "off" | "full" | How much motion this component uses: `full` inherits the app's policy, `subtle` keeps feedback and drops the collapse ease and the current-page glide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. |
 
 ## Variants
@@ -21228,7 +21378,7 @@ Use Sidebar for persistent desktop navigation or application chrome outside the 
 
 ## Tokens used
 
-`sidebar`, `sidebar-foreground`, `sidebar-border`, `sidebar-accent`, `sidebar-accent-foreground`, `sidebar-ring`
+`sidebar`, `sidebar-foreground`, `sidebar-border`, `sidebar-accent`, `sidebar-accent-foreground`, `sidebar-ring`, `shell-ground`
 
 ## Motion
 
@@ -21636,7 +21786,7 @@ Use Sparkline next to a number to show where it has been — a KPI's last 30 day
 
 ## Tokens used
 
-`primary`, `tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `muted-foreground`, `success`, `destructive`
+`primary`, `tone-1`, `tone-2`, `tone-3`, `tone-info`, `tone-warning`, `muted-foreground`, `success`, `destructive`, `destructive-mark`, `success-mark`, `tone-warning-mark`, `tone-info-mark`, `tone-1-mark`, `tone-2-mark`, `tone-3-mark`
 
 ## Motion
 
@@ -21907,7 +22057,7 @@ Use StatusDot as a compact visual state cue next to text, avatars, rows, or labe
 
 ## Tokens used
 
-`palette-dot`, `muted-foreground`, `tone-3`, `success`, `tone-warning`, `tone-info`, `tone-1`, `tone-2`, `destructive`
+`palette-dot`, `muted-foreground`, `tone-3`, `success`, `tone-warning`, `tone-info`, `tone-1`, `tone-2`, `destructive`, `destructive-mark`, `success-mark`, `tone-warning-mark`, `tone-info-mark`, `tone-1-mark`, `tone-2-mark`, `tone-3-mark`
 
 ## Accessibility
 
@@ -21992,7 +22142,7 @@ Use Stepper above or beside a flow that is split into a known, small number of n
 
 ## Tokens used
 
-`primary`, `primary-foreground`, `background`, `foreground`, `muted-foreground`, `border-strong`, `destructive`, `destructive-foreground`, `ring`
+`primary`, `primary-foreground`, `background`, `foreground`, `muted-foreground`, `border-strong`, `destructive`, `destructive-foreground`, `ring`, `destructive-mark`
 
 ## Motion
 
@@ -22285,8 +22435,8 @@ Use Table for structured data with consistent columns and rows. Use DataTable wh
 | TableBody | ComponentPropsWithRef<"tbody"> | The data row group (tbody). |
 | TableFooter | ComponentPropsWithRef<"tfoot"> | Summary row group (tfoot) with a muted fill. |
 | TableRow | ComponentPropsWithRef<"tr"> | A row (tr) — hairline bottom border, hover lift, and a selected state via the data-selected attribute. |
-| TableHead | ComponentPropsWithRef<"th"> | A column header cell (th) in muted label styling. |
-| TableCell | ComponentPropsWithRef<"td"> | A data cell (td). |
+| TableHead | ComponentPropsWithRef<"th"> & { numeric?: boolean } | A column header cell (th) in muted label styling. `numeric` marks a number column: end-aligned, tabular figures — set it on the column's cells too. |
+| TableCell | ComponentPropsWithRef<"td"> & { numeric?: boolean } | A data cell (td). `numeric` end-aligns it with tabular figures, matching its column's header. |
 | TableCaption | ComponentPropsWithRef<"caption"> | Accessible description of the table (caption), muted. |
 
 ## Props
@@ -22478,7 +22628,7 @@ import { Tabs, TabsList, TabsPanel, TabsTrigger } from "@sableui/react"
 
 **Status:** stable
 
-Styled native multi-line text control. Soft-square, card surface, --ring focus, and an aria-invalid destructive error state.
+Styled native multi-line text control. Soft-square, the theme's field surface, --ring focus, and an aria-invalid destructive error state.
 
 **Keywords:** textarea, multi line input, form, text
 
@@ -22507,7 +22657,7 @@ Use Textarea for multi-line freeform text entry such as notes, descriptions, or 
 
 ## Tokens used
 
-`input`, `card`, `foreground`, `muted-foreground`, `ring`, `destructive`
+`field-border`, `field`, `foreground`, `muted-foreground`, `ring`, `destructive`
 
 ## Accessibility
 
@@ -24033,7 +24183,7 @@ Which token to reach for, and what it is most often confused with. Generated fro
     - **Not** `border-strong`. Reach for `border-strong` when the line carries *structure* (a grid rule, a table divider, a section separator) and for `border` when it merely bounds a control.
 - **`border-strong`** — A structural divider. Visibly stronger than `border`. *Use for:* Grid lines, table rules, separators between major sections.
     - **Not** `border`. If removing the line would make the layout ambiguous, it is structural and belongs here.
-- **`input`** — The outline of a form control specifically. *Use for:* Text inputs, textareas and selects. Not the edge of a checkbox, radio or switch — that is `control-border`.
+- **`input`** — The outline of a form control specifically. *Use for:* Text inputs, textareas and selects (through `field-border`, which derives from it). Not the edge of a checkbox, radio or switch — that is `control-border`.
     - **Not** `border`. They are often the same value, but a theme is entitled to make form controls read differently from other chrome, and only this token gives it the hook.
 - **`control-border`** — The resting edge of a control whose outline is the whole control. Held to 3:1 (WCAG 1.4.11) on every surface. *Use for:* An unchecked checkbox, an unselected radio, an off switch track, a selection card's check or radio mark — anywhere removing the edge would make the control disappear.
     - **Not** `input`. A text field is also found by its fill, caret and placeholder, so its outline may stay quiet; a checkbox has nothing else, and at `input`'s strength it measures about 1.4:1.
@@ -24323,7 +24473,7 @@ Which token to reach for, and what it is most often confused with. Generated fro
 - **`type-mono-sm-tracking`** — The monospace family: mono-xl through mono-sm, plus mono-caption. *Use for:* Code, identifiers, hashes, keyboard keys, and any figure where digits must align in a column.
     - **Not** the sans tiers for numeric data. Proportional digits make a column of numbers ragged; that is what `text-ui-num` solves in chrome and mono solves on a page.
 
-### derived (10)
+### derived (20)
 
 - **`canvas`** — The WORK surface — the artboard, the document being edited. *Use for:* Behind the thing the tool operates on. `WorkspaceCanvas` uses it.
     - **Not** `background`. The thing being edited is not the page behind the UI, and collapsing the two makes the document indistinguishable from its chrome.
@@ -24345,6 +24495,26 @@ Which token to reach for, and what it is most often confused with. Generated fro
     - **Not** `hairline`, when the line would otherwise disappear against what it bounds.
 - **`border-floating`** — The edge of a floating surface. Fainter than `border`: the shadow carries the elevation. *Use for:* Every floating surface — popover, menu, select, tooltip, dialog, sheet, toast, a floating panel — as `border-border-floating` or `ring-border-floating`, together with `bg-popover` and a `shadow-md`+ shadow. Derived for every theme (a faint alpha of the foreground); a theme may tune it with `--theme-border-floating`.
     - **Not** `border`. A full hairline plus a shadow stacks into a heavy outline around anything that floats. `border` is for resting edges: inputs, cards, badges.
+- **`field`** — The fill of a text field: Input, Textarea, Select, Combobox, SearchInput, InputGroup, ChatComposer. *Use for:* Read by every field through its shell, so you rarely name it. Derived for every theme (`card`, an outlined field on the card); a theme fills its fields instead with `--theme-field: var(--muted)` and `--theme-field-border: transparent`, and every field changes at once. Name it only for a field-shaped surface of your own that must match.
+    - **Not** `card` or `muted` on a hand-built field. A field that paints `card` keeps its outline when the theme fills the rest, and one that paints `muted` stays filled when the theme outlines them.
+- **`field-border`** — The outline of a text field. Derived from `input`; `transparent` in a theme with filled fields. *Use for:* With `field`, on the same field-shaped surfaces. Tune it with `--theme-field-border`.
+    - **Not** `input` on a text field. `input` stays the theme's outline colour for form chrome; this is the field's outline, which a filled theme turns off.
+- **`shell-ground`** — The ground of an inset app frame: the rail and the gap around the raised main panel. *Use for:* Painted by `<AppShell frame="inset">` and the Sidebar in its slot; you rarely name it. Derived for every theme as one step off `sidebar` toward its ink, so the panel reads as lifted even where the rail is the page colour. Tune it with `--theme-shell-ground`.
+    - **Not** `sidebar` or `canvas` behind an inset panel. `sidebar` is the page colour in most themes, so the panel would sit on itself; `canvas` is a workspace's artboard, not app chrome.
+- **`destructive-mark`** — `destructive` at graphic strength: the same hue lifted and saturated, for a mark that carries no text. *Use for:* A meter's or progress fill, a segmented bar, a status dot, a chart series, and the soft tint behind a badge or note (`bg-destructive-mark/15`). Held to 2:1 on the page — visibility, not a text ratio — because each of these sits beside text that says the same thing. Every bundled theme tunes its own; a preset sets `--theme-destructive-mark` or gets one derived from `destructive`.
+    - **Not** `bg-destructive` on a mark. The fill is pinned dark enough to carry a white label, so a meter or dot painted with it reads brown, forest or plum. And not for text — that is `text-destructive` — nor for a graphic that is the only carrier of its meaning, which owes 3:1 (WCAG 1.4.11): use the fill or add the text.
+- **`success-mark`** — `success` at graphic strength: the same hue lifted and saturated, for a mark that carries no text. *Use for:* A meter's or progress fill, a segmented bar, a status dot, a chart series, and the soft tint behind a badge or note (`bg-success-mark/15`). Held to 2:1 on the page — visibility, not a text ratio — because each of these sits beside text that says the same thing. Every bundled theme tunes its own; a preset sets `--theme-success-mark` or gets one derived from `success`.
+    - **Not** `bg-success` on a mark. The fill is pinned dark enough to carry a white label, so a meter or dot painted with it reads brown, forest or plum. And not for text — that is `text-success` — nor for a graphic that is the only carrier of its meaning, which owes 3:1 (WCAG 1.4.11): use the fill or add the text.
+- **`tone-warning-mark`** — `tone-warning` at graphic strength: the same hue lifted and saturated, for a mark that carries no text. *Use for:* A meter's or progress fill, a segmented bar, a status dot, a chart series, and the soft tint behind a badge or note (`bg-tone-warning-mark/15`). Held to 2:1 on the page — visibility, not a text ratio — because each of these sits beside text that says the same thing. Every bundled theme tunes its own; a preset sets `--theme-tone-warning-mark` or gets one derived from `tone-warning`.
+    - **Not** `bg-tone-warning` on a mark. The fill is pinned dark enough to carry a white label, so a meter or dot painted with it reads brown, forest or plum. And not for text — that is `text-tone-warning` — nor for a graphic that is the only carrier of its meaning, which owes 3:1 (WCAG 1.4.11): use the fill or add the text.
+- **`tone-info-mark`** — `tone-info` at graphic strength: the same hue lifted and saturated, for a mark that carries no text. *Use for:* A meter's or progress fill, a segmented bar, a status dot, a chart series, and the soft tint behind a badge or note (`bg-tone-info-mark/15`). Held to 2:1 on the page — visibility, not a text ratio — because each of these sits beside text that says the same thing. Every bundled theme tunes its own; a preset sets `--theme-tone-info-mark` or gets one derived from `tone-info`.
+    - **Not** `bg-tone-info` on a mark. The fill is pinned dark enough to carry a white label, so a meter or dot painted with it reads brown, forest or plum. And not for text — that is `text-tone-info` — nor for a graphic that is the only carrier of its meaning, which owes 3:1 (WCAG 1.4.11): use the fill or add the text.
+- **`tone-1-mark`** — `tone-1` at graphic strength: the same hue lifted and saturated, for a mark that carries no text. *Use for:* A meter's or progress fill, a segmented bar, a status dot, a chart series, and the soft tint behind a badge or note (`bg-tone-1-mark/15`). Held to 2:1 on the page — visibility, not a text ratio — because each of these sits beside text that says the same thing. Every bundled theme tunes its own; a preset sets `--theme-tone-1-mark` or gets one derived from `tone-1`.
+    - **Not** `bg-tone-1` on a mark. The fill is pinned dark enough to carry a white label, so a meter or dot painted with it reads brown, forest or plum. And not for text — that is `text-tone-1` — nor for a graphic that is the only carrier of its meaning, which owes 3:1 (WCAG 1.4.11): use the fill or add the text.
+- **`tone-2-mark`** — `tone-2` at graphic strength: the same hue lifted and saturated, for a mark that carries no text. *Use for:* A meter's or progress fill, a segmented bar, a status dot, a chart series, and the soft tint behind a badge or note (`bg-tone-2-mark/15`). Held to 2:1 on the page — visibility, not a text ratio — because each of these sits beside text that says the same thing. Every bundled theme tunes its own; a preset sets `--theme-tone-2-mark` or gets one derived from `tone-2`.
+    - **Not** `bg-tone-2` on a mark. The fill is pinned dark enough to carry a white label, so a meter or dot painted with it reads brown, forest or plum. And not for text — that is `text-tone-2` — nor for a graphic that is the only carrier of its meaning, which owes 3:1 (WCAG 1.4.11): use the fill or add the text.
+- **`tone-3-mark`** — `tone-3` at graphic strength: the same hue lifted and saturated, for a mark that carries no text. *Use for:* A meter's or progress fill, a segmented bar, a status dot, a chart series, and the soft tint behind a badge or note (`bg-tone-3-mark/15`). Held to 2:1 on the page — visibility, not a text ratio — because each of these sits beside text that says the same thing. Every bundled theme tunes its own; a preset sets `--theme-tone-3-mark` or gets one derived from `tone-3`.
+    - **Not** `bg-tone-3` on a mark. The fill is pinned dark enough to carry a white label, so a meter or dot painted with it reads brown, forest or plum. And not for text — that is `text-tone-3` — nor for a graphic that is the only carrier of its meaning, which owes 3:1 (WCAG 1.4.11): use the fill or add the text.
 
 ### Generated palette
 
@@ -24594,7 +24764,7 @@ The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, wh
     - **Instead of** A hand-written dash-offset animation with literal timing, which keeps animating, or keeps its delay, under reduced motion.
     - `<Reveal><svg viewBox="0 0 100 100"><path className="motion-draw" pathLength="1" d="M10 50 L90 50" /></svg></Reveal>`
 
-### helper (5)
+### helper (6)
 
 - **`hit-target`** — Grows an element's tap target to 44px with a transparent `::after`, without moving its layout by a pixel. `--hit-target-size` overrides the size. *Use for:* A deliberately small mark — a tag's remove ×, a tiny disclosure, a toast close — that must still meet the WCAG touch floor. Shrink it (`[--hit-target-size:32px]`) where targets sit side by side, or the later one steals the taps.
     - **Instead of** Padding the glyph up (moves it off the row's grid and pushes siblings) or a bigger icon. Never on an `<input>` or other replaced element — pseudo-elements silently do nothing there; wrap it in a label.
@@ -24611,3 +24781,6 @@ The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, wh
 - **`checkerboard`** — The transparency checkerboard, painted from `--panel` and a derived darker step so it reads in both modes. `--checkerboard-size` (default 16px) and `--checkerboard-alt` tune it. *Use for:* Behind anything that can be translucent: a colour swatch with alpha, an image or artboard preview, an alpha slider track.
     - **Instead of** A hand-rolled `repeating-conic-gradient` with two hardcoded greys. Deliberately not named `bg-checkerboard`, so `cn()` never merges it away against a real `bg-*` colour — you can layer a colour over it.
     - `<div className="checkerboard [--checkerboard-size:8px] size-6 rounded-sm" />`
+- **`texture-dither`** — A faint pixel / halftone dither field that dissolves: a small pseudo-random tile of squares painted in `--border-strong` and faded out by a gradient mask. Static, pure CSS, follows every theme and mode. Hooks: `--dither-fade` (direction, any linear-gradient side or angle, default `to bottom`), `--dither-size` (tile, default 48px = 2px squares) and `--dither-color` (default `var(--border-strong)`). *Use for:* Decoration at the top of a content area, a panel or a card, or behind an empty-state heading. Put it on its own `aria-hidden` element, `absolute -z-10` as the first child of a `relative isolate` parent, so the content after it paints on top with no z-index of its own. It sets `pointer-events: none` and no position, so it never takes layout or catches clicks.
+    - **Instead of** A hand-written `radial-gradient` dot grid (reads as graph paper, not dither), a PNG noise texture, a canvas, or hardcoded greys. Deliberately not named `bg-dither`, so `cn()` never merges it away against a real `bg-*` colour class.
+    - `<div className="relative isolate"><div aria-hidden className="texture-dither absolute inset-x-0 top-0 -z-10 h-40" /></div>`

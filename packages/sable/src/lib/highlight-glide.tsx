@@ -188,18 +188,18 @@ export function HighlightGlide({
 		mutations.observe(host, { attributes: true, attributeFilter: [follow], subtree: true, childList: true })
 		const resize = new ResizeObserver(place)
 		resize.observe(host)
+		const listeners = new AbortController()
+		const { signal } = listeners
 		// Capture: an inner list may be the scroller (Combobox without popup scroll).
-		host.addEventListener("scroll", place, true)
+		host.addEventListener("scroll", place, { capture: true, signal })
 		// Settle once the open animation finishes, in case a frame was skipped.
-		host.addEventListener("transitionend", place)
-		host.addEventListener("animationend", place)
+		host.addEventListener("transitionend", place, { signal })
+		host.addEventListener("animationend", place, { signal })
 		return () => {
 			cancelAnimationFrame(frame)
 			mutations.disconnect()
 			resize.disconnect()
-			host.removeEventListener("scroll", place, true)
-			host.removeEventListener("transitionend", place)
-			host.removeEventListener("animationend", place)
+			listeners.abort()
 			host.removeAttribute("data-glide")
 		}
 	}, [follow, timing])

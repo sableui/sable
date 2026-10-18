@@ -15,7 +15,7 @@ describe("InputGroup", () => {
 		)
 		const input = screen.getByRole("textbox", { name: "Website" })
 		const group = input.closest('[data-slot="input-group"]') as HTMLElement
-		expect(group.className).toContain("border-input")
+		expect(group.className).toContain("border-field-border")
 		expect(group.className).toContain("focus-within:ring-2")
 		expect(group.querySelector('[data-slot="input-group-leading"]')).toHaveTextContent("https://")
 		expect(group.querySelector('[data-slot="input-group-trailing"]')).toHaveTextContent(".com")

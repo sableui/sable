@@ -39,7 +39,7 @@ Use StatusDot as a compact visual state cue next to text, avatars, rows, or labe
 
 ## Tokens used
 
-`palette-dot`, `muted-foreground`, `tone-3`, `success`, `tone-warning`, `tone-info`, `tone-1`, `tone-2`, `destructive`
+`palette-dot`, `muted-foreground`, `tone-3`, `success`, `tone-warning`, `tone-info`, `tone-1`, `tone-2`, `destructive`, `destructive-mark`, `success-mark`, `tone-warning-mark`, `tone-info-mark`, `tone-1-mark`, `tone-2-mark`, `tone-3-mark`
 
 ## Accessibility
 

@@ -33,11 +33,11 @@ export const bannerVariants = cva(
 		compoundVariants: [
 			// Soft — a quiet tint of the tone (the default announcement look).
 			{ tone: "neutral", appearance: "soft", class: "bg-secondary text-secondary-foreground" },
-			{ tone: "info", appearance: "soft", class: "bg-tone-info/15 text-foreground" },
-			{ tone: "success", appearance: "soft", class: "bg-success/15 text-foreground" },
-			{ tone: "warning", appearance: "soft", class: "bg-tone-warning/15 text-foreground" },
-			{ tone: "1", appearance: "soft", class: "bg-tone-1/15 text-foreground" },
-			{ tone: "destructive", appearance: "soft", class: "bg-destructive/15 text-foreground" },
+			{ tone: "info", appearance: "soft", class: "bg-tone-info-mark/15 text-foreground" },
+			{ tone: "success", appearance: "soft", class: "bg-success-mark/15 text-foreground" },
+			{ tone: "warning", appearance: "soft", class: "bg-tone-warning-mark/15 text-foreground" },
+			{ tone: "1", appearance: "soft", class: "bg-tone-1-mark/15 text-foreground" },
+			{ tone: "destructive", appearance: "soft", class: "bg-destructive-mark/15 text-foreground" },
 			// Solid — the full tone fill with its paired ink, for loud states.
 			{ tone: "neutral", appearance: "solid", class: "bg-foreground text-background" },
 			{ tone: "info", appearance: "solid", class: "bg-tone-info text-tone-info-foreground" },

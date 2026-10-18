@@ -32,7 +32,7 @@ export interface SearchInputProps
 
 /**
  * SearchInput — a styled search field with a leading magnifier and a clearable
- * X. Soft-square (rounded-sm), card surface, 2px focus ring — same shell as
+ * X. Soft-square (rounded-sm), field surface, 2px focus ring — same shell as
  * Input, padded to make room for the leading and trailing affordances. The
  * clear button only renders while the value is non-empty.
  *

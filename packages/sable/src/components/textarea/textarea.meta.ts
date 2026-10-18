@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const textareaMeta: ComponentMeta = {
 	name: "Textarea",
 	summary:
-		"Styled native multi-line text control. Soft-square, card surface, --ring focus, and an aria-invalid destructive error state.",
+		"Styled native multi-line text control. Soft-square, the theme's field surface, --ring focus, and an aria-invalid destructive error state.",
 	status: "stable",
 	keywords: [
 		"textarea",
@@ -82,8 +82,8 @@ export const textareaMeta: ComponentMeta = {
 		},
 	],
 	tokensUsed: [
-		"input",
-		"card",
+		"field-border",
+		"field",
 		"foreground",
 		"muted-foreground",
 		"ring",

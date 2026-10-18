@@ -48,7 +48,7 @@ Use OtpField for a short, fixed-length code the user copies from somewhere else 
 
 ## Tokens used
 
-`input`, `card`, `foreground`, `muted-foreground`, `border-strong`, `primary`, `ring`, `destructive`
+`field-border`, `field`, `foreground`, `muted-foreground`, `border-strong`, `primary`, `ring`, `destructive`
 
 ## Motion
 

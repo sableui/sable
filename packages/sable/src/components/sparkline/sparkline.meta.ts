@@ -107,7 +107,14 @@ export const sparklineMeta: ComponentMeta = {
 		"tone-warning",
 		"muted-foreground",
 		"success",
-		"destructive"
+		"destructive",
+		"destructive-mark",
+		"success-mark",
+		"tone-warning-mark",
+		"tone-info-mark",
+		"tone-1-mark",
+		"tone-2-mark",
+		"tone-3-mark",
 	],
 	motion: [
 		{

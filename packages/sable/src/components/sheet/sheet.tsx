@@ -142,11 +142,12 @@ function useKeyboardInset(enabled: boolean) {
 					: Math.max(0, Math.round(window.innerHeight - viewport.height - viewport.offsetTop)),
 			)
 		measure()
-		viewport.addEventListener("resize", measure)
-		viewport.addEventListener("scroll", measure)
+		const listeners = new AbortController()
+		const { signal } = listeners
+		viewport.addEventListener("resize", measure, { signal })
+		viewport.addEventListener("scroll", measure, { signal })
 		return () => {
-			viewport.removeEventListener("resize", measure)
-			viewport.removeEventListener("scroll", measure)
+			listeners.abort()
 			setInset(0)
 		}
 	}, [enabled])

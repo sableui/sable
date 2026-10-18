@@ -94,6 +94,22 @@ function nudge(color: string, seed: number): string {
 	return `oklch(from ${color} clamp(0, calc(l + ${dl}), 1) c calc(h + ${dh}))`
 }
 
+/** How strongly the art is painted: the preset's art as-is, or a pastel wash of it. */
+export type ArtIntensity = "vivid" | "soft"
+
+/**
+ * The soft (pastel wash) intensity: each colour lifted into a high, narrow
+ * lightness band and half its chroma — the iridescent "aura" AI products put
+ * behind floating chips, logo tiles and card header bands. Lightness is
+ * remapped, not pinned, so the palette keeps a little of its own light and
+ * dark; chroma is halved, so the hues stay the preset's. It applies to the
+ * ground as well, so nothing dark streaks through the wash, and it does not
+ * mix toward the background: the aura stays bright pastel in dark mode too.
+ * Relative colour again, so the CSS stand-in and the shader resolve the same.
+ */
+// design-lint-disable-next-line inline-color -- relative colour over the theme's own art tokens, so it follows every look
+const pastel = (color: string) => `oklch(from ${color} clamp(0.84, calc(0.8 + l * 0.15), 0.95) min(calc(c * 0.5), 0.09) h)`
+
 /** A 0–1 art parameter from the element's cascade, or its default when unset. */
 function param(style: CSSStyleDeclaration, name: string, fallbackValue: number): number {
 	const n = Number.parseFloat(style.getPropertyValue(name))
@@ -121,6 +137,14 @@ export interface GradientArtProps extends ComponentProps<"div"> {
 	 * item keeps its own look across renders and reloads.
 	 */
 	seed?: string | number
+	/**
+	 * `vivid` (default) paints the preset's art at full strength. `soft` turns
+	 * every colour and the ground into a light pastel of itself — a wash to
+	 * stage white chips, logo tiles or a card's header band on, in light and
+	 * dark alike. It is a light ground: put content on a card or chip over it,
+	 * not overlay-foreground text straight on it.
+	 */
+	intensity?: ArtIntensity
 }
 
 /**
@@ -138,14 +162,16 @@ export interface GradientArtProps extends ComponentProps<"div"> {
  *
  * Children render above the art: initials, a play glyph, a caption.
  */
-export function GradientArt({ variant = "mesh", tones, seed, className, style, children, ...props }: GradientArtProps) {
+export function GradientArt({ variant = "mesh", tones, seed, intensity = "vivid", className, style, children, ...props }: GradientArtProps) {
 	const root = useRef<HTMLDivElement>(null)
 	const canvas = useRef<HTMLCanvasElement>(null)
 	const probes = useRef<HTMLSpanElement>(null)
 	const value = seedValue(seed)
-	const palette = (tones?.length ? tones.map(lifted) : ART_SLOTS).map((color) => nudge(color, value))
-	const groundColor = nudge(tones?.length ? ground(tones[0]) : ART_GROUND, value)
-	const paletteKey = palette.join(" ")
+	const finish = (color: string) => (intensity === "soft" ? pastel(nudge(color, value)) : nudge(color, value))
+	const palette = (tones?.length ? tones.map(lifted) : ART_SLOTS).map(finish)
+	const groundColor = finish(tones?.length ? ground(tones[0]) : ART_GROUND)
+	// The ground is in the key too: grain paints it, and soft changes it.
+	const paletteKey = [groundColor, ...palette].join(" ")
 	const background = fallback(rotate(palette, value), groundColor, value)
 
 	useEffect(() => {
@@ -239,13 +265,14 @@ export function GradientArt({ variant = "mesh", tones, seed, className, style, c
 				offInvalidate()
 			}
 		}
-	}, [variant, value, paletteKey])
+	}, [variant, value, intensity, paletteKey])
 
 	return (
 		<div
 			ref={root}
 			data-slot="gradient-art"
 			data-variant={variant}
+			data-intensity={intensity}
 			className={cn("relative isolate overflow-hidden", className)}
 			style={{ background, ...style }}
 			{...props}

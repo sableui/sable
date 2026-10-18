@@ -145,26 +145,20 @@ export function useCaretTrigger({ triggers }: UseCaretTriggerOptions): UseCaretT
 		const onInput = (event: Event) => {
 			if (event.target === field) evaluate()
 		}
-		doc.addEventListener("input", onInput)
-		field.addEventListener("focus", evaluate)
-		field.addEventListener("click", evaluate)
-		field.addEventListener("keyup", evaluate)
-		field.addEventListener("compositionstart", onCompositionStart)
-		field.addEventListener("compositionend", onCompositionEnd)
-		field.addEventListener("blur", onBlur)
+		// One signal for all eight, so the teardown cannot miss one.
+		const listeners = new AbortController()
+		const { signal } = listeners
+		doc.addEventListener("input", onInput, { signal })
+		field.addEventListener("focus", evaluate, { signal })
+		field.addEventListener("click", evaluate, { signal })
+		field.addEventListener("keyup", evaluate, { signal })
+		field.addEventListener("compositionstart", onCompositionStart, { signal })
+		field.addEventListener("compositionend", onCompositionEnd, { signal })
+		field.addEventListener("blur", onBlur, { signal })
 		// Caret moves that fire no key or input event (a drag-select, a
 		// programmatic setSelectionRange) still reach selectionchange.
-		doc.addEventListener("selectionchange", onSelection)
-		return () => {
-			doc.removeEventListener("input", onInput)
-			field.removeEventListener("focus", evaluate)
-			field.removeEventListener("click", evaluate)
-			field.removeEventListener("keyup", evaluate)
-			field.removeEventListener("compositionstart", onCompositionStart)
-			field.removeEventListener("compositionend", onCompositionEnd)
-			field.removeEventListener("blur", onBlur)
-			doc.removeEventListener("selectionchange", onSelection)
-		}
+		doc.addEventListener("selectionchange", onSelection, { signal })
+		return () => listeners.abort()
 	}, [field, evaluate])
 
 	const dismiss = useCallback(() => {

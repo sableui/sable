@@ -8,7 +8,7 @@ export const gradientArtMeta: ComponentMeta = {
 	keywords: ["gradient", "mesh gradient", "grain", "shader", "artwork", "placeholder image", "cover", "banner", "avatar fallback", "generative"],
 	usage: {
 		description:
-			"Use GradientArt where a real image belongs but none exists yet, or where the image is decoration: a product cover before upload, a profile banner, an album tile, an avatar with no photo. It reads the theme's own tokens, so it follows every preset, mode and live edit; `seed` fixes each item's composition so a list of covers or avatars stays individually recognisable.",
+			"Use GradientArt where a real image belongs but none exists yet, or where the image is decoration: a product cover before upload, a profile banner, an album tile, an avatar with no photo. It reads the theme's own tokens, so it follows every preset, mode and live edit; `seed` fixes each item's composition so a list of covers or avatars stays individually recognisable. `intensity=\"soft\"` paints the same art as a pastel wash — the iridescent aura AI products use as a card or modal header band, and as a stage for floating chips and logo tiles.",
 		bestPractices: [
 			{
 				guidance: "do",
@@ -24,6 +24,16 @@ export const gradientArtMeta: ComponentMeta = {
 				guidance: "do",
 				description:
 					"Keep the default `mesh` for covers, tiles and avatars. Reach for `grain` where a printed, tactile surface suits — a banner, a hero card — and keep one variant per surface type so art reads as a system.",
+			},
+			{
+				guidance: "do",
+				description:
+					"Use `intensity=\"soft\"` as a stage: a card or modal header band, the art on an integration or pricing card, a field behind floating prompt chips or rounded logo tiles. Make the tiles and chips floating surfaces (`bg-popover` with `border-border-floating` and a shadow, or a `floating` Button) so they lift off the wash; soft stays light in dark mode too, so the same composition holds in both.",
+			},
+			{
+				guidance: "dont",
+				description:
+					"Do not put text straight on soft art with `text-overlay-foreground` ink. Soft is a light ground in every mode, so overlay ink washes out on it; put the content on a Card or a chip over the art, or use the default vivid intensity for a short overlay label.",
 			},
 			{
 				guidance: "dont",
@@ -51,10 +61,17 @@ export const gradientArtMeta: ComponentMeta = {
 			description: "Paint these `--tone-*` colours instead of the preset's art palette. Leave unset to follow the preset's art direction.",
 		},
 		{ name: "seed", type: "string | number", description: "Fixes the composition: the same seed paints the same art in every theme. Pass a stable id." },
+		{
+			name: "intensity",
+			type: '"vivid" | "soft"',
+			default: '"vivid"',
+			description:
+				"vivid: the preset's art at full strength. soft: every colour and the ground lifted to a light pastel of itself (high lightness, half chroma) — a wash for header bands and for staging chips and logo tiles, light in both modes.",
+		},
 		{ name: "children", type: "ReactNode", description: "Rendered above the art — initials, a glyph, a short label." },
 		{ name: "className", type: "string", description: "Size and shape: aspect, height, rounding." },
 	],
-	variants: { variant: ["mesh", "grain"] },
+	variants: { variant: ["mesh", "grain"], intensity: ["vivid", "soft"] },
 	tokensUsed: ["art-1", "art-2", "art-3", "art-4", "art-5", "art-6", "art-ground", "art-warp", "art-softness", "art-grain", "primary", "tone-info", "tone-3", "tone-2", "tone-1", "tone-warning"],
 	motion: [
 		{
@@ -82,6 +99,25 @@ export const gradientArtMeta: ComponentMeta = {
 		{
 			label: "Avatar with initials",
 			code: '<GradientArt seed="Mara Okafor" className="grid size-10 place-items-center rounded-full text-label-md text-overlay-foreground">MO</GradientArt>',
+		},
+		{
+			label: "Soft header band with logo tiles",
+			code: `<Card className="w-full max-w-sm">
+	<GradientArt intensity="soft" seed="Integrations" className="flex h-32 items-center justify-center gap-3 rounded-t-lg">
+		{["mail", "calendar", "chart"].map((name) => (
+			<span key={name} className="grid size-12 place-items-center rounded-lg border border-border-floating bg-popover text-popover-foreground shadow-md">
+				<Icon name={name} className="text-xl" />
+			</span>
+		))}
+	</GradientArt>
+	<CardHeader>
+		<CardTitle>Connect your tools</CardTitle>
+		<CardDescription>Bring mail, calendar and analytics into one place.</CardDescription>
+	</CardHeader>
+	<CardFooter>
+		<Button>Connect</Button>
+	</CardFooter>
+</Card>`,
 		},
 	],
 }

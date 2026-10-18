@@ -1037,6 +1037,20 @@ export const UTILITY_DOCS: UtilityDoc[] = [
 		example: `<div className="checkerboard [--checkerboard-size:8px] size-6 rounded-sm" />`,
 		keywords: ["transparency", "alpha background", "checker", "transparent pattern", "swatch background"],
 	},
+	{
+		name: "texture-dither",
+		kind: "utility",
+		family: "helper",
+		intent:
+			"A faint pixel / halftone dither field that dissolves: a small pseudo-random tile of squares painted in `--border-strong` and faded out by a gradient mask. Static, pure CSS, follows every theme and mode. Hooks: `--dither-fade` (direction, any linear-gradient side or angle, default `to bottom`), `--dither-size` (tile, default 48px = 2px squares) and `--dither-color` (default `var(--border-strong)`).",
+		whenToUse:
+			"Decoration at the top of a content area, a panel or a card, or behind an empty-state heading. Put it on its own `aria-hidden` element, `absolute -z-10` as the first child of a `relative isolate` parent, so the content after it paints on top with no z-index of its own. It sets `pointer-events: none` and no position, so it never takes layout or catches clicks.",
+		insteadOf:
+			"A hand-written `radial-gradient` dot grid (reads as graph paper, not dither), a PNG noise texture, a canvas, or hardcoded greys. Deliberately not named `bg-dither`, so `cn()` never merges it away against a real `bg-*` colour class.",
+		example: `<div className="relative isolate"><div aria-hidden className="texture-dither absolute inset-x-0 top-0 -z-10 h-40" /></div>`,
+		keywords: ["dither", "halftone", "pixel pattern", "dot pattern", "noise texture", "texture", "fade pattern", "empty state background", "decorative background"],
+		pairsWith: ["checkerboard"],
+	},
 ]
 
 /** Lookup by declared name. */

@@ -23,7 +23,7 @@ import { cva } from "class-variance-authority"
  * draws the eye away from the answer arriving above it.
  */
 export const chatComposerVariants = cva(
-	"flex w-full flex-col gap-2 border border-input bg-card p-2 motion-interactive focus-within:ring-2 focus-within:ring-ring [--chat-composer-r:var(--chat-composer-radius,var(--card-inner-radius,calc(min(var(--button-radius,9999px),var(--control-sm)/2)+(--spacing(2))+1px)))] rounded-[var(--chat-composer-r)]",
+	"flex w-full flex-col gap-2 border border-field-border bg-field p-2 motion-interactive focus-within:ring-2 focus-within:ring-ring [--chat-composer-r:var(--chat-composer-radius,var(--card-inner-radius,calc(min(var(--button-radius,9999px),var(--control-sm)/2)+(--spacing(2))+1px)))] rounded-[var(--chat-composer-r)]",
 	{
 		variants: {
 			invalid: {

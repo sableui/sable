@@ -4,7 +4,7 @@
  * Input, SearchInput and CommandMenuTrigger all wear it. The trigger is a
  * <button>, not an input, but it stands in for a search field in a header, so
  * it has to look exactly like one: the same soft-square corner, the same
- * `border-input` outline on the card surface, the same 2px focus ring, the
+ * `field` fill and `field-border` outline, the same 2px focus ring, the
  * same disabled fade. Before this lived in one place the docs header carried a
  * hand-copied version that had already drifted to a third look (a borderless
  * `bg-muted` chip) — every class a valid token, so no lint rule could see it.
@@ -15,10 +15,15 @@
  * cannot be invalid). Placeholder ink is in, because `placeholder:` is inert
  * on an element without a placeholder.
  *
+ * The fill and outline are the theme's `field` / `field-border` pair: outlined
+ * on the card by default, a borderless well in a theme that fills its fields.
+ * Select, Combobox, InputGroup and ChatComposer paint the same pair on their
+ * own shells, so a theme's choice reaches every field at once.
+ *
  * Kept as literal strings so Tailwind's source scan generates every class.
  */
 export const FIELD_SHELL =
-	"rounded-sm border border-input bg-card motion-interactive placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+	"rounded-sm border border-field-border bg-field motion-interactive placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
 
 /**
  * The 16px iOS floor for a text-entry field in the page register: Safari zooms

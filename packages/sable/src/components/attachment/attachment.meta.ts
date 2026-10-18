@@ -171,6 +171,7 @@ export const attachmentMeta: ComponentMeta = {
 		"overlay",
 		"overlay-foreground",
 		"ring",
+		"destructive-mark",
 	],
 	motion: [
 		{

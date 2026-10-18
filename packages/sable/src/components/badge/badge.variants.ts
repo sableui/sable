@@ -51,13 +51,13 @@ const MATRIX: Record<BadgeAppearance, Record<BadgeTone, string>> = {
 	// mixed from them fell under 4.5:1 (Meridian dark destructive, 3.8:1).
 	soft: {
 		neutral: "bg-secondary text-secondary-foreground",
-		"3": "bg-tone-3/15 text-[color-mix(in_oklch,var(--tone-3)_75%,var(--foreground))]",
-		"2": "bg-tone-2/15 text-[color-mix(in_oklch,var(--tone-2)_75%,var(--foreground))]",
-		"1": "bg-tone-1/15 text-[color-mix(in_oklch,var(--tone-1)_75%,var(--foreground))]",
-		info: "bg-tone-info/15 text-[color-mix(in_oklch,var(--tone-info-text)_75%,var(--foreground))]",
-		success: "bg-success/15 text-[color-mix(in_oklch,var(--success-text)_75%,var(--foreground))]",
-		warning: "bg-tone-warning/15 text-[color-mix(in_oklch,var(--tone-warning-text)_75%,var(--foreground))]",
-		destructive: "bg-destructive/15 text-[color-mix(in_oklch,var(--destructive-text)_75%,var(--foreground))]",
+		"3": "bg-tone-3-mark/15 text-[color-mix(in_oklch,var(--tone-3)_75%,var(--foreground))]",
+		"2": "bg-tone-2-mark/15 text-[color-mix(in_oklch,var(--tone-2)_75%,var(--foreground))]",
+		"1": "bg-tone-1-mark/15 text-[color-mix(in_oklch,var(--tone-1)_75%,var(--foreground))]",
+		info: "bg-tone-info-mark/15 text-[color-mix(in_oklch,var(--tone-info-text)_75%,var(--foreground))]",
+		success: "bg-success-mark/15 text-[color-mix(in_oklch,var(--success-text)_75%,var(--foreground))]",
+		warning: "bg-tone-warning-mark/15 text-[color-mix(in_oklch,var(--tone-warning-text)_75%,var(--foreground))]",
+		destructive: "bg-destructive-mark/15 text-[color-mix(in_oklch,var(--destructive-text)_75%,var(--foreground))]",
 		...families("soft"),
 	},
 	outline: {

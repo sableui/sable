@@ -27,6 +27,10 @@ export const sidebarMeta: ComponentMeta = {
 				description: "Set surface=\"page\" when a full-width top bar sits above the rail. A theme's tinted or dark rail is for a full-height rail that frames the app.",
 			},
 			{
+				guidance: "do",
+				description: "Keep surface=\"rail\" inside AppShell frame=\"inset\": the rail's tint becomes the ground the main panel floats on. Do not add a border-r class back — the gap is the divider.",
+			},
+			{
 				guidance: "dont",
 				description: "Do not use Sidebar for page-local settings, filters, or temporary action groups.",
 			},
@@ -82,7 +86,7 @@ export const sidebarMeta: ComponentMeta = {
 			type: '"rail" | "page"',
 			default: '"rail"',
 			description:
-				"Which surface the rail is painted on. \"rail\" is its own --sidebar-* surface with a border — right for a full-height rail that frames the app, which a theme may tint or paint dark. \"page\" uses the page's surface and ink with no border — use it when a full-width header sits above the rail, where a tinted column starting under a page-coloured bar reads as pasted on. Use it instead of overriding bg-/text- classes, which the rail's re-pointed tokens defeat.",
+				"Which surface the rail is painted on. \"rail\" is its own --sidebar-* surface with a border — right for a full-height rail that frames the app, which a theme may tint or paint dark. \"page\" uses the page's surface and ink with no border — use it when a full-width header sits above the rail, where a tinted column starting under a page-coloured bar reads as pasted on. Use it instead of overriding bg-/text- classes, which the rail's re-pointed tokens defeat. In AppShell's sidebar slot with frame=\"inset\", the rail's surface is also the shell's ground: from lg a \"rail\" rail drops its border (the gap around the main panel divides them) and either surface stretches to the shell's body row instead of sizing to the viewport. AppShell signals this to its sidebar slot only, so a Sidebar elsewhere in the page is unaffected.",
 		},
 		{
 			name: "motion",
@@ -157,6 +161,7 @@ export const sidebarMeta: ComponentMeta = {
 		"sidebar-accent",
 		"sidebar-accent-foreground",
 		"sidebar-ring",
+		"shell-ground",
 	],
 	variants: {
 		variant: ["app", "inline"],

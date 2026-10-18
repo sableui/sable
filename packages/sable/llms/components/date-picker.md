@@ -38,7 +38,7 @@ Use DatePicker when users need to choose one date — or, with granularity="minu
 
 ## Tokens used
 
-`primary`, `primary-foreground`, `accent`, `accent-foreground`, `foreground`, `muted-foreground`, `popover`, `popover-foreground`, `border`, `input`, `card`, `ring`
+`primary`, `primary-foreground`, `accent`, `accent-foreground`, `foreground`, `muted-foreground`, `popover`, `popover-foreground`, `border`, `field-border`, `field`, `ring`
 
 ## Accessibility
 

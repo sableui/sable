@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-Styled native multi-line text control. Soft-square, card surface, --ring focus, and an aria-invalid destructive error state.
+Styled native multi-line text control. Soft-square, the theme's field surface, --ring focus, and an aria-invalid destructive error state.
 
 **Keywords:** textarea, multi line input, form, text
 
@@ -31,7 +31,7 @@ Use Textarea for multi-line freeform text entry such as notes, descriptions, or 
 
 ## Tokens used
 
-`input`, `card`, `foreground`, `muted-foreground`, `ring`, `destructive`
+`field-border`, `field`, `foreground`, `muted-foreground`, `ring`, `destructive`
 
 ## Accessibility
 

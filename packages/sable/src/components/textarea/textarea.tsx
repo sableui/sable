@@ -16,7 +16,7 @@ export interface TextareaProps extends ComponentPropsWithRef<"textarea"> {
 
 /**
  * Textarea — a styled native multi-line text control. Soft-square (rounded-sm,
- * like all inputs, never a pill). Sits on the card surface with a 1px input
+ * like all inputs, never a pill). Sits on the field surface with a 1px field
  * border; the focus ring uses the --ring token. Set `aria-invalid` to surface
  * the destructive error treatment on border + ring (same as Input). Pass `autoResize` to grow with content.
  *
@@ -48,6 +48,11 @@ export function Textarea({
 				// already lost the invalid ring Input shows on focus.
 				FIELD_SHELL,
 				FIELD_INVALID,
+				// Text being edited must not rewrap above the caret. `text-wrap-style`
+				// inherits, so a field inside a `text-pretty` or `text-balance` block
+				// would re-break every earlier line on each keystroke; `stable` is
+				// what an editing surface asks for. Longhand only: the wrap mode stays.
+				"[text-wrap-style:stable]",
 				autoResize && "field-sizing-content resize-none",
 				tier.body,
 				density === "comfortable" && MOBILE_FIELD_TIER,

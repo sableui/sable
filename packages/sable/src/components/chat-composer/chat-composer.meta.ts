@@ -254,8 +254,8 @@ export const chatComposerMeta: ComponentMeta = {
 	],
 	variants: { invalid: ["true", "false"] },
 	tokensUsed: [
-		"card",
-		"input",
+		"field",
+		"field-border",
 		"ring",
 		"destructive",
 		"foreground",

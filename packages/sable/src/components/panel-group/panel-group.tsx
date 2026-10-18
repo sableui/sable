@@ -230,14 +230,12 @@ export function PanelResizer({
 			const delta = side === "left" ? ev.clientX - startX : startX - ev.clientX
 			onWidthChange(startWidth + delta)
 		}
-		function onUp() {
-			window.removeEventListener("pointermove", onMove)
-			window.removeEventListener("pointerup", onUp)
-			window.removeEventListener("pointercancel", onUp)
-		}
-		window.addEventListener("pointermove", onMove)
-		window.addEventListener("pointerup", onUp)
-		window.addEventListener("pointercancel", onUp)
+		// One controller per drag: releasing aborts all three at once.
+		const drag = new AbortController()
+		const { signal } = drag
+		window.addEventListener("pointermove", onMove, { signal })
+		window.addEventListener("pointerup", () => drag.abort(), { signal })
+		window.addEventListener("pointercancel", () => drag.abort(), { signal })
 	}
 
 	function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {

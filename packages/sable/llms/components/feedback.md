@@ -32,7 +32,7 @@ Use Feedback to collect lightweight sentiment, usefulness, or quality signals fr
 
 ## Tokens used
 
-`popover`, `popover-foreground`, `border`, `input`, `card`, `foreground`, `muted-foreground`, `accent`, `accent-foreground`, `ring`, `success`
+`popover`, `popover-foreground`, `border`, `input`, `card`, `foreground`, `muted-foreground`, `accent`, `accent-foreground`, `ring`, `success`, `success-mark`
 
 ## Motion
 

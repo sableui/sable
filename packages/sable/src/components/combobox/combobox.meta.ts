@@ -145,6 +145,13 @@ export const comboboxMeta: ComponentMeta = {
 				"How items match the query. `null` turns matching off, for items a server already filtered: pair it with `onInputValueChange` to fetch.",
 		},
 		{
+			name: "highlightMatches",
+			type: "boolean",
+			default: "true",
+			description:
+				"Paints the typed text wherever it appears in a row's label, on the `highlight` / `highlight-foreground` pair, through the CSS Custom Highlight API — no `<mark>` in the row, and the accessible name is unchanged. Only typed text counts: a field still holding the selected item's label lists everything and lights nothing. A literal, case-insensitive match within the label; a `filter` that matches differently leaves rows it kept unpainted. `false` turns it off.",
+		},
+		{
 			name: "onInputValueChange",
 			type: "(inputValue: string, eventDetails) => void",
 			default: "—",
@@ -221,8 +228,10 @@ export const comboboxMeta: ComponentMeta = {
 		},
 	],
 	tokensUsed: [
-		"input",
-		"card",
+		"highlight",
+		"highlight-foreground",
+		"field-border",
+		"field",
 		"foreground",
 		"muted-foreground",
 		"ring",

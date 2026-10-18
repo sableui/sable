@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
+import { AppShellFrameProvider } from "../app-shell/app-shell-frame"
 import { Sidebar, SidebarBrand, SidebarHeader, SidebarItem, SidebarNav } from "./sidebar"
 
 describe("Sidebar / SidebarItem", () => {
@@ -139,6 +140,37 @@ describe("SidebarBrand", () => {
 		// …and on the page surface the reverse, never both (a token cycle).
 		expect(rail.className).toContain("[--sidebar:var(--background)]")
 		expect(rail.className).not.toContain("[--background:var(--sidebar)]")
+	})
+
+	it("inside an inset AppShell's sidebar slot, drops its border and fills the row from lg", () => {
+		const { container, rerender } = render(
+			<AppShellFrameProvider frame="inset">
+				<Sidebar><SidebarNav /></Sidebar>
+			</AppShellFrameProvider>,
+		)
+		const rail = container.querySelector("aside")!
+		expect(rail).toHaveAttribute("data-frame", "inset")
+		// The border stays below lg (where an inline rail can still show) and goes from lg.
+		expect(rail).toHaveClass("border-r", "lg:border-r-0", "lg:h-auto", "lg:self-stretch")
+		expect(rail.className).not.toContain("lg:h-[calc(100vh")
+
+		rerender(
+			<AppShellFrameProvider frame="inset">
+				<Sidebar surface="page"><SidebarNav /></Sidebar>
+			</AppShellFrameProvider>,
+		)
+		expect(rail.className).not.toContain("border-r")
+		expect(rail).toHaveClass("lg:self-stretch")
+
+		// A flush frame is today's rail exactly.
+		rerender(
+			<AppShellFrameProvider frame="flush">
+				<Sidebar><SidebarNav /></Sidebar>
+			</AppShellFrameProvider>,
+		)
+		expect(rail).not.toHaveAttribute("data-frame")
+		expect(rail).toHaveClass("lg:self-start")
+		expect(rail.className).not.toContain("lg:border-r-0")
 	})
 })
 

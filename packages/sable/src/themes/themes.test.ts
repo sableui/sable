@@ -3,7 +3,10 @@ import { resolve } from "node:path"
 import { describe, expect, it } from "vitest"
 import {
 	DENSITY_TOKENS,
+	APP_SHELL_TOKENS,
+	FIELD_TOKENS,
 	LAYERING_TOKENS,
+	MARK_TOKENS,
 	MOTION_TOKENS,
 	RADIUS_TOKENS,
 	SEMANTIC_TOKENS,
@@ -18,6 +21,7 @@ import {
 	HAIRLINE_VISIBILITY_FLOOR,
 	LABELLED_FILLS,
 	NON_TEXT_FLOOR,
+	NON_TEXT_HARD_FLOOR,
 	NON_TEXT_PAIRS,
 	PERCEPTUAL_FLOOR,
 	type ParsedColor,
@@ -321,6 +325,46 @@ describe("workspace register foundation", () => {
 		// hook a theme may use to tune it.
 		expect(stylesCss).toMatch(/--border-floating\s*:\s*var\(--theme-border-floating,/)
 		expect(stylesCss).toContain("--color-border-floating: var(--border-floating)")
+	})
+
+	it("derives the field surface for every theme, outlined by default", () => {
+		// Every text field reads these through lib/field-shell, so a theme fills or
+		// outlines all of them with two hooks. The defaults must stay the outlined
+		// field on the card: no theme should change look by gaining the tokens.
+		expect(stylesCss).toMatch(/--field\s*:\s*var\(--theme-field,\s*var\(--card\)\)/)
+		expect(stylesCss).toMatch(/--field-border\s*:\s*var\(--theme-field-border,\s*var\(--input\)\)/)
+		for (const token of FIELD_TOKENS) {
+			expect(stylesCss).toContain(`--color-${token}: var(--${token})`)
+		}
+	})
+
+	it("tunes every graphic-strength mark in every bundled theme, in both modes", () => {
+		// The styles.css derivation is a fallback for presets. A bundled theme that
+		// relied on it would ship marks no gate measured (relative colour cannot be
+		// resolved statically), so each one declares its own hooks.
+		for (const token of MARK_TOKENS) {
+			expect(stylesCss).toMatch(new RegExp(`--${token}\\s*:\\s*var\\(--theme-${token},`))
+			expect(stylesCss).toContain(`--color-${token}: var(--${token})`)
+		}
+		for (const theme of themeIds) {
+			const css = cssFor(theme)
+			const light = blockWith(css, `${SABLE_THEME_ATTRIBUTE}="${theme}"`)
+			const dark = blockWith(css, `${SABLE_THEME_ATTRIBUTE}="${theme}"`, ".dark")
+			for (const token of MARK_TOKENS) {
+				expect(light, `${theme} light must set --theme-${token}`).toContain(`--theme-${token}:`)
+				expect(dark, `${theme} dark must set --theme-${token}`).toContain(`--theme-${token}:`)
+			}
+		}
+	})
+
+	it("derives the inset shell's ground off the rail for every theme", () => {
+		// Most themes paint the rail the page's colour, so an inset panel on a plain
+		// `sidebar` ground had nothing to lift it but a hairline. The ground is a
+		// step off the rail, with a hook a theme may use to tune it.
+		expect(stylesCss).toMatch(/--shell-ground\s*:\s*var\(--theme-shell-ground,\s*color-mix\(in oklch, var\(--sidebar\)/)
+		for (const token of APP_SHELL_TOKENS) {
+			expect(stylesCss).toContain(`--color-${token}: var(--${token})`)
+		}
 	})
 
 	it("derives every workspace surface token so no theme has to author them", () => {
@@ -906,7 +950,8 @@ describe("theme contrast", () => {
 			for (const appearance of ["light", "dark"] as const) {
 				const vars = resolveVars(css, appearance)
 				for (const [token, { surfaces, tier }] of Object.entries(NON_TEXT_PAIRS)) {
-					const mark = resolve(`--${token}`, vars)
+					// A derived token (a mark) is declared by the theme as its `--theme-*` hook.
+					const mark = resolve(`--${token}`, vars) ?? resolve(`--theme-${token}`, vars)
 					if (!mark) continue
 					for (const surface of surfaces) {
 						const bg = surfaceOf(surface, vars)
@@ -914,7 +959,7 @@ describe("theme contrast", () => {
 						checked++
 						const v = evaluateNonTextContrast(painted(mark, bg), bg.rgb, tier)
 						const key = `${themeId}:${appearance}:${token}:${surface}`
-						if (tier === "hairline" ? v.passes : v.wcagRatioPasses) {
+						if (tier === "hairline" || tier === "graphic" ? v.passes : v.wcagRatioPasses) {
 							if (v.basis === "perceptual") {
 								perceptualPasses.push(
 									`${appearance}: ${token} on ${surface} — WCAG ${v.ratio.toFixed(2)}:1, APCA Lc ${v.lc.toFixed(1)}`,
@@ -929,6 +974,8 @@ describe("theme contrast", () => {
 						const floor =
 							tier === "hairline"
 								? `floor ${HAIRLINE_VISIBILITY_FLOOR}:1`
+								: tier === "graphic"
+									? `floor ${NON_TEXT_HARD_FLOOR}:1`
 								: `required ${NON_TEXT_FLOOR}:1 (APCA cannot waive this ratio)`
 						failures.push(
 							`${appearance}: ${token} on ${surface} = ${v.ratio.toFixed(2)}:1, ` +

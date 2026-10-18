@@ -39,6 +39,8 @@ const AXES: Record<string, string> = {
 	indicator: "what marks each item in a sequence (Stepper number | dot)",
 	aspect: "a media frame's proportions (MediaTile square | video | poster) — named for CSS aspect-ratio",
 	fit: "how media fills its frame (MediaImage cover | contain) — named for CSS object-fit",
+	intensity:
+		"how strongly generated art is painted (GradientArt vivid | soft): the same composition at art strength or as a pastel wash — not `variant`, which there picks the shader",
 	bleed:
 		"which inline edge a borderless control's box extends past, by exactly its own padding, so its label sits on the content edge (Button start | end | both | none) — the popup-bleed / Bleed sense: escape the inset by the inset",
 	// States and single-component geometry, documented as variants because they

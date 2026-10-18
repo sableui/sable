@@ -46,7 +46,9 @@ export interface InputProps extends Omit<ComponentPropsWithRef<"input">, "size">
 
 /**
  * Input — a styled native `<input>`. Soft-square (rounded-sm, 8px), never a pill.
- * Sits on the card surface with a 1px input border; focus raises a 2px ring.
+ * Wears the theme's field surface (`field` fill, 1px `field-border` outline — outlined
+ * on the card by default, a filled well in a theme that fills its fields); focus
+ * raises a 2px ring.
  * Set `aria-invalid` (Base UI form fields do this for you) to surface the
  * destructive error treatment on border + ring.
  *

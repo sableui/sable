@@ -280,6 +280,15 @@
 	--tone-2-foreground: var(--zinc-50);
 	--tone-1-foreground: var(--zinc-50);
 	--tone-warning-foreground: var(--zinc-50);
+	/* Graphic strength (MARK_TOKENS): meters, bars, dots, chart series and soft tints.
+	   The same hues lifted and saturated; held to 2:1 on the page, not a text ratio. */
+	--theme-destructive-mark: oklch(62.0% 0.244 22.0);
+	--theme-success-mark: oklch(70.0% 0.131 173.0);
+	--theme-tone-warning-mark: oklch(71.0% 0.169 52.0);
+	--theme-tone-info-mark: oklch(63.0% 0.178 250.0);
+	--theme-tone-1-mark: oklch(62.0% 0.269 309.0);
+	--theme-tone-2-mark: oklch(60.0% 0.227 285.0);
+	--theme-tone-3-mark: oklch(70.0% 0.131 173.0);
 	--tone-info-foreground: var(--zinc-50);
 	--highlight-foreground: var(--zinc-50);
 
@@ -463,6 +472,15 @@
 	--tone-2-foreground: var(--zinc-950);
 	--tone-1-foreground: var(--zinc-950);
 	--tone-warning-foreground: var(--zinc-950);
+	/* Graphic strength (MARK_TOKENS): meters, bars, dots, chart series and soft tints.
+	   The same hues lifted and saturated; held to 2:1 on the page, not a text ratio. */
+	--theme-destructive-mark: oklch(65.0% 0.231 25.0);
+	--theme-success-mark: oklch(78.0% 0.157 168.0);
+	--theme-tone-warning-mark: oklch(82.0% 0.132 65.0);
+	--theme-tone-info-mark: oklch(76.0% 0.144 235.0);
+	--theme-tone-1-mark: oklch(62.0% 0.295 318.0);
+	--theme-tone-2-mark: oklch(72.0% 0.151 285.0);
+	--theme-tone-3-mark: oklch(78.0% 0.157 168.0);
 	--tone-info-foreground: var(--zinc-950);
 	--highlight-foreground: var(--zinc-50);
 	--overlay: var(--zinc-950);

@@ -21,6 +21,8 @@ import { useAnchoredDensity, useDensity, useTypeTier } from "../../lib/density"
 import { useResizeObserver } from "../../lib/use-resize-observer"
 import { HighlightGlide } from "../../lib/highlight-glide"
 import { hitTargetMin } from "../../lib/hit-target"
+import { mergeRefs } from "../../lib/refs"
+import { useMatchHighlight } from "../../lib/use-match-highlight"
 import { Badge } from "../badge"
 import { Button } from "../button"
 
@@ -101,10 +103,26 @@ interface ComboboxVirtualBridge {
 
 const ComboboxVirtualContext = createContext<ComboboxVirtualBridge | null>(null)
 
+/**
+ * What the user has typed, for ComboboxContent to paint in the rows. Its own
+ * context, not part of the virtual bridge: it changes on every keystroke, and
+ * the bridge is kept stable precisely so a windowed list does not re-render then.
+ */
+const ComboboxMatchContext = createContext("")
+
 export type ComboboxProps<
 	Value,
 	Multiple extends boolean | undefined = false,
-> = ComboboxRootProps<Value, Multiple>
+> = ComboboxRootProps<Value, Multiple> & {
+	/**
+	 * Paint the typed text wherever it appears in a row's label, on the
+	 * `highlight` token pair. Only typed text: a field that still holds the
+	 * selected item's label lists everything, and lighting that label in every
+	 * row would mark matches nobody searched for. See useMatchHighlight.
+	 * @default true
+	 */
+	highlightMatches?: boolean
+}
 
 /**
  * Root of the combobox. Owns selection, input value, filtering and open state —
@@ -118,6 +136,8 @@ export type ComboboxProps<
  */
 export function Combobox<Value, Multiple extends boolean | undefined = false>({
 	onItemHighlighted,
+	onInputValueChange,
+	highlightMatches = true,
 	...props
 }: ComboboxProps<Value, Multiple>) {
 	const revealRef = useRef<((index: number) => void) | null>(null)
@@ -145,6 +165,22 @@ export function Combobox<Value, Multiple extends boolean | undefined = false>({
 		[],
 	)
 
+	// Typing is the only reason that counts as a query. Picking a row fills the
+	// field with its label and clearing empties it; neither is a search.
+	const [typed, setTyped] = useState("")
+	const inputChangeRef = useRef(onInputValueChange)
+	inputChangeRef.current = onInputValueChange
+	const handleInputValueChange = useCallback(
+		(
+			value: string,
+			details: Parameters<NonNullable<ComboboxProps<Value, Multiple>["onInputValueChange"]>>[1],
+		) => {
+			inputChangeRef.current?.(value, details)
+			setTyped(details.reason === "input-change" ? value : "")
+		},
+		[],
+	)
+
 	const bridge = useMemo<ComboboxVirtualBridge>(
 		() => ({
 			register(reveal) {
@@ -158,15 +194,18 @@ export function Combobox<Value, Multiple extends boolean | undefined = false>({
 
 	return (
 		<ComboboxVirtualContext.Provider value={bridge}>
-			<Base.Root<Value, Multiple>
-				{...(props as ComboboxProps<Value, Multiple>)}
-				onItemHighlighted={
-					handleHighlight as ComboboxProps<
-						Value,
-						Multiple
-					>["onItemHighlighted"]
-				}
-			/>
+			<ComboboxMatchContext.Provider value={highlightMatches ? typed : ""}>
+				<Base.Root<Value, Multiple>
+					{...(props as ComboboxRootProps<Value, Multiple>)}
+					onItemHighlighted={
+						handleHighlight as ComboboxProps<
+							Value,
+							Multiple
+						>["onItemHighlighted"]
+					}
+					onInputValueChange={handleInputValueChange}
+				/>
+			</ComboboxMatchContext.Provider>
 		</ComboboxVirtualContext.Provider>
 	)
 }
@@ -204,7 +243,7 @@ type InputProps = Omit<ComponentProps<typeof Base.Input>, "className" | "size"> 
  */
 const FIELD_SHELL = {
 	xs: cn(FIELD_SHELL_XS, "pe-7 text-ui-md"),
-	md: "rounded-sm border border-input bg-card pe-9",
+	md: "rounded-sm border border-field-border bg-field pe-9",
 }
 
 /**
@@ -409,6 +448,7 @@ export function ComboboxContent({
 	align = "start",
 	sideOffset = 6,
 	scroll = true,
+	ref,
 	...props
 }: ContentProps) {
 	// Reconnects the portaled list to the register its input lives in. The input
@@ -416,10 +456,17 @@ export function ComboboxContent({
 	// without it a Combobox in a compact Workspace renders page-sized rows over a
 	// 32px trigger. See lib/density.
 	const anchoredDensity = useAnchoredDensity()
+	// On the popup rather than the list, so a ComboboxVirtualList is covered too;
+	// the selector keeps it to row labels and off group headings.
+	const paintMatches = useMatchHighlight(useContext(ComboboxMatchContext), {
+		selector: "[data-sable-match]",
+	})
+	const popupRef = useMemo(() => mergeRefs(ref, paintMatches), [ref, paintMatches])
 	return (
 		<ComboboxPortal>
 			<Base.Positioner side={side} align={align} sideOffset={sideOffset} className="z-(--z-overlay)">
 				<Base.Popup
+					ref={popupRef}
 					{...anchoredDensity}
 					className={cn(
 						"w-[var(--anchor-width)] origin-(--transform-origin) rounded-md border border-border-floating bg-popover text-popover-foreground shadow-md outline-none",
@@ -460,7 +507,7 @@ export function ComboboxItem({ className, children, ...props }: ItemProps) {
 			)}
 			{...props}
 		>
-			<span className="truncate">{children}</span>
+			<span data-sable-match="" className="truncate">{children}</span>
 			<Base.ItemIndicator className="flex items-center text-(--primary)">
 				<Icon name="check" className="text-sm" />
 			</Base.ItemIndicator>

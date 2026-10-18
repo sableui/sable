@@ -9,13 +9,13 @@ export const statusDotVariants = cva("inline-block shrink-0 rounded-full", {
 	variants: {
 		tone: {
 			neutral: "bg-muted-foreground",
-			"3": "bg-tone-3",
-			success: "bg-success",
-			warning: "bg-tone-warning",
-			info: "bg-tone-info",
-			"1": "bg-tone-1",
-			"2": "bg-tone-2",
-			destructive: "bg-destructive",
+			"3": "bg-tone-3-mark",
+			success: "bg-success-mark",
+			warning: "bg-tone-warning-mark",
+			info: "bg-tone-info-mark",
+			"1": "bg-tone-1-mark",
+			"2": "bg-tone-2-mark",
+			destructive: "bg-destructive-mark",
 			// A palette family paints from the slot its data-palette scope fills.
 			red: "bg-palette-dot",
 			orange: "bg-palette-dot",

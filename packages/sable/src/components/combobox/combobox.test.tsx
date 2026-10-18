@@ -313,3 +313,76 @@ describe("Combobox — server results", () => {
 		expect(await screen.findByText("No one matches.")).toBeInTheDocument()
 	})
 })
+
+describe("Combobox — match highlighting", () => {
+	// jsdom has no Custom Highlight API; stand in the two shapes the hook uses.
+	class FakeHighlight extends Set<Range> {}
+	const painted = () =>
+		Array.from((globalThis.CSS as unknown as { highlights: Map<string, Set<Range>> }).highlights.get("sable-match") ?? [], (r) =>
+			r.toString(),
+		)
+
+	function withRegistry(run: () => Promise<void>) {
+		return async () => {
+			const original = globalThis.CSS
+			;(globalThis as { CSS?: unknown }).CSS = { highlights: new Map() }
+			;(globalThis as { Highlight?: unknown }).Highlight = FakeHighlight
+			try {
+				await run()
+			} finally {
+				;(globalThis as { CSS?: unknown }).CSS = original
+				delete (globalThis as { Highlight?: unknown }).Highlight
+			}
+		}
+	}
+
+	function Fruit({ highlightMatches }: { highlightMatches?: boolean }) {
+		return (
+			<Combobox items={["Apple", "Grape", "Banana"]} highlightMatches={highlightMatches}>
+				<ComboboxInput aria-label="Fruit" />
+				<ComboboxContent>
+					<ComboboxList>
+						{(item: string) => (
+							<ComboboxItem key={item} value={item}>
+								{item}
+							</ComboboxItem>
+						)}
+					</ComboboxList>
+				</ComboboxContent>
+			</Combobox>
+		)
+	}
+
+	it(
+		"paints what was typed in the surviving row labels",
+		withRegistry(async () => {
+			const user = userEvent.setup()
+			renderWithProviders(<Fruit />)
+			await user.type(screen.getByRole("combobox", { name: "Fruit" }), "ap")
+			expect(painted()).toEqual(["Ap", "ap"])
+		}),
+	)
+
+	it(
+		"paints nothing once a pick fills the field",
+		withRegistry(async () => {
+			const user = userEvent.setup()
+			renderWithProviders(<Fruit />)
+			const input = screen.getByRole("combobox", { name: "Fruit" })
+			await user.type(input, "ban")
+			await user.click(screen.getByRole("option", { name: "Banana" }))
+			await user.click(input)
+			expect(painted()).toEqual([])
+		}),
+	)
+
+	it(
+		"stays off with highlightMatches={false}",
+		withRegistry(async () => {
+			const user = userEvent.setup()
+			renderWithProviders(<Fruit highlightMatches={false} />)
+			await user.type(screen.getByRole("combobox", { name: "Fruit" }), "ap")
+			expect(painted()).toEqual([])
+		}),
+	)
+})

@@ -153,6 +153,13 @@ export const badgeMeta: ComponentMeta = {
 		"success-foreground",
 		"tone-warning-foreground",
 		"destructive-foreground",
+		"destructive-mark",
+		"success-mark",
+		"tone-warning-mark",
+		"tone-info-mark",
+		"tone-1-mark",
+		"tone-2-mark",
+		"tone-3-mark",
 	],
 	a11y: [
 		"Badges are static text by default; do not rely on color alone for meaning.",

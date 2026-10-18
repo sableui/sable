@@ -135,8 +135,8 @@ export const datePickerMeta: ComponentMeta = {
 		"popover",
 		"popover-foreground",
 		"border",
-		"input",
-		"card",
+		"field-border",
+		"field",
 		"ring",
 	],
 	a11y: [

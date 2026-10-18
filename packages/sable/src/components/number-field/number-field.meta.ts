@@ -86,8 +86,8 @@ export const numberFieldMeta: ComponentMeta = {
 		},
 	],
 	tokensUsed: [
-		"input",
-		"card",
+		"field-border",
+		"field",
 		"foreground",
 		"muted-foreground",
 		"accent",

@@ -349,7 +349,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **SafeArea** — Pads for device safe-areas (notch, home indicator) on fixed or native-shell surfaces. → [`llms/layout/safe-area.md`](./llms/layout/safe-area.md)
 - **GridOverlay** — Dev/docs structure visualizer — overlays the column grid so the layout skeleton is legible. → [`llms/layout/grid-overlay.md`](./llms/layout/grid-overlay.md)
 
-### Utilities (72) — relative surfaces, frames, state variants, scroll policies, chrome type, motion recipes; reach for these before hand-written CSS (registry.json → utilities; `sable utility <name>`) → [`llms/reference/utilities.md`](./llms/reference/utilities.md)
+### Utilities (73) — relative surfaces, frames, state variants, scroll policies, chrome type, motion recipes; reach for these before hand-written CSS (registry.json → utilities; `sable utility <name>`) → [`llms/reference/utilities.md`](./llms/reference/utilities.md)
 
 - **relative surface** — `sable-surface`, `sable-surface-muted`, `sable-surface-popover`, `sable-surface-accent`, `sable-surface-interactive`, `sable-well`
 - **frame** — `sable-frame`, `sable-frame-popover`, `sable-frame-tool`, `sable-frame-borderless`, `sable-frame-r-*`, `sable-frame-p-*`, `sable-frame-inner`
@@ -358,7 +358,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **scroll** — `scrollbar-quiet`, `scrollbar-hidden`
 - **text** — `sable-list`, `sable-list-numbered`, `sable-list-dl`, `sable-list-dl-2`, `text-overline`, `text-ui-md`, `text-ui-sm`, `text-ui-body`, `text-ui-section`, `text-ui-micro`, `text-ui-num`, `stream-tail`
 - **motion** — `motion-interactive`, `motion-press`, `motion-fade`, `motion-pop`, `motion-slide-up`, `motion-slide-down`, `motion-slide-left`, `motion-slide-right`, `motion-disclosure`, `motion-icon-swap`, `motion-glide`, `motion-shake`, `motion-tick`, `motion-appear`, `motion-arrive`, `motion-bloom`, `motion-size`, `motion-spin`, `motion-orbit`, `motion-pulse`, `motion-shimmer`, `motion-text-shimmer`, `motion-dot-bounce`, `motion-ping`, `animate-fade-in`, `animate-fade-up`, `animate-fade-down`, `motion-stream-in`, `motion-caret`, `motion-reveal`, `motion-draw`
-- **helper** — `hit-target`, `reveal-on-hover`, `stretched-link`, `link-underline`, `checkerboard`
+- **helper** — `hit-target`, `reveal-on-hover`, `stretched-link`, `link-underline`, `checkerboard`, `texture-dither`
 - **elsewhere** — paired `text-*` page tiers: registry.json → tokens.typography (also `sable utility text-heading-1`).
 
 ### Providers (9) — app-level context: where each goes, whether it is required, props, examples (registry.json → providers; `sable provider <Name>`)

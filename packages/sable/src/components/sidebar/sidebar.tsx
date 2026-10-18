@@ -12,6 +12,7 @@ import {
 import { cn } from "../../lib/cn"
 import { HighlightGlide } from "../../lib/highlight-glide"
 import { type MotionLevel, motionAttribute } from "../../motion/MotionProvider"
+import { useAppShellFrame } from "../app-shell/app-shell-frame"
 import { RAIL_ROW_INLINE, sideNavItemIconVariants, sideNavItemVariants } from "../side-nav/side-nav.variants"
 import { SimpleTooltip } from "../tooltip"
 
@@ -79,6 +80,12 @@ export interface SidebarProps extends ComponentPropsWithRef<"aside"> {
 	 * - `page` — the page's own surface and ink, no border. Use it when a
 	 *   full-width header sits above the rail: a tinted column that starts
 	 *   under a page-coloured bar reads as pasted on, not as chrome.
+	 *
+	 * Inside `<AppShell frame="inset">` the rail's surface is also the shell's
+	 * ground, so from `lg` the `rail` border is dropped (the gap around the main
+	 * panel divides them) and the rail fills the shell's body row rather than
+	 * sizing itself to the viewport. AppShell signals this through its
+	 * `sidebar` slot only (`useAppShellFrame`), so a rail elsewhere is unaffected.
 	 * @default "rail"
 	 */
 	surface?: "rail" | "page"
@@ -91,6 +98,23 @@ const SIDEBAR_VARIANT = {
 	app: "hidden lg:flex lg:sticky lg:top-0 lg:h-[calc(100vh-var(--dock-height,0px))] lg:self-start",
 	inline: "flex h-full",
 } as const
+
+/**
+ * The rail in an `<AppShell frame="inset">` sidebar slot, from lg. The shell is
+ * viewport-tall and does not scroll, and banners and the dock already take
+ * their share of it, so the rail stretches to the body row instead of
+ * computing 100vh less a dock. (The `rail` surface also drops its border.)
+ */
+const INSET_RAIL = "lg:h-auto lg:self-stretch"
+
+/**
+ * The `rail` surface in an inset shell, from lg: no border (the gap is the
+ * divider now), and the rail painted on the shell's ground — `shell-ground`,
+ * one step off the theme's rail — so it and the gap around the panel are one
+ * surface. Re-pointing `--sidebar` carries the ground into SIDEBAR_INK, so the
+ * rail's contents ink against it like any other rail.
+ */
+const INSET_RAIL_SURFACE = "lg:border-r-0 lg:[--sidebar:var(--shell-ground)]"
 
 /**
  * Sidebar — the desktop side-navigation rail. An in-flow sticky column, hidden
@@ -147,6 +171,9 @@ export function Sidebar({
 	// it is applied only once the rail has been collapsed in this mount.
 	const [hasCollapsed, setHasCollapsed] = useState(collapsed)
 	if (collapsed && !hasCollapsed) setHasCollapsed(true)
+	// Set only by AppShell around its `sidebar` slot — the coupling is documented
+	// in app-shell/app-shell-frame.tsx.
+	const inset = useAppShellFrame() === "inset"
 	return (
 		<SidebarContext.Provider value={{ collapsed, icons, reopened: hasCollapsed && !collapsed }}>
 			<aside
@@ -154,6 +181,7 @@ export function Sidebar({
 				data-collapsed={collapsed || undefined}
 				data-variant={variant}
 				data-surface={surface}
+				data-frame={inset ? "inset" : undefined}
 				className={cn(
 					"shrink-0 flex-col bg-sidebar text-sidebar-foreground",
 					// The rail is its own surface. Anything placed in it that inks with
@@ -164,8 +192,11 @@ export function Sidebar({
 					// a theme names --sidebar-muted-foreground.
 					// On the page surface the rail is separated by space and its
 					// content, not a rule and a tonal step.
-					surface === "rail" ? cn("border-r border-sidebar-border", SIDEBAR_INK) : PAGE_INK,
+					// In an inset AppShell the rail is the ground itself, so from lg its border
+					// goes too: the gap around the main panel is the divider.
+					surface === "rail" ? cn("border-r border-sidebar-border", inset && INSET_RAIL_SURFACE, SIDEBAR_INK) : PAGE_INK,
 					SIDEBAR_VARIANT[variant],
+					inset && INSET_RAIL,
 					"w-[var(--sidebar-width,16rem)] data-[collapsed]:w-[var(--sidebar-width-collapsed,4rem)]",
 					// Collapsing eases the width (`motion-size`, expressive) rather than
 					// jumping 192px in one frame. It reflows the page beside the rail for
@@ -297,10 +328,17 @@ export function SidebarFooter({
 	className,
 	...props
 }: ComponentPropsWithRef<"div">) {
+	const inset = useAppShellFrame() === "inset"
 	return (
 		<div
 			className={cn(
 				"flex flex-col gap-1 border-t border-sidebar-border px-3 py-4",
+				// In an inset shell the rail has no edge of its own (the gap is the
+				// divider), so a full-width rule ran out into that gap and stopped on
+				// nothing. Inset to the content column it spans what the rows span:
+				// the padding becomes margin, so the rule shortens and nothing inside
+				// moves.
+				inset && "lg:mx-3 lg:px-0",
 				className,
 			)}
 			{...props}

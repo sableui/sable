@@ -46,7 +46,7 @@ export const stepperDotVariants = cva(
 				complete: "bg-primary",
 				current: "bg-[var(--sable-surface-bg,var(--background))] ring-[0.1875em] ring-primary ring-inset",
 				upcoming: "bg-border-strong",
-				error: "bg-destructive",
+				error: "bg-destructive-mark",
 			},
 		},
 		defaultVariants: {

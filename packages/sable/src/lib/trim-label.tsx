@@ -37,8 +37,11 @@ import type { ReactNode } from "react"
  *
  * The trim itself is applied by the `sable-label-trim` class, which is declared
  * inside an `@supports` block in `styles.css` — so on a browser without
- * `text-box` (Firefox, at time of writing) this is an inert span and rendering
- * is byte-identical to before.
+ * `text-box` this is an inert span and rendering is byte-identical to before.
+ * Every engine has it now (Baseline in August 2026, with Firefox 154), so the
+ * guard and the legacy nudges it retires only serve older browsers. They stay
+ * until `text-box` is widely available rather than newly so; they are cheap,
+ * and removing them early un-centres every label on an un-updated browser.
  */
 export function trimLabel(children: ReactNode): ReactNode {
 	// Fast path: a bare string/number label, which is the overwhelming majority.

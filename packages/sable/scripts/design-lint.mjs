@@ -57,6 +57,12 @@ const META_TOKENS = new Set([
 	...SEMANTIC_TOKENS,
 	...WORKSPACE_SURFACE_TOKENS,
 	...readArray(contractSrc, "DERIVED_EDGE_TOKENS"),
+	// The field surface (Input, Select, Textarea…): derived with a --theme-* hook.
+	...readArray(contractSrc, "FIELD_TOKENS"),
+	// The inset AppShell's ground: derived with a --theme-* hook.
+	...readArray(contractSrc, "APP_SHELL_TOKENS"),
+	// Status colours at graphic strength (meters, dots, charts): derived with --theme-* hooks.
+	...readArray(contractSrc, "MARK_TOKENS"),
 	// Art direction (GradientArt): optional-with-derivation, like the surfaces.
 	...readArray(contractSrc, "ART_TOKENS"),
 	// The palette slots Badge, Pill and StatusDot paint a family from.
@@ -68,7 +74,8 @@ const META_TOKENS = new Set([
    every rule — `scope: "package"` ones included. */
 // `consumer` rules judge apps built WITH Sable (e.g. "use the component, not a
 // hand-built control"); inside the package is where those controls are built.
-const rules = makeRules({ semanticTokens: SEMANTIC_TOKENS, motionTokens: MOTION_TOKENS }).filter((r) => r.scope !== "consumer")
+// A colour utility may name any contract colour — derived ones (a mark, a field) included.
+const rules = makeRules({ semanticTokens: new Set([...SEMANTIC_TOKENS, ...META_TOKENS]), motionTokens: MOTION_TOKENS }).filter((r) => r.scope !== "consumer")
 
 /* ── Ratcheted rules. ─────────────────────────────────────────────────────────
  * Some rules arrive after the code they judge. `physical-direction` is the first:

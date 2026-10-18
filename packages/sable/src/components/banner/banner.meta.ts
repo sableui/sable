@@ -150,6 +150,11 @@ export const bannerMeta: ComponentMeta = {
 		"tone-1-foreground",
 		"destructive",
 		"destructive-foreground",
+		"destructive-mark",
+		"success-mark",
+		"tone-warning-mark",
+		"tone-info-mark",
+		"tone-1-mark",
 	],
 	a11y: [
 		"Static banners render as a labelled region (role=region); set `live` to announce dynamic status bars (role=status / role=alert) when they appear or change.",

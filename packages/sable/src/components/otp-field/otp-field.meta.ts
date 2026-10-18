@@ -165,8 +165,8 @@ export const otpFieldMeta: ComponentMeta = {
 		},
 	],
 	tokensUsed: [
-		"input",
-		"card",
+		"field-border",
+		"field",
 		"foreground",
 		"muted-foreground",
 		"border-strong",

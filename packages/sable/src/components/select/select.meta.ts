@@ -146,8 +146,8 @@ export const selectMeta: ComponentMeta = {
 		},
 	],
 	tokensUsed: [
-		"input",
-		"card",
+		"field-border",
+		"field",
 		"foreground",
 		"ring",
 		"border",

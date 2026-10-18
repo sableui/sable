@@ -115,13 +115,13 @@ export const tableMeta: ComponentMeta = {
 		},
 		{
 			name: "TableHead",
-			type: 'ComponentPropsWithRef<"th">',
-			description: "A column header cell (th) in muted label styling.",
+			type: 'ComponentPropsWithRef<"th"> & { numeric?: boolean }',
+			description: "A column header cell (th) in muted label styling. `numeric` marks a number column: end-aligned, tabular figures — set it on the column's cells too.",
 		},
 		{
 			name: "TableCell",
-			type: 'ComponentPropsWithRef<"td">',
-			description: "A data cell (td).",
+			type: 'ComponentPropsWithRef<"td"> & { numeric?: boolean }',
+			description: "A data cell (td). `numeric` end-aligns it with tabular figures, matching its column's header.",
 		},
 		{
 			name: "TableCaption",

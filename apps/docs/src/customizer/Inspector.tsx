@@ -56,6 +56,11 @@ const BUTTONS = [
 	{ value: "pill", label: "Pill" },
 	{ value: "match", label: "Match corners" },
 ] as const
+const FIELDS = [
+	{ value: "theme", label: "Preset" },
+	{ value: "outline", label: "Outline" },
+	{ value: "filled", label: "Filled" },
+] as const
 const SHADOWS = [
 	{ value: "theme", label: "Preset" },
 	{ value: "soft", label: "Soft" },
@@ -261,6 +266,9 @@ export function Inspector({
 				/>
 				<PropertyRow stacked label="Buttons">
 					<Segmented label="Button shape" value={look.buttons} onChange={(buttons) => setLook({ buttons })} options={BUTTONS} />
+				</PropertyRow>
+				<PropertyRow stacked label="Fields">
+					<Segmented label="Field style" value={look.fields} onChange={(fields) => setLook({ fields })} options={FIELDS} />
 				</PropertyRow>
 				<PropertyRow stacked label="Shadows">
 					<Segmented label="Shadow style" value={look.shadows} onChange={(shadows) => setLook({ shadows })} options={SHADOWS} />
