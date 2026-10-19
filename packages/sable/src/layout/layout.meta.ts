@@ -10,13 +10,19 @@ import type { ComponentMeta } from "../lib/meta"
  * a page's width is a purpose-named `Region` cap; the 12-column grid is used
  * WITHIN a region; app chrome (Sidebar) is not on the grid; text measure caps
  * independently of layout width.
+ *
+ * Styling contract: a primitive's layout (display, direction, alignment, gap,
+ * inset, cap) is carried by classes, with dynamic values passed as CSS
+ * variables those classes read. Nothing sets an inline `display`, so a
+ * consumer's `className` (`hidden md:flex`, `max-md:flex-col`) always wins
+ * through cn(). Only `style` itself, and the safe-area `env()` padding, are inline.
  */
 
 export const layoutPrimitiveMetas: ComponentMeta[] = [
 	{
 		name: "Region",
 		summary:
-			"The page region: fluid, edge-to-edge with the fluid page inset (--page-inset). Opt-in centered max cap picked by ROLE (prose/form/feed/content/wide/full), never a global page max-width. The root of nearly every route.",
+			"The page region: fluid, edge-to-edge with the fluid page inset (--page-inset). Opt-in centered max cap picked by ROLE (prose/form/feed/content/wide/full), never a global page max-width. The root of nearly every route. The inset and cap are classes (px-(--page-inset), max-w-…), so className overrides them at a breakpoint (max-sm:px-0); only safeArea padding is inline.",
 		status: "stable",
 		props: [
 			{
@@ -103,7 +109,7 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 	{
 		name: "Grid",
 		summary:
-			"CSS Grid within a region. Two modes: fixed/responsive cols count, or minItemWidth so cells breathe with NO breakpoints (the default choice for card grids). A minItemWidth grid keeps its empty columns (track=\"fill\"), so one result stays one cell wide; track=\"fit\" stretches a fixed set across the row.",
+			"CSS Grid within a region. Two modes: fixed/responsive cols count, or minItemWidth so cells breathe with NO breakpoints (the default choice for card grids). A minItemWidth grid keeps its empty columns (track=\"fill\"), so one result stays one cell wide; track=\"fit\" stretches a fixed set across the row. display is the grid class and the gap a CSS variable, so className utilities win at any breakpoint (hidden md:grid, md:gap-6, lg:grid-cols-3).",
 		status: "stable",
 		props: [
 			{
@@ -156,7 +162,7 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 	{
 		name: "Columns",
 		summary:
-			"An explicit N-column track (default 12) for proportioned layouts — pair with Col spans (list-detail, asymmetric editorial layouts). For uniform card grids prefer Grid minItemWidth.",
+			"An explicit N-column track (default 12) for proportioned layouts — pair with Col spans (list-detail, asymmetric editorial layouts). For uniform card grids prefer Grid minItemWidth. display is the grid class, so hidden md:grid works; a gap-* utility replaces both gaps and the column-gap cap.",
 		status: "stable",
 		props: [
 			{
@@ -193,7 +199,7 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 	{
 		name: "Stack",
 		summary:
-			"Vertical flow on the 8px rhythm — the default container for stacked content. Gap by role: tight within a group (1.5–2), looser between groups (3–4), generous between sections (6+).",
+			"Vertical flow on the 8px rhythm — the default container for stacked content. Gap by role: tight within a group (1.5–2), looser between groups (3–4), generous between sections (6+). Layout lives in classes (flex flex-col items-* justify-*) and the gap in a CSS variable, never inline style, so className utilities override any prop at a breakpoint (max-lg:hidden, md:flex-row, md:gap-8).",
 		status: "stable",
 		props: [
 			{
@@ -227,7 +233,7 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 	{
 		name: "Row",
 		summary:
-			"Horizontal flex flow — inline rows of controls, toolbars, action clusters. Defaults to center-aligned, no wrap.",
+			"Horizontal flex flow — inline rows of controls, toolbars, action clusters. Defaults to center-aligned, no wrap. Layout lives in classes (flex flex-row items-* justify-*) and the gap in a CSS variable, never inline style, so className utilities override any prop at a breakpoint (hidden md:flex, max-md:flex-col, md:gap-6).",
 		status: "stable",
 		props: [
 			{
@@ -261,12 +267,16 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 				label: "Action cluster",
 				code: '<Row gap={2} justify="end"><Button variant="ghost">Cancel</Button><Button>Save changes</Button></Row>',
 			},
+			{
+				label: "Responsive through className",
+				code: '<Row justify="between"><span className="text-title-sm">Acme</span><Row gap={1} className="max-md:hidden"><Button variant="ghost" size="sm">Docs</Button><Button variant="ghost" size="sm">Pricing</Button></Row></Row>',
+			},
 		],
 	},
 	{
 		name: "Spacer",
 		summary:
-			"Explicit space on the rhythm, or a flexible grow pusher between siblings (e.g. pushing a footer item to the end of a Row).",
+			"Explicit space on the rhythm, or a flexible grow pusher between siblings (e.g. pushing a footer item to the end of a Row). The size is a class reading a CSS variable, so className resizes or hides it at a breakpoint.",
 		status: "stable",
 		props: [
 			{
@@ -298,7 +308,7 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 	{
 		name: "Center",
 		summary:
-			"Horizontally center a block, optionally capping its width (commonly \"prose\" for a reading column inside a wider layout).",
+			"Horizontally center a block, optionally capping its width (commonly \"prose\" for a reading column inside a wider layout). Centering and cap are classes, so className overrides them at a breakpoint.",
 		status: "stable",
 		props: [
 			{
@@ -318,7 +328,7 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 	{
 		name: "AspectBox",
 		summary:
-			"Reserves space via aspect-ratio so async media loads with zero layout shift. Wrap images, video, embeds.",
+			"Reserves space via aspect-ratio so async media loads with zero layout shift. Wrap images, video, embeds. The ratio is a class reading a CSS variable, so className reshapes it at a breakpoint (md:aspect-video).",
 		status: "stable",
 		props: [
 			{
@@ -339,7 +349,7 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 	{
 		name: "Bleed",
 		summary:
-			"Escape a width-capped or inset ancestor to span the full CONTENT area (container-query units, so it stops at a fixed Sidebar instead of bleeding under it). Hero bands, profile covers, full-bleed media inside a capped Page.",
+			"Escape a width-capped or inset ancestor to span the full CONTENT area (container-query units, so it stops at a fixed Sidebar instead of bleeding under it). Hero bands, profile covers, full-bleed media inside a capped Page. Width and margins are classes, so a breakpoint can turn the bleed off (lg:mx-0 lg:w-auto).",
 		status: "stable",
 		props: [],
 		tokensUsed: [],
@@ -353,7 +363,7 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 	{
 		name: "SplitPane",
 		summary:
-			"Responsive two-pane layout: side-by-side at/above a breakpoint, stacked (primary first) below. List-detail, media + metadata.",
+			"Responsive two-pane layout: side-by-side at/above a breakpoint, stacked (primary first) below. List-detail, media + metadata. display is the grid class and the breakpoint rules are layered, so className utilities (hidden lg:grid, gap-8) win.",
 		status: "stable",
 		props: [
 			{

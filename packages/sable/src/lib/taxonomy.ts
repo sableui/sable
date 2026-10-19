@@ -192,6 +192,7 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 	RadarChart: ["Charts", "page"],
 	RadialChart: ["Charts", "page"],
 	Sparkline: ["Charts", "either"],
+	ActivityHeatmap: ["Charts", "either"],
 
 	/* ── Data display ─────────────────────────────────────────────────────────
 	   Showing records and readings. `Meter` (bar or ring) is here: it shows a

@@ -1,6 +1,6 @@
 interface:
   display_name: "Sable"
-  short_description: "Build, develop presets, audit, and polish with Sable"
+  short_description: "Any UI work in a Sable app: build, presets, audit, polish, fix"
   default_prompt: "Use $sable build to create my idea with the installed Sable components, tokens, and design guides, then inspect and polish the working result."
 policy:
   allow_implicit_invocation: true

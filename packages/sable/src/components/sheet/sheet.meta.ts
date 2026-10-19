@@ -95,7 +95,7 @@ export const sheetMeta: ComponentMeta = {
 		{
 			name: "Sheet (Root)",
 			type: "Base UI Drawer.Root props (open, defaultOpen, onOpenChange, onOpenChangeComplete, modal, disablePointerDismissal, actionsRef, handle, snapPoints, snapPoint, defaultSnapPoint, onSnapPointChange, snapToSequentialPoints) — minus swipeDirection",
-			description: "Controls open state. Uncontrolled by default. The dismiss swipe direction is not a prop: it follows SheetContent's side. onOpenChange reports reason \"swipe\" when a swipe closed it.",
+			description: "Controls open state. Uncontrolled by default. The dismiss swipe direction is not a prop: it follows SheetContent's side. onOpenChange reports reason \"swipe\" when a swipe closed it. Records the element focused when the sheet opens, trigger or not, and returns focus there on close.",
 		},
 		{
 			name: "snapPoints",
@@ -176,7 +176,7 @@ export const sheetMeta: ComponentMeta = {
 		"The panel scrolls its own content (thin scrollbar, contained overscroll) when it outgrows its bound — the full height on left/right, 80vh on top/bottom.",
 		"Esc and click-outside dismiss by default; on touch, a swipe toward the sheet's own edge dismisses too. A short or slow drag springs back.",
 		"Swipe is an extra path, never the only one: Esc, click-outside and SheetClose all still work.",
-		"Focus matches Dialog: the first tabbable on mouse/keyboard open, the panel itself on touch (so the virtual keyboard stays down); focus returns to the trigger on close.",
+		"Focus matches Dialog: the first tabbable on mouse/keyboard open, the panel itself on touch (so the virtual keyboard stays down). On close, focus returns to the element that held it when the sheet opened: the SheetTrigger, or your own button when it drives a controlled open. It is captured before the content mounts, so an autoFocus field inside cannot displace it; an explicit finalFocus on SheetContent wins.",
 		"Render a SheetClose inside SheetContent so screen-reader users can escape the popup.",
 		"Slide animation runs via data-[starting-style]/data-[ending-style] attributes on the motion-duration token; while swiping the panel tracks the finger directly, and a released swipe finishes on the same token (scaled by flick speed), so reduced motion makes it instant.",
 		"A mouse drag that starts on sheet content selects text rather than dragging the panel; mouse dragging only starts from the padding edge.",

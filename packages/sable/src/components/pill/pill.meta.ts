@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const pillMeta: ComponentMeta = {
 	name: "Pill",
 	summary:
-		"A chip someone clicks: a filter, a tag choice, an option in a row. Always a button with aria-pressed. appearance=\"solid\" (filters; selected lifts onto the primary surface) or \"outline\" (quiet chips that annotate content, like reactions); size md or sm. A static label is a Badge.",
+		"A chip someone clicks: a filter, a tag choice, an option in a row. Always a button with aria-pressed. appearance=\"solid\" (filters; selected lifts onto the primary surface) or \"outline\" (quiet chips that annotate content, like reactions); size lg, md or sm. A static label is a Badge.",
 	status: "stable",
 	keywords: [
 		"pill",
@@ -25,6 +25,10 @@ export const pillMeta: ComponentMeta = {
 				description: "Reflect the current choice with selected, so the active filter reads at a glance.",
 			},
 			{
+				guidance: "do",
+				description: "In a toolbar where filter chips share a row with a search field (\"All 8 · Products 5 · Open source 2 … [Find a project]\"), pair Pill size=\"lg\" with SearchInput size=\"sm\", and Button size=\"sm\" for any action beside them. All three stand on --control-sm (32px, 28 compact), the rung the spacing doctrine gives toolbar controls, so the row is one height in either density. Pill md (28px) has no text field of its height in the page register, so md beside a field always reads as a mismatch.",
+			},
+			{
 				guidance: "dont",
 				description: "Do not use Pill as a static label. A pressable-looking chip that does nothing is the most common cause of dead clicks in a filter row — that is a Badge.",
 				instead: ["Badge"],
@@ -35,7 +39,7 @@ export const pillMeta: ComponentMeta = {
 			},
 			{
 				guidance: "dont",
-				description: "Do not restyle a Pill with border or background classes to get a quieter chip. That is appearance=\"outline\" (and size=\"sm\" for a small one); an override is a look that exists nowhere else in the system.",
+				description: "Do not restyle a Pill with border or background classes to get a quieter chip. That is appearance=\"outline\" (and size=\"sm\" for a small one); an override is a look that exists nowhere else in the system. Likewise never set h-* on a Pill to match a neighbour: pick the size that shares its rung.",
 			},
 		],
 	},
@@ -43,6 +47,7 @@ export const pillMeta: ComponentMeta = {
 		components: [
 			"Badge",
 			"ToggleGroup",
+			"SearchInput",
 		],
 	},
 	props: [
@@ -62,9 +67,9 @@ export const pillMeta: ComponentMeta = {
 		},
 		{
 			name: "size",
-			type: '"md" | "sm"',
+			type: '"lg" | "md" | "sm"',
 			default: '"md"',
-			description: "md sits on the density ladder's xs control height (28px); sm is 24px, for chips under or inside other content.",
+			description: "lg sits on --control-sm (32px, 28 compact), the toolbar rung it shares with SearchInput sm and Button sm, for a filter row beside a search field. md sits on --control-xs (28px, 24 compact), the chip in a row of its own or among content. sm is a fixed 24px (the target floor, which density does not shrink), for chips under or inside other content.",
 		},
 		{
 			name: "tone",
@@ -82,7 +87,7 @@ export const pillMeta: ComponentMeta = {
 	],
 	variants: {
 		appearance: ["solid", "outline"],
-		size: ["md", "sm"],
+		size: ["lg", "md", "sm"],
 		selected: ["true", "false"],
 		tone: ["neutral", "red", "orange", "yellow", "green", "teal", "blue", "purple", "pink"],
 	},
@@ -148,6 +153,10 @@ export const pillMeta: ComponentMeta = {
 		{
 			label: "Filter row",
 			code: '<Row gap={1}><Pill selected onClick={() => {}}>All</Pill><Pill onClick={() => {}}>Projects</Pill><Pill onClick={() => {}}>Reports</Pill></Row>',
+		},
+		{
+			label: "Filters with search",
+			code: "const [filter, setFilter] = useState(\"all\")\nconst [q, setQ] = useState(\"\")\n\n<Row gap={2} align=\"center\" justify=\"between\" wrap>\n\t<Row gap={1}>\n\t\t<Pill size=\"lg\" selected={filter === \"all\"} onClick={() => setFilter(\"all\")}>All 8</Pill>\n\t\t<Pill size=\"lg\" selected={filter === \"products\"} onClick={() => setFilter(\"products\")}>Products 5</Pill>\n\t\t<Pill size=\"lg\" selected={filter === \"oss\"} onClick={() => setFilter(\"oss\")}>Open source 2</Pill>\n\t</Row>\n\t<SearchInput size=\"sm\" value={q} onValueChange={setQ} placeholder=\"Find a project…\" aria-label=\"Find a project\" className=\"max-w-64\" />\n</Row>",
 		},
 		{
 			label: "Outline, small (reactions)",

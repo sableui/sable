@@ -49,6 +49,15 @@ describe("CodeBlock copy", () => {
 		expect(screen.getByRole("status")).toHaveTextContent("Copied")
 	})
 
+	it("wraps prose on request and scrolls code by default", () => {
+		const { container, rerender } = renderWithProviders(<CodeBlock code="a long prompt for an agent" />)
+		expect(container.querySelector("pre")).toHaveClass("overflow-x-auto")
+		rerender(<CodeBlock wrap code="a long prompt for an agent" />)
+		const pre = container.querySelector("pre")
+		expect(pre).toHaveClass("whitespace-pre-wrap", "break-words")
+		expect(pre).not.toHaveClass("overflow-x-auto")
+	})
+
 	it("renders no live region without a copy button", () => {
 		renderWithProviders(<CodeBlock showCopy={false} code="x" />)
 		expect(screen.queryByRole("status")).toBeNull()

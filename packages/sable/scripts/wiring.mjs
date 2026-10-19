@@ -303,7 +303,8 @@ function addTailwindPlugin(text) {
  */
 export function fixWiring({ root, pkgRoot, report, framework, dryRun = false, install = true, quiet = false }) {
 	const results = []
-	const flagged = new Map(report.checks.filter((c) => c.status === "fail" || c.status === "warn" || (c.status === "info" && c.name === "dedupe")).map((c) => [c.name, c]))
+	// Adoption is how the app is built, not how it is wired: no fix of ours applies.
+	const flagged = new Map(report.checks.filter((c) => c.name !== "adoption" && (c.status === "fail" || c.status === "warn" || (c.status === "info" && c.name === "dedupe"))).map((c) => [c.name, c]))
 	const handled = new Set()
 	const done = (check, detail, file) => {
 		handled.add(check)

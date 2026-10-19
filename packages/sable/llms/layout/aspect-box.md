@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-Reserves space via aspect-ratio so async media loads with zero layout shift. Wrap images, video, embeds.
+Reserves space via aspect-ratio so async media loads with zero layout shift. Wrap images, video, embeds. The ratio is a class reading a CSS variable, so className reshapes it at a breakpoint (md:aspect-video).
 
 **Keywords:** aspect box, aspect ratio, media, layout shift
 

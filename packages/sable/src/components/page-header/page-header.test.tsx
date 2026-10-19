@@ -43,4 +43,46 @@ describe("PageHeader", () => {
 		const exportButton = screen.getByRole("button", { name: "Export" })
 		expect(exportButton.parentElement).toHaveClass("*:last:data-[bleed=auto]:-me-(--button-pe,var(--button-px))")
 	})
+
+	describe("size", () => {
+		it("defaults to md: the heading-2 title over a body-sm description", () => {
+			const { container } = renderWithProviders(<PageHeader title="Invoices" description="Every charge." />)
+			expect(screen.getByRole("heading", { level: 1 })).toHaveClass("text-heading-2")
+			expect(screen.getByText("Every charge.")).toHaveClass("text-body-sm")
+			expect(container.firstChild).toHaveAttribute("data-size", "md")
+			expect(container.firstChild).toHaveClass("gap-2", "pb-4")
+		})
+
+		it("lg sets a display-tier title over a body-lg lede capped at the prose measure", () => {
+			const { container } = renderWithProviders(
+				<PageHeader size="lg" title="Field notes" description="Essays on making things slowly." />,
+			)
+			const heading = screen.getByRole("heading", { level: 1, name: "Field notes" })
+			expect(heading).toHaveClass("text-display-lg")
+			expect(heading).not.toHaveClass("text-heading-2")
+			const lede = screen.getByText("Essays on making things slowly.")
+			expect(lede).toHaveClass("text-body-lg", "max-w-(--measure-prose)", "text-muted-foreground")
+			expect(lede).not.toHaveClass("text-body-sm")
+			// More air for the larger type, still on the spacing scale.
+			expect(container.firstChild).toHaveClass("gap-3", "pb-6")
+			expect(container.firstChild).not.toHaveClass("gap-2")
+		})
+
+		// A display line is taller than a 40px control. Pinned to the row's top,
+		// the actions sat high on it; the title now lifts by half the difference
+		// (computed from its own 1lh, so a shorter line gets 0) to put its first
+		// line's centre on the controls' centre.
+		it("keeps a taller title's first line centred on the actions", () => {
+			renderWithProviders(
+				<PageHeader size="lg" title="Field notes" actions={<Button size="sm">Subscribe</Button>} />,
+			)
+			const heading = screen.getByRole("heading", { level: 1 })
+			expect(heading).toHaveClass("min-h-(--control-md)", "items-center", "mt-[min(0px,calc((var(--control-md)_-_1lh)/2))]")
+		})
+
+		it("leaves a title without controls out of the band", () => {
+			renderWithProviders(<PageHeader size="lg" title="Field notes" />)
+			expect(screen.getByRole("heading", { level: 1 }).className).not.toContain("mt-[")
+		})
+	})
 })

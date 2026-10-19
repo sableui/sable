@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-A chip someone clicks: a filter, a tag choice, an option in a row. Always a button with aria-pressed. appearance="solid" (filters; selected lifts onto the primary surface) or "outline" (quiet chips that annotate content, like reactions); size md or sm. A static label is a Badge.
+A chip someone clicks: a filter, a tag choice, an option in a row. Always a button with aria-pressed. appearance="solid" (filters; selected lifts onto the primary surface) or "outline" (quiet chips that annotate content, like reactions); size lg, md or sm. A static label is a Badge.
 
 **Keywords:** pill, chip, filter, tag, toggle chip, category
 
@@ -14,9 +14,10 @@ Use Pill for a row of filters or choices a person clicks to narrow or toggle wha
 
 - Do: Use short text that names the filter or choice.
 - Do: Reflect the current choice with selected, so the active filter reads at a glance.
+- Do: In a toolbar where filter chips share a row with a search field ("All 8 · Products 5 · Open source 2 … [Find a project]"), pair Pill size="lg" with SearchInput size="sm", and Button size="sm" for any action beside them. All three stand on --control-sm (32px, 28 compact), the rung the spacing doctrine gives toolbar controls, so the row is one height in either density. Pill md (28px) has no text field of its height in the page register, so md beside a field always reads as a mismatch.
 - Don't: Do not use Pill as a static label. A pressable-looking chip that does nothing is the most common cause of dead clicks in a filter row — that is a Badge. → use **Badge**
 - Don't: Do not use Pill for primary actions or important system status.
-- Don't: Do not restyle a Pill with border or background classes to get a quieter chip. That is appearance="outline" (and size="sm" for a small one); an override is a look that exists nowhere else in the system.
+- Don't: Do not restyle a Pill with border or background classes to get a quieter chip. That is appearance="outline" (and size="sm" for a small one); an override is a look that exists nowhere else in the system. Likewise never set h-* on a Pill to match a neighbour: pick the size that shares its rung.
 
 ## Props
 
@@ -24,14 +25,14 @@ Use Pill for a row of filters or choices a person clicks to narrow or toggle wha
 | --- | --- | --- | --- |
 | selected | boolean | false | Marks the pill as chosen. Solid lifts onto the primary surface; outline takes a primary tint and soft primary edge. Sets aria-pressed. |
 | appearance | "solid" \| "outline" | "solid" | solid for a filter row; outline for quiet chips that annotate other content (a reaction under a message, a tag on a card), where a filled chip would compete with what it annotates. |
-| size | "md" \| "sm" | "md" | md sits on the density ladder's xs control height (28px); sm is 24px, for chips under or inside other content. |
+| size | "lg" \| "md" \| "sm" | "md" | lg sits on --control-sm (32px, 28 compact), the toolbar rung it shares with SearchInput sm and Button sm, for a filter row beside a search field. md sits on --control-xs (28px, 24 compact), the chip in a row of its own or among content. sm is a fixed 24px (the target floor, which density does not shrink), for chips under or inside other content. |
 | tone | "neutral" \| "red" \| "orange" \| "yellow" \| "green" \| "teal" \| "blue" \| "purple" \| "pink" | "neutral" | neutral is the chip as described. A palette family colours it as a category, like the choices in a tag picker: a wash at rest, the solid family colour when selected. Painted from the theme's generated palette. |
 | icon | ReactNode | — | Optional leading glyph (e.g. <Icon name="lock" />), rendered before the children with the base gap. |
 
 ## Variants
 
 - **appearance**: solid, outline
-- **size**: md, sm
+- **size**: lg, md, sm
 - **selected**: true, false
 - **tone**: neutral, red, orange, yellow, green, teal, blue, purple, pink
 
@@ -54,7 +55,7 @@ Use Pill for a row of filters or choices a person clicks to narrow or toggle wha
 
 ## Related
 
-- Components: Badge, ToggleGroup
+- Components: Badge, ToggleGroup, SearchInput
 
 ## Examples
 
@@ -72,6 +73,24 @@ import { Pill, Row } from "@sableui/react"
 import { Pill, Row } from "@sableui/react"
 
 <Row gap={1}><Pill selected onClick={() => {}}>All</Pill><Pill onClick={() => {}}>Projects</Pill><Pill onClick={() => {}}>Reports</Pill></Row>
+```
+
+### Filters with search
+
+```tsx
+import { Pill, Row, SearchInput } from "@sableui/react"
+
+const [filter, setFilter] = useState("all")
+const [q, setQ] = useState("")
+
+<Row gap={2} align="center" justify="between" wrap>
+	<Row gap={1}>
+		<Pill size="lg" selected={filter === "all"} onClick={() => setFilter("all")}>All 8</Pill>
+		<Pill size="lg" selected={filter === "products"} onClick={() => setFilter("products")}>Products 5</Pill>
+		<Pill size="lg" selected={filter === "oss"} onClick={() => setFilter("oss")}>Open source 2</Pill>
+	</Row>
+	<SearchInput size="sm" value={q} onValueChange={setQ} placeholder="Find a project…" aria-label="Find a project" className="max-w-64" />
+</Row>
 ```
 
 ### Outline, small (reactions)

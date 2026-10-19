@@ -69,7 +69,7 @@ pnpm add @sableui/react
 pnpm exec sable init        # or: npx sable init — once the package is installed
 ```
 
-`init` reads your package manager from the lockfile and your framework from the project. It installs what is missing (React, Tailwind and its build plugin), puts the CSS imports below in order, adds React dedupe and the Tailwind plugin to a Vite config, loads the fonts, mounts `IconProvider` in a Vite starter's entry, installs the agent skill (`sable setup --agent`), then runs `sable doctor`. Anything it cannot change safely — an unfamiliar config, a Next.js layout — it prints as the exact snippet and the file it belongs in. Vite and Next.js (App Router) get every step; other setups get the packages and the stylesheet. `--dry-run` shows every change first; `--no-agent` skips the skill. Already set up? `sable doctor --fix` applies the same fixes to whatever doctor flags.
+`init` reads your package manager from the lockfile and your framework from the project. It installs what is missing (React, Tailwind and its build plugin), puts the CSS imports below in order, adds React dedupe and the Tailwind plugin to a Vite config, loads the fonts, mounts `IconProvider` in a Vite starter's entry, installs the agent skill and its block in `AGENTS.md` / `CLAUDE.md` (`sable setup --agent`), offers the Claude Code Stop hook when you run it in a terminal, then runs `sable doctor`. Anything it cannot change safely — an unfamiliar config, a Next.js layout — it prints as the exact snippet and the file it belongs in. Vite and Next.js (App Router) get every step; other setups get the packages and the stylesheet. `--dry-run` shows every change first; `--no-agent` skips the skill. Already set up? `sable doctor --fix` applies the same fixes to whatever doctor flags.
 
 The steps below are what `init` does, for doing it by hand or checking its work.
 
@@ -213,6 +213,11 @@ In a monorepo where Sable belongs to one workspace package, run setup in that
 package with `--root` naming the repository root (for example
 `pnpm --filter web exec sable setup --agent --root ../..`); the entries go
 there and resolve Sable through the package.
+Setup also adds a short managed block to the project's `AGENTS.md` and
+`CLAUDE.md`, the instructions an agent reads on every task, so a UI request
+goes through the skill even when it doesn't mention Sable. Only the text between
+its `<!-- sable:begin -->` and `<!-- sable:end -->` markers is Sable's;
+`--no-instructions` skips it.
 Each entry resolves `skills/sable/SKILL.md` from the installed package, so package
 upgrades also update the workflow. Other agents can read that file directly.
 Use `$sable build <idea>`, `inspire <references>`, `audit <target>`, or
@@ -225,9 +230,11 @@ server: `claude mcp add --transport http sable https://www.sableui.com/api/mcp`
 and `docs`, give the CLI's answers from the published package, at the version
 the agent passes or the latest. Once Sable is installed, the CLI is the default.
 
-Upgrade with `pnpm update @sableui/react --latest`, then
-`pnpm exec sable setup --agent --update`. Setup only replaces managed files
-that have not been locally edited; `--dry-run` checks without writing. Keep
+Upgrade with `pnpm exec sable upgrade`: it updates the package, then runs the
+new version's `init`, which refreshes the skill entries and the instructions
+block and checks the wiring. From 0.17 or earlier, which has no `upgrade`, run
+`pnpm update @sableui/react --latest` and then `pnpm exec sable init` once.
+Setup only replaces managed files that have not been locally edited; `--dry-run` checks without writing. Keep
 project preferences in project instructions. Package installation alone does not
 change agent settings. See [building-with-sable.md](./llms/tasks/building-with-sable.md),
 [creating-a-preset.md](./llms/tasks/creating-a-preset.md), and

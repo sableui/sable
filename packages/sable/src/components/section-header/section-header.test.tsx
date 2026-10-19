@@ -22,6 +22,41 @@ describe("SectionHeader", () => {
 		expect(screen.getByRole("heading", { level: 2 })).toHaveClass("text-heading-3")
 	})
 
+	it("lg sets the major-section tier and a body-md description, for an editorial page", () => {
+		const { container } = renderWithProviders(
+			<SectionHeader size="lg" title="Selected work" description="Five projects from the last two years." />,
+		)
+		const heading = screen.getByRole("heading", { level: 2, name: "Selected work" })
+		expect(heading).toHaveClass("text-heading-2")
+		expect(heading).not.toHaveClass("text-heading-3")
+		// heading-1 stays the page title's: one per route.
+		expect(heading).not.toHaveClass("text-heading-1")
+		const description = screen.getByText("Five projects from the last two years.")
+		expect(description).toHaveClass("text-body-md", "max-w-(--measure-prose)")
+		expect(description).not.toHaveClass("text-body-sm")
+		expect(container.firstChild).toHaveAttribute("data-size", "lg")
+		expect(container.firstChild).toHaveClass("gap-3")
+	})
+
+	it("keeps md and sm descriptions on body-sm", () => {
+		for (const size of ["md", "sm"] as const) {
+			const { unmount } = renderWithProviders(<SectionHeader size={size} title="Playback" description="How tracks start" />)
+			expect(screen.getByText("How tracks start")).toHaveClass("text-body-sm")
+			unmount()
+		}
+	})
+
+	// The title band is one sm control tall; a heading-2 line can be taller
+	// (always under a denser ladder). The title lifts by half the difference so
+	// its first line, not its line box's top, lines up with the actions' centre.
+	it("keeps actions centred on an lg title's first line", () => {
+		renderWithProviders(
+			<SectionHeader size="lg" title="Selected work" actions={<Button variant="ghost" size="sm">View all</Button>} />,
+		)
+		const heading = screen.getByRole("heading", { level: 2 })
+		expect(heading).toHaveClass("min-h-(--control-sm)", "items-center", "mt-[min(0px,calc((var(--control-sm)_-_1lh)/2))]")
+	})
+
 	it("names the section it heads through titleId", () => {
 		renderWithProviders(
 			<section aria-labelledby="new-releases">

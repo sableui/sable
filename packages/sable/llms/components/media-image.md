@@ -15,6 +15,7 @@ Use MediaImage wherever content imagery may be missing or broken: a cover in a g
 - Do: Give the box the shape: `<AspectBox ratio={1} className="rounded-md"><MediaImage … /></AspectBox>`, or `size-14 rounded-md` on MediaImage itself for a thumbnail. It clips to whatever radius the box has.
 - Do: Pass `seed` (the title or an id) when `alt` is empty, so the fallback art is the item's own and stays the same in every list it appears in.
 - Do: Leave `alt` empty when a visible title sits next to the image — a tile, a row — and describe it when the image stands alone. A set `alt` also names the fallback, so the description survives a broken URL.
+- Do: Set `position` when a cover crop would cut off the subject — a face high in a portrait, a product at one edge. Store the focus with the image (`"35% 50%"`) rather than re-cropping the file.
 - Don't: Do not hand-write `<img onError={() => setBroken(true)}>`. An image that fails before hydration never fires the handler on a prerendered page; MediaImage preloads off the DOM and catches it.
 - Don't: Do not use it for profile pictures. A person is a circle with initials — Avatar, whose `variant="art"` is the same fallback with the person's initials over it.
 
@@ -27,6 +28,7 @@ Use MediaImage wherever content imagery may be missing or broken: a cover in a g
 | seed | string \| number | — | Seeds the fallback art. Defaults to `alt`; pass the title or an id when `alt` is empty. |
 | fallback | ReactNode | — | Replaces the GradientArt fallback — a glyph or monogram. Fills the frame under the same clipping. |
 | fit | "cover" \| "contain" | "cover" | `cover` crops to fill (artwork, photos); `contain` letterboxes on the muted surface (a logo, a product that must not be cropped). |
+| position | CSSProperties["objectPosition"] | "center" | Where the image sits in its frame — CSS `object-position`, the sibling of `fit`. Under `cover` it is the part the crop keeps (`"50% 30%"` for a face, `"bottom"` for a horizon); under `contain` it is the side the letterbox gives way to. |
 | srcSet | string | — | Responsive sources, passed to the `<img>`. |
 | sizes | string | — | The `sizes` attribute for `srcSet`. |
 | loading | "lazy" \| "eager" | "lazy" | Native lazy loading. Use `eager` for the first row of a grid above the fold. |
@@ -94,5 +96,15 @@ import { AspectBox, MediaImage } from "@sableui/react"
 
 <AspectBox ratio={16 / 9} className="rounded-lg">
 	<MediaImage src={brand.logo} alt={brand.name} fit="contain" />
+</AspectBox>
+```
+
+### Crop focus per image
+
+```tsx
+import { AspectBox, MediaImage } from "@sableui/react"
+
+<AspectBox ratio={1} className="rounded-md">
+	<MediaImage src={project.thumbnail} seed={project.title} position={project.focus ?? "center"} />
 </AspectBox>
 ```

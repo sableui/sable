@@ -360,6 +360,7 @@ describe("global flags", () => {
 		docs: ["docs", "--list"],
 		doctor: ["doctor"],
 		init: ["init", "--dry-run", "--no-agent", "--no-install"],
+		upgrade: ["upgrade", "--dry-run", "--no-install"],
 		grade: ["grade", "src"],
 		learn: ["learn", "--search", "motion"],
 		lint: ["lint", "src"],
@@ -592,6 +593,48 @@ describe("sable check", () => {
 			// After the result, before the manual steps that consume it.
 			expect(text.indexOf("App-owned surfaces")).toBeGreaterThan(text.indexOf("[sable check] ✓"))
 			expect(text.indexOf("App-owned surfaces")).toBeLessThan(text.indexOf("Write the reuse inventory"))
+		} finally {
+			rmSync(root, { recursive: true, force: true })
+		}
+	}, 60_000)
+
+	it("reports low adoption and the swaps to offer, without failing, and doctor warns once", () => {
+		const root = project()
+		try {
+			// The hybrid: Sable wired, controls rebuilt by hand around it.
+			writeFileSync(join(root, "src", "Modal.tsx"), 'export function Modal({ children }) { return <div className="fixed inset-0">{children}</div> }\n')
+			writeFileSync(join(root, "src", "Tabs.tsx"), 'export function Tabs({ items }) { return <div role="tablist">{items}</div> }\n')
+			writeFileSync(join(root, "src", "Toggle.tsx"), "export function Toggle() { return <span onClick={() => {}} /> }\n")
+			const { data } = JSON.parse(runIn(root, ["check", "--json"]).out)
+			expect(data.failed).not.toContain("adoption")
+			expect(data.adoption.level).toBe("low")
+			expect(data.adoption.swaps.map((s: { name: string }) => s.name).sort()).toEqual(["Modal", "Tabs", "Toggle"])
+			expect(data.manualReview[0].step).toBe("Ask about moving onto Sable")
+			const text = runIn(root, ["check"]).out
+			expect(text).toMatch(/Adoption — low\. 1 of 4 UI files compose Sable/)
+			expect(text).toContain("src/Modal.tsx:1  Modal → Sable has Dialog (behaviour)")
+			// Doctor's warning is not repeated as a check note: grade's block carries it.
+			expect(text).not.toContain("note — adoption")
+			const doctor = runIn(root, ["doctor"])
+			expect(doctor.code).toBe(0)
+			expect(doctor.out).toMatch(/! adoption {6}1 of 4 UI files compose Sable/)
+		} finally {
+			rmSync(root, { recursive: true, force: true })
+		}
+	}, 60_000)
+
+	it("upgrade plans the package update, then hands over to init, and leaves a local copy alone", () => {
+		const root = project()
+		try {
+			writeFileSync(join(root, "pnpm-lock.yaml"), "")
+			const planned = runIn(root, ["upgrade", "--dry-run"])
+			expect(planned.out).toContain("would run: pnpm add @sableui/react@latest")
+			expect(planned.out).toContain("sable init —")
+			expect(planned.out).toContain("dry run: nothing written or installed")
+			writeFileSync(join(root, "package.json"), JSON.stringify({ dependencies: { "@sableui/react": "file:vendor/sable.tgz", react: "^19", "react-dom": "^19", tailwindcss: "^4" } }))
+			const local = runIn(root, ["upgrade", "--dry-run"])
+			expect(local.out).toContain("comes from file:vendor/sable.tgz")
+			expect(local.out).not.toContain("would run:")
 		} finally {
 			rmSync(root, { recursive: true, force: true })
 		}

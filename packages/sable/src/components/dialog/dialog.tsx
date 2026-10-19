@@ -1,10 +1,12 @@
 import { AlertDialog as AlertBase } from "@base-ui/react/alert-dialog"
 import { Dialog as Base } from "@base-ui/react/dialog"
-import type { ComponentProps } from "react"
+import { type ComponentProps, useMemo } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
+import { FocusReturnProvider, useFocusReturn, useFocusReturnDefault } from "../../lib/focus-return"
 import { withPortalThemeScope } from "../../lib/portal-theme-scope"
 import { PresentationProvider } from "../../lib/presentation"
+import { mergeRefs } from "../../lib/refs"
 import { Button } from "../button/button"
 
 /**
@@ -30,8 +32,20 @@ import { Button } from "../button/button"
  *       <img src="…" alt="Studio, 2026" className="max-h-full max-w-full object-contain" />
  *     </DialogContent>
  *   </Dialog>
+ *
+ * Opened from your own button through controlled `open`, with no DialogTrigger,
+ * it still returns focus to that button on close: the root records whatever
+ * held focus when `open` turned true and makes it DialogContent's default
+ * `finalFocus` (lib/focus-return has the why). An explicit `finalFocus` wins.
  */
-export const Dialog = Base.Root
+export function Dialog<Payload = unknown>({ open, onOpenChange, ...props }: Base.Root.Props<Payload>) {
+	const focus = useFocusReturn(open, onOpenChange)
+	return (
+		<FocusReturnProvider value={focus.focusReturn}>
+			<Base.Root {...props} open={open} onOpenChange={focus.onOpenChange} />
+		</FocusReturnProvider>
+	)
+}
 export const DialogTrigger = Base.Trigger
 export const DialogClose = Base.Close
 export const DialogPortal = withPortalThemeScope(Base.Portal)
@@ -96,6 +110,17 @@ type PopupProps = Omit<ComponentProps<typeof Base.Popup>, "className"> & {
 	 * children directly and the media sizes itself to the viewport.
 	 */
 	scroll?: boolean
+	/**
+	 * Keep the content mounted while the dialog is closed, hidden, instead of
+	 * unmounting it. Opt in for a draft the user may come back to: a half-written
+	 * form closed by Esc or a stray click keeps its fields (typed values, React
+	 * state, scroll position) when it reopens. Leave it off otherwise: a dialog
+	 * that should start fresh each time, or one with live content (polling,
+	 * video), should not keep running behind a closed door. Reset the draft
+	 * yourself once it is submitted or discarded.
+	 * @default false
+	 */
+	keepMounted?: boolean
 }
 
 /** Backdrop + popup surface. Renders through a portal. */
@@ -103,14 +128,25 @@ export function DialogContent({
 	size = "default",
 	showCloseButton,
 	scroll,
+	finalFocus,
+	ref,
 	...props
 }: PopupProps) {
+	// The root's default focus return (whatever held focus when the dialog
+	// opened). An explicit finalFocus, `false` included, wins.
+	const focusReturn = useFocusReturnDefault()
+	const popupRef = useMemo(
+		() => (focusReturn ? mergeRefs(focusReturn.popupRef, ref) : ref),
+		[focusReturn, ref],
+	)
+	const focus = { ref: popupRef, finalFocus: finalFocus === undefined ? focusReturn?.finalFocus : finalFocus }
 	return size === "fullscreen" ? (
-		<FullscreenContent showCloseButton={showCloseButton ?? true} {...props} />
+		<FullscreenContent showCloseButton={showCloseButton ?? true} {...focus} {...props} />
 	) : (
 		<CardContent
 			showCloseButton={showCloseButton ?? false}
 			scroll={scroll ?? true}
+			{...focus}
 			{...props}
 		/>
 	)
@@ -120,10 +156,11 @@ function FullscreenContent({
 	className,
 	children,
 	showCloseButton,
+	keepMounted,
 	...props
 }: Omit<PopupProps, "size" | "scroll">) {
 	return (
-		<DialogPortal>
+		<DialogPortal keepMounted={keepMounted}>
 			<DialogOverlay size="fullscreen" />
 			<Base.Popup
 				data-size="fullscreen"
@@ -166,10 +203,11 @@ function CardContent({
 	children,
 	showCloseButton,
 	scroll,
+	keepMounted,
 	...props
 }: Omit<PopupProps, "size">) {
 	return (
-		<DialogPortal>
+		<DialogPortal keepMounted={keepMounted}>
 			<DialogOverlay />
 			<Base.Popup
 				data-size="default"
@@ -300,7 +338,14 @@ export function DialogFooter({
  *     </AlertDialogContent>
  *   </AlertDialog>
  */
-export const AlertDialog = AlertBase.Root
+export function AlertDialog<Payload = unknown>({ open, onOpenChange, ...props }: AlertBase.Root.Props<Payload>) {
+	const focus = useFocusReturn(open, onOpenChange)
+	return (
+		<FocusReturnProvider value={focus.focusReturn}>
+			<AlertBase.Root {...props} open={open} onOpenChange={focus.onOpenChange} />
+		</FocusReturnProvider>
+	)
+}
 export const AlertDialogTrigger = AlertBase.Trigger
 export const AlertDialogClose = DialogClose
 export const AlertDialogContent = DialogContent

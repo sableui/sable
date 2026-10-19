@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-Horizontally center a block, optionally capping its width (commonly "prose" for a reading column inside a wider layout).
+Horizontally center a block, optionally capping its width (commonly "prose" for a reading column inside a wider layout). Centering and cap are classes, so className overrides them at a breakpoint.
 
 **Keywords:** center, measure, reading width, layout
 

@@ -63,6 +63,7 @@
       "composition": "Inspect a relevant pattern skeleton. Reuse when its information architecture fits; original compositions from layout primitives are equally valid.",
       "review": "sable docs reviewing-a-design",
       "finish": "sable check <source paths> runs doctor, lint and grade in one pass and exits 1 on any failure, then lists the review steps no tool can verify. Optional Claude Code Stop hook: sable setup --agent --target claude --hook",
+      "adoption": "sable check reports how much of the UI composes Sable and the app-built components Sable already ships (grade --json → adoption). Never a failure; at level none or low, ask the user before moving working screens: sable docs auditing-an-app → Adoption.",
       "evidenceTemplate": "sable grade --template",
       "learning": "sable docs learning-from-builds",
       "localMemory": ".sable/lessons/ for causal observations; .sable/preferences/ for scoped judgments; both project-owned and preserved across package upgrades",
@@ -78,8 +79,9 @@
         "claude": ".claude/skills/sable"
       },
       "canonical": "skills/sable/SKILL.md in the installed package; entries resolve it on every task",
-      "upgrade": "pnpm update @sableui/react --latest; pnpm exec sable setup --agent --update",
-      "preserves": "Local edits, project instructions, presets and preferences; setup only refreshes unchanged managed entries and refuses linked destinations."
+      "instructions": "A short managed block in AGENTS.md (Codex, Cursor) and CLAUDE.md (Claude Code), between <!-- sable:begin --> and <!-- sable:end -->, that sends every UI request through the skill even when it doesn't name Sable. --no-instructions skips it.",
+      "upgrade": "pnpm exec sable upgrade (updates the package, then runs the new version's init). From 0.17 or earlier: pnpm update @sableui/react --latest; pnpm exec sable init",
+      "preserves": "Local edits, project instructions outside the Sable block, presets and preferences; setup only refreshes unchanged managed entries and blocks, and refuses linked destinations."
     },
     "distributionStatus": "Public on npm as @sableui/react; install with pnpm add @sableui/react.",
     "ios": {
@@ -96,7 +98,7 @@
       "command": "pnpm exec sable init",
       "preview": "pnpm exec sable init --dry-run",
       "after": "Run it once the package is installed; before that `npx sable` resolves an unrelated package.",
-      "does": "Installs missing packages with the lockfile's package manager (React, Tailwind and its build plugin), writes the css imports in order into the global stylesheet, adds bundlerDedupe and the Tailwind plugin to a Vite config (a postcss.config.mjs for Next.js), loads the fonts, wraps a Vite starter's <App /> in IconProvider, runs agentSetup, then sable doctor.",
+      "does": "Installs missing packages with the lockfile's package manager (React, Tailwind and its build plugin), writes the css imports in order into the global stylesheet, adds bundlerDedupe and the Tailwind plugin to a Vite config (a postcss.config.mjs for Next.js), loads the fonts, wraps a Vite starter's <App /> in IconProvider, runs agentSetup (skill entries plus the AGENTS.md / CLAUDE.md block; in a terminal it offers the Stop hook), then sable doctor.",
       "frameworks": "Vite and Next.js (App Router) get every step. Other setups get the packages and the stylesheet; the bundler and provider steps are printed.",
       "manual": "Each edit it cannot make safely (an unfamiliar config shape, a Next.js layout, a stylesheet split across files) is printed as the exact snippet and the file it belongs in. Apply them, then run sable doctor.",
       "flags": "--dry-run previews; --no-agent skips the skill; --no-install prints install commands instead of running them.",
@@ -1886,7 +1888,15 @@
       "at-sign",
       "replay",
       "motion",
-      "emoji"
+      "emoji",
+      "briefcase",
+      "layers",
+      "microphone",
+      "video",
+      "broadcast",
+      "newspaper",
+      "palette",
+      "gamepad"
     ]
   },
   "layoutPrimitives": {
@@ -1903,7 +1913,7 @@
         "name": "Region",
         "status": "stable",
         "path": "layout",
-        "summary": "The page region: fluid, edge-to-edge with the fluid page inset (--page-inset). Opt-in centered max cap picked by ROLE (prose/form/feed/content/wide/full), never a global page max-width. The root of nearly every route.",
+        "summary": "The page region: fluid, edge-to-edge with the fluid page inset (--page-inset). Opt-in centered max cap picked by ROLE (prose/form/feed/content/wide/full), never a global page max-width. The root of nearly every route. The inset and cap are classes (px-(--page-inset), max-w-…), so className overrides them at a breakpoint (max-sm:px-0); only safeArea padding is inline.",
         "keywords": [
           "region",
           "page width",
@@ -2072,7 +2082,7 @@
         "name": "Grid",
         "status": "stable",
         "path": "layout",
-        "summary": "CSS Grid within a region. Two modes: fixed/responsive cols count, or minItemWidth so cells breathe with NO breakpoints (the default choice for card grids). A minItemWidth grid keeps its empty columns (track=\"fill\"), so one result stays one cell wide; track=\"fit\" stretches a fixed set across the row.",
+        "summary": "CSS Grid within a region. Two modes: fixed/responsive cols count, or minItemWidth so cells breathe with NO breakpoints (the default choice for card grids). A minItemWidth grid keeps its empty columns (track=\"fill\"), so one result stays one cell wide; track=\"fit\" stretches a fixed set across the row. display is the grid class and the gap a CSS variable, so className utilities win at any breakpoint (hidden md:grid, md:gap-6, lg:grid-cols-3).",
         "keywords": [
           "grid",
           "card grid",
@@ -2168,7 +2178,7 @@
         "name": "Columns",
         "status": "stable",
         "path": "layout",
-        "summary": "An explicit N-column track (default 12) for proportioned layouts — pair with Col spans (list-detail, asymmetric editorial layouts). For uniform card grids prefer Grid minItemWidth.",
+        "summary": "An explicit N-column track (default 12) for proportioned layouts — pair with Col spans (list-detail, asymmetric editorial layouts). For uniform card grids prefer Grid minItemWidth. display is the grid class, so hidden md:grid works; a gap-* utility replaces both gaps and the column-gap cap.",
         "keywords": [
           "columns",
           "12 column",
@@ -2245,7 +2255,7 @@
         "name": "Stack",
         "status": "stable",
         "path": "layout",
-        "summary": "Vertical flow on the 8px rhythm — the default container for stacked content. Gap by role: tight within a group (1.5–2), looser between groups (3–4), generous between sections (6+).",
+        "summary": "Vertical flow on the 8px rhythm — the default container for stacked content. Gap by role: tight within a group (1.5–2), looser between groups (3–4), generous between sections (6+). Layout lives in classes (flex flex-col items-* justify-*) and the gap in a CSS variable, never inline style, so className utilities override any prop at a breakpoint (max-lg:hidden, md:flex-row, md:gap-8).",
         "keywords": [
           "stack",
           "vertical rhythm",
@@ -2309,7 +2319,7 @@
         "name": "Row",
         "status": "stable",
         "path": "layout",
-        "summary": "Horizontal flex flow — inline rows of controls, toolbars, action clusters. Defaults to center-aligned, no wrap.",
+        "summary": "Horizontal flex flow — inline rows of controls, toolbars, action clusters. Defaults to center-aligned, no wrap. Layout lives in classes (flex flex-row items-* justify-*) and the gap in a CSS variable, never inline style, so className utilities override any prop at a breakpoint (hidden md:flex, max-md:flex-col, md:gap-6).",
         "keywords": [
           "row",
           "toolbar",
@@ -2372,6 +2382,11 @@
             "label": "Action cluster",
             "code": "<Row gap={2} justify=\"end\"><Button variant=\"ghost\">Cancel</Button><Button>Save changes</Button></Row>",
             "imports": "import { Button, Row } from \"@sableui/react\""
+          },
+          {
+            "label": "Responsive through className",
+            "code": "<Row justify=\"between\"><span className=\"text-title-sm\">Acme</span><Row gap={1} className=\"max-md:hidden\"><Button variant=\"ghost\" size=\"sm\">Docs</Button><Button variant=\"ghost\" size=\"sm\">Pricing</Button></Row></Row>",
+            "imports": "import { Button, Row } from \"@sableui/react\""
           }
         ]
       },
@@ -2379,7 +2394,7 @@
         "name": "Spacer",
         "status": "stable",
         "path": "layout",
-        "summary": "Explicit space on the rhythm, or a flexible grow pusher between siblings (e.g. pushing a footer item to the end of a Row).",
+        "summary": "Explicit space on the rhythm, or a flexible grow pusher between siblings (e.g. pushing a footer item to the end of a Row). The size is a class reading a CSS variable, so className resizes or hides it at a breakpoint.",
         "keywords": [
           "spacer",
           "spacing",
@@ -2441,7 +2456,7 @@
         "name": "Center",
         "status": "stable",
         "path": "layout",
-        "summary": "Horizontally center a block, optionally capping its width (commonly \"prose\" for a reading column inside a wider layout).",
+        "summary": "Horizontally center a block, optionally capping its width (commonly \"prose\" for a reading column inside a wider layout). Centering and cap are classes, so className overrides them at a breakpoint.",
         "keywords": [
           "center",
           "measure",
@@ -2492,7 +2507,7 @@
         "name": "AspectBox",
         "status": "stable",
         "path": "layout",
-        "summary": "Reserves space via aspect-ratio so async media loads with zero layout shift. Wrap images, video, embeds.",
+        "summary": "Reserves space via aspect-ratio so async media loads with zero layout shift. Wrap images, video, embeds. The ratio is a class reading a CSS variable, so className reshapes it at a breakpoint (md:aspect-video).",
         "keywords": [
           "aspect box",
           "aspect ratio",
@@ -2544,7 +2559,7 @@
         "name": "Bleed",
         "status": "stable",
         "path": "layout",
-        "summary": "Escape a width-capped or inset ancestor to span the full CONTENT area (container-query units, so it stops at a fixed Sidebar instead of bleeding under it). Hero bands, profile covers, full-bleed media inside a capped Page.",
+        "summary": "Escape a width-capped or inset ancestor to span the full CONTENT area (container-query units, so it stops at a fixed Sidebar instead of bleeding under it). Hero bands, profile covers, full-bleed media inside a capped Page. Width and margins are classes, so a breakpoint can turn the bleed off (lg:mx-0 lg:w-auto).",
         "keywords": [
           "bleed",
           "full bleed",
@@ -2589,7 +2604,7 @@
         "name": "SplitPane",
         "status": "stable",
         "path": "layout",
-        "summary": "Responsive two-pane layout: side-by-side at/above a breakpoint, stacked (primary first) below. List-detail, media + metadata.",
+        "summary": "Responsive two-pane layout: side-by-side at/above a breakpoint, stacked (primary first) below. List-detail, media + metadata. display is the grid class and the breakpoint rules are layered, so className utilities (hidden lg:grid, gap-8) win.",
         "keywords": [
           "split pane",
           "two pane",
@@ -2952,6 +2967,308 @@
           "label": "Custom indicator (plus-becomes-×)",
           "code": "<Accordion defaultValue={[\"a\"]}><AccordionItem value=\"a\"><AccordionTrigger indicator={<Icon name=\"plus\" className=\"text-xs text-muted-foreground motion-interactive [[data-panel-open]_&]:rotate-45\" />}>Can I cancel anytime?</AccordionTrigger><AccordionPanel>Yes — from billing settings.</AccordionPanel></AccordionItem></Accordion>",
           "imports": "import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger, Icon } from \"@sableui/react\""
+        }
+      ]
+    },
+    {
+      "name": "ActivityHeatmap",
+      "status": "stable",
+      "group": "Charts",
+      "register": "either",
+      "path": "components/activity-heatmap",
+      "summary": "A calendar heatmap: one value per day as a grid of weeks by weekdays — the GitHub contribution graph, for any daily measure. Levels by quartile, categories by source, a real ARIA grid with one tab stop, and a sideways scroll on narrow screens that opens on the latest week.",
+      "keywords": [
+        "heatmap",
+        "calendar heatmap",
+        "contribution graph",
+        "contributions",
+        "activity",
+        "github",
+        "streak",
+        "habit",
+        "daily",
+        "commits",
+        "uptime"
+      ],
+      "usage": {
+        "description": "Use ActivityHeatmap to show how often something happened day by day over weeks or months: commits, habits kept, orders, uptime. Pass days as ISO dates with a value; levels, colours, labels, keyboard and tooltips work with no further props. Put it inside a Card and compose any totals beside it (NumberTicker, StatRowBlock). For a value over time that a reader needs to compare precisely, use AreaChart or BarChart; for a month calendar with marked days (a streak calendar), use Calendar.",
+        "bestPractices": [
+          {
+            "guidance": "do",
+            "description": "Pass dates as \"YYYY-MM-DD\" strings. The grid reads them as calendar days, so no time zone can shift a day — never build them with `new Date(...).toISOString()` from a local date."
+          },
+          {
+            "guidance": "do",
+            "description": "Give it a `unit` (\"contribution\" / \"contributions\") so the tooltip and every cell's name say what the number counts."
+          },
+          {
+            "guidance": "do",
+            "description": "Let the default quantile scale pick levels — one exceptional day then does not wash every other day out. Pass a day's own `level` when the source already has one (GitHub's API)."
+          },
+          {
+            "guidance": "dont",
+            "description": "Use it for a handful of values or for values a reader must compare exactly; a heatmap shows rhythm, not amounts. Use BarChart.",
+            "instead": [
+              "BarChart",
+              "AreaChart"
+            ]
+          },
+          {
+            "guidance": "dont",
+            "description": "Use it for a single month of marked days with a streak; that is Calendar with modifiers.",
+            "instead": [
+              "Calendar"
+            ]
+          },
+          {
+            "guidance": "dont",
+            "description": "Fetch inside the component or call GitHub from the browser with a token. Fetch on your server and pass days in; `@sableui/react/adapters/github` converts GitHub's response."
+          }
+        ],
+        "anatomy": [
+          {
+            "name": "Weekday labels",
+            "required": false,
+            "description": "Short weekday names beside the rows, outside the scroller so the weeks never slide under them."
+          },
+          {
+            "name": "Month labels",
+            "required": false,
+            "description": "Short month names over each month's first week; they scroll with their weeks."
+          },
+          {
+            "name": "Cell grid",
+            "required": true,
+            "description": "A role=grid table, one gridcell per day, inside a horizontal Scroller that opens on the latest week."
+          },
+          {
+            "name": "Tooltip",
+            "required": false,
+            "description": "The chart tooltip card, anchored to the hovered, focused or tapped day."
+          },
+          {
+            "name": "Legend",
+            "required": false,
+            "description": "A Less–More ramp for intensity, or swatches for categories."
+          }
+        ]
+      },
+      "related": {
+        "components": [
+          "Card",
+          "NumberTicker",
+          "BarChart",
+          "Calendar",
+          "Scroller"
+        ]
+      },
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "description": "What the grid shows (\"Contributions in 2026\") — its caption and accessible name."
+        },
+        {
+          "name": "data",
+          "type": "ActivityDay[] | Record<string, number>",
+          "description": "The days: `{ date: \"YYYY-MM-DD\", value, level?, category? }[]`, or a map of date to value. Sparse is fine — a missing day is 0; duplicates sum."
+        },
+        {
+          "name": "start",
+          "type": "string",
+          "default": "53 weeks before end",
+          "description": "First day drawn, \"YYYY-MM-DD\". The default starts at the beginning of that week, as GitHub's does."
+        },
+        {
+          "name": "end",
+          "type": "string",
+          "default": "today",
+          "description": "Last day drawn. Days after today inside the range are drawn hollow and skipped by the keyboard."
+        },
+        {
+          "name": "year",
+          "type": "number",
+          "description": "Draw Jan 1 – Dec 31 of this year. Wins over start / end."
+        },
+        {
+          "name": "weekStart",
+          "type": "0 | 1",
+          "default": "the locale's",
+          "description": "0 puts Sunday on the top row, 1 Monday."
+        },
+        {
+          "name": "levels",
+          "type": "number",
+          "default": "5",
+          "description": "How many levels, including the empty level 0."
+        },
+        {
+          "name": "levelScale",
+          "type": "\"quantile\" | \"linear\" | number[] | ((value, stats) => number)",
+          "default": "\"quantile\"",
+          "description": "How a value becomes a level. Quantile splits the positive values evenly, as GitHub does; an array gives each level's lower bound from 1 up; a function decides. A day's own `level` always wins."
+        },
+        {
+          "name": "tone",
+          "type": "ChartTone",
+          "default": "\"1\"",
+          "description": "The hue of the intensity ramp. Decorative tones lead, as on every chart; \"success\" gives the GitHub look."
+        },
+        {
+          "name": "categories",
+          "type": "ChartCategories",
+          "description": "Colour days by `day.category` (label, tone or colour per key). Pair with `levels={2}` for flat category colours."
+        },
+        {
+          "name": "unit",
+          "type": "string | { one: string; other: string }",
+          "description": "Names the value in the tooltip and each cell's accessible name, pluralised with Intl.PluralRules."
+        },
+        {
+          "name": "formatValue",
+          "type": "(value: number) => string",
+          "default": "full to 9,999, compact past",
+          "description": "Formats a value wherever it is shown or read."
+        },
+        {
+          "name": "tooltip",
+          "type": "boolean | ((day: ActivityHeatmapDay) => ReactNode)",
+          "default": "true",
+          "description": "Show the tooltip on hover, focus and tap; a function replaces its content on the same card."
+        },
+        {
+          "name": "legend",
+          "type": "boolean",
+          "default": "true",
+          "description": "The Less–More ramp for intensity, swatches for categories."
+        },
+        {
+          "name": "legendLabels",
+          "type": "[string, string]",
+          "default": "[\"Less\", \"More\"]",
+          "description": "The ramp's end words."
+        },
+        {
+          "name": "monthLabels",
+          "type": "boolean",
+          "default": "true",
+          "description": "Short month names over each month's first week."
+        },
+        {
+          "name": "weekdayLabels",
+          "type": "\"alternate\" | \"all\" | \"none\"",
+          "default": "\"alternate\"",
+          "description": "Which weekday names to show beside the rows; alternate is Mon, Wed, Fri."
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"lg\"",
+          "default": "\"md\"",
+          "description": "The smallest a cell may get (10, 12, 14 px) before the grid scrolls instead of shrinking."
+        },
+        {
+          "name": "stretch",
+          "type": "boolean",
+          "default": "true",
+          "description": "Grow cells to fill the width, up to 20 px. false keeps them at `size`."
+        },
+        {
+          "name": "activeDate",
+          "type": "string | null",
+          "description": "The hovered or focused day, controlled. Pair with defaultActiveDate / onActiveDateChange."
+        },
+        {
+          "name": "selectedDate",
+          "type": "string | null",
+          "description": "The selected day, controlled. Selection is on only when onSelectDate is set."
+        },
+        {
+          "name": "onSelectDate",
+          "type": "(date: string) => void",
+          "description": "Called when a day is clicked or chosen with Enter / Space — to filter a feed below, as GitHub does."
+        },
+        {
+          "name": "renderCell",
+          "type": "(day, cell) => ReactNode",
+          "description": "Draw something over a cell's fill — an icon for a milestone, a reward, an outage."
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Draw the empty grid, shimmering, while data loads."
+        },
+        {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "Turns the arrival down; `subtle` shows the finished grid at once."
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "default": "runtime locale",
+          "description": "Month and weekday names, numbers and plurals."
+        }
+      ],
+      "tokensUsed": [
+        "foreground",
+        "muted-foreground",
+        "border-strong",
+        "ring",
+        "tone-1-mark",
+        "tone-2-mark",
+        "tone-3-mark",
+        "success-mark",
+        "tone-info-mark"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "custom",
+          "part": "Cell grid",
+          "why": "Weeks fade in left to right as the grid first scrolls into view, staggered on the chart motion helpers; expressive, so subtle shows the finished grid."
+        },
+        {
+          "slot": "response",
+          "recipe": "custom",
+          "part": "Cell",
+          "why": "The active day takes a ring outline at once and the tooltip glides to it; the other cells stay still — dimming hundreds of cells reads as a flash."
+        },
+        {
+          "slot": "transition",
+          "recipe": "custom",
+          "part": "Cell",
+          "why": "When data or the range changes, each cell's fill cross-fades on the base duration token, so the reader sees which days changed."
+        },
+        {
+          "slot": "activity",
+          "recipe": "motion-shimmer",
+          "part": "Cell grid",
+          "why": "`loading` shimmers the empty grid until days arrive."
+        }
+      ],
+      "a11y": [
+        "The grid is a role=grid table, as GitHub's is: weekday row headers and month column headers carry full names for screen readers, and the caption is `label`.",
+        "One tab stop. Arrows move a day or a week; Home / End go to the ends of the row, Page Up / Page Down to the ends of the column, Ctrl+Home / Ctrl+End to the first and last day. Enter or Space selects when onSelectDate is set; Escape hides the tooltip.",
+        "Each cell is named with its date and value (\"Tuesday, October 14, 2026: 12 contributions\") and described by its level's words, which the legend repeats visually.",
+        "Levels rise in lightness, so they read without colour; under forced colours each level draws as a larger inner square."
+      ],
+      "examples": [
+        {
+          "label": "Contributions, last year",
+          "code": "const days = [\n\t{ date: \"2026-10-12\", value: 4 },\n\t{ date: \"2026-10-13\", value: 11 },\n\t{ date: \"2026-10-14\", value: 2 },\n]\n\n<ActivityHeatmap label=\"Contributions in the last year\" data={days} tone=\"success\" unit={{ one: \"contribution\", other: \"contributions\" }} />",
+          "imports": "import { ActivityHeatmap } from \"@sableui/react\""
+        },
+        {
+          "label": "Two sources, in a card",
+          "code": "const github = [{ date: \"2026-10-13\", value: 6 }]\nconst codex = [{ date: \"2026-10-13\", value: 1 }, { date: \"2026-10-14\", value: 3 }]\n\n<Card>\n\t<CardHeader>\n\t\t<CardTitle>Building, day by day</CardTitle>\n\t</CardHeader>\n\t<CardContent>\n\t\t<ActivityHeatmap\n\t\t\tlabel=\"GitHub and Codex activity in 2026\"\n\t\t\tyear={2026}\n\t\t\tlevels={2}\n\t\t\tdata={mergeActivity({ github, codex })}\n\t\t\tcategories={{ github: { label: \"GitHub\", tone: \"success\" }, codex: { label: \"Codex\", tone: \"info\" }, both: { label: \"Both\", tone: \"2\" } }}\n\t\t/>\n\t</CardContent>\n</Card>",
+          "imports": "import { ActivityHeatmap, Card, CardContent, CardHeader, CardTitle, mergeActivity } from \"@sableui/react\""
+        },
+        {
+          "label": "Selecting a day",
+          "code": "const [day, setDay] = useState<string | null>(null)\n\n<ActivityHeatmap label=\"Orders per day\" data={{ \"2026-10-13\": 18, \"2026-10-14\": 25 }} unit=\"orders\" selectedDate={day} onSelectDate={setDay} />",
+          "imports": "import { ActivityHeatmap } from \"@sableui/react\""
         }
       ]
     },
@@ -7252,6 +7569,12 @@
           "name": "prompt",
           "type": "string",
           "description": "A shell prompt (\"$\", \">\"). Makes it a one-line command: the prompt is dimmed and unselectable, the line truncates, and copy takes only code."
+        },
+        {
+          "name": "wrap",
+          "type": "boolean",
+          "default": "false",
+          "description": "Wrap long lines instead of scrolling them. For prose in a code face (a prompt to paste into an agent, a log line); code keeps scrolling, since wrapping breaks its indentation."
         }
       ],
       "subcomponents": [
@@ -9503,6 +9826,18 @@
           },
           {
             "guidance": "do",
+            "description": "Open a dialog from your own button with controlled open/onOpenChange when the trigger is not a DialogTrigger (a menu item, a row action, a keyboard shortcut). Focus returns on close to whatever held it when the dialog opened, with no finalFocus wiring; pass finalFocus only to send it somewhere else."
+          },
+          {
+            "guidance": "do",
+            "description": "Set keepMounted on DialogContent for a draft the user may come back to (a compose form, a long comment, a half-filled request). Closing by Esc or a stray click then hides the dialog instead of unmounting it, so the fields are still filled when it reopens. Clear the draft yourself on submit or discard."
+          },
+          {
+            "guidance": "dont",
+            "description": "Set keepMounted by default. A dialog that should open fresh (a confirmation, a create form after a successful save) would show stale input, and live content (polling, video) keeps running while hidden."
+          },
+          {
+            "guidance": "do",
             "description": "Use the AlertDialog family for a confirmation that must be answered (discard changes, leave without saving). It looks identical but is role=\"alertdialog\" and a backdrop click does not dismiss it — only Cancel, Esc, or the action. For irreversible deletes, use DestructiveActionModal, which is built on it."
           }
         ],
@@ -9554,14 +9889,30 @@
         {
           "name": "Dialog (Root)",
           "type": "Base UI Dialog.Root props (open, defaultOpen, onOpenChange, modal)",
-          "description": "Controls open state. Uncontrolled by default."
+          "description": "Controls open state. Uncontrolled by default. Records the element that holds focus when the dialog opens (through a DialogTrigger, or your own button flipping a controlled open) and returns focus there on close."
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "description": "Controlled open state. Pair with onOpenChange — for a dialog opened from your own button instead of a DialogTrigger."
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "default": "false",
+          "description": "Initial open state when uncontrolled."
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean, eventDetails) => void",
+          "description": "Called when the dialog asks to open or close (a trigger, Esc, an outside click, DialogClose)."
         }
       ],
       "subcomponents": [
         {
           "name": "DialogContent",
-          "type": "Base UI Popup props + size?: \"default\" | \"fullscreen\" + showCloseButton?: boolean + scroll?: boolean + className",
-          "description": "Backdrop + popup; portals to <body>. Composes DialogOverlay by default. size=\"fullscreen\" is the media viewer: a near-opaque scrim (bg-overlay/95), an edge-to-edge popup that centres its children with no card chrome, motion-fade instead of motion-pop, and a safe-area-aware floating close button (Button variant=\"floating\"); at that size showCloseButton defaults to true and scroll to false, and the media fits itself with max-h-full max-w-full object-contain. At the default size, showCloseButton (defaults to false) renders a built-in close (X) button in the top-end corner, and the header leaves room for it (Icon name=\"xmark\"). The popup caps at the viewport height less a 1rem margin and wraps its children in a scrolling region, so a tall dialog scrolls instead of overflowing a viewport whose own scroll is locked; pass scroll={false} when the dialog owns its internal layout (a pinned header over a scrolling body) and supplies its own min-h-0 scroll region."
+          "type": "Base UI Popup props (initialFocus, finalFocus) + size?: \"default\" | \"fullscreen\" + showCloseButton?: boolean + scroll?: boolean + keepMounted?: boolean + className",
+          "description": "Backdrop + popup; portals to <body>. Composes DialogOverlay by default. size=\"fullscreen\" is the media viewer: a near-opaque scrim (bg-overlay/95), an edge-to-edge popup that centres its children with no card chrome, motion-fade instead of motion-pop, and a safe-area-aware floating close button (Button variant=\"floating\"); at that size showCloseButton defaults to true and scroll to false, and the media fits itself with max-h-full max-w-full object-contain. At the default size, showCloseButton (defaults to false) renders a built-in close (X) button in the top-end corner, and the header leaves room for it (Icon name=\"xmark\"). The popup caps at the viewport height less a 1rem margin and wraps its children in a scrolling region, so a tall dialog scrolls instead of overflowing a viewport whose own scroll is locked; pass scroll={false} when the dialog owns its internal layout (a pinned header over a scrolling body) and supplies its own min-h-0 scroll region. keepMounted (default false) keeps the content mounted and hidden while closed, so a draft survives close and reopen. finalFocus defaults to the element focused when the dialog opened, trigger or not; an explicit finalFocus (a ref, a function, or false) wins."
         },
         {
           "name": "DialogOverlay",
@@ -9601,7 +9952,7 @@
         {
           "name": "AlertDialog (Root)",
           "type": "Base UI AlertDialog.Root props (open, defaultOpen, onOpenChange)",
-          "description": "Root for a confirmation that needs an answer. Always modal; the popup is role=\"alertdialog\" and a click outside does not dismiss — only an AlertDialogClose, an action that sets open to false, or Esc."
+          "description": "Root for a confirmation that needs an answer. Always modal; the popup is role=\"alertdialog\" and a click outside does not dismiss — only an AlertDialogClose, an action that sets open to false, or Esc. Returns focus on close to the element focused when it opened, exactly as Dialog does."
         },
         {
           "name": "AlertDialogTrigger",
@@ -9666,6 +10017,8 @@
       "a11y": [
         "Base UI provides focus trapping, scroll lock, aria-modal, and labelled-by wiring (DialogTitle).",
         "Content taller than the viewport scrolls inside the dialog (thin scrollbar, contained overscroll) rather than overflowing off screen — the page behind is scroll-locked, so anything past the edge would be unreachable.",
+        "On close, focus returns to the element that held it when the dialog opened, whether a DialogTrigger opened it or your own button set a controlled open. It is captured before the content mounts, so an autoFocus field inside cannot displace it. If that element has left the page, Base UI's default (the trigger, if any) applies; an explicit finalFocus on the content always wins. AlertDialog and Sheet behave the same.",
+        "keepMounted hides closed content with the hidden attribute, so a kept draft is out of the accessibility tree and the tab order until the dialog reopens.",
         "Esc and click-outside dismiss by default. AlertDialog keeps Esc but ignores click-outside, and its popup is role=\"alertdialog\".",
         "Animate via data-[starting-style]/data-[ending-style] attributes.",
         "size=\"fullscreen\" has no title chrome, so name the popup yourself: aria-label on DialogContent (or a visually hidden DialogTitle), plus alt text on the media — the zoomed image is a separate image to assistive technology. Its built-in close button carries aria-label=\"Close\" and clears the safe-area insets (notch, home indicator)."
@@ -9690,6 +10043,11 @@
           "label": "Settings form",
           "code": "<Dialog><DialogTrigger render={<Button variant=\"secondary\">Rename collection</Button>} /><DialogContent showCloseButton><DialogHeader><DialogTitle>Rename collection</DialogTitle><DialogDescription>Update the display name shown to collectors.</DialogDescription></DialogHeader><Form><Field label=\"Collection name\"><Input defaultValue=\"Midnight Archive\" /></Field><DialogFooter><DialogClose render={<Button variant=\"secondary\">Cancel</Button>} /><Button type=\"submit\">Save changes</Button></DialogFooter></Form></DialogContent></Dialog>",
           "imports": "import { Button, Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Field, Form, Input } from \"@sableui/react\""
+        },
+        {
+          "label": "Opened from your own button, keeping a draft",
+          "code": "const [open, setOpen] = useState(false)\n\n<Button variant=\"secondary\" onClick={() => setOpen(true)}>New message</Button>\n<Dialog open={open} onOpenChange={setOpen}>\n\t<DialogContent keepMounted showCloseButton>\n\t\t<DialogHeader>\n\t\t\t<DialogTitle>New message</DialogTitle>\n\t\t\t<DialogDescription>Close it any time. Your draft is here when you come back.</DialogDescription>\n\t\t</DialogHeader>\n\t\t<Field label=\"Message\"><Textarea /></Field>\n\t\t<DialogFooter>\n\t\t\t<DialogClose render={<Button variant=\"secondary\">Close</Button>} />\n\t\t\t<Button onClick={() => setOpen(false)}>Send</Button>\n\t\t</DialogFooter>\n\t</DialogContent>\n</Dialog>",
+          "imports": "import { Button, Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Field, Textarea } from \"@sableui/react\""
         },
         {
           "label": "Destructive confirmation",
@@ -12866,6 +13224,10 @@
             "description": "Leave `alt` empty when a visible title sits next to the image — a tile, a row — and describe it when the image stands alone. A set `alt` also names the fallback, so the description survives a broken URL."
           },
           {
+            "guidance": "do",
+            "description": "Set `position` when a cover crop would cut off the subject — a face high in a portrait, a product at one edge. Store the focus with the image (`\"35% 50%\"`) rather than re-cropping the file."
+          },
+          {
             "guidance": "dont",
             "description": "Do not hand-write `<img onError={() => setBroken(true)}>`. An image that fails before hydration never fires the handler on a prerendered page; MediaImage preloads off the DOM and catches it."
           },
@@ -12910,6 +13272,12 @@
           "type": "\"cover\" | \"contain\"",
           "default": "\"cover\"",
           "description": "`cover` crops to fill (artwork, photos); `contain` letterboxes on the muted surface (a logo, a product that must not be cropped)."
+        },
+        {
+          "name": "position",
+          "type": "CSSProperties[\"objectPosition\"]",
+          "default": "\"center\"",
+          "description": "Where the image sits in its frame — CSS `object-position`, the sibling of `fit`. Under `cover` it is the part the crop keeps (`\"50% 30%\"` for a face, `\"bottom\"` for a horizon); under `contain` it is the side the letterbox gives way to."
         },
         {
           "name": "srcSet",
@@ -12999,6 +13367,11 @@
         {
           "label": "Logo, never cropped",
           "code": "<AspectBox ratio={16 / 9} className=\"rounded-lg\">\n\t<MediaImage src={brand.logo} alt={brand.name} fit=\"contain\" />\n</AspectBox>",
+          "imports": "import { AspectBox, MediaImage } from \"@sableui/react\""
+        },
+        {
+          "label": "Crop focus per image",
+          "code": "<AspectBox ratio={1} className=\"rounded-md\">\n\t<MediaImage src={project.thumbnail} seed={project.title} position={project.focus ?? \"center\"} />\n</AspectBox>",
           "imports": "import { AspectBox, MediaImage } from \"@sableui/react\""
         }
       ]
@@ -13140,6 +13513,12 @@
           "description": "Seeds the fallback art. Defaults to `title` when it is a string."
         },
         {
+          "name": "position",
+          "type": "CSSProperties[\"objectPosition\"]",
+          "default": "\"center\"",
+          "description": "Which part of the cover the crop keeps — CSS `object-position`, forwarded to the cover's MediaImage: `\"50% 30%\"` for a face, `\"top\"` for a poster's title. Store it with the image when each one frames differently."
+        },
+        {
           "name": "aspect",
           "type": "\"square\" | \"video\" | \"poster\" | number",
           "default": "\"square\"",
@@ -13271,6 +13650,11 @@
         {
           "label": "Gallery, no links",
           "code": "<Grid minItemWidth=\"8rem\" gap={2}>\n\t{photos.map((photo) => (\n\t\t<MediaTile key={photo.id} size=\"sm\" title={photo.caption} src={photo.url} alt={photo.description} />\n\t))}\n</Grid>",
+          "imports": "import { Grid, MediaTile } from \"@sableui/react\""
+        },
+        {
+          "label": "Portfolio grid with crop focus",
+          "code": "<Grid minItemWidth=\"16rem\" gap={4}>\n\t{projects.map((project) => (\n\t\t<MediaTile\n\t\t\tkey={project.slug}\n\t\t\taspect=\"video\"\n\t\t\ttitle={project.title}\n\t\t\tsubtitle={project.client}\n\t\t\tsrc={project.thumbnail}\n\t\t\tposition={project.focus}\n\t\t\thref={`/work/${project.slug}`}\n\t\t/>\n\t))}\n</Grid>",
           "imports": "import { Grid, MediaTile } from \"@sableui/react\""
         },
         {
@@ -15485,7 +15869,11 @@
         "page header",
         "title",
         "lede",
-        "page actions"
+        "page actions",
+        "page title size",
+        "display title",
+        "editorial header",
+        "hero title"
       ],
       "usage": {
         "description": "Use PageHeader to establish a page's title, supporting description, and primary page actions.",
@@ -15497,6 +15885,14 @@
           {
             "guidance": "do",
             "description": "Keep the title literal and put explanation in the lede or nearby content."
+          },
+          {
+            "guidance": "do",
+            "description": "Use size=\"lg\" for an editorial page (a personal site, a marketing page, an article index): a display-tier title over a body-lg lede. Pair it with SectionHeader size=\"lg\" for the sections below, so the steps stay display → heading-2 → body."
+          },
+          {
+            "guidance": "dont",
+            "description": "Use size=\"lg\" on product routes (settings, lists, dashboards). Display type is never product chrome: there it competes with the content it frames. Keep md, and do not restyle the title with a display class through className either."
           },
           {
             "guidance": "dont",
@@ -15546,8 +15942,20 @@
           "type": "\"h1\" | \"h2\"",
           "default": "\"h1\"",
           "description": "The title's heading element. Keep h1 — the route's one h1. Use h2 only when something above already owns the h1: a shell that renders the route title, or a page showing a PageHeader as an example."
+        },
+        {
+          "name": "size",
+          "type": "\"md\" | \"lg\"",
+          "default": "\"md\"",
+          "description": "The title's scale. md: text-heading-2 over a text-body-sm description, for product pages. lg: text-display-lg over a text-body-lg lede capped at the prose measure, with more space between and below, for an editorial page (personal site, marketing page, article index). Beside actions or a back control, a title line taller than the controls lifts by half the difference, so its first line stays centred on them."
         }
       ],
+      "variants": {
+        "size": [
+          "md",
+          "lg"
+        ]
+      },
       "tokensUsed": [
         "foreground",
         "muted-foreground"
@@ -15560,6 +15968,11 @@
         {
           "label": "With actions",
           "code": "<PageHeader title=\"Storage credits\" description=\"Fund permanent storage.\" actions={<Button>Top up</Button>} />",
+          "imports": "import { Button, PageHeader } from \"@sableui/react\""
+        },
+        {
+          "label": "Editorial page title (size lg)",
+          "code": "<PageHeader size=\"lg\" title=\"Field notes\" description=\"Essays on making things slowly, from a studio by the sea.\" actions={<Button variant=\"outline\">Subscribe</Button>} />",
           "imports": "import { Button, PageHeader } from \"@sableui/react\""
         },
         {
@@ -16486,7 +16899,7 @@
       "group": "Badges & pills",
       "register": "page",
       "path": "components/pill",
-      "summary": "A chip someone clicks: a filter, a tag choice, an option in a row. Always a button with aria-pressed. appearance=\"solid\" (filters; selected lifts onto the primary surface) or \"outline\" (quiet chips that annotate content, like reactions); size md or sm. A static label is a Badge.",
+      "summary": "A chip someone clicks: a filter, a tag choice, an option in a row. Always a button with aria-pressed. appearance=\"solid\" (filters; selected lifts onto the primary surface) or \"outline\" (quiet chips that annotate content, like reactions); size lg, md or sm. A static label is a Badge.",
       "keywords": [
         "pill",
         "chip",
@@ -16507,6 +16920,10 @@
             "description": "Reflect the current choice with selected, so the active filter reads at a glance."
           },
           {
+            "guidance": "do",
+            "description": "In a toolbar where filter chips share a row with a search field (\"All 8 · Products 5 · Open source 2 … [Find a project]\"), pair Pill size=\"lg\" with SearchInput size=\"sm\", and Button size=\"sm\" for any action beside them. All three stand on --control-sm (32px, 28 compact), the rung the spacing doctrine gives toolbar controls, so the row is one height in either density. Pill md (28px) has no text field of its height in the page register, so md beside a field always reads as a mismatch."
+          },
+          {
             "guidance": "dont",
             "description": "Do not use Pill as a static label. A pressable-looking chip that does nothing is the most common cause of dead clicks in a filter row — that is a Badge.",
             "instead": [
@@ -16519,14 +16936,15 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not restyle a Pill with border or background classes to get a quieter chip. That is appearance=\"outline\" (and size=\"sm\" for a small one); an override is a look that exists nowhere else in the system."
+            "description": "Do not restyle a Pill with border or background classes to get a quieter chip. That is appearance=\"outline\" (and size=\"sm\" for a small one); an override is a look that exists nowhere else in the system. Likewise never set h-* on a Pill to match a neighbour: pick the size that shares its rung."
           }
         ]
       },
       "related": {
         "components": [
           "Badge",
-          "ToggleGroup"
+          "ToggleGroup",
+          "SearchInput"
         ]
       },
       "props": [
@@ -16544,9 +16962,9 @@
         },
         {
           "name": "size",
-          "type": "\"md\" | \"sm\"",
+          "type": "\"lg\" | \"md\" | \"sm\"",
           "default": "\"md\"",
-          "description": "md sits on the density ladder's xs control height (28px); sm is 24px, for chips under or inside other content."
+          "description": "lg sits on --control-sm (32px, 28 compact), the toolbar rung it shares with SearchInput sm and Button sm, for a filter row beside a search field. md sits on --control-xs (28px, 24 compact), the chip in a row of its own or among content. sm is a fixed 24px (the target floor, which density does not shrink), for chips under or inside other content."
         },
         {
           "name": "tone",
@@ -16566,6 +16984,7 @@
           "outline"
         ],
         "size": [
+          "lg",
           "md",
           "sm"
         ],
@@ -16649,6 +17068,11 @@
           "label": "Filter row",
           "code": "<Row gap={1}><Pill selected onClick={() => {}}>All</Pill><Pill onClick={() => {}}>Projects</Pill><Pill onClick={() => {}}>Reports</Pill></Row>",
           "imports": "import { Pill, Row } from \"@sableui/react\""
+        },
+        {
+          "label": "Filters with search",
+          "code": "const [filter, setFilter] = useState(\"all\")\nconst [q, setQ] = useState(\"\")\n\n<Row gap={2} align=\"center\" justify=\"between\" wrap>\n\t<Row gap={1}>\n\t\t<Pill size=\"lg\" selected={filter === \"all\"} onClick={() => setFilter(\"all\")}>All 8</Pill>\n\t\t<Pill size=\"lg\" selected={filter === \"products\"} onClick={() => setFilter(\"products\")}>Products 5</Pill>\n\t\t<Pill size=\"lg\" selected={filter === \"oss\"} onClick={() => setFilter(\"oss\")}>Open source 2</Pill>\n\t</Row>\n\t<SearchInput size=\"sm\" value={q} onValueChange={setQ} placeholder=\"Find a project…\" aria-label=\"Find a project\" className=\"max-w-64\" />\n</Row>",
+          "imports": "import { Pill, Row, SearchInput } from \"@sableui/react\""
         },
         {
           "label": "Outline, small (reactions)",
@@ -18418,7 +18842,7 @@
       "group": "Forms",
       "register": "either",
       "path": "components/search-input",
-      "summary": "Styled search field with a leading magnifier and a clearable X. Soft-square (rounded-sm), the theme's field surface, 2px focus ring; the clear button appears only when there is a value.",
+      "summary": "Styled search field with a leading magnifier and a clearable X. Soft-square (rounded-sm), the theme's field surface, 2px focus ring; the clear button appears only when there is a value. size md (form), sm (toolbar, matching Pill lg and Button sm) or xs (inset tool-panel field).",
       "keywords": [
         "search",
         "input",
@@ -18445,6 +18869,14 @@
             "description": "Light the query in the results it filters with `useMatchHighlight(query)` — a callback ref for the results container, with `selector` to keep it to titles. It paints on the `highlight` pair without wrapping matches in `<mark>`, the same paint Combobox and CommandMenu use for their rows."
           },
           {
+            "guidance": "do",
+            "description": "In a toolbar beside filter chips, use size=\"sm\" with Pill size=\"lg\" (and Button size=\"sm\" for actions). All three stand on --control-sm (32px, 28 compact), the rung the spacing doctrine gives toolbar controls, so the row is one height in either density. Keep md for a search field in a form or a page header beside md buttons, and xs for a filter inside a workspace panel, where it matches Input xs's inset surface."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not match a neighbour's height with h-* on className or inputClassName. The magnifier, padding and clear button would stay sized for the old rung; pick the size that shares the neighbour's rung."
+          },
+          {
             "guidance": "dont",
             "description": "Do not use SearchInput as a command palette; use CommandMenu for global commands, opened from the header by CommandMenuTrigger. A SearchInput that opens a dialog on focus is a text box you cannot type in."
           },
@@ -18458,10 +18890,17 @@
         "components": [
           "Input",
           "CommandMenu",
-          "Combobox"
+          "Combobox",
+          "Pill"
         ]
       },
       "props": [
+        {
+          "name": "size",
+          "type": "\"md\" | \"sm\" | \"xs\"",
+          "default": "\"md\"",
+          "description": "The rung of the control ladder, named as on Input, Select and Combobox. md is the form field (--control-md, 40px / 32 compact). sm is the toolbar field (--control-sm, 32px / 28 compact), the rung Pill lg and Button sm share, so filters + search + actions in one row are one height. xs is the tool-panel field (--control-xs, 28px / 24 compact) on Input xs's inset panel-field surface. The magnifier, inline padding and clear button scale with the rung and stay vertically centred."
+        },
         {
           "name": "value",
           "type": "string",
@@ -18507,7 +18946,7 @@
         {
           "name": "...props",
           "type": "ComponentPropsWithRef<\"input\">",
-          "description": "All native input attributes (name, autoFocus, ref, aria-invalid, …) pass through to the <input> except value/onChange, which are owned by value/onValueChange, and className, which sizes the whole field."
+          "description": "All native input attributes (name, autoFocus, ref, aria-invalid, …) pass through to the <input> except value/onChange, which are owned by value/onValueChange, className, which sizes the whole field, and the native numeric size attribute, which the size prop replaces."
         }
       ],
       "tokensUsed": [
@@ -18516,7 +18955,9 @@
         "foreground",
         "muted-foreground",
         "ring",
-        "destructive"
+        "destructive",
+        "panel-field",
+        "panel-field-hover"
       ],
       "motion": [
         {
@@ -18573,6 +19014,16 @@
           "imports": "import { SearchInput, useMatchHighlight } from \"@sableui/react\""
         },
         {
+          "label": "Filters with search",
+          "code": "const [filter, setFilter] = useState(\"all\")\nconst [q, setQ] = useState(\"\")\n\n<Row gap={2} align=\"center\" justify=\"between\" wrap>\n\t<Row gap={1}>\n\t\t<Pill size=\"lg\" selected={filter === \"all\"} onClick={() => setFilter(\"all\")}>All 8</Pill>\n\t\t<Pill size=\"lg\" selected={filter === \"products\"} onClick={() => setFilter(\"products\")}>Products 5</Pill>\n\t\t<Pill size=\"lg\" selected={filter === \"oss\"} onClick={() => setFilter(\"oss\")}>Open source 2</Pill>\n\t</Row>\n\t<SearchInput size=\"sm\" value={q} onValueChange={setQ} placeholder=\"Find a project…\" aria-label=\"Find a project\" className=\"max-w-64\" />\n</Row>",
+          "imports": "import { Pill, Row, SearchInput } from \"@sableui/react\""
+        },
+        {
+          "label": "Sizes",
+          "code": "<Stack gap={1}>\n\t<SearchInput size=\"md\" placeholder=\"Search posts\" aria-label=\"Search posts\" />\n\t<SearchInput size=\"sm\" placeholder=\"Find a project…\" aria-label=\"Find a project\" />\n\t<SearchInput size=\"xs\" placeholder=\"Filter layers\" aria-label=\"Filter layers\" />\n</Stack>",
+          "imports": "import { SearchInput, Stack } from \"@sableui/react\""
+        },
+        {
           "label": "Disabled",
           "code": "<SearchInput disabled placeholder=\"Search\" />",
           "imports": "import { SearchInput } from \"@sableui/react\""
@@ -18597,7 +19048,9 @@
         "h2",
         "subsection",
         "optical alignment",
-        "bleed"
+        "bleed",
+        "editorial section",
+        "large section title"
       ],
       "usage": {
         "description": "Use SectionHeader to head each section below the page title — a home-page shelf with View all, a settings group, a list with its own actions. PageHeader is the route's single h1; every section under it takes a SectionHeader, with titleId wired to the section's aria-labelledby.",
@@ -18608,7 +19061,7 @@
           },
           {
             "guidance": "do",
-            "description": "Pick titleAs by the document outline (h2 under the page h1, h3 inside an h2 section) and size by visual weight: md for a page's sections and shelves, sm for denser groups like settings."
+            "description": "Pick titleAs by the document outline (h2 under the page h1, h3 inside an h2 section) and size by visual weight: lg for an editorial page's sections under a PageHeader size=\"lg\", md for a page's sections and shelves, sm for denser groups like settings."
           },
           {
             "guidance": "do",
@@ -18696,13 +19149,14 @@
         },
         {
           "name": "size",
-          "type": "\"md\" | \"sm\"",
+          "type": "\"lg\" | \"md\" | \"sm\"",
           "default": "\"md\"",
-          "description": "Visual weight, independent of the heading level: md (text-heading-3) for a page's sections and shelves; sm (text-heading-4) for denser sets — settings groups, subsections."
+          "description": "Visual weight, independent of the heading level: lg (text-heading-2 over a text-body-md description) for an editorial page's sections, under a PageHeader size=\"lg\"; md (text-heading-3) for a page's sections and shelves; sm (text-heading-4) for denser sets — settings groups, subsections. lg stops at heading-2: heading-1 is the page title's, one per route. The actions stay centred on the title's first line at every size."
         }
       ],
       "variants": {
         "size": [
+          "lg",
           "md",
           "sm"
         ]
@@ -18757,6 +19211,11 @@
           "label": "A section with two actions",
           "code": "<section aria-labelledby=\"playlists\" className=\"flex flex-col gap-4\">\n\t<SectionHeader\n\t\ttitleId=\"playlists\"\n\t\ttitle=\"Your playlists\"\n\t\tactions={\n\t\t\t<>\n\t\t\t\t<Button variant=\"ghost\" size=\"sm\" iconStart={<Icon name=\"filter\" />}>Filter</Button>\n\t\t\t\t<Button size=\"sm\" iconStart={<Icon name=\"plus\" />}>New playlist</Button>\n\t\t\t</>\n\t\t}\n\t/>\n\t<Stack gap={1}>\n\t\t<Entity className=\"[--entity-px:0]\" title=\"Late drives\" subtitle=\"42 tracks\" />\n\t\t<Entity className=\"[--entity-px:0]\" title=\"Focus\" subtitle=\"18 tracks\" />\n\t</Stack>\n</section>",
           "imports": "import { Button, Entity, Icon, SectionHeader, Stack } from \"@sableui/react\""
+        },
+        {
+          "label": "An editorial section (size lg)",
+          "code": "<section aria-labelledby=\"selected-work\" className=\"flex flex-col gap-6\">\n\t<SectionHeader\n\t\ttitleId=\"selected-work\"\n\t\tsize=\"lg\"\n\t\ttitle=\"Selected work\"\n\t\tdescription=\"Five projects from the last two years.\"\n\t\tactions={\n\t\t\t<Button variant=\"ghost\" size=\"sm\" render={<a href=\"/work\" />} aria-label=\"View all work\">\n\t\t\t\tView all\n\t\t\t</Button>\n\t\t}\n\t/>\n\t<Grid minItemWidth=\"16rem\" gap={3}>\n\t\t<Card><CardHeader><CardTitle>Tidewater</CardTitle><CardDescription>Brand identity</CardDescription></CardHeader></Card>\n\t\t<Card><CardHeader><CardTitle>Northlight</CardTitle><CardDescription>Product design</CardDescription></CardHeader></Card>\n\t</Grid>\n</section>",
+          "imports": "import { Button, Card, CardDescription, CardHeader, CardTitle, Grid, SectionHeader } from \"@sableui/react\""
         },
         {
           "label": "A subsection inside a section",
@@ -19721,7 +20180,7 @@
         {
           "name": "Sheet (Root)",
           "type": "Base UI Drawer.Root props (open, defaultOpen, onOpenChange, onOpenChangeComplete, modal, disablePointerDismissal, actionsRef, handle, snapPoints, snapPoint, defaultSnapPoint, onSnapPointChange, snapToSequentialPoints) — minus swipeDirection",
-          "description": "Controls open state. Uncontrolled by default. The dismiss swipe direction is not a prop: it follows SheetContent's side. onOpenChange reports reason \"swipe\" when a swipe closed it."
+          "description": "Controls open state. Uncontrolled by default. The dismiss swipe direction is not a prop: it follows SheetContent's side. onOpenChange reports reason \"swipe\" when a swipe closed it. Records the element focused when the sheet opens, trigger or not, and returns focus there on close."
         },
         {
           "name": "snapPoints",
@@ -19809,7 +20268,7 @@
         "The panel scrolls its own content (thin scrollbar, contained overscroll) when it outgrows its bound — the full height on left/right, 80vh on top/bottom.",
         "Esc and click-outside dismiss by default; on touch, a swipe toward the sheet's own edge dismisses too. A short or slow drag springs back.",
         "Swipe is an extra path, never the only one: Esc, click-outside and SheetClose all still work.",
-        "Focus matches Dialog: the first tabbable on mouse/keyboard open, the panel itself on touch (so the virtual keyboard stays down); focus returns to the trigger on close.",
+        "Focus matches Dialog: the first tabbable on mouse/keyboard open, the panel itself on touch (so the virtual keyboard stays down). On close, focus returns to the element that held it when the sheet opened: the SheetTrigger, or your own button when it drives a controlled open. It is captured before the content mounts, so an autoFocus field inside cannot displace it; an explicit finalFocus on SheetContent wins.",
         "Render a SheetClose inside SheetContent so screen-reader users can escape the popup.",
         "Slide animation runs via data-[starting-style]/data-[ending-style] attributes on the motion-duration token; while swiping the panel tracks the finger directly, and a released swipe finishes on the same token (scaled by flick speed), so reduced motion makes it instant.",
         "A mouse drag that starts on sheet content selects text rather than dragging the panel; mouse dragging only starts from the padding edge.",
@@ -28149,6 +28608,36 @@
         "render",
         "style"
       ],
+      "ActivityHeatmap": [
+        "activeDate",
+        "categories",
+        "data",
+        "defaultActiveDate",
+        "end",
+        "formatValue",
+        "label",
+        "legend",
+        "legendLabels",
+        "levelScale",
+        "levels",
+        "loading",
+        "locale",
+        "monthLabels",
+        "motion",
+        "onActiveDateChange",
+        "onSelectDate",
+        "renderCell",
+        "selectedDate",
+        "size",
+        "start",
+        "stretch",
+        "tone",
+        "tooltip",
+        "unit",
+        "weekStart",
+        "weekdayLabels",
+        "year"
+      ],
       "AlertDialog": [
         "actionsRef",
         "children",
@@ -28170,6 +28659,7 @@
         "className",
         "finalFocus",
         "initialFocus",
+        "keepMounted",
         "render",
         "scroll",
         "showCloseButton",
@@ -28630,7 +29120,8 @@
         "filename",
         "highlight",
         "prompt",
-        "showCopy"
+        "showCopy",
+        "wrap"
       ],
       "CodeHighlightProvider": [
         "children",
@@ -29064,6 +29555,7 @@
         "className",
         "finalFocus",
         "initialFocus",
+        "keepMounted",
         "render",
         "scroll",
         "showCloseButton",
@@ -29380,6 +29872,7 @@
         "fallback",
         "fit",
         "loading",
+        "position",
         "seed",
         "sizes",
         "src",
@@ -29393,6 +29886,7 @@
         "href",
         "loading",
         "meta",
+        "position",
         "render",
         "seed",
         "size",
@@ -29810,6 +30304,7 @@
         "actions",
         "back",
         "description",
+        "size",
         "title",
         "titleAs"
       ],
@@ -30178,6 +30673,7 @@
         "inputClassName",
         "onClear",
         "onValueChange",
+        "size",
         "value"
       ],
       "SectionHeader": [

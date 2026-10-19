@@ -92,6 +92,30 @@ export function MediaTilePage() {
 			</Section>
 
 			<Section
+				title="Crop focus"
+				description='position is forwarded to the cover — any CSS object-position value — and picks the part the crop keeps. The same square cover in a 16:9 frame, focused high, centred and low; in a real grid, store the focus with each image ("50% 30%") and pass it through.'
+			>
+				<Example>
+					<div className="w-full">
+						<Grid cols={{ base: 1, md: 3 }} gap={3}>
+							{["50% 0%", "center", "50% 100%"].map((position) => (
+								<MediaTile
+									key={position}
+									aspect="video"
+									titleAs="h3"
+									title="Field recordings"
+									subtitle={`position="${position}"`}
+									src={PHOTO("1618005182384-a83a8bd57fbe")}
+									position={position}
+									render={<DemoLink href={`#focus-${position}`} />}
+								/>
+							))}
+						</Grid>
+					</div>
+				</Example>
+			</Section>
+
+			<Section
 				title="Gallery"
 				description='size="sm" with no links: a static tile, captioned. Pass alt when the picture says more than its caption.'
 			>

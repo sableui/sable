@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-Vertical flow on the 8px rhythm — the default container for stacked content. Gap by role: tight within a group (1.5–2), looser between groups (3–4), generous between sections (6+).
+Vertical flow on the 8px rhythm — the default container for stacked content. Gap by role: tight within a group (1.5–2), looser between groups (3–4), generous between sections (6+). Layout lives in classes (flex flex-col items-* justify-*) and the gap in a CSS variable, never inline style, so className utilities override any prop at a breakpoint (max-lg:hidden, md:flex-row, md:gap-8).
 
 **Keywords:** stack, vertical rhythm, layout, spacing
 

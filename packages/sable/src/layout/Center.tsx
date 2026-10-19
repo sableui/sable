@@ -13,16 +13,27 @@ export interface CenterProps extends ComponentPropsWithRef<"div"> {
 	max?: string
 }
 
-/** Horizontally center a block, optionally capping its width (commonly "prose"). */
+/**
+ * Horizontally center a block, optionally capping its width (commonly "prose").
+ *
+ * The centering and the cap are classes (`mx-auto`, `max-w-(--sable-center-max)`),
+ * never inline style, so a `className` utility overrides them at any breakpoint.
+ */
 export function Center({ max, className, style, children, ref, ...rest }: CenterProps) {
 	const maxWidth = max ? (NAMED_MAX[max] ?? max) : undefined
-	const mergedStyle: CSSProperties = {
-		marginInline: "auto",
-		...(maxWidth ? { maxWidth } : null),
+	const mergedStyle = {
+		...(maxWidth ? { "--sable-center-max": maxWidth } : null),
 		...style,
-	}
+	} as CSSProperties
 	return (
-		<div ref={ref} className={cn("w-full", className)} style={mergedStyle} {...rest}>
+		<div
+			ref={ref}
+			// The cap class only with a cap: the variable inherits, so a bare Center
+			// inside a capped one would otherwise pick up its ancestor's width.
+			className={cn("mx-auto w-full", maxWidth && "max-w-(--sable-center-max)", className)}
+			style={mergedStyle}
+			{...rest}
+		>
 			{children}
 		</div>
 	)

@@ -37,6 +37,7 @@ import { ignoreGlob, lintText, makeRules, surfaceInventory } from "./lint-rules.
 import { labelContrastScanner, statusTextDrift } from "./label-contrast.mjs"
 import { skeletonize } from "./skeleton.mjs"
 import { assessReview, reviewTemplate } from "./review-evidence.mjs"
+import { adoptionReport, swapLines } from "./adoption.mjs"
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const PKG_ROOT = join(HERE, "..")
@@ -375,6 +376,8 @@ const routeSkeletons = []
    of listing from memory. The lookalike-* lint rules fail the unambiguous
    cases; this lists the rest. */
 const inventory = []
+/** UI sources for the adoption report: how much of the app is built from Sable. */
+const uiSources = []
 
 /**
  * Attribute names on one JSX open tag, stopping at the tag's own `>`.
@@ -502,6 +505,7 @@ for (const file of files) {
 
 	/* 7. Surfaces the app built itself (informational). */
 	if (/\.(tsx|jsx)$/.test(file)) {
+		uiSources.push({ rel, text })
 		for (const { index, ...s } of surfaceInventory(text)) inventory.push({ file: rel, line: lineOf(text, index), ...s })
 		// Arrow-key handling written by hand: list navigation is behaviour Sable
 		// owns (roving focus, active descendant, typeahead), and the storefront
@@ -632,6 +636,12 @@ if (reviewPath) {
 }
 const review = assessReview(reviewDocument, { baseDir: reviewPath ? dirname(resolve(CWD, reviewPath)) : CWD, sourceHash })
 const clean = !Object.values(counts).some(Boolean)
+let appDeps = null
+try {
+	const pkg = JSON.parse(readFileSync(join(CWD, "package.json"), "utf8"))
+	appDeps = { ...pkg.dependencies, ...pkg.devDependencies }
+} catch { /* no package.json here: imports alone decide */ }
+const adoption = adoptionReport({ files: uiSources, components: REGISTRY.components ?? [], deps: appDeps })
 const exitCode = flags.has("strict") && (!clean || review.status !== "review-recorded") ? 1 : 0
 
 const result = {
@@ -655,6 +665,7 @@ const result = {
 		byKind: Object.fromEntries(["surface", "media frame", "round"].map((k) => [k, inventory.filter((s) => s.kind === k).length])),
 		surfaces: inventory,
 	},
+	adoption,
 	cliUsage,
 	appIcons: APP_ICONS ? { file: APP_ICONS.file, names: APP_ICONS.names.size } : null,
 	findings,
@@ -695,6 +706,12 @@ if (inventory.length) {
 	L(`  app-owned surfaces (notes, not scored; keeping your own is fine) — ${inventory.length}: ${kinds.map(([k, n]) => `${n} ${k}`).join(" · ")}`)
 	for (const s of inventory.slice(0, 12)) L(`    ${s.file}:${s.line}  <${s.tag}> ${s.kind} (${s.classes}) → Sable has ${s.consider}`)
 	if (inventory.length > 12) L(`    … ${inventory.length - 12} more (--json lists every one)`)
+}
+if (adoption.level !== "empty") {
+	L()
+	L(`  adoption (notes, not scored) — ${adoption.level}: ${adoption.summary}`)
+	L(`    ${adoption.recommendation}`)
+	for (const line of swapLines(adoption, 12, "    ")) L(line)
 }
 if (cliUsage) {
 	L()

@@ -60,6 +60,11 @@ export interface RegionProps extends ComponentPropsWithRef<"div"> {
  * The page region. Fluid-first: full width with a fluid page inset, NOT a
  * centered fixed-width container. Reach for `max` only when a specific region
  * (a reading column, a settings pane) genuinely needs a cap.
+ *
+ * The inset and the cap are classes (`px-(--page-inset)`, `mx-auto
+ * max-w-(--sable-region-max)`), never inline style, so a `className` utility
+ * overrides them at any breakpoint (`max-sm:px-0`, `hidden lg:block`). Only the
+ * `safeArea` padding stays inline: `env()` is already zero where it does not apply.
  */
 export function Region({
 	as,
@@ -81,14 +86,25 @@ export function Region({
 			: Array.isArray(safeArea)
 				? safeArea
 				: []
-	const mergedStyle: CSSProperties = {
-		...(maxWidth ? { maxWidth, marginInline: "auto" } : null),
-		...(!bleed && inset ? { paddingInline: "var(--page-inset)" } : null),
+	const mergedStyle = {
+		...(maxWidth ? { "--sable-region-max": maxWidth } : null),
 		...safeAreaInsets(safeEdges),
 		...style,
-	}
+	} as CSSProperties
 	return (
-		<Comp ref={ref} className={cn("w-full", className)} style={mergedStyle} {...rest}>
+		<Comp
+			ref={ref}
+			className={cn(
+				"w-full",
+				// The cap class only with a cap: the variable inherits, so an uncapped
+				// Region inside a capped one would otherwise take its ancestor's width.
+				maxWidth && "mx-auto max-w-(--sable-region-max)",
+				!bleed && inset && "px-(--page-inset)",
+				className,
+			)}
+			style={mergedStyle}
+			{...rest}
+		>
 			{children}
 		</Comp>
 	)

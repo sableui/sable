@@ -58,6 +58,37 @@ names the nearest pair that reads. Report it with that pair as a recommendation.
 A reasoned `design-lint-disable-next-line label-contrast` is the app's recorded
 choice: list it as intentional, not as a defect.
 
+## Adoption: an app wired for Sable that barely uses it
+
+The commonest drift is not a wrong prop. It is an app where an agent never
+loaded this skill: the stylesheet and tokens are wired, and every control is the
+app's own (a `Modal`, a `PrimaryButton`, a `Tabs` written from scratch). Wiring
+checks pass, and lint only sees the raw elements. `sable check` (and `sable
+grade --json` → `adoption`) measures it: how many UI files compose Sable, which
+app-defined components are named for something Sable ships and do the behaviour
+by hand, and what the app's foundation is. `sable doctor` warns when adoption is
+`none` or `low`. It is never a failure: whether working screens move is the
+user's call.
+
+Put the choice to the user before changing anything. Ask, don't migrate silently
+and don't leave it unmentioned. Show the swaps, behaviour first (overlays,
+controls, tabs, menus, anything with focus or keyboard handling), with what each
+one gains ("your Modal has no focus trap or Esc; Sable's Dialog has both").
+Layout and look stay the app's. How strongly to recommend it depends on the
+`foundation` the report names:
+
+| Foundation | What to say |
+|---|---|
+| `ad-hoc`: no system besides Sable | Recommend the move plainly. There is nothing to preserve but one-off components, and every one is a behaviour bug waiting. Offer to do it a screen at a time. |
+| `own`: a folder of the app's own primitives | Offer the swaps and say what each gains. Keep the app's own where the user prefers them; suggest building them on Sable's behaviour (a `Button` wrapper around Sable's `Button`) instead. |
+| `library`: another component library (MUI, Radix, shadcn-style `components/ui`) | Ask whether Sable should replace it or only cover new work. Don't mix two control libraries on one screen. |
+| `sable`: Sable already carries the UI | Mention the few swaps listed when those screens are next touched. |
+
+Use the question tool the host offers when there is one. Record the answer in
+the project's instructions, so the next task doesn't ask again. On a yes, move
+one screen or component at a time with `fix`/`polish`, running `sable check` and
+looking at the rendered states after each.
+
 ## Deliver evidence-backed findings
 
 Save the audit under `design/<surface>/audit/` or the existing review location.

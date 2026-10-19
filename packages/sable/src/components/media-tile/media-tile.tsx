@@ -1,7 +1,7 @@
 "use client";
 
 import { useRender } from "@base-ui/react/use-render"
-import type { ComponentPropsWithRef, ReactElement, ReactNode } from "react"
+import type { ComponentPropsWithRef, CSSProperties, ReactElement, ReactNode } from "react"
 import { AspectBox } from "../../layout/AspectBox"
 import { cn } from "../../lib/cn"
 import { MediaImage } from "../media-image"
@@ -41,6 +41,13 @@ export interface MediaTileProps extends Omit<ComponentPropsWithRef<"div">, "titl
 	alt?: string
 	/** Seeds the fallback art. Defaults to `title` when it is a string. */
 	seed?: string | number
+	/**
+	 * Which part of the cover the crop keeps — CSS `object-position`, passed to
+	 * the cover's MediaImage: `"50% 30%"` for a face, `"top"` for a poster's
+	 * title. Store it with the image when each one frames differently.
+	 * @default "center"
+	 */
+	position?: CSSProperties["objectPosition"]
 	/**
 	 * The cover's shape: `square` (albums, podcasts, playlists), `video` (16:9),
 	 * `poster` (2:3 — films, books), or any width / height ratio.
@@ -133,6 +140,7 @@ export function MediaTile({
 	sizes,
 	alt,
 	seed,
+	position,
 	aspect = "square",
 	size = "md",
 	href,
@@ -217,7 +225,15 @@ export function MediaTile({
 				// Drawn first, read last: see "Tab order" above.
 				className="order-first rounded-(--media-tile-radius)"
 			>
-				<MediaImage src={src} srcSet={srcSet} sizes={sizes} alt={alt} seed={seed ?? titleText} loading={loading} />
+				<MediaImage
+					src={src}
+					srcSet={srcSet}
+					sizes={sizes}
+					alt={alt}
+					seed={seed ?? titleText}
+					position={position}
+					loading={loading}
+				/>
 				{linked || action != null ? (
 					// The tile answers the pointer and the keyboard alike: a light scrim
 					// deepens the cover so the action reads over any artwork. Hover only

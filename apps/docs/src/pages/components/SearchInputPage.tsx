@@ -1,4 +1,4 @@
-import { Field, SearchInput, searchInputMeta } from "@sableui/react"
+import { Button, Field, Icon, Pill, Row, SearchInput, searchInputMeta, Stack } from "@sableui/react"
 import { useState } from "react"
 import {
 	Example,
@@ -7,6 +7,12 @@ import {
 	Section,
 	ledeFor,
 } from "../../components/docs-ui"
+
+const PROJECT_FILTERS = [
+	{ id: "all", label: "All 8" },
+	{ id: "products", label: "Products 5" },
+	{ id: "oss", label: "Open source 2" },
+] as const
 
 const POST_TYPES = [
 	"Projects",
@@ -19,6 +25,8 @@ const POST_TYPES = [
 export function SearchInputPage() {
 	const [query, setQuery] = useState("")
 	const [filtered, setFiltered] = useState("reports")
+	const [project, setProject] = useState<string>("all")
+	const [toolbarQuery, setToolbarQuery] = useState("")
 
 	const matches = POST_TYPES.filter((type) =>
 		type.toLowerCase().includes(filtered.toLowerCase()),
@@ -74,6 +82,70 @@ export function SearchInputPage() {
 							)}
 						</ul>
 					</div>
+				</Example>
+			</Section>
+
+			<Section
+				title="Sizes"
+				description="The same ladder names as Input, Select and Combobox. md is the form field, sm the toolbar field, xs the inset field of a tool panel. The magnifier and the X scale with the rung and stay centred."
+			>
+				<Example
+					code={`<SearchInput size="md" defaultValue="roadmap" aria-label="Search posts" />
+<SearchInput size="sm" defaultValue="roadmap" aria-label="Find a project" />
+<SearchInput size="xs" defaultValue="roadmap" aria-label="Filter layers" />`}
+				>
+					<Stack gap={1} className="w-full max-w-80">
+						<SearchInput size="md" defaultValue="roadmap" aria-label="Search posts" />
+						<SearchInput size="sm" defaultValue="roadmap" aria-label="Find a project" />
+						<SearchInput size="xs" defaultValue="roadmap" aria-label="Filter layers" />
+					</Stack>
+				</Example>
+			</Section>
+
+			<Section
+				title="Filters with search"
+				description="In a toolbar, size sm shares --control-sm with Pill lg and Button sm, so the chips, the field and the action are one height in either density."
+			>
+				<Example
+					code={`<Row gap={2} align="center" justify="between" wrap>
+  <Row gap={1}>
+    <Pill size="lg" selected>All 8</Pill>
+    <Pill size="lg">Products 5</Pill>
+    <Pill size="lg">Open source 2</Pill>
+  </Row>
+  <Row gap={1} align="center">
+    <SearchInput size="sm" placeholder="Find a project…" aria-label="Find a project" className="max-w-64" />
+    <Button size="sm" iconStart={<Icon name="plus" />}>New</Button>
+  </Row>
+</Row>`}
+				>
+					<Row gap={2} align="center" justify="between" wrap className="w-full">
+						<Row gap={1}>
+							{PROJECT_FILTERS.map((filter) => (
+								<Pill
+									key={filter.id}
+									size="lg"
+									selected={project === filter.id}
+									onClick={() => setProject(filter.id)}
+								>
+									{filter.label}
+								</Pill>
+							))}
+						</Row>
+						<Row gap={1} align="center">
+							<SearchInput
+								size="sm"
+								value={toolbarQuery}
+								onValueChange={setToolbarQuery}
+								placeholder="Find a project…"
+								aria-label="Find a project"
+								className="max-w-64"
+							/>
+							<Button size="sm" iconStart={<Icon name="plus" />}>
+								New
+							</Button>
+						</Row>
+					</Row>
 				</Example>
 			</Section>
 

@@ -74,6 +74,21 @@ export const dialogMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
+					"Open a dialog from your own button with controlled open/onOpenChange when the trigger is not a DialogTrigger (a menu item, a row action, a keyboard shortcut). Focus returns on close to whatever held it when the dialog opened, with no finalFocus wiring; pass finalFocus only to send it somewhere else.",
+			},
+			{
+				guidance: "do",
+				description:
+					"Set keepMounted on DialogContent for a draft the user may come back to (a compose form, a long comment, a half-filled request). Closing by Esc or a stray click then hides the dialog instead of unmounting it, so the fields are still filled when it reopens. Clear the draft yourself on submit or discard.",
+			},
+			{
+				guidance: "dont",
+				description:
+					"Set keepMounted by default. A dialog that should open fresh (a confirmation, a create form after a successful save) would show stale input, and live content (polling, video) keeps running while hidden.",
+			},
+			{
+				guidance: "do",
+				description:
 					"Use the AlertDialog family for a confirmation that must be answered (discard changes, leave without saving). It looks identical but is role=\"alertdialog\" and a backdrop click does not dismiss it — only Cancel, Esc, or the action. For irreversible deletes, use DestructiveActionModal, which is built on it.",
 			},
 		],
@@ -119,8 +134,11 @@ export const dialogMeta: ComponentMeta = {
 		{
 			name: "Dialog (Root)",
 			type: "Base UI Dialog.Root props (open, defaultOpen, onOpenChange, modal)",
-			description: "Controls open state. Uncontrolled by default.",
+			description: "Controls open state. Uncontrolled by default. Records the element that holds focus when the dialog opens (through a DialogTrigger, or your own button flipping a controlled open) and returns focus there on close.",
 		},
+		{ name: "open", type: "boolean", description: "Controlled open state. Pair with onOpenChange — for a dialog opened from your own button instead of a DialogTrigger." },
+		{ name: "defaultOpen", type: "boolean", default: "false", description: "Initial open state when uncontrolled." },
+		{ name: "onOpenChange", type: "(open: boolean, eventDetails) => void", description: "Called when the dialog asks to open or close (a trigger, Esc, an outside click, DialogClose)." },
 	],
 	variants: {
 		size: ["default", "fullscreen"],
@@ -128,9 +146,9 @@ export const dialogMeta: ComponentMeta = {
 	subcomponents: [
 		{
 			name: "DialogContent",
-			type: 'Base UI Popup props + size?: "default" | "fullscreen" + showCloseButton?: boolean + scroll?: boolean + className',
+			type: 'Base UI Popup props (initialFocus, finalFocus) + size?: "default" | "fullscreen" + showCloseButton?: boolean + scroll?: boolean + keepMounted?: boolean + className',
 			description:
-				"Backdrop + popup; portals to <body>. Composes DialogOverlay by default. size=\"fullscreen\" is the media viewer: a near-opaque scrim (bg-overlay/95), an edge-to-edge popup that centres its children with no card chrome, motion-fade instead of motion-pop, and a safe-area-aware floating close button (Button variant=\"floating\"); at that size showCloseButton defaults to true and scroll to false, and the media fits itself with max-h-full max-w-full object-contain. At the default size, showCloseButton (defaults to false) renders a built-in close (X) button in the top-end corner, and the header leaves room for it (Icon name=\"xmark\"). The popup caps at the viewport height less a 1rem margin and wraps its children in a scrolling region, so a tall dialog scrolls instead of overflowing a viewport whose own scroll is locked; pass scroll={false} when the dialog owns its internal layout (a pinned header over a scrolling body) and supplies its own min-h-0 scroll region.",
+				"Backdrop + popup; portals to <body>. Composes DialogOverlay by default. size=\"fullscreen\" is the media viewer: a near-opaque scrim (bg-overlay/95), an edge-to-edge popup that centres its children with no card chrome, motion-fade instead of motion-pop, and a safe-area-aware floating close button (Button variant=\"floating\"); at that size showCloseButton defaults to true and scroll to false, and the media fits itself with max-h-full max-w-full object-contain. At the default size, showCloseButton (defaults to false) renders a built-in close (X) button in the top-end corner, and the header leaves room for it (Icon name=\"xmark\"). The popup caps at the viewport height less a 1rem margin and wraps its children in a scrolling region, so a tall dialog scrolls instead of overflowing a viewport whose own scroll is locked; pass scroll={false} when the dialog owns its internal layout (a pinned header over a scrolling body) and supplies its own min-h-0 scroll region. keepMounted (default false) keeps the content mounted and hidden while closed, so a draft survives close and reopen. finalFocus defaults to the element focused when the dialog opened, trigger or not; an explicit finalFocus (a ref, a function, or false) wins.",
 		},
 		{
 			name: "DialogOverlay",
@@ -173,7 +191,7 @@ export const dialogMeta: ComponentMeta = {
 			name: "AlertDialog (Root)",
 			type: "Base UI AlertDialog.Root props (open, defaultOpen, onOpenChange)",
 			description:
-				"Root for a confirmation that needs an answer. Always modal; the popup is role=\"alertdialog\" and a click outside does not dismiss — only an AlertDialogClose, an action that sets open to false, or Esc.",
+				"Root for a confirmation that needs an answer. Always modal; the popup is role=\"alertdialog\" and a click outside does not dismiss — only an AlertDialogClose, an action that sets open to false, or Esc. Returns focus on close to the element focused when it opened, exactly as Dialog does.",
 		},
 		{
 			name: "AlertDialogTrigger",
@@ -233,6 +251,8 @@ export const dialogMeta: ComponentMeta = {
 	a11y: [
 		"Base UI provides focus trapping, scroll lock, aria-modal, and labelled-by wiring (DialogTitle).",
 		"Content taller than the viewport scrolls inside the dialog (thin scrollbar, contained overscroll) rather than overflowing off screen — the page behind is scroll-locked, so anything past the edge would be unreachable.",
+		"On close, focus returns to the element that held it when the dialog opened, whether a DialogTrigger opened it or your own button set a controlled open. It is captured before the content mounts, so an autoFocus field inside cannot displace it. If that element has left the page, Base UI's default (the trigger, if any) applies; an explicit finalFocus on the content always wins. AlertDialog and Sheet behave the same.",
+		"keepMounted hides closed content with the hidden attribute, so a kept draft is out of the accessibility tree and the tab order until the dialog reopens.",
 		"Esc and click-outside dismiss by default. AlertDialog keeps Esc but ignores click-outside, and its popup is role=\"alertdialog\".",
 		"Animate via data-[starting-style]/data-[ending-style] attributes.",
 		"size=\"fullscreen\" has no title chrome, so name the popup yourself: aria-label on DialogContent (or a visually hidden DialogTitle), plus alt text on the media — the zoomed image is a separate image to assistive technology. Its built-in close button carries aria-label=\"Close\" and clears the safe-area insets (notch, home indicator).",
@@ -253,6 +273,10 @@ export const dialogMeta: ComponentMeta = {
 		{
 			label: "Settings form",
 			code: '<Dialog><DialogTrigger render={<Button variant="secondary">Rename collection</Button>} /><DialogContent showCloseButton><DialogHeader><DialogTitle>Rename collection</DialogTitle><DialogDescription>Update the display name shown to collectors.</DialogDescription></DialogHeader><Form><Field label="Collection name"><Input defaultValue="Midnight Archive" /></Field><DialogFooter><DialogClose render={<Button variant="secondary">Cancel</Button>} /><Button type="submit">Save changes</Button></DialogFooter></Form></DialogContent></Dialog>',
+		},
+		{
+			label: "Opened from your own button, keeping a draft",
+			code: 'const [open, setOpen] = useState(false)\n\n<Button variant="secondary" onClick={() => setOpen(true)}>New message</Button>\n<Dialog open={open} onOpenChange={setOpen}>\n\t<DialogContent keepMounted showCloseButton>\n\t\t<DialogHeader>\n\t\t\t<DialogTitle>New message</DialogTitle>\n\t\t\t<DialogDescription>Close it any time. Your draft is here when you come back.</DialogDescription>\n\t\t</DialogHeader>\n\t\t<Field label="Message"><Textarea /></Field>\n\t\t<DialogFooter>\n\t\t\t<DialogClose render={<Button variant="secondary">Close</Button>} />\n\t\t\t<Button onClick={() => setOpen(false)}>Send</Button>\n\t\t</DialogFooter>\n\t</DialogContent>\n</Dialog>',
 		},
 		{
 			label: "Destructive confirmation",

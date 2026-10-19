@@ -25,16 +25,21 @@ export interface SectionHeaderProps
 	 */
 	titleId?: string
 	/**
-	 * Visual weight, independent of the heading level. `md` (text-heading-3) for
-	 * a page's sections and shelves; `sm` (text-heading-4) for a denser set —
-	 * settings groups, subsections, a sidebar's sections. @default "md"
+	 * Visual weight, independent of the heading level. `lg` (text-heading-2 over
+	 * a text-body-md description) for an editorial page's sections, under a
+	 * `PageHeader size="lg"`; `md` (text-heading-3) for a page's sections and
+	 * shelves; `sm` (text-heading-4) for a denser set — settings groups,
+	 * subsections, a sidebar's sections. @default "md"
 	 */
-	size?: "md" | "sm"
+	size?: "lg" | "md" | "sm"
 }
 
-const TITLE_TIER = {
-	md: "text-heading-3",
-	sm: "text-heading-4",
+// Paired tiers, never decomposed. lg is heading-2, the tier for a major section
+// of a page, not heading-1: that is the page title's, one per route.
+const SIZE = {
+	lg: { root: "gap-3", title: "text-heading-2", description: "text-body-md" },
+	md: { root: "gap-2", title: "text-heading-3", description: "text-body-sm" },
+	sm: { root: "gap-2", title: "text-heading-4", description: "text-body-sm" },
 } as const
 
 /**
@@ -53,7 +58,9 @@ const TITLE_TIER = {
  *
  * It shares PageHeader's title row: the title wraps rather than truncating,
  * the actions keep to the title's row and drop beneath it only when the row
- * runs out of room. It carries no outer spacing — the Stack or Page it sits in
+ * runs out of room. A title whose line is taller than the controls (`lg`, or
+ * a denser register's shorter ladder) is lifted by half the difference, so its
+ * first line stays centred on them. It carries no outer spacing — the Stack or Page it sits in
  * owns the rhythm between the header and what it introduces.
  */
 export function SectionHeader({
@@ -68,17 +75,22 @@ export function SectionHeader({
 }: SectionHeaderProps) {
 	const generatedId = useId()
 	return (
-		<div data-slot="section-header" className={cn("flex flex-col gap-2", className)} {...props}>
+		<div
+			data-slot="section-header"
+			data-size={size}
+			className={cn("flex flex-col", SIZE[size].root, className)}
+			{...props}
+		>
 			<HeadingRow
 				as={titleAs}
 				title={title}
 				titleId={titleId ?? generatedId}
-				titleClassName={TITLE_TIER[size]}
-				band="flex min-h-(--control-sm) items-center"
+				titleClassName={SIZE[size].title}
+				band="flex min-h-(--control-sm) items-center mt-[min(0px,calc((var(--control-sm)_-_1lh)/2))]"
 				actions={actions}
 			/>
 			{description ? (
-				<p className="max-w-(--measure-prose) text-body-sm text-pretty text-muted-foreground">
+				<p className={cn("max-w-(--measure-prose) text-pretty text-muted-foreground", SIZE[size].description)}>
 					{description}
 				</p>
 			) : null}

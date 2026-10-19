@@ -19,6 +19,14 @@ import { cn } from "./cn"
  * band is a class (`flex min-h-(--control-md) items-center`) rather than a
  * value so each caller's ladder rung stays a literal Tailwind can see.
  *
+ * A title line TALLER than the controls (a display or heading-2 tier) would
+ * overflow that band, and the actions, pinned to the row's top, would sit high
+ * on it. So the band also carries
+ * `mt-[min(0px,calc((var(--control-md)_-_1lh)/2))]`: `1lh` is the title's own
+ * line, and when it exceeds the control the title lifts by half the
+ * difference, putting its first line's centre on the controls' centre. A line
+ * shorter than the control computes to 0, so the smaller tiers are untouched.
+ *
  * Borderless controls at the row's edges align optically (lib/bleed.ts): a
  * ghost or link action that ends the row bleeds by its padding at the end, so
  * its label sits on the content edge below; a ghost back control bleeds at the

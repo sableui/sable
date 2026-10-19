@@ -37,7 +37,8 @@ export function ChartTooltipContent({
 			)}
 		>
 			{label != null ? <div className="text-label-sm">{label}</div> : null}
-			<div className="grid gap-1">
+			{/* No rows: a caller's own content in the label slot, on the same card. */}
+			{rows.length || total != null ? <div className="grid gap-1">
 				{rows.map((row) => (
 					<div key={row.key} className={cn("flex items-center gap-2", indicator === "line" || indicator === "dashed" ? "items-stretch" : "")}>
 						{row.icon ? (
@@ -59,7 +60,7 @@ export function ChartTooltipContent({
 						<span className="ms-3 font-mono tabular-nums text-foreground">{total}</span>
 					</div>
 				) : null}
-			</div>
+			</div> : null}
 		</div>
 	)
 }

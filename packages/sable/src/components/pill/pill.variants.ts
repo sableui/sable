@@ -2,7 +2,7 @@ import { cva } from "class-variance-authority"
 import { PALETTE_COLORS } from "../../lib/palette"
 
 /**
- * A chip someone clicks. Two appearances, two sizes, one `selected` state each:
+ * A chip someone clicks. Two appearances, three sizes, one `selected` state each:
  *
  * - `solid` (default): the filter-row chip. Rests on the secondary surface;
  *   `selected` lifts it onto the primary surface so the active filter reads at
@@ -13,11 +13,20 @@ import { PALETTE_COLORS } from "../../lib/palette"
  *   `selected` (the reader's own choice) takes a primary tint and a soft
  *   primary edge — distinct from rest without a heavy dark outline.
  *
- * Both sizes are fixed heights, md the larger: md sits on the density ladder's
- * xs control height (28px), sm is 24px — the touch-target floor. md used to be
+ * All sizes are fixed heights. md sits on the density ladder's xs control
+ * height (28px), sm is 24px — the touch-target floor, deliberately NOT a
+ * ladder step, so a compact scope cannot shrink it under 24. md used to be
  * padding-sized (~18px) while sm was 28px, so the "small" chip was the taller
  * one. A fixed-height chip centred with `items-center` needs no optical nudge,
- * so both drop it. Semantic tokens only — theme-safe in light and dark.
+ * so all drop it. Semantic tokens only — theme-safe in light and dark.
+ *
+ * `lg` sits on `--control-sm` (32px, compact 28), the rung the spacing doctrine
+ * gives toolbar controls: Button `sm`, Toggle and SearchInput `sm` stand on it
+ * too, so a filter row beside a search field and its buttons is one height. A
+ * page toolbar is the case it exists for ("All · Products · Open source" …
+ * [Find a project]). md's 28px is the chip under or among content, and no text
+ * field shares it — Input / SearchInput `xs` is the inset tool-panel field, a
+ * different surface — so md beside a field is always a mismatch.
  */
 export const pillVariants = cva(
 	/*
@@ -44,6 +53,7 @@ export const pillVariants = cva(
 				outline: "border",
 			},
 			size: {
+				lg: "h-(--control-sm) px-4 py-0 text-label-lg [--sable-optical-pad:0px]",
 				md: "h-(--control-xs) px-3 py-0 [--sable-optical-pad:0px]",
 				sm: "h-6 py-0 text-label-sm [--sable-optical-pad:0px]",
 			},

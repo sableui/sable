@@ -66,6 +66,34 @@ function SnapPointsDemo() {
 	)
 }
 
+/**
+ * Opened from a plain Button through controlled `open`, no SheetTrigger: the
+ * search field autofocuses, and closing still returns focus to the button.
+ */
+function OwnButtonDemo() {
+	const [open, setOpen] = useState(false)
+	return (
+		<>
+			<Button variant="secondary" onClick={() => setOpen(true)}>
+				Find a place
+			</Button>
+			<Sheet open={open} onOpenChange={setOpen}>
+				<SheetContent side="right">
+					<SheetHeader>
+						<SheetTitle>Find a place</SheetTitle>
+						<SheetDescription>Close it and focus lands back on the button.</SheetDescription>
+					</SheetHeader>
+					{/* biome-ignore lint/a11y/noAutofocus: the demo shows focus return past an autofocused field */}
+					<SearchInput autoFocus placeholder="Search nearby" aria-label="Search nearby" />
+					<SheetFooter>
+						<SheetClose render={<Button variant="secondary">Close</Button>} />
+					</SheetFooter>
+				</SheetContent>
+			</Sheet>
+		</>
+	)
+}
+
 export function SheetPage() {
 	return (
 		<>
@@ -224,6 +252,27 @@ export function SheetPage() {
 							</SheetFooter>
 						</SheetContent>
 					</Sheet>
+				</Example>
+			</Section>
+
+			<Section
+				title="Opened from your own button"
+				description="Drive open from your own state when the opener is not a SheetTrigger. On close, focus returns to whatever held it when the sheet opened, even when a field inside takes focus on mount. Pass finalFocus only to send it somewhere else."
+			>
+				<Example
+					code={`const [open, setOpen] = useState(false)
+
+<Button variant="secondary" onClick={() => setOpen(true)}>Find a place</Button>
+<Sheet open={open} onOpenChange={setOpen}>
+  <SheetContent side="right">
+    <SheetHeader>
+      <SheetTitle>Find a place</SheetTitle>
+    </SheetHeader>
+    <SearchInput autoFocus placeholder="Search nearby" aria-label="Search nearby" />
+  </SheetContent>
+</Sheet>`}
+				>
+					<OwnButtonDemo />
 				</Example>
 			</Section>
 

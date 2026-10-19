@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-CSS Grid within a region. Two modes: fixed/responsive cols count, or minItemWidth so cells breathe with NO breakpoints (the default choice for card grids). A minItemWidth grid keeps its empty columns (track="fill"), so one result stays one cell wide; track="fit" stretches a fixed set across the row.
+CSS Grid within a region. Two modes: fixed/responsive cols count, or minItemWidth so cells breathe with NO breakpoints (the default choice for card grids). A minItemWidth grid keeps its empty columns (track="fill"), so one result stays one cell wide; track="fit" stretches a fixed set across the row. display is the grid class and the gap a CSS variable, so className utilities win at any breakpoint (hidden md:grid, md:gap-6, lg:grid-cols-3).
 
 **Keywords:** grid, card grid, auto fit, layout
 

@@ -18,8 +18,11 @@ import {
 	dialogMeta,
 	DialogTitle,
 	DialogTrigger,
+	Field,
 	Icon,
+	Textarea,
 } from "@sableui/react"
+import { useState } from "react"
 import {
 	ComponentPlayground,
 	Example,
@@ -45,6 +48,37 @@ function Artwork({ n, className }: { n: number; className?: string }) {
 		>
 			{n + 1}
 		</div>
+	)
+}
+
+/**
+ * Opened from a plain Button through controlled `open` — no DialogTrigger — so
+ * the page shows both behaviours a trigger-less dialog needs: focus comes back
+ * to the button on close, and `keepMounted` keeps the draft.
+ */
+function DraftDialog() {
+	const [open, setOpen] = useState(false)
+	return (
+		<>
+			<Button variant="secondary" iconStart={<Icon name="edit" />} onClick={() => setOpen(true)}>
+				New message
+			</Button>
+			<Dialog open={open} onOpenChange={setOpen}>
+				<DialogContent keepMounted showCloseButton>
+					<DialogHeader>
+						<DialogTitle>New message</DialogTitle>
+						<DialogDescription>Close it any time. Your draft is here when you come back.</DialogDescription>
+					</DialogHeader>
+					<Field label="Message">
+						<Textarea rows={4} />
+					</Field>
+					<DialogFooter>
+						<DialogClose render={<Button variant="secondary">Close</Button>} />
+						<Button onClick={() => setOpen(false)}>Send</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+		</>
 	)
 }
 
@@ -75,6 +109,32 @@ export function DialogPage() {
 							</DialogFooter>
 						</DialogContent>
 					</Dialog>
+				</Example>
+			</Section>
+
+			<Section
+				title="Opened from your own button, keeping a draft"
+				description="A dialog driven by your own state, with no DialogTrigger, still returns focus to the button that opened it. keepMounted on DialogContent keeps a half-written form when the dialog closes: type something, press Esc, and open it again. Use it for a draft the user may come back to, not by default."
+			>
+				<Example
+					code={`const [open, setOpen] = useState(false)
+
+<Button variant="secondary" onClick={() => setOpen(true)}>New message</Button>
+<Dialog open={open} onOpenChange={setOpen}>
+  <DialogContent keepMounted showCloseButton>
+    <DialogHeader>
+      <DialogTitle>New message</DialogTitle>
+      <DialogDescription>Close it any time. Your draft is here when you come back.</DialogDescription>
+    </DialogHeader>
+    <Field label="Message"><Textarea rows={4} /></Field>
+    <DialogFooter>
+      <DialogClose render={<Button variant="secondary">Close</Button>} />
+      <Button onClick={() => setOpen(false)}>Send</Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>`}
+				>
+					<DraftDialog />
 				</Example>
 			</Section>
 

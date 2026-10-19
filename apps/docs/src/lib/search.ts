@@ -38,11 +38,14 @@ function escapeRegExp(value: string): string {
  * by `CommandItem.id`. Items with no entry fall back to their label, so a
  * caller that adds a row without registering text still gets label matching
  * rather than silently disappearing from every query.
+ *
+ * `untilQuery` names rows that appear only once something is typed: a page's
+ * section anchors, which would double the unfiltered list into noise.
  */
-export function makeDocsFilter(haystacks: Record<string, string>) {
+export function makeDocsFilter(haystacks: Record<string, string>, untilQuery: ReadonlySet<string> = new Set()) {
 	return function docsFilter(items: CommandItem[], query: string): CommandItem[] {
 		const q = query.trim().toLowerCase()
-		if (!q) return items
+		if (!q) return untilQuery.size ? items.filter((item) => !item.id || !untilQuery.has(item.id)) : items
 
 		const ranked: { item: CommandItem; score: number; order: number }[] = []
 		items.forEach((item, order) => {

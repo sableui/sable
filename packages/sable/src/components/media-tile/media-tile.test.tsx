@@ -1,7 +1,7 @@
-import { screen } from "@testing-library/react"
+import { act, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import type { ComponentPropsWithRef } from "react"
-import { describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 import { renderWithProviders as render } from "../../test/render"
 import { MediaTile } from "./media-tile"
 
@@ -78,7 +78,7 @@ describe("MediaTile", () => {
 		const { container, rerender } = render(<MediaTile title="Low tide" />)
 		// jsdom may normalise "1" to "1 / 1"; compare the ratio, not the string.
 		const ratio = () => {
-			const value = container.querySelector<HTMLElement>('[data-slot="media-tile-cover"]')?.style.aspectRatio ?? ""
+			const value = container.querySelector<HTMLElement>('[data-slot="media-tile-cover"]')?.style.getPropertyValue("--sable-aspect") ?? ""
 			const [w, h = "1"] = value.split("/")
 			return Number(w) / Number(h)
 		}
@@ -111,5 +111,33 @@ describe("MediaTile — product slots", () => {
 		const meta = container.querySelector('[data-slot="media-tile-meta"]')
 		expect(meta).toHaveTextContent("$1,2403 finishes")
 		expect(screen.getByText("Solid oak").nextElementSibling).toBe(meta)
+	})
+})
+
+describe("MediaTile — cover framing", () => {
+	afterEach(() => {
+		vi.unstubAllGlobals()
+	})
+
+	it("forwards `position` to the cover image as its object-position", () => {
+		// jsdom never loads images: settle Base UI's preloader by hand.
+		let preload: { onload?: () => void } | undefined
+		vi.stubGlobal(
+			"Image",
+			class {
+				onload?: () => void
+				onerror?: () => void
+				referrerPolicy = ""
+				crossOrigin: string | null = null
+				set src(_: string) {
+					preload = this
+				}
+			},
+		)
+		const { container } = render(<MediaTile title="Harbour at dawn" src="/harbour.jpg" position="35% 50%" />)
+		act(() => preload?.onload?.())
+		const img = container.querySelector('[data-slot="media-tile-cover"] img') as HTMLImageElement | null
+		expect(img?.classList.contains("object-cover")).toBe(true)
+		expect(img?.style.objectPosition).toBe("35% 50%")
 	})
 })

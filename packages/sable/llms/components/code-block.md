@@ -40,6 +40,7 @@ Use CodeBlock for multiline code samples that users may read, inspect, or copy.
 | showCopy | boolean | true | Show the copy affordance — in the header bar with a filename, floating in the corner without one. |
 | highlight | ((code: string) => ReactNode) \| false | — | Highlighter for this block; overrides CodeHighlightProvider. false renders plain text inside a provider. |
 | prompt | string | — | A shell prompt ("$", ">"). Makes it a one-line command: the prompt is dimmed and unselectable, the line truncates, and copy takes only code. |
+| wrap | boolean | false | Wrap long lines instead of scrolling them. For prose in a code face (a prompt to paste into an agent, a log line); code keeps scrolling, since wrapping breaks its indentation. |
 
 ## Tokens used
 

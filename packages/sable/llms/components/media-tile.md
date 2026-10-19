@@ -42,6 +42,7 @@ The item in a media grid or shelf: an album, a playlist, a video, a podcast, a f
 | sizes | string | — | The cover's layout width for `srcSet`, e.g. `"(min-width: 64rem) 25vw, 50vw"`. |
 | alt | string | "" | Cover alt text. Empty by default: the title below already names the item. |
 | seed | string \| number | — | Seeds the fallback art. Defaults to `title` when it is a string. |
+| position | CSSProperties["objectPosition"] | "center" | Which part of the cover the crop keeps — CSS `object-position`, forwarded to the cover's MediaImage: `"50% 30%"` for a face, `"top"` for a poster's title. Store it with the image when each one frames differently. |
 | aspect | "square" \| "video" \| "poster" \| number | "square" | The cover's shape: square (albums, podcasts), video (16:9), poster (2:3 — films, books), or any width / height ratio. |
 | size | "sm" \| "md" \| "lg" | "md" | Moves the type tier, the cover-to-text gap, the corner and the overlay inset together. |
 | href | string | — | Where the tile goes. The title becomes the link, stretched over the whole tile. |
@@ -162,6 +163,26 @@ import { Grid, MediaTile } from "@sableui/react"
 <Grid minItemWidth="8rem" gap={2}>
 	{photos.map((photo) => (
 		<MediaTile key={photo.id} size="sm" title={photo.caption} src={photo.url} alt={photo.description} />
+	))}
+</Grid>
+```
+
+### Portfolio grid with crop focus
+
+```tsx
+import { Grid, MediaTile } from "@sableui/react"
+
+<Grid minItemWidth="16rem" gap={4}>
+	{projects.map((project) => (
+		<MediaTile
+			key={project.slug}
+			aspect="video"
+			title={project.title}
+			subtitle={project.client}
+			src={project.thumbnail}
+			position={project.focus}
+			href={`/work/${project.slug}`}
+		/>
 	))}
 </Grid>
 ```

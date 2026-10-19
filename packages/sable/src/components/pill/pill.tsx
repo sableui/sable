@@ -21,8 +21,10 @@ export interface PillProps
  * half clickable and half not.
  *
  * `appearance="outline"` is the quiet chip for choices that annotate other
- * content (a reaction, a tag on a card); `size="sm"` puts it on the xs control
- * height. Use these rather than restyling a Pill with classes — an override is
+ * content (a reaction, a tag on a card); `size="sm"` is the small chip under
+ * content, `size="lg"` the toolbar chip that shares `--control-sm` with a
+ * SearchInput `size="sm"` and Button `size="sm"` beside it. Use these rather
+ * than restyling a Pill with classes — an override is
  * a look that exists nowhere else in the system. `tone="blue"` (any palette
  * family) colours the chip as a category, like a tag picker's choices.
  */

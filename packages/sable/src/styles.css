@@ -1665,13 +1665,19 @@
 /* ==========================================================================
    Layout — responsive grid spans + split panes.
 
-   The fluid layout primitives (Region, Grid, Stack…) compute their styles inline
-   so any dynamic value works without Tailwind scanning a class. Breakpoint-aware
-   layout can't be inline (a style attribute has no media queries), so `Col` and
-   `SplitPane` set per-breakpoint CSS custom properties inline and these rules
-   resolve them mobile-first. Breakpoints match Tailwind's defaults
-   (sm 40 / md 48 / lg 64 / xl 80 / 2xl 96 rem) so they line up with the `lg:*`
-   visibility utilities the app-shell components already use.
+   The fluid layout primitives (Region, Grid, Stack…) put their layout in
+   classes (`flex`, `grid`, `items-*`, `px-(--page-inset)`) and pass dynamic
+   values as inline CSS custom properties that those classes read, so any value
+   works without Tailwind scanning a class. Never an inline `display`, `gap` or
+   padding: inline style beats every utility, and `<Row className="hidden
+   md:flex">` silently did nothing. Breakpoint-aware layout can't be inline (a
+   style attribute has no media queries), so `Col` and `SplitPane` set
+   per-breakpoint CSS custom properties inline and these rules resolve them
+   mobile-first. The rules sit in `@layer components` so a utility in the
+   caller's `className` (`hidden`, `lg:grid-cols-3`, `gap-8`) still wins.
+   Breakpoints match Tailwind's defaults (sm 40 / md 48 / lg 64 / xl 80 /
+   2xl 96 rem) so they line up with the `lg:*` visibility utilities the
+   app-shell components already use.
    ========================================================================== */
 
 /* Each element owns its breakpoint values. Custom properties inherit, so a
@@ -1679,18 +1685,20 @@
    Grid inside `Columns count={{ lg: 12 }}` drew 12 tracks at lg. Resetting
    them here makes an unset one invalid, so the fallback chain below runs on the
    element itself; the values it was given are inline and win over this. */
-[data-sable-col] {
-	--col-span-base: initial; --col-span-sm: initial; --col-span-md: initial;
-	--col-span-lg: initial; --col-span-xl: initial; --col-span-2xl: initial;
-	--col-start-base: initial; --col-start-sm: initial; --col-start-md: initial;
-	--col-start-lg: initial; --col-start-xl: initial; --col-start-2xl: initial;
-}
-[data-sable-grid-cols] {
-	--cols-base: initial; --cols-sm: initial; --cols-md: initial;
-	--cols-lg: initial; --cols-xl: initial; --cols-2xl: initial;
-}
-[data-sable-split] {
-	--split-gap: initial;
+@layer components {
+	[data-sable-col] {
+		--col-span-base: initial; --col-span-sm: initial; --col-span-md: initial;
+		--col-span-lg: initial; --col-span-xl: initial; --col-span-2xl: initial;
+		--col-start-base: initial; --col-start-sm: initial; --col-start-md: initial;
+		--col-start-lg: initial; --col-start-xl: initial; --col-start-2xl: initial;
+	}
+	[data-sable-grid-cols] {
+		--cols-base: initial; --cols-sm: initial; --cols-md: initial;
+		--cols-lg: initial; --cols-xl: initial; --cols-2xl: initial;
+	}
+	[data-sable-split] {
+		--split-gap: initial;
+	}
 }
 
 /* Toasts keep clear of an open Sheet's actions. A right sheet's pinned footer
@@ -1761,126 +1769,126 @@
 	}
 }
 
-/* `Col span={{ base, md, lg }}` / `start={…}` — each breakpoint resolves to the
-   most specific value defined at or below it (mobile-first cascade). */
-[data-sable-col] {
-	grid-column: var(--col-start, auto) / span var(--col-span, 1);
-	--col-span: var(--col-span-base, 1);
-	--col-start: var(--col-start-base, auto);
-}
-@media (width >= 40rem) {
+@layer components {
+	/* `Col span={{ base, md, lg }}` / `start={…}` — each breakpoint resolves to the
+	   most specific value defined at or below it (mobile-first cascade). */
 	[data-sable-col] {
-		--col-span: var(--col-span-sm, var(--col-span-base, 1));
-		--col-start: var(--col-start-sm, var(--col-start-base, auto));
+		grid-column: var(--col-start, auto) / span var(--col-span, 1);
+		--col-span: var(--col-span-base, 1);
+		--col-start: var(--col-start-base, auto);
 	}
-}
-@media (width >= 48rem) {
-	[data-sable-col] {
-		--col-span: var(--col-span-md, var(--col-span-sm, var(--col-span-base, 1)));
-		--col-start: var(--col-start-md, var(--col-start-sm, var(--col-start-base, auto)));
+	@media (width >= 40rem) {
+		[data-sable-col] {
+			--col-span: var(--col-span-sm, var(--col-span-base, 1));
+			--col-start: var(--col-start-sm, var(--col-start-base, auto));
+		}
 	}
-}
-@media (width >= 64rem) {
-	[data-sable-col] {
-		--col-span: var(--col-span-lg, var(--col-span-md, var(--col-span-sm, var(--col-span-base, 1))));
-		--col-start: var(--col-start-lg, var(--col-start-md, var(--col-start-sm, var(--col-start-base, auto))));
+	@media (width >= 48rem) {
+		[data-sable-col] {
+			--col-span: var(--col-span-md, var(--col-span-sm, var(--col-span-base, 1)));
+			--col-start: var(--col-start-md, var(--col-start-sm, var(--col-start-base, auto)));
+		}
 	}
-}
-@media (width >= 80rem) {
-	[data-sable-col] {
-		--col-span: var(--col-span-xl, var(--col-span-lg, var(--col-span-md, var(--col-span-sm, var(--col-span-base, 1)))));
-		--col-start: var(--col-start-xl, var(--col-start-lg, var(--col-start-md, var(--col-start-sm, var(--col-start-base, auto)))));
+	@media (width >= 64rem) {
+		[data-sable-col] {
+			--col-span: var(--col-span-lg, var(--col-span-md, var(--col-span-sm, var(--col-span-base, 1))));
+			--col-start: var(--col-start-lg, var(--col-start-md, var(--col-start-sm, var(--col-start-base, auto))));
+		}
 	}
-}
-@media (width >= 96rem) {
-	[data-sable-col] {
-		--col-span: var(--col-span-2xl, var(--col-span-xl, var(--col-span-lg, var(--col-span-md, var(--col-span-sm, var(--col-span-base, 1))))));
-		--col-start: var(--col-start-2xl, var(--col-start-xl, var(--col-start-lg, var(--col-start-md, var(--col-start-sm, var(--col-start-base, auto))))));
+	@media (width >= 80rem) {
+		[data-sable-col] {
+			--col-span: var(--col-span-xl, var(--col-span-lg, var(--col-span-md, var(--col-span-sm, var(--col-span-base, 1)))));
+			--col-start: var(--col-start-xl, var(--col-start-lg, var(--col-start-md, var(--col-start-sm, var(--col-start-base, auto)))));
+		}
 	}
-}
+	@media (width >= 96rem) {
+		[data-sable-col] {
+			--col-span: var(--col-span-2xl, var(--col-span-xl, var(--col-span-lg, var(--col-span-md, var(--col-span-sm, var(--col-span-base, 1))))));
+			--col-start: var(--col-start-2xl, var(--col-start-xl, var(--col-start-lg, var(--col-start-md, var(--col-start-sm, var(--col-start-base, auto))))));
+		}
+	}
 
-/* `Columns count` / `Grid cols` as a breakpoint map — set per-breakpoint --cols-*
-   props inline; resolved mobile-first into the track's column count, so a grid
-   thins to fewer columns on small screens (e.g. 2 → 6 → 12). */
-[data-sable-grid-cols] {
-	display: grid;
-	grid-template-columns: repeat(var(--cols, var(--grid-columns)), minmax(0, 1fr));
-	--cols: var(--cols-base, var(--grid-columns));
-}
-@media (width >= 40rem) {
+	/* `Columns count` / `Grid cols` as a breakpoint map — set per-breakpoint --cols-*
+	   props inline; resolved mobile-first into the track's column count, so a grid
+	   thins to fewer columns on small screens (e.g. 2 → 6 → 12). */
 	[data-sable-grid-cols] {
-		--cols: var(--cols-sm, var(--cols-base, var(--grid-columns)));
+		grid-template-columns: repeat(var(--cols, var(--grid-columns)), minmax(0, 1fr));
+		--cols: var(--cols-base, var(--grid-columns));
 	}
-}
-@media (width >= 48rem) {
-	[data-sable-grid-cols] {
-		--cols: var(--cols-md, var(--cols-sm, var(--cols-base, var(--grid-columns))));
+	@media (width >= 40rem) {
+		[data-sable-grid-cols] {
+			--cols: var(--cols-sm, var(--cols-base, var(--grid-columns)));
+		}
 	}
-}
-@media (width >= 64rem) {
-	[data-sable-grid-cols] {
-		--cols: var(
-			--cols-lg,
-			var(--cols-md, var(--cols-sm, var(--cols-base, var(--grid-columns))))
-		);
+	@media (width >= 48rem) {
+		[data-sable-grid-cols] {
+			--cols: var(--cols-md, var(--cols-sm, var(--cols-base, var(--grid-columns))));
+		}
 	}
-}
-@media (width >= 80rem) {
-	[data-sable-grid-cols] {
-		--cols: var(
-			--cols-xl,
-			var(
+	@media (width >= 64rem) {
+		[data-sable-grid-cols] {
+			--cols: var(
 				--cols-lg,
 				var(--cols-md, var(--cols-sm, var(--cols-base, var(--grid-columns))))
-			)
-		);
+			);
+		}
 	}
-}
-@media (width >= 96rem) {
-	[data-sable-grid-cols] {
-		--cols: var(
-			--cols-2xl,
-			var(
+	@media (width >= 80rem) {
+		[data-sable-grid-cols] {
+			--cols: var(
 				--cols-xl,
 				var(
 					--cols-lg,
 					var(--cols-md, var(--cols-sm, var(--cols-base, var(--grid-columns))))
 				)
-			)
-		);
+			);
+		}
 	}
-}
+	@media (width >= 96rem) {
+		[data-sable-grid-cols] {
+			--cols: var(
+				--cols-2xl,
+				var(
+					--cols-xl,
+					var(
+						--cols-lg,
+						var(--cols-md, var(--cols-sm, var(--cols-base, var(--grid-columns))))
+					)
+				)
+			);
+		}
+	}
 
-/* `SplitPane collapseBelow="lg"` — a single stacked column below the breakpoint;
-   a two-column track (primary:secondary fr ratio) at or above it. */
-[data-sable-split] {
-	display: grid;
-	gap: var(--split-gap, var(--grid-gutter));
-	grid-template-columns: 1fr;
-}
-@media (width >= 40rem) {
-	[data-sable-split][data-collapse="sm"] {
-		grid-template-columns: var(--split-primary, 1fr) var(--split-secondary, 1fr);
+	/* `SplitPane collapseBelow="lg"` — a single stacked column below the breakpoint;
+	   a two-column track (primary:secondary fr ratio) at or above it. */
+	[data-sable-split] {
+		gap: var(--split-gap, var(--grid-gutter));
+		grid-template-columns: 1fr;
 	}
-}
-@media (width >= 48rem) {
-	[data-sable-split][data-collapse="md"] {
-		grid-template-columns: var(--split-primary, 1fr) var(--split-secondary, 1fr);
+	@media (width >= 40rem) {
+		[data-sable-split][data-collapse="sm"] {
+			grid-template-columns: var(--split-primary, 1fr) var(--split-secondary, 1fr);
+		}
 	}
-}
-@media (width >= 64rem) {
-	[data-sable-split][data-collapse="lg"] {
-		grid-template-columns: var(--split-primary, 1fr) var(--split-secondary, 1fr);
+	@media (width >= 48rem) {
+		[data-sable-split][data-collapse="md"] {
+			grid-template-columns: var(--split-primary, 1fr) var(--split-secondary, 1fr);
+		}
 	}
-}
-@media (width >= 80rem) {
-	[data-sable-split][data-collapse="xl"] {
-		grid-template-columns: var(--split-primary, 1fr) var(--split-secondary, 1fr);
+	@media (width >= 64rem) {
+		[data-sable-split][data-collapse="lg"] {
+			grid-template-columns: var(--split-primary, 1fr) var(--split-secondary, 1fr);
+		}
 	}
-}
-@media (width >= 96rem) {
-	[data-sable-split][data-collapse="2xl"] {
-		grid-template-columns: var(--split-primary, 1fr) var(--split-secondary, 1fr);
+	@media (width >= 80rem) {
+		[data-sable-split][data-collapse="xl"] {
+			grid-template-columns: var(--split-primary, 1fr) var(--split-secondary, 1fr);
+		}
+	}
+	@media (width >= 96rem) {
+		[data-sable-split][data-collapse="2xl"] {
+			grid-template-columns: var(--split-primary, 1fr) var(--split-secondary, 1fr);
+		}
 	}
 }
 

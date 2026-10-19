@@ -37,6 +37,11 @@ export const mediaImageMeta: ComponentMeta = {
 					"Leave `alt` empty when a visible title sits next to the image — a tile, a row — and describe it when the image stands alone. A set `alt` also names the fallback, so the description survives a broken URL.",
 			},
 			{
+				guidance: "do",
+				description:
+					"Set `position` when a cover crop would cut off the subject — a face high in a portrait, a product at one edge. Store the focus with the image (`\"35% 50%\"`) rather than re-cropping the file.",
+			},
+			{
 				guidance: "dont",
 				description:
 					"Do not hand-write `<img onError={() => setBroken(true)}>`. An image that fails before hydration never fires the handler on a prerendered page; MediaImage preloads off the DOM and catches it.",
@@ -64,6 +69,13 @@ export const mediaImageMeta: ComponentMeta = {
 			type: '"cover" | "contain"',
 			default: '"cover"',
 			description: "`cover` crops to fill (artwork, photos); `contain` letterboxes on the muted surface (a logo, a product that must not be cropped).",
+		},
+		{
+			name: "position",
+			type: 'CSSProperties["objectPosition"]',
+			default: '"center"',
+			description:
+				"Where the image sits in its frame — CSS `object-position`, the sibling of `fit`. Under `cover` it is the part the crop keeps (`\"50% 30%\"` for a face, `\"bottom\"` for a horizon); under `contain` it is the side the letterbox gives way to.",
 		},
 		{ name: "srcSet", type: "string", description: "Responsive sources, passed to the `<img>`." },
 		{ name: "sizes", type: "string", description: "The `sizes` attribute for `srcSet`." },
@@ -93,5 +105,9 @@ export const mediaImageMeta: ComponentMeta = {
 		{ label: "No image yet", code: '<AspectBox ratio={1} className="rounded-md">\n\t<MediaImage seed="Low tide, high noon" />\n</AspectBox>' },
 		{ label: "Row thumbnail", code: '<MediaImage src={track.art} seed={track.title} className="size-12 shrink-0 rounded-sm" />' },
 		{ label: "Logo, never cropped", code: '<AspectBox ratio={16 / 9} className="rounded-lg">\n\t<MediaImage src={brand.logo} alt={brand.name} fit="contain" />\n</AspectBox>' },
+		{
+			label: "Crop focus per image",
+			code: '<AspectBox ratio={1} className="rounded-md">\n\t<MediaImage src={project.thumbnail} seed={project.title} position={project.focus ?? "center"} />\n</AspectBox>',
+		},
 	],
 }

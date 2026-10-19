@@ -13,6 +13,7 @@ import {
 import { IntroCurtain, introPending } from "./components/IntroCurtain"
 import { RouteBoundary } from "./components/RouteErrorBoundary"
 import { CanvasSkeleton, DocPageSkeleton, HomeSkeleton, PreviewSkeleton } from "./components/RouteSkeleton"
+import { ANCHORS as BUILD_WITH_SABLE_ANCHORS } from "./content/build-with-sable"
 import { lazyRoute } from "./lib/lazy-route"
 import { redirect, useRoute } from "./lib/router"
 import site from "./site-meta.json"
@@ -92,11 +93,15 @@ const areas: NavArea[] = [
 						slug: "getting-started",
 						label: "Get started",
 						keywords: ["install", "setup", "agent", "quickstart"],
+						anchors: [
+							{ id: "update", label: "Update Sable", detail: "One command: pnpm exec sable upgrade updates the package and your agent's setup.", keywords: ["update", "upgrade", "latest", "version", "existing app"] },
+						],
 					},
 					{
 						slug: "build-with-sable",
 						label: "Build with Sable",
-						keywords: ["agent", "build", "inspire", "audit", "polish", "preset", "workflow"],
+						keywords: ["agent", "build", "inspire", "audit", "polish", "fix", "preset", "workflow", "skill", "cli", "commands"],
+						anchors: BUILD_WITH_SABLE_ANCHORS,
 					},
 					{
 						slug: "credits",
@@ -399,6 +404,7 @@ const pages: Record<string, ComponentType> = {
 	"radar-chart": page(() => import("./pages/components/RadarChartPage"), "RadarChartPage"),
 	"radial-chart": page(() => import("./pages/components/RadialChartPage"), "RadialChartPage"),
 	sparkline: page(() => import("./pages/components/SparklinePage"), "SparklinePage"),
+	"activity-heatmap": page(() => import("./pages/components/ActivityHeatmapPage"), "ActivityHeatmapPage"),
 	"date-tile": page(
 		() => import("./pages/components/DateTilePage"),
 		"DateTilePage",

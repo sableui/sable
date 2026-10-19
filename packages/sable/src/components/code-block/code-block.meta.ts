@@ -72,6 +72,12 @@ export const codeBlockMeta: ComponentMeta = {
 			type: "string",
 			description: "A shell prompt (\"$\", \">\"). Makes it a one-line command: the prompt is dimmed and unselectable, the line truncates, and copy takes only code.",
 		},
+		{
+			name: "wrap",
+			type: "boolean",
+			default: "false",
+			description: "Wrap long lines instead of scrolling them. For prose in a code face (a prompt to paste into an agent, a log line); code keeps scrolling, since wrapping breaks its indentation.",
+		},
 	],
 	subcomponents: [
 		{

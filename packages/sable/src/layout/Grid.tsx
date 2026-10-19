@@ -48,6 +48,10 @@ function resolveGap(gap: GridProps["gap"]): string {
  * `cols` breakpoint map (fewer columns on small screens), or `minItemWidth`
  * cells that breathe with no breakpoints at all (`track` decides whether a
  * sparse row keeps its empty columns or stretches its items across them).
+ *
+ * `display` is the `grid` class and the gap a CSS variable, never inline
+ * style, so a `className` utility overrides either at any breakpoint
+ * (`hidden md:grid`, `md:gap-6`, `lg:grid-cols-3`).
  */
 export function Grid({
 	cols = 12,
@@ -65,14 +69,18 @@ export function Grid({
 	// and it stretches across the whole row — one search result rendered as a
 	// full-width cover.
 	if (minItemWidth) {
-		const mergedStyle: CSSProperties = {
-			display: "grid",
-			gridTemplateColumns: `repeat(${track === "fit" ? "auto-fit" : "auto-fill"}, minmax(min(${minItemWidth}, 100%), 1fr))`,
-			gap: resolveGap(gap),
+		const mergedStyle = {
+			"--sable-grid-gap": resolveGap(gap),
+			"--sable-grid-template": `repeat(${track === "fit" ? "auto-fit" : "auto-fill"}, minmax(min(${minItemWidth}, 100%), 1fr))`,
 			...style,
-		}
+		} as CSSProperties
 		return (
-			<div ref={ref} className={cn(className)} style={mergedStyle} {...rest}>
+			<div
+				ref={ref}
+				className={cn("grid grid-cols-(--sable-grid-template) gap-(--sable-grid-gap)", className)}
+				style={mergedStyle}
+				{...rest}
+			>
 				{children}
 			</div>
 		)
@@ -81,7 +89,7 @@ export function Grid({
 	// Fixed / responsive column count — the track resolves through the
 	// [data-sable-grid-cols] cascade in styles.css.
 	const mergedStyle = {
-		gap: resolveGap(gap),
+		"--sable-grid-gap": resolveGap(gap),
 		...responsiveVars("--cols", cols),
 		...style,
 	} as CSSProperties
@@ -89,7 +97,7 @@ export function Grid({
 		<div
 			ref={ref}
 			data-sable-grid-cols
-			className={cn(className)}
+			className={cn("grid gap-(--sable-grid-gap)", className)}
 			style={mergedStyle}
 			{...rest}
 		>

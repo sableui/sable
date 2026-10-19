@@ -39,6 +39,8 @@ const AXES: Record<string, string> = {
 	indicator: "what marks each item in a sequence (Stepper number | dot)",
 	aspect: "a media frame's proportions (MediaTile square | video | poster) — named for CSS aspect-ratio",
 	fit: "how media fills its frame (MediaImage cover | contain) — named for CSS object-fit",
+	position:
+		"where a thing sits in what holds it: media in its frame (MediaImage, MediaTile — any CSS object-position value, the sibling of `fit`), a Toast stack on the viewport",
 	intensity:
 		"how strongly generated art is painted (GradientArt vivid | soft): the same composition at art strength or as a pastel wash — not `variant`, which there picks the shader",
 	bleed:
@@ -69,6 +71,8 @@ const SYNONYMS: Record<string, string> = {
 	scale: "size",
 	outdent: "bleed",
 	hang: "bleed",
+	focalPoint: "position",
+	objectPosition: "position",
 }
 
 const SIZE_WORDS = new Set(["xs", "sm", "md", "lg", "xl"])

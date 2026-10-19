@@ -66,6 +66,10 @@
 			"types": "./src/icon-sets/brands.tsx",
 			"default": "./src/icon-sets/brands.tsx"
 		},
+		"./adapters/github": {
+			"types": "./src/adapters/github.ts",
+			"default": "./src/adapters/github.ts"
+		},
 		"./theme/ember": {
 			"types": "./src/themes/ember/index.ts",
 			"default": "./src/themes/ember/index.ts"
@@ -136,6 +140,7 @@
 		"LICENSE",
 		"THIRD_PARTY_NOTICES.md",
 		"third-party",
+		"scripts/adoption.mjs",
 		"scripts/agent-setup.mjs",
 		"scripts/design-presets.mjs",
 		"scripts/patches.mjs",
@@ -205,6 +210,10 @@
 			"./icons/brands": {
 				"types": "./dist/icon-sets/brands.d.ts",
 				"default": "./dist/icon-sets/brands.js"
+			},
+			"./adapters/github": {
+				"types": "./dist/adapters/github.d.ts",
+				"default": "./dist/adapters/github.js"
 			},
 			"./theme/ember": {
 				"types": "./dist/themes/ember/index.d.ts",

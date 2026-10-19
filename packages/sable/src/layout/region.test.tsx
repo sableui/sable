@@ -10,18 +10,21 @@ function el(node: ReturnType<typeof render>) {
 describe("Region.max (L1)", () => {
 	it("resolves a named max to its CSS var and centers", () => {
 		const node = render(<Region max="prose">x</Region>)
-		expect(el(node).style.maxWidth).toBe("var(--measure-prose)")
-		expect(el(node).style.marginInline).toBe("auto")
+		expect(el(node).style.getPropertyValue("--sable-region-max")).toBe("var(--measure-prose)")
+		expect(el(node)).toHaveClass("mx-auto", "max-w-(--sable-region-max)")
 	})
 
 	it("accepts an arbitrary CSS length for max", () => {
 		const node = render(<Region max="56rem">x</Region>)
-		expect(el(node).style.maxWidth).toBe("56rem")
+		expect(el(node).style.getPropertyValue("--sable-region-max")).toBe("56rem")
 	})
 
 	it("stays fully fluid (no cap) when max is omitted", () => {
 		const node = render(<Region>x</Region>)
-		expect(el(node).style.maxWidth).toBe("")
+		expect(el(node).style.getPropertyValue("--sable-region-max")).toBe("")
+		// No cap class either: the variable inherits, so a bare class would read
+		// a capped ancestor's width.
+		expect(el(node).className).not.toContain("max-w-")
 	})
 })
 

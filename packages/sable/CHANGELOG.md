@@ -1,5 +1,111 @@
 # What's new
 
+## 0.18.0
+
+A year at a glance: the contribution graph, built so a phone, a keyboard and a
+screen reader can all read it.
+
+- **New: `ActivityHeatmap`.** A calendar heatmap: one value per day as a grid
+  of weeks by weekdays — the GitHub contribution graph, for any daily measure.
+  Pass days as `"YYYY-MM-DD"` with a value (or a date-to-value map); levels
+  come by quartile, as GitHub's do, unless a day brings its own. `categories`
+  colour days by source instead of intensity, and `mergeActivity` tags each day
+  with its source or `both`. The grid is a real `role="grid"` table with one
+  tab stop: arrows step a day or a week, each cell is named with its date and
+  value, and the tooltip shows on hover, focus and tap. It fills the width down
+  to `size`; narrower, the weeks scroll sideways and open on the latest, while
+  the weekday labels stay outside the scroller. Days are read as calendar days,
+  never instants, so no time zone shifts one. Prompted by a consumer site that
+  hand-built one from 371 buttons and broke on phones.
+- **New: `@sableui/react/adapters/github`.** `fromGitHubGraphQL` and
+  `fromGitHubContributionsApi` turn GitHub's contribution data into heatmap
+  days. Pure transforms: fetch on your server and pass the result in.
+- **New: `activityLevels` and `activityGrid`.** The level scale and the week
+  grid behind the heatmap, exported for a custom legend, a summary stat or
+  another layout.
+- **`ChartTooltipContent` with no rows** draws just its label, so a caller's
+  own content sits on the standard tooltip card.
+- **Layout primitives take `className` over their own layout.** Row, Stack,
+  Grid, Columns, Col, Center, Region, Page, Bleed, AspectBox, Spacer, SplitPane
+  and GridOverlay set `display`, direction, alignment, gap, inset, cap, ratio and
+  size inline, and an inline declaration beats every utility, so
+  `<Row className="max-lg:hidden">` or `hidden md:flex` silently did nothing.
+  The grid and split rules in `styles.css` were unlayered too, so `hidden` lost
+  to them whatever its specificity. Layout now lives in classes merged through
+  `cn()`, with prop values passed as CSS variables those classes read, and the
+  layout rules sit in `@layer components`. A utility in `className` wins at any
+  breakpoint (`max-md:flex-col`, `md:gap-6`, `lg:grid-cols-3`); the props work
+  as before. Migration: a `className` that used to be ignored on a primitive now
+  applies, and a test reading `style.gap` or `style.maxWidth` reads
+  `--sable-row-gap`, `--sable-region-max` and the like instead.
+- **`PageHeader size="lg"`.** A display-size page title for an editorial page
+  (a personal site, a marketing page, an article index): `text-display-lg` over
+  a `text-body-lg` lede capped at the prose measure. `md`, the default, is
+  unchanged. Keep `lg` off app routes: display type stays out of product chrome.
+- **`SectionHeader size="lg"`.** The major-section tier, `text-heading-2` over a
+  `text-body-md` description, for an editorial page's sections under a
+  `PageHeader size="lg"`. It stops at heading-2 because heading-1 is the page
+  title's, one per route. Actions stay centred on the title's first line at
+  every size.
+- **`SearchInput` takes `size`** (`md` | `sm` | `xs`), on the same ladder as
+  Input, Select and Combobox. `sm` is the toolbar field on `--control-sm`, `xs`
+  the inset tool-panel field; the magnifier, padding and clear button scale with
+  it and stay centred. Before, it was fixed at 40px and matched nothing in a
+  toolbar.
+- **`Pill size="lg"`.** A 32px chip on `--control-sm`, the toolbar height Button
+  `sm` and SearchInput `sm` share, so a filter row beside a search field is one
+  height in either density.
+- **`MediaImage` and `MediaTile` take a crop focus.** `position` sets where the
+  image sits in its frame and takes any CSS `object-position` value
+  (`"35% 50%"`, `"top"`), beside `fit`. MediaTile forwards it to its cover.
+- **Dialogs return focus to whatever opened them.** `Dialog`, `AlertDialog` and
+  `Sheet` record the element focused when `open` turns true and send focus back
+  to it on close, with or without a trigger. Before, a dialog opened from your
+  own button lost focus to the page whenever a field inside autofocused,
+  CommandMenu's included. An explicit `finalFocus` still wins.
+- **`DialogContent keepMounted`.** Keeps a closed dialog's content mounted and
+  hidden, so a half-written draft survives Esc or a stray click and is still
+  there on reopen. Opt in for drafts the user may come back to.
+- **Eight more icon names.** `briefcase`, `layers`, `microphone`, `video`,
+  `broadcast`, `newspaper`, `palette` and `gamepad` join the contract, mapped
+  in the Reicon set, for a portfolio that imported reicon-react directly for
+  its work, audio, video, live, press, design and games sections.
+- **Setup writes the skill into the instructions every task reads.** A skill
+  loads only when a request names it, so "add a pricing page" in a wired app
+  could skip it: the agent saw Tailwind and a stylesheet, wrote its own Button
+  and Modal, and put Sable's tokens on them. `sable setup --agent` (and `sable
+  init`) now also writes a short managed block into `AGENTS.md` and
+  `CLAUDE.md` that sends every UI request through the skill. Only the text
+  between its `<!-- sable:begin -->` and `<!-- sable:end -->` markers is
+  Sable's; `--no-instructions` skips it. **Migration:** from 0.17, run
+  `pnpm update @sableui/react --latest` then `pnpm exec sable init` once; after
+  that, `sable upgrade` does both.
+- **New: `sable upgrade`.** One command to update: installs the latest
+  `@sableui/react` with the project's package manager, then runs the new
+  version's `init`, so the skill entries, the instructions block and the
+  checks are the new release's. Safe on an app that already works.
+- **"Move this app onto Sable" is a request the skill understands.** It checks
+  the app, shows the swaps once, asks, and moves them a screen at a time; it
+  never starts a new build. `init` says so when an app's UI barely uses Sable,
+  and its next step for a ready app is now a plain request, not mode syntax.
+- **Adoption, in `sable check`, `sable grade` and `sable doctor`.** How much of
+  the UI composes Sable, which app-built components do by hand what a Sable
+  component already does (a `Modal` → Dialog, a `SearchBar` → SearchInput,
+  behaviour first), and what the app already stands on: nothing, its own
+  primitives, or another library. Never a failure. `check` lists the swaps and,
+  when adoption is low, makes "ask the user about moving onto Sable" the first
+  review step; `doctor` warns. The skill and `sable docs auditing-an-app` say
+  how to put the choice to the user, more firmly when the app has no
+  foundation of its own.
+- **The skill triggers on any UI work in a Sable app.** Its description now
+  says so, even when the request doesn't mention Sable.
+- **`sable init --hook`.** Adds the Claude Code Stop hook that runs `sable
+  check` before a task can end. Run in a terminal, init asks; `--no-hook`
+  doesn't.
+- **`CodeBlock wrap`.** Wraps long lines instead of scrolling them, for prose
+  in a code face: a prompt to paste into an agent, a log line. Code keeps
+  scrolling.
+
 ## 0.17.0
 
 Knowing where you are: a rail that follows a long read, and an approval

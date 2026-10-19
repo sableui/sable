@@ -79,15 +79,22 @@ In a monorepo where Sable belongs to one workspace package, run setup in that
 package with `--root` naming the repository root (for example
 `pnpm --filter web exec sable setup --agent --root ../..`); the entries go
 there and resolve Sable through the package.
+Setup also adds a short managed block to the project's `AGENTS.md` and
+`CLAUDE.md`, the instructions an agent reads on every task, so a UI request
+goes through the skill even when it doesn't mention Sable. Only the text between
+its `<!-- sable:begin -->` and `<!-- sable:end -->` markers is Sable's;
+`--no-instructions` skips it.
 Each entry resolves `skills/sable/SKILL.md` from the installed package, so package
 upgrades also update the workflow. Other agents can read that file directly.
 Use `$sable build <idea>`, `inspire <references>`, `audit <target>`, or
 `polish <target>` in Codex; use `/sable` with the same modes in Claude Code or
 Cursor. `create` is a build alias. These are agent modes, not shell commands.
 
-Upgrade with `pnpm update @sableui/react --latest`, then
-`pnpm exec sable setup --agent --update`. Setup only replaces managed files
-that have not been locally edited; `--dry-run` checks without writing. Keep
+Upgrade with `pnpm exec sable upgrade`: it updates the package, then runs the
+new version's `init`, which refreshes the skill entries and the instructions
+block and checks the wiring. From 0.17 or earlier, which has no `upgrade`, run
+`pnpm update @sableui/react --latest` and then `pnpm exec sable init` once.
+Setup only replaces managed files that have not been locally edited; `--dry-run` checks without writing. Keep
 project preferences in project instructions. Package installation alone does not
 change agent settings. See [building-with-sable.md](./building-with-sable.md),
 [creating-a-preset.md](./creating-a-preset.md), and

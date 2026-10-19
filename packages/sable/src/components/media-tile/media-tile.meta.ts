@@ -81,6 +81,13 @@ export const mediaTileMeta: ComponentMeta = {
 		{ name: "alt", type: "string", default: '""', description: "Cover alt text. Empty by default: the title below already names the item." },
 		{ name: "seed", type: "string | number", description: "Seeds the fallback art. Defaults to `title` when it is a string." },
 		{
+			name: "position",
+			type: 'CSSProperties["objectPosition"]',
+			default: '"center"',
+			description:
+				"Which part of the cover the crop keeps — CSS `object-position`, forwarded to the cover's MediaImage: `\"50% 30%\"` for a face, `\"top\"` for a poster's title. Store it with the image when each one frames differently.",
+		},
+		{
 			name: "aspect",
 			type: '"square" | "video" | "poster" | number',
 			default: '"square"',
@@ -139,6 +146,10 @@ export const mediaTileMeta: ComponentMeta = {
 		{
 			label: "Gallery, no links",
 			code: '<Grid minItemWidth="8rem" gap={2}>\n\t{photos.map((photo) => (\n\t\t<MediaTile key={photo.id} size="sm" title={photo.caption} src={photo.url} alt={photo.description} />\n\t))}\n</Grid>',
+		},
+		{
+			label: "Portfolio grid with crop focus",
+			code: '<Grid minItemWidth="16rem" gap={4}>\n\t{projects.map((project) => (\n\t\t<MediaTile\n\t\t\tkey={project.slug}\n\t\t\taspect="video"\n\t\t\ttitle={project.title}\n\t\t\tsubtitle={project.client}\n\t\t\tsrc={project.thumbnail}\n\t\t\tposition={project.focus}\n\t\t\thref={`/work/${project.slug}`}\n\t\t/>\n\t))}\n</Grid>',
 		},
 		{
 			label: "Poster shelf",

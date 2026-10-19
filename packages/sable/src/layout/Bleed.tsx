@@ -1,4 +1,4 @@
-import type { ComponentPropsWithRef, CSSProperties } from "react"
+import type { ComponentPropsWithRef } from "react"
 import { cn } from "../lib/cn"
 
 export interface BleedProps extends ComponentPropsWithRef<"div"> {}
@@ -16,19 +16,23 @@ export interface BleedProps extends ComponentPropsWithRef<"div"> {}
  * full-bleed app, or `Bleed` used standalone) `cqw` resolves against the viewport,
  * so behavior is unchanged there. Nest a `Region` / `Center` inside to re-inset.
  *
+ * The width and margins are classes, never inline style, so a breakpoint can
+ * turn the bleed off: `<Bleed className="lg:mx-0 lg:w-auto">` runs edge to edge
+ * on a phone and sits inside the column on a desktop.
+ *
  *   <Region max="feed">
  *     <Bleed><ProfileCover /></Bleed>
  *     …
  *   </Region>
  */
 export function Bleed({ className, style, children, ref, ...rest }: BleedProps) {
-	const mergedStyle: CSSProperties = {
-		width: "100cqw",
-		marginInline: "calc(50% - 50cqw)",
-		...style,
-	}
 	return (
-		<div ref={ref} className={cn(className)} style={mergedStyle} {...rest}>
+		<div
+			ref={ref}
+			className={cn("mx-[calc(50%_-_50cqw)] w-[100cqw]", className)}
+			style={style}
+			{...rest}
+		>
 			{children}
 		</div>
 	)

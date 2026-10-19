@@ -10,6 +10,10 @@ export const pageHeaderMeta: ComponentMeta = {
 		"title",
 		"lede",
 		"page actions",
+		"page title size",
+		"display title",
+		"editorial header",
+		"hero title",
 	],
 	usage: {
 		description: "Use PageHeader to establish a page's title, supporting description, and primary page actions.",
@@ -21,6 +25,14 @@ export const pageHeaderMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description: "Keep the title literal and put explanation in the lede or nearby content.",
+			},
+			{
+				guidance: "do",
+				description: "Use size=\"lg\" for an editorial page (a personal site, a marketing page, an article index): a display-tier title over a body-lg lede. Pair it with SectionHeader size=\"lg\" for the sections below, so the steps stay display → heading-2 → body.",
+			},
+			{
+				guidance: "dont",
+				description: "Use size=\"lg\" on product routes (settings, lists, dashboards). Display type is never product chrome: there it competes with the content it frames. Keep md, and do not restyle the title with a display class through className either.",
 			},
 			{
 				guidance: "dont",
@@ -68,7 +80,17 @@ export const pageHeaderMeta: ComponentMeta = {
 			description:
 				"The title's heading element. Keep h1 — the route's one h1. Use h2 only when something above already owns the h1: a shell that renders the route title, or a page showing a PageHeader as an example.",
 		},
+		{
+			name: "size",
+			type: '"md" | "lg"',
+			default: '"md"',
+			description:
+				"The title's scale. md: text-heading-2 over a text-body-sm description, for product pages. lg: text-display-lg over a text-body-lg lede capped at the prose measure, with more space between and below, for an editorial page (personal site, marketing page, article index). Beside actions or a back control, a title line taller than the controls lifts by half the difference, so its first line stays centred on them.",
+		},
 	],
+	variants: {
+		size: ["md", "lg"],
+	},
 	a11y: ["Renders the title as an <h1>; use one PageHeader per page.",
 		"Its title renders the route's `h1`. Do not render another `h1` elsewhere on the page: heading navigation would report two documents, and the outline a screen-reader user builds from it stops matching the page.",
 	],
@@ -77,6 +99,10 @@ export const pageHeaderMeta: ComponentMeta = {
 		{
 			label: "With actions",
 			code: '<PageHeader title="Storage credits" description="Fund permanent storage." actions={<Button>Top up</Button>} />',
+		},
+		{
+			label: "Editorial page title (size lg)",
+			code: '<PageHeader size="lg" title="Field notes" description="Essays on making things slowly, from a studio by the sea." actions={<Button variant="outline">Subscribe</Button>} />',
 		},
 		{
 			label: "One per page, inside the region",

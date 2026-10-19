@@ -53,6 +53,10 @@ export function useRoute(): string {
 		upgradeLegacyHash()
 		return slugFromLocation()
 	})
+	// A direct link to a section (`/build-with-sable#cli`).
+	useEffect(() => {
+		if (window.location.hash) scrollToFragment(window.location.hash)
+	}, [])
 	useEffect(() => {
 		const onChange = () => setSlug(slugFromLocation())
 		window.addEventListener("popstate", onChange)
@@ -97,13 +101,42 @@ export function redirect(slug: string): void {
 	window.dispatchEvent(new Event(EVENT))
 }
 
+/**
+ * Navigate to `slug`, or to `slug#section` to land on one of its sections (the
+ * search palette's section anchors). The path picks the page; the fragment
+ * only scrolls.
+ */
 export function navigate(slug: string): void {
-	const target = `/${slug.replace(/^\/+/, "")}`
-	if (target !== window.location.pathname) {
-		window.history.pushState(null, "", target)
+	const [path, fragment] = slug.replace(/^\/+/, "").split("#")
+	const target = `/${path}`
+	const hash = fragment ? `#${fragment}` : ""
+	if (target !== window.location.pathname || hash !== window.location.hash) {
+		window.history.pushState(null, "", target + hash)
 		window.dispatchEvent(new Event(EVENT))
+	}
+	if (hash) {
+		scrollToFragment(hash)
+		return
 	}
 	const main = document.getElementById("docs-main")
 	main?.scrollTo({ top: 0 })
 	window.scrollTo({ top: 0 })
+}
+
+/**
+ * Jump to the element a `#fragment` names, once it exists. Pages load lazily,
+ * so on a direct link or a palette jump the section is not in the document yet
+ * when the route changes, and the browser's own jump has already given up.
+ * Waits a few frames for it, then jumps without animating, as the browser does.
+ */
+export function scrollToFragment(hash: string): void {
+	const id = decodeURIComponent(hash.replace(/^#/, ""))
+	if (!id || id.startsWith("/")) return
+	const deadline = performance.now() + 3000
+	const step = () => {
+		const target = document.getElementById(id)
+		if (target) target.scrollIntoView({ block: "start" })
+		else if (performance.now() < deadline) requestAnimationFrame(step)
+	}
+	requestAnimationFrame(step)
 }

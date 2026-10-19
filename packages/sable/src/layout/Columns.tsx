@@ -57,6 +57,11 @@ function cappedColumnGap(gap: string): string {
  * the track itself can thin out on small screens (e.g. 2 → 6 → 12). Pair with
  * `Col` for spans. The track template resolves through the `[data-sable-grid-cols]`
  * rules in `styles.css`, mobile-first.
+ *
+ * `display` is the `grid` class and the gaps are CSS variables, never inline
+ * style, so a `className` utility overrides them at any breakpoint
+ * (`hidden md:grid`, `md:gap-x-8`). A bare `gap-*` utility replaces both gaps
+ * and with them the column-gap cap, so prefer the `gap` prop unless you mean it.
  */
 export function Columns({
 	count,
@@ -69,8 +74,8 @@ export function Columns({
 }: ColumnsProps) {
 	const resolvedGap = resolveGap(gap)
 	const mergedStyle = {
-		rowGap: resolvedGap,
-		columnGap: cappedColumnGap(resolvedGap),
+		"--sable-columns-row-gap": resolvedGap,
+		"--sable-columns-column-gap": cappedColumnGap(resolvedGap),
 		...responsiveVars("--cols", count),
 		...style,
 	} as CSSProperties
@@ -78,7 +83,10 @@ export function Columns({
 		<div
 			ref={ref}
 			data-sable-grid-cols
-			className={cn(className)}
+			className={cn(
+				"grid gap-x-(--sable-columns-column-gap) gap-y-(--sable-columns-row-gap)",
+				className,
+			)}
 			style={mergedStyle}
 			{...rest}
 		>

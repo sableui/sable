@@ -1,6 +1,6 @@
 ---
 name: sable
-description: Build websites and apps with Sable, develop reusable presets from inspiration, audit interfaces, polish designs, and fix scoped defects using the installed library.
+description: Use for any UI work in a project that depends on @sableui/react (a page, a component, styling, layout, theming, or a UI fix), even when the request does not mention Sable. Builds websites and apps from the installed Sable library, develops reusable presets from inspiration, audits and polishes interfaces, and fixes scoped defects.
 ---
 
 # Sable

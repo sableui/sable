@@ -17,6 +17,8 @@ export const sectionHeaderMeta: ComponentMeta = {
 		"subsection",
 		"optical alignment",
 		"bleed",
+		"editorial section",
+		"large section title",
 	],
 	usage: {
 		description:
@@ -30,7 +32,7 @@ export const sectionHeaderMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
-					"Pick titleAs by the document outline (h2 under the page h1, h3 inside an h2 section) and size by visual weight: md for a page's sections and shelves, sm for denser groups like settings.",
+					"Pick titleAs by the document outline (h2 under the page h1, h3 inside an h2 section) and size by visual weight: lg for an editorial page's sections under a PageHeader size=\"lg\", md for a page's sections and shelves, sm for denser groups like settings.",
 			},
 			{
 				guidance: "do",
@@ -100,13 +102,13 @@ export const sectionHeaderMeta: ComponentMeta = {
 		},
 		{
 			name: "size",
-			type: '"md" | "sm"',
+			type: '"lg" | "md" | "sm"',
 			default: '"md"',
-			description: "Visual weight, independent of the heading level: md (text-heading-3) for a page's sections and shelves; sm (text-heading-4) for denser sets — settings groups, subsections.",
+			description: "Visual weight, independent of the heading level: lg (text-heading-2 over a text-body-md description) for an editorial page's sections, under a PageHeader size=\"lg\"; md (text-heading-3) for a page's sections and shelves; sm (text-heading-4) for denser sets — settings groups, subsections. lg stops at heading-2: heading-1 is the page title's, one per route. The actions stay centred on the title's first line at every size.",
 		},
 	],
 	variants: {
-		size: ["md", "sm"],
+		size: ["lg", "md", "sm"],
 	},
 	tokensUsed: ["foreground", "muted-foreground"],
 	a11y: [
@@ -174,6 +176,26 @@ export const sectionHeaderMeta: ComponentMeta = {
 		<Entity className="[--entity-px:0]" title="Late drives" subtitle="42 tracks" />
 		<Entity className="[--entity-px:0]" title="Focus" subtitle="18 tracks" />
 	</Stack>
+</section>`,
+		},
+		{
+			label: "An editorial section (size lg)",
+			code: `<section aria-labelledby="selected-work" className="flex flex-col gap-6">
+	<SectionHeader
+		titleId="selected-work"
+		size="lg"
+		title="Selected work"
+		description="Five projects from the last two years."
+		actions={
+			<Button variant="ghost" size="sm" render={<a href="/work" />} aria-label="View all work">
+				View all
+			</Button>
+		}
+	/>
+	<Grid minItemWidth="16rem" gap={3}>
+		<Card><CardHeader><CardTitle>Tidewater</CardTitle><CardDescription>Brand identity</CardDescription></CardHeader></Card>
+		<Card><CardHeader><CardTitle>Northlight</CardTitle><CardDescription>Product design</CardDescription></CardHeader></Card>
+	</Grid>
 </section>`,
 		},
 		{

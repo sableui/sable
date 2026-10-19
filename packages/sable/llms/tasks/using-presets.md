@@ -102,8 +102,7 @@ saved file. Replace, don't add beside:
 ## Upgrade the package and skill
 
 ```bash
-pnpm update @sableui/react --latest
-pnpm exec sable setup --agent --update
+pnpm exec sable upgrade
 pnpm exec sable preset --check .sable/presets/clay.json --json
 pnpm exec sable doctor
 ```

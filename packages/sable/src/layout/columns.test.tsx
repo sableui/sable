@@ -57,10 +57,10 @@ describe("Columns (responsive count)", () => {
 	it("caps the column gap against the resolved count so gaps cannot overflow", () => {
 		const e = el(render(<Columns gap={10} />))
 		// Row gap is the gap as given; only the column gap is capped.
-		expect(e.style.getPropertyValue("row-gap")).toBe(
+		expect(e.style.getPropertyValue("--sable-columns-row-gap")).toBe(
 			"calc(var(--rhythm-unit) * 10)",
 		)
-		const columnGap = e.style.getPropertyValue("column-gap")
+		const columnGap = e.style.getPropertyValue("--sable-columns-column-gap")
 		expect(columnGap).toMatch(/^min\(calc\(var\(--rhythm-unit\) \* 10\),/)
 		// The cap reads the per-breakpoint --cols cascade, so responsive counts work.
 		expect(columnGap).toContain("75%")
@@ -69,12 +69,12 @@ describe("Columns (responsive count)", () => {
 
 	it("caps the default and raw-string gaps too", () => {
 		expect(
-			el(render(<Columns />)).style.getPropertyValue("column-gap"),
+			el(render(<Columns />)).style.getPropertyValue("--sable-columns-column-gap"),
 		).toMatch(/^min\(var\(--grid-gutter\),/)
 		expect(
 			el(
 				render(<Columns count={{ base: 1, lg: 12 }} gap="5rem" />),
-			).style.getPropertyValue("column-gap"),
+			).style.getPropertyValue("--sable-columns-column-gap"),
 		).toMatch(/^min\(5rem,/)
 	})
 

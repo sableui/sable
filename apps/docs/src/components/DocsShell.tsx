@@ -40,6 +40,13 @@ export interface NavItem {
 	 * "spacing" would never find Dimensions without this.
 	 */
 	keywords?: string[]
+	/**
+	 * Sections of the page the palette can land on directly (`slug#id`). A page
+	 * that covers many things (every CLI command, every skill mode) is otherwise
+	 * one row: "doctor" found nothing, because no page is called doctor. Shown
+	 * only once there is a query, so the unfiltered palette stays the nav.
+	 */
+	anchors?: { id: string; label: string; detail: string; keywords: string[] }[]
 }
 export interface NavSection {
 	title: string
@@ -341,36 +348,55 @@ export function DocsShell({
 	const commandItems = useMemo<CommandItem[]>(
 		() =>
 			allSections.flatMap((section) =>
-				section.items.map((item) => ({
-					id: item.slug,
-					group: section.title,
-					label: item.label,
-					detail: CATALOG_BY_SLUG[item.slug]?.summary,
-					onSelect: () => {
-						navigate(item.slug)
-						setMobileOpen(false)
+				section.items.flatMap((item) => [
+					{
+						id: item.slug,
+						group: section.title,
+						label: item.label,
+						detail: CATALOG_BY_SLUG[item.slug]?.summary,
+						onSelect: () => {
+							navigate(item.slug)
+							setMobileOpen(false)
+						},
 					},
-				})),
+					// Section anchors follow their page, so a tie keeps the page first.
+					...(item.anchors ?? []).map((anchor) => ({
+						id: `${item.slug}#${anchor.id}`,
+						group: section.title,
+						label: anchor.label,
+						detail: anchor.detail,
+						onSelect: () => {
+							navigate(`${item.slug}#${anchor.id}`)
+							setMobileOpen(false)
+						},
+					})),
+				]),
 			),
 		[allSections],
 	)
 
 	// Searchable text per row: the registry's for components, the nav's own
-	// keywords for the hand-listed pages.
-	const haystacks = useMemo(() => {
+	// keywords for the hand-listed pages and their anchors.
+	const { haystacks, anchorIds } = useMemo(() => {
 		const map: Record<string, string> = { ...SEARCH_DOCS }
+		const anchors = new Set<string>()
 		for (const section of allSections) {
 			for (const item of section.items) {
+				for (const anchor of item.anchors ?? []) {
+					const id = `${item.slug}#${anchor.id}`
+					anchors.add(id)
+					map[id] = [anchor.label, anchor.detail, item.label, ...anchor.keywords].join(" ").toLowerCase()
+				}
 				if (map[item.slug]) continue
 				map[item.slug] = [item.label, section.title, ...(item.keywords ?? [])]
 					.join(" ")
 					.toLowerCase()
 			}
 		}
-		return map
+		return { haystacks: map, anchorIds: anchors }
 	}, [allSections])
 
-	const filter = useMemo(() => makeDocsFilter(haystacks), [haystacks])
+	const filter = useMemo(() => makeDocsFilter(haystacks, anchorIds), [haystacks, anchorIds])
 
 	const openSearch = () => setSearchOpen(true)
 

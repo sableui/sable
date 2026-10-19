@@ -4,7 +4,7 @@
 
 The heading block for one section of a page: a title (h2 by default), an optional line of description, and actions on the title row — a "View all" link or a couple of buttons — that drop beneath the title only when the row runs out of room.
 
-**Keywords:** section header, section heading, section title, shelf, view all, see all, show all, h2, subsection, optical alignment, bleed
+**Keywords:** section header, section heading, section title, shelf, view all, see all, show all, h2, subsection, optical alignment, bleed, editorial section, large section title
 
 ## Usage
 
@@ -13,7 +13,7 @@ Use SectionHeader to head each section below the page title — a home-page shel
 ### Best practices
 
 - Do: Wrap the header and its content in a `<section aria-labelledby={titleId}>` (a flex column with a gap, or a Stack inside it) so the section is a named region and the header's title is its name.
-- Do: Pick titleAs by the document outline (h2 under the page h1, h3 inside an h2 section) and size by visual weight: md for a page's sections and shelves, sm for denser groups like settings.
+- Do: Pick titleAs by the document outline (h2 under the page h1, h3 inside an h2 section) and size by visual weight: lg for an editorial page's sections under a PageHeader size="lg", md for a page's sections and shelves, sm for denser groups like settings.
 - Do: Keep actions to one or two `size="sm"` buttons — the title is centred on that height. A shelf's "View all" is a ghost Button rendered as a link (`render={<a href=… />}`), named for what it opens when the label alone is ambiguous (aria-label="View all new releases").
 - Do: Pass a ghost or link action as a plain Button and let the header align it: the last direct child bleeds by its own padding at the end, so "View all" sits on the edge of the grid below, and the first bleeds at the start, which is the edge once the actions wrap beneath the title. Filled buttons keep their edge on the line. Set bleed="none" on the Button to opt one out.
 - Don't: Nudge a View all onto the edge with -me-3, or wrap the actions in your own div: the header aligns direct children only, and only by each button's real padding. If you must wrap them, set bleed on the Button inside instead.
@@ -38,11 +38,11 @@ Use SectionHeader to head each section below the page title — a home-page shel
 | actions | ReactNode | — | Trailing actions on the title row — a View all link or a couple of buttons, size="sm". They stay on the title's row and drop beneath it only when the row runs out of room; the title wraps rather than truncating. A ghost or link Button that ends the group bleeds by its padding at the end (and one that starts it, at the start — the edge once wrapped), so its label lines up with the content below; Button bleed="none" opts out. Direct children only. |
 | titleAs | "h2" \| "h3" \| "h4" | "h2" | The heading element, chosen by the document outline: h2 for a section under the page's h1, h3 for a subsection inside one. |
 | titleId | string | — | The title's id, so the section it heads can point at it: <section aria-labelledby={titleId}>. Generated when omitted. |
-| size | "md" \| "sm" | "md" | Visual weight, independent of the heading level: md (text-heading-3) for a page's sections and shelves; sm (text-heading-4) for denser sets — settings groups, subsections. |
+| size | "lg" \| "md" \| "sm" | "md" | Visual weight, independent of the heading level: lg (text-heading-2 over a text-body-md description) for an editorial page's sections, under a PageHeader size="lg"; md (text-heading-3) for a page's sections and shelves; sm (text-heading-4) for denser sets — settings groups, subsections. lg stops at heading-2: heading-1 is the page title's, one per route. The actions stay centred on the title's first line at every size. |
 
 ## Variants
 
-- **size**: md, sm
+- **size**: lg, md, sm
 
 ## Tokens used
 
@@ -132,6 +132,30 @@ import { Button, Entity, Icon, SectionHeader, Stack } from "@sableui/react"
 		<Entity className="[--entity-px:0]" title="Late drives" subtitle="42 tracks" />
 		<Entity className="[--entity-px:0]" title="Focus" subtitle="18 tracks" />
 	</Stack>
+</section>
+```
+
+### An editorial section (size lg)
+
+```tsx
+import { Button, Card, CardDescription, CardHeader, CardTitle, Grid, SectionHeader } from "@sableui/react"
+
+<section aria-labelledby="selected-work" className="flex flex-col gap-6">
+	<SectionHeader
+		titleId="selected-work"
+		size="lg"
+		title="Selected work"
+		description="Five projects from the last two years."
+		actions={
+			<Button variant="ghost" size="sm" render={<a href="/work" />} aria-label="View all work">
+				View all
+			</Button>
+		}
+	/>
+	<Grid minItemWidth="16rem" gap={3}>
+		<Card><CardHeader><CardTitle>Tidewater</CardTitle><CardDescription>Brand identity</CardDescription></CardHeader></Card>
+		<Card><CardHeader><CardTitle>Northlight</CardTitle><CardDescription>Product design</CardDescription></CardHeader></Card>
+	</Grid>
 </section>
 ```
 

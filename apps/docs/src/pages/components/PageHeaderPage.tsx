@@ -46,6 +46,45 @@ export function PageHeaderPage() {
 			</Section>
 
 			<Section
+				title="Sizes"
+				description="md, the default, is for product pages: settings, lists, dashboards. lg sets a display-size title over a larger lede, for an editorial page such as a personal site or a marketing page. Display type is never product chrome, so keep lg off app routes. Beside actions, a title taller than the buttons still centres its first line on them."
+			>
+				<Example
+					className="!block"
+					code={`<PageHeader
+	titleAs="h2"
+	title="Invoices"
+	description="Every charge on this account."
+	actions={<Button>Export</Button>}
+/>
+
+<PageHeader
+	titleAs="h2"
+	size="lg"
+	title="Field notes"
+	description="Essays on making things slowly, from a studio by the sea."
+	actions={<Button variant="outline">Subscribe</Button>}
+/>`}
+				>
+					<div className="flex flex-col gap-8">
+						<SablePageHeader
+							titleAs="h2"
+							title="Invoices"
+							description="Every charge on this account."
+							actions={<Button>Export</Button>}
+						/>
+						<SablePageHeader
+							titleAs="h2"
+							size="lg"
+							title="Field notes"
+							description="Essays on making things slowly, from a studio by the sea."
+							actions={<Button variant="outline">Subscribe</Button>}
+						/>
+					</div>
+				</Example>
+			</Section>
+
+			<Section
 				title="With a back button"
 				description="For pages you drill into. Keep the back button quiet."
 			>

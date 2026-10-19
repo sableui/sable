@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-Explicit space on the rhythm, or a flexible grow pusher between siblings (e.g. pushing a footer item to the end of a Row).
+Explicit space on the rhythm, or a flexible grow pusher between siblings (e.g. pushing a footer item to the end of a Row). The size is a class reading a CSS variable, so className resizes or hides it at a breakpoint.
 
 **Keywords:** spacer, spacing, grow, layout
 

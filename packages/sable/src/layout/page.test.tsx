@@ -10,19 +10,18 @@ describe("Page", () => {
 			</Page>,
 		)
 		const region = container.firstChild as HTMLElement
-		expect(region.style.maxWidth).toBe("var(--region-feed)")
-		expect(region.style.marginInline).toBe("auto")
+		expect(region.style.getPropertyValue("--sable-region-max")).toBe("var(--region-feed)")
+		expect(region).toHaveClass("mx-auto", "max-w-(--sable-region-max)")
 
 		const stack = region.firstChild as HTMLElement
-		expect(stack.style.display).toBe("flex")
-		expect(stack.style.flexDirection).toBe("column")
-		expect(stack.style.gap).toBe("calc(var(--rhythm-unit) * 3)")
+		expect(stack).toHaveClass("flex", "flex-col")
+		expect(stack.style.getPropertyValue("--sable-stack-gap")).toBe("calc(var(--rhythm-unit) * 3)")
 	})
 
 	it("defaults the section gap to 4 rhythm units", () => {
 		const { container } = render(<Page>x</Page>)
 		const stack = (container.firstChild as HTMLElement).firstChild as HTMLElement
-		expect(stack.style.gap).toBe("calc(var(--rhythm-unit) * 4)")
+		expect(stack.style.getPropertyValue("--sable-stack-gap")).toBe("calc(var(--rhythm-unit) * 4)")
 	})
 
 	it("renders a semantic element via `as`", () => {

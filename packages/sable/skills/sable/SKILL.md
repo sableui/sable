@@ -1,6 +1,6 @@
 ---
 name: sable
-description: Build original websites and apps with Sable, turn inspiration into reusable presets, audit existing interfaces, polish a selected design, and fix a scoped defect on a short path. Use for Sable design and UI work, not unrelated backend tasks.
+description: Use for any UI work in a project that depends on @sableui/react (a page, a component, styling, layout, theming, or a UI fix), even when the request does not mention Sable. Builds websites and apps from the installed Sable library, turns inspiration into reusable presets, audits and polishes existing interfaces, and fixes scoped defects. Not for unrelated backend tasks.
 ---
 
 # Sable
@@ -35,7 +35,9 @@ the check turns up more than the fix. Say that you escalated, and why.
    `sable lint`, and `sable grade` and exits 1 if any fails. Repair the findings
    instead of suppressing them, then run it again until it passes. Act on its
    notes too: they don't fail the check but name real work, such as trimming the
-   CSS to the components the app imports (`sable sources`). Also run the
+   CSS to the components the app imports (`sable sources`), or an Adoption block
+   listing app-built components Sable already ships, which you put to the user
+   (see "Adoption" under Verify and deliver). Also run the
    project's own build and type checks.
 2. Review the rendered design: `sable docs reviewing-a-design`. Capture desktop and
    mobile in every promised colour mode, and judge brief fit, composition,
@@ -64,6 +66,9 @@ results, plus any step its notes call for. A passing check is a contract result,
 
 These are agent skill modes, not shell commands. Use `$sable` in Codex and
 `/sable` in Claude Code or Cursor; natural requests work in compatible agents.
+A request that never says "Sable" ("add a pricing page", "make the header
+sticky") in a project that depends on `@sableui/react` is still this skill:
+route it by the rules below and build it from the library.
 
 | Mode | Outcome |
 | --- | --- |
@@ -75,6 +80,11 @@ These are agent skill modes, not shell commands. Use `$sable` in Codex and
 
 `create` is an alias for `build`. A bare new-product brief means `build`; an editing
 follow-up means `polish`, unless it names one defect, which is a `fix`. A request for direction only stops before implementation.
+"Move this app onto Sable" (or convert, migrate, "use Sable properly") is never
+a `build`: that would start the product over. Run `sable check`, show the user
+the Adoption swaps in one short list, ask once which to move, then `polish` them
+a screen at a time without asking again for each. The user should not need to
+know the mode names; route plain requests yourself.
 “Show alternatives” produces bounded rendered studies and stops at comparison when
 the user reserves the choice. Explore only when requested or when competing choices
 materially affect the brief; do not require three designs for every build.
@@ -151,7 +161,11 @@ rather than redoing it:
 
 `sable init` installs the discoverable entry files for Codex/Cursor and Claude
 Code; in an app wired by hand, run `sable setup --agent` once from the project root. `--target codex|claude|cursor|all` selects
-hosts. For Claude Code, setup also prints a Stop hook that runs `sable check`
+hosts. Setup also writes a short managed block into `AGENTS.md` and `CLAUDE.md`,
+the instructions every task reads, that sends UI requests through this skill
+even when they don't name it. It replaces only the text between its
+`<!-- sable:begin … -->` and `<!-- sable:end -->` markers; `--no-instructions`
+skips it. For Claude Code, setup also prints a Stop hook that runs `sable check`
 before a task can end; it writes that hook to `.claude/settings.json` only with
 `--hook`, so add it only when the user wants it. The hook is one plain command
 (for example `pnpm exec sable check --stop-hook`) with no `cd` or `&&`, so it runs
@@ -213,7 +227,8 @@ The installed catalog and guides are authoritative for API and token names.
    consume it. In another app, implement only genuinely app-specific structure;
    report a missing library hook. Do not modify installed package files or build
    parallel controls as a shortcut. Preserve existing non-Sable work unless a
-   migration was requested.
+   migration was requested, but don't leave it unmentioned: when `sable check`
+   reports adoption `none` or `low`, ask the user (see "Adoption" below).
 
 ## Develop or use a preset
 
@@ -280,6 +295,20 @@ For `audit`, read `sable docs auditing-an-app`; report by default and distinguis
 contract violations, design judgments, intentional choices, and verified library
 gaps. A visual-only review leaves code and unobserved behavior untested. For
 `polish`, reuse the existing direction and inspect the affected product or preset.
+
+**Adoption.** An app can be wired for Sable and barely use it: an earlier agent
+never loaded this skill and wrote its own Modal, Button and Tabs on Sable's
+tokens. `sable check` reports it under Adoption (`sable grade --json` →
+`adoption`): how many UI files compose Sable, the app-built components Sable
+already ships (behaviour first), and the app's `foundation`. When the level is
+`none` or `low`, during any mode, ask the user before moving working screens, with
+the host's question tool if it has one. Show the swaps and what each gains
+("your Modal has no focus trap or Esc; Sable's Dialog has both"). Recommend the
+move plainly when the foundation is `ad-hoc`; offer it gently when the app has
+its `own` primitives; ask whether Sable replaces another `library` or only covers
+new work. Record the answer in the project's instructions, outside the Sable
+block, so the next task doesn't ask again. `sable docs auditing-an-app` has the
+full guide.
 
 Every build and polish ends with the finish checklist near the top of this skill. Notes on it:
 

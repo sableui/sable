@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-Responsive two-pane layout: side-by-side at/above a breakpoint, stacked (primary first) below. List-detail, media + metadata.
+Responsive two-pane layout: side-by-side at/above a breakpoint, stacked (primary first) below. List-detail, media + metadata. display is the grid class and the breakpoint rules are layered, so className utilities (hidden lg:grid, gap-8) win.
 
 **Keywords:** split pane, two pane, list detail, responsive
 

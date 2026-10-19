@@ -1,9 +1,10 @@
+import { createHash } from "node:crypto"
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 // @ts-expect-error Plain JS tool shipped with the CLI.
-import { claudeStopHook, installAgentSkill, installClaudeStopHook } from "../../scripts/agent-setup.mjs"
+import { claudeStopHook, installAgentSkill, installClaudeStopHook, instructionsBlock } from "../../scripts/agent-setup.mjs"
 
 let scratch: string
 let root: string
@@ -27,15 +28,69 @@ describe("agent setup", () => {
 		installAgentSkill({ root, packageRoot })
 		installAgentSkill({ root, packageRoot })
 		expect(readFileSync(join(root, ".agents/skills/sable/agents/openai.yaml"), "utf8")).toContain("Sable")
-		expect(readFileSync(join(root, "AGENTS.md"), "utf8")).toBe("project rules")
+		const agents = readFileSync(join(root, "AGENTS.md"), "utf8")
+		expect(agents.startsWith("project rules\n\n<!-- sable:begin")).toBe(true)
+		expect(agents.match(/sable:begin/g)).toHaveLength(1)
 		expect(readFileSync(join(root, ".agents/skills/sable/SKILL.md"), "utf8")).toBe("Read installed skills/sable/SKILL.md")
 		expect(readFileSync(join(root, ".claude/skills/sable/SKILL.md"), "utf8")).toBe("Read installed skills/sable/SKILL.md")
 	})
 	it("performs no writes in dry-run mode", () => {
-		installAgentSkill({ root, packageRoot, dryRun: true })
+		const result = installAgentSkill({ root, packageRoot, dryRun: true })
+		expect(result.instructionsChanged).toEqual(["AGENTS.md", "CLAUDE.md"])
 		expect(existsSync(join(root, ".agents"))).toBe(false)
 		expect(existsSync(join(root, ".claude"))).toBe(false)
 		expect(existsSync(join(root, ".sable"))).toBe(false)
+		expect(existsSync(join(root, "AGENTS.md"))).toBe(false)
+		expect(existsSync(join(root, "CLAUDE.md"))).toBe(false)
+	})
+	it("sends every UI request through the skill from the always-loaded project instructions", () => {
+		writeFileSync(join(root, "pnpm-lock.yaml"), "")
+		installAgentSkill({ root, packageRoot })
+		const block = readFileSync(join(root, "CLAUDE.md"), "utf8")
+		expect(block).toBe(readFileSync(join(root, "AGENTS.md"), "utf8"))
+		expect(block).toContain("load the `sable` skill first")
+		expect(block).toContain("`pnpm exec sable check`")
+		expect(block.trim().endsWith("<!-- sable:end -->")).toBe(true)
+	})
+	it("writes the block for the chosen host only, and once when CLAUDE.md imports AGENTS.md", () => {
+		installAgentSkill({ root, packageRoot, target: "claude" })
+		expect(existsSync(join(root, "AGENTS.md"))).toBe(false)
+		expect(readFileSync(join(root, "CLAUDE.md"), "utf8")).toContain("sable:begin")
+		rmSync(join(root, "CLAUDE.md"))
+		writeFileSync(join(root, "CLAUDE.md"), "@AGENTS.md\n")
+		installAgentSkill({ root, packageRoot })
+		expect(readFileSync(join(root, "CLAUDE.md"), "utf8")).toBe("@AGENTS.md\n")
+		expect(readFileSync(join(root, "AGENTS.md"), "utf8")).toContain("sable:begin")
+	})
+	it("refreshes its own block under --update, keeps the text around it, and refuses local edits inside it", () => {
+		writeFileSync(join(root, "AGENTS.md"), "before\n")
+		installAgentSkill({ root, packageRoot, target: "codex" })
+		const old = readFileSync(join(root, "AGENTS.md"), "utf8")
+		// An older Sable's block: what the receipt recorded, so --update may replace it.
+		const older = old.replace("Never rebuild", "Do not rebuild")
+		const receipt = JSON.parse(readFileSync(join(root, ".sable/agent-setup.json"), "utf8"))
+		receipt.files["AGENTS.md#sable"] = createHash("sha256").update(older.slice(older.indexOf("<!-- sable:begin"), older.indexOf("<!-- sable:end -->") + 18)).digest("hex")
+		writeFileSync(join(root, ".sable/agent-setup.json"), JSON.stringify(receipt))
+		writeFileSync(join(root, "AGENTS.md"), `${older}after\n`)
+		expect(() => installAgentSkill({ root, packageRoot, target: "codex" })).toThrow("Sable block in AGENTS.md differs")
+		installAgentSkill({ root, packageRoot, target: "codex", update: true })
+		expect(readFileSync(join(root, "AGENTS.md"), "utf8")).toBe(`${old}after\n`)
+		writeFileSync(join(root, "AGENTS.md"), old.replace("Never rebuild", "My rule"))
+		expect(() => installAgentSkill({ root, packageRoot, target: "codex", update: true })).toThrow("Sable block in AGENTS.md differs")
+	})
+	it("skips the block on request", () => {
+		const result = installAgentSkill({ root, packageRoot, instructions: false })
+		expect(result.instructions).toEqual([])
+		expect(existsSync(join(root, "AGENTS.md"))).toBe(false)
+		expect(existsSync(join(root, "CLAUDE.md"))).toBe(false)
+	})
+	it("names the workspace package and its runner in a monorepo block", () => {
+		writeFileSync(join(root, "pnpm-lock.yaml"), "")
+		const app = join(root, "apps", "web")
+		mkdirSync(app, { recursive: true })
+		writeFileSync(join(app, "package.json"), JSON.stringify({ name: "web" }))
+		expect(instructionsBlock({ root, project: app })).toContain("The UI in `apps/web`")
+		expect(instructionsBlock({ root, project: app })).toContain("`pnpm --filter web exec sable check`")
 	})
 	it("refuses a changed file before copying any missing files", () => {
 		mkdirSync(join(root, ".agents/skills/sable"), { recursive: true })

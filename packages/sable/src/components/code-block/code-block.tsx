@@ -75,6 +75,13 @@ export interface CodeBlockProps extends ComponentPropsWithRef<"div"> {
 	 * What Snippet was.
 	 */
 	prompt?: string
+	/**
+	 * Wrap long lines instead of scrolling them. For prose in a code face (a
+	 * prompt to paste into an agent, a log line), where the end of a line
+	 * scrolled out of view hides what it says. Code keeps scrolling: wrapping
+	 * breaks the indentation it is read by.
+	 */
+	wrap?: boolean
 }
 
 /**
@@ -92,6 +99,7 @@ export function CodeBlock({
 	showCopy = true,
 	highlight,
 	prompt,
+	wrap = false,
 	className,
 	...props
 }: CodeBlockProps) {
@@ -153,10 +161,11 @@ export function CodeBlock({
 			    carries the fade mask; it has no border of its own to fade. */}
 			<pre
 				ref={preRef}
-				onScroll={fade.sync}
-				style={fade.style}
+				onScroll={wrap ? undefined : fade.sync}
+				style={wrap ? undefined : fade.style}
 				className={cn(
-					"overflow-x-auto overscroll-x-contain p-4 text-mono-md text-foreground scrollbar-quiet",
+					"p-4 text-mono-md text-foreground",
+					wrap ? "whitespace-pre-wrap break-words" : "overflow-x-auto overscroll-x-contain scrollbar-quiet",
 					copyColumn && "min-w-0 flex-1 pe-2",
 				)}
 			>

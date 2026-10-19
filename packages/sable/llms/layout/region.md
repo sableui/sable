@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-The page region: fluid, edge-to-edge with the fluid page inset (--page-inset). Opt-in centered max cap picked by ROLE (prose/form/feed/content/wide/full), never a global page max-width. The root of nearly every route.
+The page region: fluid, edge-to-edge with the fluid page inset (--page-inset). Opt-in centered max cap picked by ROLE (prose/form/feed/content/wide/full), never a global page max-width. The root of nearly every route. The inset and cap are classes (px-(--page-inset), max-w-…), so className overrides them at a breakpoint (max-sm:px-0); only safeArea padding is inline.
 
 **Keywords:** region, page width, container, layout
 

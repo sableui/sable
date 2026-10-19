@@ -34,3 +34,25 @@ describe("Pill", () => {
 		expect(chosen.className).not.toContain("bg-primary")
 	})
 })
+
+describe("Pill size ladder", () => {
+	it.each([
+		["lg", "h-(--control-sm)"],
+		["md", "h-(--control-xs)"],
+	] as const)("%s reads the control ladder for its height, never a literal", (size, ladder) => {
+		render(<Pill size={size}>All</Pill>)
+		const heights = [...screen.getByRole("button", { name: "All" }).classList].filter((name) => name.startsWith("h-"))
+		expect(heights).toEqual([ladder])
+	})
+
+	it("sm is the one fixed height: the 24px target floor, which a compact ladder must not shrink", () => {
+		render(<Pill size="sm">All</Pill>)
+		const heights = [...screen.getByRole("button", { name: "All" }).classList].filter((name) => name.startsWith("h-"))
+		expect(heights).toEqual(["h-6"])
+	})
+
+	it("lg shares --control-sm with SearchInput sm and Button sm, the toolbar rung", () => {
+		render(<Pill size="lg">All</Pill>)
+		expect(screen.getByRole("button", { name: "All" })).toHaveClass("h-(--control-sm)", "text-label-lg")
+	})
+})

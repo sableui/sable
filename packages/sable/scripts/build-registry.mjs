@@ -1819,7 +1819,7 @@ registry.consume.init = {
 	command: "pnpm exec sable init",
 	preview: "pnpm exec sable init --dry-run",
 	after: "Run it once the package is installed; before that `npx sable` resolves an unrelated package.",
-	does: "Installs missing packages with the lockfile's package manager (React, Tailwind and its build plugin), writes the css imports in order into the global stylesheet, adds bundlerDedupe and the Tailwind plugin to a Vite config (a postcss.config.mjs for Next.js), loads the fonts, wraps a Vite starter's <App /> in IconProvider, runs agentSetup, then sable doctor.",
+	does: "Installs missing packages with the lockfile's package manager (React, Tailwind and its build plugin), writes the css imports in order into the global stylesheet, adds bundlerDedupe and the Tailwind plugin to a Vite config (a postcss.config.mjs for Next.js), loads the fonts, wraps a Vite starter's <App /> in IconProvider, runs agentSetup (skill entries plus the AGENTS.md / CLAUDE.md block; in a terminal it offers the Stop hook), then sable doctor.",
 	frameworks: "Vite and Next.js (App Router) get every step. Other setups get the packages and the stylesheet; the bundler and provider steps are printed.",
 	manual: "Each edit it cannot make safely (an unfamiliar config shape, a Next.js layout, a stylesheet split across files) is printed as the exact snippet and the file it belongs in. Apply them, then run sable doctor.",
 	flags: "--dry-run previews; --no-agent skips the skill; --no-install prints install commands instead of running them.",
@@ -1831,8 +1831,9 @@ registry.consume.agentSetup = {
 	monorepo: "When Sable belongs to one workspace package, run setup in that package with --root at the repository root: pnpm --filter <package> exec sable setup --agent --root <path to root>. Entries go to the root and resolve Sable through the package.",
 	targets: { codex: ".agents/skills/sable", cursor: ".agents/skills/sable", claude: ".claude/skills/sable" },
 	canonical: "skills/sable/SKILL.md in the installed package; entries resolve it on every task",
-	upgrade: "pnpm update @sableui/react --latest; pnpm exec sable setup --agent --update",
-	preserves: "Local edits, project instructions, presets and preferences; setup only refreshes unchanged managed entries and refuses linked destinations.",
+	instructions: "A short managed block in AGENTS.md (Codex, Cursor) and CLAUDE.md (Claude Code), between <!-- sable:begin --> and <!-- sable:end -->, that sends every UI request through the skill even when it doesn't name Sable. --no-instructions skips it.",
+	upgrade: "pnpm exec sable upgrade (updates the package, then runs the new version's init). From 0.17 or earlier: pnpm update @sableui/react --latest; pnpm exec sable init",
+	preserves: "Local edits, project instructions outside the Sable block, presets and preferences; setup only refreshes unchanged managed entries and blocks, and refuses linked destinations.",
 }
 registry.consume.designTheme = "Set data-sable-theme for alternate or app-owned themes; omit the attribute or use base for the default. Register portable presets with presetManifest() through SableThemeProvider customThemes, and load their scoped CSS and fonts."
 registry.consume.ios = {
@@ -1906,6 +1907,7 @@ registry.consume.designWorkflow = {
 	composition: "Inspect a relevant pattern skeleton. Reuse when its information architecture fits; original compositions from layout primitives are equally valid.",
 	review: "sable docs reviewing-a-design",
 	finish: "sable check <source paths> runs doctor, lint and grade in one pass and exits 1 on any failure, then lists the review steps no tool can verify. Optional Claude Code Stop hook: sable setup --agent --target claude --hook",
+	adoption: "sable check reports how much of the UI composes Sable and the app-built components Sable already ships (grade --json → adoption). Never a failure; at level none or low, ask the user before moving working screens: sable docs auditing-an-app → Adoption.",
 	evidenceTemplate: "sable grade --template",
 	learning: "sable docs learning-from-builds",
 	localMemory: ".sable/lessons/ for causal observations; .sable/preferences/ for scoped judgments; both project-owned and preserved across package upgrades",

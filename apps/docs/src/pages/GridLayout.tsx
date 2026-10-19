@@ -6,6 +6,7 @@ import {
 	GridOverlay,
 	Icon,
 	Page,
+	Row,
 	Sidebar,
 	SidebarItem,
 	SidebarNav,
@@ -177,6 +178,28 @@ export function GridLayoutPage() {
 					primary={<Box>Primary</Box>}
 					secondary={<Box>Secondary</Box>}
 				/>
+			</Section>
+
+			<Section
+				title="Responsive through className"
+				description="Every primitive keeps its layout in classes, so a utility in className overrides a prop at any breakpoint. Narrow the window: the row stacks below sm and its last cell hides below md."
+			>
+				<Row gap={1.5} className="max-sm:flex-col max-sm:items-stretch">
+					<Stack className="flex-1">
+						<Box>Stacks below sm</Box>
+					</Stack>
+					<Stack className="flex-1">
+						<Box>Stacks below sm</Box>
+					</Stack>
+					<Stack className="flex-1 max-md:hidden">
+						<Box>Hidden below md</Box>
+					</Stack>
+				</Row>
+				<p className="mt-3 text-body-sm text-muted-foreground">
+					<InlineCode>{'<Row className="max-sm:flex-col">'}</InlineCode> and{" "}
+					<InlineCode>{'<Stack className="max-md:hidden">'}</InlineCode>. No primitive sets{" "}
+					<InlineCode>display</InlineCode> inline, which would beat every utility.
+				</p>
 			</Section>
 
 			<Section

@@ -51,7 +51,9 @@ function resolveGap(gap: number | string | undefined): string | undefined {
  * hand-building a desktop two-column layout plus a separate mobile stack.
  *
  * The breakpoint switch + ratio resolve through the `[data-sable-split]` rules in
- * `styles.css` (inline CSS custom properties), so any `ratio` works.
+ * `styles.css` (inline CSS custom properties), so any `ratio` works. `display`
+ * is the `grid` class and those rules sit in `@layer components`, so a
+ * `className` utility (`hidden lg:grid`, `gap-8`) overrides them.
  *
  * `collapseBelow` is **viewport-relative**, not container-relative: it asks how
  * wide the window is, not how wide this SplitPane is. Dropped inside a narrow
@@ -87,7 +89,7 @@ export function SplitPane({
 			ref={ref}
 			data-sable-split
 			data-collapse={collapseBelow}
-			className={cn(className)}
+			className={cn("grid", className)}
 			style={mergedStyle}
 			{...rest}
 		>

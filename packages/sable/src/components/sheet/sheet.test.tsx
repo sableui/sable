@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react"
+import { act, render, screen, waitFor } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
 import { useState } from "react"
 import { describe, expect, it, vi } from "vitest"
@@ -388,5 +388,39 @@ describe("Sheet — the on-screen keyboard", () => {
 		viewport.dispatchEvent(new Event("resize"))
 		expect(popup.style.getPropertyValue("--sheet-keyboard-inset")).toBe("0px")
 		Object.defineProperty(window, "visualViewport", { value: undefined, configurable: true })
+	})
+})
+
+describe("Sheet focus return", () => {
+	it("returns focus to your own button when opened through controlled open, even past an autofocused field", async () => {
+		function Filters() {
+			const [open, setOpen] = useState(false)
+			return (
+				<>
+					<button type="button">Elsewhere</button>
+					<button type="button" onClick={() => setOpen(true)}>
+						Filters
+					</button>
+					<Sheet open={open} onOpenChange={setOpen}>
+						<SheetContent>
+							<SheetTitle>Filters</SheetTitle>
+							{/* biome-ignore lint/a11y/noAutofocus: the case under test */}
+							<input aria-label="Search filters" autoFocus />
+							<SheetClose render={<button type="button">Done</button>} />
+						</SheetContent>
+					</Sheet>
+				</>
+			)
+		}
+		const user = userEvent.setup()
+		render(<Filters />)
+		await user.click(screen.getByRole("button", { name: "Elsewhere" }))
+		await user.click(screen.getByRole("button", { name: "Filters" }))
+		await screen.findByRole("dialog")
+		await act(async () => {})
+		await user.click(screen.getByRole("button", { name: "Done" }))
+		await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
+		await act(async () => {})
+		expect(document.activeElement).toBe(screen.getByRole("button", { name: "Filters" }))
 	})
 })

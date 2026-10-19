@@ -210,16 +210,19 @@ function PageActions({ href }: { href: string }) {
 }
 
 export function Section({
+	id,
 	title,
 	description,
 	children,
 }: {
+	/** An anchor (`/page#id`): the search palette lands on sections that have one. */
+	id?: string
 	title: string
 	description?: string
 	children: ReactNode
 }) {
 	return (
-		<section className="mt-14 first:mt-0">
+		<section id={id} className="mt-14 scroll-mt-24 first:mt-0">
 			{/* Sable's own SectionHeader, dogfooded; the docs set the measure, the
 			    space below, and a reading-size description. */}
 			<SectionHeader

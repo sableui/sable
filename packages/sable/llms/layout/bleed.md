@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-Escape a width-capped or inset ancestor to span the full CONTENT area (container-query units, so it stops at a fixed Sidebar instead of bleeding under it). Hero bands, profile covers, full-bleed media inside a capped Page.
+Escape a width-capped or inset ancestor to span the full CONTENT area (container-query units, so it stops at a fixed Sidebar instead of bleeding under it). Hero bands, profile covers, full-bleed media inside a capped Page. Width and margins are classes, so a breakpoint can turn the bleed off (lg:mx-0 lg:w-auto).
 
 **Keywords:** bleed, full bleed, media band, layout
 

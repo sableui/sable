@@ -78,6 +78,15 @@
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
+    "ActivityHeatmap": {
+      "source": "ActivityHeatmap",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "ActivityHeatmap"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
     "AppHeader": {
       "source": "AppHeader",
       "strategy": "replace",

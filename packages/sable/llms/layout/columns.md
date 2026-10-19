@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-An explicit N-column track (default 12) for proportioned layouts — pair with Col spans (list-detail, asymmetric editorial layouts). For uniform card grids prefer Grid minItemWidth.
+An explicit N-column track (default 12) for proportioned layouts — pair with Col spans (list-detail, asymmetric editorial layouts). For uniform card grids prefer Grid minItemWidth. display is the grid class, so hidden md:grid works; a gap-* utility replaces both gaps and the column-gap cap.
 
 **Keywords:** columns, 12 column, span, layout
 

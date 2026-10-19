@@ -18,11 +18,17 @@ export function GettingStartedPage() {
 		</Section>
 		<Section title="2. Run sable init" description="From the app root. --dry-run lists every change first; nothing is written until you run it without the flag.">
 			<CodeBlock code={'pnpm exec sable init --dry-run\npnpm exec sable init'} />
-			<p className="text-body-md text-muted-foreground mt-4 max-w-(--measure-prose)">It reads your package manager from the lockfile and your framework from the project, installs what is missing (React, Tailwind and its build plugin), writes the stylesheet imports in order, adds React deduplication and the Tailwind plugin to a Vite config (a PostCSS config for Next.js), loads Figtree and DM Mono, mounts IconProvider in a Vite starter, installs the agent skill, and finishes with sable doctor.</p>
+			<p className="text-body-md text-muted-foreground mt-4 max-w-(--measure-prose)">It reads your package manager from the lockfile and your framework from the project, installs what is missing (React, Tailwind and its build plugin), writes the stylesheet imports in order, adds React deduplication and the Tailwind plugin to a Vite config (a PostCSS config for Next.js), loads Figtree and DM Mono, mounts IconProvider in a Vite starter, installs the agent skill with a short block in AGENTS.md and CLAUDE.md that sends every UI request through it, and finishes with sable doctor.</p>
 			<p className="text-body-md text-muted-foreground mt-4 max-w-(--measure-prose)">An edit it cannot make safely, such as a Next.js root layout or an unfamiliar config, is printed as a snippet with the file it belongs in. Vite and Next.js get every step; other setups get the packages and the stylesheet. In an app that is already set up, sable doctor --fix applies the same fixes to whatever doctor flags.</p>
 		</Section>
 		<Section title="3. Render a component" description="Import from the package root.">
 			<CodeBlock filename="src/App.tsx" code={'import { Button } from "@sableui/react"\n\nexport default function App() {\n  return <Button>Save changes</Button>\n}'} />
+		</Section>
+		<Section id="update" title="Already using Sable?" description="One command updates the package and your agent's setup together. It is safe on an app that already works.">
+			<CodeBlock code="pnpm exec sable upgrade" />
+			<p className="text-body-md text-muted-foreground mt-4 max-w-(--measure-prose)">Coming from 0.17 or earlier, which has no upgrade command, do it once by hand:</p>
+			<CodeBlock className="mt-4" code={'pnpm update @sableui/react --latest\npnpm exec sable init'} />
+			<p className="text-body-md text-muted-foreground mt-4 max-w-(--measure-prose)">If an agent built your UI without Sable's components, tell it to “move this app onto Sable”. It lists what to swap and asks before changing anything. <a className="underline" href="/build-with-sable#adoption">How that works</a>.</p>
 		</Section>
 		<Section title="Wiring it by hand" description="What sable init does, for setups it does not recognise or for checking its work. The @source path is relative to the stylesheet; this assumes src/styles.css and node_modules at the project root.">
 			<CodeBlock filename="src/styles.css" code={'@import "tailwindcss";\n@import "@sableui/react/styles.css";\n@source "../node_modules/@sableui/react/dist/**/*.{js,mjs}";'} />
@@ -30,13 +36,12 @@ export function GettingStartedPage() {
 			<CodeBlock className="mt-4" filename="vite.config.ts" code={'import tailwindcss from "@tailwindcss/vite"\nimport { defineConfig } from "vite"\n\nexport default defineConfig({\n  plugins: [tailwindcss() /* , your other plugins */],\n  resolve: { dedupe: ["react", "react-dom"] },\n})'} />
 			<p className="text-body-md text-muted-foreground mt-4 max-w-(--measure-prose)">Mount IconProvider once at the root: without it every icon renders nothing, including those inside Sable's components. Load Figtree and DM Mono through your font setup, or choose your own fonts with the theme tokens; font files are not included in the package.</p>
 			<CodeBlock className="mt-4" filename="src/main.tsx" code={'import { IconProvider } from "@sableui/react"\nimport { reiconIconSet } from "@sableui/react/icons/reicon"\nimport "./styles.css"\n\n<IconProvider set={reiconIconSet}>\n  <App />\n</IconProvider>'} />
-			<CodeBlock className="mt-4" code="pnpm exec sable doctor" />
+			<p className="text-body-md text-muted-foreground mt-4 max-w-(--measure-prose)">Then set up your agent, which sable init would have done for you:</p>
+			<CodeBlock className="mt-4" code={'pnpm exec sable setup --agent\npnpm exec sable doctor'} />
 		</Section>
-		<Section title="Build with an agent" description="sable init installs the agent skill. Codex and Cursor share an entry in .agents; Claude Code uses .claude. Each entry reads the installed package's maintained skill. To install it on its own, run setup from the project root; --target selects a host and --dry-run inspects without writing.">
-			<CodeBlock code="pnpm exec sable setup --agent" />
-			<CodeBlock className="mt-4" code="$sable build a workshop booking app" />
-			<p className="text-body-md text-muted-foreground mt-4">Use /sable in Claude Code or Cursor. <a className="underline" href="/build-with-sable">Build with Sable</a> connects inspiration, Canvas presets, builds, and audits. To update both the library and skill:</p>
-			<CodeBlock className="mt-4" code={'pnpm update @sableui/react --latest\npnpm exec sable setup --agent --update'} />
+		<Section title="Build with an agent" description="sable init already set your agent up: the Sable skill, plus a short block in AGENTS.md and CLAUDE.md that sends every UI request through it. Ask for what you want in plain words.">
+			<CodeBlock wrap highlight={false} code="Build a workshop booking app with a calendar and a confirmation step." />
+			<p className="text-body-md text-muted-foreground mt-4 max-w-(--measure-prose)">/sable (Claude Code, Cursor) or $sable (Codex) names the skill explicitly. <a className="underline" href="/build-with-sable">Build with Sable</a> covers presets, audits and the commands behind it.</p>
 			<p className="text-body-md text-muted-foreground mt-4 mb-4">Or copy this setup prompt into your coding agent:</p>
 			<CodeBlock code={AGENT_PROMPT} />
 		</Section>

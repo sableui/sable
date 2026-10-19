@@ -36,13 +36,15 @@
 
 import { spawnSync } from "node:child_process"
 import { appendFileSync, existsSync, readdirSync, readFileSync, statSync } from "node:fs"
+import { createRequire } from "node:module"
 import { dirname, join, relative, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { skeletonize } from "../scripts/skeleton.mjs"
 import { claudeStopHook, installAgentSkill, installClaudeStopHook } from "../scripts/agent-setup.mjs"
+import { adoptionReport, swapLines } from "../scripts/adoption.mjs"
 import { patchChecks } from "../scripts/patches.mjs"
 import { sourcesCheck } from "../scripts/sources.mjs"
-import { detectFramework, detectPackageManager, fixWiring, fontsCheck, providerSnippet, tailwindBuildCheck } from "../scripts/wiring.mjs"
+import { detectFramework, detectPackageManager, fixWiring, fontsCheck, installCommand, providerSnippet, tailwindBuildCheck } from "../scripts/wiring.mjs"
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const PKG_ROOT = join(HERE, "..")
@@ -119,7 +121,7 @@ const COMMANDS = [
 	},
 	{
 		name: "setup",
-		summary: "Install package-backed skill entry files for coding agents, preserving local edits.",
+		summary: "Install package-backed skill entry files for coding agents, plus a short managed block in AGENTS.md / CLAUDE.md that sends every UI request through the skill, preserving local edits.",
 		arg: null,
 		flags: [
 			{ name: "--agent", value: null, describe: "Install skill entry files. Required." },
@@ -128,6 +130,7 @@ const COMMANDS = [
 			{ name: "--update", value: null, describe: "Refresh unchanged managed entries after a package upgrade." },
 			{ name: "--dry-run", value: null, describe: "Check and report the destination without writing files." },
 			{ name: "--hook", value: null, describe: "Also add a Claude Code Stop hook that runs `sable check` to .claude/settings.json (Claude targets only). Without it, setup prints the hook and writes nothing there." },
+			{ name: "--no-instructions", value: null, describe: "Skip the managed Sable block in AGENTS.md / CLAUDE.md. Without that block an agent uses the skill only when a request names it." },
 		],
 		returns: ["setup.agent"],
 	},
@@ -249,7 +252,7 @@ const COMMANDS = [
 	},
 	{
 		name: "doctor",
-		summary: "Check this project's Sable wiring. Exits 1 on any failure.",
+		summary: "Check this project's Sable wiring, and warn when its UI barely uses Sable (adoption). Exits 1 on any wiring failure.",
 		arg: null,
 		flags: [
 			{ name: "--fix", value: null, describe: "Apply the fixes that need no judgment (imports in order, @source, missing packages, Vite dedupe and Tailwind plugin, fonts, IconProvider in a starter entry), print the rest, then check again." },
@@ -265,7 +268,23 @@ const COMMANDS = [
 		flags: [
 			{ name: "--dry-run", value: null, describe: "Report every change without writing or installing anything." },
 			{ name: "--no-agent", value: null, describe: "Skip the agent skill (sable setup --agent)." },
+			{ name: "--no-instructions", value: null, describe: "Install the skill but skip its managed block in AGENTS.md / CLAUDE.md." },
+			{ name: "--hook", value: null, describe: "Also add the Claude Code Stop hook that runs `sable check` before a task can end. In a terminal, init asks; elsewhere it only prints the hook." },
+			{ name: "--no-hook", value: null, describe: "Don't ask about the Stop hook." },
 			{ name: "--no-install", value: null, describe: "Print install commands instead of running them." },
+		],
+		returns: ["init"],
+	},
+	{
+		name: "upgrade",
+		summary: "Update @sableui/react to the latest release, then run the new version's init: skill entries and the AGENTS.md / CLAUDE.md block refreshed, wiring checked, adoption reported. Safe on an app that is already set up.",
+		arg: null,
+		flags: [
+			{ name: "--dry-run", value: null, describe: "Print the update command and preview init's changes without installing or writing anything." },
+			{ name: "--no-install", value: null, describe: "Skip the package update (you updated it yourself); just run the installed version's init." },
+			{ name: "--hook", value: null, describe: "Passed to init: add the Claude Code Stop hook." },
+			{ name: "--no-hook", value: null, describe: "Passed to init: don't ask about the Stop hook." },
+			{ name: "--no-instructions", value: null, describe: "Passed to init: skip the AGENTS.md / CLAUDE.md block." },
 		],
 		returns: ["init"],
 	},
@@ -358,6 +377,7 @@ const ERROR_CODES = [
 	{ code: "ERR_PRESET_CONTRAST", when: "A label on a brand or status fill (primary, sidebar-primary, highlight, destructive, success, tone-warning, tone-info) misses 4.5:1 or APCA Lc 60. Apply the suggested pair, or record an `exceptions` entry with a reason." },
 	{ code: "ERR_AGENT_SETUP", when: "The packaged skill is missing, the destination is linked, or existing local edits would be overwritten." },
 	{ code: "ERR_INIT", when: "sable init ran outside an app root (no package.json)." },
+	{ code: "ERR_UPGRADE", when: "sable upgrade ran where @sableui/react is not a dependency, or the package manager's update failed." },
 	{ code: "ERR_UNKNOWN_COMMAND", when: "The first argument is not a command." },
 	{ code: "ERR_MISSING_ARGUMENT", when: "A command that requires an argument got none." },
 	{ code: "ERR_UNKNOWN_COMPONENT", when: "No component by that name. `suggestions` carries near matches." },
@@ -1471,6 +1491,21 @@ function doctorReport() {
 			)
 	}
 
+	/* Adoption: wiring that holds says nothing about whether the app composes
+	 * Sable. An agent that never loaded the skill wires the stylesheet, uses the
+	 * tokens, and writes its own Button and Modal. A warning, never a failure:
+	 * check lists the swaps, and moving working screens is the user's call. */
+	if (pkg && { ...pkg.dependencies, ...pkg.devDependencies }["@sableui/react"]) {
+		const files = src
+			.filter((f) => /\.(tsx|jsx)$/.test(f.path) && !/\.(test|spec|stories)\./.test(f.path))
+			.map((f) => ({ rel: relative(CWD, f.path).replaceAll("\\", "/"), text: f.text }))
+		const adoption = adoptionReport({ files, components: COMPONENTS, deps: { ...pkg.dependencies, ...pkg.devDependencies } })
+		if (adoption.level === "none" || adoption.level === "low")
+			add("warn", "adoption", `${adoption.summary} ${adoption.recommendation}`, "sable check src lists each swap; then ask your agent to /sable audit (or $sable audit) the app's use of Sable.")
+		else if (adoption.level === "sable") add("pass", "adoption", adoption.summary)
+		else if (adoption.level === "fresh") add("info", "adoption", adoption.summary)
+	}
+
 	/* Tailwind in the build, and the theme's fonts: both fail as a page that
 	 * renders, just not as Sable — unstyled, or in system fonts. */
 	if (pkg) {
@@ -1567,7 +1602,7 @@ function cmdDoctorFix() {
  * app still has to mount. Each step is the code its own command runs, so init
  * can never wire an app differently from what doctor checks.
  */
-function cmdInit() {
+async function cmdInit() {
 	if (!existsSync(join(CWD, "package.json")))
 		fail("ERR_INIT", `No package.json in ${CWD}.`, ["Run sable init from your app's root.", "Starting fresh: pnpm create vite@latest my-app --template react-ts, then pnpm add @sableui/react && pnpm exec sable init"])
 	const dryRun = flags.has("dry-run")
@@ -1582,26 +1617,57 @@ function cmdInit() {
 		try {
 			// update: an unchanged managed entry from an older Sable is refreshed;
 			// one with local edits still refuses, and is reported for the user.
-			const setup = installAgentSkill({ root: CWD, project: CWD, packageRoot: PKG_ROOT, target: "all", update: true, dryRun })
-			agent = { status: dryRun ? "would-apply" : "applied", destinations: setup.destinations, next: setup.next }
+			const setup = installAgentSkill({ root: CWD, project: CWD, packageRoot: PKG_ROOT, target: "all", update: true, dryRun, instructions: !flags.has("no-instructions") })
+			agent = { status: dryRun ? "would-apply" : "applied", destinations: setup.destinations, instructions: setup.instructions, instructionsChanged: setup.instructionsChanged, next: setup.next }
 		} catch (error) {
 			agent = { status: "manual", detail: error.message, fix: "sable setup --agent --dry-run" }
 		}
+
+	/* The Stop hook changes how Claude Code behaves, so init never adds it on its
+	 * own. A person at a terminal is asked; an agent running init (no TTY) gets
+	 * the one-line offer in the output, and --hook adds it either way. */
+	let hook = null
+	if (agent.status === "applied" || agent.status === "would-apply") {
+		let want = flags.has("hook")
+		const interactive = process.stdin.isTTY && process.stdout.isTTY && !JSON_OUT && !dryRun
+		if (!want && !flags.has("no-hook") && interactive) {
+			const { createInterface } = await import("node:readline/promises")
+			const rl = createInterface({ input: process.stdin, output: process.stdout })
+			const answer = await rl.question("Add a Claude Code Stop hook, so Claude can't end a task while `sable check` fails? [Y/n] ")
+			rl.close()
+			want = !/^\s*n/i.test(answer)
+		}
+		try {
+			hook = want ? installClaudeStopHook({ root: CWD, project: CWD, dryRun }) : claudeStopHook({ root: CWD, project: CWD })
+		} catch (error) {
+			hook = { installed: false, error: error.message }
+		}
+	}
 
 	const after = dryRun ? before : doctorReport()
 	verifyFixes(fixes, after)
 	const mounted = after.checks.find((c) => c.name === "icons")?.status === "pass"
 	const providers = { ...providerSnippet(framework), mounted }
-	const data = { framework: { id: framework.id, label: framework.label }, packageManager, dryRun, fixes, agent, providers, doctor: after }
+	// An app that is wired but built mostly without Sable needs the audit path
+	// next, not a new build: `build` would start the product over.
+	const lowAdoption = after.checks.some((c) => c.name === "adoption" && c.status === "warn")
+	const data = { framework: { id: framework.id, label: framework.label }, packageManager, dryRun, fixes, agent, stopHook: hook, providers, doctor: after, next: lowAdoption ? EXISTING_APP_NEXT : (agent.next ?? null) }
 
 	if (JSON_OUT) process.stdout.write(`${JSON.stringify({ type: "init", data }, null, DENSE ? 0 : 1)}\n`)
 	else {
 		const agentText = {
-			applied: () => `Agent skill: installed at ${agent.destinations.join(", ")}.`,
-			"would-apply": () => `Agent skill: would install at ${agent.destinations.join(", ")}.`,
+			applied: () => `Agent skill: installed at ${agent.destinations.join(", ")}.\n${instructionsText({ ...agent, dryRun })}`,
+			"would-apply": () => `Agent skill: would install at ${agent.destinations.join(", ")}.\n${instructionsText({ ...agent, dryRun })}`,
 			skipped: () => "Agent skill: skipped (--no-agent).",
 			manual: () => `Agent skill: not installed — ${agent.detail}\n  → ${agent.fix}`,
 		}[agent.status]()
+		const hookText = !hook
+			? ""
+			: hook.error
+				? `Stop hook: not added — ${hook.error}`
+				: hook.installed
+					? `Stop hook: ${dryRun ? "would add to" : hook.alreadyPresent ? "already in" : "added to"} ${hook.settingsFile}. Claude can't end a task while sable check fails.`
+					: `Stop hook (optional): sable init --hook, or sable setup --agent --hook, makes Claude Code run sable check before it can end a task.`
 		const iconsFix = fixes.find((f) => f.check === "icons")
 		const providerText = mounted
 			? "Providers: <IconProvider> is mounted. MotionProvider and SableThemeProvider are optional: sable provider --list."
@@ -1617,19 +1683,68 @@ function cmdInit() {
 				"",
 				fixes.length ? `${dryRun ? "Would fix:" : "Fixes:"}\n${fixLines(fixes)}` : "Nothing to fix.\n",
 				agentText,
+				...(hookText ? [hookText] : []),
 				"",
 				providerText,
 				"",
 				`Doctor:\n${doctorLines(after.checks)}`,
 				after.failed
 					? `[sable init] ✗ ${after.failed} failure(s) ${dryRun ? "now" : "left; the steps marked ! need you"}. Re-check with sable doctor.`
-					: `[sable init] ✓ wiring holds. Next: ${agent.next ?? "sable docs building-with-sable"}`,
+					: `[sable init] ✓ wiring holds. Next: ${lowAdoption ? EXISTING_APP_NEXT : (agent.next ?? "sable docs building-with-sable")}`,
 				"",
 			].join("\n"),
 		)
 	}
 	logInvocation(after.failed ? 1 : 0)
 	process.exit(after.failed ? 1 : 0)
+}
+
+const EXISTING_APP_NEXT = "most of this app's UI isn't built from Sable yet. Tell your agent \"move this app onto Sable\": it lists what to swap and asks before changing anything."
+
+/* ── upgrade ────────────────────────────────────────────────────────────────── */
+
+/**
+ * The whole update in one command: the package, then the NEW version's init.
+ * This process is the old CLI, so after installing it hands over to the
+ * freshly installed bin rather than running its own init: the skill entries,
+ * the instructions block and the checks must be the new release's.
+ */
+function cmdUpgrade() {
+	let pkg
+	try {
+		pkg = JSON.parse(readFileSync(join(CWD, "package.json"), "utf8"))
+	} catch {
+		fail("ERR_UPGRADE", `No package.json in ${CWD}.`, ["Run sable upgrade from your app's root."])
+	}
+	const spec = pkg.dependencies?.["@sableui/react"] ?? pkg.devDependencies?.["@sableui/react"]
+	if (!spec) fail("ERR_UPGRADE", "@sableui/react is not a dependency of this project.", ["pnpm add @sableui/react, then pnpm exec sable init"])
+	const pm = detectPackageManager(CWD)
+	const dryRun = flags.has("dry-run")
+	// A tarball, link or workspace copy is not something "latest" can replace.
+	const local = /^(?:file:|link:|workspace:|portal:|\.{0,2}\/)/.test(String(spec))
+	const install = installCommand(pm, ["@sableui/react@latest"], { dev: !pkg.dependencies?.["@sableui/react"] })
+	const say = (line) => { if (!JSON_OUT) process.stdout.write(`${line}\n`) }
+
+	if (flags.has("no-install")) say("sable upgrade — skipping the package update (--no-install).")
+	else if (local) say(`sable upgrade — @sableui/react comes from ${spec}, which "latest" can't replace. Update that copy yourself; running the installed version's init.`)
+	else if (dryRun) say(`sable upgrade — would run: ${install.join(" ")}`)
+	else {
+		say(`sable upgrade — ${install.join(" ")}`)
+		const r = spawnSync(install[0], install.slice(1), { cwd: CWD, stdio: JSON_OUT ? "pipe" : "inherit", shell: process.platform === "win32" })
+		if (r.status !== 0) fail("ERR_UPGRADE", `${install.join(" ")} exited ${r.status}.`, ["Fix the install, then run sable upgrade --no-install."])
+	}
+
+	// The installed package's own CLI, resolved the way the skill resolves it.
+	let bin = join(PKG_ROOT, "bin", "sable.mjs")
+	try {
+		const registry = createRequire(join(CWD, "package.json")).resolve("@sableui/react/registry.json")
+		const installed = join(dirname(registry), "bin", "sable.mjs")
+		if (existsSync(installed)) bin = installed
+	} catch { /* not resolvable from here (a workspace copy): this CLI's init is the installed one */ }
+	const passed = ["dry-run", "hook", "no-hook", "no-instructions", "json"].filter((f) => flags.has(f)).map((f) => `--${f}`)
+	const r = spawnSync(process.execPath, [bin, "init", ...passed], { cwd: CWD, stdio: "inherit" })
+	logInvocation(r.status ?? 1)
+	process.exit(r.status ?? 1)
 }
 
 function doctorLines(checks, indent = "  ") {
@@ -1751,7 +1866,8 @@ function cmdCheck() {
 		details: doctorFailures.map((c) => `${c.name}: ${c.detail}${c.fix ? ` → ${c.fix}` : ""}`),
 		// Warnings and notes don't fail the check, but they are things to act on,
 		// and a passing check that printed nothing else hid them from the agent.
-		notes: doctor.checks.filter((c) => c.status === "warn" || c.status === "info").map((c) => `${c.name}: ${c.detail}${c.fix ? ` → ${c.fix}` : ""}`),
+		// Adoption is reported once, from grade, with its swaps.
+		notes: doctor.checks.filter((c) => (c.status === "warn" || c.status === "info") && c.name !== "adoption").map((c) => `${c.name}: ${c.detail}${c.fix ? ` → ${c.fix}` : ""}`),
 		data: doctor,
 	})
 
@@ -1807,14 +1923,20 @@ function cmdCheck() {
 	/* App-owned surfaces, from grade. Never a failure: the input to the reuse
 	 * inventory (finish step 6), which otherwise gets written from memory. */
 	const inventory = grade && grade.type !== "error" ? (grade.inventory ?? null) : null
+	/* Adoption, from grade. Never a failure either: wiring can hold while the app
+	 * composes almost none of Sable, and the move onto it is the user's call. */
+	const adoption = grade && grade.type !== "error" ? (grade.adoption ?? null) : null
+	const lowAdoption = adoption && (adoption.level === "none" || adoption.level === "low")
 
 	const failed = checks.filter((c) => c.status !== "pass").map((c) => c.name)
 	// A build that still scans all of Sable ships every component's classes;
 	// trimming it is a finish step, because sources are only final once the app is.
-	const manual = doctor.checks.some((c) => c.name === "css:size")
-		? [...MANUAL_REVIEW, { step: "Ship only the CSS you use", how: "sable sources --write src/sable-sources.css, then @import it in place of the whole-package @source (about 32 KB of CSS gzipped down to what the app imports). Re-run it whenever you import something new from Sable; sable check fails while it is stale." }]
-		: MANUAL_REVIEW
-	const data = { paths, passed: !failed.length, failed, checks, inventory, manualReview: manual }
+	const manual = [
+		...(lowAdoption ? [{ step: "Ask about moving onto Sable", how: `${adoption.recommendation} The swaps are listed under Adoption above; sable docs auditing-an-app ("Adoption") covers how to put the choice to the user.` }] : []),
+		...MANUAL_REVIEW,
+		...(doctor.checks.some((c) => c.name === "css:size") ? [{ step: "Ship only the CSS you use", how: "sable sources --write src/sable-sources.css, then @import it in place of the whole-package @source (about 32 KB of CSS gzipped down to what the app imports). Re-run it whenever you import something new from Sable; sable check fails while it is stale." }] : []),
+	]
+	const data = { paths, passed: !failed.length, failed, checks, inventory, adoption, manualReview: manual }
 	const MARK = { pass: "✓", fail: "✗", error: "✗" }
 	const MAX_DETAILS = 12
 	const summaryText = () =>
@@ -1837,6 +1959,16 @@ function cmdCheck() {
 			`App-owned surfaces, for the reuse inventory — ${list.length}. Notes, not failures: use the Sable part named if it fits your design, or keep yours.`,
 			...list.slice(0, MAX_DETAILS).map((s) => `      ${s.file}:${s.line}  <${s.tag}> ${s.kind} (${s.classes}) → Sable has ${s.consider}`),
 			...(list.length > MAX_DETAILS ? [`      … ${list.length - MAX_DETAILS} more: sable grade ${paths.join(" ")} --json → inventory.surfaces`] : []),
+			"",
+		].join("\n")
+	}
+	const adoptionText = () => {
+		if (!adoption || adoption.level === "empty" || (adoption.level === "sable" && !adoption.swaps.length)) return ""
+		return [
+			"",
+			`Adoption — ${adoption.level}. ${adoption.summary}`,
+			`      ${adoption.recommendation}`,
+			...swapLines(adoption, MAX_DETAILS),
 			"",
 		].join("\n")
 	}
@@ -1869,7 +2001,7 @@ function cmdCheck() {
 	}
 
 	if (JSON_OUT) process.stdout.write(`${JSON.stringify({ type: "check", data }, null, DENSE ? 0 : 1)}\n`)
-	else process.stdout.write(`${summaryText()}\n${inventoryText()}${manualText()}\n`)
+	else process.stdout.write(`${summaryText()}\n${adoptionText()}${inventoryText()}${manualText()}\n`)
 	logInvocation(failed.length ? 1 : 0, failed.length ? "ERR_CHECK_FAILED" : undefined)
 	process.exit(failed.length ? 1 : 0)
 }
@@ -1899,6 +2031,15 @@ function cmdDesignTool(script) {
 	passThrough(runScript(join(PKG_ROOT, "scripts", script)))
 }
 
+/** What setup did to the project instructions, in one line. */
+function instructionsText(data) {
+	if (!data.instructions.length) return "Project instructions: skipped (--no-instructions). Agents use the skill only when a request names it."
+	const changed = data.instructionsChanged
+	const files = data.instructions.join(", ")
+	if (!changed.length) return `Project instructions: ${files} already carry the Sable block.`
+	return `Project instructions: ${data.dryRun ? "would add" : "added"} the Sable block to ${changed.join(", ")}, so every UI request goes through the skill. Edit outside its markers; --no-instructions skips it.`
+}
+
 function cmdSetup() {
 	if (!flags.has("agent") || rest.length) fail("ERR_BAD_ARGUMENT", "Use sable setup --agent from your project root.", ["sable setup --agent --dry-run"])
 	const root = flags.get("root")
@@ -1908,7 +2049,7 @@ function cmdSetup() {
 	if (flags.has("hook") && !forClaude)
 		fail("ERR_BAD_ARGUMENT", "--hook installs a Claude Code Stop hook; use it with --target claude or all.", ["sable setup --agent --target claude --hook"])
 	try {
-		const options = { root: root ? resolve(CWD, root) : CWD, project: CWD, packageRoot: PKG_ROOT, target, update: flags.has("update"), dryRun: flags.has("dry-run") }
+		const options = { root: root ? resolve(CWD, root) : CWD, project: CWD, packageRoot: PKG_ROOT, target, update: flags.has("update"), dryRun: flags.has("dry-run"), instructions: !flags.has("no-instructions") }
 		// Preflight the settings file too, so a refusal there writes nothing anywhere.
 		if (flags.has("hook")) installClaudeStopHook({ ...options, dryRun: true })
 		const data = installAgentSkill(options)
@@ -1922,7 +2063,7 @@ function cmdSetup() {
 			: hook.installed
 				? `\n${data.dryRun ? "Would add" : hook.alreadyPresent ? "Already present:" : "Added"} a Claude Code Stop hook to ${hook.settingsFile}: Claude cannot end a task while \`sable check\` fails.`
 				: `\nOptional: block Claude Code from ending a task while \`sable check\` fails. Add this to ${hook.settingsFile} (merge into an existing "hooks" key), or rerun with --hook to add it:\n\n${JSON.stringify(hook.settings, null, 2)}\n\nThe hook runs: ${hook.command}`
-		ok("setup.agent", data, `${data.dryRun ? "Would install" : "Installed"} Sable skill entries at ${data.destinations.map((d) => relative(CWD, join(data.root, d)).replaceAll("\\", "/")).join(", ")}.\nNext: ${data.next}${hookText}`)
+		ok("setup.agent", data, `${data.dryRun ? "Would install" : "Installed"} Sable skill entries at ${data.destinations.map((d) => relative(CWD, join(data.root, d)).replaceAll("\\", "/")).join(", ")}.\n${instructionsText(data)}\nNext: ${data.next}${hookText}`)
 	} catch (error) {
 		fail("ERR_AGENT_SETUP", error.message, ["sable setup --agent --dry-run"])
 	}
@@ -1961,6 +2102,7 @@ const HANDLERS = {
 	docs: cmdDocs,
 	doctor: cmdDoctor,
 	init: cmdInit,
+	upgrade: cmdUpgrade,
 	grade: cmdGrade,
 	learn: cmdLearn,
 	atlas: () => cmdDesignTool("design-atlas.mjs"),

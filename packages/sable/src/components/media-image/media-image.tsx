@@ -1,7 +1,7 @@
 "use client";
 
 import { Avatar as Base } from "@base-ui/react/avatar"
-import { type ComponentProps, type ComponentPropsWithRef, type ReactNode, useState } from "react"
+import { type ComponentProps, type ComponentPropsWithRef, type CSSProperties, type ReactNode, useState } from "react"
 import { cn } from "../../lib/cn"
 import { GradientArt } from "../gradient-art"
 
@@ -31,6 +31,14 @@ export interface MediaImageProps extends Omit<ComponentPropsWithRef<"div">, "chi
 	 * the muted surface — a logo, a product shot that must not be cropped.
 	 */
 	fit?: "cover" | "contain"
+	/**
+	 * Where the image sits in its frame — CSS `object-position`, the sibling of
+	 * `fit`. Under `cover` it is the part kept when the crop trims the rest (a
+	 * face at `"50% 30%"`, a horizon at `"bottom"`); under `contain` it is the
+	 * side the letterbox gives way to. Takes any object-position value.
+	 * @default "center"
+	 */
+	position?: CSSProperties["objectPosition"]
 	/** `srcSet` / `sizes` for responsive images, passed to the `<img>`. */
 	srcSet?: string
 	sizes?: string
@@ -68,6 +76,7 @@ export function MediaImage({
 	seed,
 	fallback,
 	fit = "cover",
+	position,
 	srcSet,
 	sizes,
 	loading = "lazy",
@@ -104,6 +113,10 @@ export function MediaImage({
 					decoding="async"
 					onLoadingStatusChange={(next) => setTracked({ src, status: next })}
 					className={cn("size-full motion-fade", fit === "contain" ? "object-contain" : "object-cover")}
+					// A value, not a class: a crop focus is per image (often stored
+					// with it), so it cannot be a fixed utility. The fade is opacity
+					// only, so the image arrives already framed where it settles.
+					style={position != null ? { objectPosition: position } : undefined}
 				/>
 			) : null}
 			{showFallback ? (

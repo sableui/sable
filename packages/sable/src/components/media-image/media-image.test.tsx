@@ -66,6 +66,25 @@ describe("MediaImage", () => {
 		expect(screen.getByText("LT")).toBeTruthy()
 	})
 
+	it("frames the image at `position`, under cover and contain alike", () => {
+		const { container, rerender } = render(<MediaImage src="/portrait.jpg" position="35% 50%" />)
+		act(() => pending.get("/portrait.jpg")?.onload?.())
+		let img = container.querySelector("img")
+		expect(img?.classList.contains("object-cover")).toBe(true)
+		expect(img?.style.objectPosition).toBe("35% 50%")
+
+		rerender(<MediaImage src="/portrait.jpg" position="top" fit="contain" />)
+		img = container.querySelector("img")
+		expect(img?.classList.contains("object-contain")).toBe(true)
+		expect(img?.style.objectPosition).toBe("top")
+	})
+
+	it("leaves object-position to the default centre when `position` is unset", () => {
+		const { container } = render(<MediaImage src="/cover.jpg" />)
+		act(() => pending.get("/cover.jpg")?.onload?.())
+		expect(container.querySelector("img")?.getAttribute("style")).toBeNull()
+	})
+
 	it("starts over when the src changes", () => {
 		const { container, rerender } = render(<MediaImage src="/a.jpg" />)
 		act(() => pending.get("/a.jpg")?.onerror?.())

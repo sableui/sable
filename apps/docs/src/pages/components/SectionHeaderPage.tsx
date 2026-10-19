@@ -93,6 +93,67 @@ export function SectionHeaderPage() {
 			</Section>
 
 			<Section
+				title="Sizes"
+				description="Size sets the look, titleAs the outline. lg is for an editorial page's sections, under a PageHeader size=&quot;lg&quot;; md for a page's sections and shelves; sm for denser groups such as settings. lg stops at heading-2, because heading-1 is the page title's. At every size the actions centre on the title's first line."
+			>
+				<Example
+					className="!block"
+					code={`<SectionHeader
+	size="lg"
+	title="Selected work"
+	description="Five projects from the last two years."
+	actions={<Button variant="ghost" size="sm">View all</Button>}
+/>
+<SectionHeader
+	title="Recently played"
+	description="Picks up where you left off."
+	actions={<Button variant="ghost" size="sm">View all</Button>}
+/>
+<SectionHeader
+	size="sm"
+	title="Playback"
+	description="How tracks start, end and blend into each other."
+	actions={<Button variant="ghost" size="sm">Reset</Button>}
+/>`}
+				>
+					<Stack gap={6}>
+						<SectionHeader
+							titleAs="h3"
+							size="lg"
+							title="Selected work"
+							description="Five projects from the last two years."
+							actions={
+								<Button variant="ghost" size="sm">
+									View all
+								</Button>
+							}
+						/>
+						<SectionHeader
+							titleAs="h3"
+							title="Recently played"
+							description="Picks up where you left off."
+							actions={
+								<Button variant="ghost" size="sm">
+									View all
+								</Button>
+							}
+						/>
+						<SectionHeader
+							titleAs="h3"
+							size="sm"
+							title="Playback"
+							description="How tracks start, end and blend into each other."
+							actions={
+								<Button variant="ghost" size="sm">
+									Reset
+								</Button>
+							}
+						/>
+					</Stack>
+				</Example>
+			</Section>
+
+			<Section
 				title="A settings section"
 				description="size=&quot;sm&quot; for a denser set of sections. The heading level stays h2: size sets the look, titleAs follows the outline."
 			>

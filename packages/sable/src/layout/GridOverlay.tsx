@@ -16,6 +16,9 @@ export interface GridOverlayProps {
 /**
  * Dev/docs structure visualizer — overlays the column grid so the layout's
  * skeleton is legible. Place inside a `position: relative` container.
+ *
+ * Positioning, `display` and the inset are classes, never inline style, so a
+ * `className` utility overrides them (`max-md:hidden` to draw it on desktop only).
  */
 export function GridOverlay({
 	columns = 12,
@@ -25,18 +28,18 @@ export function GridOverlay({
 	className,
 }: GridOverlayProps) {
 	if (!show) return null
-	const style: CSSProperties = {
-		position: "absolute",
-		inset: 0,
-		display: "grid",
-		gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-		gap,
-		paddingInline: inset ? "var(--page-inset)" : undefined,
-	}
+	const style = {
+		"--sable-overlay-cols": `repeat(${columns}, minmax(0, 1fr))`,
+		"--sable-overlay-gap": gap,
+	} as CSSProperties
 	return (
 		<div
 			aria-hidden
-			className={cn("pointer-events-none z-(--z-overlay)", className)}
+			className={cn(
+				"pointer-events-none absolute inset-0 z-(--z-overlay) grid grid-cols-(--sable-overlay-cols) gap-(--sable-overlay-gap)",
+				inset && "px-(--page-inset)",
+				className,
+			)}
 			style={style}
 		>
 			{Array.from({ length: columns }, (_, i) => (

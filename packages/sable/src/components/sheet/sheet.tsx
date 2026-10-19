@@ -10,6 +10,7 @@ import {
 	useState,
 } from "react"
 import { cn } from "../../lib/cn"
+import { FocusReturnProvider, useFocusReturn, useFocusReturnDefault } from "../../lib/focus-return"
 import { withPortalThemeScope } from "../../lib/portal-theme-scope"
 import { PresentationProvider, StackedActionsContext, usePresentation } from "../../lib/presentation"
 import { mergeRefs } from "../../lib/refs"
@@ -81,8 +82,13 @@ export function Sheet<Payload = unknown>({
 	defaultSnapPoint,
 	onSnapPointChange,
 	snapToSequentialPoints,
+	open,
+	onOpenChange,
 	...props
 }: SheetProps<Payload>) {
+	// Focus returns to whatever held it when the sheet opened, trigger or not
+	// (lib/focus-return); SheetContent takes it as its default finalFocus.
+	const focus = useFocusReturn(open, onOpenChange)
 	const [side, setSide] = useState<SheetSide>("right")
 	const snaps = Boolean(snapPoints?.length)
 	const context = useMemo(() => ({ reportSide: setSide, snaps }), [snaps])
@@ -94,15 +100,19 @@ export function Sheet<Payload = unknown>({
 	// uncontrolled for its whole life.
 	return (
 		<SheetRootContext.Provider value={context}>
-			<Base.Root
-				{...props}
-				snapPoints={snaps && side === "bottom" ? snapPoints : undefined}
-				snapPoint={snapPoint}
-				defaultSnapPoint={defaultSnapPoint}
-				onSnapPointChange={onSnapPointChange}
-				snapToSequentialPoints={snapToSequentialPoints}
-				swipeDirection={SWIPE_DIRECTION[side]}
-			/>
+			<FocusReturnProvider value={focus.focusReturn}>
+				<Base.Root
+					{...props}
+					open={open}
+					onOpenChange={focus.onOpenChange}
+					snapPoints={snaps && side === "bottom" ? snapPoints : undefined}
+					snapPoint={snapPoint}
+					defaultSnapPoint={defaultSnapPoint}
+					onSnapPointChange={onSnapPointChange}
+					snapToSequentialPoints={snapToSequentialPoints}
+					swipeDirection={SWIPE_DIRECTION[side]}
+				/>
+			</FocusReturnProvider>
 		</SheetRootContext.Provider>
 	)
 }
@@ -178,10 +188,12 @@ export function SheetContent({
 	children,
 	side,
 	initialFocus,
+	finalFocus,
 	ref,
 	style,
 	...props
 }: ContentProps) {
+	const focusReturn = useFocusReturnDefault()
 	const root = useContext(SheetRootContext)
 	const resolvedSide = side ?? "right"
 	const reportSide = root?.reportSide
@@ -197,7 +209,10 @@ export function SheetContent({
 	// The popup mounts when the sheet opens, after this component, so its width
 	// is followed through state rather than read from the ref at mount.
 	const [popup, setPopup] = useState<HTMLDivElement | null>(null)
-	const mergedRef = useMemo(() => mergeRefs(popupRef, ref, setPopup), [ref])
+	const mergedRef = useMemo(
+		() => mergeRefs<HTMLDivElement>(popupRef, ref, setPopup, focusReturn?.popupRef),
+		[ref, focusReturn],
+	)
 
 	// Measured only while this bottom sheet is open: a closed one has nothing
 	// to lift, and every sheet on a page listening would re-render them all on
@@ -236,6 +251,8 @@ export function SheetContent({
 							? (type) => (type === "touch" ? popupRef.current : true)
 							: initialFocus
 					}
+					// Back to the element focused when the sheet opened; explicit wins.
+					finalFocus={finalFocus === undefined ? focusReturn?.finalFocus : finalFocus}
 					// Toasts read this to keep clear of the sheet's actions (styles.css).
 					data-sable-sheet={resolvedSide}
 					data-snap-points={snaps ? "" : undefined}

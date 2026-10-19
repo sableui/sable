@@ -132,6 +132,10 @@ export * from "./components/pie-chart"
 export * from "./components/radar-chart"
 export * from "./components/radial-chart"
 export * from "./components/sparkline"
+export * from "./components/activity-heatmap"
+export { type ActivityData, type ActivityDay, mergeActivity } from "./lib/chart/activity"
+export { activityGrid, type ActivityGrid, type ActivityMonth, type ActivityWeek } from "./lib/chart/calendar"
+export { type ActivityLevels, activityLevels, type ActivityScale, type ActivityStats } from "./lib/chart/heat"
 export {
 	CHART_SERIES_COUNT,
 	chartColor,

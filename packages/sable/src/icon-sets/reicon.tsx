@@ -94,6 +94,14 @@ import { VolumeLow2 } from "reicon-react/icons/VolumeLow2"
 import { VolumeCross } from "reicon-react/icons/VolumeCross"
 import { Playlist } from "reicon-react/icons/Playlist"
 import { MusicNote } from "reicon-react/icons/MusicNote"
+import { Briefcase } from "reicon-react/icons/Briefcase"
+import { Layers } from "reicon-react/icons/Layers"
+import { Microphone } from "reicon-react/icons/Microphone"
+import { Video } from "reicon-react/icons/Video"
+import { SignalStream } from "reicon-react/icons/SignalStream"
+import { Doc2 } from "reicon-react/icons/Doc2"
+import { Palette2 } from "reicon-react/icons/Palette2"
+import { Gamepad } from "reicon-react/icons/Gamepad"
 import { type ComponentProps, memo } from "react"
 import type { IconRenderProps, IconSet } from "../icon/registry"
 
@@ -208,6 +216,20 @@ const ICONS: Record<string, IconComponent> = {
 	motion: PlaybackSpeed,
 	// Added for the add-reaction pill under a chat bubble.
 	emoji: EmojiHappy,
+	// Added when a portfolio imported reicon-react directly for its work,
+	// projects, audio, video, live, press, design and games sections.
+	// `broadcast` is the radiating-waves mark that reads as "live" (Reicon's
+	// `Station` tower is too detailed at text size); `newspaper` is Reicon's
+	// folded paper, its nearest press glyph; `palette` is the painter's palette,
+	// not Reicon's `Palette` (a swatch fan, which reads as colour picking).
+	briefcase: Briefcase,
+	layers: Layers,
+	microphone: Microphone,
+	video: Video,
+	broadcast: SignalStream,
+	newspaper: Doc2,
+	palette: Palette2,
+	gamepad: Gamepad,
 }
 
 /** Sable's `variant` → Reicon's weight names. */
