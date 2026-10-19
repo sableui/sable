@@ -526,6 +526,10 @@ const pages: Record<string, ComponentType> = {
 		() => import("./pages/components/SideNavPage"),
 		"SideNavPage",
 	),
+	"section-rail": page(
+		() => import("./pages/components/SectionRailPage"),
+		"SectionRailPage",
+	),
 	workspace: page(
 		() => import("./pages/components/WorkspacePage"),
 		"WorkspacePage",

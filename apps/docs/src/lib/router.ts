@@ -22,6 +22,17 @@ const EVENT = "sable-docs-navigate"
  */
 export const CurrentRouteContext = createContext<string | null>(null)
 
+/**
+ * Where the current page sits in the nav: its area and the group listing it.
+ * A reader arriving on a direct link has no rail open to tell them, so the page
+ * header shows this as a breadcrumb. Null for an area's own home page.
+ */
+export interface PageTrail {
+	area: { label: string; href: string }
+	group: string
+}
+export const PageTrailContext = createContext<PageTrail | null>(null)
+
 function slugFromLocation(): string {
 	if (typeof window === "undefined") return "introduction"
 	const path = window.location.pathname.replace(/^\/+|\/+$/g, "")

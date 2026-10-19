@@ -1,4 +1,8 @@
 import {
+	BreadcrumbItem,
+	BreadcrumbLink,
+	Breadcrumbs,
+	BreadcrumbSeparator,
 	Button,
 	ButtonGroup,
 	CodeBlock,
@@ -34,7 +38,7 @@ import { CATALOG_BY_SLUG } from "../lib/catalog"
 import { markdownTwinFor } from "../lib/markdown-twins"
 import { PREVIEWS } from "../lib/previews"
 import site from "../site-meta.json"
-import { CurrentRouteContext, hrefFor } from "../lib/router"
+import { CurrentRouteContext, PageTrailContext, hrefFor } from "../lib/router"
 import { Playground } from "./Playground"
 import { PreviewMotionMenu, PreviewMotionScope, PreviewReplayButton, usePreviewMotion } from "./preview-motion"
 
@@ -48,24 +52,39 @@ export function PageHeader({
 	lede?: string
 }) {
 	const route = useContext(CurrentRouteContext)
+	const trail = useContext(PageTrailContext)
 	const twin = route ? markdownTwinFor(route) : null
 	return (
-		// No eyebrow: a page starts with its title (the sidebar already says
-		// where you are). `eyebrow` is accepted for compatibility and ignored.
-		// Sable's own PageHeader (its h1, its wrapping title), dogfooded; the docs
-		// only set the measure, the space below, and a page-sized lede.
-		<SablePageHeader
-			title={title}
-			description={lede}
-			actions={twin ? <PageActions href={twin} /> : undefined}
-			// The lede is set on the header's own paragraph, not a span of another
-			// size inside it: two sizes in one line box make the line taller than
-			// its line height.
-			// The header spans the content column so its actions sit on the column's
-			// edge; only the lede keeps the reading measure.
-			className="mb-12 gap-2 pb-0 text-body-md [&>p]:max-w-(--measure-prose) [&>p]:text-body-md [&>p]:text-pretty"
-			data-eyebrow={eyebrow ? "" : undefined}
-		/>
+		<>
+			{/* No eyebrow; a breadcrumb instead. The sidebar says where a page
+			    lives, but a reader on a direct link (or a narrow screen, where the
+			    rail is a drawer) never sees it. The trail names the area and the
+			    nav group; the group is text, since groups have no page of their own. */}
+			{trail ? (
+				<Breadcrumbs className="mb-3">
+					<BreadcrumbItem>
+						<BreadcrumbLink href={trail.area.href}>{trail.area.label}</BreadcrumbLink>
+					</BreadcrumbItem>
+					<BreadcrumbSeparator />
+					<BreadcrumbItem className="text-muted-foreground">{trail.group}</BreadcrumbItem>
+				</Breadcrumbs>
+			) : null}
+			{/* Sable's own PageHeader (its h1, its wrapping title), dogfooded; the
+			    docs only set the measure, the space below, and a page-sized lede.
+			    `eyebrow` is accepted for compatibility and ignored. */}
+			<SablePageHeader
+				title={title}
+				description={lede}
+				actions={twin ? <PageActions href={twin} /> : undefined}
+				// The lede is set on the header's own paragraph, not a span of another
+				// size inside it: two sizes in one line box make the line taller than
+				// its line height.
+				// The header spans the content column so its actions sit on the column's
+				// edge; only the lede keeps the reading measure.
+				className="mb-12 gap-2 pb-0 text-body-md [&>p]:max-w-(--measure-prose) [&>p]:text-body-md [&>p]:text-pretty"
+				data-eyebrow={eyebrow ? "" : undefined}
+			/>
+		</>
 	)
 }
 

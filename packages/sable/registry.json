@@ -18766,6 +18766,201 @@
       ]
     },
     {
+      "name": "SectionRail",
+      "status": "stable",
+      "group": "Navigation",
+      "register": "page",
+      "path": "components/section-rail",
+      "summary": "A slim vertical rail of dots, one per section of a long page, that shows where the reader is and jumps to any section. The current section's bar glides as the page scrolls; a shared tooltip names each dot.",
+      "keywords": [
+        "section rail",
+        "scroll spy",
+        "scrollspy",
+        "dot navigation",
+        "page navigation",
+        "table of contents",
+        "on this page",
+        "chapter nav",
+        "scroll progress",
+        "case study nav"
+      ],
+      "usage": {
+        "description": "Use SectionRail beside a long, single-column read — a case study, an essay, a long landing page — so the reader can see which section they are in and jump to another without leaving the text. It follows the scroll by itself (useActiveSection); pass value when the parent already knows the current section.",
+        "bestPractices": [
+          {
+            "guidance": "do",
+            "description": "Give every section an id that matches its entry, and keep the list to the page's top-level sections — about ten at most, so the rail stays shorter than the viewport."
+          },
+          {
+            "guidance": "do",
+            "description": "Place it with layout classes — usually `fixed top-1/2 left-6 z-(--z-nav) -translate-y-1/2` — and hide it below the width where it would overlap the text (`max-lg:hidden`). Offer the same links another way on narrow screens, such as a Collapsible list at the top of the page."
+          },
+          {
+            "guidance": "do",
+            "description": "Pass `root` when the content scrolls inside an element (a Scroller, an inset AppShell main) rather than the window, and give sections `scroll-mt-*` when a sticky header would cover their tops after a jump."
+          },
+          {
+            "guidance": "do",
+            "description": "Set `side=\"right\"` when the rail sits on the right edge, so labels open toward the content."
+          },
+          {
+            "guidance": "dont",
+            "description": "Use it for app navigation between pages; that is SideNav or Sidebar. A SectionRail only moves within one page.",
+            "instead": [
+              "SideNav",
+              "Sidebar"
+            ]
+          },
+          {
+            "guidance": "dont",
+            "description": "Use it to show the steps of a task or a flow; that is Stepper, which shows progress through steps rather than position in a read.",
+            "instead": [
+              "Stepper"
+            ]
+          },
+          {
+            "guidance": "dont",
+            "description": "Use it for a handful of switchable views in one place; that is Tabs.",
+            "instead": [
+              "Tabs"
+            ]
+          }
+        ],
+        "anatomy": [
+          {
+            "name": "Rail",
+            "required": true,
+            "description": "The `<nav>` landmark: a rounded muted track holding one link per section."
+          },
+          {
+            "name": "Dot",
+            "required": true,
+            "description": "A link to `#id`, drawn as a small dot that grows under the pointer or focus."
+          },
+          {
+            "name": "Marker",
+            "required": true,
+            "description": "One primary bar that sits on the current section's dot and glides to the next."
+          },
+          {
+            "name": "Label",
+            "required": true,
+            "description": "A shared tooltip that names the hovered or focused dot and travels between dots."
+          }
+        ]
+      },
+      "related": {
+        "components": [
+          "SideNav",
+          "Tooltip",
+          "Stepper",
+          "Tabs",
+          "GlidingHighlight"
+        ]
+      },
+      "props": [
+        {
+          "name": "sections",
+          "type": "readonly { id: string; label: string }[]",
+          "description": "The sections, in document order. `id` is the section element's id (the link goes to `#id`); `label` is the tooltip and the link's accessible name."
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "description": "The current section's id, when the parent decides it. Leave it unset and the rail follows the scroll itself."
+        },
+        {
+          "name": "onValueChange",
+          "type": "(id: string) => void",
+          "description": "Called with the new id when the reader scrolls into a section or picks one."
+        },
+        {
+          "name": "offset",
+          "type": "number",
+          "default": "0.35",
+          "description": "Where the reading line sits, as a fraction of the viewport from its top. A section becomes current once its top crosses it."
+        },
+        {
+          "name": "root",
+          "type": "RefObject<HTMLElement | null>",
+          "description": "The element that scrolls, when it is not the window."
+        },
+        {
+          "name": "side",
+          "type": "\"left\" | \"right\"",
+          "default": "\"left\"",
+          "description": "Which edge of the page the rail sits on. The labels open on the other side, toward the content."
+        },
+        {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "How much motion this component uses: `full` inherits the app's policy, `subtle` keeps feedback and drops the marker's glide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting."
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "default": "\"Sections\"",
+          "description": "The nav landmark's name. Name it for the page (\"Case study sections\") when it has other navs."
+        }
+      ],
+      "tokensUsed": [
+        "muted",
+        "muted-foreground",
+        "foreground",
+        "primary",
+        "ring",
+        "popover",
+        "popover-foreground",
+        "border-floating"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Page chrome arrives with the page; the marker lands on the current section with no transition, because a bar sliding in on load narrates a move nobody made."
+        },
+        {
+          "slot": "response",
+          "recipe": "motion-interactive",
+          "part": "Dot",
+          "why": "The dot darkens and grows under the pointer or focus, and the label travels between dots as one tooltip (TooltipGroup) rather than closing and reopening at each."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-glide",
+          "part": "Marker",
+          "why": "One bar travels to the new section as the page scrolls, so the change reads as movement down the page. A picked section holds the bar until the reader scrolls by hand, so it goes straight there instead of stepping through every section in between, and stays on the pick even when the page ends before that section can reach the reading line. Expressive: `subtle` moves it at once."
+        },
+        {
+          "slot": "activity",
+          "recipe": "none",
+          "part": "Root",
+          "why": "Navigation chrome has no working state."
+        }
+      ],
+      "a11y": [
+        "Renders a <nav> landmark (default name \"Sections\") of real links to `#id`, so it works with no script, middle-click and copy-link.",
+        "Each link is named by its section's label; the current one carries aria-current=\"location\".",
+        "Activating a link from the keyboard moves focus into the section, as following an anchor does, so the next Tab continues from there.",
+        "The tooltip opens on focus as well as hover; the dots are 44×32 targets.",
+        "Under reduced motion the jump is instant and the marker moves without travel."
+      ],
+      "examples": [
+        {
+          "label": "Fixed beside a long read",
+          "code": "<SectionRail\n  aria-label=\"Case study sections\"\n  sections={[\n    { id: \"overview\", label: \"Overview\" },\n    { id: \"problem\", label: \"The problem\" },\n    { id: \"process\", label: \"Process\" },\n    { id: \"outcome\", label: \"Outcome\" },\n  ]}\n  className=\"fixed top-1/2 left-6 z-(--z-nav) -translate-y-1/2 max-lg:hidden\"\n/>",
+          "imports": "import { SectionRail } from \"@sableui/react\""
+        },
+        {
+          "label": "On the right edge",
+          "code": "<SectionRail\n  side=\"right\"\n  sections={[\n    { id: \"intro\", label: \"Introduction\" },\n    { id: \"usage\", label: \"Usage\" },\n    { id: \"api\", label: \"API\" },\n  ]}\n  className=\"fixed top-1/2 right-6 z-(--z-nav) -translate-y-1/2 max-lg:hidden\"\n/>",
+          "imports": "import { SectionRail } from \"@sableui/react\""
+        }
+      ]
+    },
+    {
       "name": "SegmentedBar",
       "status": "stable",
       "group": "Data display",
@@ -24505,8 +24700,8 @@
       {
         "name": "ApprovalBlock",
         "path": "blocks/approval-block.tsx",
-        "summary": "An agent asking permission for one tool call: the question, what will happen and what can't be undone, the call's details, an \"allow for the rest of this chat\" Checkbox, and Deny / Allow.",
-        "intent": "Reach for this in a chat or agent run when a tool call waits on the person — sending, paying, deleting, publishing. The call itself, before and after the decision, is a ToolCall with status=\"awaiting\", then \"complete\" or \"denied\". A destructive action outside an agent is DestructiveActionModal.",
+        "summary": "An agent asking permission for one tool call: the question, what is at stake, the call itself as a ToolCall with its exact input, and Deny / Always allow / Allow once.",
+        "intent": "Reach for this in a chat or agent run when a tool call waits on the person — running a command, sending, paying, deleting, publishing. It wraps the call's own ToolCall, which shows status=\"awaiting\" until the person answers and then \"complete\" or \"denied\". A destructive action outside an agent is DestructiveActionModal.",
         "family": "AI & agents",
         "kind": "card",
         "width": {
@@ -24514,18 +24709,17 @@
           "max": "28rem"
         },
         "notes": [
-          "The title is the question in plain words (\"Send the invoice to Ada?\"), not the tool's name; the tool's name is one row of the details, for the person who wants to know exactly what runs.",
-          "The description says what can't be undone. That sentence is what the person is deciding on.",
-          "Deny comes first and Allow is the primary on the end, the same order as every Sable confirmation. Neither is focused on arrival: an approval that a stray Enter can grant is not an approval.",
-          "After a decision the buttons give way to one InlineStatus line saying what happened, so the thread keeps a record of the answer."
+          "The title is the question in plain words (\"Run this command?\"); the description says what is at stake. That sentence is what the person is deciding on.",
+          "The call is shown as the agent made it — tool name and raw input, open on arrival — because the exact arguments are what a careful person checks. Do not paraphrase them into a form.",
+          "Three answers, as agent products settle on: Deny on the start edge, then Always allow and Allow once, the primary on the end. Neither is focused on arrival: an approval that a stray Enter can grant is not an approval.",
+          "After a decision the buttons give way to one InlineStatus line saying what happened, and the ToolCall shows the outcome, so the thread keeps a record of the answer."
         ],
         "a11y": [
           "Focus moves to the outcome line when the buttons leave, instead of dropping to the page; the line is a role=status region, so the decision is announced.",
-          "The details are a dl, so each value is read with its label.",
-          "The remember Checkbox has its own Label, so the tool name inside it is part of its accessible name."
+          "The ToolCall announces its own status change, and its input is a labelled code view."
         ],
-        "imports": "import { useState, useEffect, useRef, useId } from \"react\"\nimport { Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, Checkbox, cn, Code, InlineStatus, Label } from \"@sableui/react\"",
-        "code": "const request = {\n\ttool: \"send_email\",\n\ttitle: \"Send the invoice to Ada?\",\n\tdescription: \"The agent wants to email invoice INV-1042. An email can't be unsent.\",\n\tdetails: [\n\t\t{ label: \"To\", value: \"ada@example.com\" },\n\t\t{ label: \"Subject\", value: \"INV-1042 for October\" },\n\t\t{ label: \"Attached\", value: \"INV-1042.pdf\" },\n\t],\n\tallowed: \"Allowed. Sending the email.\",\n\tdenied: \"Denied. The agent won't send it.\",\n}\n\nexport interface ApprovalBlockProps {\n\tclassName?: string\n\t/** false drops the card's surface and border — for a chat column that already frames it. */\n\tframed?: boolean\n\t/** The person allowed the call. `remember` is the \"for the rest of this chat\" choice. */\n\tonApprove?: (options: { remember: boolean }) => void\n\t/** The person declined the call. */\n\tonDeny?: () => void\n}\n\nexport function ApprovalBlock({ className, framed = true, onApprove, onDeny }: ApprovalBlockProps) {\n\tconst [decision, setDecision] = useState<\"allowed\" | \"denied\" | null>(null)\n\tconst [remember, setRemember] = useState(false)\n\tconst id = useId()\n\tconst outcome = useRef<HTMLDivElement>(null)\n\t// The buttons leave with the decision, so focus moves to the line that\n\t// replaces them instead of falling back to the top of the page.\n\tuseEffect(() => {\n\t\tif (decision) outcome.current?.focus()\n\t}, [decision])\n\n\treturn (\n\t\t<Card variant={framed ? \"default\" : \"flat\"} className={cn(\"w-full max-w-md\", className)}>\n\t\t\t<CardHeader>\n\t\t\t\t<CardTitle>{request.title}</CardTitle>\n\t\t\t\t<CardDescription>{request.description}</CardDescription>\n\t\t\t</CardHeader>\n\t\t\t<CardContent className=\"flex flex-col gap-4\">\n\t\t\t\t<dl className=\"grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-body-sm\">\n\t\t\t\t\t{request.details.map((d) => (\n\t\t\t\t\t\t<div key={d.label} className=\"contents\">\n\t\t\t\t\t\t\t<dt className=\"text-muted-foreground\">{d.label}</dt>\n\t\t\t\t\t\t\t<dd className=\"truncate text-foreground\">{d.value}</dd>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t))}\n\t\t\t\t\t<div className=\"contents\">\n\t\t\t\t\t\t<dt className=\"text-muted-foreground\">Tool</dt>\n\t\t\t\t\t\t<dd className=\"min-w-0\">\n\t\t\t\t\t\t\t<Code>{request.tool}</Code>\n\t\t\t\t\t\t</dd>\n\t\t\t\t\t</div>\n\t\t\t\t</dl>\n\t\t\t\t{decision ? null : (\n\t\t\t\t\t<div className=\"flex items-center gap-2\">\n\t\t\t\t\t\t<Checkbox id={`${id}-remember`} checked={remember} onCheckedChange={(v: boolean) => setRemember(v)} />\n\t\t\t\t\t\t<Label htmlFor={`${id}-remember`} className=\"text-body-sm\">\n\t\t\t\t\t\t\tAllow <Code>{request.tool}</Code> for the rest of this chat\n\t\t\t\t\t\t</Label>\n\t\t\t\t\t</div>\n\t\t\t\t)}\n\t\t\t</CardContent>\n\t\t\t<CardFooter actions className=\"justify-end\">\n\t\t\t\t{decision ? (\n\t\t\t\t\t<InlineStatus\n\t\t\t\t\t\tref={outcome}\n\t\t\t\t\t\ttabIndex={-1}\n\t\t\t\t\t\trole=\"status\"\n\t\t\t\t\t\ttone={decision === \"allowed\" ? \"success\" : \"neutral\"}\n\t\t\t\t\t\tclassName=\"me-auto outline-none\"\n\t\t\t\t\t>\n\t\t\t\t\t\t{decision === \"allowed\" ? request.allowed : request.denied}\n\t\t\t\t\t</InlineStatus>\n\t\t\t\t) : (\n\t\t\t\t\t<>\n\t\t\t\t\t\t<Button\n\t\t\t\t\t\t\tvariant=\"outline\"\n\t\t\t\t\t\t\tonClick={() => {\n\t\t\t\t\t\t\t\tsetDecision(\"denied\")\n\t\t\t\t\t\t\t\tonDeny?.()\n\t\t\t\t\t\t\t}}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\tDeny\n\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t<Button\n\t\t\t\t\t\t\tonClick={() => {\n\t\t\t\t\t\t\t\tsetDecision(\"allowed\")\n\t\t\t\t\t\t\t\tonApprove?.({ remember })\n\t\t\t\t\t\t\t}}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\tAllow\n\t\t\t\t\t\t</Button>\n\t\t\t\t\t</>\n\t\t\t\t)}\n\t\t\t</CardFooter>\n\t\t</Card>\n\t)\n}"
+        "imports": "import { useState, useEffect, useRef } from \"react\"\nimport { Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, cn, InlineStatus, ToolCall } from \"@sableui/react\"",
+        "code": "const request = {\n\ttitle: \"Run this command?\",\n\tdescription: \"The agent wants to migrate the production database in acme/api. It changes live data.\",\n\ttool: \"run_command\",\n\taction: \"Run a command\",\n\t// A command reads as the command; a structured call would pass its arguments object.\n\tinput: \"pnpm db:migrate --env production\",\n\tallowed: \"Allowed. Running the migration.\",\n\tdenied: \"Denied. The agent won't run it.\",\n}\n\nexport interface ApprovalBlockProps {\n\tclassName?: string\n\t/** false drops the card's surface and border — for a chat column that already frames it. */\n\tframed?: boolean\n\t/** The person allowed the call. `remember` is true for \"Always allow\". */\n\tonApprove?: (options: { remember: boolean }) => void\n\t/** The person declined the call. */\n\tonDeny?: () => void\n}\n\nexport function ApprovalBlock({ className, framed = true, onApprove, onDeny }: ApprovalBlockProps) {\n\tconst [decision, setDecision] = useState<\"allowed\" | \"denied\" | null>(null)\n\tconst outcome = useRef<HTMLDivElement>(null)\n\t// The buttons leave with the decision, so focus moves to the line that\n\t// replaces them instead of falling back to the top of the page.\n\tuseEffect(() => {\n\t\tif (decision) outcome.current?.focus()\n\t}, [decision])\n\n\tconst approve = (remember: boolean) => {\n\t\tsetDecision(\"allowed\")\n\t\tonApprove?.({ remember })\n\t}\n\n\treturn (\n\t\t<Card variant={framed ? \"default\" : \"flat\"} className={cn(\"w-full max-w-md\", className)}>\n\t\t\t<CardHeader>\n\t\t\t\t<CardTitle>{request.title}</CardTitle>\n\t\t\t\t<CardDescription>{request.description}</CardDescription>\n\t\t\t</CardHeader>\n\t\t\t<CardContent>\n\t\t\t\t{/* The call itself, exactly as the agent made it. It answers with the\n\t\t\t\t    person: held, then done or denied. */}\n\t\t\t\t<ToolCall\n\t\t\t\t\tname={request.tool}\n\t\t\t\t\ttitle={request.action}\n\t\t\t\t\tstatus={decision === \"allowed\" ? \"complete\" : decision === \"denied\" ? \"denied\" : \"awaiting\"}\n\t\t\t\t\tstatusLabel={decision === \"allowed\" ? \"Allowed\" : undefined}\n\t\t\t\t\tinput={request.input}\n\t\t\t\t\tdefaultOpen\n\t\t\t\t/>\n\t\t\t</CardContent>\n\t\t\t<CardFooter actions>\n\t\t\t\t{decision ? (\n\t\t\t\t\t<InlineStatus\n\t\t\t\t\t\tref={outcome}\n\t\t\t\t\t\ttabIndex={-1}\n\t\t\t\t\t\trole=\"status\"\n\t\t\t\t\t\ttone={decision === \"allowed\" ? \"success\" : \"neutral\"}\n\t\t\t\t\t\tclassName=\"me-auto outline-none\"\n\t\t\t\t\t>\n\t\t\t\t\t\t{decision === \"allowed\" ? request.allowed : request.denied}\n\t\t\t\t\t</InlineStatus>\n\t\t\t\t) : (\n\t\t\t\t\t<>\n\t\t\t\t\t\t<Button\n\t\t\t\t\t\t\tvariant=\"ghost\"\n\t\t\t\t\t\t\tclassName=\"me-auto\"\n\t\t\t\t\t\t\tonClick={() => {\n\t\t\t\t\t\t\t\tsetDecision(\"denied\")\n\t\t\t\t\t\t\t\tonDeny?.()\n\t\t\t\t\t\t\t}}\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\tDeny\n\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t<Button variant=\"outline\" onClick={() => approve(true)}>\n\t\t\t\t\t\t\tAlways allow\n\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t<Button onClick={() => approve(false)}>Allow once</Button>\n\t\t\t\t\t</>\n\t\t\t\t)}\n\t\t\t</CardFooter>\n\t\t</Card>\n\t)\n}"
       },
       {
         "name": "ChatThreadBlock",
@@ -29993,6 +30187,15 @@
         "title",
         "titleAs",
         "titleId"
+      ],
+      "SectionRail": [
+        "motion",
+        "offset",
+        "onValueChange",
+        "root",
+        "sections",
+        "side",
+        "value"
       ],
       "SegmentedBar": [
         "label",

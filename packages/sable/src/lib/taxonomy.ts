@@ -148,6 +148,7 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 	BottomNav: ["Navigation", "page"],
 	NavigationMenu: ["Navigation", "page"],
 	Pagination: ["Navigation", "either"],
+	SectionRail: ["Navigation", "page"],
 	ShowMore: ["Navigation", "page"],
 	SideNav: ["Navigation", "page"],
 	Sidebar: ["Navigation", "page"],

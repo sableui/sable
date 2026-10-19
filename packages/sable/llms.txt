@@ -1,6 +1,6 @@
 # Sable (@sableui/react)
 
-> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 121 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
+> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 122 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
 
 ## Start here — brief, composition, evidence
 
@@ -291,7 +291,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 ### Blocks (42) — section-sized compositions (cards, forms, lists), copy as starting points (registry.json → blocks; importable from `@sableui/react/blocks`; `sable block <Name>`)
 
 - **ApiKeysBlock** (Settings & team) — An API keys card: each key's name with its masked hint in Code, when it was created and last used, and an OverflowMenu to rename, roll or revoke. → [`llms/blocks/api-keys-block.md`](./llms/blocks/api-keys-block.md)
-- **ApprovalBlock** (AI & agents) — An agent asking permission for one tool call: the question, what will happen and what can't be undone, the call's details, an "allow for the rest of this chat" Checkbox, and Deny / Allow. → [`llms/blocks/approval-block.md`](./llms/blocks/approval-block.md)
+- **ApprovalBlock** (AI & agents) — An agent asking permission for one tool call: the question, what is at stake, the call itself as a ToolCall with its exact input, and Deny / Always allow / Allow once. → [`llms/blocks/approval-block.md`](./llms/blocks/approval-block.md)
 - **ChatThreadBlock** (Social & messaging) — A short message thread on a card: Message rows with incoming muted Bubbles on the start side and your own primary Bubbles on the end. → [`llms/blocks/chat-thread-block.md`](./llms/blocks/chat-thread-block.md)
 - **CommandPaletteBlock** (Navigation) — An inline command palette: CommandMenuPanel with a filter field and grouped actions, each with an icon and its keyboard shortcut. → [`llms/blocks/command-palette-block.md`](./llms/blocks/command-palette-block.md)
 - **CtaBandBlock** (Marketing) — A closing call to action: a centred h2 and one-line lede on a card, with a primary and an outline action. → [`llms/blocks/cta-band-block.md`](./llms/blocks/cta-band-block.md)
@@ -373,7 +373,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **ToastProvider** (part of Toast) — Wraps Base UI Toast.Provider and renders the themed Viewport + toast list.
 - **TooltipProvider** (part of Tooltip) — Wraps an app or group of Tooltips to share open/close delays.
 
-### Components (121) — full props/subcomponents/variants/guidance/a11y/examples in registry.json → components
+### Components (122) — full props/subcomponents/variants/guidance/a11y/examples in registry.json → components
 
 - **Accordion** — Stacked, collapsible disclosure sections over Base UI Accordion — roving focus, arrow-key navigation, ARIA region/heading/button wiring, and an animated height transition. *Parts:* AccordionItem, AccordionTrigger, AccordionPanel. → [`llms/components/accordion.md`](./llms/components/accordion.md)
 - **AppHeader** — Mobile top bar (sticky, hidden at lg) with leading / title / actions slots on a 3-column grid that keeps the title optically centered. → [`llms/components/app-header.md`](./llms/components/app-header.md)
@@ -465,6 +465,7 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **ScrubField** — The compact numeric field a property grid is built from: a leading glyph inside the field that doubles as a drag-to-scrub handle, the value, and an optional unit. → [`llms/components/scrub-field.md`](./llms/components/scrub-field.md)
 - **SearchInput** — Styled search field with a leading magnifier and a clearable X. → [`llms/components/search-input.md`](./llms/components/search-input.md)
 - **SectionHeader** — The heading block for one section of a page: a title (h2 by default), an optional line of description, and actions on the title row — a "View all" link or a couple of buttons — that drop beneath the title only when the row runs out of room. → [`llms/components/section-header.md`](./llms/components/section-header.md)
+- **SectionRail** — A slim vertical rail of dots, one per section of a long page, that shows where the reader is and jumps to any section. → [`llms/components/section-rail.md`](./llms/components/section-rail.md)
 - **SegmentedBar** — One bar split into the parts of a whole — revenue by type, storage by kind, results by outcome. → [`llms/components/segmented-bar.md`](./llms/components/segmented-bar.md)
 - **Select** — Listbox over Base UI Select — typeahead, roving focus, collision-aware popup, ARIA option wiring, and form integration. *Parts:* SelectTrigger, SelectContent, SelectItem, SelectGroup, SelectGroupLabel, SelectValue, SelectSeparator. → [`llms/components/select.md`](./llms/components/select.md)
 - **Separator** — A hairline divider. → [`llms/components/separator.md`](./llms/components/separator.md)

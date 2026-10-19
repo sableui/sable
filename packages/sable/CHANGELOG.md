@@ -1,5 +1,31 @@
 # What's new
 
+## 0.17.0
+
+Knowing where you are: a rail that follows a long read, and an approval
+that shows an agent's call the way agent products do.
+
+- **New: `SectionRail`.** A slim vertical rail of dots beside a long read —
+  a case study, an essay, a long landing page — one per section. A bar marks
+  the section being read and glides to the next as the page scrolls; hovering
+  or focusing a dot names it in one tooltip that travels between dots
+  (`TooltipGroup`). Picking a dot jumps there with the page's own
+  `scroll-behavior` (instant under reduced motion), and the bar goes straight
+  to the pick rather than stepping through every section in between. Pass
+  `root` when the content scrolls inside an element: only that element moves,
+  never the page around it. Links are real `#id` anchors, so it works without
+  script. Promoted from carldecaire.com's case-study rail.
+- **New: `useActiveSection(ids, { offset, root })`.** The scroll spy behind it,
+  exported for a contents list you draw yourself. The current section is the
+  last whose top has crossed the reading line; at the end of the scroll the
+  last one in view wins, so a short closing section is still reachable.
+- **`ApprovalBlock` asks the way agent products do.** It wraps the call's own
+  `ToolCall` — tool name and exact input, open on arrival — that turns to
+  Allowed or Denied once answered, and offers Deny / Always allow / Allow once.
+  The details table and the "for the rest of this chat" checkbox are gone;
+  `onApprove({ remember })` is unchanged, with `remember` now true for Always
+  allow. The example is an agent asking to run a command.
+
 ## 0.16.0
 
 Five pieces of the calm, product-chrome look that AI and B2B tools share:

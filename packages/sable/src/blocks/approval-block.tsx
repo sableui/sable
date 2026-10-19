@@ -1,31 +1,27 @@
-import { useEffect, useId, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "../components/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/card"
-import { Checkbox } from "../components/checkbox"
-import { Code } from "../components/code"
 import { InlineStatus } from "../components/inline-status"
-import { Label } from "../components/label"
+import { ToolCall } from "../components/tool-call"
 import { cn } from "../lib/cn"
 
 // ---block-code---
 const request = {
-	tool: "send_email",
-	title: "Send the invoice to Ada?",
-	description: "The agent wants to email invoice INV-1042. An email can't be unsent.",
-	details: [
-		{ label: "To", value: "ada@example.com" },
-		{ label: "Subject", value: "INV-1042 for October" },
-		{ label: "Attached", value: "INV-1042.pdf" },
-	],
-	allowed: "Allowed. Sending the email.",
-	denied: "Denied. The agent won't send it.",
+	title: "Run this command?",
+	description: "The agent wants to migrate the production database in acme/api. It changes live data.",
+	tool: "run_command",
+	action: "Run a command",
+	// A command reads as the command; a structured call would pass its arguments object.
+	input: "pnpm db:migrate --env production",
+	allowed: "Allowed. Running the migration.",
+	denied: "Denied. The agent won't run it.",
 }
 
 export interface ApprovalBlockProps {
 	className?: string
 	/** false drops the card's surface and border — for a chat column that already frames it. */
 	framed?: boolean
-	/** The person allowed the call. `remember` is the "for the rest of this chat" choice. */
+	/** The person allowed the call. `remember` is true for "Always allow". */
 	onApprove?: (options: { remember: boolean }) => void
 	/** The person declined the call. */
 	onDeny?: () => void
@@ -33,8 +29,6 @@ export interface ApprovalBlockProps {
 
 export function ApprovalBlock({ className, framed = true, onApprove, onDeny }: ApprovalBlockProps) {
 	const [decision, setDecision] = useState<"allowed" | "denied" | null>(null)
-	const [remember, setRemember] = useState(false)
-	const id = useId()
 	const outcome = useRef<HTMLDivElement>(null)
 	// The buttons leave with the decision, so focus moves to the line that
 	// replaces them instead of falling back to the top of the page.
@@ -42,37 +36,30 @@ export function ApprovalBlock({ className, framed = true, onApprove, onDeny }: A
 		if (decision) outcome.current?.focus()
 	}, [decision])
 
+	const approve = (remember: boolean) => {
+		setDecision("allowed")
+		onApprove?.({ remember })
+	}
+
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-md", className)}>
 			<CardHeader>
 				<CardTitle>{request.title}</CardTitle>
 				<CardDescription>{request.description}</CardDescription>
 			</CardHeader>
-			<CardContent className="flex flex-col gap-4">
-				<dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-body-sm">
-					{request.details.map((d) => (
-						<div key={d.label} className="contents">
-							<dt className="text-muted-foreground">{d.label}</dt>
-							<dd className="truncate text-foreground">{d.value}</dd>
-						</div>
-					))}
-					<div className="contents">
-						<dt className="text-muted-foreground">Tool</dt>
-						<dd className="min-w-0">
-							<Code>{request.tool}</Code>
-						</dd>
-					</div>
-				</dl>
-				{decision ? null : (
-					<div className="flex items-center gap-2">
-						<Checkbox id={`${id}-remember`} checked={remember} onCheckedChange={(v: boolean) => setRemember(v)} />
-						<Label htmlFor={`${id}-remember`} className="text-body-sm">
-							Allow <Code>{request.tool}</Code> for the rest of this chat
-						</Label>
-					</div>
-				)}
+			<CardContent>
+				{/* The call itself, exactly as the agent made it. It answers with the
+				    person: held, then done or denied. */}
+				<ToolCall
+					name={request.tool}
+					title={request.action}
+					status={decision === "allowed" ? "complete" : decision === "denied" ? "denied" : "awaiting"}
+					statusLabel={decision === "allowed" ? "Allowed" : undefined}
+					input={request.input}
+					defaultOpen
+				/>
 			</CardContent>
-			<CardFooter actions className="justify-end">
+			<CardFooter actions>
 				{decision ? (
 					<InlineStatus
 						ref={outcome}
@@ -86,7 +73,8 @@ export function ApprovalBlock({ className, framed = true, onApprove, onDeny }: A
 				) : (
 					<>
 						<Button
-							variant="outline"
+							variant="ghost"
+							className="me-auto"
 							onClick={() => {
 								setDecision("denied")
 								onDeny?.()
@@ -94,14 +82,10 @@ export function ApprovalBlock({ className, framed = true, onApprove, onDeny }: A
 						>
 							Deny
 						</Button>
-						<Button
-							onClick={() => {
-								setDecision("allowed")
-								onApprove?.({ remember })
-							}}
-						>
-							Allow
+						<Button variant="outline" onClick={() => approve(true)}>
+							Always allow
 						</Button>
+						<Button onClick={() => approve(false)}>Allow once</Button>
 					</>
 				)}
 			</CardFooter>

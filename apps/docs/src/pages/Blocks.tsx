@@ -26,11 +26,34 @@ function isWide(block: BlockItem) {
 }
 
 /**
- * Families A–Z. Within one, the pairable cards come first and the full-row
- * blocks after, so the two-up rows fill instead of leaving a half row before
- * each wide block.
+ * Families in the order a product is built, not A–Z: the front door
+ * (marketing, sign-in), the app itself (dashboards, money, settings), the
+ * people and agents in it, then the utilities every app needs one of. A–Z put
+ * "AI & agents" first, so the page opened on its most specialised block. A
+ * family missing here sorts to the end, A–Z, rather than disappearing.
+ *
+ * Within one, the pairable cards come first and the full-row blocks after, so
+ * the two-up rows fill instead of leaving a half row before each wide block.
  */
-const families = [...new Set(items.map((b) => b.family))].sort().map((family) => ({
+const FAMILY_ORDER = [
+	"Marketing",
+	"Auth",
+	"Dashboard",
+	"Commerce",
+	"Settings & team",
+	"Social & messaging",
+	"AI & agents",
+	"Media & files",
+	"Navigation",
+	"System",
+]
+const rank = (family: string) => {
+	const index = FAMILY_ORDER.indexOf(family)
+	return index === -1 ? FAMILY_ORDER.length : index
+}
+const families = [...new Set(items.map((b) => b.family))]
+	.sort((a, b) => rank(a) - rank(b) || a.localeCompare(b))
+	.map((family) => ({
 	family,
 	blocks: items.filter((b) => b.family === family).sort((a, b) => Number(isWide(a)) - Number(isWide(b))),
 }))

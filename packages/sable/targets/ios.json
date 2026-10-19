@@ -913,6 +913,15 @@
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
+    "SectionRail": {
+      "source": "SectionRail",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "SectionRail"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
     "SegmentedBar": {
       "source": "SegmentedBar",
       "strategy": "preserve",

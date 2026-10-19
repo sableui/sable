@@ -24,7 +24,7 @@ import { type ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import { CATALOG_BY_SLUG, SEARCH_DOCS } from "../lib/catalog"
 import { SableLogo } from "./SableLogo"
 import { GitHubLink } from "./GitHubLink"
-import { CurrentRouteContext, hrefFor, navigate } from "../lib/router"
+import { CurrentRouteContext, PageTrailContext, type PageTrail, hrefFor, navigate } from "../lib/router"
 import { makeDocsFilter } from "../lib/search"
 import { Inspector } from "../customizer/Inspector"
 import { useCustomizer } from "../customizer/CustomizerProvider"
@@ -312,6 +312,18 @@ export function DocsShell({
 	}, [areas, current])
 
 	const sections = activeArea.sections
+	// Every page in a group gets a trail, the area's home included: an area's
+	// home is an ordinary page (Components opens on Button), not an overview.
+	// A single-page area (Canvas) has nothing to place the page within.
+	const trail = useMemo<PageTrail | null>(() => {
+		if (activeArea.sections.flatMap((section) => section.items).length < 2) return null
+		const group = activeArea.sections.find((section) =>
+			section.items.some((item) => item.slug === current),
+		)
+		return group
+			? { area: { label: activeArea.label, href: hrefFor(activeArea.home) }, group: group.title }
+			: null
+	}, [activeArea, current])
 	// An area that is a single page (Canvas) has nothing to browse: no rail.
 	const rail = !bare && sections.flatMap((section) => section.items).length > 1
 	const allSections = useMemo(
@@ -478,13 +490,17 @@ export function DocsShell({
 			>
 				{bare ? (
 					<div key={current} ref={routeContent}>
-						<CurrentRouteContext.Provider value={current}>{children}</CurrentRouteContext.Provider>
+						<CurrentRouteContext.Provider value={current}>
+							<PageTrailContext.Provider value={trail}>{children}</PageTrailContext.Provider>
+						</CurrentRouteContext.Provider>
 					</div>
 				) : (
 					<Region max={max} className="box-border py-10 lg:py-14">
 						{/* Re-keyed per route so each navigation plays a soft entrance. */}
 						<div key={current} ref={routeContent} className="animate-fade-up">
-							<CurrentRouteContext.Provider value={current}>{children}</CurrentRouteContext.Provider>
+							<CurrentRouteContext.Provider value={current}>
+								<PageTrailContext.Provider value={trail}>{children}</PageTrailContext.Provider>
+							</CurrentRouteContext.Provider>
 						</div>
 					</Region>
 				)}
