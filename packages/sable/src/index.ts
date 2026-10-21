@@ -251,6 +251,16 @@ export { PresentationProvider, usePresentation, type Presentation } from "./lib/
 // a consumer building their own scroll container needs it to honour the policy
 // the six hard rules require of ours. See DESIGN.md → Scrolling.
 export { useScrollActivity } from "./lib/use-scroll-activity"
+// Structure that changes at a breakpoint (a docked Panel becoming a Sheet) —
+// documented with Workspace; lib/use-media-query.ts.
+export {
+	belowBreakpointQuery,
+	useBelowBreakpoint,
+	useMediaQuery,
+	VIEWPORT_BREAKPOINTS,
+	type UseMediaQueryOptions,
+	type ViewportBreakpoint,
+} from "./lib/use-media-query"
 // The match paint Combobox and CommandMenu run on their rows, for a results list
 // a consumer filters itself (a SearchInput over a table). See
 // lib/use-match-highlight.ts.

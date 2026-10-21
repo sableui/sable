@@ -94,3 +94,23 @@ describe("Tabs motion", () => {
 		expect(root()).toHaveAttribute("data-motion", "subtle")
 	})
 })
+
+describe("Tabs in a WorkspaceBar", () => {
+	it("sits on the bar's hairline instead of drawing a second, shorter rule", async () => {
+		const { WorkspaceBar } = await import("../workspace")
+		render(
+			<WorkspaceBar>
+				<Tabs defaultValue="a">
+					<TabsList>
+						<TabsTrigger value="a">Issues</TabsTrigger>
+					</TabsList>
+				</Tabs>
+			</WorkspaceBar>,
+		)
+		const list = screen.getByRole("tablist")
+		expect(list.closest("[data-workspace-bar]")).not.toBeNull()
+		expect(list.className).toContain("[[data-workspace-bar]_&]:border-b-0")
+		expect(list.className).toContain("[[data-workspace-bar]_&]:self-stretch")
+		expect(screen.getByRole("tab").className).toContain("[[data-workspace-bar]_&]:h-full")
+	})
+})

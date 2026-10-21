@@ -8,6 +8,10 @@ export {
 	SidebarFooter,
 	SidebarItem,
 	type SidebarItemProps,
+	SidebarGroup,
+	type SidebarGroupProps,
+	SidebarAccount,
+	type SidebarAccountProps,
 	useSidebar,
 } from "./sidebar"
 export { sidebarMeta } from "./sidebar.meta"

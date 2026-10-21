@@ -4,7 +4,7 @@
 
 A row of docked chrome panels around a flexible centre, with draggable and keyboard-resizable edges and optional persisted widths.
 
-**Keywords:** panel, panels, resize, resizable, splitter, docked, workspace, tool, chrome, inspector, layout
+**Keywords:** panel, panels, resize, resizable, splitter, docked, workspace, tool, chrome, inspector, layout, mobile, responsive, sheet, drawer, narrow, detail pane
 
 ## Usage
 
@@ -15,6 +15,8 @@ Use PanelGroup for the body of a tool workspace: fixed-width Panels docked left 
 - Do: Give every docked Panel a fixed width and leave the centre Panel width-less so it absorbs the remaining space.
 - Do: Drive the width with usePanelWidth and pass a storageKey, so a user's layout survives a reload. Spread its bounds onto the PanelResizer rather than repeating min and max by hand.
 - Do: Label every Panel — they are landmarks, and 'Layers' or 'Properties' is what a screen-reader user navigates by.
+- Do: Decide what each docked Panel becomes on a phone with `narrow`: "sheet" for an inspector or a navigation rail the user opens on demand, "hidden" for chrome a phone does without. Drive a sheet's `open` from the same state that selects the record, so selecting a row opens the inspector at every width.
+- Don't: Render the same inspector twice, once in a Panel and once in a Sheet behind a hand-rolled viewport check. `narrow="sheet"` renders the content once, in whichever place applies.
 - Don't: Let the group scroll. Only panels and the canvas scroll; a scrolling group means the shell lost its height constraint.
 - Don't: Use it for page content columns — that's Grid or Columns. PanelGroup is chrome, and it sits outside the content grid.
 - Don't: Omit PanelResizer to save effort and then let users live with a fixed panel. If a panel holds a tree or a property grid, its width is a preference.
@@ -31,7 +33,7 @@ Use PanelGroup for the body of a tool workspace: fixed-width Panels docked left 
 
 | Name | Type | Description |
 | --- | --- | --- |
-| Panel | { label: string; width?: number; scroll?: boolean } | A docked or flexible column. `label` names the landmark; omit `width` for the flexible centre. `scroll` defaults to true — set it false for a header + scrolling body + pinned footer, so the footer doesn't scroll away with the list. When you own the layout, give the header and footer shrink-0 and the middle min-h-0 flex-1 overflow-y-auto. overflow-y-auto only activates if every flex ancestor can shrink: a single missing min-h-0 anywhere up the chain makes the panel grow instead of scroll, and nothing reports it. |
+| Panel | { label: string; width?: number; scroll?: boolean; narrow?: "dock" \| "sheet" \| "hidden"; open?: boolean; onOpenChange?: (open: boolean) => void; side?: "left" \| "right"; below?: "sm" \| "md" \| "lg" \| "xl" \| "2xl" } | A docked or flexible column. Below `below` (default lg, where Sidebar and BottomNav swap), `narrow` decides what it becomes: "dock" (default) stays docked, "sheet" renders the same content once inside a Sheet from `side` (default "right"; a panel before the canvas is "left"), titled by `label`, open while `open` is true and closed through `onOpenChange` (Esc, scrim, swipe), and "hidden" drops it. `open` defaults to true docked (false removes the column, so the canvas takes its width) and false as a sheet. Crossing the breakpoint remounts the content, so keep state that must survive it in the app. `label` names the landmark; omit `width` for the flexible centre. `scroll` defaults to true — set it false for a header + scrolling body + pinned footer, so the footer doesn't scroll away with the list. When you own the layout, give the header and footer shrink-0 and the middle min-h-0 flex-1 overflow-y-auto. overflow-y-auto only activates if every flex ancestor can shrink: a single missing min-h-0 anywhere up the chain makes the panel grow instead of scroll, and nothing reports it. |
 | PanelResizer | { side: 'left' \| 'right'; width: number; onWidthChange: (n: number) => void; label: string; min?: number; max?: number; step?: number } | The draggable edge. `side` says which side the resized panel is on, so the drag delta's sign is right. |
 | usePanelWidth | (defaultWidth: number, options?: { storageKey?: string; min?: number; max?: number }) => readonly [number, (n: number) => void, { min: number; max: number }] | Controlled width for a Panel, clamped and optionally persisted to localStorage (only when `storageKey` is passed). Read through useSyncExternalStore, so there is no server/client hydration mismatch and no setState in an effect; do not hand-roll a localStorage read during render or a write from an effect. Without `storageKey` the width is kept in memory per hook instance. The third element is the `{ min, max }` it clamps to: spread it onto the paired PanelResizer so the separator's aria-valuemin/max and Home/End match the real clamp. |
 
@@ -103,6 +105,36 @@ function Body() {
             <ScrubField label="Opacity" icon="grid" suffix="%" value={100} min={0} max={100} />
             <ScrubField label="Blur" value={0} min={0} max={64} suffix="px" />
           </PropertyPair>
+        </PanelSection>
+      </Panel>
+    </PanelGroup>
+  )
+}
+```
+
+### Inspector that becomes a sheet on phones
+
+```tsx
+import { Button, Input, Panel, PanelGroup, PanelSection, PropertyRow } from "@sableui/react"
+
+function Body() {
+  const [selected, setSelected] = useState<string | null>(null)
+  return (
+    <PanelGroup>
+      <Panel label="Issues">
+        <div className="p-2">
+          <Button size="xs" variant="ghost" onClick={() => setSelected("AES-104")}>AES-104 Refine product page</Button>
+        </div>
+      </Panel>
+      <Panel
+        label="Issue details"
+        width={320}
+        narrow="sheet"
+        open={selected !== null}
+        onOpenChange={(open) => !open && setSelected(null)}
+      >
+        <PanelSection title={selected ?? ""}>
+          <PropertyRow label="Status"><Input defaultValue="In progress" /></PropertyRow>
         </PanelSection>
       </Panel>
     </PanelGroup>

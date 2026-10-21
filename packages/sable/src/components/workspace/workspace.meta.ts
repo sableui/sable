@@ -15,6 +15,17 @@ export const workspaceMeta: ComponentMeta = {
 		"panels",
 		"density",
 		"viewport",
+		"issue tracker",
+		"tracker",
+		"inspector",
+		"reading view",
+		"mobile",
+		"responsive",
+		"bottom nav",
+		"media query",
+		"breakpoint",
+		"top bar",
+		"topbar",
 	],
 	usage: {
 		description:
@@ -34,6 +45,21 @@ export const workspaceMeta: ComponentMeta = {
 				guidance: "do",
 				description:
 					"Keep the density scope at compact unless you have a specific reason; the workspace register's measured control ladder is what makes tool chrome read as tool chrome.",
+			},
+			{
+				guidance: "do",
+				description:
+					"Put a WorkspaceBar inside a column when the bar belongs to that column only. An issue tracker's bar (breadcrumb, view tabs, filters) sits above the list, while the sidebar and the inspector beside it run the full height: put the WorkspaceBar first inside the WorkspaceCanvas, not in the `toolbar` slot, which spans every panel. Don't hand-build a fixed-height header for it.",
+			},
+			{
+				guidance: "do",
+				description:
+					"Wrap a reading view inside the workspace (a project overview, an update, a doc, release notes) in <Density value=\"comfortable\">. The compact scope maps body text to the 11–12px UI tiers, which is right for chrome and too small for paragraphs; the comfortable scope gives prose its page size again while the chrome around it stays compact.",
+			},
+			{
+				guidance: "do",
+				description:
+					"Plan the phone layout with the shell rather than around it: pass a BottomNav to `bottomNav`, and give docked Panels `narrow=\"sheet\"` (an inspector, a navigation rail) or `narrow=\"hidden\"`. Don't measure the viewport with a resize listener, render the inspector twice, or subtract the nav's height from 100dvh.",
 			},
 			{
 				guidance: "dont",
@@ -80,6 +106,12 @@ export const workspaceMeta: ComponentMeta = {
 				required: false,
 				description: "Bottom chrome for ambient document facts.",
 			},
+			{
+				name: "BottomNav",
+				required: false,
+				description:
+					"Phone navigation in the `bottomNav` slot. Its row is reserved below lg and gone above it, so the body ends where the nav begins.",
+			},
 		],
 	},
 	related: {
@@ -93,6 +125,12 @@ export const workspaceMeta: ComponentMeta = {
 			description: "Top chrome, normally a WorkspaceBar.",
 		},
 		{ name: "statusBar", type: "ReactNode", description: "Bottom chrome, normally a StatusBar." },
+		{
+			name: "bottomNav",
+			type: "ReactNode",
+			description:
+				"Phone navigation, normally a BottomNav. Below lg (BottomNav's own breakpoint) the shell reserves the nav's height as its last row, so the body and the status bar end above the nav instead of under it; above lg the row is gone. Every slot is optional: the body is the shell's one growing row whichever of toolbar, statusBar and bottomNav are present.",
+		},
 		{
 			name: "density",
 			type: '"compact" | "comfortable"',
@@ -118,6 +156,18 @@ export const workspaceMeta: ComponentMeta = {
 			type: "ComponentProps<'main'>",
 			description:
 				"The work surface: renders main#main-content, fills the body, clips its overflow.",
+		},
+		{
+			name: "useMediaQuery",
+			type: "(query: string, options?: { serverValue?: boolean }) => boolean",
+			description:
+				"True while a media query matches, read through useSyncExternalStore: no resize listener, no setState in an effect, no hydration mismatch (the server reports serverValue, default false). Use it to branch structure a class cannot express; style-only changes stay as lg: classes.",
+		},
+		{
+			name: "useBelowBreakpoint",
+			type: '(breakpoint?: "sm" | "md" | "lg" | "xl" | "2xl", options?: { serverValue?: boolean }) => boolean',
+			description:
+				"True below a named breakpoint (default lg), flipping at the width where that breakpoint's classes start to apply (Tailwind's sm 40 / md 48 / lg 64 / xl 80 / 2xl 96rem). Panel's `narrow` uses it; reach for it instead of a hand-rolled window.innerWidth check.",
 		},
 	],
 	a11y: [
@@ -177,6 +227,71 @@ export const workspaceMeta: ComponentMeta = {
     </Panel>
     <WorkspaceCanvas className="overflow-y-auto scrollbar-quiet">
       <div className="p-3 text-ui-num text-muted-foreground">log output…</div>
+    </WorkspaceCanvas>
+  </PanelGroup>
+</Workspace>`,
+		},
+		{
+			label: "Issue tracker: column bar, docked inspector, phone sheet",
+			code: `function Tracker() {
+  const [selected, setSelected] = useState<string | null>("AES-104")
+  return (
+    <Workspace
+      bottomNav={
+        <BottomNav>
+          <BottomNavItem showLabel label="Issues" icon={<Icon name="list" />} active />
+          <BottomNavItem showLabel label="Inbox" icon={<Icon name="inbox" />} />
+        </BottomNav>
+      }
+      statusBar={<StatusBar><span>12 issues</span></StatusBar>}
+    >
+      <PanelGroup>
+        <Panel label="Navigation" width={220} narrow="hidden">
+          <PanelSection title="Workspace">
+            <PropertyRow label="Team"><Input defaultValue="Studio" /></PropertyRow>
+          </PanelSection>
+        </Panel>
+        <WorkspaceCanvas className="flex flex-col">
+          <WorkspaceBar>
+            <Breadcrumbs>
+              <BreadcrumbItem><BreadcrumbLink href="#">Studio</BreadcrumbLink></BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem><BreadcrumbPage>Digital flagship</BreadcrumbPage></BreadcrumbItem>
+            </Breadcrumbs>
+          </WorkspaceBar>
+          <div className="min-h-0 flex-1 overflow-y-auto scrollbar-quiet">
+            <Button size="xs" variant="ghost" onClick={() => setSelected("AES-104")}>AES-104 Refine product page</Button>
+          </div>
+        </WorkspaceCanvas>
+        <Panel
+          label="Issue details"
+          width={320}
+          narrow="sheet"
+          open={selected !== null}
+          onOpenChange={(open) => !open && setSelected(null)}
+        >
+          <PanelSection title={selected ?? ""}>
+            <PropertyRow label="Status"><Input defaultValue="In progress" /></PropertyRow>
+          </PanelSection>
+        </Panel>
+      </PanelGroup>
+    </Workspace>
+  )
+}`,
+		},
+		{
+			label: "Reading view inside a workspace",
+			code: `<Workspace>
+  <PanelGroup>
+    <WorkspaceCanvas className="overflow-y-auto scrollbar-quiet">
+      <Density value="comfortable">
+        <article className="max-w-prose p-6">
+          <h2 className="text-heading-3">Project overview</h2>
+          <p className="mt-3 text-body-md text-muted-foreground">
+            Paragraphs keep their page size here, while the chrome around the canvas stays compact.
+          </p>
+        </article>
+      </Density>
     </WorkspaceCanvas>
   </PanelGroup>
 </Workspace>`,

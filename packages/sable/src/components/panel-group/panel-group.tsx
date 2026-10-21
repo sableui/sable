@@ -8,6 +8,8 @@ import {
 	useSyncExternalStore,
 } from "react"
 import { cn } from "../../lib/cn"
+import { useBelowBreakpoint, type ViewportBreakpoint } from "../../lib/use-media-query"
+import { Sheet, SheetContent, SheetTitle } from "../sheet"
 
 /* ── Persisted widths ───────────────────────────────────────────────────────
    A tiny external store rather than component state, read through
@@ -141,6 +143,33 @@ type PanelProps = Omit<ComponentProps<"aside">, "children"> & {
 	 * body region instead.
 	 */
 	scroll?: boolean
+	/**
+	 * What the panel becomes below `below`, where a docked column no longer fits
+	 * beside the canvas. @default "dock"
+	 *
+	 * - `"dock"` keeps it docked at every width (today's behaviour).
+	 * - `"sheet"` moves it into a Sheet on the panel's `side`, open while `open`
+	 *   is true: an inspector becomes a sheet over the list, a navigation rail a
+	 *   drawer. Wire `onOpenChange` so Esc, the scrim and a swipe can close it.
+	 * - `"hidden"` drops it, for chrome a phone does without.
+	 */
+	narrow?: "dock" | "sheet" | "hidden"
+	/**
+	 * Whether the panel is showing. Docked, it defaults to `true`, and `false`
+	 * removes the column so the canvas takes its width (an inspector with nothing
+	 * selected). As a sheet it is the sheet's open state and defaults to `false`:
+	 * a modal that opened by itself on every phone load would block the app.
+	 */
+	open?: boolean
+	/** Called when the sheet asks to close (Esc, scrim, swipe) or open. */
+	onOpenChange?: (open: boolean) => void
+	/**
+	 * The edge the sheet slides in from when `narrow="sheet"`. A panel docked
+	 * before the canvas is a `"left"` one. @default "right"
+	 */
+	side?: "left" | "right"
+	/** The breakpoint `narrow` applies below. Matches Sidebar's and BottomNav's swap. @default "lg" */
+	below?: ViewportBreakpoint
 	/** Panel content. Optional: an empty flexible centre is a valid placeholder. */
 	children?: ReactNode
 }
@@ -148,15 +177,45 @@ type PanelProps = Omit<ComponentProps<"aside">, "children"> & {
 /**
  * Panel — one docked chrome column. Fixed-width when `width` is set, flexible
  * otherwise. Scrolls its own content; the group never scrolls.
+ *
+ * Below `below`, `narrow` decides what a docked column becomes. The content is
+ * rendered once, in whichever of the two places applies, so an app never mounts
+ * its inspector twice (a Panel for desktop and a Sheet for phones, each holding
+ * its own copy of the same form). Crossing the breakpoint remounts it, so keep
+ * state that must survive a rotation in the app, not in the panel's children.
  */
 export function Panel({
 	label,
 	width,
 	scroll = true,
+	narrow = "dock",
+	open,
+	onOpenChange,
+	side = "right",
+	below = "lg",
 	className,
 	children,
 	...props
 }: PanelProps) {
+	const isNarrow = useBelowBreakpoint(below)
+
+	if (narrow !== "dock" && isNarrow) {
+		if (narrow === "hidden") return null
+		return (
+			<Sheet open={open ?? false} onOpenChange={(next) => onOpenChange?.(next)}>
+				{/* Flush: panel content brings its own insets (PanelSection, a header
+				    strip), so the sheet's page padding would double them. A Sidebar
+				    moved in here fills the sheet: its docked width is a column's,
+				    and kept at 204px it left a strip of empty sheet beside it. */}
+				<SheetContent side={side} className="gap-0 p-0 [--sidebar-width:100%]">
+					<SheetTitle className="sr-only">{label}</SheetTitle>
+					{children}
+				</SheetContent>
+			</Sheet>
+		)
+	}
+
+	if (open === false) return null
 	return (
 		<aside
 			aria-label={label}

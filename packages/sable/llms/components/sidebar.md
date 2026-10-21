@@ -2,9 +2,9 @@
 
 **Status:** stable
 
-Desktop side-navigation rail (in-flow sticky, hidden below lg) with SidebarHeader / SidebarBrand / SidebarNav / SidebarItem / SidebarFooter parts. Items are router-agnostic via the `render` prop; an optional collapsed icon-rail mode reveals labels in tooltips.
+Desktop side-navigation rail (in-flow sticky, hidden below lg) with SidebarHeader / SidebarBrand / SidebarNav / SidebarGroup / SidebarItem / SidebarFooter / SidebarAccount parts, all on one set of columns. Items are router-agnostic via the `render` prop; an optional collapsed icon-rail mode reveals labels in tooltips.
 
-**Keywords:** sidebar, navigation, app chrome, rail
+**Keywords:** sidebar, navigation, app chrome, rail, nav group, section label, account, user menu, profile, account switcher, workspace switcher, sidebar footer
 
 ## Usage
 
@@ -16,6 +16,9 @@ Use Sidebar for persistent desktop navigation or application chrome outside the 
 - Do: Keep item labels predictable and active state obvious.
 - Do: Set surface="page" when a full-width top bar sits above the rail. A theme's tinted or dark rail is for a full-height rail that frames the app.
 - Do: Keep surface="rail" inside AppShell frame="inset": the rail's tint becomes the ground the main panel floats on. Do not add a border-r class back — the gap is the divider.
+- Do: Group items with SidebarGroup and end the rail with one SidebarAccount that opens the account menu (settings, appearance, sign out). Every part sits on the same icon and label columns, at either density.
+- Don't: Do not put SideNav, an Entity or a stack of ghost Buttons in the rail. Each brings its own insets, so the icons and labels land on four different columns. SideNav is the in-page section list; the rail has its own parts.
+- Don't: Do not put a Badge or pill in the account row. Its one quiet detail line carries the plan, role or 'Demo'.
 - Don't: Do not use Sidebar for page-local settings, filters, or temporary action groups.
 - Don't: Do not put page content in it. It is fixed-width chrome OUTSIDE the content grid, so anything in it is exempt from the page's measure and rhythm.
 
@@ -30,9 +33,11 @@ Use Sidebar for persistent desktop navigation or application chrome outside the 
 
 | Name | Type | Description |
 | --- | --- | --- |
-| SidebarHeader | div props | The top of the rail, at least 64px tall. It holds SidebarBrand and may take a second row under it, such as a search field or a notifications button: give that row basis-full and the header grows to hold it instead of clipping. |
+| SidebarHeader | div props | The top of the rail, at least 64px tall (the chrome bar's height inside a compact Workspace, so it lines up with the WorkspaceBar beside it). It holds SidebarBrand and may take a second row under it, such as a search field or a notifications button: give that row basis-full and the header grows to hold it instead of clipping. |
 | SidebarBrand | { mark: ReactNode; label: ReactNode; render?: useRender.RenderProp } + div props | The brand row, inside SidebarHeader, on the same grid as SidebarItem: mark in the icons' 24px slot, label on the labels' column, so a logo lines up with the nav below it without copying the rail's inset numbers. Collapsed, it shows the mark alone (named by a string label). render={<Link to="/" />} makes it the home link. |
-| SidebarItem | { label: ReactNode; icon?: ReactNode; active?: boolean; badge?: ReactNode; render?: useRender.RenderProp } + button props | A single nav row. label is the row text (inline when expanded, in a hover tooltip when collapsed); icon is the leading icon node (the consumer swaps fill weight for the active state); active marks the current route (accent fill + aria-current="page"); badge is a trailing node (e.g. a count) pushed to the row end and hidden when collapsed; render composes another element, e.g. render={<Link to="/x" />}. |
+| SidebarItem | { label: ReactNode; icon?: ReactNode; active?: boolean; badge?: ReactNode; render?: useRender.RenderProp } + button props | A single nav row, 44px on a page and 32px inside a compact scope such as a Workspace (the rail reads the density; nothing to set). label is the row text (inline when expanded, in a hover tooltip when collapsed); icon is the leading icon node (the consumer swaps fill weight for the active state); active marks the current route (accent fill + aria-current="page"); badge is a trailing node (e.g. a count) pushed to the row end and hidden when collapsed; render composes another element, e.g. render={<Link to="/x" />}. |
+| SidebarGroup | { label?: ReactNode } + div props | A labelled run of SidebarItems inside SidebarNav ("Workspace", "Favorites"). The label starts on the items' icon column; collapsed, a hairline stands in for it and the label stays as the group's accessible name. |
+| SidebarAccount | { avatar: ReactNode; label: ReactNode; detail?: ReactNode; indicator?: ReactNode \| false; render?: useRender.RenderProp } + button props | The account row at the foot of the rail, inside SidebarFooter: the avatar in the icon slot (Avatar xs on a page rail, 2xs in a compact one), the label on the label column, one muted detail line, and an up-down chevron. Make it the trigger of the account Menu (render it through MenuTrigger render) and put Settings, appearance and sign-out there; it holds its fill while the menu is open. Collapsed, the avatar alone, with the label in a tooltip. |
 
 ## Props
 
@@ -90,6 +95,14 @@ import { Button, Icon, Sidebar, SidebarFooter, SidebarItem, SidebarNav } from "@
 
 const [collapsed, setCollapsed] = useState(false)
 <Sidebar collapsed={collapsed}><SidebarNav><SidebarItem icon={<Icon name="home" />} label="Home" active render={<Link to="/" />} /></SidebarNav><SidebarFooter><Button variant="ghost" size="icon" onClick={() => setCollapsed((c) => !c)} aria-label="Toggle sidebar"><Icon name="chevron-left" /></Button></SidebarFooter></Sidebar>
+```
+
+### Grouped nav with an account menu
+
+```tsx
+import { Avatar, Icon, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger, Sidebar, SidebarAccount, SidebarBrand, SidebarFooter, SidebarGroup, SidebarHeader, SidebarItem, SidebarNav } from "@sableui/react"
+
+<Sidebar><SidebarHeader><SidebarBrand mark={<Avatar shape="square" size="xs" fallback="F" alt="" />} label="Forma Studio" /></SidebarHeader><SidebarNav><SidebarItem icon={<Icon name="inbox" />} label="Inbox" badge={<span className="text-ui-num">4</span>} /><SidebarGroup label="Workspace"><SidebarItem icon={<Icon name="folder" />} label="Projects" active /><SidebarItem icon={<Icon name="users" />} label="Clients" /></SidebarGroup></SidebarNav><SidebarFooter><Menu><MenuTrigger render={<SidebarAccount avatar={<Avatar size="xs" fallback="EL" alt="" />} label="Emma Lee" detail="Forma Studio" />} /><MenuContent side="top" align="start"><MenuItem>Settings</MenuItem><MenuSeparator /><MenuItem>Sign out</MenuItem></MenuContent></Menu></SidebarFooter></Sidebar>
 ```
 
 ### Inline (inside a bounded frame)

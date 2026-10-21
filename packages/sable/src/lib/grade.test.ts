@@ -353,3 +353,126 @@ export function Surface({ a }) {
 		expect(report.inventory.byKind).toEqual({ surface: 2, "media frame": 1, round: 2 })
 	})
 })
+
+describe("rebuilt parts, app CSS and colour modes", () => {
+	/* A work tracker passed lint and a 100/100 grade with hand-built breadcrumbs,
+	 * property rows, status dots and an avatar stack styled through semantic
+	 * classes in its own CSS, a table re-laid from outside, nine icon names the
+	 * set lacks behind a wrapper, and light-only colours with no mode control.
+	 * This fixture is that app in miniature. */
+	const APP = `import { Card, CardContent, Icon, TabsList, Tabs, DataTable } from "@sableui/react"
+function Glyph({ name }) { const aliases = { "check-circle": "circle-check", telescope: "search" }; return <Icon name={aliases[name] || name} /> }
+function IconButton({ name, label }) { return <button aria-label={label}><Glyph name={name} /></button> }
+export function App({ rows }) {
+	return <main>
+		<header className="topbar"><span className="crumb">Studio</span><span className="crumb">Aesop</span></header>
+		<div className="property"><span className="property-label">Status</span></div>
+		<span className="unread-dot" />
+		<div className="team-avatars"><span>EL</span></div>
+		<div className="project-tabbar"><Tabs><TabsList /></Tabs></div>
+		<Card className="board-card"><CardContent>Card is Sable's</CardContent></Card>
+		<Glyph name="telescope" /><Glyph name="cauldron" /><IconButton name="zz-orbit-gizmo" label="Display" />
+		<DataTable className="issue-table" columns={[]} data={rows} />
+	</main>
+}`
+	const CSS = `:root { --background: #fcfcfd; --foreground: #25262b; --card: #fff; --primary: #353640; --chrome-bar-height: 42px }
+.topbar { display: flex; height: 48px }
+.issue-table th { height: 25px; padding: 4px 8px; font-size: 11px }
+.issue-table [data-selected] { --muted: #eef0fa }
+.group-bar [aria-expanded=false] svg { transform: rotate(-90deg) }
+@media (max-width: 1099px) { .app { --control-xs: 28px; --control-sm: 32px } }`
+
+	it("lists parts the app rebuilt, by class name, and what its CSS does to Sable, without scoring either", () => {
+		const dir = makeFixture()
+		writeFileSync(join(dir, "Surface.tsx"), APP)
+		writeFileSync(join(dir, "styles.css"), CSS)
+		const report = run(dir, ["Surface.tsx", "styles.css"]).data
+		const items = report.rebuiltParts.items as { kind: string; what: string; consider: string; count?: number }[]
+		const parts = items.filter((i) => i.kind === "rebuilt part").map((i) => i.consider.split(" ")[0])
+		expect(parts.sort()).toEqual(["AvatarGroup", "Breadcrumbs", "CollapsibleIndicator,", "PropertyRow", "StatusDot", "WorkspaceBar"])
+		// Counted once per class, and never for a class on a Sable component or a
+		// wrapper that already holds the part (`project-tabbar` around TabsList).
+		expect(items.find((i) => i.what.includes("crumb"))?.count).toBe(2)
+		expect(items.some((i) => /board-card|project-tabbar|property-label/.test(i.what))).toBe(false)
+		expect(items.filter((i) => i.kind === "override").map((i) => i.what)).toEqual([
+			".issue-table th { height, padding, font-size } re-lays a Sable table from outside",
+			".issue-table [data-selected] restyles a Sable state from outside",
+		])
+		expect(items.filter((i) => i.kind === "fixed height").length).toBe(4)
+		expect(items.find((i) => i.kind === "icon aliases")?.what).toBe("Glyph renames 2 icon name(s) the set does not have: check-circle→circle-check, telescope→search")
+		expect(report.score).toBeLessThan(100) // only the icon findings below cost anything
+	})
+
+	it("judges icon names passed through the app's own wrappers, after their alias maps", () => {
+		const dir = makeFixture()
+		writeFileSync(join(dir, "Surface.tsx"), APP)
+		const icons = run(dir, ["Surface.tsx"]).data.findings.offContractIcon.map((f: { name: string; via: string }) => [f.name, f.via])
+		// `telescope` resolves through the alias map; `cauldron` and the name
+		// two wrappers deep, through IconButton, do not exist.
+		expect(icons).toEqual([["cauldron", "Glyph"], ["zz-orbit-gizmo", "IconButton"]])
+	})
+
+	it("warns when colours are set for light only and nothing switches modes", () => {
+		const dir = makeFixture()
+		writeFileSync(join(dir, "Surface.tsx"), APP)
+		writeFileSync(join(dir, "styles.css"), CSS)
+		const { modes } = run(dir, ["Surface.tsx", "styles.css"]).data
+		expect(modes.status).toBe("warn")
+		expect(modes.lightOnly.map((t: { name: string }) => t.name)).toEqual(["background", "foreground", "card", "primary", "muted"])
+		expect(modes.modeControl).toBe(false)
+
+		writeFileSync(join(dir, "styles.css"), `${CSS}\n.dark { --background: #111; --foreground: #eee; --card: #1a1a1a; --primary: #ddd }\n.dark .issue-table [data-selected] { --muted: #223 }`)
+		writeFileSync(join(dir, "Surface.tsx"), `import { ThemeSwitcher } from "@sableui/react"\n${APP}`)
+		const both = run(dir, ["Surface.tsx", "styles.css"]).data.modes
+		expect(both.status).toBe("ok")
+		expect(both.modeControl).toBe(true)
+	})
+})
+
+describe("composition notes", () => {
+	/* The shape a records workspace drifted into before the rail, the grouped
+	 * table and the account row existed: each a Sable part, composed where
+	 * another part already does the job on the right grid. */
+	const APP = `import { Badge, Collapsible, CollapsiblePanel, DataTable, Entity, Input, SideNav, SideNavItem, Sidebar, SidebarFooter, Tabs, TabsList, TabsTrigger, WorkspaceBar } from "@sableui/react"
+export function App({ rows }) {
+	return <div>
+		<Sidebar variant="inline"><SideNav><SideNavItem label="Inbox" /></SideNav><SidebarFooter><Entity title="Emma Lee" action={<Badge>Demo</Badge>} /></SidebarFooter></Sidebar>
+		<WorkspaceBar><Tabs><TabsList><TabsTrigger value="a">Issues</TabsTrigger></TabsList></Tabs></WorkspaceBar>
+		<Collapsible><CollapsiblePanel><DataTable columns={[]} data={rows} /></CollapsiblePanel></Collapsible>
+		<Input type="date" aria-label="Due" />
+	</div>
+}`
+	const FINE = `import { Sidebar, SidebarNav, SidebarItem, SidebarFooter, SidebarAccount, Tabs, TabsList, TabsTrigger, WorkspaceBar, DataTable } from "@sableui/react"
+export function App({ rows }) {
+	return <div>
+		<Sidebar variant="inline"><SidebarNav><SidebarItem label="Inbox" /></SidebarNav><SidebarFooter><SidebarAccount avatar={null} label="Emma Lee" /></SidebarFooter></Sidebar>
+		<WorkspaceBar><Tabs><TabsList variant="pill"><TabsTrigger value="a">Issues</TabsTrigger></TabsList></Tabs></WorkspaceBar>
+		<DataTable columns={[]} data={rows} groupBy={(r) => r.status} />
+	</div>
+}`
+
+	it("notes a part composed where another part does the job, without scoring it", () => {
+		const dir = makeFixture()
+		writeFileSync(join(dir, "Tracker.tsx"), APP)
+		const report = run(dir, ["Tracker.tsx"]).data
+		const notes = (report.rebuiltParts.items as { kind: string; what: string; consider: string }[]).filter((i) => i.kind === "composition")
+		expect(notes.map((n) => n.what).sort()).toEqual([
+			"a DataTable per group inside Collapsibles",
+			"a native date input",
+			"an Entity or Badge in the rail's footer",
+			"SideNav inside a Sidebar",
+			"underline tabs in a WorkspaceBar",
+		].sort())
+		expect(notes.find((n) => n.what === "SideNav inside a Sidebar")?.consider).toMatch(/SidebarGroup/)
+		expect(notes.find((n) => n.what.startsWith("an Entity"))?.consider).toMatch(/SidebarAccount/)
+		expect(report.score).toBe(100)
+	})
+
+	it("says nothing when the rail, the tabs and the table use their own parts", () => {
+		const dir = makeFixture()
+		writeFileSync(join(dir, "Tracker.tsx"), FINE)
+		const report = run(dir, ["Tracker.tsx"]).data
+		const notes = ((report.rebuiltParts?.items ?? []) as { kind: string }[]).filter((i) => i.kind === "composition")
+		expect(notes).toEqual([])
+	})
+})

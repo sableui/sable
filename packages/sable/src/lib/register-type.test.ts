@@ -99,4 +99,39 @@ describe("the compact register retunes type, not just heights", () => {
 		expect(compactBlock).toMatch(/--type-ui-micro-weight/)
 		expect(compactBlock).toMatch(/--type-ui-section-weight/)
 	})
+
+	describe("stops at a comfortable boundary", () => {
+		// The selectors as the browser sees them once nesting is flattened: `&` is
+		// the compact scope. jsdom's matcher then answers which elements the
+		// remap reaches, so this exercises the real selector, not a string.
+		const selectorFor = (tier: string) => {
+			const line = compactBlock.split("\n").find((l) => new RegExp(`^\\t& \\.text-${tier}\\b`).test(l))
+			expect(line, `no compact rule for text-${tier}`).toBeDefined()
+			return line!.trim().replace(/^& /, '[data-density="compact"] ').replace(/\s*[{,]$/, "")
+		}
+		const tree = (markup: string) => {
+			document.body.innerHTML = markup
+			return (id: string) => document.getElementById(id) as HTMLElement
+		}
+
+		it.each(["body-md", "body-sm", "label-md", "title-lg"])("text-%s: compact inside a tool, page type inside a nested comfortable reading view", (tier) => {
+			const sel = selectorFor(tier)
+			const get = tree(`
+				<div data-density="compact">
+					<p id="tool" class="text-${tier}"></p>
+					<section data-density="comfortable">
+						<p id="reading" class="text-${tier}"></p>
+						<div><p id="deep" class="text-${tier}"></p></div>
+					</section>
+					<div id="self" data-density="comfortable" class="text-${tier}"></div>
+				</div>
+				<div data-density="comfortable"><div data-density="compact"><p id="workspace-in-page" class="text-${tier}"></p></div></div>`)
+			expect(get("tool").matches(sel)).toBe(true)
+			expect(get("reading").matches(sel)).toBe(false)
+			expect(get("deep").matches(sel)).toBe(false)
+			expect(get("self").matches(sel)).toBe(false)
+			// A Workspace inside a comfortable page is still a tool.
+			expect(get("workspace-in-page").matches(sel)).toBe(true)
+		})
+	})
 })

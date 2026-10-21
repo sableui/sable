@@ -32,6 +32,9 @@ const previews: Record<string, ComponentType> = {
 	"chat-panel": lazyRoute(() =>
 		import("@sableui/react/patterns").then((m) => ({ default: m.ChatPanel })),
 	),
+	"tracker-page": lazyRoute(() =>
+		import("@sableui/react/patterns").then((m) => ({ default: m.TrackerPage })),
+	),
 	// Not a pattern: AppShell's inset frame at full size, for the App Shell page.
 	"app-shell-inset": lazyRoute(() =>
 		import("./previews/InsetFramePreview").then((m) => ({ default: m.InsetFramePreview })),

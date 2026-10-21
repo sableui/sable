@@ -4,7 +4,7 @@
 
 Date (and optionally time) picker: a field-shaped trigger (the Input / SelectTrigger shell) opens a Popover holding Sable's Calendar. With granularity="day" selecting a day fires onValueChange and closes; granularity="minute" adds an hour + minute row of Selects and keeps the time-of-day when the day changes.
 
-**Keywords:** date picker, calendar, date input, date time picker, time, schedule, form
+**Keywords:** date picker, due date, property row, inspector, calendar, date input, date time picker, time, schedule, form
 
 ## Usage
 
@@ -33,6 +33,8 @@ Use DatePicker when users need to choose one date — or, with granularity="minu
 | disabled | boolean | — | Disable the trigger and block selection. |
 | minDate | Date | — | Earliest selectable day (inclusive). Earlier days are disabled and navigation is bounded. |
 | maxDate | Date | — | Latest selectable day (inclusive). Later days are disabled and navigation is bounded. |
+| size | "md" \| "xs" | "md" | The trigger's rung. md is the form field beside Input and Select. xs is the property-grid rung (24px in a workspace): an inset panel-field well with no border, the same shape as SelectTrigger size="xs" and ScrubField on the neighbouring rows of an inspector — use it for a due date in a PropertyRow instead of a native date input. |
+| formatOptions | Intl.DateTimeFormatOptions | — | How the trigger writes the chosen date, as Intl.DateTimeFormat options in the reader's locale — { month: "short", day: "numeric" } for "Oct 23" where the rest of a list writes dates that way. Omitted: "Oct 23, 2026" (with "at 14:30" under granularity="minute"). |
 | className | string | — | Extra classes merged onto the trigger. |
 | id / aria-label / aria-labelledby / aria-describedby / aria-invalid / aria-required | button attributes | — | Forwarded to the trigger, so a wrapping Field ties its label to the picker and announces its description and error. Pass them yourself only when labelling the picker without a Field. |
 
@@ -53,6 +55,18 @@ Use DatePicker when users need to choose one date — or, with granularity="minu
 - Components: Calendar, Field
 
 ## Examples
+
+### In an inspector row
+
+```tsx
+import { DatePicker, PanelSection, PropertyRow } from "@sableui/react"
+
+<PanelSection title="Properties">
+	<PropertyRow label="Due date">
+		<DatePicker size="xs" aria-label="Due date" value={due} onValueChange={setDue} formatOptions={{ month: "short", day: "numeric" }} />
+	</PropertyRow>
+</PanelSection>
+```
 
 ### Controlled
 

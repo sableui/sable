@@ -21,6 +21,15 @@ are optional: set `page-inset` and the `region-*` caps (`form`, `feed`, `content
 `wide`, `full`) in `tokens.shared` only when the direction calls for a different
 page proportion, and keep each cap's role.
 
+Overall type size is one token. Sable's scale is built on a 16px base;
+`"type-base": "14"` (or 13) in `tokens.shared` rebuilds every page tier at that
+base, keeping their ratios, and spacing follows because the rhythm is derived
+from body size. Use it when the direction is denser or more technical than the
+bundled presets (a tracker, a console, "like Linear"). Don't rescale the root
+font-size, and don't override tiers one by one to the same end. Retune a single
+tier only when that tier's role changes. Inside a Workspace the chrome already
+uses its own compact `ui-*` tiers.
+
 ```bash
 pnpm exec sable preset --template
 pnpm exec sable preset --check .sable/presets/clay.json --json

@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
 import { userEvent } from "@testing-library/user-event"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { renderWithProviders, screen, waitFor, within } from "../../test/render"
@@ -312,5 +314,19 @@ describe("status glyph", () => {
 		toast("Saved")
 		const row = (await screen.findByText("Saved")).closest("[role=dialog]") as HTMLElement
 		expect(row.querySelector("[data-icon]:not([data-icon=xmark])")).toBeNull()
+	})
+})
+
+describe("toasts and an open side sheet on a narrow screen", () => {
+	const css = readFileSync(join(import.meta.dirname, "..", "..", "styles.css"), "utf8")
+	const narrow = css.slice(css.indexOf("@media (width < 52rem)"), css.indexOf(":root:has([data-sable-sheet=\"bottom\"]"))
+
+	it("moves every stack below a protected inset, clear of the sheet's header and footer controls", () => {
+		// Any position, either side: at this width the sheet covers the screen and
+		// both of its edges hold controls (a close button, a pinned composer).
+		expect(narrow).toContain(':root:has(:is([data-sable-sheet="right"], [data-sable-sheet="left"])[data-open]) [data-sable-toast-viewport] {')
+		expect(narrow).toContain("top: var(--sable-sheet-top-inset, calc(var(--spacing) * 8 + var(--control-md)));")
+		// Not the bare top edge, where the close button is.
+		expect(narrow).not.toMatch(/top: calc\(var\(--spacing\) \* 4\);/)
 	})
 })

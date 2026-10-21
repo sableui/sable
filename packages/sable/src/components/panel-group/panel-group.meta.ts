@@ -16,6 +16,12 @@ export const panelGroupMeta: ComponentMeta = {
 		"chrome",
 		"inspector",
 		"layout",
+		"mobile",
+		"responsive",
+		"sheet",
+		"drawer",
+		"narrow",
+		"detail pane",
 	],
 	usage: {
 		description:
@@ -35,6 +41,16 @@ export const panelGroupMeta: ComponentMeta = {
 				guidance: "do",
 				description:
 					"Label every Panel — they are landmarks, and 'Layers' or 'Properties' is what a screen-reader user navigates by.",
+			},
+			{
+				guidance: "do",
+				description:
+					"Decide what each docked Panel becomes on a phone with `narrow`: \"sheet\" for an inspector or a navigation rail the user opens on demand, \"hidden\" for chrome a phone does without. Drive a sheet's `open` from the same state that selects the record, so selecting a row opens the inspector at every width.",
+			},
+			{
+				guidance: "dont",
+				description:
+					"Render the same inspector twice, once in a Panel and once in a Sheet behind a hand-rolled viewport check. `narrow=\"sheet\"` renders the content once, in whichever place applies.",
 			},
 			{
 				guidance: "dont",
@@ -81,9 +97,9 @@ export const panelGroupMeta: ComponentMeta = {
 	subcomponents: [
 		{
 			name: "Panel",
-			type: "{ label: string; width?: number; scroll?: boolean }",
+			type: '{ label: string; width?: number; scroll?: boolean; narrow?: "dock" | "sheet" | "hidden"; open?: boolean; onOpenChange?: (open: boolean) => void; side?: "left" | "right"; below?: "sm" | "md" | "lg" | "xl" | "2xl" }',
 			description:
-				"A docked or flexible column. `label` names the landmark; omit `width` for the flexible centre. `scroll` defaults to true — set it false for a header + scrolling body + pinned footer, so the footer doesn't scroll away with the list. When you own the layout, give the header and footer shrink-0 and the middle min-h-0 flex-1 overflow-y-auto. overflow-y-auto only activates if every flex ancestor can shrink: a single missing min-h-0 anywhere up the chain makes the panel grow instead of scroll, and nothing reports it.",
+				"A docked or flexible column. Below `below` (default lg, where Sidebar and BottomNav swap), `narrow` decides what it becomes: \"dock\" (default) stays docked, \"sheet\" renders the same content once inside a Sheet from `side` (default \"right\"; a panel before the canvas is \"left\"), titled by `label`, open while `open` is true and closed through `onOpenChange` (Esc, scrim, swipe), and \"hidden\" drops it. `open` defaults to true docked (false removes the column, so the canvas takes its width) and false as a sheet. Crossing the breakpoint remounts the content, so keep state that must survive it in the app. `label` names the landmark; omit `width` for the flexible centre. `scroll` defaults to true — set it false for a header + scrolling body + pinned footer, so the footer doesn't scroll away with the list. When you own the layout, give the header and footer shrink-0 and the middle min-h-0 flex-1 overflow-y-auto. overflow-y-auto only activates if every flex ancestor can shrink: a single missing min-h-0 anywhere up the chain makes the panel grow instead of scroll, and nothing reports it.",
 		},
 		{
 			name: "PanelResizer",
@@ -169,6 +185,32 @@ export const panelGroupMeta: ComponentMeta = {
             <ScrubField label="Opacity" icon="grid" suffix="%" value={100} min={0} max={100} />
             <ScrubField label="Blur" value={0} min={0} max={64} suffix="px" />
           </PropertyPair>
+        </PanelSection>
+      </Panel>
+    </PanelGroup>
+  )
+}`,
+		},
+		{
+			label: "Inspector that becomes a sheet on phones",
+			code: `function Body() {
+  const [selected, setSelected] = useState<string | null>(null)
+  return (
+    <PanelGroup>
+      <Panel label="Issues">
+        <div className="p-2">
+          <Button size="xs" variant="ghost" onClick={() => setSelected("AES-104")}>AES-104 Refine product page</Button>
+        </div>
+      </Panel>
+      <Panel
+        label="Issue details"
+        width={320}
+        narrow="sheet"
+        open={selected !== null}
+        onOpenChange={(open) => !open && setSelected(null)}
+      >
+        <PanelSection title={selected ?? ""}>
+          <PropertyRow label="Status"><Input defaultValue="In progress" /></PropertyRow>
         </PanelSection>
       </Panel>
     </PanelGroup>

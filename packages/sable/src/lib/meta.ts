@@ -153,6 +153,12 @@ export interface PatternMeta {
 	summary: string
 	/** When to reach for this shell — and when not to. */
 	intent: string
+	/**
+	 * What a brief calls this kind of product ("issue tracker", "like Linear"),
+	 * for `sable search`. A whole-app query should land on the shell, not on the
+	 * one component whose keywords happen to share a word with it.
+	 */
+	keywords?: string[]
 	/** Canonical decisions the pattern encodes (region cap, rhythm, hierarchy). */
 	notes?: string[]
 	/** Accessibility notes. */

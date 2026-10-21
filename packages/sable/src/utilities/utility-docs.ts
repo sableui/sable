@@ -518,6 +518,19 @@ export const UTILITY_DOCS: UtilityDoc[] = [
 		keywords: ["eyebrow", "overline", "kicker", "uppercase label", "section label", "small caps label"],
 	},
 	{
+		name: "text-ui-title",
+		kind: "utility",
+		family: "text",
+		intent: "The title of what a panel or inspector shows — the open issue, the selected object: 14px at 600 on a 20px line, one step above `text-ui-md`.",
+		whenToUse:
+			"The one title at the top of an inspector, a docked panel or a peek view inside the workspace register. Compact `text-title-lg` resolves to it on its own.",
+		insteadOf:
+			"`text-ui-md` made heavier (a title the size of the description under it reads as a label), or `text-heading-*`, which is page structure rather than chrome.",
+		example: `<h2 className="text-ui-title text-panel-foreground">Refine product detail page</h2>`,
+		keywords: ["panel title", "inspector title", "issue title", "peek title", "selection header", "workspace title"],
+		pairsWith: ["text-ui-body", "text-ui-md"],
+	},
+	{
 		name: "text-ui-md",
 		kind: "utility",
 		family: "text",

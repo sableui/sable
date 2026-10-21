@@ -4,7 +4,7 @@
 
 Show/hide a panel of content over Base UI Collapsible — open/close state, ARIA expanded wiring, and the animated height transition. The minimal primitive behind Accordion: a trigger that toggles an overflow-clipped panel.
 
-**Keywords:** collapsible, disclosure, expand, collapse
+**Keywords:** collapsible, disclosure, expand, collapse, chevron, caret, rotate, group header, section toggle
 
 ## Usage
 
@@ -31,7 +31,7 @@ Use Collapsible for a single piece of optional content that can expand in place.
 | --- | --- | --- |
 | CollapsibleTrigger | Base UI Collapsible.Trigger props + render | The button that toggles the panel. Compose with render={<Button variant="ghost" … />}. |
 | CollapsiblePanel | Base UI Collapsible.Panel props + className (keepMounted, hiddenUntilFound) | The collapsible contents. Overflow-hidden; animates height via the --collapsible-panel-height var Base UI sets. |
-| CollapsibleIndicator | { className? } | Auto-rotating disclosure chevron. Place it inside the trigger content and add the `group/collapsible` class to the trigger so it flips 180° on open. |
+| CollapsibleIndicator | { direction?: "down" \| "end"; className? } | Auto-rotating disclosure chevron. Place it anywhere inside the trigger content; it reads the trigger's open state itself, no class to add. direction="down" (default) flips 180° on open; direction="end" points to the inline end while closed and turns down on open — the caret for a grouped list's section header or a tree row. Use it instead of rotating your own chevron with CSS, which snaps with no transition. |
 
 ## Props
 
@@ -50,7 +50,7 @@ Use Collapsible for a single piece of optional content that can expand in place.
 - **arrival** · Root · _no motion_ — A collapsible is part of the page it sits in, present from first paint. Its trigger is what the reader notices, not an entrance.
 - **response** · CollapsibleTrigger · _no motion_ — The trigger is whatever the consumer renders (usually a Button), and that control brings its own response. Adding one here would double it.
 - **transition** · CollapsiblePanel · `motion-disclosure` — The height change ties the content that appears to the trigger that was pressed; snapped open, everything below jumps with nothing linking cause to effect.
-- **transition** · CollapsibleIndicator · `motion-interactive` — The chevron turns with the panel rather than flipping in one frame: motion-interactive lists `rotate`, the property rotate-180 writes.
+- **transition** · CollapsibleIndicator · `motion-interactive` — The chevron turns with the panel rather than flipping in one frame: motion-interactive lists `rotate`, the property rotate-180 and rotate-0 write.
 - **activity** · Root · _no motion_ — Nothing here is indeterminate; content that loads on open should put its own loader inside the panel.
 
 ## Accessibility
@@ -87,5 +87,13 @@ import { Button, Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@sabl
 ```tsx
 import { Button, Collapsible, CollapsibleIndicator, CollapsiblePanel, CollapsibleTrigger } from "@sableui/react"
 
-<Collapsible><CollapsibleTrigger className="group/collapsible" render={<Button variant="ghost">Details <CollapsibleIndicator /></Button>} /><CollapsiblePanel><p className="pt-3">Revealed on toggle.</p></CollapsiblePanel></Collapsible>
+<Collapsible><CollapsibleTrigger render={<Button variant="ghost">Details <CollapsibleIndicator /></Button>} /><CollapsiblePanel><p className="pt-3">Revealed on toggle.</p></CollapsiblePanel></Collapsible>
+```
+
+### Group header with a side caret
+
+```tsx
+import { Button, Collapsible, CollapsibleIndicator, CollapsiblePanel, CollapsibleTrigger } from "@sableui/react"
+
+<Collapsible defaultOpen><CollapsibleTrigger render={<Button variant="ghost" size="xs"><CollapsibleIndicator direction="end" />In progress <span className="text-ui-num text-muted-foreground">5</span></Button>} /><CollapsiblePanel><ul className="text-ui-body"><li>Refine product detail page</li><li>Build the ingredient library</li></ul></CollapsiblePanel></Collapsible>
 ```

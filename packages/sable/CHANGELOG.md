@@ -1,5 +1,134 @@
 # What's new
 
+## 0.19.0
+
+A compact work tracker, built on Sable by an agent, rebuilt about thirty parts
+Sable already ships. Every gap behind those rebuilds is fixed here: a lookup
+that couldn't find parts, checks that couldn't see the app's own CSS, and
+components that had no variant for a dense layout.
+
+- **`--type-base` rebuilds the type scale at another base size.** Set
+  `--type-base: 14` (a unitless px number; the default is 16) on `:root`, a
+  `[data-sable-theme]` scope or in a preset's `tokens.shared`, and every page
+  tier scales by `base / 16`, including each theme's own tier values and any
+  per-tier override. Spacing follows, because the baseline step is derived from
+  body size. The workspace `ui-*` tiers stay absolute px, and compact still only
+  ever shrinks text. Don't change the root font-size to get a denser UI: it
+  scales every rem in the app, not just the type.
+- **New `text-ui-title`** (14px / 600 / 20px leading, tokens
+  `--type-ui-title-*`). Inside a compact scope `text-title-lg` maps to it. It
+  used to collapse to 12px, the same size as the description under it.
+- **A comfortable scope inside a compact one gets page type back.**
+  `<Density value="comfortable">` around a reading view (an overview, notes,
+  docs) in a Workspace used to reset the control sizes but not the text, which
+  stayed at 11px.
+- **Tables follow density.** TableHead's height, TableCell's padding and the
+  table's text tier read density tokens. In a compact Workspace that is a 28px
+  head, 32px rows and `text-ui-body`, with no consumer CSS.
+- **Compact on a touch screen uses the comfortable control ladder.** Under
+  `pointer: coarse` the 24/28/32 ladder, measured from mouse-driven editors,
+  becomes 28/32/40.
+- **Workspace's body is its only stretching row.** The grid always assumed a
+  toolbar, so a Workspace without one put the body in the auto track and
+  clipped the status bar. The root is now a flex column, which holds for every
+  combination of slots. Migration: drop any `grid-template-rows` override on
+  the Workspace root.
+- **Workspace and Panel on small screens.** Workspace takes `bottomNav`, a row
+  shown below `lg`. Panel takes `narrow="sheet" | "hidden"` with `open`,
+  `onOpenChange`, `side` and `below`: below the breakpoint an inspector becomes
+  a Sheet and its content renders once. A Sidebar moved into that sheet fills
+  it. New `useMediaQuery` and
+  `useBelowBreakpoint` hooks are exported. A WorkspaceBar can also sit at the
+  top of one column, so the inspector runs the full height beside it, as in
+  Linear.
+- **DataTable groups rows.** `groupBy`, `groups` (each with an icon, an action
+  and `defaultExpanded`), `collapsible` and controlled `expandedGroups` give
+  one table with one header and a header row per group that carries a toggle,
+  a count and an add action. Sorting applies within each group, and select-all
+  acts on the visible rows.
+- **The Sidebar rail is one grid, at either density.** New `SidebarGroup`
+  labels a run of items, so a rail no longer has to borrow SideNav for its
+  groups. New `SidebarAccount` is the account row: the avatar in the icon slot,
+  the label and one detail line on the label column, and an up-down chevron.
+  Make it the account Menu's trigger and put Settings, appearance and sign-out
+  in the menu. Inside a compact scope such as a Workspace, the whole rail takes
+  32px rows and 20px icons, and the header matches the chrome bar's height.
+  Before this, a tool's footer mixed a ghost Button, an Entity patched with
+  `[--entity-py:0]` and a Badge, and the rail's icons and labels landed on four
+  columns. DashboardPage uses the new parts.
+- **Underline tabs in a WorkspaceBar sit on the bar's hairline.** They used to
+  draw a second, shorter rule that stopped after the last tab, with the mark
+  floating above the bar's edge. Tabs guidance now steers a view switch in tool
+  chrome to `variant="pill"`.
+- **`MenuSubmenuTrigger` takes `icon`**, as MenuItem does, so a submenu row
+  lines up with the icon rows around it.
+- New icon `chevron-up-down` (Lucide's `chevrons-up-down` resolves to it).
+- **Avatar:** `2xs` (20px) and `xs` (24px), `shape="square"` for a workspace,
+  project or org mark, and a palette `tone` for the initials fallback.
+- **DatePicker:** `size="xs"` for a property row, and `formatOptions`
+  (`Intl.DateTimeFormatOptions`) for the trigger text.
+- **CollapsibleIndicator needs no setup.** It no longer needs the
+  `group/collapsible` class on its trigger. New `direction="end"` gives a side
+  caret that turns down on open, mirrored in RTL.
+- **Icons:** new `users`, `archive`, `kanban`, `sliders`, `help` and `sidebar`.
+  About 90 Lucide and Heroicons names now resolve to Sable's (`settings` →
+  `gear`, `menu` → `bars`, `check-circle` → `circle-check`). A development
+  build warns once for a name the set can't draw, and names the nearest ones.
+- **A toast clears an open side sheet on a phone.** It used to move to the
+  top, over the sheet's close button. It now sits below the sheet's header
+  inset, tunable with `--sable-sheet-top-inset`.
+- **Workspace surfaces derive in oklab.** The canvas, panel, field, hairline
+  and shell-ground mixes used `color-mix(in oklch, …)`. On hex colours Chrome
+  resolves that to a colour with no hue, painted as 0°: a brown cast on a cool
+  graphite preset's canvas. Bundled themes write oklch and never showed it, but
+  presets and apps write hex. The heatmap's empty cell moves to oklab too.
+- **`--nav-height` is defined** (56px). AppShell's bottom padding read it with
+  no fallback, so the padding was dropped.
+- **Agent tooling finds parts.** `sable component PropertyRow` (or `Panel`,
+  `WorkspaceBar`, `CollapsibleTrigger`) answers with the parent component;
+  it used to be ERR_UNKNOWN_COMPONENT. Search indexes parts, and an exact name
+  ranks first. New `sable icon [name]` lists the drawable names and resolves
+  aliases.
+- **`sable check` sees rebuilt parts.** A new "Rebuilt parts" block reads class
+  names in the app's markup and the app's own CSS. It flags a breadcrumb, top
+  bar, property row, status dot or avatar stack built by hand; fixed bar and row
+  heights; selectors reaching into Sable's components; and a chevron rotated on
+  `aria-expanded`. Icon names passed through an app's own wrapper are checked
+  too. These are notes, and the skill asks the agent to answer each one.
+- **`sable check` warns on one-mode colour.** Colour tokens set for light with
+  no dark value now produce a warning, and an app with no ThemeSwitcher gets a
+  note. The skill now ships both modes, as a preset with a ThemeSwitcher under
+  SableThemeProvider, unless the brief rules one out.
+- **New pattern: `TrackerPage`.** A records workspace in the tool register,
+  the reference shape for an issue tracker, a support queue or a pipeline. It
+  has a Sidebar rail of grouped views ending in an account menu (with
+  appearance), Breadcrumbs and pill Tabs in WorkspaceBars, a filter row, one
+  grouped DataTable, a docked inspector of PanelSection property rows with a
+  pinned comment form, and a comfortable reading tab. Below lg the rail and the
+  inspector become sheets and BottomNav takes the last row. `sable pattern
+  TrackerPage --skeleton` has the tree. Pattern metadata takes `keywords` now,
+  so "issue tracker", "like Linear" or "support queue" lands on the shell first.
+- **Guidance for a records workspace.** `building-a-tool` now covers the
+  shape of an issue tracker, a support queue or a pipeline: the shell, the
+  decisions that keep it one system (one rail grid, the account as a row and a
+  menu, one grouped table, an inspector that renders once, page-sized reading
+  tabs, pill tabs in chrome, both modes, `type-base` for "compact") and a
+  "you want / use / not" table built from what a real build rebuilt. The skill
+  routes a tool, tracker or "like Linear" brief there; `building-a-page` points
+  trackers to it; `creating-a-preset` explains `type-base`.
+- **`sable check` notes compositions another part does better:** SideNav
+  inside a Sidebar, an Entity or Badge in the rail's footer, a DataTable per
+  group inside Collapsibles, underline tabs in a WorkspaceBar, and a native
+  date input. Notes, never failures. On the build that prompted this release
+  they flag four drifts, each at its line.
+- **The skill searches before it builds.** It looks up a part by its plain name
+  and role before writing any class or component for it. A style or layout
+  disagreement means using the variant or prop, or reporting the missing
+  variant, never rebuilding the part.
+- Migration: run `sable sources --write` after upgrading. Panel now imports
+  Sheet, so the generated sources file is stale until it is rewritten, and
+  doctor says so.
+
 ## 0.18.0
 
 A year at a glance: the contribution graph, built so a phone, a keyboard and a

@@ -218,3 +218,67 @@ describe("Avatar art fallback", () => {
 		expect(art(container)).toBeNull()
 	})
 })
+
+describe("Avatar shape, tone and dense sizes", () => {
+	it("draws the dense-row sizes at 20px and 24px", () => {
+		render(
+			<>
+				<Avatar fallback="TW" alt="Two xs" size="2xs" />
+				<Avatar fallback="XS" alt="Extra small" size="xs" />
+			</>,
+		)
+		expect(screen.getByRole("img", { name: "Two xs" }).className).toContain("size-5")
+		expect(screen.getByRole("img", { name: "Extra small" }).className).toContain("size-6")
+	})
+
+	it("is a circle by default and a square on request, with a radius that steps with size", () => {
+		render(
+			<>
+				<Avatar fallback="AC" alt="Circle" />
+				<Avatar fallback="FS" alt="Square" shape="square" size="xs" />
+				<Avatar fallback="FL" alt="Large square" shape="square" size="lg" />
+			</>,
+		)
+		expect(screen.getByRole("img", { name: "Circle" }).className).toContain("rounded-full")
+		const square = screen.getByRole("img", { name: "Square" }).className
+		expect(square).not.toContain("rounded-full")
+		expect(square).toContain("rounded-xs")
+		expect(screen.getByRole("img", { name: "Large square" }).className).toContain("rounded-md")
+	})
+
+	it("paints a palette family behind the initials with tone", () => {
+		render(<Avatar fallback="A" alt="Aesop" tone="teal" shape="square" />)
+		const root = screen.getByRole("img", { name: "Aesop" })
+		expect(root.getAttribute("data-palette")).toBe("teal")
+		expect(root.className).toContain("bg-palette-wash")
+		expect(screen.getByText("A").className).toContain("[[data-palette]>&]:text-palette-text")
+	})
+
+	it("leaves neutral and art avatars off the palette", () => {
+		render(
+			<>
+				<Avatar fallback="N" alt="Neutral" tone="neutral" />
+				<Avatar fallback="R" alt="Art" variant="art" tone="blue" />
+			</>,
+		)
+		expect(screen.getByRole("img", { name: "Neutral" }).hasAttribute("data-palette")).toBe(false)
+		expect(screen.getByRole("img", { name: "Art" }).hasAttribute("data-palette")).toBe(false)
+	})
+
+	it("rounds a square avatar's status anchor like the avatar", () => {
+		const { container } = render(<Avatar fallback="P" alt="Project" shape="square" size="sm" status={<span>•</span>} />)
+		const anchor = container.querySelector('[data-slot="avatar-status-anchor"]')!
+		expect(anchor.className).toContain("rounded-sm")
+		expect(anchor.className).not.toContain("rounded-full")
+	})
+
+	it("stacks dense sizes in a group", () => {
+		render(
+			<AvatarGroup aria-label="2 assignees" size="2xs">
+				<Avatar fallback="EL" alt="Emma Lee" />
+				<Avatar fallback="JM" alt="James Moon" />
+			</AvatarGroup>,
+		)
+		expect(screen.getByRole("img", { name: "Emma Lee" }).className).toContain("size-5")
+	})
+})

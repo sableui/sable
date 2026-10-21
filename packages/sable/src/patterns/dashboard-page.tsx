@@ -16,15 +16,15 @@ import {
 	CardTitle,
 } from "../components/card"
 import { DataTable } from "../components/data-table"
-import { OverflowMenu } from "../components/overflow-menu"
 import { Entity } from "../components/entity"
-import { MenuItem, MenuSeparator } from "../components/menu"
+import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from "../components/menu"
 import { Meter } from "../components/meter"
 import { NotificationBadge } from "../components/notification-badge"
 import { PageHeader } from "../components/page-header"
 import { RelativeTime } from "../components/relative-time"
 import {
 	Sidebar,
+	SidebarAccount,
 	SidebarFooter,
 	SidebarBrand,
 	SidebarHeader,
@@ -144,20 +144,23 @@ export function DashboardPage() {
 						<SidebarItem icon={<Icon name="gear" />} label="Settings" render={<a href="/settings" />} />
 					</SidebarNav>
 					<SidebarFooter>
-						<Entity
-							className="[--entity-py:0]"
-							leading={<Avatar variant="art" size="sm" fallback="AL" alt="" />}
-							title="Ada Lovelace"
-							subtitle="@ada"
-							action={
-								<OverflowMenu label="Account" size="icon-sm">
-									<MenuItem render={<a href="/@ada" />}>View profile</MenuItem>
-									<MenuItem render={<a href="/settings" />}>Settings</MenuItem>
-									<MenuSeparator />
-									<MenuItem>Sign out</MenuItem>
-								</OverflowMenu>
-							}
-						/>
+						<Menu>
+							<MenuTrigger
+								render={
+									<SidebarAccount
+										avatar={<Avatar variant="art" size="xs" fallback="AL" alt="" />}
+										label="Ada Lovelace"
+										detail="@ada"
+									/>
+								}
+							/>
+							<MenuContent side="top" align="start">
+								<MenuItem render={<a href="/@ada" />}>View profile</MenuItem>
+								<MenuItem render={<a href="/settings" />}>Settings</MenuItem>
+								<MenuSeparator />
+								<MenuItem>Sign out</MenuItem>
+							</MenuContent>
+						</Menu>
 					</SidebarFooter>
 				</Sidebar>
 			}

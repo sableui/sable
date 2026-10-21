@@ -983,6 +983,16 @@
     },
     "typographyOverrides": [
       {
+        "name": "type-base",
+        "intent": "The base size the page type scale is built on, as a unitless px number — 16 by default. Every page tier keeps its ratio to it, so `14` rebuilds the whole scale at 14, and the baseline step and spacing follow the body down.",
+        "whenToUse": "When the product asks for smaller or larger type everywhere: a dense technical tool at 13-14, a reading product at 17. Set it on :root, a theme scope or a preset (`tokens.shared[\"type-base\"]: \"14\"`), not per component.",
+        "insteadOf": "Changing the root font-size, which also moves every rem the app wrote and the control ladder; or overriding tier sizes one by one, which breaks the ratios between them. Unitless: `14`, never `14px`.",
+        "pairsWith": [
+          "leading-scale",
+          "baseline-step"
+        ]
+      },
+      {
         "name": "type-display-4xl-size",
         "intent": "The largest type: display-lg through display-4xl. Marketing-scale, one per view at most.",
         "whenToUse": "A landing page hero, a section opener on a brand surface.",
@@ -1896,8 +1906,112 @@
       "broadcast",
       "newspaper",
       "palette",
-      "gamepad"
-    ]
+      "gamepad",
+      "users",
+      "archive",
+      "kanban",
+      "sliders",
+      "help",
+      "sidebar",
+      "chevron-up-down"
+    ],
+    "aliases": {
+      "chevrons-up-down": "chevron-up-down",
+      "check-circle": "circle-check",
+      "check-circle-2": "circle-check",
+      "circle-check-big": "circle-check",
+      "settings": "gear",
+      "settings-2": "sliders",
+      "cog": "gear",
+      "x": "xmark",
+      "close": "xmark",
+      "x-circle": "xmark",
+      "more-horizontal": "ellipsis",
+      "more-vertical": "ellipsis",
+      "more": "ellipsis",
+      "dots-horizontal": "ellipsis",
+      "ellipsis-horizontal": "ellipsis",
+      "message-square": "comment",
+      "message-circle": "comment",
+      "message": "comment",
+      "messages": "comment",
+      "chat": "comment",
+      "menu": "bars",
+      "hamburger": "bars",
+      "help-circle": "help",
+      "circle-help": "help",
+      "question": "help",
+      "circle-question": "help",
+      "alert-triangle": "warning",
+      "triangle-alert": "warning",
+      "info-circle": "info",
+      "circle-info": "info",
+      "external-link": "external",
+      "loader": "spinner",
+      "loader-2": "spinner",
+      "loader-circle": "spinner",
+      "log-out": "logout",
+      "sign-out": "logout",
+      "monitor": "desktop",
+      "laptop": "desktop",
+      "layout-grid": "grid",
+      "layout-dashboard": "layout",
+      "file-text": "file",
+      "document": "file",
+      "rotate-cw": "refresh",
+      "rotate-ccw": "refresh",
+      "refresh-cw": "refresh",
+      "refresh-ccw": "refresh",
+      "funnel": "filter",
+      "user-circle": "user",
+      "circle-user": "user",
+      "person": "user",
+      "people": "users",
+      "team": "users",
+      "user-group": "users",
+      "users-round": "users",
+      "box": "archive",
+      "archive-box": "archive",
+      "columns": "kanban",
+      "columns-3": "kanban",
+      "board": "kanban",
+      "square-kanban": "kanban",
+      "sliders-horizontal": "sliders",
+      "sliders-vertical": "sliders",
+      "adjustments": "sliders",
+      "panel-left": "sidebar",
+      "sidebar-left": "sidebar",
+      "calendar-days": "calendar",
+      "house": "home",
+      "pencil": "edit",
+      "edit-2": "edit",
+      "edit-3": "edit",
+      "square-pen": "edit",
+      "trash-2": "trash",
+      "delete": "trash",
+      "envelope": "mail",
+      "arrow-path": "refresh",
+      "eye-slash": "eye-off",
+      "lock-closed": "lock",
+      "paper-airplane": "send",
+      "paper-clip": "paperclip",
+      "arrow-down-tray": "download",
+      "arrow-up-tray": "upload",
+      "magnifying-glass": "search",
+      "cog-6-tooth": "gear",
+      "bars-3": "bars",
+      "chat-bubble-left": "comment",
+      "exclamation-triangle": "warning",
+      "information-circle": "info",
+      "question-mark-circle": "help",
+      "adjustments-horizontal": "sliders",
+      "squares-2x2": "grid",
+      "view-columns": "kanban",
+      "arrow-top-right-on-square": "external",
+      "computer-desktop": "desktop",
+      "x-mark": "xmark",
+      "document-text": "file"
+    }
   },
   "layoutPrimitives": {
     "doctrine": [
@@ -4017,7 +4131,7 @@
       "group": "Data display",
       "register": "either",
       "path": "components/avatar",
-      "summary": "Circular profile image over Base UI Avatar — automatic image-load tracking with an initials/glyph fallback. Ergonomic Avatar plus low-level AvatarRoot/AvatarImage/AvatarFallback parts, and AvatarGroup for an overlapping stack with a \"+N\" overflow count.",
+      "summary": "Circular (or square) profile image over Base UI Avatar — automatic image-load tracking with an initials/glyph fallback. Ergonomic Avatar plus low-level AvatarRoot/AvatarImage/AvatarFallback parts, and AvatarGroup for an overlapping stack with a \"+N\" overflow count.",
       "keywords": [
         "avatar",
         "profile",
@@ -4030,7 +4144,12 @@
         "stack",
         "overflow",
         "collaborators",
-        "facepile"
+        "facepile",
+        "monogram",
+        "project mark",
+        "workspace icon",
+        "org logo",
+        "assignee"
       ],
       "usage": {
         "description": "Use Avatar to represent a person, team, or account with a compact visual identity. Wrap several in AvatarGroup for collaborators, assignees, or attendees — it overlaps them, rings each in the surface colour, and collapses the rest into a \"+N\" count; use the low-level parts only when you need custom image/fallback layout.",
@@ -4049,11 +4168,15 @@
           },
           {
             "guidance": "do",
-            "description": "Pick the size by the job: sm in dense rows and tables, md (the default) beside one line of text, lg in a row with a title and subtitle, xl (96px) for a profile header beside the person's name, 2xl (160px) for an artist or profile hero and roster portraits. Keep one size within a list or group."
+            "description": "Pick the size by the job: 2xs (20px) or xs (24px) in a compact workspace row (an assignee in an issue list, a project mark in a nav item), sm in dense rows and tables, md (the default) beside one line of text, lg in a row with a title and subtitle, xl (96px) for a profile header beside the person's name, 2xl (160px) for an artist or profile hero and roster portraits. Keep one size within a list or group."
           },
           {
             "guidance": "do",
             "description": "Use AvatarGroup for a stack of people, and give it an aria-label with the real count (\"12 collaborators\"). Set `surface` (or `--avatar-group-ring`) to whatever the group sits on, so the separating ring matches a card or popover, not the page. When it shares a row with actions, set `fit` so it gives up avatars to the \"+N\" count before the row has to wrap."
+          },
+          {
+            "guidance": "do",
+            "description": "Use `shape=\"square\"` for what is not a person (a workspace, a project, an org, a team), with `tone` set to a palette family so each one keeps its own colour: `<Avatar shape=\"square\" tone=\"teal\" fallback=\"N\" alt=\"Northwind storefront\" size=\"xs\" />`. Circles mean people; keep that distinction across the app."
           },
           {
             "guidance": "dont",
@@ -4069,7 +4192,7 @@
           },
           {
             "guidance": "dont",
-            "description": "Build a portrait by stretching an Avatar with size classes (`className=\"size-40\"`) — the initials, the status indicator and the image fade stay at row scale. Use size=\"xl\" or \"2xl\", which scale all three. Past 160px, or for a non-circular cover, it is media: an AspectBox, not an avatar."
+            "description": "Resize an Avatar with size classes (`className=\"size-5\"`, `className=\"size-40\"`) — the initials, the status indicator and the image fade stay at the size they were drawn for. Use size=\"2xs\"/\"xs\" for dense rows and size=\"xl\"/\"2xl\" for portraits, which scale all three. Don't hand-build a tinted initials tile for a project or workspace mark either: that is Avatar shape=\"square\" with a tone. Past 160px, or for a cover, it is media: an AspectBox, not an avatar."
           }
         ],
         "anatomy": [
@@ -4141,9 +4264,21 @@
         },
         {
           "name": "size",
-          "type": "\"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xl\"",
+          "type": "\"2xs\" | \"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xl\"",
           "default": "\"md\"",
-          "description": "Square footprint: 32px / 40px / 48px for rows; 96px / 160px for portraits (a profile header, an artist hero, a roster tile). The initials, a status indicator and its cut-out ring scale with it, and at the portrait sizes the photo fades in over the resting surface."
+          "description": "Square footprint: 20px / 24px for compact workspace rows; 32px / 40px / 48px for rows; 96px / 160px for portraits (a profile header, an artist hero, a roster tile). The initials, a status indicator and its cut-out ring scale with it, and at the portrait sizes the photo fades in over the resting surface."
+        },
+        {
+          "name": "shape",
+          "type": "\"circle\" | \"square\"",
+          "default": "\"circle\"",
+          "description": "The frame's corner. circle is a person. square is what is not a face — a workspace, a project, an org, a team — with a radius from the theme's steps that grows with the size (4px at 20–24px to 20px at 160px), so a square theme stays square. A status indicator sits on the square's corner."
+        },
+        {
+          "name": "tone",
+          "type": "\"neutral\" | \"red\" | \"orange\" | \"yellow\" | \"green\" | \"teal\" | \"blue\" | \"purple\" | \"pink\"",
+          "default": "\"neutral\"",
+          "description": "The fallback's colour. neutral is the muted surface; a palette family paints its wash behind the initials and its deep ink on them (a soft Badge's pair, held to contrast in every theme), for a category colour such as one per project. Ignored by variant=\"art\", which colours by seed."
         },
         {
           "name": "variant",
@@ -4160,7 +4295,7 @@
       "subcomponents": [
         {
           "name": "AvatarRoot",
-          "type": "Base UI Avatar.Root props + size + className",
+          "type": "Base UI Avatar.Root props + size + shape + tone + className",
           "description": "Low-level circular frame for full composition control — clips the image and holds the `size` axis. Wraps AvatarImage and AvatarFallback."
         },
         {
@@ -4175,22 +4310,28 @@
         },
         {
           "name": "AvatarGroup",
-          "type": "{ size?: \"sm\" | \"md\" | \"lg\"; surface?: \"background\" | \"card\" | \"popover\" | \"muted\"; max?: number; fit?: boolean; total?: number; countLabel?: (count: number) => string; \"aria-label\"?: string; className?: string; children: ReactNode }",
+          "type": "{ size?: \"2xs\" | \"xs\" | \"sm\" | \"md\" | \"lg\"; surface?: \"background\" | \"card\" | \"popover\" | \"muted\"; max?: number; fit?: boolean; total?: number; countLabel?: (count: number) => string; \"aria-label\"?: string; className?: string; children: ReactNode }",
           "description": "Overlapping stack (role=group) — name it with aria-label (\"12 collaborators\"). `size` applies to every avatar inside. `max` shows that many and collapses the rest into a \"+N\" count; `total` is the real head-count when you only pass some people. `fit` shows only as many avatars as fit the width the group is given (it fills the space left in a flex row) and folds the rest into the count, so a tight row reads \"MO SR +5\" instead of wrapping. The separating ring reads the inherited `--avatar-group-ring` (default: the page background); `surface` sets it to card, popover, or muted."
         },
         {
           "name": "AvatarGroupCount",
-          "type": "{ count: number; label?: string; size?: \"sm\" | \"md\" | \"lg\"; className?: string }",
+          "type": "{ count: number; label?: string; size?: \"2xs\" | \"xs\" | \"sm\" | \"md\" | \"lg\"; className?: string }",
           "description": "The \"+N\" avatar. Shows \"+4\" and reads \"and 4 more\" (override with label). AvatarGroup renders it for you from max/total; use it directly only when composing the stack yourself."
         }
       ],
       "variants": {
         "size": [
+          "2xs",
+          "xs",
           "sm",
           "md",
           "lg",
           "xl",
           "2xl"
+        ],
+        "shape": [
+          "circle",
+          "square"
         ],
         "variant": [
           "neutral",
@@ -4264,6 +4405,16 @@
           "label": "Profile portrait",
           "code": "<div className=\"flex flex-col items-center gap-3 text-center\">\n\t<Avatar variant=\"art\" size=\"2xl\" fallback=\"LV\" alt=\"Lena Vale\" status={<StatusDot tone=\"success\" />} />\n\t<div className=\"flex flex-col gap-1\">\n\t\t<h1 className=\"text-heading-1\">Lena Vale</h1>\n\t\t<p className=\"text-body-sm text-muted-foreground\">1.2M monthly listeners</p>\n\t</div>\n</div>",
           "imports": "import { Avatar, StatusDot } from \"@sableui/react\""
+        },
+        {
+          "label": "Dense row sizes",
+          "code": "<Avatar fallback=\"EL\" alt=\"Emma Lee\" size=\"2xs\" />\n<Avatar fallback=\"EL\" alt=\"Emma Lee\" size=\"xs\" />",
+          "imports": "import { Avatar } from \"@sableui/react\""
+        },
+        {
+          "label": "Project marks",
+          "code": "<Avatar shape=\"square\" tone=\"teal\" size=\"xs\" fallback=\"N\" alt=\"Northwind storefront\" />\n<Avatar shape=\"square\" tone=\"orange\" size=\"xs\" fallback=\"H\" alt=\"Harbor brand refresh\" />\n<Avatar shape=\"square\" tone=\"purple\" size=\"xs\" fallback=\"L\" alt=\"Lumen editorial\" />",
+          "imports": "import { Avatar } from \"@sableui/react\""
         },
         {
           "label": "Low-level parts",
@@ -7650,7 +7801,12 @@
         "collapsible",
         "disclosure",
         "expand",
-        "collapse"
+        "collapse",
+        "chevron",
+        "caret",
+        "rotate",
+        "group header",
+        "section toggle"
       ],
       "usage": {
         "description": "Use Collapsible for a single piece of optional content that can expand in place.",
@@ -7733,8 +7889,8 @@
         },
         {
           "name": "CollapsibleIndicator",
-          "type": "{ className? }",
-          "description": "Auto-rotating disclosure chevron. Place it inside the trigger content and add the `group/collapsible` class to the trigger so it flips 180° on open."
+          "type": "{ direction?: \"down\" | \"end\"; className? }",
+          "description": "Auto-rotating disclosure chevron. Place it anywhere inside the trigger content; it reads the trigger's open state itself, no class to add. direction=\"down\" (default) flips 180° on open; direction=\"end\" points to the inline end while closed and turns down on open — the caret for a grouped list's section header or a tree row. Use it instead of rotating your own chevron with CSS, which snaps with no transition."
         }
       ],
       "tokensUsed": [
@@ -7764,7 +7920,7 @@
           "slot": "transition",
           "recipe": "motion-interactive",
           "part": "CollapsibleIndicator",
-          "why": "The chevron turns with the panel rather than flipping in one frame: motion-interactive lists `rotate`, the property rotate-180 writes."
+          "why": "The chevron turns with the panel rather than flipping in one frame: motion-interactive lists `rotate`, the property rotate-180 and rotate-0 write."
         },
         {
           "slot": "activity",
@@ -7792,7 +7948,12 @@
         },
         {
           "label": "With rotating chevron",
-          "code": "<Collapsible><CollapsibleTrigger className=\"group/collapsible\" render={<Button variant=\"ghost\">Details <CollapsibleIndicator /></Button>} /><CollapsiblePanel><p className=\"pt-3\">Revealed on toggle.</p></CollapsiblePanel></Collapsible>",
+          "code": "<Collapsible><CollapsibleTrigger render={<Button variant=\"ghost\">Details <CollapsibleIndicator /></Button>} /><CollapsiblePanel><p className=\"pt-3\">Revealed on toggle.</p></CollapsiblePanel></Collapsible>",
+          "imports": "import { Button, Collapsible, CollapsibleIndicator, CollapsiblePanel, CollapsibleTrigger } from \"@sableui/react\""
+        },
+        {
+          "label": "Group header with a side caret",
+          "code": "<Collapsible defaultOpen><CollapsibleTrigger render={<Button variant=\"ghost\" size=\"xs\"><CollapsibleIndicator direction=\"end\" />In progress <span className=\"text-ui-num text-muted-foreground\">5</span></Button>} /><CollapsiblePanel><ul className=\"text-ui-body\"><li>Refine product detail page</li><li>Build the ingredient library</li></ul></CollapsiblePanel></Collapsible>",
           "imports": "import { Button, Collapsible, CollapsibleIndicator, CollapsiblePanel, CollapsibleTrigger } from \"@sableui/react\""
         }
       ]
@@ -9106,7 +9267,7 @@
       "group": "Data display",
       "register": "either",
       "path": "components/data-table",
-      "summary": "A data-driven table over the Table primitives — a columns def + data array with built-in client-side sorting (click a sortable header to cycle asc → desc → none), optional row click / selection, and an empty state. For server data or paging, sort/page the data and pair with Pagination.",
+      "summary": "A data-driven table over the Table primitives — a columns def + data array with built-in client-side sorting (click a sortable header to cycle asc → desc → none), optional row click / selection, rows grouped under collapsible header rows (groupBy), and an empty state. For server data or paging, sort/page the data and pair with Pagination.",
       "keywords": [
         "data table",
         "table",
@@ -9115,7 +9276,14 @@
         "rows",
         "empty state",
         "pagination",
-        "list"
+        "list",
+        "grouped",
+        "group by",
+        "sections",
+        "issue list",
+        "issue tracker",
+        "status groups",
+        "collapsible groups"
       ],
       "usage": {
         "description": "Use DataTable when a data array and column definition should render a sortable, semantic table with optional row actions and an empty state. Use the lower-level Table parts for hand-authored markup or highly custom row layouts.",
@@ -9138,7 +9306,11 @@
           },
           {
             "guidance": "do",
-            "description": "Move to TanStack Table, rendered with Sable's Table parts, once the table needs server-side sorting or filtering, column visibility or resizing, grouping, or virtualised rows. DataTable stays dependency-free and does not grow into a data grid; `sable docs tables-with-tanstack` maps one onto the other."
+            "description": "Group rows by status for an issue tracker (or by owner, by day) with groupBy + groups on ONE DataTable: every group shares the header and the column widths, each header row carries the group's count and an add action, and sorting applies within each group. Do not stack one DataTable per group inside Collapsibles; the header repeats and the columns stop lining up."
+          },
+          {
+            "guidance": "do",
+            "description": "Move to TanStack Table, rendered with Sable's Table parts, once the table needs server-side sorting or filtering, column visibility or resizing, nested or aggregated grouping, or virtualised rows. DataTable stays dependency-free and does not grow into a data grid; `sable docs tables-with-tanstack` maps one onto the other."
           },
           {
             "guidance": "dont",
@@ -9164,6 +9336,11 @@
             "name": "Empty state",
             "required": false,
             "description": "Content spanning all columns when the row array is empty."
+          },
+          {
+            "name": "Group header row",
+            "required": false,
+            "description": "With groupBy: one row per group heading its own tbody (a th with scope=rowgroup across every column) holding the disclosure toggle, the group's icon, label and count, and an optional trailing action."
           },
           {
             "name": "Caption",
@@ -9248,6 +9425,32 @@
           "name": "caption",
           "type": "ReactNode",
           "description": "Bottom table caption."
+        },
+        {
+          "name": "groupBy",
+          "type": "(row) => string",
+          "description": "Group the rows under header rows by the key this returns (a status, an owner, a day). One header serves every group, so the columns line up across them; sorting applies within each group."
+        },
+        {
+          "name": "groups",
+          "type": "{ key: string; label?: ReactNode; icon?: ReactNode; action?: ReactNode; defaultExpanded?: boolean }[]",
+          "description": "Order and presentation of the groups, by key: the header row's label (defaults to the key), a leading icon such as a status mark, a trailing action such as an icon Button that adds a row to the group, and whether it starts open (default true). Groups groupBy returns that are not listed follow, in the order their first row appears in data. A listed group with no rows is not shown."
+        },
+        {
+          "name": "collapsible",
+          "type": "boolean",
+          "default": "true",
+          "description": "Whether each group's header row is a toggle that opens and closes the group. A closed group keeps its header row and count; its rows are hidden and select-all skips them."
+        },
+        {
+          "name": "expandedGroups",
+          "type": "ReadonlySet<string>",
+          "description": "The open groups, by key (controlled). Without it each group starts at its defaultExpanded and the table holds the state."
+        },
+        {
+          "name": "onExpandedGroupsChange",
+          "type": "(keys: Set<string>) => void",
+          "description": "Called with the new set of open group keys when a group header is toggled."
         }
       ],
       "tokensUsed": [
@@ -9281,6 +9484,18 @@
           "why": "A checked row's fill eases in across its cells, so selecting by checkbox reads as the row being picked rather than a band stamped over it."
         },
         {
+          "slot": "transition",
+          "recipe": "motion-interactive",
+          "part": "Group chevron",
+          "why": "A group's chevron turns from pointing along the reading direction (closed) to down (open), so the group reads as folding rather than a glyph being swapped."
+        },
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Group rows",
+          "why": "Opening a group shows its rows at once: table rows cannot animate their height without leaving the table layout, and the rows are the content the reader asked for."
+        },
+        {
           "slot": "activity",
           "recipe": "none",
           "part": "Root",
@@ -9290,7 +9505,8 @@
       "a11y": [
         "Sorted columns set aria-sort=ascending/descending on the header cell.",
         "Sortable headers are real <button>s with a focus-visible ring, keyboard-operable.",
-        "Inherits the Table's scrollable frame and semantic <table>/<th>/<td> structure."
+        "Inherits the Table's scrollable frame and semantic <table>/<th>/<td> structure.",
+        "Grouped, each group is its own <tbody> (a rowgroup) headed by a <th scope=\"rowgroup\"> spanning the columns, so group headers are never read as data rows; the toggle is a real button with aria-expanded and aria-controls naming that tbody."
       ],
       "examples": [
         {
@@ -9319,6 +9535,11 @@
           "imports": "import { Card, CardContent, CardHeader, CardTitle, DataTable } from \"@sableui/react\""
         },
         {
+          "label": "Issues grouped by status",
+          "code": "const STATUSES = [\n\t{ key: \"in-progress\", label: \"In progress\", icon: <StatusDot tone=\"warning\" /> },\n\t{ key: \"in-review\", label: \"In review\", icon: <StatusDot tone=\"purple\" /> },\n\t{ key: \"todo\", label: \"Todo\", icon: <StatusDot /> },\n\t{ key: \"done\", label: \"Done\", icon: <StatusDot tone=\"success\" />, defaultExpanded: false },\n]\n\n<DataTable\n\tdata={issues}\n\trowKey={(t) => t.id}\n\tgroupBy={(t) => t.status}\n\tgroups={STATUSES.map((s) => ({ ...s, action: <Button variant=\"ghost\" size=\"icon-xs\" aria-label={`Add issue to ${s.label}`} onClick={() => create(s.key)}><Icon name=\"plus\" /></Button> }))}\n\tonRowClick={(t) => setSelectedId(t.id)}\n\tisRowSelected={(t) => t.id === selectedId}\n\tcolumns={[\n\t\t{ key: \"id\", header: \"ID\", className: \"w-20\", cell: (t) => <span className=\"text-mono-caption text-muted-foreground\">{t.id}</span> },\n\t\t{ key: \"title\", header: \"Issue\", sortable: true },\n\t\t{ key: \"due\", header: \"Due\", sortable: true, sortValue: (t) => t.due.getTime(), cell: (t) => formatDate(t.due) },\n\t]}\n/>",
+          "imports": "import { Button, DataTable, Icon, StatusDot } from \"@sableui/react\""
+        },
+        {
           "label": "Empty state",
           "code": "<DataTable data={[]} columns={[{ key: \"name\", header: \"Name\" }, { key: \"status\", header: \"Status\" }]} empty={<EmptyState icon={<Icon name=\"search\" />} title=\"No deployments\" description=\"Try a different filter or create a deployment.\" action={<Button>Create deployment</Button>} />} />",
           "imports": "import { Button, DataTable, EmptyState, Icon } from \"@sableui/react\""
@@ -9334,6 +9555,9 @@
       "summary": "Date (and optionally time) picker: a field-shaped trigger (the Input / SelectTrigger shell) opens a Popover holding Sable's Calendar. With granularity=\"day\" selecting a day fires onValueChange and closes; granularity=\"minute\" adds an hour + minute row of Selects and keeps the time-of-day when the day changes.",
       "keywords": [
         "date picker",
+        "due date",
+        "property row",
+        "inspector",
         "calendar",
         "date input",
         "date time picker",
@@ -9434,6 +9658,17 @@
           "description": "Latest selectable day (inclusive). Later days are disabled and navigation is bounded."
         },
         {
+          "name": "size",
+          "type": "\"md\" | \"xs\"",
+          "default": "\"md\"",
+          "description": "The trigger's rung. md is the form field beside Input and Select. xs is the property-grid rung (24px in a workspace): an inset panel-field well with no border, the same shape as SelectTrigger size=\"xs\" and ScrubField on the neighbouring rows of an inspector — use it for a due date in a PropertyRow instead of a native date input."
+        },
+        {
+          "name": "formatOptions",
+          "type": "Intl.DateTimeFormatOptions",
+          "description": "How the trigger writes the chosen date, as Intl.DateTimeFormat options in the reader's locale — { month: \"short\", day: \"numeric\" } for \"Oct 23\" where the rest of a list writes dates that way. Omitted: \"Oct 23, 2026\" (with \"at 14:30\" under granularity=\"minute\")."
+        },
+        {
           "name": "className",
           "type": "string",
           "description": "Extra classes merged onto the trigger."
@@ -9466,6 +9701,11 @@
         "With granularity=\"minute\" the hour and minute Selects are full Base UI listboxes (typeahead, ARIA) labelled \"Hour\" and \"Minute\"; selecting a day keeps the chosen time-of-day, so day and time can be set in any order."
       ],
       "examples": [
+        {
+          "label": "In an inspector row",
+          "code": "<PanelSection title=\"Properties\">\n\t<PropertyRow label=\"Due date\">\n\t\t<DatePicker size=\"xs\" aria-label=\"Due date\" value={due} onValueChange={setDue} formatOptions={{ month: \"short\", day: \"numeric\" }} />\n\t</PropertyRow>\n</PanelSection>",
+          "imports": "import { DatePicker, PanelSection, PropertyRow } from \"@sableui/react\""
+        },
         {
           "label": "Controlled",
           "code": "const [date, setDate] = useState<Date>()\n<DatePicker value={date} onValueChange={setDate} />",
@@ -13784,8 +14024,8 @@
         },
         {
           "name": "MenuSubmenuTrigger",
-          "type": "Base UI Menu.SubmenuTrigger props + value: ReactNode + className",
-          "description": "The row that opens a submenu: item styling, a trailing chevron, and an optional `value` showing the current choice so the row reads \"Effort  High ›\" rather than making the reader open it to find out."
+          "type": "Base UI Menu.SubmenuTrigger props + value: ReactNode + icon: ReactNode + className",
+          "description": "The row that opens a submenu: item styling, a trailing chevron, and an optional `value` showing the current choice so the row reads \"Effort  High ›\" rather than making the reader open it to find out. `icon` leads the row as MenuItem's does; give it one whenever the items around it have icons, or its label starts a column to their left."
         },
         {
           "name": "MenuRadioGroup",
@@ -16271,7 +16511,13 @@
         "tool",
         "chrome",
         "inspector",
-        "layout"
+        "layout",
+        "mobile",
+        "responsive",
+        "sheet",
+        "drawer",
+        "narrow",
+        "detail pane"
       ],
       "usage": {
         "description": "Use PanelGroup for the body of a tool workspace: fixed-width Panels docked left and/or right, a flexible Panel in the middle for the canvas, and a PanelResizer between them. Panels scroll internally and the group never scrolls. This is the workspace-register counterpart to SplitPane, which only switches between side-by-side and stacked at a breakpoint and cannot be resized.",
@@ -16287,6 +16533,14 @@
           {
             "guidance": "do",
             "description": "Label every Panel — they are landmarks, and 'Layers' or 'Properties' is what a screen-reader user navigates by."
+          },
+          {
+            "guidance": "do",
+            "description": "Decide what each docked Panel becomes on a phone with `narrow`: \"sheet\" for an inspector or a navigation rail the user opens on demand, \"hidden\" for chrome a phone does without. Drive a sheet's `open` from the same state that selects the record, so selecting a row opens the inspector at every width."
+          },
+          {
+            "guidance": "dont",
+            "description": "Render the same inspector twice, once in a Panel and once in a Sheet behind a hand-rolled viewport check. `narrow=\"sheet\"` renders the content once, in whichever place applies."
           },
           {
             "guidance": "dont",
@@ -16332,8 +16586,8 @@
       "subcomponents": [
         {
           "name": "Panel",
-          "type": "{ label: string; width?: number; scroll?: boolean }",
-          "description": "A docked or flexible column. `label` names the landmark; omit `width` for the flexible centre. `scroll` defaults to true — set it false for a header + scrolling body + pinned footer, so the footer doesn't scroll away with the list. When you own the layout, give the header and footer shrink-0 and the middle min-h-0 flex-1 overflow-y-auto. overflow-y-auto only activates if every flex ancestor can shrink: a single missing min-h-0 anywhere up the chain makes the panel grow instead of scroll, and nothing reports it."
+          "type": "{ label: string; width?: number; scroll?: boolean; narrow?: \"dock\" | \"sheet\" | \"hidden\"; open?: boolean; onOpenChange?: (open: boolean) => void; side?: \"left\" | \"right\"; below?: \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xl\" }",
+          "description": "A docked or flexible column. Below `below` (default lg, where Sidebar and BottomNav swap), `narrow` decides what it becomes: \"dock\" (default) stays docked, \"sheet\" renders the same content once inside a Sheet from `side` (default \"right\"; a panel before the canvas is \"left\"), titled by `label`, open while `open` is true and closed through `onOpenChange` (Esc, scrim, swipe), and \"hidden\" drops it. `open` defaults to true docked (false removes the column, so the canvas takes its width) and false as a sheet. Crossing the breakpoint remounts the content, so keep state that must survive it in the app. `label` names the landmark; omit `width` for the flexible centre. `scroll` defaults to true — set it false for a header + scrolling body + pinned footer, so the footer doesn't scroll away with the list. When you own the layout, give the header and footer shrink-0 and the middle min-h-0 flex-1 overflow-y-auto. overflow-y-auto only activates if every flex ancestor can shrink: a single missing min-h-0 anywhere up the chain makes the panel grow instead of scroll, and nothing reports it."
         },
         {
           "name": "PanelResizer",
@@ -16393,6 +16647,11 @@
           "label": "Both edges resizable",
           "code": "function Body() {\n  const [left, setLeft, leftBounds] = usePanelWidth(240, { storageKey: \"app:left\" })\n  const [right, setRight, rightBounds] = usePanelWidth(256, { storageKey: \"app:right\" })\n  return (\n    <PanelGroup>\n      <Panel label=\"Layers\" width={left} />\n      <PanelResizer side=\"left\" width={left} onWidthChange={setLeft} label=\"Resize layers panel\" {...leftBounds} />\n      <Panel label=\"Canvas\" />\n      <PanelResizer side=\"right\" width={right} onWidthChange={setRight} label=\"Resize properties panel\" {...rightBounds} />\n      <Panel label=\"Properties\" width={right}>\n        <PanelSection title=\"Blending\">\n          <PropertyPair>\n            <ScrubField label=\"Opacity\" icon=\"grid\" suffix=\"%\" value={100} min={0} max={100} />\n            <ScrubField label=\"Blur\" value={0} min={0} max={64} suffix=\"px\" />\n          </PropertyPair>\n        </PanelSection>\n      </Panel>\n    </PanelGroup>\n  )\n}",
           "imports": "import { Panel, PanelGroup, PanelResizer, PanelSection, PropertyPair, ScrubField, usePanelWidth } from \"@sableui/react\""
+        },
+        {
+          "label": "Inspector that becomes a sheet on phones",
+          "code": "function Body() {\n  const [selected, setSelected] = useState<string | null>(null)\n  return (\n    <PanelGroup>\n      <Panel label=\"Issues\">\n        <div className=\"p-2\">\n          <Button size=\"xs\" variant=\"ghost\" onClick={() => setSelected(\"AES-104\")}>AES-104 Refine product page</Button>\n        </div>\n      </Panel>\n      <Panel\n        label=\"Issue details\"\n        width={320}\n        narrow=\"sheet\"\n        open={selected !== null}\n        onOpenChange={(open) => !open && setSelected(null)}\n      >\n        <PanelSection title={selected ?? \"\"}>\n          <PropertyRow label=\"Status\"><Input defaultValue=\"In progress\" /></PropertyRow>\n        </PanelSection>\n      </Panel>\n    </PanelGroup>\n  )\n}",
+          "imports": "import { Button, Input, Panel, PanelGroup, PanelSection, PropertyRow } from \"@sableui/react\""
         },
         {
           "label": "Fixed panel, no resizer",
@@ -20431,12 +20690,20 @@
       "group": "Navigation",
       "register": "page",
       "path": "components/sidebar",
-      "summary": "Desktop side-navigation rail (in-flow sticky, hidden below lg) with SidebarHeader / SidebarBrand / SidebarNav / SidebarItem / SidebarFooter parts. Items are router-agnostic via the `render` prop; an optional collapsed icon-rail mode reveals labels in tooltips.",
+      "summary": "Desktop side-navigation rail (in-flow sticky, hidden below lg) with SidebarHeader / SidebarBrand / SidebarNav / SidebarGroup / SidebarItem / SidebarFooter / SidebarAccount parts, all on one set of columns. Items are router-agnostic via the `render` prop; an optional collapsed icon-rail mode reveals labels in tooltips.",
       "keywords": [
         "sidebar",
         "navigation",
         "app chrome",
-        "rail"
+        "rail",
+        "nav group",
+        "section label",
+        "account",
+        "user menu",
+        "profile",
+        "account switcher",
+        "workspace switcher",
+        "sidebar footer"
       ],
       "usage": {
         "description": "Use Sidebar for persistent desktop navigation or application chrome outside the main content region.",
@@ -20456,6 +20723,18 @@
           {
             "guidance": "do",
             "description": "Keep surface=\"rail\" inside AppShell frame=\"inset\": the rail's tint becomes the ground the main panel floats on. Do not add a border-r class back — the gap is the divider."
+          },
+          {
+            "guidance": "do",
+            "description": "Group items with SidebarGroup and end the rail with one SidebarAccount that opens the account menu (settings, appearance, sign out). Every part sits on the same icon and label columns, at either density."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not put SideNav, an Entity or a stack of ghost Buttons in the rail. Each brings its own insets, so the icons and labels land on four different columns. SideNav is the in-page section list; the rail has its own parts."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not put a Badge or pill in the account row. Its one quiet detail line carries the plan, role or 'Demo'."
           },
           {
             "guidance": "dont",
@@ -20522,7 +20801,7 @@
         {
           "name": "SidebarHeader",
           "type": "div props",
-          "description": "The top of the rail, at least 64px tall. It holds SidebarBrand and may take a second row under it, such as a search field or a notifications button: give that row basis-full and the header grows to hold it instead of clipping."
+          "description": "The top of the rail, at least 64px tall (the chrome bar's height inside a compact Workspace, so it lines up with the WorkspaceBar beside it). It holds SidebarBrand and may take a second row under it, such as a search field or a notifications button: give that row basis-full and the header grows to hold it instead of clipping."
         },
         {
           "name": "SidebarBrand",
@@ -20532,7 +20811,17 @@
         {
           "name": "SidebarItem",
           "type": "{ label: ReactNode; icon?: ReactNode; active?: boolean; badge?: ReactNode; render?: useRender.RenderProp } + button props",
-          "description": "A single nav row. label is the row text (inline when expanded, in a hover tooltip when collapsed); icon is the leading icon node (the consumer swaps fill weight for the active state); active marks the current route (accent fill + aria-current=\"page\"); badge is a trailing node (e.g. a count) pushed to the row end and hidden when collapsed; render composes another element, e.g. render={<Link to=\"/x\" />}."
+          "description": "A single nav row, 44px on a page and 32px inside a compact scope such as a Workspace (the rail reads the density; nothing to set). label is the row text (inline when expanded, in a hover tooltip when collapsed); icon is the leading icon node (the consumer swaps fill weight for the active state); active marks the current route (accent fill + aria-current=\"page\"); badge is a trailing node (e.g. a count) pushed to the row end and hidden when collapsed; render composes another element, e.g. render={<Link to=\"/x\" />}."
+        },
+        {
+          "name": "SidebarGroup",
+          "type": "{ label?: ReactNode } + div props",
+          "description": "A labelled run of SidebarItems inside SidebarNav (\"Workspace\", \"Favorites\"). The label starts on the items' icon column; collapsed, a hairline stands in for it and the label stays as the group's accessible name."
+        },
+        {
+          "name": "SidebarAccount",
+          "type": "{ avatar: ReactNode; label: ReactNode; detail?: ReactNode; indicator?: ReactNode | false; render?: useRender.RenderProp } + button props",
+          "description": "The account row at the foot of the rail, inside SidebarFooter: the avatar in the icon slot (Avatar xs on a page rail, 2xs in a compact one), the label on the label column, one muted detail line, and an up-down chevron. Make it the trigger of the account Menu (render it through MenuTrigger render) and put Settings, appearance and sign-out there; it holds its fill while the menu is open. Collapsed, the avatar alone, with the label in a tooltip."
         }
       ],
       "variants": {
@@ -20598,6 +20887,11 @@
           "label": "Collapsible (icon rail)",
           "code": "const [collapsed, setCollapsed] = useState(false)\n<Sidebar collapsed={collapsed}><SidebarNav><SidebarItem icon={<Icon name=\"home\" />} label=\"Home\" active render={<Link to=\"/\" />} /></SidebarNav><SidebarFooter><Button variant=\"ghost\" size=\"icon\" onClick={() => setCollapsed((c) => !c)} aria-label=\"Toggle sidebar\"><Icon name=\"chevron-left\" /></Button></SidebarFooter></Sidebar>",
           "imports": "import { Button, Icon, Sidebar, SidebarFooter, SidebarItem, SidebarNav } from \"@sableui/react\"\n// <Link> = your router's link (react-router, next/link, @tanstack/router, …)"
+        },
+        {
+          "label": "Grouped nav with an account menu",
+          "code": "<Sidebar><SidebarHeader><SidebarBrand mark={<Avatar shape=\"square\" size=\"xs\" fallback=\"F\" alt=\"\" />} label=\"Forma Studio\" /></SidebarHeader><SidebarNav><SidebarItem icon={<Icon name=\"inbox\" />} label=\"Inbox\" badge={<span className=\"text-ui-num\">4</span>} /><SidebarGroup label=\"Workspace\"><SidebarItem icon={<Icon name=\"folder\" />} label=\"Projects\" active /><SidebarItem icon={<Icon name=\"users\" />} label=\"Clients\" /></SidebarGroup></SidebarNav><SidebarFooter><Menu><MenuTrigger render={<SidebarAccount avatar={<Avatar size=\"xs\" fallback=\"EL\" alt=\"\" />} label=\"Emma Lee\" detail=\"Forma Studio\" />} /><MenuContent side=\"top\" align=\"start\"><MenuItem>Settings</MenuItem><MenuSeparator /><MenuItem>Sign out</MenuItem></MenuContent></Menu></SidebarFooter></Sidebar>",
+          "imports": "import { Avatar, Icon, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger, Sidebar, SidebarAccount, SidebarBrand, SidebarFooter, SidebarGroup, SidebarHeader, SidebarItem, SidebarNav } from \"@sableui/react\""
         },
         {
           "label": "Inline (inside a bounded frame)",
@@ -22409,6 +22703,10 @@
           {
             "guidance": "do",
             "description": "Use tabs when each panel is peer content and users may compare or switch often."
+          },
+          {
+            "guidance": "do",
+            "description": "In tool chrome (a WorkspaceBar, a compact panel header) use variant=\"pill\" for a view switch such as Overview / Issues / Updates: it reads as a control beside the bar's other controls. Underline is the page-section idiom; inside a WorkspaceBar it sits on the bar's hairline rather than drawing its own."
           },
           {
             "guidance": "do",
@@ -24762,7 +25060,18 @@
         "chrome",
         "panels",
         "density",
-        "viewport"
+        "viewport",
+        "issue tracker",
+        "tracker",
+        "inspector",
+        "reading view",
+        "mobile",
+        "responsive",
+        "bottom nav",
+        "media query",
+        "breakpoint",
+        "top bar",
+        "topbar"
       ],
       "usage": {
         "description": "Use Workspace as the outer frame for a tool — an editor, a console, a canvas app. It owns the viewport, scopes the compact control density, and guarantees a skip link plus a main landmark on the canvas. Reach for AppShell instead for page-register products: it is built around a scrolling document, where a workspace is built around a fixed one. Workspace fills the viewport (h-dvh) by design; to embed one in a page (a docs preview, a modal-sized demo), wrap it in a bounded container and pass className=\"h-full\".",
@@ -24778,6 +25087,18 @@
           {
             "guidance": "do",
             "description": "Keep the density scope at compact unless you have a specific reason; the workspace register's measured control ladder is what makes tool chrome read as tool chrome."
+          },
+          {
+            "guidance": "do",
+            "description": "Put a WorkspaceBar inside a column when the bar belongs to that column only. An issue tracker's bar (breadcrumb, view tabs, filters) sits above the list, while the sidebar and the inspector beside it run the full height: put the WorkspaceBar first inside the WorkspaceCanvas, not in the `toolbar` slot, which spans every panel. Don't hand-build a fixed-height header for it."
+          },
+          {
+            "guidance": "do",
+            "description": "Wrap a reading view inside the workspace (a project overview, an update, a doc, release notes) in <Density value=\"comfortable\">. The compact scope maps body text to the 11–12px UI tiers, which is right for chrome and too small for paragraphs; the comfortable scope gives prose its page size again while the chrome around it stays compact."
+          },
+          {
+            "guidance": "do",
+            "description": "Plan the phone layout with the shell rather than around it: pass a BottomNav to `bottomNav`, and give docked Panels `narrow=\"sheet\"` (an inspector, a navigation rail) or `narrow=\"hidden\"`. Don't measure the viewport with a resize listener, render the inspector twice, or subtract the nav's height from 100dvh."
           },
           {
             "guidance": "dont",
@@ -24816,6 +25137,11 @@
             "name": "StatusBar",
             "required": false,
             "description": "Bottom chrome for ambient document facts."
+          },
+          {
+            "name": "BottomNav",
+            "required": false,
+            "description": "Phone navigation in the `bottomNav` slot. Its row is reserved below lg and gone above it, so the body ends where the nav begins."
           }
         ]
       },
@@ -24840,6 +25166,11 @@
           "description": "Bottom chrome, normally a StatusBar."
         },
         {
+          "name": "bottomNav",
+          "type": "ReactNode",
+          "description": "Phone navigation, normally a BottomNav. Below lg (BottomNav's own breakpoint) the shell reserves the nav's height as its last row, so the body and the status bar end above the nav instead of under it; above lg the row is gone. Every slot is optional: the body is the shell's one growing row whichever of toolbar, statusBar and bottomNav are present."
+        },
+        {
           "name": "density",
           "type": "\"compact\" | \"comfortable\"",
           "default": "\"compact\"",
@@ -24862,6 +25193,16 @@
           "name": "WorkspaceCanvas",
           "type": "ComponentProps<'main'>",
           "description": "The work surface: renders main#main-content, fills the body, clips its overflow."
+        },
+        {
+          "name": "useMediaQuery",
+          "type": "(query: string, options?: { serverValue?: boolean }) => boolean",
+          "description": "True while a media query matches, read through useSyncExternalStore: no resize listener, no setState in an effect, no hydration mismatch (the server reports serverValue, default false). Use it to branch structure a class cannot express; style-only changes stay as lg: classes."
+        },
+        {
+          "name": "useBelowBreakpoint",
+          "type": "(breakpoint?: \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xl\", options?: { serverValue?: boolean }) => boolean",
+          "description": "True below a named breakpoint (default lg), flipping at the width where that breakpoint's classes start to apply (Tailwind's sm 40 / md 48 / lg 64 / xl 80 / 2xl 96rem). Panel's `narrow` uses it; reach for it instead of a hand-rolled window.innerWidth check."
         }
       ],
       "tokensUsed": [
@@ -24888,6 +25229,16 @@
           "label": "Console shell (no canvas)",
           "code": "<Workspace statusBar={<StatusBar><span>Connected</span></StatusBar>}>\n  <PanelGroup>\n    <Panel label=\"Sources\" width={240}>\n      <PanelSection title=\"Sources\">\n        <PropertyRow label=\"Filter\"><Input placeholder=\"Search\" /></PropertyRow>\n      </PanelSection>\n    </Panel>\n    <WorkspaceCanvas className=\"overflow-y-auto scrollbar-quiet\">\n      <div className=\"p-3 text-ui-num text-muted-foreground\">log output…</div>\n    </WorkspaceCanvas>\n  </PanelGroup>\n</Workspace>",
           "imports": "import { Input, Panel, PanelGroup, PanelSection, PropertyRow, StatusBar, Workspace, WorkspaceCanvas } from \"@sableui/react\""
+        },
+        {
+          "label": "Issue tracker: column bar, docked inspector, phone sheet",
+          "code": "function Tracker() {\n  const [selected, setSelected] = useState<string | null>(\"AES-104\")\n  return (\n    <Workspace\n      bottomNav={\n        <BottomNav>\n          <BottomNavItem showLabel label=\"Issues\" icon={<Icon name=\"list\" />} active />\n          <BottomNavItem showLabel label=\"Inbox\" icon={<Icon name=\"inbox\" />} />\n        </BottomNav>\n      }\n      statusBar={<StatusBar><span>12 issues</span></StatusBar>}\n    >\n      <PanelGroup>\n        <Panel label=\"Navigation\" width={220} narrow=\"hidden\">\n          <PanelSection title=\"Workspace\">\n            <PropertyRow label=\"Team\"><Input defaultValue=\"Studio\" /></PropertyRow>\n          </PanelSection>\n        </Panel>\n        <WorkspaceCanvas className=\"flex flex-col\">\n          <WorkspaceBar>\n            <Breadcrumbs>\n              <BreadcrumbItem><BreadcrumbLink href=\"#\">Studio</BreadcrumbLink></BreadcrumbItem>\n              <BreadcrumbSeparator />\n              <BreadcrumbItem><BreadcrumbPage>Digital flagship</BreadcrumbPage></BreadcrumbItem>\n            </Breadcrumbs>\n          </WorkspaceBar>\n          <div className=\"min-h-0 flex-1 overflow-y-auto scrollbar-quiet\">\n            <Button size=\"xs\" variant=\"ghost\" onClick={() => setSelected(\"AES-104\")}>AES-104 Refine product page</Button>\n          </div>\n        </WorkspaceCanvas>\n        <Panel\n          label=\"Issue details\"\n          width={320}\n          narrow=\"sheet\"\n          open={selected !== null}\n          onOpenChange={(open) => !open && setSelected(null)}\n        >\n          <PanelSection title={selected ?? \"\"}>\n            <PropertyRow label=\"Status\"><Input defaultValue=\"In progress\" /></PropertyRow>\n          </PanelSection>\n        </Panel>\n      </PanelGroup>\n    </Workspace>\n  )\n}",
+          "imports": "import { BottomNav, BottomNavItem, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, Breadcrumbs, BreadcrumbSeparator, Button, Icon, Input, Panel, PanelGroup, PanelSection, PropertyRow, StatusBar, Workspace, WorkspaceBar, WorkspaceCanvas } from \"@sableui/react\""
+        },
+        {
+          "label": "Reading view inside a workspace",
+          "code": "<Workspace>\n  <PanelGroup>\n    <WorkspaceCanvas className=\"overflow-y-auto scrollbar-quiet\">\n      <Density value=\"comfortable\">\n        <article className=\"max-w-prose p-6\">\n          <h2 className=\"text-heading-3\">Project overview</h2>\n          <p className=\"mt-3 text-body-md text-muted-foreground\">\n            Paragraphs keep their page size here, while the chrome around the canvas stays compact.\n          </p>\n        </article>\n      </Density>\n    </WorkspaceCanvas>\n  </PanelGroup>\n</Workspace>",
+          "imports": "import { Density, PanelGroup, Workspace, WorkspaceCanvas } from \"@sableui/react\""
         },
         {
           "label": "Comfortable density",
@@ -25026,8 +25377,8 @@
           "Each seat-usage Meter has an aria-label naming the account and aria-valuetext reading \"184 of 250 seats used\".",
           "Avatars beside a visible name use an empty alt so the name is not read twice."
         ],
-        "imports": "import { AppHeader, AppShell, Avatar, Badge, BottomNav, BottomNavItem, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, DataTable, Entity, Grid, Icon, MenuItem, MenuSeparator, Meter, NotificationBadge, OverflowMenu, Page, PageHeader, RelativeTime, Row, Sidebar, SidebarBrand, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav, Stack } from \"@sableui/react\"",
-        "code": "// Account status → Badge tone. Sable has no status vocabulary of its own;\n// an app maps ITS states onto tones once, here, and every badge follows.\nconst STATUS_TONE = { active: \"success\", onboarding: \"info\", full: \"1\", cancelled: \"neutral\" } as const\nconst STATUS_LABEL = { active: \"Active\", onboarding: \"Onboarding\", full: \"Seats full\", cancelled: \"Cancelled\" } as const\ntype AccountStatus = keyof typeof STATUS_TONE\n\nconst MIN = 60 * 1000\nconst HOUR = 60 * MIN\nconst DAY = 24 * HOUR\n\nconst usd = new Intl.NumberFormat(\"en-US\", { style: \"currency\", currency: \"USD\", maximumFractionDigits: 0 })\nconst usdCents = new Intl.NumberFormat(\"en-US\", { style: \"currency\", currency: \"USD\" })\nconst shortDate = (offset: number) =>\n\tnew Date(Date.now() + offset).toLocaleDateString(\"en-US\", { month: \"short\", day: \"numeric\" })\n\nconst stats = [\n\t{ label: \"Revenue\", value: \"$18,240\", delta: \"+8.2%\", up: true, note: \"vs. $16,857\" },\n\t{ label: \"Active seats\", value: \"1,284\", delta: \"+3.1%\", up: true, note: \"182 added\" },\n\t{ label: \"Accounts\", value: \"312\", delta: \"+12.4%\", up: true, note: \"Best month yet\" },\n\t{ label: \"Seat usage\", value: \"64%\", delta: \"−1.8%\", up: false, note: \"6 near their limit\" },\n]\n\nconst accounts = [\n\t{ id: \"ac_01\", title: \"Northwind\", status: \"active\" as const, used: 184, seats: 250, price: 16, started: -6 * DAY },\n\t{ id: \"ac_02\", title: \"Harbor Labs\", status: \"full\" as const, used: 100, seats: 100, price: 20, started: -19 * DAY },\n\t{ id: \"ac_03\", title: \"Brightline\", status: \"active\" as const, used: 61, seats: 150, price: 16, started: -2 * DAY },\n\t{ id: \"ac_04\", title: \"Tidewater Co.\", status: \"active\" as const, used: 212, seats: 300, price: 12, started: -27 * DAY },\n\t{ id: \"ac_05\", title: \"Saltworks\", status: \"cancelled\" as const, used: 38, seats: 75, price: 20, started: -44 * DAY },\n\t{ id: \"ac_06\", title: \"Paper Moon\", status: \"full\" as const, used: 50, seats: 50, price: 24, started: -58 * DAY },\n\t{ id: \"ac_07\", title: \"Signal Studio\", status: \"onboarding\" as const, used: 0, seats: 200, price: 16, started: 3 * DAY },\n\t{ id: \"ac_08\", title: \"Bluewater\", status: \"cancelled\" as const, used: 72, seats: 120, price: 12, started: -71 * DAY },\n\t{ id: \"ac_09\", title: \"Ember & Field\", status: \"full\" as const, used: 80, seats: 80, price: 20, started: -86 * DAY },\n]\nconst accountCount = 312\n\nconst payout = {\n\tamount: 8862.64,\n\tdate: 5 * DAY,\n\tlines: [\n\t\t{ label: \"Subscriptions\", value: 9127.33 },\n\t\t{ label: \"Processing (2.9%)\", value: -264.69 },\n\t\t{ label: \"Deposits to\", value: \"Checking ••4821\" },\n\t],\n}\n\nconst customers = [\n\t{ id: \"cu_01\", name: \"Northwind\", handle: \"northwind.io\", initials: \"NW\", seats: 184, spent: 2944 },\n\t{ id: \"cu_02\", name: \"Tidewater Co.\", handle: \"tidewater.co\", initials: \"TC\", seats: 212, spent: 2544 },\n\t{ id: \"cu_03\", name: \"Harbor Labs\", handle: \"harborlabs.com\", initials: \"HL\", seats: 100, spent: 2000 },\n\t{ id: \"cu_04\", name: \"Ember & Field\", handle: \"emberfield.com\", initials: \"EF\", seats: 80, spent: 1600 },\n]\n\nconst upcoming = [\n\t{ id: \"up_01\", title: \"Version 2.4\", detail: \"Shared reports · All plans\", at: 3 * DAY },\n\t{ id: \"up_02\", title: \"Audit log export\", detail: \"Business plan · Beta\", at: 12 * DAY },\n\t{ id: \"up_03\", title: \"Version 2.5\", detail: \"Offline mode · All plans\", at: 26 * DAY },\n\t{ id: \"up_04\", title: \"Usage-based billing\", detail: \"Studio and Business · Beta\", at: 34 * DAY },\n]\n\nconst activity = [\n\t{ id: \"ev_01\", who: \"Nina Simone\", initials: \"NS\", what: \"added 12 seats to Northwind · 184 of 250\", when: 2 * MIN },\n\t{ id: \"ev_02\", who: \"Grace Hopper\", initials: \"GH\", what: \"upgraded Brightline to Studio\", when: 26 * MIN },\n\t{ id: \"ev_03\", who: \"Frida Kahlo\", initials: \"FK\", what: \"paid invoice INV-0042 for Tidewater Co.\", when: 1 * HOUR },\n\t{ id: \"ev_04\", who: \"Mary Shelley\", initials: \"MS\", what: \"joined the Harbor Labs workspace\", when: 3 * HOUR },\n\t{ id: \"ev_05\", who: \"Nina Simone\", initials: \"NS\", what: \"booked onboarding for Signal Studio\", when: 6 * HOUR },\n]\n\nexport function DashboardPage() {\n\treturn (\n\t\t<AppShell\n\t\t\t// Sidebar hides below lg, so the same destinations ride in the shell's\n\t\t\t// mobile slots — without them the route has no navigation under 1024px.\n\t\t\theader={\n\t\t\t\t<AppHeader\n\t\t\t\t\ttitle={\n\t\t\t\t\t\t<Row gap={1} align=\"center\">\n\t\t\t\t\t\t\t<Icon name=\"gem\" variant=\"solid\" className=\"text-xl\" />\n\t\t\t\t\t\t\t<span className=\"text-title-sm\">Atelier</span>\n\t\t\t\t\t\t</Row>\n\t\t\t\t\t}\n\t\t\t\t\tactions={<Avatar variant=\"art\" size=\"sm\" fallback=\"AL\" alt=\"Ada Lovelace\" />}\n\t\t\t\t/>\n\t\t\t}\n\t\t\tbottomNav={\n\t\t\t\t<BottomNav aria-label=\"Primary\">\n\t\t\t\t\t<BottomNavItem icon={<Icon name=\"grid\" />} label=\"Overview\" showLabel active render={<a href=\"/\" />} />\n\t\t\t\t\t<BottomNavItem icon={<Icon name=\"folder\" />} label=\"Accounts\" showLabel render={<a href=\"/accounts\" />} />\n\t\t\t\t\t<BottomNavItem icon={<Icon name=\"user\" />} label=\"Customers\" showLabel render={<a href=\"/customers\" />} />\n\t\t\t\t\t<BottomNavItem icon={<Icon name=\"bell\" />} label=\"Activity\" showLabel render={<a href=\"/activity\" />} />\n\t\t\t\t\t<BottomNavItem icon={<Icon name=\"gear\" />} label=\"Settings\" showLabel render={<a href=\"/settings\" />} />\n\t\t\t\t</BottomNav>\n\t\t\t}\n\t\t\tsidebar={\n\t\t\t\t<Sidebar>\n\t\t\t\t\t<SidebarHeader>\n\t\t\t\t\t\t<SidebarBrand mark={<Icon name=\"gem\" variant=\"solid\" />} label=\"Atelier\" render={<a href=\"/\" />} />\n\t\t\t\t\t</SidebarHeader>\n\t\t\t\t\t<SidebarNav>\n\t\t\t\t\t\t<SidebarItem icon={<Icon name=\"grid\" />} label=\"Overview\" active render={<a href=\"/\" />} />\n\t\t\t\t\t\t<SidebarItem icon={<Icon name=\"folder\" />} label=\"Accounts\" render={<a href=\"/accounts\" />} />\n\t\t\t\t\t\t<SidebarItem icon={<Icon name=\"user\" />} label=\"Customers\" render={<a href=\"/customers\" />} />\n\t\t\t\t\t\t<SidebarItem\n\t\t\t\t\t\t\ticon={<Icon name=\"bell\" />}\n\t\t\t\t\t\t\tlabel=\"Activity\"\n\t\t\t\t\t\t\tbadge={<NotificationBadge count={4} tone=\"neutral\" />}\n\t\t\t\t\t\t\trender={<a href=\"/activity\" />}\n\t\t\t\t\t\t/>\n\t\t\t\t\t\t<SidebarItem icon={<Icon name=\"gear\" />} label=\"Settings\" render={<a href=\"/settings\" />} />\n\t\t\t\t\t</SidebarNav>\n\t\t\t\t\t<SidebarFooter>\n\t\t\t\t\t\t<Entity\n\t\t\t\t\t\t\tclassName=\"[--entity-py:0]\"\n\t\t\t\t\t\t\tleading={<Avatar variant=\"art\" size=\"sm\" fallback=\"AL\" alt=\"\" />}\n\t\t\t\t\t\t\ttitle=\"Ada Lovelace\"\n\t\t\t\t\t\t\tsubtitle=\"@ada\"\n\t\t\t\t\t\t\taction={\n\t\t\t\t\t\t\t\t<OverflowMenu label=\"Account\" size=\"icon-sm\">\n\t\t\t\t\t\t\t\t\t<MenuItem render={<a href=\"/@ada\" />}>View profile</MenuItem>\n\t\t\t\t\t\t\t\t\t<MenuItem render={<a href=\"/settings\" />}>Settings</MenuItem>\n\t\t\t\t\t\t\t\t\t<MenuSeparator />\n\t\t\t\t\t\t\t\t\t<MenuItem>Sign out</MenuItem>\n\t\t\t\t\t\t\t\t</OverflowMenu>\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t/>\n\t\t\t\t\t</SidebarFooter>\n\t\t\t\t</Sidebar>\n\t\t\t}\n\t\t>\n\t\t\t<Page max=\"wide\" gap={4} className=\"py-6\">\n\t\t\t\t<PageHeader\n\t\t\t\t\ttitle=\"Overview\"\n\t\t\t\t\tdescription=\"Revenue and account activity for the last 30 days.\"\n\t\t\t\t\tactions={\n\t\t\t\t\t\t<Row gap={2}>\n\t\t\t\t\t\t\t<Button variant=\"outline\">\n\t\t\t\t\t\t\t\t<Icon name=\"download\" />\n\t\t\t\t\t\t\t\tExport\n\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t\t<Button>\n\t\t\t\t\t\t\t\t<Icon name=\"plus\" />\n\t\t\t\t\t\t\t\tNew account\n\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t</Row>\n\t\t\t\t\t}\n\t\t\t\t/>\n\t\t\t\t<Grid cols={{ base: 2, xl: 4 }} gap={3}>\n\t\t\t\t\t{stats.map((stat) => (\n\t\t\t\t\t\t<Card key={stat.label}>\n\t\t\t\t\t\t\t<CardHeader>\n\t\t\t\t\t\t\t\t<CardDescription>{stat.label}</CardDescription>\n\t\t\t\t\t\t\t\t<CardTitle className=\"text-mono-xl\">{stat.value}</CardTitle>\n\t\t\t\t\t\t\t</CardHeader>\n\t\t\t\t\t\t\t<CardContent>\n\t\t\t\t\t\t\t\t<Row gap={1} wrap>\n\t\t\t\t\t\t\t\t\t<Badge\n\t\t\t\t\t\t\t\t\t\ttone={stat.up ? \"success\" : \"warning\"}\n\t\t\t\t\t\t\t\t\t\tsize=\"sm\"\n\t\t\t\t\t\t\t\t\t\ticon={<Icon name={stat.up ? \"arrow-up\" : \"arrow-down\"} />}\n\t\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t\t\t{stat.delta}\n\t\t\t\t\t\t\t\t\t</Badge>\n\t\t\t\t\t\t\t\t\t<span className=\"text-caption text-muted-foreground\">{stat.note}</span>\n\t\t\t\t\t\t\t\t</Row>\n\t\t\t\t\t\t\t</CardContent>\n\t\t\t\t\t\t</Card>\n\t\t\t\t\t))}\n\t\t\t\t</Grid>\n\t\t\t\t<Grid cols={{ base: 1, xl: 3 }} gap={3}>\n\t\t\t\t\t<Card className=\"flex flex-col xl:col-span-2\">\n\t\t\t\t\t\t<CardHeader>\n\t\t\t\t\t\t\t<CardTitle>Accounts</CardTitle>\n\t\t\t\t\t\t\t<CardDescription>Seats across your customers, newest first.</CardDescription>\n\t\t\t\t\t\t</CardHeader>\n\t\t\t\t\t\t<CardContent flush className=\"mt-4 flex-1\">\n\t\t\t\t\t\t\t<DataTable\n\t\t\t\t\t\t\t\tdata={accounts}\n\t\t\t\t\t\t\t\trowKey={(row) => row.id}\n\t\t\t\t\t\t\t\tdefaultSort={{ key: \"started\", direction: \"desc\" }}\n\t\t\t\t\t\t\t\tcolumns={[\n\t\t\t\t\t\t\t\t\t{ key: \"title\", header: \"Account\", sortable: true, className: \"text-label-md whitespace-nowrap\" },\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\tkey: \"status\",\n\t\t\t\t\t\t\t\t\t\theader: \"Status\",\n\t\t\t\t\t\t\t\t\t\tcell: (row) => (\n\t\t\t\t\t\t\t\t\t\t\t<Badge appearance=\"plain\" tone={STATUS_TONE[row.status as AccountStatus]} dot>\n\t\t\t\t\t\t\t\t\t\t\t\t{STATUS_LABEL[row.status as AccountStatus]}\n\t\t\t\t\t\t\t\t\t\t\t</Badge>\n\t\t\t\t\t\t\t\t\t\t),\n\t\t\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\tkey: \"used\",\n\t\t\t\t\t\t\t\t\t\theader: \"Seats\",\n\t\t\t\t\t\t\t\t\t\tsortable: true,\n\t\t\t\t\t\t\t\t\t\tsortValue: (row) => row.used / row.seats,\n\t\t\t\t\t\t\t\t\t\tcell: (row) => (\n\t\t\t\t\t\t\t\t\t\t\t<Row gap={3} align=\"center\" className=\"min-w-40\">\n\t\t\t\t\t\t\t\t\t\t\t\t<Meter\n\t\t\t\t\t\t\t\t\t\t\t\t\tvalue={row.used}\n\t\t\t\t\t\t\t\t\t\t\t\t\tmax={row.seats}\n\t\t\t\t\t\t\t\t\t\t\t\t\tsize=\"sm\"\n\t\t\t\t\t\t\t\t\t\t\t\t\ttone={row.used === row.seats ? \"success\" : \"primary\"}\n\t\t\t\t\t\t\t\t\t\t\t\t\taria-label={`${row.title} seats used`}\n\t\t\t\t\t\t\t\t\t\t\t\t\tgetAriaValueText={(_, v) => `${v} of ${row.seats} seats used`}\n\t\t\t\t\t\t\t\t\t\t\t\t\tclassName=\"flex-1\"\n\t\t\t\t\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t\t\t\t\t\t<span className=\"text-mono-caption whitespace-nowrap text-muted-foreground\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t{row.used}/{row.seats}\n\t\t\t\t\t\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t\t\t\t\t</Row>\n\t\t\t\t\t\t\t\t\t\t),\n\t\t\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\tkey: \"revenue\",\n\t\t\t\t\t\t\t\t\t\theader: \"Revenue\",\n\t\t\t\t\t\t\t\t\t\talign: \"end\",\n\t\t\t\t\t\t\t\t\t\tsortable: true,\n\t\t\t\t\t\t\t\t\t\tsortValue: (row) => row.used * row.price,\n\t\t\t\t\t\t\t\t\t\tcell: (row) =>\n\t\t\t\t\t\t\t\t\t\t\trow.used > 0 ? (\n\t\t\t\t\t\t\t\t\t\t\t\t<span className=\"text-mono-sm\">{usd.format(row.used * row.price)}</span>\n\t\t\t\t\t\t\t\t\t\t\t) : (\n\t\t\t\t\t\t\t\t\t\t\t\t<span className=\"text-mono-sm text-muted-foreground\">—</span>\n\t\t\t\t\t\t\t\t\t\t\t),\n\t\t\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\tkey: \"started\",\n\t\t\t\t\t\t\t\t\t\theader: \"Started\",\n\t\t\t\t\t\t\t\t\t\talign: \"end\",\n\t\t\t\t\t\t\t\t\t\tsortable: true,\n\t\t\t\t\t\t\t\t\t\tcell: (row) => (\n\t\t\t\t\t\t\t\t\t\t\t<span className=\"text-body-sm whitespace-nowrap text-muted-foreground\">{shortDate(row.started)}</span>\n\t\t\t\t\t\t\t\t\t\t),\n\t\t\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\t\t]}\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t</CardContent>\n\t\t\t\t\t\t<CardFooter className=\"justify-between\">\n\t\t\t\t\t\t\t<span className=\"text-caption text-muted-foreground\">\n\t\t\t\t\t\t\t\tShowing {accounts.length} of {accountCount} accounts\n\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t<Button variant=\"ghost\" size=\"sm\" bleed=\"end\" render={<a href=\"/accounts\" />}>\n\t\t\t\t\t\t\t\tView all accounts\n\t\t\t\t\t\t\t\t<Icon name=\"arrow-right\" />\n\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t</CardFooter>\n\t\t\t\t\t</Card>\n\t\t\t\t\t<Stack gap={3}>\n\t\t\t\t\t\t<Card>\n\t\t\t\t\t\t\t<CardHeader>\n\t\t\t\t\t\t\t\t<CardDescription>Next payout</CardDescription>\n\t\t\t\t\t\t\t\t<CardTitle className=\"text-mono-xl\">{usdCents.format(payout.amount)}</CardTitle>\n\t\t\t\t\t\t\t\t<CardAction>\n\t\t\t\t\t\t\t\t\t<Badge tone=\"info\" size=\"sm\" icon={<Icon name=\"calendar\" />}>\n\t\t\t\t\t\t\t\t\t\t{shortDate(payout.date)}\n\t\t\t\t\t\t\t\t\t</Badge>\n\t\t\t\t\t\t\t\t</CardAction>\n\t\t\t\t\t\t\t</CardHeader>\n\t\t\t\t\t\t\t<CardContent>\n\t\t\t\t\t\t\t\t<dl className=\"sable-list-dl text-body-sm\">\n\t\t\t\t\t\t\t\t\t{payout.lines.map((line) => (\n\t\t\t\t\t\t\t\t\t\t<div key={line.label} className=\"contents\">\n\t\t\t\t\t\t\t\t\t\t\t<dt>{line.label}</dt>\n\t\t\t\t\t\t\t\t\t\t\t<dd className={typeof line.value === \"number\" ? \"text-end text-mono-sm\" : \"text-end\"}>\n\t\t\t\t\t\t\t\t\t\t\t\t{typeof line.value === \"number\" ? usdCents.format(line.value) : line.value}\n\t\t\t\t\t\t\t\t\t\t\t</dd>\n\t\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t\t\t</dl>\n\t\t\t\t\t\t\t</CardContent>\n\t\t\t\t\t\t</Card>\n\t\t\t\t\t\t<Card>\n\t\t\t\t\t\t\t<CardHeader>\n\t\t\t\t\t\t\t\t<CardTitle>Top customers</CardTitle>\n\t\t\t\t\t\t\t\t<CardDescription>By spend this month.</CardDescription>\n\t\t\t\t\t\t\t\t<CardAction>\n\t\t\t\t\t\t\t\t\t<Button variant=\"ghost\" size=\"sm\" render={<a href=\"/customers\" />}>\n\t\t\t\t\t\t\t\t\t\tView all\n\t\t\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t\t\t</CardAction>\n\t\t\t\t\t\t\t</CardHeader>\n\t\t\t\t\t\t\t<CardList>\n\t\t\t\t\t\t\t\t{customers.map((person) => (\n\t\t\t\t\t\t\t\t\t<Entity\n\t\t\t\t\t\t\t\t\t\tkey={person.id}\n\t\t\t\t\t\t\t\t\t\tleading={<Avatar variant=\"art\" size=\"sm\" fallback={person.initials} alt=\"\" />}\n\t\t\t\t\t\t\t\t\t\ttitle={person.name}\n\t\t\t\t\t\t\t\t\t\tsubtitle={`${person.handle} · ${person.seats} seats`}\n\t\t\t\t\t\t\t\t\t\taction={<span className=\"text-mono-sm\">{usd.format(person.spent)}</span>}\n\t\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t\t</CardList>\n\t\t\t\t\t\t</Card>\n\t\t\t\t\t</Stack>\n\t\t\t\t</Grid>\n\t\t\t\t<Grid cols={{ base: 1, xl: 3 }} gap={3}>\n\t\t\t\t\t<Card className=\"flex flex-col\">\n\t\t\t\t\t\t<CardHeader>\n\t\t\t\t\t\t\t<CardTitle>Upcoming releases</CardTitle>\n\t\t\t\t\t\t\t<CardDescription>Scheduled to ship to customers.</CardDescription>\n\t\t\t\t\t\t</CardHeader>\n\t\t\t\t\t\t<CardList>\n\t\t\t\t\t\t\t{upcoming.map((release) => (\n\t\t\t\t\t\t\t\t<Entity\n\t\t\t\t\t\t\t\t\tkey={release.id}\n\t\t\t\t\t\t\t\t\ttitle={release.title}\n\t\t\t\t\t\t\t\t\tsubtitle={release.detail}\n\t\t\t\t\t\t\t\t\taction={<RelativeTime date={Date.now() + release.at} className=\"text-caption text-muted-foreground\" />}\n\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t</CardList>\n\t\t\t\t\t\t<CardFooter className=\"mt-auto\">\n\t\t\t\t\t\t\t<Button variant=\"outline\" size=\"sm\" render={<a href=\"/releases/new\" />}>\n\t\t\t\t\t\t\t\t<Icon name=\"calendar\" />\n\t\t\t\t\t\t\t\tSchedule a release\n\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t</CardFooter>\n\t\t\t\t\t</Card>\n\t\t\t\t\t<Card className=\"xl:col-span-2\">\n\t\t\t\t\t\t<CardHeader>\n\t\t\t\t\t\t\t<CardTitle>Activity</CardTitle>\n\t\t\t\t\t\t\t<CardDescription>Seats, upgrades, and invoices.</CardDescription>\n\t\t\t\t\t\t\t<CardAction>\n\t\t\t\t\t\t\t\t<Button variant=\"ghost\" size=\"sm\" render={<a href=\"/activity\" />}>\n\t\t\t\t\t\t\t\t\tView all\n\t\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t\t</CardAction>\n\t\t\t\t\t\t</CardHeader>\n\t\t\t\t\t\t<CardList>\n\t\t\t\t\t\t\t{activity.map((item) => (\n\t\t\t\t\t\t\t\t<Entity\n\t\t\t\t\t\t\t\t\tkey={item.id}\n\t\t\t\t\t\t\t\t\tleading={<Avatar variant=\"art\" size=\"sm\" fallback={item.initials} alt=\"\" />}\n\t\t\t\t\t\t\t\t\ttitle={item.who}\n\t\t\t\t\t\t\t\t\tsubtitle={item.what}\n\t\t\t\t\t\t\t\t\taction={<RelativeTime date={Date.now() - item.when} className=\"text-caption text-muted-foreground\" />}\n\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t</CardList>\n\t\t\t\t\t</Card>\n\t\t\t\t</Grid>\n\t\t\t</Page>\n\t\t</AppShell>\n\t)\n}"
+        "imports": "import { AppHeader, AppShell, Avatar, Badge, BottomNav, BottomNavItem, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, DataTable, Entity, Grid, Icon, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger, Meter, NotificationBadge, Page, PageHeader, RelativeTime, Row, Sidebar, SidebarAccount, SidebarBrand, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav, Stack } from \"@sableui/react\"",
+        "code": "// Account status → Badge tone. Sable has no status vocabulary of its own;\n// an app maps ITS states onto tones once, here, and every badge follows.\nconst STATUS_TONE = { active: \"success\", onboarding: \"info\", full: \"1\", cancelled: \"neutral\" } as const\nconst STATUS_LABEL = { active: \"Active\", onboarding: \"Onboarding\", full: \"Seats full\", cancelled: \"Cancelled\" } as const\ntype AccountStatus = keyof typeof STATUS_TONE\n\nconst MIN = 60 * 1000\nconst HOUR = 60 * MIN\nconst DAY = 24 * HOUR\n\nconst usd = new Intl.NumberFormat(\"en-US\", { style: \"currency\", currency: \"USD\", maximumFractionDigits: 0 })\nconst usdCents = new Intl.NumberFormat(\"en-US\", { style: \"currency\", currency: \"USD\" })\nconst shortDate = (offset: number) =>\n\tnew Date(Date.now() + offset).toLocaleDateString(\"en-US\", { month: \"short\", day: \"numeric\" })\n\nconst stats = [\n\t{ label: \"Revenue\", value: \"$18,240\", delta: \"+8.2%\", up: true, note: \"vs. $16,857\" },\n\t{ label: \"Active seats\", value: \"1,284\", delta: \"+3.1%\", up: true, note: \"182 added\" },\n\t{ label: \"Accounts\", value: \"312\", delta: \"+12.4%\", up: true, note: \"Best month yet\" },\n\t{ label: \"Seat usage\", value: \"64%\", delta: \"−1.8%\", up: false, note: \"6 near their limit\" },\n]\n\nconst accounts = [\n\t{ id: \"ac_01\", title: \"Northwind\", status: \"active\" as const, used: 184, seats: 250, price: 16, started: -6 * DAY },\n\t{ id: \"ac_02\", title: \"Harbor Labs\", status: \"full\" as const, used: 100, seats: 100, price: 20, started: -19 * DAY },\n\t{ id: \"ac_03\", title: \"Brightline\", status: \"active\" as const, used: 61, seats: 150, price: 16, started: -2 * DAY },\n\t{ id: \"ac_04\", title: \"Tidewater Co.\", status: \"active\" as const, used: 212, seats: 300, price: 12, started: -27 * DAY },\n\t{ id: \"ac_05\", title: \"Saltworks\", status: \"cancelled\" as const, used: 38, seats: 75, price: 20, started: -44 * DAY },\n\t{ id: \"ac_06\", title: \"Paper Moon\", status: \"full\" as const, used: 50, seats: 50, price: 24, started: -58 * DAY },\n\t{ id: \"ac_07\", title: \"Signal Studio\", status: \"onboarding\" as const, used: 0, seats: 200, price: 16, started: 3 * DAY },\n\t{ id: \"ac_08\", title: \"Bluewater\", status: \"cancelled\" as const, used: 72, seats: 120, price: 12, started: -71 * DAY },\n\t{ id: \"ac_09\", title: \"Ember & Field\", status: \"full\" as const, used: 80, seats: 80, price: 20, started: -86 * DAY },\n]\nconst accountCount = 312\n\nconst payout = {\n\tamount: 8862.64,\n\tdate: 5 * DAY,\n\tlines: [\n\t\t{ label: \"Subscriptions\", value: 9127.33 },\n\t\t{ label: \"Processing (2.9%)\", value: -264.69 },\n\t\t{ label: \"Deposits to\", value: \"Checking ••4821\" },\n\t],\n}\n\nconst customers = [\n\t{ id: \"cu_01\", name: \"Northwind\", handle: \"northwind.io\", initials: \"NW\", seats: 184, spent: 2944 },\n\t{ id: \"cu_02\", name: \"Tidewater Co.\", handle: \"tidewater.co\", initials: \"TC\", seats: 212, spent: 2544 },\n\t{ id: \"cu_03\", name: \"Harbor Labs\", handle: \"harborlabs.com\", initials: \"HL\", seats: 100, spent: 2000 },\n\t{ id: \"cu_04\", name: \"Ember & Field\", handle: \"emberfield.com\", initials: \"EF\", seats: 80, spent: 1600 },\n]\n\nconst upcoming = [\n\t{ id: \"up_01\", title: \"Version 2.4\", detail: \"Shared reports · All plans\", at: 3 * DAY },\n\t{ id: \"up_02\", title: \"Audit log export\", detail: \"Business plan · Beta\", at: 12 * DAY },\n\t{ id: \"up_03\", title: \"Version 2.5\", detail: \"Offline mode · All plans\", at: 26 * DAY },\n\t{ id: \"up_04\", title: \"Usage-based billing\", detail: \"Studio and Business · Beta\", at: 34 * DAY },\n]\n\nconst activity = [\n\t{ id: \"ev_01\", who: \"Nina Simone\", initials: \"NS\", what: \"added 12 seats to Northwind · 184 of 250\", when: 2 * MIN },\n\t{ id: \"ev_02\", who: \"Grace Hopper\", initials: \"GH\", what: \"upgraded Brightline to Studio\", when: 26 * MIN },\n\t{ id: \"ev_03\", who: \"Frida Kahlo\", initials: \"FK\", what: \"paid invoice INV-0042 for Tidewater Co.\", when: 1 * HOUR },\n\t{ id: \"ev_04\", who: \"Mary Shelley\", initials: \"MS\", what: \"joined the Harbor Labs workspace\", when: 3 * HOUR },\n\t{ id: \"ev_05\", who: \"Nina Simone\", initials: \"NS\", what: \"booked onboarding for Signal Studio\", when: 6 * HOUR },\n]\n\nexport function DashboardPage() {\n\treturn (\n\t\t<AppShell\n\t\t\t// Sidebar hides below lg, so the same destinations ride in the shell's\n\t\t\t// mobile slots — without them the route has no navigation under 1024px.\n\t\t\theader={\n\t\t\t\t<AppHeader\n\t\t\t\t\ttitle={\n\t\t\t\t\t\t<Row gap={1} align=\"center\">\n\t\t\t\t\t\t\t<Icon name=\"gem\" variant=\"solid\" className=\"text-xl\" />\n\t\t\t\t\t\t\t<span className=\"text-title-sm\">Atelier</span>\n\t\t\t\t\t\t</Row>\n\t\t\t\t\t}\n\t\t\t\t\tactions={<Avatar variant=\"art\" size=\"sm\" fallback=\"AL\" alt=\"Ada Lovelace\" />}\n\t\t\t\t/>\n\t\t\t}\n\t\t\tbottomNav={\n\t\t\t\t<BottomNav aria-label=\"Primary\">\n\t\t\t\t\t<BottomNavItem icon={<Icon name=\"grid\" />} label=\"Overview\" showLabel active render={<a href=\"/\" />} />\n\t\t\t\t\t<BottomNavItem icon={<Icon name=\"folder\" />} label=\"Accounts\" showLabel render={<a href=\"/accounts\" />} />\n\t\t\t\t\t<BottomNavItem icon={<Icon name=\"user\" />} label=\"Customers\" showLabel render={<a href=\"/customers\" />} />\n\t\t\t\t\t<BottomNavItem icon={<Icon name=\"bell\" />} label=\"Activity\" showLabel render={<a href=\"/activity\" />} />\n\t\t\t\t\t<BottomNavItem icon={<Icon name=\"gear\" />} label=\"Settings\" showLabel render={<a href=\"/settings\" />} />\n\t\t\t\t</BottomNav>\n\t\t\t}\n\t\t\tsidebar={\n\t\t\t\t<Sidebar>\n\t\t\t\t\t<SidebarHeader>\n\t\t\t\t\t\t<SidebarBrand mark={<Icon name=\"gem\" variant=\"solid\" />} label=\"Atelier\" render={<a href=\"/\" />} />\n\t\t\t\t\t</SidebarHeader>\n\t\t\t\t\t<SidebarNav>\n\t\t\t\t\t\t<SidebarItem icon={<Icon name=\"grid\" />} label=\"Overview\" active render={<a href=\"/\" />} />\n\t\t\t\t\t\t<SidebarItem icon={<Icon name=\"folder\" />} label=\"Accounts\" render={<a href=\"/accounts\" />} />\n\t\t\t\t\t\t<SidebarItem icon={<Icon name=\"user\" />} label=\"Customers\" render={<a href=\"/customers\" />} />\n\t\t\t\t\t\t<SidebarItem\n\t\t\t\t\t\t\ticon={<Icon name=\"bell\" />}\n\t\t\t\t\t\t\tlabel=\"Activity\"\n\t\t\t\t\t\t\tbadge={<NotificationBadge count={4} tone=\"neutral\" />}\n\t\t\t\t\t\t\trender={<a href=\"/activity\" />}\n\t\t\t\t\t\t/>\n\t\t\t\t\t\t<SidebarItem icon={<Icon name=\"gear\" />} label=\"Settings\" render={<a href=\"/settings\" />} />\n\t\t\t\t\t</SidebarNav>\n\t\t\t\t\t<SidebarFooter>\n\t\t\t\t\t\t<Menu>\n\t\t\t\t\t\t\t<MenuTrigger\n\t\t\t\t\t\t\t\trender={\n\t\t\t\t\t\t\t\t\t<SidebarAccount\n\t\t\t\t\t\t\t\t\t\tavatar={<Avatar variant=\"art\" size=\"xs\" fallback=\"AL\" alt=\"\" />}\n\t\t\t\t\t\t\t\t\t\tlabel=\"Ada Lovelace\"\n\t\t\t\t\t\t\t\t\t\tdetail=\"@ada\"\n\t\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t<MenuContent side=\"top\" align=\"start\">\n\t\t\t\t\t\t\t\t<MenuItem render={<a href=\"/@ada\" />}>View profile</MenuItem>\n\t\t\t\t\t\t\t\t<MenuItem render={<a href=\"/settings\" />}>Settings</MenuItem>\n\t\t\t\t\t\t\t\t<MenuSeparator />\n\t\t\t\t\t\t\t\t<MenuItem>Sign out</MenuItem>\n\t\t\t\t\t\t\t</MenuContent>\n\t\t\t\t\t\t</Menu>\n\t\t\t\t\t</SidebarFooter>\n\t\t\t\t</Sidebar>\n\t\t\t}\n\t\t>\n\t\t\t<Page max=\"wide\" gap={4} className=\"py-6\">\n\t\t\t\t<PageHeader\n\t\t\t\t\ttitle=\"Overview\"\n\t\t\t\t\tdescription=\"Revenue and account activity for the last 30 days.\"\n\t\t\t\t\tactions={\n\t\t\t\t\t\t<Row gap={2}>\n\t\t\t\t\t\t\t<Button variant=\"outline\">\n\t\t\t\t\t\t\t\t<Icon name=\"download\" />\n\t\t\t\t\t\t\t\tExport\n\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t\t<Button>\n\t\t\t\t\t\t\t\t<Icon name=\"plus\" />\n\t\t\t\t\t\t\t\tNew account\n\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t</Row>\n\t\t\t\t\t}\n\t\t\t\t/>\n\t\t\t\t<Grid cols={{ base: 2, xl: 4 }} gap={3}>\n\t\t\t\t\t{stats.map((stat) => (\n\t\t\t\t\t\t<Card key={stat.label}>\n\t\t\t\t\t\t\t<CardHeader>\n\t\t\t\t\t\t\t\t<CardDescription>{stat.label}</CardDescription>\n\t\t\t\t\t\t\t\t<CardTitle className=\"text-mono-xl\">{stat.value}</CardTitle>\n\t\t\t\t\t\t\t</CardHeader>\n\t\t\t\t\t\t\t<CardContent>\n\t\t\t\t\t\t\t\t<Row gap={1} wrap>\n\t\t\t\t\t\t\t\t\t<Badge\n\t\t\t\t\t\t\t\t\t\ttone={stat.up ? \"success\" : \"warning\"}\n\t\t\t\t\t\t\t\t\t\tsize=\"sm\"\n\t\t\t\t\t\t\t\t\t\ticon={<Icon name={stat.up ? \"arrow-up\" : \"arrow-down\"} />}\n\t\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t\t\t{stat.delta}\n\t\t\t\t\t\t\t\t\t</Badge>\n\t\t\t\t\t\t\t\t\t<span className=\"text-caption text-muted-foreground\">{stat.note}</span>\n\t\t\t\t\t\t\t\t</Row>\n\t\t\t\t\t\t\t</CardContent>\n\t\t\t\t\t\t</Card>\n\t\t\t\t\t))}\n\t\t\t\t</Grid>\n\t\t\t\t<Grid cols={{ base: 1, xl: 3 }} gap={3}>\n\t\t\t\t\t<Card className=\"flex flex-col xl:col-span-2\">\n\t\t\t\t\t\t<CardHeader>\n\t\t\t\t\t\t\t<CardTitle>Accounts</CardTitle>\n\t\t\t\t\t\t\t<CardDescription>Seats across your customers, newest first.</CardDescription>\n\t\t\t\t\t\t</CardHeader>\n\t\t\t\t\t\t<CardContent flush className=\"mt-4 flex-1\">\n\t\t\t\t\t\t\t<DataTable\n\t\t\t\t\t\t\t\tdata={accounts}\n\t\t\t\t\t\t\t\trowKey={(row) => row.id}\n\t\t\t\t\t\t\t\tdefaultSort={{ key: \"started\", direction: \"desc\" }}\n\t\t\t\t\t\t\t\tcolumns={[\n\t\t\t\t\t\t\t\t\t{ key: \"title\", header: \"Account\", sortable: true, className: \"text-label-md whitespace-nowrap\" },\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\tkey: \"status\",\n\t\t\t\t\t\t\t\t\t\theader: \"Status\",\n\t\t\t\t\t\t\t\t\t\tcell: (row) => (\n\t\t\t\t\t\t\t\t\t\t\t<Badge appearance=\"plain\" tone={STATUS_TONE[row.status as AccountStatus]} dot>\n\t\t\t\t\t\t\t\t\t\t\t\t{STATUS_LABEL[row.status as AccountStatus]}\n\t\t\t\t\t\t\t\t\t\t\t</Badge>\n\t\t\t\t\t\t\t\t\t\t),\n\t\t\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\tkey: \"used\",\n\t\t\t\t\t\t\t\t\t\theader: \"Seats\",\n\t\t\t\t\t\t\t\t\t\tsortable: true,\n\t\t\t\t\t\t\t\t\t\tsortValue: (row) => row.used / row.seats,\n\t\t\t\t\t\t\t\t\t\tcell: (row) => (\n\t\t\t\t\t\t\t\t\t\t\t<Row gap={3} align=\"center\" className=\"min-w-40\">\n\t\t\t\t\t\t\t\t\t\t\t\t<Meter\n\t\t\t\t\t\t\t\t\t\t\t\t\tvalue={row.used}\n\t\t\t\t\t\t\t\t\t\t\t\t\tmax={row.seats}\n\t\t\t\t\t\t\t\t\t\t\t\t\tsize=\"sm\"\n\t\t\t\t\t\t\t\t\t\t\t\t\ttone={row.used === row.seats ? \"success\" : \"primary\"}\n\t\t\t\t\t\t\t\t\t\t\t\t\taria-label={`${row.title} seats used`}\n\t\t\t\t\t\t\t\t\t\t\t\t\tgetAriaValueText={(_, v) => `${v} of ${row.seats} seats used`}\n\t\t\t\t\t\t\t\t\t\t\t\t\tclassName=\"flex-1\"\n\t\t\t\t\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t\t\t\t\t\t<span className=\"text-mono-caption whitespace-nowrap text-muted-foreground\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t{row.used}/{row.seats}\n\t\t\t\t\t\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t\t\t\t\t</Row>\n\t\t\t\t\t\t\t\t\t\t),\n\t\t\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\tkey: \"revenue\",\n\t\t\t\t\t\t\t\t\t\theader: \"Revenue\",\n\t\t\t\t\t\t\t\t\t\talign: \"end\",\n\t\t\t\t\t\t\t\t\t\tsortable: true,\n\t\t\t\t\t\t\t\t\t\tsortValue: (row) => row.used * row.price,\n\t\t\t\t\t\t\t\t\t\tcell: (row) =>\n\t\t\t\t\t\t\t\t\t\t\trow.used > 0 ? (\n\t\t\t\t\t\t\t\t\t\t\t\t<span className=\"text-mono-sm\">{usd.format(row.used * row.price)}</span>\n\t\t\t\t\t\t\t\t\t\t\t) : (\n\t\t\t\t\t\t\t\t\t\t\t\t<span className=\"text-mono-sm text-muted-foreground\">—</span>\n\t\t\t\t\t\t\t\t\t\t\t),\n\t\t\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\tkey: \"started\",\n\t\t\t\t\t\t\t\t\t\theader: \"Started\",\n\t\t\t\t\t\t\t\t\t\talign: \"end\",\n\t\t\t\t\t\t\t\t\t\tsortable: true,\n\t\t\t\t\t\t\t\t\t\tcell: (row) => (\n\t\t\t\t\t\t\t\t\t\t\t<span className=\"text-body-sm whitespace-nowrap text-muted-foreground\">{shortDate(row.started)}</span>\n\t\t\t\t\t\t\t\t\t\t),\n\t\t\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\t\t]}\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t</CardContent>\n\t\t\t\t\t\t<CardFooter className=\"justify-between\">\n\t\t\t\t\t\t\t<span className=\"text-caption text-muted-foreground\">\n\t\t\t\t\t\t\t\tShowing {accounts.length} of {accountCount} accounts\n\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t<Button variant=\"ghost\" size=\"sm\" bleed=\"end\" render={<a href=\"/accounts\" />}>\n\t\t\t\t\t\t\t\tView all accounts\n\t\t\t\t\t\t\t\t<Icon name=\"arrow-right\" />\n\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t</CardFooter>\n\t\t\t\t\t</Card>\n\t\t\t\t\t<Stack gap={3}>\n\t\t\t\t\t\t<Card>\n\t\t\t\t\t\t\t<CardHeader>\n\t\t\t\t\t\t\t\t<CardDescription>Next payout</CardDescription>\n\t\t\t\t\t\t\t\t<CardTitle className=\"text-mono-xl\">{usdCents.format(payout.amount)}</CardTitle>\n\t\t\t\t\t\t\t\t<CardAction>\n\t\t\t\t\t\t\t\t\t<Badge tone=\"info\" size=\"sm\" icon={<Icon name=\"calendar\" />}>\n\t\t\t\t\t\t\t\t\t\t{shortDate(payout.date)}\n\t\t\t\t\t\t\t\t\t</Badge>\n\t\t\t\t\t\t\t\t</CardAction>\n\t\t\t\t\t\t\t</CardHeader>\n\t\t\t\t\t\t\t<CardContent>\n\t\t\t\t\t\t\t\t<dl className=\"sable-list-dl text-body-sm\">\n\t\t\t\t\t\t\t\t\t{payout.lines.map((line) => (\n\t\t\t\t\t\t\t\t\t\t<div key={line.label} className=\"contents\">\n\t\t\t\t\t\t\t\t\t\t\t<dt>{line.label}</dt>\n\t\t\t\t\t\t\t\t\t\t\t<dd className={typeof line.value === \"number\" ? \"text-end text-mono-sm\" : \"text-end\"}>\n\t\t\t\t\t\t\t\t\t\t\t\t{typeof line.value === \"number\" ? usdCents.format(line.value) : line.value}\n\t\t\t\t\t\t\t\t\t\t\t</dd>\n\t\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t\t\t</dl>\n\t\t\t\t\t\t\t</CardContent>\n\t\t\t\t\t\t</Card>\n\t\t\t\t\t\t<Card>\n\t\t\t\t\t\t\t<CardHeader>\n\t\t\t\t\t\t\t\t<CardTitle>Top customers</CardTitle>\n\t\t\t\t\t\t\t\t<CardDescription>By spend this month.</CardDescription>\n\t\t\t\t\t\t\t\t<CardAction>\n\t\t\t\t\t\t\t\t\t<Button variant=\"ghost\" size=\"sm\" render={<a href=\"/customers\" />}>\n\t\t\t\t\t\t\t\t\t\tView all\n\t\t\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t\t\t</CardAction>\n\t\t\t\t\t\t\t</CardHeader>\n\t\t\t\t\t\t\t<CardList>\n\t\t\t\t\t\t\t\t{customers.map((person) => (\n\t\t\t\t\t\t\t\t\t<Entity\n\t\t\t\t\t\t\t\t\t\tkey={person.id}\n\t\t\t\t\t\t\t\t\t\tleading={<Avatar variant=\"art\" size=\"sm\" fallback={person.initials} alt=\"\" />}\n\t\t\t\t\t\t\t\t\t\ttitle={person.name}\n\t\t\t\t\t\t\t\t\t\tsubtitle={`${person.handle} · ${person.seats} seats`}\n\t\t\t\t\t\t\t\t\t\taction={<span className=\"text-mono-sm\">{usd.format(person.spent)}</span>}\n\t\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t\t</CardList>\n\t\t\t\t\t\t</Card>\n\t\t\t\t\t</Stack>\n\t\t\t\t</Grid>\n\t\t\t\t<Grid cols={{ base: 1, xl: 3 }} gap={3}>\n\t\t\t\t\t<Card className=\"flex flex-col\">\n\t\t\t\t\t\t<CardHeader>\n\t\t\t\t\t\t\t<CardTitle>Upcoming releases</CardTitle>\n\t\t\t\t\t\t\t<CardDescription>Scheduled to ship to customers.</CardDescription>\n\t\t\t\t\t\t</CardHeader>\n\t\t\t\t\t\t<CardList>\n\t\t\t\t\t\t\t{upcoming.map((release) => (\n\t\t\t\t\t\t\t\t<Entity\n\t\t\t\t\t\t\t\t\tkey={release.id}\n\t\t\t\t\t\t\t\t\ttitle={release.title}\n\t\t\t\t\t\t\t\t\tsubtitle={release.detail}\n\t\t\t\t\t\t\t\t\taction={<RelativeTime date={Date.now() + release.at} className=\"text-caption text-muted-foreground\" />}\n\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t</CardList>\n\t\t\t\t\t\t<CardFooter className=\"mt-auto\">\n\t\t\t\t\t\t\t<Button variant=\"outline\" size=\"sm\" render={<a href=\"/releases/new\" />}>\n\t\t\t\t\t\t\t\t<Icon name=\"calendar\" />\n\t\t\t\t\t\t\t\tSchedule a release\n\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t</CardFooter>\n\t\t\t\t\t</Card>\n\t\t\t\t\t<Card className=\"xl:col-span-2\">\n\t\t\t\t\t\t<CardHeader>\n\t\t\t\t\t\t\t<CardTitle>Activity</CardTitle>\n\t\t\t\t\t\t\t<CardDescription>Seats, upgrades, and invoices.</CardDescription>\n\t\t\t\t\t\t\t<CardAction>\n\t\t\t\t\t\t\t\t<Button variant=\"ghost\" size=\"sm\" render={<a href=\"/activity\" />}>\n\t\t\t\t\t\t\t\t\tView all\n\t\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t\t</CardAction>\n\t\t\t\t\t\t</CardHeader>\n\t\t\t\t\t\t<CardList>\n\t\t\t\t\t\t\t{activity.map((item) => (\n\t\t\t\t\t\t\t\t<Entity\n\t\t\t\t\t\t\t\t\tkey={item.id}\n\t\t\t\t\t\t\t\t\tleading={<Avatar variant=\"art\" size=\"sm\" fallback={item.initials} alt=\"\" />}\n\t\t\t\t\t\t\t\t\ttitle={item.who}\n\t\t\t\t\t\t\t\t\tsubtitle={item.what}\n\t\t\t\t\t\t\t\t\taction={<RelativeTime date={Date.now() - item.when} className=\"text-caption text-muted-foreground\" />}\n\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t</CardList>\n\t\t\t\t\t</Card>\n\t\t\t\t</Grid>\n\t\t\t</Page>\n\t\t</AppShell>\n\t)\n}"
       },
       {
         "name": "FeedPage",
@@ -25126,6 +25477,45 @@
         ],
         "imports": "import { useState } from \"react\"\nimport { AppHeader, AppShell, Avatar, BottomNav, BottomNavItem, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, Col, Columns, DestructiveActionModal, Entity, Field, Form, Grid, Icon, Input, MenuItem, MenuSeparator, NotificationBadge, OverflowMenu, Page, PageHeader, Row, Select, SelectContent, SelectItem, SelectTrigger, Sidebar, SidebarBrand, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav, SideNav, SideNavItem, Stack, Switch, Textarea } from \"@sableui/react\"",
         "code": "const sections = [\n\t{ id: \"profile\", label: \"Profile\" },\n\t{ id: \"notifications\", label: \"Notifications\" },\n\t{ id: \"payouts\", label: \"Payouts\" },\n\t{ id: \"account\", label: \"Account\" },\n]\n\nconst timezones = [\n\t{ value: \"europe-london\", label: \"London (GMT+1)\" },\n\t{ value: \"europe-paris\", label: \"Paris (GMT+2)\" },\n\t{ value: \"america-new-york\", label: \"New York (GMT−4)\" },\n\t{ value: \"america-los-angeles\", label: \"Los Angeles (GMT−7)\" },\n\t{ value: \"asia-tokyo\", label: \"Tokyo (GMT+9)\" },\n]\n\nconst notifications = [\n\t{ name: \"notifyComments\", title: \"New comments\", description: \"When someone comments on your work\", on: true },\n\t{ name: \"notifyInvoicePaid\", title: \"Invoice paid\", description: \"When a customer pays an invoice\", on: true },\n\t{ name: \"notifyMembers\", title: \"New members\", description: \"When someone joins your workspace\", on: false },\n\t{ name: \"notifyDigest\", title: \"Weekly digest\", description: \"Activity and usage, every Monday\", on: true },\n\t{ name: \"notifyProduct\", title: \"Product updates\", description: \"New Atelier features\", on: false },\n]\n\nconst payouts = [\n\t{ label: \"Next payout\", value: \"$1,284.60\", note: \"Friday, Oct 16\" },\n\t{ label: \"Pending\", value: \"$412.00\", note: \"Clears in 7 days\" },\n\t{ label: \"Paid this year\", value: \"$18,920.00\", note: \"Across 214 invoices\" },\n]\n\nexport function SettingsPage() {\n\tconst [activeSection, setActiveSection] = useState(\"profile\")\n\tconst [deleteOpen, setDeleteOpen] = useState(false)\n\n\treturn (\n\t\t<AppShell\n\t\t\t// Sidebar hides below lg, so the same destinations ride in the shell's\n\t\t\t// mobile slots — without them the route has no navigation under 1024px.\n\t\t\theader={\n\t\t\t\t<AppHeader\n\t\t\t\t\ttitle={\n\t\t\t\t\t\t<Row gap={1} align=\"center\">\n\t\t\t\t\t\t\t<Icon name=\"gem\" variant=\"solid\" className=\"text-xl\" />\n\t\t\t\t\t\t\t<span className=\"text-title-sm\">Atelier</span>\n\t\t\t\t\t\t</Row>\n\t\t\t\t\t}\n\t\t\t\t\tactions={<Avatar variant=\"art\" size=\"sm\" fallback=\"AL\" alt=\"Ada Lovelace\" />}\n\t\t\t\t/>\n\t\t\t}\n\t\t\tbottomNav={\n\t\t\t\t<BottomNav aria-label=\"Primary\">\n\t\t\t\t\t<BottomNavItem icon={<Icon name=\"grid\" />} label=\"Overview\" showLabel render={<a href=\"/\" />} />\n\t\t\t\t\t<BottomNavItem icon={<Icon name=\"folder\" />} label=\"Accounts\" showLabel render={<a href=\"/accounts\" />} />\n\t\t\t\t\t<BottomNavItem icon={<Icon name=\"user\" />} label=\"Customers\" showLabel render={<a href=\"/customers\" />} />\n\t\t\t\t\t<BottomNavItem icon={<Icon name=\"bell\" />} label=\"Activity\" showLabel render={<a href=\"/activity\" />} />\n\t\t\t\t\t<BottomNavItem icon={<Icon name=\"gear\" />} label=\"Settings\" showLabel active render={<a href=\"/settings\" />} />\n\t\t\t\t</BottomNav>\n\t\t\t}\n\t\t\tsidebar={\n\t\t\t\t<Sidebar>\n\t\t\t\t\t<SidebarHeader>\n\t\t\t\t\t\t<SidebarBrand mark={<Icon name=\"gem\" variant=\"solid\" />} label=\"Atelier\" render={<a href=\"/\" />} />\n\t\t\t\t\t</SidebarHeader>\n\t\t\t\t\t<SidebarNav>\n\t\t\t\t\t\t<SidebarItem icon={<Icon name=\"grid\" />} label=\"Overview\" render={<a href=\"/\" />} />\n\t\t\t\t\t\t<SidebarItem icon={<Icon name=\"folder\" />} label=\"Accounts\" render={<a href=\"/accounts\" />} />\n\t\t\t\t\t\t<SidebarItem icon={<Icon name=\"user\" />} label=\"Customers\" render={<a href=\"/customers\" />} />\n\t\t\t\t\t\t<SidebarItem\n\t\t\t\t\t\t\ticon={<Icon name=\"bell\" />}\n\t\t\t\t\t\t\tlabel=\"Activity\"\n\t\t\t\t\t\t\tbadge={<NotificationBadge count={4} tone=\"neutral\" />}\n\t\t\t\t\t\t\trender={<a href=\"/activity\" />}\n\t\t\t\t\t\t/>\n\t\t\t\t\t\t<SidebarItem icon={<Icon name=\"gear\" />} label=\"Settings\" active render={<a href=\"/settings\" />} />\n\t\t\t\t\t</SidebarNav>\n\t\t\t\t\t<SidebarFooter>\n\t\t\t\t\t\t<Entity\n\t\t\t\t\t\t\tclassName=\"[--entity-py:0]\"\n\t\t\t\t\t\t\tleading={<Avatar variant=\"art\" size=\"sm\" fallback=\"AL\" alt=\"\" />}\n\t\t\t\t\t\t\ttitle=\"Ada Lovelace\"\n\t\t\t\t\t\t\tsubtitle=\"@ada\"\n\t\t\t\t\t\t\taction={\n\t\t\t\t\t\t\t\t<OverflowMenu label=\"Account\" size=\"icon-sm\">\n\t\t\t\t\t\t\t\t\t<MenuItem render={<a href=\"/@ada\" />}>View profile</MenuItem>\n\t\t\t\t\t\t\t\t\t<MenuItem render={<a href=\"/settings\" />}>Settings</MenuItem>\n\t\t\t\t\t\t\t\t\t<MenuSeparator />\n\t\t\t\t\t\t\t\t\t<MenuItem>Sign out</MenuItem>\n\t\t\t\t\t\t\t\t</OverflowMenu>\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t/>\n\t\t\t\t\t</SidebarFooter>\n\t\t\t\t</Sidebar>\n\t\t\t}\n\t\t>\n\t\t\t{/* No `as=\"main\"`: AppShell already renders <main id=\"main-content\">. */}\n\t\t\t<Page max=\"wide\" gap={4} className=\"py-6\">\n\t\t\t\t<PageHeader\n\t\t\t\t\ttitle=\"Settings\"\n\t\t\t\t\tdescription=\"Manage your profile, notifications, and payouts.\"\n\t\t\t\t/>\n\t\t\t\t<Columns gap={4}>\n\t\t\t\t\t{/* The section rail is a desktop aid; on mobile the sections simply stack. */}\n\t\t\t\t\t<Col span={{ base: 12, lg: 3 }} className=\"hidden lg:block\">\n\t\t\t\t\t\t<SideNav aria-label=\"Settings sections\" className=\"sticky top-6\">\n\t\t\t\t\t\t\t{sections.map((section) => (\n\t\t\t\t\t\t\t\t<SideNavItem\n\t\t\t\t\t\t\t\t\tkey={section.id}\n\t\t\t\t\t\t\t\t\tlabel={section.label}\n\t\t\t\t\t\t\t\t\tactive={activeSection === section.id}\n\t\t\t\t\t\t\t\t\tonClick={() => setActiveSection(section.id)}\n\t\t\t\t\t\t\t\t\trender={<a href={`#${section.id}`} />}\n\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t</SideNav>\n\t\t\t\t\t</Col>\n\t\t\t\t\t<Col span={{ base: 12, lg: 9 }}>\n\t\t\t\t\t\t<Stack gap={3}>\n\t\t\t\t\t\t\t<Card id=\"profile\" className=\"scroll-mt-6\">\n\t\t\t\t\t\t\t\t<CardHeader>\n\t\t\t\t\t\t\t\t\t<CardTitle render={<h2 />}>Profile</CardTitle>\n\t\t\t\t\t\t\t\t\t<CardDescription>How your team sees you on Atelier.</CardDescription>\n\t\t\t\t\t\t\t\t</CardHeader>\n\t\t\t\t\t\t\t\t{/* The one explicit save on the page: profile text is drafted, then\n\t\t\t\t\t\t\t\t    committed. Toggles below apply the moment they change. */}\n\t\t\t\t\t\t\t\t<Form onSubmit={(event) => event.preventDefault()} className=\"gap-0\">\n\t\t\t\t\t\t\t\t\t<CardContent>\n\t\t\t\t\t\t\t\t\t\t<Stack gap={3}>\n\t\t\t\t\t\t\t\t\t\t\t<Row gap={2}>\n\t\t\t\t\t\t\t\t\t\t\t\t<Avatar variant=\"art\" size=\"lg\" fallback=\"AL\" alt=\"Ada Lovelace\" />\n\t\t\t\t\t\t\t\t\t\t\t\t<Stack gap={0.5} align=\"start\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t<Row gap={1}>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<Button type=\"button\" variant=\"outline\" size=\"sm\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tUpload photo\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<Button type=\"button\" variant=\"ghost\" size=\"sm\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tRemove\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t\t\t\t\t\t\t\t</Row>\n\t\t\t\t\t\t\t\t\t\t\t\t\t<p className=\"text-caption text-muted-foreground\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t\tSquare PNG or JPG, at least 400 px.\n\t\t\t\t\t\t\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t\t\t\t\t\t\t</Stack>\n\t\t\t\t\t\t\t\t\t\t\t</Row>\n\t\t\t\t\t\t\t\t\t\t\t<Grid cols={{ base: 1, sm: 2 }} gap={3}>\n\t\t\t\t\t\t\t\t\t\t\t\t<Field label=\"Display name\" name=\"displayName\" required>\n\t\t\t\t\t\t\t\t\t\t\t\t\t<Input defaultValue=\"Ada Lovelace\" autoComplete=\"name\" />\n\t\t\t\t\t\t\t\t\t\t\t\t</Field>\n\t\t\t\t\t\t\t\t\t\t\t\t<Field label=\"Handle\" name=\"handle\" description=\"atelier.com/@ada\" required>\n\t\t\t\t\t\t\t\t\t\t\t\t\t<Input defaultValue=\"ada\" autoComplete=\"username\" spellCheck={false} />\n\t\t\t\t\t\t\t\t\t\t\t\t</Field>\n\t\t\t\t\t\t\t\t\t\t\t</Grid>\n\t\t\t\t\t\t\t\t\t\t\t<Field label=\"Bio\" name=\"bio\" description=\"Shown on your profile and in comments.\">\n\t\t\t\t\t\t\t\t\t\t\t\t<Textarea\n\t\t\t\t\t\t\t\t\t\t\t\t\trows={3}\n\t\t\t\t\t\t\t\t\t\t\t\t\tdefaultValue=\"Product designer working on tools for small teams. Writing about process every month.\"\n\t\t\t\t\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t\t\t\t\t</Field>\n\t\t\t\t\t\t\t\t\t\t\t<Grid cols={{ base: 1, sm: 2 }} gap={3}>\n\t\t\t\t\t\t\t\t\t\t\t\t<Field label=\"Timezone\" name=\"timezone\" description=\"Due dates use this zone.\">\n\t\t\t\t\t\t\t\t\t\t\t\t\t<Select defaultValue=\"europe-london\" items={timezones}>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<SelectTrigger />\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t<SelectContent>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t{timezones.map((zone) => (\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t<SelectItem key={zone.value} value={zone.value}>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t{zone.label}\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t</SelectItem>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t</SelectContent>\n\t\t\t\t\t\t\t\t\t\t\t\t\t</Select>\n\t\t\t\t\t\t\t\t\t\t\t\t</Field>\n\t\t\t\t\t\t\t\t\t\t\t</Grid>\n\t\t\t\t\t\t\t\t\t\t</Stack>\n\t\t\t\t\t\t\t\t\t</CardContent>\n\t\t\t\t\t\t\t\t\t<CardFooter className=\"justify-end\">\n\t\t\t\t\t\t\t\t\t\t<Button type=\"submit\">Save profile</Button>\n\t\t\t\t\t\t\t\t\t</CardFooter>\n\t\t\t\t\t\t\t\t</Form>\n\t\t\t\t\t\t\t</Card>\n\n\t\t\t\t\t\t\t<Card id=\"notifications\" className=\"scroll-mt-6\">\n\t\t\t\t\t\t\t\t<CardHeader>\n\t\t\t\t\t\t\t\t\t<CardTitle render={<h2 />}>Notifications</CardTitle>\n\t\t\t\t\t\t\t\t\t<CardDescription>\n\t\t\t\t\t\t\t\t\t\tEmail updates about your projects. Changes save automatically.\n\t\t\t\t\t\t\t\t\t</CardDescription>\n\t\t\t\t\t\t\t\t</CardHeader>\n\t\t\t\t\t\t\t\t<CardList>\n\t\t\t\t\t\t\t\t\t{notifications.map((item) => (\n\t\t\t\t\t\t\t\t\t\t<Entity\n\t\t\t\t\t\t\t\t\t\t\tkey={item.name}\n\t\t\t\t\t\t\t\t\t\t\ttitle={item.title}\n\t\t\t\t\t\t\t\t\t\t\tsubtitle={item.description}\n\t\t\t\t\t\t\t\t\t\t\taction={\n\t\t\t\t\t\t\t\t\t\t\t\t<Switch\n\t\t\t\t\t\t\t\t\t\t\t\t\tname={item.name}\n\t\t\t\t\t\t\t\t\t\t\t\t\tdefaultChecked={item.on}\n\t\t\t\t\t\t\t\t\t\t\t\t\taria-label={item.title}\n\t\t\t\t\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t\t\t</CardList>\n\t\t\t\t\t\t\t</Card>\n\n\t\t\t\t\t\t\t<Card id=\"payouts\" className=\"scroll-mt-6\">\n\t\t\t\t\t\t\t\t<CardHeader>\n\t\t\t\t\t\t\t\t\t<CardTitle render={<h2 />}>Payouts</CardTitle>\n\t\t\t\t\t\t\t\t\t<CardDescription>Paid in USD every Friday to Chase checking ••4821.</CardDescription>\n\t\t\t\t\t\t\t\t\t<CardAction>\n\t\t\t\t\t\t\t\t\t\t<Button variant=\"outline\" size=\"sm\" render={<a href=\"/settings/payouts\" />}>\n\t\t\t\t\t\t\t\t\t\t\tManage payouts\n\t\t\t\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t\t\t\t</CardAction>\n\t\t\t\t\t\t\t\t</CardHeader>\n\t\t\t\t\t\t\t\t<CardContent>\n\t\t\t\t\t\t\t\t\t<Grid cols={{ base: 1, sm: 3 }} gap={3}>\n\t\t\t\t\t\t\t\t\t\t{payouts.map((stat) => (\n\t\t\t\t\t\t\t\t\t\t\t<Stack key={stat.label} gap={0.5}>\n\t\t\t\t\t\t\t\t\t\t\t\t<p className=\"text-body-sm text-muted-foreground\">{stat.label}</p>\n\t\t\t\t\t\t\t\t\t\t\t\t<p className=\"text-mono-lg text-foreground\">{stat.value}</p>\n\t\t\t\t\t\t\t\t\t\t\t\t<p className=\"text-caption text-muted-foreground\">{stat.note}</p>\n\t\t\t\t\t\t\t\t\t\t\t</Stack>\n\t\t\t\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t\t\t\t</Grid>\n\t\t\t\t\t\t\t\t</CardContent>\n\t\t\t\t\t\t\t</Card>\n\n\t\t\t\t\t\t\t<Card id=\"account\" className=\"scroll-mt-6\">\n\t\t\t\t\t\t\t\t<CardHeader>\n\t\t\t\t\t\t\t\t\t<CardTitle render={<h2 />}>Account</CardTitle>\n\t\t\t\t\t\t\t\t\t<CardDescription>Sign-in details and your data.</CardDescription>\n\t\t\t\t\t\t\t\t</CardHeader>\n\t\t\t\t\t\t\t\t<CardList>\n\t\t\t\t\t\t\t\t\t<Entity\n\t\t\t\t\t\t\t\t\t\tleading={<Icon name=\"mail\" className=\"text-lg text-muted-foreground\" />}\n\t\t\t\t\t\t\t\t\t\ttitle=\"Email\"\n\t\t\t\t\t\t\t\t\t\tsubtitle=\"ada@atelier.art\"\n\t\t\t\t\t\t\t\t\t\taction={\n\t\t\t\t\t\t\t\t\t\t\t<Button variant=\"outline\" size=\"sm\">\n\t\t\t\t\t\t\t\t\t\t\t\tChange\n\t\t\t\t\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t\t\t<Entity\n\t\t\t\t\t\t\t\t\t\tleading={<Icon name=\"download\" className=\"text-lg text-muted-foreground\" />}\n\t\t\t\t\t\t\t\t\t\ttitle=\"Export data\"\n\t\t\t\t\t\t\t\t\t\tsubtitle=\"Projects, invoices, and members\"\n\t\t\t\t\t\t\t\t\t\taction={\n\t\t\t\t\t\t\t\t\t\t\t<Button variant=\"outline\" size=\"sm\">\n\t\t\t\t\t\t\t\t\t\t\t\tExport\n\t\t\t\t\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t\t\t</CardList>\n\t\t\t\t\t\t\t</Card>\n\n\t\t\t\t\t\t\t<Card>\n\t\t\t\t\t\t\t\t<CardHeader>\n\t\t\t\t\t\t\t\t\t<CardTitle render={<h2 />}>Delete account</CardTitle>\n\t\t\t\t\t\t\t\t\t<CardDescription>\n\t\t\t\t\t\t\t\t\t\tPermanently remove your profile, projects, and billing history. Files you shared\n\t\t\t\t\t\t\t\t\t\tstay with your team.\n\t\t\t\t\t\t\t\t\t</CardDescription>\n\t\t\t\t\t\t\t\t</CardHeader>\n\t\t\t\t\t\t\t\t<CardFooter className=\"justify-end\">\n\t\t\t\t\t\t\t\t\t<Button variant=\"destructive\" onClick={() => setDeleteOpen(true)}>\n\t\t\t\t\t\t\t\t\t\tDelete account\n\t\t\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t\t\t</CardFooter>\n\t\t\t\t\t\t\t</Card>\n\t\t\t\t\t\t</Stack>\n\t\t\t\t\t</Col>\n\t\t\t\t</Columns>\n\t\t\t</Page>\n\t\t\t<DestructiveActionModal\n\t\t\t\topen={deleteOpen}\n\t\t\t\tonOpenChange={setDeleteOpen}\n\t\t\t\ttitle=\"Delete your account?\"\n\t\t\t\tdescription=\"This permanently removes your profile, 12 projects, and billing history. Your final invoice is still sent. This can't be undone.\"\n\t\t\t\tconfirmLabel=\"Delete account\"\n\t\t\t\tconfirmingLabel=\"Deleting…\"\n\t\t\t\tconfirmText=\"ada\"\n\t\t\t\tonConfirm={() => setDeleteOpen(false)}\n\t\t\t/>\n\t\t</AppShell>\n\t)\n}"
+      },
+      {
+        "name": "TrackerPage",
+        "path": "patterns/tracker-page.tsx",
+        "summary": "Records workspace in the tool register: a Sidebar rail of grouped views ending in an account menu, a WorkspaceBar of Breadcrumbs over pill Tabs, a filter row, one grouped DataTable, and a docked inspector of PanelSection property rows with a pinned comment form. Below lg the rail and the inspector become sheets and a BottomNav takes the last row.",
+        "intent": "Reach for this when a team works through records in a dense tool — an issue tracker, a support queue, a pipeline: a grouped list, a docked inspector for the selected record, and a rail of views. For records a person reads and edits one at a time on a page, ListDetailPage is the page-register shape; for monitoring with headline numbers, DashboardPage.",
+        "keywords": [
+          "issue tracker",
+          "tracker",
+          "linear",
+          "like linear",
+          "jira",
+          "project management",
+          "task manager",
+          "support queue",
+          "triage",
+          "crm",
+          "pipeline",
+          "records workspace",
+          "inspector",
+          "backlog"
+        ],
+        "notes": [
+          "Workspace sets the compact density for everything inside: 32px rail rows, 28px tables, 24px property fields. Nothing in the pattern sizes a control or a row by hand. The Overview tab is a reading view, so it sits in `<Density value=\"comfortable\">` and its prose gets page type back.",
+          "The rail is Sable's own parts on one grid: SidebarBrand, SidebarGroup, SidebarItem and SidebarAccount share the icon and label columns. The account row is the trigger of the account Menu, which holds Settings, an Appearance submenu wired to useSableTheme (light, dark, system) and Sign out. No Settings button or badge sits in the footer.",
+          "There is no Workspace `toolbar`: the bars belong to the list column, so the inspector runs the full height beside them. The first WorkspaceBar carries Breadcrumbs; the second carries pill Tabs, a view switch in chrome, which sits beside the bar's other controls rather than drawing a rule.",
+          "One DataTable groups the rows (`groupBy`, `groups`): one header for every group, a StatusDot, a count and an add action per group header, and Done starting closed. The segmented ToggleGroup switches the grouping between status and assignee. Filtering to nothing swaps the table for an EmptyState with a Clear filters action.",
+          "Workflow states map onto StatusDot tones once (`STATUSES`), so group headers and the status Select read from one place. A product with a richer status glyph keeps that one mapping and swaps the icon.",
+          "The inspector is a Panel with `narrow=\"sheet\"`: docked at 320px from lg, a right sheet below it, its content rendered once. Below lg it opens only when a row is picked (`inspecting`), so a phone never loads with a sheet over the list. Properties are PanelSection + PropertyRow with xs Select triggers and an xs DatePicker; Activity uses RelativeTime; the comment Form is pinned under the scrolling body.",
+          "The rail is a Panel with `narrow=\"sheet\" side=\"left\"`, opened from a `lg:hidden` menu button in the first bar; in the sheet the Sidebar fills its width. Workspace `bottomNav` reserves the BottomNav's row below lg, so the status bar ends above it."
+        ],
+        "a11y": [
+          "Workspace renders a skip link to the canvas (`Skip to issues`) and WorkspaceCanvas is the main landmark; the rail and the inspector are labelled complementary regions (`Workspace navigation`, `Issue details`), and as sheets they keep those labels as their dialog titles.",
+          "The page has one level-1 heading (visually hidden; the breadcrumb shows the place) and the inspector's title is a level-2 heading.",
+          "Group header rows are real buttons with aria-expanded; rows open the inspector from the keyboard (DataTable's row activation). Every icon-only action has an accessible name and a tooltip.",
+          "Each SidebarGroup is a named group; the account row names the person, and its menu is a standard Menu with a radio group for the colour mode."
+        ],
+        "imports": "import { useState } from \"react\"\nimport { Avatar, Badge, BottomNav, BottomNavItem, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, Breadcrumbs, BreadcrumbSeparator, Button, DataTable, DatePicker, Density, EmptyState, Form, Icon, Kbd, Menu, MenuContent, MenuItem, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuSubmenu, MenuSubmenuTrigger, MenuTrigger, Panel, PanelGroup, PanelSection, PropertyRow, RelativeTime, SearchInput, Select, SelectContent, SelectItem, SelectTrigger, Sidebar, SidebarAccount, SidebarBrand, SidebarFooter, SidebarGroup, SidebarHeader, SidebarItem, SidebarNav, SimpleTooltip, StatusBar, StatusBarGroup, StatusDot, Tabs, TabsList, TabsPanel, TabsTrigger, Textarea, Toggle, ToggleGroup, useBelowBreakpoint, useSableTheme, Workspace, WorkspaceBar, WorkspaceCanvas, type DataTableColumn } from \"@sableui/react\"",
+        "code": "// Workflow states → StatusDot tones, mapped once here so every group header,\n// row and select follows. Sable has no status vocabulary of its own.\nconst STATUSES = [\n\t{ key: \"progress\", label: \"In progress\", tone: \"warning\" },\n\t{ key: \"review\", label: \"In review\", tone: \"2\" },\n\t{ key: \"todo\", label: \"Todo\", tone: \"neutral\" },\n\t{ key: \"done\", label: \"Done\", tone: \"success\" },\n] as const\ntype Status = (typeof STATUSES)[number][\"key\"]\n\nconst PRIORITIES = [\"Urgent\", \"High\", \"Medium\", \"Low\"] as const\ntype Priority = (typeof PRIORITIES)[number]\n\nconst people: Record<string, string> = {\n\tAK: \"Ama Kusi\",\n\tJR: \"Jonas Reiter\",\n\tLM: \"Lena Moreau\",\n\tTO: \"Tomás Ortega\",\n}\n\nconst MIN = 60 * 1000\nconst HOUR = 60 * MIN\nconst DAY = 24 * HOUR\nconst isoDay = (offset: number) => {\n\tconst d = new Date(Date.now() + offset)\n\treturn new Date(d.getFullYear(), d.getMonth(), d.getDate())\n}\n\ntype Note = { id: string; who: string; text: string; at: number }\ntype Issue = {\n\tid: string\n\ttitle: string\n\tdetail: string\n\tstatus: Status\n\tpriority: Priority\n\tassignee: string\n\tlabel: string\n\tdue: Date\n\tnotes: Note[]\n}\n\nconst initialIssues: Issue[] = [\n\t{ id: \"FW-104\", title: \"Sync offline edits when the app reconnects\", detail: \"Edits made offline are queued but replayed out of order after a reconnect. Replay them by timestamp and surface conflicts.\", status: \"progress\", priority: \"Urgent\", assignee: \"AK\", label: \"Sync\", due: isoDay(2 * DAY), notes: [{ id: \"n1\", who: \"JR\", text: \"Repro steps are in the test plan. It only happens after a cold start.\", at: -3 * HOUR }] },\n\t{ id: \"FW-105\", title: \"Onboarding checklist on first launch\", detail: \"Three steps: connect a calendar, invite a teammate, create a first project.\", status: \"progress\", priority: \"Medium\", assignee: \"LM\", label: \"Onboarding\", due: isoDay(5 * DAY), notes: [] },\n\t{ id: \"FW-108\", title: \"Push notification settings per project\", detail: \"Let people mute a project without muting the workspace.\", status: \"review\", priority: \"High\", assignee: \"TO\", label: \"Notifications\", due: isoDay(1 * DAY), notes: [] },\n\t{ id: \"FW-110\", title: \"Crash when attaching a large photo\", detail: \"Photos over 20 MB crash the uploader on older devices.\", status: \"review\", priority: \"Urgent\", assignee: \"JR\", label: \"Bug\", due: isoDay(-1 * DAY), notes: [] },\n\t{ id: \"FW-112\", title: \"Search across archived projects\", detail: \"Archived projects are left out of search today.\", status: \"todo\", priority: \"Low\", assignee: \"AK\", label: \"Search\", due: isoDay(9 * DAY), notes: [] },\n\t{ id: \"FW-113\", title: \"Keyboard shortcuts for the board view\", detail: \"J and K move between cards; C creates an issue in the focused column.\", status: \"todo\", priority: \"Medium\", assignee: \"LM\", label: \"Board\", due: isoDay(12 * DAY), notes: [] },\n\t{ id: \"FW-114\", title: \"Export a project as CSV\", detail: \"One row per issue, with status, assignee and dates.\", status: \"todo\", priority: \"Low\", assignee: \"TO\", label: \"Export\", due: isoDay(14 * DAY), notes: [] },\n\t{ id: \"FW-101\", title: \"Dark mode for the widget\", detail: \"The home-screen widget ignores the system appearance.\", status: \"done\", priority: \"Medium\", assignee: \"JR\", label: \"Widget\", due: isoDay(-4 * DAY), notes: [] },\n]\n\nconst MODE_LABEL = { light: \"Light\", dark: \"Dark\", system: \"System\" } as const\n\n/** One icon-only action with a visible name on hover and focus. */\nexport function TrackerPage() {\n\tconst [issues, setIssues] = useState(initialIssues)\n\tconst [selectedId, setSelectedId] = useState<string | null>(\"FW-104\")\n\t// Below lg the inspector is a sheet; it opens only when someone picks a row,\n\t// so a phone does not load with a sheet over the list.\n\tconst [inspecting, setInspecting] = useState(false)\n\tconst [navOpen, setNavOpen] = useState(false)\n\tconst [query, setQuery] = useState(\"\")\n\tconst [priority, setPriority] = useState<\"all\" | Priority>(\"all\")\n\tconst [groupBy, setGroupBy] = useState<\"status\" | \"assignee\">(\"status\")\n\tconst [tab, setTab] = useState(\"issues\")\n\tconst [draft, setDraft] = useState(\"\")\n\tconst narrow = useBelowBreakpoint(\"lg\")\n\tconst { preference, setPreference } = useSableTheme()\n\n\tconst needle = query.trim().toLowerCase()\n\tconst visible = issues.filter(\n\t\t(i) =>\n\t\t\t(priority === \"all\" || i.priority === priority) &&\n\t\t\t`${i.id} ${i.title} ${i.label}`.toLowerCase().includes(needle),\n\t)\n\tconst selected = issues.find((i) => i.id === selectedId) ?? null\n\tconst done = issues.filter((i) => i.status === \"done\").length\n\n\tfunction update(id: string, patch: Partial<Issue>) {\n\t\tsetIssues((all) => all.map((i) => (i.id === id ? { ...i, ...patch } : i)))\n\t}\n\tfunction open(id: string) {\n\t\tsetSelectedId(id)\n\t\tsetInspecting(true)\n\t}\n\tfunction close() {\n\t\tsetInspecting(false)\n\t\tif (!narrow) setSelectedId(null)\n\t}\n\tfunction addIssue(status: Status = \"todo\") {\n\t\tconst id = `FW-${115 + issues.length}`\n\t\tsetIssues((all) => [\n\t\t\t...all,\n\t\t\t{ id, title: \"New issue\", detail: \"\", status, priority: \"Medium\", assignee: \"AK\", label: \"Triage\", due: isoDay(7 * DAY), notes: [] },\n\t\t])\n\t\topen(id)\n\t}\n\tfunction addNote() {\n\t\tif (!selected || !draft.trim()) return\n\t\tupdate(selected.id, { notes: [...selected.notes, { id: `n${Date.now()}`, who: \"AK\", text: draft.trim(), at: 0 }] })\n\t\tsetDraft(\"\")\n\t}\n\n\tconst columns: DataTableColumn<Issue>[] = [\n\t\t{ key: \"id\", header: \"ID\", className: \"w-20 whitespace-nowrap\", cell: (i) => <span className=\"text-ui-num text-muted-foreground\">{i.id}</span> },\n\t\t{ key: \"title\", header: \"Issue\", className: \"w-full max-w-0\", cell: (i) => <span className=\"block truncate\">{i.title}</span> },\n\t\t{ key: \"label\", header: \"Label\", className: \"w-28 max-sm:hidden\", cell: (i) => <Badge appearance=\"outline\" size=\"sm\">{i.label}</Badge> },\n\t\t{ key: \"due\", header: \"Due\", className: \"w-20 whitespace-nowrap max-sm:hidden\", sortValue: (i) => i.due.getTime(), cell: (i) => <span className=\"text-muted-foreground\">{i.due.toLocaleDateString(\"en-US\", { month: \"short\", day: \"numeric\" })}</span> },\n\t\t{ key: \"assignee\", header: <span className=\"sr-only\">Assignee</span>, className: \"w-10\", cell: (i) => <Avatar size=\"2xs\" fallback={i.assignee} alt={people[i.assignee]} /> },\n\t]\n\n\tconst groups =\n\t\tgroupBy === \"status\"\n\t\t\t? STATUSES.map((s) => ({\n\t\t\t\t\tkey: s.key,\n\t\t\t\t\tlabel: s.label,\n\t\t\t\t\ticon: <StatusDot tone={s.tone} />,\n\t\t\t\t\taction: <SimpleTooltip content={`Add to ${s.label}`}><Button size=\"icon-xs\" variant=\"ghost\" aria-label={`Add to ${s.label}`} onClick={() => addIssue(s.key)}><Icon name=\"plus\" /></Button></SimpleTooltip>,\n\t\t\t\t\tdefaultExpanded: s.key !== \"done\",\n\t\t\t\t}))\n\t\t\t: Object.entries(people).map(([key, name]) => ({\n\t\t\t\t\tkey,\n\t\t\t\t\tlabel: name,\n\t\t\t\t\ticon: <Avatar size=\"2xs\" fallback={key} alt=\"\" />,\n\t\t\t\t}))\n\n\tconst sidebar = (\n\t\t<Sidebar variant=\"inline\" className=\"h-full w-full\">\n\t\t\t<SidebarHeader>\n\t\t\t\t<SidebarBrand mark={<Avatar shape=\"square\" size=\"2xs\" tone=\"teal\" fallback=\"F\" alt=\"\" />} label=\"Fieldwork\" />\n\t\t\t\t<Button variant=\"outline\" size=\"sm\" className=\"basis-full justify-between\">\n\t\t\t\t\t<span className=\"flex items-center gap-2\">\n\t\t\t\t\t\t<Icon name=\"search\" />\n\t\t\t\t\t\tSearch\n\t\t\t\t\t</span>\n\t\t\t\t\t<Kbd>Ctrl K</Kbd>\n\t\t\t\t</Button>\n\t\t\t</SidebarHeader>\n\t\t\t<SidebarNav aria-label=\"Workspace\">\n\t\t\t\t<SidebarItem icon={<Icon name=\"inbox\" />} label=\"Inbox\" badge={<span className=\"text-ui-num text-muted-foreground\">3</span>} />\n\t\t\t\t<SidebarItem icon={<Icon name=\"circle-check\" />} label=\"My issues\" />\n\t\t\t\t<SidebarGroup label=\"Mobile app\">\n\t\t\t\t\t<SidebarItem icon={<Icon name=\"layers\" />} label=\"Issues\" active />\n\t\t\t\t\t<SidebarItem icon={<Icon name=\"refresh\" />} label=\"Cycles\" />\n\t\t\t\t\t<SidebarItem icon={<Icon name=\"archive\" />} label=\"Backlog\" />\n\t\t\t\t</SidebarGroup>\n\t\t\t\t<SidebarGroup label=\"Workspace\">\n\t\t\t\t\t<SidebarItem icon={<Icon name=\"folder\" />} label=\"Projects\" />\n\t\t\t\t\t<SidebarItem icon={<Icon name=\"users\" />} label=\"Members\" />\n\t\t\t\t</SidebarGroup>\n\t\t\t</SidebarNav>\n\t\t\t<SidebarFooter>\n\t\t\t\t<Menu>\n\t\t\t\t\t<MenuTrigger\n\t\t\t\t\t\trender={<SidebarAccount avatar={<Avatar size=\"2xs\" fallback=\"AK\" alt=\"\" />} label=\"Ama Kusi\" detail=\"Fieldwork · Admin\" />}\n\t\t\t\t\t/>\n\t\t\t\t\t<MenuContent side=\"top\" align=\"start\">\n\t\t\t\t\t\t<MenuItem icon={<Icon name=\"gear\" />}>Settings</MenuItem>\n\t\t\t\t\t\t<MenuSubmenu>\n\t\t\t\t\t\t\t<MenuSubmenuTrigger\n\t\t\t\t\t\t\t\ticon={<Icon name={preference === \"dark\" ? \"moon\" : preference === \"light\" ? \"sun\" : \"desktop\"} />}\n\t\t\t\t\t\t\t\tvalue={MODE_LABEL[preference]}\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\tAppearance\n\t\t\t\t\t\t\t</MenuSubmenuTrigger>\n\t\t\t\t\t\t\t<MenuContent side=\"inline-end\">\n\t\t\t\t\t\t\t\t<MenuRadioGroup value={preference} onValueChange={(v) => setPreference(v as typeof preference)}>\n\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"light\">Light</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"dark\">Dark</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"system\">System</MenuRadioItem>\n\t\t\t\t\t\t\t\t</MenuRadioGroup>\n\t\t\t\t\t\t\t</MenuContent>\n\t\t\t\t\t\t</MenuSubmenu>\n\t\t\t\t\t\t<MenuSeparator />\n\t\t\t\t\t\t<MenuItem icon={<Icon name=\"logout\" />}>Sign out</MenuItem>\n\t\t\t\t\t</MenuContent>\n\t\t\t\t</Menu>\n\t\t\t</SidebarFooter>\n\t\t</Sidebar>\n\t)\n\n\tconst list =\n\t\tvisible.length === 0 ? (\n\t\t\t<EmptyState\n\t\t\t\ticon={<Icon name=\"search\" />}\n\t\t\t\ttitle=\"No issues match\"\n\t\t\t\tdescription=\"Try another search, or clear the priority filter.\"\n\t\t\t\taction={\n\t\t\t\t\t<Button\n\t\t\t\t\t\tvariant=\"secondary\"\n\t\t\t\t\t\tsize=\"sm\"\n\t\t\t\t\t\tonClick={() => {\n\t\t\t\t\t\t\tsetQuery(\"\")\n\t\t\t\t\t\t\tsetPriority(\"all\")\n\t\t\t\t\t\t}}\n\t\t\t\t\t>\n\t\t\t\t\t\tClear filters\n\t\t\t\t\t</Button>\n\t\t\t\t}\n\t\t\t/>\n\t\t) : (\n\t\t\t<DataTable\n\t\t\t\tcolumns={columns}\n\t\t\t\tdata={visible}\n\t\t\t\trowKey={(i) => i.id}\n\t\t\t\tgroupBy={(i) => (groupBy === \"status\" ? i.status : i.assignee)}\n\t\t\t\tgroups={groups}\n\t\t\t\tonRowClick={(i) => open(i.id)}\n\t\t\t\t// A phone shows the selection only while its sheet is open.\n\t\t\t\tisRowSelected={(i) => i.id === selectedId && (!narrow || inspecting)}\n\t\t\t/>\n\t\t)\n\n\tconst inspector = selected ? (\n\t\t<div className=\"flex h-full min-h-0 flex-col\">\n\t\t\t<WorkspaceBar className=\"justify-between\">\n\t\t\t\t<span className=\"text-ui-num text-muted-foreground\">{selected.id}</span>\n\t\t\t\t<SimpleTooltip content=\"Close issue\"><Button size=\"icon-xs\" variant=\"ghost\" aria-label=\"Close issue\" onClick={close}><Icon name=\"xmark\" /></Button></SimpleTooltip>\n\t\t\t</WorkspaceBar>\n\t\t\t<div className=\"min-h-0 flex-1 overflow-y-auto scrollbar-quiet\">\n\t\t\t\t<div className=\"flex flex-col gap-2 px-2 pt-4 pb-3\">\n\t\t\t\t\t<h2 className=\"text-title-lg\">{selected.title}</h2>\n\t\t\t\t\t<p className=\"text-ui-body text-muted-foreground\">{selected.detail || \"Add the details the team needs.\"}</p>\n\t\t\t\t</div>\n\t\t\t\t<PanelSection title=\"Properties\">\n\t\t\t\t\t<PropertyRow label=\"Status\">\n\t\t\t\t\t\t<Select value={selected.status} items={STATUSES.map((s) => ({ value: s.key, label: s.label }))} onValueChange={(v) => v && update(selected.id, { status: v as Status })}>\n\t\t\t\t\t\t\t<SelectTrigger size=\"xs\" aria-label=\"Status\" />\n\t\t\t\t\t\t\t<SelectContent>\n\t\t\t\t\t\t\t\t{STATUSES.map((s) => (\n\t\t\t\t\t\t\t\t\t<SelectItem key={s.key} value={s.key}>{s.label}</SelectItem>\n\t\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t\t</SelectContent>\n\t\t\t\t\t\t</Select>\n\t\t\t\t\t</PropertyRow>\n\t\t\t\t\t<PropertyRow label=\"Priority\">\n\t\t\t\t\t\t<Select value={selected.priority} onValueChange={(v) => v && update(selected.id, { priority: v as Priority })}>\n\t\t\t\t\t\t\t<SelectTrigger size=\"xs\" aria-label=\"Priority\" />\n\t\t\t\t\t\t\t<SelectContent>\n\t\t\t\t\t\t\t\t{PRIORITIES.map((p) => (\n\t\t\t\t\t\t\t\t\t<SelectItem key={p} value={p}>{p}</SelectItem>\n\t\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t\t</SelectContent>\n\t\t\t\t\t\t</Select>\n\t\t\t\t\t</PropertyRow>\n\t\t\t\t\t<PropertyRow label=\"Assignee\">\n\t\t\t\t\t\t<Select value={selected.assignee} items={people} onValueChange={(v) => v && update(selected.id, { assignee: v })}>\n\t\t\t\t\t\t\t<SelectTrigger size=\"xs\" aria-label=\"Assignee\" />\n\t\t\t\t\t\t\t<SelectContent>\n\t\t\t\t\t\t\t\t{Object.entries(people).map(([key, name]) => (\n\t\t\t\t\t\t\t\t\t<SelectItem key={key} value={key}>{name}</SelectItem>\n\t\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t\t</SelectContent>\n\t\t\t\t\t\t</Select>\n\t\t\t\t\t</PropertyRow>\n\t\t\t\t\t<PropertyRow label=\"Due date\">\n\t\t\t\t\t\t<DatePicker\n\t\t\t\t\t\t\tsize=\"xs\"\n\t\t\t\t\t\t\taria-label=\"Due date\"\n\t\t\t\t\t\t\tvalue={selected.due}\n\t\t\t\t\t\t\tformatOptions={{ month: \"short\", day: \"numeric\", year: \"numeric\" }}\n\t\t\t\t\t\t\tonValueChange={(d) => d && update(selected.id, { due: d })}\n\t\t\t\t\t\t/>\n\t\t\t\t\t</PropertyRow>\n\t\t\t\t</PanelSection>\n\t\t\t\t<PanelSection title=\"Activity\">\n\t\t\t\t\t<div className=\"flex flex-col gap-3 pb-4\">\n\t\t\t\t\t\t<div className=\"flex items-center gap-2 text-ui-sm text-muted-foreground\">\n\t\t\t\t\t\t\t<Icon name=\"plus\" />\n\t\t\t\t\t\t\t<span>Created in Mobile app</span>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t{selected.notes.map((n) => (\n\t\t\t\t\t\t\t<div key={n.id} className=\"flex items-start gap-2\">\n\t\t\t\t\t\t\t\t<Avatar size=\"2xs\" fallback={n.who} alt=\"\" />\n\t\t\t\t\t\t\t\t<div className=\"min-w-0\">\n\t\t\t\t\t\t\t\t\t<div className=\"flex items-center gap-2\">\n\t\t\t\t\t\t\t\t\t\t<span className=\"text-ui-md\">{people[n.who]}</span>\n\t\t\t\t\t\t\t\t\t\t<RelativeTime date={new Date(Date.now() + n.at)} className=\"text-ui-sm text-muted-foreground\" />\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t<p className=\"mt-1 text-ui-body\">{n.text}</p>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t))}\n\t\t\t\t\t</div>\n\t\t\t\t</PanelSection>\n\t\t\t</div>\n\t\t\t<Form\n\t\t\t\tclassName=\"flex shrink-0 flex-col gap-2 border-t border-hairline p-2\"\n\t\t\t\tonSubmit={(e) => {\n\t\t\t\t\te.preventDefault()\n\t\t\t\t\taddNote()\n\t\t\t\t}}\n\t\t\t>\n\t\t\t\t<Textarea aria-label=\"Add a comment\" placeholder=\"Leave a comment…\" rows={2} value={draft} onChange={(e) => setDraft(e.target.value)} />\n\t\t\t\t<Button size=\"xs\" variant=\"secondary\" type=\"submit\" className=\"self-end\" disabled={!draft.trim()} iconStart={<Icon name=\"arrow-up\" />}>\n\t\t\t\t\tComment\n\t\t\t\t</Button>\n\t\t\t</Form>\n\t\t</div>\n\t) : null\n\n\treturn (\n\t\t<Workspace\n\t\t\tskipLinkLabel=\"Skip to issues\"\n\t\t\tstatusBar={\n\t\t\t\t<StatusBar>\n\t\t\t\t\t<span className=\"flex items-center gap-2\">\n\t\t\t\t\t\t<StatusDot tone=\"success\" size=\"sm\" />\n\t\t\t\t\t\tSaved\n\t\t\t\t\t</span>\n\t\t\t\t\t<span className=\"max-sm:hidden\">\n\t\t\t\t\t\t{issues.length} issues · {done} done\n\t\t\t\t\t</span>\n\t\t\t\t\t<StatusBarGroup align=\"end\">\n\t\t\t\t\t\t<span className=\"max-sm:hidden\">Ctrl K to search</span>\n\t\t\t\t\t</StatusBarGroup>\n\t\t\t\t</StatusBar>\n\t\t\t}\n\t\t\tbottomNav={\n\t\t\t\t<BottomNav aria-label=\"Primary\">\n\t\t\t\t\t<BottomNavItem icon={<Icon name=\"inbox\" />} label=\"Inbox\" showLabel />\n\t\t\t\t\t<BottomNavItem icon={<Icon name=\"layers\" />} label=\"Issues\" showLabel active />\n\t\t\t\t\t<BottomNavItem icon={<Icon name=\"folder\" />} label=\"Projects\" showLabel />\n\t\t\t\t\t<BottomNavItem icon={<Icon name=\"users\" />} label=\"Members\" showLabel />\n\t\t\t\t</BottomNav>\n\t\t\t}\n\t\t>\n\t\t\t<PanelGroup>\n\t\t\t\t{/* Docked from lg; below it the same rail is a left sheet. */}\n\t\t\t\t<Panel label=\"Workspace navigation\" width={232} narrow=\"sheet\" side=\"left\" open={narrow ? navOpen : true} onOpenChange={setNavOpen} scroll={false}>\n\t\t\t\t\t{sidebar}\n\t\t\t\t</Panel>\n\t\t\t\t<WorkspaceCanvas className=\"flex flex-col\">\n\t\t\t\t\t<WorkspaceBar className=\"gap-2 px-3\">\n\t\t\t\t\t\t<span className=\"lg:hidden\">\n\t\t\t\t\t\t\t<SimpleTooltip content=\"Open navigation\"><Button size=\"icon-xs\" variant=\"ghost\" aria-label=\"Open navigation\" onClick={() => setNavOpen(true)}><Icon name=\"bars\" /></Button></SimpleTooltip>\n\t\t\t\t\t\t</span>\n\t\t\t\t\t\t<h1 className=\"sr-only\">Mobile app issues</h1>\n\t\t\t\t\t\t<Breadcrumbs className=\"min-w-0\">\n\t\t\t\t\t\t\t<BreadcrumbItem className=\"max-sm:hidden\">\n\t\t\t\t\t\t\t\t<BreadcrumbLink href=\"#\">Fieldwork</BreadcrumbLink>\n\t\t\t\t\t\t\t</BreadcrumbItem>\n\t\t\t\t\t\t\t<BreadcrumbSeparator className=\"max-sm:hidden\" />\n\t\t\t\t\t\t\t<BreadcrumbItem>\n\t\t\t\t\t\t\t\t<BreadcrumbPage>Mobile app</BreadcrumbPage>\n\t\t\t\t\t\t\t</BreadcrumbItem>\n\t\t\t\t\t\t</Breadcrumbs>\n\t\t\t\t\t</WorkspaceBar>\n\t\t\t\t\t<Tabs value={tab} onValueChange={(v) => setTab(String(v))} className=\"flex min-h-0 flex-1 flex-col\">\n\t\t\t\t\t\t{/* A view switch in tool chrome: pill, beside the bar's other controls. */}\n\t\t\t\t\t\t<WorkspaceBar className=\"px-3\">\n\t\t\t\t\t\t\t<TabsList variant=\"pill\">\n\t\t\t\t\t\t\t\t<TabsTrigger value=\"issues\">\n\t\t\t\t\t\t\t\t\tIssues <span className=\"text-ui-num text-muted-foreground\">{issues.length}</span>\n\t\t\t\t\t\t\t\t</TabsTrigger>\n\t\t\t\t\t\t\t\t<TabsTrigger value=\"overview\">Overview</TabsTrigger>\n\t\t\t\t\t\t\t</TabsList>\n\t\t\t\t\t\t</WorkspaceBar>\n\t\t\t\t\t\t<TabsPanel value=\"issues\" className=\"flex min-h-0 flex-1 flex-col\">\n\t\t\t\t\t\t\t<div className=\"flex flex-wrap items-center gap-2 border-b border-hairline px-3 py-2\">\n\t\t\t\t\t\t\t\t<Menu>\n\t\t\t\t\t\t\t\t\t<MenuTrigger render={<Button variant=\"ghost\" size=\"xs\" iconStart={<Icon name=\"filter\" />}>{priority === \"all\" ? \"Filter\" : priority}</Button>} />\n\t\t\t\t\t\t\t\t\t<MenuContent>\n\t\t\t\t\t\t\t\t\t\t<MenuRadioGroup value={priority} onValueChange={(v) => setPriority(v as typeof priority)}>\n\t\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"all\">All priorities</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t\t\t{PRIORITIES.map((p) => (\n\t\t\t\t\t\t\t\t\t\t\t\t<MenuRadioItem key={p} value={p}>{p}</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t\t\t\t\t</MenuRadioGroup>\n\t\t\t\t\t\t\t\t\t</MenuContent>\n\t\t\t\t\t\t\t\t</Menu>\n\t\t\t\t\t\t\t\t<SearchInput size=\"xs\" value={query} onValueChange={setQuery} placeholder=\"Find issue…\" aria-label=\"Find issue\" className=\"w-40\" />\n\t\t\t\t\t\t\t\t<ToggleGroup appearance=\"segmented\" value={[groupBy]} onValueChange={(v) => v[0] && setGroupBy(v[0] as typeof groupBy)} aria-label=\"Group by\" className=\"ms-auto\">\n\t\t\t\t\t\t\t\t\t<Toggle value=\"status\">Status</Toggle>\n\t\t\t\t\t\t\t\t\t<Toggle value=\"assignee\">Assignee</Toggle>\n\t\t\t\t\t\t\t\t</ToggleGroup>\n\t\t\t\t\t\t\t\t<Button size=\"xs\" iconStart={<Icon name=\"plus\" />} onClick={() => addIssue()}>\n\t\t\t\t\t\t\t\t\tNew issue\n\t\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div className=\"min-h-0 flex-1 overflow-y-auto scrollbar-quiet\">{list}</div>\n\t\t\t\t\t\t</TabsPanel>\n\t\t\t\t\t\t<TabsPanel value=\"overview\" className=\"flex min-h-0 flex-1 flex-col\">\n\t\t\t\t\t\t\t{/* A reading view: page type comes back inside the compact workspace. */}\n\t\t\t\t\t\t\t<Density value=\"comfortable\" className=\"min-h-0 flex-1 overflow-y-auto scrollbar-quiet\">\n\t\t\t\t\t\t\t\t<article className=\"flex max-w-prose flex-col gap-4 p-8 max-sm:p-5\">\n\t\t\t\t\t\t\t\t\t<h2 className=\"text-heading-3\">Mobile app</h2>\n\t\t\t\t\t\t\t\t\t<p className=\"text-body-md text-muted-foreground\">\n\t\t\t\t\t\t\t\t\t\tThe phone app for field teams: capture work on site, sync it when the signal comes back, and hand it to the office without retyping anything.\n\t\t\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t\t\t\t<dl className=\"sable-list-dl\">\n\t\t\t\t\t\t\t\t\t\t<dt>Lead</dt>\n\t\t\t\t\t\t\t\t\t\t<dd>{people.AK}</dd>\n\t\t\t\t\t\t\t\t\t\t<dt>Open issues</dt>\n\t\t\t\t\t\t\t\t\t\t<dd>{issues.length - done}</dd>\n\t\t\t\t\t\t\t\t\t\t<dt>Target</dt>\n\t\t\t\t\t\t\t\t\t\t<dd>{isoDay(30 * DAY).toLocaleDateString(\"en-US\", { month: \"long\", day: \"numeric\" })}</dd>\n\t\t\t\t\t\t\t\t\t</dl>\n\t\t\t\t\t\t\t\t</article>\n\t\t\t\t\t\t\t</Density>\n\t\t\t\t\t\t</TabsPanel>\n\t\t\t\t\t</Tabs>\n\t\t\t\t</WorkspaceCanvas>\n\t\t\t\t{/* Docked beside the list from lg; a sheet below it. Its content renders once. */}\n\t\t\t\t<Panel\n\t\t\t\t\tlabel=\"Issue details\"\n\t\t\t\t\twidth={320}\n\t\t\t\t\tnarrow=\"sheet\"\n\t\t\t\t\topen={narrow ? inspecting && selected !== null : selected !== null}\n\t\t\t\t\tonOpenChange={(next) => !next && close()}\n\t\t\t\t\tscroll={false}\n\t\t\t\t\tclassName=\"border-s border-hairline\"\n\t\t\t\t>\n\t\t\t\t\t{inspector}\n\t\t\t\t</Panel>\n\t\t\t</PanelGroup>\n\t\t</Workspace>\n\t)\n}"
       }
     ]
   },
@@ -26200,6 +26590,14 @@
           "why": "balance evens short headlines; pretty only refuses a one-word last line. Both cost layout work that long prose does not repay."
         },
         {
+          "rule": "To make all the type smaller or larger, set the base: --type-base: 14 (a unitless px number; 16 is the default). Never retune tiers one by one for it.",
+          "why": "Every tier is authored on a 16px base and keeps its ratio to it, so one number rebuilds the whole scale, headings to captions, and the baseline step and spacing follow the body. Shrinking tiers individually breaks the ratios between them. Set it on :root, a theme scope or a preset (tokens.shared[\"type-base\"]) so the rhythm follows too."
+        },
+        {
+          "rule": "Inside a Workspace, a panel's title is text-ui-title (14px · 600); compact text-title-lg resolves to it. A reading view inside the tool (an overview, a document, a long form) is wrapped in <Density value=\"comfortable\"> and gets the page tiers back.",
+          "why": "The compact register remaps page tiers onto the 10-12px chrome ramp, which is right for chrome and wrong for prose: an issue overview set in a tool rendered its paragraphs at 11px. The remap stops at a comfortable boundary, so the wrapper is the whole fix."
+        },
+        {
           "rule": "A mark attached to a line of type (a dot, a bullet, a timeline marker, a leading icon) sits in a box one line tall (h-[1lh] items-center) and is sized in em.",
           "why": "1lh is the line-height of the text beside it, so the mark centres on that line in every tier, density and theme. A px size with a mt-[3px] nudge is right for one font at one size and wrong everywhere else."
         }
@@ -26231,6 +26629,11 @@
           "never": "Justified text, or reading copy below body-sm.",
           "instead": "Ragged-right at body-md; body-xs only for dense data.",
           "why": "Justification opens rivers on the web, which has no hyphenation control; 12px prose fails people with low vision."
+        },
+        {
+          "never": "Changing the root font-size (html { font-size: 14px }) to make a product denser.",
+          "instead": "--type-base: 14, with Workspace or <Density value=\"compact\"> for denser controls.",
+          "why": "The root also sizes every rem the app wrote: widths, insets, media queries. --type-base moves only the type and the rhythm built on it, and density moves the controls, so each can be chosen on its own."
         },
         {
           "never": "A new font family, or raw font-feature-settings / font-variation-settings.",
@@ -27727,6 +28130,27 @@
         ]
       },
       {
+        "name": "text-ui-title",
+        "kind": "utility",
+        "family": "text",
+        "intent": "The title of what a panel or inspector shows — the open issue, the selected object: 14px at 600 on a 20px line, one step above `text-ui-md`.",
+        "whenToUse": "The one title at the top of an inspector, a docked panel or a peek view inside the workspace register. Compact `text-title-lg` resolves to it on its own.",
+        "insteadOf": "`text-ui-md` made heavier (a title the size of the description under it reads as a label), or `text-heading-*`, which is page structure rather than chrome.",
+        "example": "<h2 className=\"text-ui-title text-panel-foreground\">Refine product detail page</h2>",
+        "keywords": [
+          "panel title",
+          "inspector title",
+          "issue title",
+          "peek title",
+          "selection header",
+          "workspace title"
+        ],
+        "pairsWith": [
+          "text-ui-body",
+          "text-ui-md"
+        ]
+      },
+      {
         "name": "text-ui-md",
         "kind": "utility",
         "family": "text",
@@ -28752,10 +29176,12 @@
         "fallbackDelay",
         "render",
         "seed",
+        "shape",
         "size",
         "src",
         "status",
         "style",
+        "tone",
         "variant"
       ],
       "AvatarFallback": [
@@ -28778,8 +29204,10 @@
         "count",
         "label",
         "render",
+        "shape",
         "size",
-        "style"
+        "style",
+        "tone"
       ],
       "AvatarImage": [
         "className",
@@ -28790,8 +29218,10 @@
       "AvatarRoot": [
         "className",
         "render",
+        "shape",
         "size",
-        "style"
+        "style",
+        "tone"
       ],
       "Badge": [
         "appearance",
@@ -29141,7 +29571,8 @@
         "style"
       ],
       "CollapsibleIndicator": [
-        "className"
+        "className",
+        "direction"
       ],
       "CollapsiblePanel": [
         "className",
@@ -29481,11 +29912,16 @@
       "DataTable": [
         "caption",
         "className",
+        "collapsible",
         "columns",
         "data",
         "defaultSort",
         "empty",
+        "expandedGroups",
+        "groupBy",
+        "groups",
         "isRowSelected",
+        "onExpandedGroupsChange",
         "onRowClick",
         "onSelectedKeysChange",
         "rowKey",
@@ -29498,6 +29934,7 @@
         "defaultTime",
         "defaultValue",
         "disabled",
+        "formatOptions",
         "granularity",
         "maxDate",
         "minDate",
@@ -29505,6 +29942,7 @@
         "onChange",
         "onValueChange",
         "placeholder",
+        "size",
         "value"
       ],
       "DateTile": [
@@ -30063,6 +30501,7 @@
         "closeDelay",
         "delay",
         "disabled",
+        "icon",
         "id",
         "label",
         "nativeButton",
@@ -30323,9 +30762,14 @@
         "total"
       ],
       "Panel": [
+        "below",
         "children",
         "label",
+        "narrow",
+        "onOpenChange",
+        "open",
         "scroll",
+        "side",
         "width"
       ],
       "PanelResizer": [
@@ -30891,10 +31335,20 @@
         "surface",
         "variant"
       ],
+      "SidebarAccount": [
+        "avatar",
+        "detail",
+        "indicator",
+        "label",
+        "render"
+      ],
       "SidebarBrand": [
         "label",
         "mark",
         "render"
+      ],
+      "SidebarGroup": [
+        "label"
       ],
       "SidebarItem": [
         "active",
@@ -31428,6 +31882,7 @@
         "name"
       ],
       "Workspace": [
+        "bottomNav",
         "children",
         "density",
         "skipLinkLabel",

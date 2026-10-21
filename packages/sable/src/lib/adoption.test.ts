@@ -42,6 +42,18 @@ describe("adoption", () => {
 		expect(r.level).toBe("sable")
 	})
 
+	it("matches app components to the parts Sable exports, not only to its entries", () => {
+		// A work tracker's `Property` row went unlisted because PropertyRow is a
+		// part of PanelSection, with no entry of its own.
+		const r = report({
+			"src/App.tsx": `import { Select, SelectTrigger } from "@sableui/react"
+function Property({ label, children }) { return <div className="property"><span>{label}</span>{children}</div> }
+function Picker({ value }) { return <Select value={value}><SelectTrigger /></Select> }
+export default function App() { return <main><Property label="Status"><Picker value="a" /></Property></main> }`,
+		})
+		expect(r.swaps.map((s: { name: string; sable: string[]; partOf?: string }) => [s.name, s.sable[0], s.partOf])).toEqual([["Property", "PropertyRow", "PanelSection"]])
+	})
+
 	it("leaves an app's own structure alone", () => {
 		const r = report({ "src/pages/HomePage.tsx": `export function HomePage() { return <button onClick={() => {}}>Go</button> }`, "src/Layout.tsx": `export function Layout() { return <div onClick={() => {}} /> }` })
 		expect(r.swaps).toEqual([])

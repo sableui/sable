@@ -1,5 +1,12 @@
 import {
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbPage,
+	Breadcrumbs,
+	BreadcrumbSeparator,
 	Button,
+	DataTable,
+	Density,
 	Icon,
 	Panel,
 	PanelGroup,
@@ -25,6 +32,124 @@ import {
 	workspaceMeta,
 } from "@sableui/react"
 import { useState } from "react"
+
+const ISSUES = [
+	{ id: "AES-104", title: "Refine product detail page", status: "In progress" },
+	{ id: "AES-105", title: "Build the ingredient library", status: "In progress" },
+	{ id: "AES-106", title: "Review mobile navigation", status: "In review" },
+	{ id: "AES-107", title: "Define checkout transitions", status: "Todo" },
+]
+
+/**
+ * The tracker shape: no `toolbar` slot (the bar belongs to the list column, so
+ * the inspector runs the full height beside it), and an inspector Panel with
+ * `narrow="sheet"` — docked here, a sheet below lg. Selecting a row opens it at
+ * every width; closing it gives the list its width back.
+ */
+function TrackerDemo() {
+	const [selected, setSelected] = useState<string | null>("AES-104")
+	const [tab, setTab] = useState<"issues" | "overview">("issues")
+	const issue = ISSUES.find((i) => i.id === selected)
+	return (
+		<div className="h-[420px] overflow-hidden rounded-lg border border-border">
+			<Workspace
+				className="h-full"
+				statusBar={
+					<StatusBar>
+						<span>{ISSUES.length} issues</span>
+						<StatusBarGroup align="end">
+							<span>Saved</span>
+						</StatusBarGroup>
+					</StatusBar>
+				}
+			>
+				<PanelGroup>
+					<WorkspaceCanvas className="flex flex-col">
+						<WorkspaceBar>
+							<Breadcrumbs className="px-1">
+								<BreadcrumbItem>
+									<BreadcrumbLink href="#">Studio</BreadcrumbLink>
+								</BreadcrumbItem>
+								<BreadcrumbSeparator />
+								<BreadcrumbItem>
+									<BreadcrumbPage>Digital flagship</BreadcrumbPage>
+								</BreadcrumbItem>
+							</Breadcrumbs>
+							<Toolbar aria-label="View" className="ms-auto">
+								<ToolbarButton size="xs" aria-pressed={tab === "issues"} onClick={() => setTab("issues")}>
+									Issues
+								</ToolbarButton>
+								<ToolbarButton size="xs" aria-pressed={tab === "overview"} onClick={() => setTab("overview")}>
+									Overview
+								</ToolbarButton>
+							</Toolbar>
+						</WorkspaceBar>
+						<div className="min-h-0 flex-1 overflow-y-auto scrollbar-quiet">
+							{tab === "issues" ? (
+								<DataTable
+									columns={[
+										{ key: "id", header: "ID", className: "w-24" },
+										{ key: "title", header: "Issue" },
+										{ key: "status", header: "Status", className: "w-28" },
+									]}
+									data={ISSUES}
+									rowKey={(i) => i.id}
+									onRowClick={(i) => setSelected(i.id)}
+									isRowSelected={(i) => i.id === selected}
+								/>
+							) : (
+								// A reading view: the comfortable scope gives prose its page
+								// size back inside the compact workspace.
+								<Density value="comfortable">
+									<article className="max-w-prose p-6">
+										<h2 className="text-heading-4">Project overview</h2>
+										<p className="mt-3 text-body-md text-muted-foreground">
+											A considered digital experience for everyday rituals. Paragraphs keep their page size
+											here, while the chrome around the canvas stays compact.
+										</p>
+									</article>
+								</Density>
+							)}
+						</div>
+					</WorkspaceCanvas>
+					<Panel
+						label="Issue details"
+						width={280}
+						narrow="sheet"
+						open={issue !== undefined}
+						onOpenChange={(open) => !open && setSelected(null)}
+						className="border-s border-hairline"
+					>
+						{issue ? (
+							<PanelSection
+								title={issue.id}
+								action={
+									<Button size="icon-xs" variant="ghost" aria-label="Close issue" onClick={() => setSelected(null)}>
+										<Icon name="xmark" />
+									</Button>
+								}
+							>
+								<PropertyRow label="Title" stacked>
+									<span className="text-ui-body">{issue.title}</span>
+								</PropertyRow>
+								<PropertyRow label="Status">
+									<Select defaultValue={issue.status}>
+										<SelectTrigger size="xs" aria-label="Issue status" />
+										<SelectContent>
+											<SelectItem value="Todo">Todo</SelectItem>
+											<SelectItem value="In progress">In progress</SelectItem>
+											<SelectItem value="In review">In review</SelectItem>
+										</SelectContent>
+									</Select>
+								</PropertyRow>
+							</PanelSection>
+						) : null}
+					</Panel>
+				</PanelGroup>
+			</Workspace>
+		</div>
+	)
+}
 import { MetaFooter, PageHeader, Section, ledeFor } from "../../components/docs-ui"
 
 /**
@@ -191,6 +316,13 @@ export function WorkspacePage() {
 				description="Drag the panel edges, scrub Opacity, or type into any number."
 			>
 				<WorkspaceDemo />
+			</Section>
+
+			<Section
+				title="Issue tracker"
+				description="No toolbar slot: the bar belongs to the list column, so the inspector runs the full height beside it. The inspector docks here and becomes a sheet below lg. The Overview tab is a reading view in a comfortable Density scope."
+			>
+				<TrackerDemo />
 			</Section>
 
 			<MetaFooter meta={workspaceMeta} />

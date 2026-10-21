@@ -141,6 +141,7 @@
 		"THIRD_PARTY_NOTICES.md",
 		"third-party",
 		"scripts/adoption.mjs",
+		"scripts/app-css.mjs",
 		"scripts/agent-setup.mjs",
 		"scripts/design-presets.mjs",
 		"scripts/patches.mjs",

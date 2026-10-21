@@ -265,6 +265,11 @@ type SubmenuTriggerProps = Omit<
 	className?: string
 	/** Trailing value shown before the chevron — the current choice, usually. */
 	value?: ComponentProps<"span">["children"]
+	/**
+	 * Leading icon, as MenuItem's: a submenu row among items that have icons
+	 * takes one too, or its label starts a column left of theirs.
+	 */
+	icon?: ReactNode
 }
 
 /**
@@ -277,6 +282,7 @@ export function MenuSubmenuTrigger({
 	className,
 	children,
 	value,
+	icon,
 	...props
 }: SubmenuTriggerProps) {
 	const tier = useTypeTier()
@@ -288,6 +294,7 @@ export function MenuSubmenuTrigger({
 			)}
 			{...props}
 		>
+			{icon}
 			<span className="flex-1 truncate text-start">{children}</span>
 			{value !== undefined ? (
 				<span className="truncate text-muted-foreground">{value}</span>

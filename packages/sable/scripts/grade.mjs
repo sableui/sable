@@ -33,7 +33,8 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs"
 import { createHash } from "node:crypto"
 import { dirname, extname, join, relative, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
-import { ignoreGlob, lintText, makeRules, surfaceInventory } from "./lint-rules.mjs"
+import { compositionNotes, ignoreGlob, lintText, makeRules, partMirrors, surfaceInventory } from "./lint-rules.mjs"
+import { cssNotes, modeCoverage } from "./app-css.mjs"
 import { labelContrastScanner, statusTextDrift } from "./label-contrast.mjs"
 import { skeletonize } from "./skeleton.mjs"
 import { assessReview, reviewTemplate } from "./review-evidence.mjs"
@@ -113,6 +114,31 @@ const motionTokens = new Set(
 const RULES = makeRules({ semanticTokens, motionTokens, labelContrast: await labelContrastScanner(PKG_ROOT, REGISTRY.themes?.default), statusText: (css) => statusTextDrift(css, REGISTRY.themes?.default) }).filter((r) => r.scope !== "package")
 const PROP_SURFACE = REGISTRY.propSurface?.items ?? {}
 const ICONS = new Set(REGISTRY.iconContract?.names ?? [])
+/** Other sets' names <Icon> resolves to a contract name (`menu` → bars): they draw, so they are not off-contract. */
+const ICON_ALIASES = REGISTRY.iconContract?.aliases ?? {}
+const iconKnown = (n) => ICONS.has(n) || Boolean(ICON_ALIASES[n]) || Boolean(APP_ICONS?.names.has(n))
+/** The contract names nearest an unknown one: sharing a word first, then by edit distance. */
+function nearestIcons(name, limit = 3) {
+	const distance = (a, b) => {
+		const row = Array.from({ length: b.length + 1 }, (_, i) => i)
+		for (let i = 1; i <= a.length; i++) {
+			let prev = row[0]
+			row[0] = i
+			for (let j = 1; j <= b.length; j++) {
+				const cur = row[j]
+				row[j] = Math.min(row[j] + 1, row[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1))
+				prev = cur
+			}
+		}
+		return row[b.length]
+	}
+	const parts = new Set(name.toLowerCase().split(/[-_\s]+/))
+	return [...ICONS]
+		.map((c) => ({ c, s: distance(name.toLowerCase(), c) - (c.split("-").some((p) => parts.has(p)) ? 3 : 0) }))
+		.sort((a, b) => a.s - b.s)
+		.slice(0, limit)
+		.map((x) => x.c)
+}
 /**
  * The names an app adds with `composeIconSets(appExtras, reiconIconSet)`. That is
  * the sanctioned way to extend the set, and the grade cannot read a set's names
@@ -378,6 +404,16 @@ const routeSkeletons = []
 const inventory = []
 /** UI sources for the adoption report: how much of the app is built from Sable. */
 const uiSources = []
+/** The app's own stylesheets, read for what its TSX does not show (app-css.mjs). */
+const cssSources = []
+/**
+ * Rebuilt parts and overrides: elements whose class names mirror a Sable part,
+ * and what the app's CSS does to Sable from outside. Notes for the reuse
+ * inventory, never scored: each is answered there ("used the part" or "kept
+ * mine, because …").
+ */
+const rebuiltParts = []
+const PART_NAMES = new Set((REGISTRY.components ?? []).flatMap((c) => [c.name, ...(c.subcomponents ?? []).map((s) => (typeof s === "string" ? s : s.name))]))
 
 /**
  * Attribute names on one JSX open tag, stopping at the tag's own `>`.
@@ -435,6 +471,11 @@ for (const file of files) {
 	const ctx = { isStylesheet: /\.(css|scss)$/.test(rel) }
 	for (const v of lintText(text, RULES, ctx)) {
 		findings.contract.push({ ...v, file: rel })
+	}
+
+	if (ctx.isStylesheet) {
+		cssSources.push({ rel, text })
+		for (const n of cssNotes(text)) rebuiltParts.push({ file: rel, ...n })
 	}
 
 	if (!/\.(tsx|jsx|ts|js)$/.test(extname(file) ? file : "")) continue
@@ -499,7 +540,7 @@ for (const file of files) {
 	for (const [local, { name }] of imported) {
 		if (name !== "Icon") continue
 		for (const m of code.matchAll(new RegExp(`<${local}\\s+[^>]*name=["']([^"']+)["']`, "g"))) {
-			if (!ICONS.has(m[1]) && !APP_ICONS?.names.has(m[1])) findings.offContractIcon.push({ file: rel, name: m[1], line: lineOf(text, m.index) })
+			if (!iconKnown(m[1])) findings.offContractIcon.push({ file: rel, name: m[1], suggest: nearestIcons(m[1]), line: lineOf(text, m.index) })
 		}
 	}
 
@@ -507,6 +548,10 @@ for (const file of files) {
 	if (/\.(tsx|jsx)$/.test(file)) {
 		uiSources.push({ rel, text })
 		for (const { index, ...s } of surfaceInventory(text)) inventory.push({ file: rel, line: lineOf(text, index), ...s })
+		for (const m of partMirrors(text, PART_NAMES))
+			rebuiltParts.push({ file: rel, line: lineOf(text, m.index), kind: "rebuilt part", what: `<${m.tag} className="${m.token}">`, consider: `${m.part}${m.hint ? ` (${m.hint})` : ""}` })
+		for (const n of compositionNotes(text, PART_NAMES))
+			rebuiltParts.push({ file: rel, line: lineOf(text, n.index), kind: "composition", what: n.what, consider: n.consider })
 		// Arrow-key handling written by hand: list navigation is behaviour Sable
 		// owns (roving focus, active descendant, typeahead), and the storefront
 		// search wrote its own. A note, since a canvas or a game has its own keys.
@@ -523,6 +568,106 @@ for (const file of files) {
 		const { tree } = skeletonize(text)
 		if (tree.split("\n").length >= 6) routeSkeletons.push({ file: rel, tree })
 	}
+}
+
+/* 6b. Icon names that reach <Icon> through the app's own wrapper. A work tracker
+      wrote `function Glyph({ name }) { return <Icon name={aliases[name] || name} /> }`
+      and passed it `users`, `menu`, `columns`: nine names the set lacks, each an
+      icon that rendered nothing, none of them visible to the check above, which
+      reads only literal `<Icon name="…">`. A component that forwards one of its
+      props into Icon's `name` (or into another wrapper's) is a wrapper; the
+      literals passed to it are judged, after its alias map if it has one. An
+      alias map is itself a note: it renames names the set does not have. */
+const iconAliasNotes = []
+{
+	const DECL = /(?:^|\n)[ \t]*(?:export\s+(?:default\s+)?)?(?:function\s+([A-Z]\w*)\s*\(\s*\{([^}]*)\}|const\s+([A-Z]\w*)\s*(?::[^=\n]+)?=\s*\(\s*\{([^}]*)\}[^\n]*?=>)/g
+	const wrappers = new Map() // name → { prop, target, aliases, file, line }
+	const sources = uiSources.map(({ rel, text }) => {
+		const icons = [...sableImports(text)].filter(([, v]) => v.name === "Icon").map(([local]) => local)
+		const decls = [...text.matchAll(DECL)].map((m) => ({ name: m[1] ?? m[3], params: (m[2] ?? m[4]).split(",").map((p) => p.trim().split(/[\s:=]/)[0]).filter(Boolean), index: m.index }))
+		return { rel, text, icons, decls }
+	})
+	const forwardsTo = (body, target, prop, params) => {
+		for (const m of body.matchAll(new RegExp(`<${target}\\b[^>]*?\\b${prop}=\\{([^}]*)\\}`, "g"))) {
+			const param = params.find((p) => new RegExp(`\\b${p}\\b`).test(m[1]))
+			if (param) return { param, expr: m[1] }
+		}
+		return null
+	}
+	for (let round = 0; round < 3; round++) {
+		for (const { rel, text, icons, decls } of sources) {
+			decls.forEach((d, i) => {
+				if (wrappers.has(d.name)) return
+				const body = text.slice(d.index, decls[i + 1]?.index ?? text.length)
+				const targets = [...icons.map((t) => [t, "name"]), ...[...wrappers].map(([w, v]) => [w, v.prop])]
+				for (const [target, prop] of targets) {
+					const hit = forwardsTo(body, target, prop, d.params)
+					if (!hit) continue
+					// `aliases[name] || name`: the object literal it indexes, read as pairs.
+					const mapName = /\b(\w+)\s*\[\s*\w+\s*\]/.exec(hit.expr)?.[1]
+					const literal = mapName ? new RegExp(`\\b${mapName}\\b[^=\\n]*=\\s*\\{([^{}]*)\\}`).exec(body)?.[1] : null
+					const aliases = literal ? new Map([...literal.matchAll(/["']?([\w-]+)["']?\s*:\s*["']([\w-]+)["']/g)].map((p) => [p[1], p[2]])) : null
+					wrappers.set(d.name, { prop: hit.param, target, aliases, file: rel, line: lineOf(text, d.index) })
+					break
+				}
+			})
+		}
+	}
+	const known = iconKnown
+	/** A literal passed to a wrapper, followed through its alias map to the name Icon gets. */
+	const resolveIcon = (wrapper, value) => {
+		let name = value
+		for (let w = wrappers.get(wrapper), hops = 0; w && hops < 5; w = wrappers.get(w.target), hops++) name = w.aliases?.get(name) ?? name
+		return name
+	}
+	for (const [name, w] of wrappers) {
+		if (!w.aliases) continue
+		const renamed = [...w.aliases].filter(([from, to]) => !ICONS.has(from) && !APP_ICONS?.names.has(from) && known(to))
+		for (const [from, to] of w.aliases) if (!known(to)) findings.offContractIcon.push({ file: w.file, name: to, via: `${name} alias map (${from})`, suggest: nearestIcons(to), line: w.line })
+		if (renamed.length)
+			iconAliasNotes.push({ file: w.file, line: w.line, kind: "icon aliases", what: `${name} renames ${renamed.length} icon name(s) the set does not have: ${renamed.slice(0, 6).map(([a, b]) => `${a}→${b}`).join(", ")}${renamed.length > 6 ? ", …" : ""}`, consider: "the set's own names (sable icon <name> says which exist), or composeIconSets to add the glyphs; a stand-in glyph (archive→inbox) makes two different things look the same" })
+	}
+	for (const { rel, text } of sources) {
+		for (const [name, w] of wrappers) {
+			for (const m of text.matchAll(new RegExp(`<${name}\\b[^>]*?\\b${w.prop}=["']([^"']+)["']`, "g"))) {
+				const resolved = resolveIcon(name, m[1])
+				if (!known(resolved)) findings.offContractIcon.push({ file: rel, name: m[1], via: name, suggest: nearestIcons(resolved), line: lineOf(text, m.index) })
+			}
+		}
+	}
+}
+rebuiltParts.push(...iconAliasNotes)
+{
+	// One line per mirrored class per file (`crumb` ×4 is one finding), and the
+	// parts first: what to swap before what to retune.
+	const ORDER = ["rebuilt part", "composition", "icon aliases", "override", "fixed height"]
+	const grouped = new Map()
+	for (const r of rebuiltParts) {
+		const key = r.kind === "rebuilt part" ? `${r.file}|${r.what}` : `${r.file}|${r.line}|${r.what}`
+		const seen = grouped.get(key)
+		if (seen) seen.count = (seen.count ?? 1) + 1
+		else grouped.set(key, { ...r })
+	}
+	rebuiltParts.splice(0, rebuiltParts.length, ...[...grouped.values()].sort((a, b) => ORDER.indexOf(a.kind) - ORDER.indexOf(b.kind) || a.file.localeCompare(b.file) || a.line - b.line))
+}
+
+/* 9. Both colour modes. An app that retints Sable on :root and writes nothing
+      for .dark ships a dark mode nobody designed: Sable's dark palette under the
+      app's light accents. A warning, not a score: one mode can be the brief, but
+      then the app should say so by never offering the other. */
+const SEMANTIC = new Set((REGISTRY.tokens?.semantic ?? []).map((t) => t.name))
+const coverage = modeCoverage(cssSources, SEMANTIC)
+const MODE_CONTROL = /^(?:ThemeSwitcher|ThemeSelector|useSableTheme)$/
+const modeControl = uiSources.some(({ text }) => [...sableImports(text).values()].some((v) => MODE_CONTROL.test(v.name)))
+const modes = {
+	informationalOnly: true,
+	lightTokens: coverage.light,
+	darkTokens: coverage.dark,
+	lightOnly: coverage.lightOnly,
+	modeControl,
+	status: coverage.lightOnly.length >= 3 ? "warn" : "ok",
+	meaning: "Colour tokens the app sets for light with no dark value, and whether it ships a light/dark control. Not scored.",
+	fix: 'Put both modes in a preset (sable preset --template, then sable preset --css), and mount ThemeSwitcher under SableThemeProvider so both can be reviewed. A light-only brief pins light (SableThemeProvider defaultPreference="light") and says so.',
 }
 
 function lineOf(text, index) {
@@ -666,6 +811,8 @@ const result = {
 		surfaces: inventory,
 	},
 	adoption,
+	rebuiltParts: { informationalOnly: true, meaning: "Elements and styles that stand in for a Sable part or reach into one: use the part (or its variant or prop), or record why the app keeps its own. Not scored.", total: rebuiltParts.length, items: rebuiltParts },
+	modes,
 	cliUsage,
 	appIcons: APP_ICONS ? { file: APP_ICONS.file, names: APP_ICONS.names.size } : null,
 	findings,
@@ -706,6 +853,18 @@ if (inventory.length) {
 	L(`  app-owned surfaces (notes, not scored; keeping your own is fine) — ${inventory.length}: ${kinds.map(([k, n]) => `${n} ${k}`).join(" · ")}`)
 	for (const s of inventory.slice(0, 12)) L(`    ${s.file}:${s.line}  <${s.tag}> ${s.kind} (${s.classes}) → Sable has ${s.consider}`)
 	if (inventory.length > 12) L(`    … ${inventory.length - 12} more (--json lists every one)`)
+}
+if (rebuiltParts.length) {
+	L()
+	L(`  rebuilt parts and overrides (notes, not scored) — ${rebuiltParts.length}`)
+	for (const r of rebuiltParts.slice(0, 12)) L(`    ${r.file}:${r.line}  ${r.what}${r.count ? ` ×${r.count}` : ""} → ${r.consider}`)
+	if (rebuiltParts.length > 12) L(`    … ${rebuiltParts.length - 12} more (--json → rebuiltParts.items)`)
+}
+if (modes.status === "warn" || !modeControl) {
+	L()
+	if (modes.status === "warn") L(`  colour modes (warning, not scored) — ${modes.lightOnly.length} colour token(s) set for light only: ${modes.lightOnly.slice(0, 6).map((t) => `--${t.name}`).join(", ")}${modes.lightOnly.length > 6 ? ", …" : ""}`)
+	if (!modeControl) L("  colour modes — no ThemeSwitcher, ThemeSelector or useSableTheme: nothing lets anyone switch modes to review both")
+	L(`    ${modes.fix}`)
 }
 if (adoption.level !== "empty") {
 	L()

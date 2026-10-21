@@ -361,7 +361,7 @@ describe("workspace register foundation", () => {
 		// Most themes paint the rail the page's colour, so an inset panel on a plain
 		// `sidebar` ground had nothing to lift it but a hairline. The ground is a
 		// step off the rail, with a hook a theme may use to tune it.
-		expect(stylesCss).toMatch(/--shell-ground\s*:\s*var\(--theme-shell-ground,\s*color-mix\(in oklch, var\(--sidebar\)/)
+		expect(stylesCss).toMatch(/--shell-ground\s*:\s*var\(--theme-shell-ground,\s*color-mix\(in oklab, var\(--sidebar\)/)
 		for (const token of APP_SHELL_TOKENS) {
 			expect(stylesCss).toContain(`--color-${token}: var(--${token})`)
 		}

@@ -8,6 +8,7 @@ import {
 	dataTableMeta,
 	EmptyState,
 	Icon,
+	StatusDot,
 	Toolbar,
 } from "@sableui/react"
 import { useState } from "react"
@@ -56,6 +57,63 @@ const deployments = [
 		duration: "18s",
 	},
 ]
+
+/* Sample issues for the grouped example (invented). */
+const ISSUE_STATUSES = [
+	{ key: "in-progress", label: "In progress", tone: "warning" },
+	{ key: "in-review", label: "In review", tone: "purple" },
+	{ key: "todo", label: "Todo", tone: "neutral" },
+	{ key: "done", label: "Done", tone: "success" },
+] as const
+type IssueStatus = (typeof ISSUE_STATUSES)[number]["key"]
+type Issue = { id: string; title: string; status: IssueStatus; label: string; due: Date }
+const seedIssues: Issue[] = [
+	{ id: "WEB-104", title: "Refine product detail page", status: "in-progress", label: "Design", due: new Date("2026-10-23") },
+	{ id: "WEB-118", title: "Implement responsive navigation", status: "in-progress", label: "Development", due: new Date("2026-10-23") },
+	{ id: "WEB-106", title: "Review mobile navigation", status: "in-review", label: "Design", due: new Date("2026-10-22") },
+	{ id: "WEB-121", title: "Approve ingredient taxonomy", status: "in-review", label: "Content", due: new Date("2026-10-22") },
+	{ id: "WEB-107", title: "Define checkout transitions", status: "todo", label: "Motion", due: new Date("2026-10-27") },
+	{ id: "WEB-108", title: "Prepare development handoff", status: "todo", label: "Delivery", due: new Date("2026-10-28") },
+	{ id: "WEB-123", title: "Document component states", status: "todo", label: "Design", due: new Date("2026-10-27") },
+	{ id: "WEB-101", title: "Finalize art direction", status: "done", label: "Design", due: new Date("2026-10-16") },
+]
+const formatDue = (date: Date) => date.toLocaleDateString(undefined, { month: "short", day: "numeric" })
+
+function GroupedIssues() {
+	const [issues, setIssues] = useState(seedIssues)
+	const [selectedId, setSelectedId] = useState<string>("WEB-104")
+	function add(status: IssueStatus) {
+		const n = 124 + issues.length
+		setIssues((all) => [...all, { id: `WEB-${n}`, title: "Untitled issue", status, label: "Design", due: new Date("2026-10-30") }])
+		setSelectedId(`WEB-${n}`)
+	}
+	return (
+		<DataTable
+			data={issues}
+			rowKey={(t) => t.id}
+			groupBy={(t) => t.status}
+			groups={ISSUE_STATUSES.map((s) => ({
+				key: s.key,
+				label: s.label,
+				icon: <StatusDot tone={s.tone} />,
+				defaultExpanded: s.key !== "done",
+				action: (
+					<Button variant="ghost" size="icon-xs" aria-label={`Add issue to ${s.label}`} onClick={() => add(s.key)}>
+						<Icon name="plus" />
+					</Button>
+				),
+			}))}
+			onRowClick={(t) => setSelectedId(t.id)}
+			isRowSelected={(t) => t.id === selectedId}
+			columns={[
+				{ key: "id", header: "ID", className: "w-24", cell: (t) => <span className="text-mono-caption text-muted-foreground">{t.id}</span> },
+				{ key: "title", header: "Issue", sortable: true },
+				{ key: "label", header: "Label", cell: (t) => <Badge appearance="outline" size="sm">{t.label}</Badge> },
+				{ key: "due", header: "Due", sortable: true, sortValue: (t) => t.due.getTime(), cell: (t) => formatDue(t.due) },
+			]}
+		/>
+	)
+}
 
 function formatDeployed(date: Date): string {
 	return date.toLocaleString(undefined, {
@@ -192,6 +250,19 @@ export function DataTablePage() {
 									{ key: "duration", header: "Duration", align: "end" },
 								]}
 							/>
+						</CardContent>
+					</Card>
+				</Example>
+			</Section>
+
+			<Section
+				title="Grouped rows"
+				description="groupBy and groups put the rows under header rows, by status here: one header for the whole table, so every group shares the columns. Each header row toggles its group and carries a count and an add action; sorting applies within each group, and Done starts closed."
+			>
+				<Example className="block">
+					<Card>
+						<CardContent flush>
+							<GroupedIssues />
 						</CardContent>
 					</Card>
 				</Example>

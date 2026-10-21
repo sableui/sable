@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const dataTableMeta: ComponentMeta = {
 	name: "DataTable",
 	summary:
-		"A data-driven table over the Table primitives — a columns def + data array with built-in client-side sorting (click a sortable header to cycle asc → desc → none), optional row click / selection, and an empty state. For server data or paging, sort/page the data and pair with Pagination.",
+		"A data-driven table over the Table primitives — a columns def + data array with built-in client-side sorting (click a sortable header to cycle asc → desc → none), optional row click / selection, rows grouped under collapsible header rows (groupBy), and an empty state. For server data or paging, sort/page the data and pair with Pagination.",
 	keywords: [
 		"data table",
 		"table",
@@ -13,6 +13,13 @@ export const dataTableMeta: ComponentMeta = {
 		"empty state",
 		"pagination",
 		"list",
+		"grouped",
+		"group by",
+		"sections",
+		"issue list",
+		"issue tracker",
+		"status groups",
+		"collapsible groups",
 	],
 	usage: {
 		description:
@@ -41,7 +48,12 @@ export const dataTableMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
-					"Move to TanStack Table, rendered with Sable's Table parts, once the table needs server-side sorting or filtering, column visibility or resizing, grouping, or virtualised rows. DataTable stays dependency-free and does not grow into a data grid; `sable docs tables-with-tanstack` maps one onto the other.",
+					"Group rows by status for an issue tracker (or by owner, by day) with groupBy + groups on ONE DataTable: every group shares the header and the column widths, each header row carries the group's count and an add action, and sorting applies within each group. Do not stack one DataTable per group inside Collapsibles; the header repeats and the columns stop lining up.",
+			},
+			{
+				guidance: "do",
+				description:
+					"Move to TanStack Table, rendered with Sable's Table parts, once the table needs server-side sorting or filtering, column visibility or resizing, nested or aggregated grouping, or virtualised rows. DataTable stays dependency-free and does not grow into a data grid; `sable docs tables-with-tanstack` maps one onto the other.",
 			},
 			{
 				guidance: "dont",
@@ -72,6 +84,12 @@ export const dataTableMeta: ComponentMeta = {
 				required: false,
 				description:
 					"Content spanning all columns when the row array is empty.",
+			},
+			{
+				name: "Group header row",
+				required: false,
+				description:
+					"With groupBy: one row per group heading its own tbody (a th with scope=rowgroup across every column) holding the disclosure toggle, the group's icon, label and count, and an optional trailing action.",
 			},
 			{
 				name: "Caption",
@@ -155,6 +173,36 @@ export const dataTableMeta: ComponentMeta = {
 			type: "ReactNode",
 			description: "Bottom table caption.",
 		},
+		{
+			name: "groupBy",
+			type: "(row) => string",
+			description:
+				"Group the rows under header rows by the key this returns (a status, an owner, a day). One header serves every group, so the columns line up across them; sorting applies within each group.",
+		},
+		{
+			name: "groups",
+			type: "{ key: string; label?: ReactNode; icon?: ReactNode; action?: ReactNode; defaultExpanded?: boolean }[]",
+			description:
+				"Order and presentation of the groups, by key: the header row's label (defaults to the key), a leading icon such as a status mark, a trailing action such as an icon Button that adds a row to the group, and whether it starts open (default true). Groups groupBy returns that are not listed follow, in the order their first row appears in data. A listed group with no rows is not shown.",
+		},
+		{
+			name: "collapsible",
+			type: "boolean",
+			default: "true",
+			description:
+				"Whether each group's header row is a toggle that opens and closes the group. A closed group keeps its header row and count; its rows are hidden and select-all skips them.",
+		},
+		{
+			name: "expandedGroups",
+			type: "ReadonlySet<string>",
+			description:
+				"The open groups, by key (controlled). Without it each group starts at its defaultExpanded and the table holds the state.",
+		},
+		{
+			name: "onExpandedGroupsChange",
+			type: "(keys: Set<string>) => void",
+			description: "Called with the new set of open group keys when a group header is toggled.",
+		},
 	],
 	tokensUsed: ["muted-foreground", "foreground", "ring"],
 	motion: [
@@ -183,6 +231,18 @@ export const dataTableMeta: ComponentMeta = {
 			why: "A checked row's fill eases in across its cells, so selecting by checkbox reads as the row being picked rather than a band stamped over it.",
 		},
 		{
+			slot: "transition",
+			recipe: "motion-interactive",
+			part: "Group chevron",
+			why: "A group's chevron turns from pointing along the reading direction (closed) to down (open), so the group reads as folding rather than a glyph being swapped.",
+		},
+		{
+			slot: "arrival",
+			recipe: "none",
+			part: "Group rows",
+			why: "Opening a group shows its rows at once: table rows cannot animate their height without leaving the table layout, and the rows are the content the reader asked for.",
+		},
+		{
 			slot: "activity",
 			recipe: "none",
 			part: "Root",
@@ -193,6 +253,7 @@ export const dataTableMeta: ComponentMeta = {
 		"Sorted columns set aria-sort=ascending/descending on the header cell.",
 		"Sortable headers are real <button>s with a focus-visible ring, keyboard-operable.",
 		"Inherits the Table's scrollable frame and semantic <table>/<th>/<td> structure.",
+		"Grouped, each group is its own <tbody> (a rowgroup) headed by a <th scope=\"rowgroup\"> spanning the columns, so group headers are never read as data rows; the toggle is a real button with aria-expanded and aria-controls naming that tbody.",
 	],
 	examples: [
 		{
@@ -214,6 +275,10 @@ export const dataTableMeta: ComponentMeta = {
 		{
 			label: "In a card, edge to edge",
 			code: '<Card><CardHeader><CardTitle>Deployments</CardTitle></CardHeader><CardContent flush><DataTable data={deployments} rowKey={(row) => row.id} columns={[{ key: "project", header: "Project", sortable: true }, { key: "duration", header: "Duration", align: "end" }]} /></CardContent></Card>',
+		},
+		{
+			label: "Issues grouped by status",
+			code: 'const STATUSES = [\n\t{ key: "in-progress", label: "In progress", icon: <StatusDot tone="warning" /> },\n\t{ key: "in-review", label: "In review", icon: <StatusDot tone="purple" /> },\n\t{ key: "todo", label: "Todo", icon: <StatusDot /> },\n\t{ key: "done", label: "Done", icon: <StatusDot tone="success" />, defaultExpanded: false },\n]\n\n<DataTable\n\tdata={issues}\n\trowKey={(t) => t.id}\n\tgroupBy={(t) => t.status}\n\tgroups={STATUSES.map((s) => ({ ...s, action: <Button variant="ghost" size="icon-xs" aria-label={`Add issue to ${s.label}`} onClick={() => create(s.key)}><Icon name="plus" /></Button> }))}\n\tonRowClick={(t) => setSelectedId(t.id)}\n\tisRowSelected={(t) => t.id === selectedId}\n\tcolumns={[\n\t\t{ key: "id", header: "ID", className: "w-20", cell: (t) => <span className="text-mono-caption text-muted-foreground">{t.id}</span> },\n\t\t{ key: "title", header: "Issue", sortable: true },\n\t\t{ key: "due", header: "Due", sortable: true, sortValue: (t) => t.due.getTime(), cell: (t) => formatDate(t.due) },\n\t]}\n/>',
 		},
 		{
 			label: "Empty state",

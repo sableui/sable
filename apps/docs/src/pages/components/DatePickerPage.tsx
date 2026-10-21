@@ -1,4 +1,4 @@
-import { DatePicker, datePickerMeta, Field } from "@sableui/react"
+import { DatePicker, datePickerMeta, Field, PanelSection, PropertyRow } from "@sableui/react"
 import { useState, useSyncExternalStore } from "react"
 import {
 	Example,
@@ -28,6 +28,7 @@ export function DatePickerPage() {
 	const [scheduled, setScheduled] = useState<Date>()
 	const [when, setWhen] = useState<Date>()
 	const [launch, setLaunch] = useState<Date>()
+	const [due, setDue] = useState<Date | undefined>(() => new Date(2026, 9, 23))
 
 	return (
 		<>
@@ -113,6 +114,34 @@ export function DatePickerPage() {
 					>
 						<DatePicker granularity="minute" defaultTime="09:00" />
 					</Field>
+				</Example>
+			</Section>
+
+			<Section
+				title="In an inspector"
+				description='size="xs" is the property-grid rung: the inset well SelectTrigger and ScrubField use on the neighbouring rows. formatOptions writes the date the way the rest of the screen does.'
+			>
+				<Example
+					code={`<PanelSection title="Properties">
+	<PropertyRow label="Due date">
+		<DatePicker size="xs" aria-label="Due date" value={due} onValueChange={setDue} formatOptions={{ month: "short", day: "numeric" }} />
+	</PropertyRow>
+</PanelSection>`}
+				>
+					<div data-density="compact" className="sable-frame sable-frame-tool w-64 overflow-hidden bg-panel">
+						<PanelSection title="Properties" className="border-t-0">
+							<PropertyRow label="Due date">
+								<DatePicker
+									size="xs"
+									aria-label="Due date"
+									value={due}
+									onValueChange={setDue}
+									formatOptions={{ month: "short", day: "numeric" }}
+									className="w-28"
+								/>
+							</PropertyRow>
+						</PanelSection>
+					</div>
 				</Example>
 			</Section>
 

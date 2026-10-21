@@ -191,8 +191,10 @@ Which token to reach for, and what it is most often confused with. Generated fro
 - **`region-ultrawide (legacy — prefer region-full)`** — Deprecated. Kept so existing usage keeps resolving. *Use for:* Nothing new. Use `region-full`.
     - **Not** `region-full`, which is what this became.
 
-### typographyOverrides (60)
+### typographyOverrides (61)
 
+- **`type-base`** — The base size the page type scale is built on, as a unitless px number — 16 by default. Every page tier keeps its ratio to it, so `14` rebuilds the whole scale at 14, and the baseline step and spacing follow the body down. *Use for:* When the product asks for smaller or larger type everywhere: a dense technical tool at 13-14, a reading product at 17. Set it on :root, a theme scope or a preset (`tokens.shared["type-base"]: "14"`), not per component.
+    - **Not** Changing the root font-size, which also moves every rem the app wrote and the control ladder; or overriding tier sizes one by one, which breaks the ratios between them. Unitless: `14`, never `14px`.
 - **`type-display-4xl-size`** — The largest type: display-lg through display-4xl. Marketing-scale, one per view at most. *Use for:* A landing page hero, a section opener on a brand surface.
     - **Not** `heading-1` for page titles. Display is a *statement*; headings are *structure*. A settings page titled in display-3xl looks like an advert.
 - **`type-title-lg-size`** — The title of a *component*, not of a document. *Use for:* A card's heading, a dialog title, a section label inside a panel.

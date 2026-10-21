@@ -1,9 +1,18 @@
 import {
+	Avatar,
 	Button,
 	Icon,
+	Menu,
+	MenuContent,
+	MenuItem,
+	MenuSeparator,
+	MenuTrigger,
 	NotificationBadge,
 	Sidebar,
+	SidebarAccount,
+	SidebarBrand,
 	SidebarFooter,
+	SidebarGroup,
 	SidebarHeader,
 	SidebarItem,
 	sidebarMeta,
@@ -101,6 +110,46 @@ export function SidebarPage() {
 				description="Shrinks to icons, with labels moving into hover tooltips."
 			>
 				<CollapsibleDemo />
+			</Section>
+
+			<Section
+				title="Groups and an account menu"
+				description="SidebarGroup labels a run of items; SidebarAccount ends the rail as one row that opens the account menu. The brand, the items, the group labels and the account all sit on the same icon and label columns. Inside a compact Workspace the rail takes 32px rows."
+			>
+				<Frame>
+					<Sidebar variant="inline">
+						<SidebarHeader>
+							<SidebarBrand mark={<Avatar shape="square" size="xs" fallback="F" alt="" />} label="Forma Studio" />
+						</SidebarHeader>
+						<SidebarNav>
+							<SidebarItem icon={<Icon name="inbox" />} label="Inbox" badge={<span className="text-ui-num">4</span>} />
+							<SidebarGroup label="Workspace">
+								<SidebarItem icon={<Icon name="folder" />} label="Projects" active />
+								<SidebarItem icon={<Icon name="users" />} label="Clients" />
+							</SidebarGroup>
+						</SidebarNav>
+						<SidebarFooter>
+							<Menu>
+								<MenuTrigger
+									render={
+										<SidebarAccount
+											avatar={<Avatar size="xs" fallback="EL" alt="" />}
+											label="Emma Lee"
+											detail="Forma Studio"
+										/>
+									}
+								/>
+								<MenuContent side="top" align="start">
+									<MenuItem>Settings</MenuItem>
+									<MenuItem>Keyboard shortcuts</MenuItem>
+									<MenuSeparator />
+									<MenuItem>Sign out</MenuItem>
+								</MenuContent>
+							</Menu>
+						</SidebarFooter>
+					</Sidebar>
+					<div className="flex-1 p-6 text-body-sm text-muted-foreground">Main content area</div>
+				</Frame>
 			</Section>
 
 			<MetaFooter meta={sidebarMeta} />

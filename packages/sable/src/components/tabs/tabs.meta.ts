@@ -20,6 +20,10 @@ export const tabsMeta: ComponentMeta = {
 			},
 			{
 				guidance: "do",
+				description: "In tool chrome (a WorkspaceBar, a compact panel header) use variant=\"pill\" for a view switch such as Overview / Issues / Updates: it reads as a control beside the bar's other controls. Underline is the page-section idiom; inside a WorkspaceBar it sits on the bar's hairline rather than drawing its own.",
+			},
+			{
+				guidance: "do",
 				description: "Keep tab labels short and make the active tab unmistakable.",
 			},
 			{

@@ -10,6 +10,11 @@ export const collapsibleMeta: ComponentMeta = {
 		"disclosure",
 		"expand",
 		"collapse",
+		"chevron",
+		"caret",
+		"rotate",
+		"group header",
+		"section toggle",
 	],
 	usage: {
 		description: "Use Collapsible for a single piece of optional content that can expand in place.",
@@ -92,9 +97,9 @@ export const collapsibleMeta: ComponentMeta = {
 		},
 		{
 			name: "CollapsibleIndicator",
-			type: "{ className? }",
+			type: '{ direction?: "down" | "end"; className? }',
 			description:
-				"Auto-rotating disclosure chevron. Place it inside the trigger content and add the `group/collapsible` class to the trigger so it flips 180° on open.",
+				"Auto-rotating disclosure chevron. Place it anywhere inside the trigger content; it reads the trigger's open state itself, no class to add. direction=\"down\" (default) flips 180° on open; direction=\"end\" points to the inline end while closed and turns down on open — the caret for a grouped list's section header or a tree row. Use it instead of rotating your own chevron with CSS, which snaps with no transition.",
 		},
 	],
 	tokensUsed: ["foreground", "muted-foreground"],
@@ -121,7 +126,7 @@ export const collapsibleMeta: ComponentMeta = {
 			slot: "transition",
 			recipe: "motion-interactive",
 			part: "CollapsibleIndicator",
-			why: "The chevron turns with the panel rather than flipping in one frame: motion-interactive lists `rotate`, the property rotate-180 writes.",
+			why: "The chevron turns with the panel rather than flipping in one frame: motion-interactive lists `rotate`, the property rotate-180 and rotate-0 write.",
 		},
 		{
 			slot: "activity",
@@ -147,7 +152,11 @@ export const collapsibleMeta: ComponentMeta = {
 		},
 		{
 			label: "With rotating chevron",
-			code: '<Collapsible><CollapsibleTrigger className="group/collapsible" render={<Button variant="ghost">Details <CollapsibleIndicator /></Button>} /><CollapsiblePanel><p className="pt-3">Revealed on toggle.</p></CollapsiblePanel></Collapsible>',
+			code: '<Collapsible><CollapsibleTrigger render={<Button variant="ghost">Details <CollapsibleIndicator /></Button>} /><CollapsiblePanel><p className="pt-3">Revealed on toggle.</p></CollapsiblePanel></Collapsible>',
+		},
+		{
+			label: "Group header with a side caret",
+			code: '<Collapsible defaultOpen><CollapsibleTrigger render={<Button variant="ghost" size="xs"><CollapsibleIndicator direction="end" />In progress <span className="text-ui-num text-muted-foreground">5</span></Button>} /><CollapsiblePanel><ul className="text-ui-body"><li>Refine product detail page</li><li>Build the ingredient library</li></ul></CollapsiblePanel></Collapsible>',
 		},
 	],
 }

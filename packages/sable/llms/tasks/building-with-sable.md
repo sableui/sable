@@ -46,7 +46,13 @@ for each recognizable element with `sable search "<need>" --json`; inspect the
 matching `component <Name> --props` and `--examples` before implementation.
 Use Sable's composed anatomy and supported variants. A hand-built button, field,
 menu, dialog, table, or card that imitates a shipped component violates the contract.
-That binds behaviour and parts, not layouts. Results marked ◇ (patterns, blocks,
+That binds behaviour and parts, not layouts. Search a part by its plain name and
+its role before writing a class or component for it (`sable search breadcrumb`,
+`sable search "top bar"`); exported parts such as `PropertyRow` and `WorkspaceBar`
+are listed by name, and `sable component <Part>` answers with their entry. When a
+part's look or size disagrees with the design, use its variant or prop, or report
+the missing variant; never rebuild it. `sable icon <name>` says whether an icon
+exists. Results marked ◇ (patterns, blocks,
 and compositions such as MediaTile) are references: use one when its layout fits
 the brief, otherwise compose your own from Sable's parts. The brief's signature
 surfaces, where the product's identity lives, are designed from its direction.
@@ -65,8 +71,10 @@ implement genuinely app-specific structure without creating parallel controls.
 
 ## Finish the working product
 
-Run `sable doctor`, `sable lint <source paths> --json`, and the project's build/type
-checks. Inspect desktop/mobile layouts, operate the primary task and recovery
+Run `sable check <source paths>` (doctor, lint and grade) and the project's
+build/type checks. Answer each Rebuilt parts note in the reuse inventory, and fix
+a colour-modes warning: app colours live in a preset with both modes, and a
+`ThemeSwitcher` under `SableThemeProvider` lets the user review each. Inspect desktop/mobile layouts, operate the primary task and recovery
 path, and check keyboard focus, fonts, reduced motion, and meaningful states.
 Use [reviewing-a-design.md](./reviewing-a-design.md),
 [reviewing-a-journey.md](./reviewing-a-journey.md), and

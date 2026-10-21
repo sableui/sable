@@ -1,7 +1,9 @@
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 import { AppShellFrameProvider } from "../app-shell/app-shell-frame"
-import { Sidebar, SidebarBrand, SidebarHeader, SidebarItem, SidebarNav } from "./sidebar"
+import { Density } from "../../lib/density"
+import { Menu, MenuContent, MenuItem, MenuTrigger } from "../menu"
+import { Sidebar, SidebarAccount, SidebarBrand, SidebarFooter, SidebarGroup, SidebarHeader, SidebarItem, SidebarNav } from "./sidebar"
 
 describe("Sidebar / SidebarItem", () => {
 	it("renders an expanded item with its label, icon, and active state", () => {
@@ -195,5 +197,116 @@ describe("Sidebar label fade", () => {
 		expect(screen.queryByText("Home")).not.toBeInTheDocument()
 		view.rerender(rail(false))
 		expect(label().className).toContain("starting:opacity-0")
+	})
+})
+
+describe("Sidebar density", () => {
+	it("takes the compact rung inside a compact scope, on the same columns as the page rung", () => {
+		render(
+			<Density value="compact">
+				<Sidebar>
+					<SidebarNav>
+						<SidebarItem icon={<span data-testid="icon" />} label="Inbox" />
+					</SidebarNav>
+				</Sidebar>
+			</Density>,
+		)
+		const row = screen.getByRole("button", { name: "Inbox" })
+		// 32px row: half the page rung's block padding, a 20px icon box.
+		expect(row.className).toContain("py-1.5")
+		expect(row.className).not.toContain("py-2.5")
+		expect(row.className).toContain("gap-3 px-3")
+		expect(screen.getByTestId("icon").parentElement?.className).toContain("text-xl")
+	})
+
+	it("keeps the page rung outside a compact scope", () => {
+		render(
+			<Sidebar>
+				<SidebarNav>
+					<SidebarItem label="Inbox" />
+				</SidebarNav>
+			</Sidebar>,
+		)
+		expect(screen.getByRole("button", { name: "Inbox" }).className).toContain("py-2.5")
+	})
+})
+
+describe("SidebarGroup", () => {
+	it("labels its run of items as a group, on the rail's columns", () => {
+		render(
+			<Sidebar>
+				<SidebarNav>
+					<SidebarGroup label="Workspace">
+						<SidebarItem label="Projects" />
+					</SidebarGroup>
+				</SidebarNav>
+			</Sidebar>,
+		)
+		const group = screen.getByRole("group", { name: "Workspace" })
+		expect(group).toContainElement(screen.getByRole("button", { name: "Projects" }))
+		expect(screen.getByText("Workspace").className).toContain("px-3")
+	})
+
+	it("keeps the group's name when collapsed, and draws a rule instead of the label", () => {
+		render(
+			<Sidebar collapsed>
+				<SidebarNav>
+					<SidebarGroup label="Favorites">
+						<SidebarItem label="Brand refresh" />
+					</SidebarGroup>
+				</SidebarNav>
+			</Sidebar>,
+		)
+		expect(screen.getByRole("group", { name: "Favorites" })).toBeInTheDocument()
+		expect(screen.getByText("Favorites").className).toContain("sr-only")
+	})
+})
+
+describe("SidebarAccount", () => {
+	it("puts the avatar in the icon slot, the label and detail on the label column, and an up-down chevron", () => {
+		render(
+			<Sidebar>
+				<SidebarFooter>
+					<SidebarAccount avatar={<span data-testid="avatar" />} label="Emma Lee" detail="Forma Studio" />
+				</SidebarFooter>
+			</Sidebar>,
+		)
+		const row = screen.getByRole("button", { name: /Emma Lee/ })
+		expect(row.className).toContain("gap-3 px-3")
+		expect(screen.getByTestId("avatar").parentElement?.className).toContain("size-[1em]")
+		expect(screen.getByText("Forma Studio").className).toContain("text-muted-foreground")
+	})
+
+	it("is the trigger of an account menu, and keeps its fill while the menu is open", async () => {
+		const { default: userEvent } = await import("@testing-library/user-event")
+		render(
+			<Sidebar>
+				<SidebarFooter>
+					<Menu>
+						<MenuTrigger render={<SidebarAccount avatar={null} label="Emma Lee" />} />
+						<MenuContent>
+							<MenuItem>Settings</MenuItem>
+						</MenuContent>
+					</Menu>
+				</SidebarFooter>
+			</Sidebar>,
+		)
+		const row = screen.getByRole("button", { name: /Emma Lee/ })
+		expect(row.className).toContain("data-[popup-open]:bg-sidebar-accent")
+		await userEvent.click(row)
+		expect(await screen.findByRole("menuitem", { name: "Settings" })).toBeInTheDocument()
+		expect(row).toHaveAttribute("data-popup-open")
+	})
+
+	it("shows the avatar alone when the rail is collapsed, named by its label", () => {
+		render(
+			<Sidebar collapsed>
+				<SidebarFooter>
+					<SidebarAccount avatar={<span data-testid="avatar" />} label="Emma Lee" detail="Forma Studio" />
+				</SidebarFooter>
+			</Sidebar>,
+		)
+		expect(screen.getByRole("button", { name: "Emma Lee" })).toBeInTheDocument()
+		expect(screen.queryByText("Forma Studio")).not.toBeInTheDocument()
 	})
 })

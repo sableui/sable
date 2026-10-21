@@ -400,6 +400,132 @@ export function surfaceInventory(text) {
 }
 
 /**
+ * Class names that say which Sable part an element is standing in for. An app
+ * that writes `<span className="crumb">` and styles `.crumb` in its own CSS
+ * passes every token rule and the surface inventory above, which reads only
+ * Tailwind's utilities: a work tracker shipped hand-built breadcrumbs, a topbar,
+ * property rows, a brand row, status dots and an avatar stack through a 100/100
+ * grade that way, each a part Sable ships. Matched on the whole class, or the
+ * class minus its leading app words (`issue-toolbar` → `toolbar`), so a word
+ * inside a longer name (`property-label`) does not count. Curated, like
+ * adoption's aliases: these are names an app gives a rebuilt part.
+ */
+const PART_CLASSES = [
+	[/^(?:bread)?crumbs?$/, "Breadcrumbs"],
+	[/^(?:top|app|header|title)-?bar$/, "WorkspaceBar", "in a Workspace; AppHeader on a page"],
+	[/^tool-?bar$/, "Toolbar"],
+	[/^tab-?bar$/, "TabsList"],
+	[/^status-?bar$/, "StatusBar"],
+	[/^(?:property|prop-row|property-row|meta-row)$/, "PropertyRow"],
+	[/^(?:brand|logo)(?:-row)?$/, "SidebarBrand"],
+	[/^(?:[a-z]+-)?dot$/, "StatusDot"],
+	[/^(?:avatars|avatar-(?:stack|group|list|row)|(?:team|user|member)-avatars|facepile)$/, "AvatarGroup"],
+	[/^(?:account|profile)-(?:row|menu|footer|switcher)$|^user-(?:menu|footer)$|^(?:sidebar|nav|rail)-(?:footer|account|user)$/, "SidebarAccount", "in SidebarFooter, as the account Menu's trigger"],
+	[/^(?:nav|sidebar|rail)-(?:group|section)(?:-label)?$/, "SidebarGroup"],
+	[/^(?:notifications?|(?:notification|file|list|user|member|contact)-(?:row|item))$/, "Entity", "rows in a CardList"],
+	[/^(?:kbd|keycap)$/, "Kbd"],
+	[/^(?:badge|chip|pill)$/, "Badge"],
+	[/^(?:empty-state|blank-state)$/, "EmptyState"],
+	[/^(?:spinner|loader)$/, "Spinner"],
+	[/^skeleton$/, "Skeleton"],
+	[/^(?:divider|separator)$/, "Separator"],
+	[/^progress(?:-bar|-track)?$/, "Progress"],
+	[/^(?:modal|dialog)$/, "Dialog"],
+	[/^(?:drawer|side-sheet)$/, "Sheet"],
+	[/^segmented(?:-control)?$/, "ToggleGroup"],
+]
+/** Tailwind utilities, whose last word can look like a part name (`bg-card`). */
+const UTILITY_CLASS = /^(?:bg|text|border|ring|shadow|fill|stroke|outline|from|to|via|divide|accent|caret|decoration|placeholder|size|w|h|min|max|p[xytrbl]?|m[xytrbl]?|gap|rounded|motion|sable)-/
+
+/**
+ * The elements in one file whose class names mirror a Sable part, for the
+ * reuse inventory. `parts` is the set of names Sable exports (components and
+ * their parts), so a map entry the catalog does not have is never reported.
+ * An element that already holds the part (`<div className="tabbar"><TabsList>`)
+ * is a layout wrapper, not a rebuild, and is skipped.
+ */
+export function partMirrors(text, parts) {
+	const src = maskMarkupTemplates(stripComments(text))
+	const out = []
+	for (const m of openingTags(src, /^[a-z][a-z0-9]*$/)) {
+		if (insideRender(src, m.index)) continue
+		for (const token of classesOf(m.attrs).plain) {
+			if (UTILITY_CLASS.test(token) || !/^[a-z][a-z0-9-]*$/.test(token)) continue
+			const words = token.split("-")
+			const candidates = words.map((_, i) => words.slice(i).join("-"))
+			const hit = PART_CLASSES.find(([re]) => candidates.some((c) => re.test(c)))
+			if (!hit || !parts.has(hit[1])) continue
+			if (new RegExp(`<${hit[1]}\\b`).test(elementContent(src, m).inner)) continue
+			out.push({ index: m.index, tag: m.tag, token, part: hit[1], ...(hit[2] ? { hint: hit[2] } : {}) })
+			break
+		}
+	}
+	return out
+}
+
+/**
+ * Sable parts composed in a way another part already does better: the shape a
+ * records workspace drifted into when nothing said otherwise. Read lexically
+ * from one file's JSX, so each is a note for the reuse inventory, never a
+ * failure. `parts` is the set of names the installed catalog exports, so a note
+ * never points at a part this version does not have.
+ */
+const COMPOSITION_NOTES = [
+	{
+		within: "Sidebar",
+		has: /<SideNav\b/,
+		what: "SideNav inside a Sidebar",
+		consider: "SidebarNav with SidebarGroup and SidebarItem: the rail's own rows, on the same columns as SidebarBrand and SidebarAccount (SideNav brings another set)",
+		needs: "SidebarGroup",
+	},
+	{
+		within: "SidebarFooter",
+		has: /<(?:Entity|Badge)\b/,
+		what: "an Entity or Badge in the rail's footer",
+		consider: "SidebarAccount as the account Menu's trigger: one row, with settings and appearance in its menu and a detail line in place of a badge",
+		needs: "SidebarAccount",
+	},
+	{
+		within: "CollapsiblePanel",
+		has: /<DataTable\b/,
+		what: "a DataTable per group inside Collapsibles",
+		consider: "one DataTable with groupBy and groups: one header, columns that line up, a count and an add action per group",
+		needs: "DataTable",
+	},
+	{
+		within: "WorkspaceBar",
+		has: /<TabsList(?![^>]*variant=)/,
+		what: "underline tabs in a WorkspaceBar",
+		consider: "TabsList variant=\"pill\": a view switch in tool chrome reads as a control beside the bar's others; underline is the page-section idiom",
+		needs: "Tabs",
+	},
+]
+
+export function compositionNotes(text, parts) {
+	const src = stripComments(text)
+	const out = []
+	for (const note of COMPOSITION_NOTES) {
+		if (!parts.has(note.needs)) continue
+		const open = new RegExp(`<${note.within}\\b[^>]*>`, "g")
+		for (const m of src.matchAll(open)) {
+			const end = src.indexOf(`</${note.within}>`, m.index)
+			if (end < 0) continue
+			const inner = src.slice(m.index + m[0].length, end)
+			const hit = note.has.exec(inner)
+			if (!hit) continue
+			out.push({ index: m.index + m[0].length + hit.index, what: note.what, consider: note.consider })
+			break
+		}
+	}
+	// A native date field: the OS draws its own format and size, beside a
+	// product that formats dates its own way everywhere else.
+	const date = /<(?:input|Input)\b[^>]*\btype=["']date["']/.exec(src)
+	if (date && parts.has("DatePicker"))
+		out.push({ index: date.index, what: "a native date input", consider: "DatePicker (size=\"xs\" in a property row, formatOptions for the trigger text)" })
+	return out
+}
+
+/**
  * Build the rule table against a token contract.
  *
  * @param {{ semanticTokens: Set<string>, motionTokens: Set<string>, labelContrast?: ((css: string) => { index: number, match: string }[]) | null, statusText?: ((css: string) => { index: number, match: string }[]) | null }} contract

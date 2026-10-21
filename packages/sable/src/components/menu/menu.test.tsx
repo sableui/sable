@@ -2,7 +2,7 @@ import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 import { renderWithProviders, screen } from "../../test/render"
 import { Button } from "../button"
-import { Menu, MenuContent, MenuItem, MenuLinkItem, MenuTrigger } from "./menu"
+import { Menu, MenuContent, MenuItem, MenuLinkItem, MenuSubmenu, MenuSubmenuTrigger, MenuTrigger } from "./menu"
 
 function PageActions({ onCopy = () => undefined }: { onCopy?: () => void }) {
 	return (
@@ -51,5 +51,29 @@ describe("MenuLinkItem", () => {
 		const internal = screen.getByRole("menuitem", { name: "llms.txt" })
 		expect(internal).toHaveAttribute("href", "/llms.txt")
 		expect(internal).not.toHaveAttribute("rel")
+	})
+})
+
+describe("MenuSubmenuTrigger icon", () => {
+	it("leads the row with its icon, on the same column as MenuItem's", async () => {
+		renderWithProviders(
+			<Menu>
+				<MenuTrigger render={<Button>Account</Button>} />
+				<MenuContent>
+					<MenuItem icon={<span data-testid="item-icon" />}>Settings</MenuItem>
+					<MenuSubmenu>
+						<MenuSubmenuTrigger icon={<span data-testid="submenu-icon" />} value="Dark">Appearance</MenuSubmenuTrigger>
+						<MenuContent>
+							<MenuItem>Light</MenuItem>
+						</MenuContent>
+					</MenuSubmenu>
+				</MenuContent>
+			</Menu>,
+		)
+		await userEvent.click(screen.getByRole("button", { name: "Account" }))
+		const trigger = await screen.findByRole("menuitem", { name: /Appearance/ })
+		// The icon is the row's first child, as it is in MenuItem.
+		expect(trigger.firstElementChild).toBe(screen.getByTestId("submenu-icon"))
+		expect(screen.getByRole("menuitem", { name: "Settings" }).firstElementChild).toBe(screen.getByTestId("item-icon"))
 	})
 })

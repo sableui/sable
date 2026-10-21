@@ -513,6 +513,11 @@ const TYPE_TIERS: Record<string, TokenDoc> = {
 		insteadOf:
 			"`caption` with hand-added tracking. The transform is themeable here, so a quieter theme can opt into sentence case rather than being stuck with uppercase.",
 	},
+	"type-ui-title": {
+		intent: "The title of what a panel or inspector is showing — the open issue, the selected object — at 14px/600 on a 20px line: one step above ui-md's 12px.",
+		whenToUse: "The one title at the top of an inspector or a docked panel. Compact `text-title-lg` resolves to it, so a page title dropped into a workspace lands here on its own.",
+		insteadOf: "`text-ui-md` with a heavier weight (a title the size of its own description reads as a label), or `heading-*`, which is page structure, not chrome.",
+	},
 	"type-ui": {
 		intent:
 			"Chrome typography for the workspace register — 10–12px at weights 450–550, in ABSOLUTE px.",
@@ -569,6 +574,12 @@ const LAYOUT: Record<string, TokenDoc> = {
 		intent: "How many steps one baseline divides into. A theme picks it through `--theme-baseline-split`; thirds by default.",
 		whenToUse:
 			"In a theme, rarely: halves (2) read calmer and more editorial. Finer than thirds stops giving structure unless every value is chosen by eye.",
+	},
+	"type-base": {
+		intent: "The base size the page type scale is built on, as a unitless px number — 16 by default. Every page tier keeps its ratio to it, so `14` rebuilds the whole scale at 14, and the baseline step and spacing follow the body down.",
+		whenToUse: "When the product asks for smaller or larger type everywhere: a dense technical tool at 13-14, a reading product at 17. Set it on :root, a theme scope or a preset (`tokens.shared[\"type-base\"]: \"14\"`), not per component.",
+		insteadOf: "Changing the root font-size, which also moves every rem the app wrote and the control ladder; or overriding tier sizes one by one, which breaks the ratios between them. Unitless: `14`, never `14px`.",
+		pairsWith: ["leading-scale", "baseline-step"],
 	},
 	"leading-scale": {
 		intent: "How open the reading text is set, as a multiple of each reading tier's leading. Compact ↔ Airy in the customizer; a theme sets `--theme-leading-scale`.",

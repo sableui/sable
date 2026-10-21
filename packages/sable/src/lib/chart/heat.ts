@@ -74,7 +74,7 @@ export function activityLevels(values: number[], { levels = 5, scale = "quantile
 }
 
 /** The empty cell: a faint wash of the ink, so it reads on any surface (page, card, popover). */
-export const HEAT_EMPTY = "color-mix(in oklch, var(--foreground) 8%, transparent)"
+export const HEAT_EMPTY = "color-mix(in oklab, var(--foreground) 8%, transparent)"
 
 /**
  * The fill for a level, from a base colour (a tone's mark, a category colour).

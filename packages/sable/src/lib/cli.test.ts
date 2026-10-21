@@ -68,6 +68,45 @@ describe("error envelopes", () => {
 		expect(err.suggestions.join(" ")).toContain("Button")
 	})
 
+	it("resolves an exported part to the entry that documents it instead of ERR_UNKNOWN_COMPONENT", () => {
+		// `sable component PropertyRow` used to fail, so an agent that knew the
+		// right name decided the part did not exist and built its own row.
+		for (const [part, parent] of [
+			["PropertyRow", "PanelSection"],
+			["WorkspaceBar", "Workspace"],
+			["CollapsibleIndicator", "Collapsible"],
+			["Panel", "PanelGroup"],
+		]) {
+			const { type, data } = json(["component", part, "--props"])
+			expect(type, part).toBe("component.props")
+			expect(data.name, part).toBe(parent)
+			expect(data.part.name, part).toBe(part)
+			expect(data.part.import, part).toContain(part)
+		}
+		expect(run(["component", "PropertyRow"]).out).toMatch(/^PropertyRow is part of PanelSection\./)
+	})
+
+	it("finds a part by its own name in search, first", () => {
+		for (const part of ["WorkspaceBar", "PropertyRow", "CollapsibleIndicator"]) {
+			const [first] = json(["search", part]).data.results
+			expect(first.name, part).toBe(part)
+			expect(first.retrieve, part).toBe(`sable component ${first.partOf} --props`)
+		}
+	})
+
+	it("answers whether an icon name exists, and what to write instead", () => {
+		const list = json(["icon"]).data
+		expect(list.names).toEqual(registry.iconContract.names)
+		expect(json(["icon", "gear"]).data.known).toBe(true)
+		// Another set's name for a glyph the contract has: <Icon> draws it, and the
+		// answer names the contract spelling to write (registry → iconContract.aliases).
+		const alias = json(["icon", "settings"]).data
+		expect(alias.alias).toBe("gear")
+		const err = JSON.parse(run(["icon", "chevron-dwn", "--json"]).out)
+		expect(err.code).toBe("ERR_UNKNOWN_ICON")
+		expect(err.suggestions[0]).toBe('Use "chevron-down"')
+	})
+
 	it("rejects an out-of-range flag value rather than silently defaulting", () => {
 		const err = JSON.parse(run(["component", "Button", "--detail", "everything", "--json"]).out)
 		expect(err.code).toBe("ERR_BAD_FLAG")
@@ -355,6 +394,7 @@ describe("global flags", () => {
 		block: ["block", "--list"],
 		layout: ["layout", "--list"],
 		provider: ["provider", "--list"],
+		icon: ["icon", "gear"],
 		token: ["token", "--list"],
 		utility: ["utility", "--list"],
 		docs: ["docs", "--list"],
@@ -593,6 +633,24 @@ describe("sable check", () => {
 			// After the result, before the manual steps that consume it.
 			expect(text.indexOf("App-owned surfaces")).toBeGreaterThan(text.indexOf("[sable check] ✓"))
 			expect(text.indexOf("App-owned surfaces")).toBeLessThan(text.indexOf("Write the reuse inventory"))
+		} finally {
+			rmSync(root, { recursive: true, force: true })
+		}
+	}, 60_000)
+
+	it("lists rebuilt parts and warns about light-only colours, without failing", () => {
+		const app = CLEAN_APP.replace(/\n?$/, '\nexport const Crumbs = () => <nav><span className="crumb">Studio</span><span className="crumb">Aesop</span></nav>\n')
+		const root = project(app)
+		try {
+			writeFileSync(join(root, "src", "app.css"), ":root { --background: #fcfcfd; --foreground: #25262b; --muted: #eeeff3 }\n.topbar { height: 48px }\n")
+			const { data } = JSON.parse(runIn(root, ["check", "--json"]).out)
+			expect(data.failed).toEqual([])
+			expect(data.rebuiltParts.items).toMatchObject([{ kind: "rebuilt part", consider: "Breadcrumbs", count: 2 }, { kind: "fixed height" }])
+			const text = runIn(root, ["check"]).out
+			expect(text).toMatch(/Rebuilt parts — 2\./)
+			expect(text).toMatch(/src\/App\.tsx:\d+ {2}<span className="crumb"> ×2 → Breadcrumbs/)
+			expect(text).toMatch(/ {6}warn — colour modes: 3 colour token\(s\) set for light with no dark value/)
+			expect(text).toMatch(/note — colour modes: nothing imports ThemeSwitcher/)
 		} finally {
 			rmSync(root, { recursive: true, force: true })
 		}

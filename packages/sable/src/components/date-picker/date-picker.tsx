@@ -12,7 +12,7 @@ import type { Matcher } from "react-day-picker"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
 import { useDensity, useTypeTier } from "../../lib/density"
-import { FIELD_INVALID, FIELD_SHELL, MOBILE_FIELD_TIER } from "../../lib/field-shell"
+import { FIELD_INVALID, FIELD_SHELL, FIELD_SHELL_XS, MOBILE_FIELD_TIER } from "../../lib/field-shell"
 import { Calendar } from "../calendar/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "../popover/popover"
 import {
@@ -75,6 +75,21 @@ export interface DatePickerProps extends TriggerAttributes {
 	minDate?: Date
 	/** Latest selectable day (inclusive); later days are disabled. */
 	maxDate?: Date
+	/**
+	 * The trigger's rung. `md` is the form field, beside Input and Select. `xs`
+	 * is the property-grid rung (24px in a workspace): an inset `panel-field`
+	 * well with no border, the same shape as SelectTrigger `size="xs"` and
+	 * ScrubField on the neighbouring rows of an inspector.
+	 * @default "md"
+	 */
+	size?: "md" | "xs"
+	/**
+	 * How the trigger writes the chosen date, as `Intl.DateTimeFormat` options
+	 * in the reader's locale — `{ month: "short", day: "numeric" }` for "Oct 23"
+	 * where the rest of a list writes dates that way. Omitted: "Oct 23, 2026"
+	 * (and "Oct 23, 2026 at 14:30" under `granularity="minute"`).
+	 */
+	formatOptions?: Intl.DateTimeFormatOptions
 	/** Extra classes for the trigger button. */
 	className?: string
 }
@@ -134,6 +149,8 @@ export function DatePicker(props: DatePickerProps) {
 		disabled,
 		minDate,
 		maxDate,
+		size = "md",
+		formatOptions,
 		className,
 		id,
 		"aria-label": ariaLabel,
@@ -198,10 +215,13 @@ export function DatePicker(props: DatePickerProps) {
 	}
 
 	const label = value
-		? // 24-hour, matching the hour / minute Selects below — the trigger
-			// and the row that sets it must not show the same time two ways.
-			format(value, withTime ? "MMM d, yyyy 'at' HH:mm" : "PP")
+		? formatOptions
+			? new Intl.DateTimeFormat(undefined, formatOptions).format(value)
+			: // 24-hour, matching the hour / minute Selects below — the trigger
+				// and the row that sets it must not show the same time two ways.
+				format(value, withTime ? "MMM d, yyyy 'at' HH:mm" : "PP")
 		: (placeholder ?? (withTime ? "Pick date & time" : "Pick a date"))
+	const xs = size === "xs"
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
@@ -223,17 +243,21 @@ export function DatePicker(props: DatePickerProps) {
 						aria-required={ariaRequired}
 						disabled={disabled}
 						className={cn(
-							"inline-flex h-(--control-md) items-center gap-2 ps-3 pe-3 text-start text-foreground",
+							"inline-flex items-center text-start text-foreground",
+							xs ? "h-(--control-xs) gap-1 px-1.5" : "h-(--control-md) gap-2 ps-3 pe-3",
 							// Select's type: the density tier, plus the 16px phone tier
-							// its form-row neighbours take (lib/field-shell).
+							// its form-row neighbours take (lib/field-shell). The xs rung
+							// never sits in a page-register form row, so it skips it.
 							tier.body,
-							density === "comfortable" && MOBILE_FIELD_TIER,
+							density === "comfortable" && !xs && MOBILE_FIELD_TIER,
 							FIELD_SHELL,
+							// After FIELD_SHELL, so its well replaces the outlined field.
+							xs && FIELD_SHELL_XS,
 							FIELD_INVALID,
 							className,
 						)}
 					>
-						<Icon name="calendar" className="shrink-0 text-sm text-muted-foreground" />
+						<Icon name="calendar" className={cn("shrink-0 text-muted-foreground", xs ? "text-xs" : "text-sm")} />
 						<span className={cn("truncate", !value && "text-muted-foreground")}>
 							{label}
 						</span>

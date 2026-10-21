@@ -203,6 +203,17 @@
    See DESIGN.md → Layering.
    ========================================================================== */
 
+/* The mobile bar height BottomNav, AppHeader, AppShell's bottom padding and
+   Workspace's bottomNav row share. In the base layer so a theme or an app that
+   declares its own (unlayered) wins; declared here because only the Sable
+   theme did, and AppShell reads it with no fallback, so under every other
+   theme its calc() was invalid and the padding under a BottomNav vanished. */
+@layer base {
+	:root {
+		--nav-height: 56px;
+	}
+}
+
 :root {
 	--z-sticky: 30; /* sticky in-content chrome: table headers, sticky banners */
 	--z-nav: 40; /* app chrome: AppHeader, Sidebar, BottomNav, status banners */
@@ -298,6 +309,12 @@
 	   Routed through a --theme-* hook rather than hardcoded, so a theme can still
 	   choose its own button shape without fighting this scope. */
 	--button-radius: var(--theme-button-radius, 9999px);
+
+	/* Table geometry. Unset here so Table's own fallbacks (h-10 head, py-2.5
+	   cells, on the spacing scale) apply — and declared, for the same symmetry:
+	   a comfortable form nested in a compact tool gets the page table back. */
+	--table-head-h: initial;
+	--table-cell-py: initial;
 }
 
 /* Workspace register — measured from the Figma and Paper editors (2026-07-26),
@@ -337,6 +354,30 @@
 	--tree-rail: 8px;
 	--tree-column: 18px;
 	--tree-indent: 18px;
+
+	/* Table geometry: a head row on the sm rung and one baseline step of block
+	   padding, so a 16px ui line makes a 32px row — Linear's list row, and the
+	   size a table in a tool panel was being forced to by hand (thirteen
+	   consumer rules overriding th/td heights, padding and size in one app). */
+	--table-head-h: var(--control-sm);
+	--table-cell-py: calc(var(--spacing) * 2);
+}
+
+/* A finger is not a denser pointer. The compact ladder is measured from mouse-
+   driven editors (Figma, Paper), where a 24px target is aimed with a cursor; on
+   a phone or tablet the same tool chrome needs the page register's targets, so
+   on a coarse pointer compact keeps its type, radius and panel geometry and
+   takes the comfortable ladder's heights. Without this, every Workspace app
+   re-tuned `--control-*` by hand below some breakpoint — and a breakpoint is
+   the wrong question: a touch laptop is wide, a phone with a mouse is narrow. */
+@media (pointer: coarse) {
+	[data-density="compact"] {
+		--control-xs: 28px;
+		--control-sm: 32px;
+		--control-md: 40px;
+		--control-cta: 44px;
+		--control-lg: 48px;
+	}
 }
 
 /* ==========================================================================
@@ -348,6 +389,13 @@
    Paper's entire panel ladder spans 249 → 242 → 238 (3-7 RGB units) and lets a
    1px low-contrast edge do the structural work. In this register hairlines carry
    structure INSTEAD of tonal steps — the reverse of the page register's rule.
+
+   Every mix here is `in oklab`, never `in oklch`. These blend a near-neutral
+   surface with its ink, so there is no hue worth interpolating, and oklch
+   loses it: measured in Chrome, `color-mix(in oklch, #141519 97%, #e4e5ea)`
+   resolves to `oklch(0.218 0.008 none)` and paints a missing hue as 0°, a
+   brown cast on a cool graphite preset's canvas. Bundled themes write oklch
+   and never showed it; presets and apps write hex.
    ========================================================================== */
 
 /* Declared on every element that can re-declare the base colors, not just
@@ -361,32 +409,32 @@
 	/* The work surface. NOT `background`: the artboard is the subject, not the
 	   page behind the UI. Pulled a touch away from the page so docked panels can
 	   sit above it without a border. */
-	--canvas: var(--theme-canvas, color-mix(in oklch, var(--background) 97%, var(--foreground)));
+	--canvas: var(--theme-canvas, color-mix(in oklab, var(--background) 97%, var(--foreground)));
 	--canvas-foreground: var(--theme-canvas-foreground, var(--foreground));
 
 	/* Docked chrome, one compressed step off the canvas. */
 	--panel: var(--theme-panel, var(--background));
 	--panel-foreground: var(--theme-panel-foreground, var(--foreground));
-	--panel-raised: var(--theme-panel-raised, color-mix(in oklch, var(--background) 94%, var(--foreground)));
+	--panel-raised: var(--theme-panel-raised, color-mix(in oklab, var(--background) 94%, var(--foreground)));
 
 	/* A compact control docked in a panel: the xs field rung and a field-style
 	   button. Mixed from the panel it sits in, a further step under the pointer.
 	   It used to borrow the canvas tone (3% ink), which measured 1.04:1 against
 	   a dark panel: the field all but vanished. 9% is what a shipped inspector
 	   settled on (1.15:1 dark, 1.25:1 light). */
-	--panel-field: var(--theme-panel-field, color-mix(in oklch, var(--panel) 91%, var(--panel-foreground)));
-	--panel-field-hover: var(--theme-panel-field-hover, color-mix(in oklch, var(--panel) 88%, var(--panel-foreground)));
+	--panel-field: var(--theme-panel-field, color-mix(in oklab, var(--panel) 91%, var(--panel-foreground)));
+	--panel-field-hover: var(--theme-panel-field-hover, color-mix(in oklab, var(--panel) 88%, var(--panel-foreground)));
 
 	/* The structural edge. Alpha-based so it holds over any surface beneath it. */
-	--hairline: var(--theme-hairline, color-mix(in oklch, transparent 93%, var(--foreground)));
-	--hairline-strong: var(--theme-hairline-strong, color-mix(in oklch, transparent 86%, var(--foreground)));
+	--hairline: var(--theme-hairline, color-mix(in oklab, transparent 93%, var(--foreground)));
+	--hairline-strong: var(--theme-hairline-strong, color-mix(in oklab, transparent 86%, var(--foreground)));
 
 	/* The edge of a FLOATING surface (popover, menu, select, tooltip, a floating
 	   panel). Lighter than `--border` on purpose: the shadow carries the
 	   elevation, and a full hairline plus a shadow stacks into a dark outline.
 	   Alpha-based, so it defines the shape on a same-colour page in light mode
 	   and reads as a faint lit edge in dark mode, where shadows barely show. */
-	--border-floating: var(--theme-border-floating, color-mix(in oklch, transparent 92%, var(--foreground)));
+	--border-floating: var(--theme-border-floating, color-mix(in oklab, transparent 92%, var(--foreground)));
 
 	/* The text field: its fill and its outline. Outlined on the card by default;
 	   a theme fills its fields instead with `--theme-field: var(--muted)` and
@@ -399,7 +447,7 @@
 	   the gap around the raised main panel. One step off the rail toward its ink,
 	   because most themes paint the rail the page's colour and the panel would
 	   otherwise sit on its own colour. */
-	--shell-ground: var(--theme-shell-ground, color-mix(in oklch, var(--sidebar) 97%, var(--sidebar-foreground)));
+	--shell-ground: var(--theme-shell-ground, color-mix(in oklab, var(--sidebar) 97%, var(--sidebar-foreground)));
 
 	/* Status and tone colours at graphic strength: a meter's fill, a segmented
 	   bar, a status dot, a chart series, a soft tint. The label fill is dark
@@ -493,7 +541,7 @@
 		2px,
 		round(
 			nearest,
-			calc(var(--type-body-md-size, 0.9375rem) * var(--type-body-md-leading, 1.55) * var(--leading-scale) / var(--baseline-split)),
+			calc(var(--type-body-md-size, 0.9375rem) * var(--type-base, 16) / 16 * var(--type-body-md-leading, 1.55) * var(--leading-scale) / var(--baseline-split)),
 			1px
 		)
 	);
@@ -527,39 +575,62 @@
    --leading-scale, so Airy opens the text itself; display, heading and label
    leading is a shape the theme chose and only snaps. The `ui-*` tier is
    already whole px on its own 4px grid (the workspace register).
+
+   ── The base size: one number rebuilds the scale ───────────────────────────
+   Every page tier is authored on a 16px base (1rem is title-lg; body-md is
+   15/16 of it). `--type-base` is that base as a unitless px number, so
+   `--type-base: 14` rebuilds the whole scale at 14: each tier keeps its ratio
+   to the base, the headings stay a heading's distance from the body, and the
+   baseline step (and with it `--spacing`) follows the body down. It is the
+   standard "set the base font size" knob, scoped to type and rhythm: unlike
+   changing the root font-size, it leaves the control ladder and every rem the
+   app wrote itself where they were.
+
+   Applied where the size is USED — `calc(var(--type-<tier>-size, <rem>) *
+   var(--type-base, 16) / 16)` — not where a theme declares it, so it scales a
+   theme's own tier values and a consumer's per-tier overrides alike, and works
+   on any element: set it on :root, a `[data-sable-theme]` scope or a preset
+   (`tokens.shared["type-base"]`) and the spacing follows too; on any other
+   subtree the type rescales and the rhythm stays the page's. Unitless, because
+   CSS cannot divide one length by another: `14`, never `14px`.
+
+   The `ui-*` tiers do NOT take it. They are absolute px measured from tool
+   chrome (Figma, Paper) and sit on their own 4px grid; the compact register's
+   `min(page, ui)` remaps already follow a smaller base down, so a 13px-base app
+   still never gets chrome type larger than its page type.
    ========================================================================== */
 
 @utility text-display-4xl {
 	font-family: var(--font-display, var(--font-sans));
-	font-size: var(--type-display-4xl-size, clamp(4.5rem, 12vw, 12rem));
+	font-size: calc(var(--type-display-4xl-size, clamp(4.5rem, 12vw, 12rem)) * var(--type-base, 16) / 16);
 	font-weight: var(--type-display-4xl-weight, 800);
 	line-height: round(nearest, calc(var(--type-display-4xl-leading, 0.9) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-display-4xl-tracking, -0.05em);
 }
 @utility text-display-3xl {
 	font-family: var(--font-display, var(--font-sans));
-	font-size: var(--type-display-3xl-size, 6rem);
+	font-size: calc(var(--type-display-3xl-size, 6rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-display-3xl-weight, 700);
 	line-height: round(nearest, calc(var(--type-display-3xl-leading, 0.95) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-display-3xl-tracking, -0.045em);
 }
 @utility text-display-2xl {
 	font-family: var(--font-display, var(--font-sans));
-	font-size: var(--type-display-2xl-size, 4.5rem);
+	font-size: calc(var(--type-display-2xl-size, 4.5rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-display-2xl-weight, 700);
 	line-height: round(nearest, calc(var(--type-display-2xl-leading, 1) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-display-2xl-tracking, -0.04em);
 }
 @utility text-display-xl {
 	font-family: var(--font-display, var(--font-sans));
-	font-size: var(--type-display-xl-size, 3.75rem);
+	font-size: calc(var(--type-display-xl-size, 3.75rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-display-xl-weight, 700);
 	line-height: round(nearest, calc(var(--type-display-xl-leading, 1.05) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-display-xl-tracking, -0.035em);
 }
 @utility text-display-lg {
 	font-family: var(--font-display, var(--font-sans));
-	font-size: var(--type-display-lg-size, 3rem);
+	font-size: calc(var(--type-display-lg-size, 3rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-display-lg-weight, 700);
 	line-height: round(nearest, calc(var(--type-display-lg-leading, 1.1) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-display-lg-tracking, -0.03em);
@@ -567,28 +638,28 @@
 
 @utility text-heading-1 {
 	font-family: var(--font-display, var(--font-sans));
-	font-size: var(--type-heading-1-size, 2.25rem);
+	font-size: calc(var(--type-heading-1-size, 2.25rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-heading-weight, 600);
 	line-height: round(nearest, calc(var(--type-heading-1-leading, 1.15) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-heading-1-tracking, -0.025em);
 }
 @utility text-heading-2 {
 	font-family: var(--font-display, var(--font-sans));
-	font-size: var(--type-heading-2-size, 1.75rem);
+	font-size: calc(var(--type-heading-2-size, 1.75rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-heading-weight, 600);
 	line-height: round(nearest, calc(var(--type-heading-2-leading, 1.2) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-heading-2-tracking, -0.02em);
 }
 @utility text-heading-3 {
 	font-family: var(--font-display, var(--font-sans));
-	font-size: var(--type-heading-3-size, 1.375rem);
+	font-size: calc(var(--type-heading-3-size, 1.375rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-heading-weight, 600);
 	line-height: round(nearest, calc(var(--type-heading-3-leading, 1.25) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-heading-3-tracking, -0.015em);
 }
 @utility text-heading-4 {
 	font-family: var(--font-display, var(--font-sans));
-	font-size: var(--type-heading-4-size, 1.125rem);
+	font-size: calc(var(--type-heading-4-size, 1.125rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-heading-weight, 600);
 	line-height: round(nearest, calc(var(--type-heading-4-leading, 1.3) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-heading-4-tracking, -0.01em);
@@ -603,13 +674,13 @@
    (a trading desk, an operator console) needs its own body/label/mono sizes,
    and pinning them in a page's own <style> block is a patch, not a theme. */
 @utility text-title-lg {
-	font-size: var(--type-title-lg-size, 1rem);
+	font-size: calc(var(--type-title-lg-size, 1rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-title-weight, 600);
 	line-height: round(nearest, calc(var(--type-title-leading, 1.4) * var(--leading-scale, 1) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-title-tracking, -0.01em);
 }
 @utility text-title-sm {
-	font-size: var(--type-title-sm-size, 0.875rem);
+	font-size: calc(var(--type-title-sm-size, 0.875rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-title-weight, 600);
 	line-height: round(nearest, calc(var(--type-title-leading, 1.4) * var(--leading-scale, 1) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-title-sm-tracking, -0.005em);
@@ -628,20 +699,20 @@
    `pretty` costs layout work over many lines to fix a break nobody reads as an
    error. Ledes are short by definition, so the cost is bounded here. */
 @utility text-body-lg {
-	font-size: var(--type-body-lg-size, 1.0625rem);
+	font-size: calc(var(--type-body-lg-size, 1.0625rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-body-lg-weight, 400);
 	line-height: round(nearest, calc(var(--type-body-lg-leading, 1.6) * var(--leading-scale, 1) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-body-lg-tracking, -0.005em);
 	text-wrap: pretty;
 }
 @utility text-body-md {
-	font-size: var(--type-body-md-size, 0.9375rem);
+	font-size: calc(var(--type-body-md-size, 0.9375rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-body-md-weight, 400);
 	line-height: round(nearest, calc(var(--type-body-md-leading, 1.55) * var(--leading-scale, 1) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-body-md-tracking, -0.005em);
 }
 @utility text-body-sm {
-	font-size: var(--type-body-sm-size, 0.8125rem);
+	font-size: calc(var(--type-body-sm-size, 0.8125rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-body-sm-weight, 400);
 	line-height: round(nearest, calc(var(--type-body-sm-leading, 1.5) * var(--leading-scale, 1) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-body-sm-tracking, 0);
@@ -650,7 +721,7 @@
    dense table cells, and metadata. Same size as text-caption but with body
    leading: caption is tuned for one-line annotation, body-xs for wrapping. */
 @utility text-body-xs {
-	font-size: var(--type-body-xs-size, 0.75rem);
+	font-size: calc(var(--type-body-xs-size, 0.75rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-body-xs-weight, 400);
 	line-height: round(nearest, calc(var(--type-body-xs-leading, 1.5) * var(--leading-scale, 1) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-body-xs-tracking, 0);
@@ -678,7 +749,7 @@
 @utility sable-list {
 	list-style: disc;
 	padding-inline-start: 1.25em;
-	font-size: var(--type-body-md-size, 0.9375rem);
+	font-size: calc(var(--type-body-md-size, 0.9375rem) * var(--type-base, 16) / 16);
 	line-height: round(nearest, calc(var(--type-body-md-leading, 1.55) * var(--leading-scale, 1) * 1em), var(--baseline-step, 0.25rem));
 	color: var(--foreground);
 	& > li + li {
@@ -692,7 +763,7 @@
 @utility sable-list-numbered {
 	list-style: decimal;
 	padding-inline-start: 1.5em;
-	font-size: var(--type-body-md-size, 0.9375rem);
+	font-size: calc(var(--type-body-md-size, 0.9375rem) * var(--type-base, 16) / 16);
 	line-height: round(nearest, calc(var(--type-body-md-leading, 1.55) * var(--leading-scale, 1) * 1em), var(--baseline-step, 0.25rem));
 	color: var(--foreground);
 	& > li + li {
@@ -714,12 +785,12 @@
 	/* The values' type and ink live on the list and the <dd>s inherit them, so a
 	   text-* utility on a <dd> (text-success, text-mono-md) simply wins. The term
 	   and the wrapping rules sit in :where(), which adds no specificity. */
-	font-size: var(--type-body-md-size, 0.9375rem);
+	font-size: calc(var(--type-body-md-size, 0.9375rem) * var(--type-base, 16) / 16);
 	line-height: round(nearest, calc(var(--type-body-md-leading, 1.55) * var(--leading-scale, 1) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-body-md-tracking, -0.005em);
 	color: var(--foreground);
 	& > :where(dt) {
-		font-size: var(--type-label-md-size, 0.75rem);
+		font-size: calc(var(--type-label-md-size, 0.75rem) * var(--type-base, 16) / 16);
 		font-weight: var(--type-label-md-weight, 600);
 		line-height: round(nearest, calc(var(--type-label-md-leading, 1.2) * 1em), var(--baseline-step, 0.25rem));
 		letter-spacing: var(--type-label-md-tracking, 0);
@@ -738,19 +809,19 @@
 }
 
 @utility text-label-lg {
-	font-size: var(--type-label-lg-size, 0.875rem);
+	font-size: calc(var(--type-label-lg-size, 0.875rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-label-lg-weight, 600);
 	line-height: round(nearest, calc(var(--type-label-lg-leading, 1.25) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-label-lg-tracking, -0.005em);
 }
 @utility text-label-md {
-	font-size: var(--type-label-md-size, 0.75rem);
+	font-size: calc(var(--type-label-md-size, 0.75rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-label-md-weight, 600);
 	line-height: round(nearest, calc(var(--type-label-md-leading, 1.2) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-label-md-tracking, 0);
 }
 @utility text-label-sm {
-	font-size: var(--type-label-sm-size, 0.6875rem);
+	font-size: calc(var(--type-label-sm-size, 0.6875rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-label-sm-weight, 600);
 	line-height: round(nearest, calc(var(--type-label-sm-leading, 1.2) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-label-sm-tracking, 0);
@@ -760,14 +831,14 @@
    it (Label `eyebrow`) rather than getting caps from the smallest label. The
    transform stays a themeable hook for a theme that wants caps here. */
 @utility text-label-xs {
-	font-size: var(--type-label-xs-size, 0.6875rem);
+	font-size: calc(var(--type-label-xs-size, 0.6875rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-label-xs-weight, 600);
 	line-height: round(nearest, calc(var(--type-label-xs-leading, 1.2) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-label-xs-tracking, 0.01em);
 	text-transform: var(--type-label-xs-transform, none);
 }
 @utility text-caption {
-	font-size: var(--type-caption-size, 0.75rem);
+	font-size: calc(var(--type-caption-size, 0.75rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-caption-weight, 400);
 	line-height: round(nearest, calc(var(--type-caption-leading, 1.4) * var(--leading-scale, 1) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-caption-tracking, 0);
@@ -778,7 +849,7 @@
    via TYPE_OVERLINE_TOKENS (see _contract.ts); `--type-overline-transform`
    lets a theme opt out of all-caps rather than hardcoding `uppercase`. */
 @utility text-overline {
-	font-size: var(--type-overline-size, 0.75rem);
+	font-size: calc(var(--type-overline-size, 0.75rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-overline-weight, 600);
 	line-height: round(nearest, calc(var(--type-overline-leading, 1.2) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-overline-tracking, 0.08em);
@@ -790,7 +861,7 @@
    the technical voice) rather than a heading tier — headings stay semantic. */
 @utility text-mono-xl {
 	font-family: var(--font-mono);
-	font-size: var(--type-mono-xl-size, 1.75rem);
+	font-size: calc(var(--type-mono-xl-size, 1.75rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-mono-xl-weight, 500);
 	line-height: round(nearest, calc(var(--type-mono-xl-leading, 1.15) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-mono-xl-tracking, -0.01em);
@@ -798,7 +869,7 @@
 }
 @utility text-mono-lg {
 	font-family: var(--font-mono);
-	font-size: var(--type-mono-lg-size, 1.25rem);
+	font-size: calc(var(--type-mono-lg-size, 1.25rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-mono-lg-weight, 500);
 	line-height: round(nearest, calc(var(--type-mono-lg-leading, 1.25) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-mono-lg-tracking, 0);
@@ -806,7 +877,7 @@
 }
 @utility text-mono-md {
 	font-family: var(--font-mono);
-	font-size: var(--type-mono-md-size, 0.8125rem);
+	font-size: calc(var(--type-mono-md-size, 0.8125rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-mono-md-weight, 400);
 	line-height: round(nearest, calc(var(--type-mono-md-leading, 1.5) * var(--leading-scale, 1) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-mono-md-tracking, 0);
@@ -817,7 +888,7 @@
    `font-mono text-caption` recomposition. */
 @utility text-mono-caption {
 	font-family: var(--font-mono);
-	font-size: var(--type-mono-caption-size, 0.75rem);
+	font-size: calc(var(--type-mono-caption-size, 0.75rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-mono-caption-weight, 400);
 	line-height: round(nearest, calc(var(--type-mono-caption-leading, 1.4) * var(--leading-scale, 1) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-mono-caption-tracking, 0);
@@ -825,7 +896,7 @@
 }
 @utility text-mono-sm {
 	font-family: var(--font-mono);
-	font-size: var(--type-mono-sm-size, 0.6875rem);
+	font-size: calc(var(--type-mono-sm-size, 0.6875rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-mono-sm-weight, 500);
 	line-height: round(nearest, calc(var(--type-mono-sm-leading, 1.2) * 1em), var(--baseline-step, 0.25rem));
 	letter-spacing: var(--type-mono-sm-tracking, 0.02em);
@@ -930,6 +1001,20 @@
 	font-weight: var(--type-ui-sm-weight, 500);
 	line-height: var(--type-ui-leading, 16px);
 	letter-spacing: 0.005em;
+}
+
+/* The title of what a panel or inspector is showing — the open issue, the
+   selected object. One step above ui-md on the chrome ladder (10 / 11 / 12 /
+   14): far enough above its 12px description to lead without weight alone,
+   short of the 16px page title so it still reads as chrome. Linear's issue
+   peek, Figma's selection header and Paper's inspector title all sit at
+   13-15px. On a 20px leading, the ui grid's next 4px step. Compact `text-title-lg`
+   resolves here, so a page-register title dropped into a panel lands on it. */
+@utility text-ui-title {
+	font-size: var(--type-ui-title-size, 14px);
+	font-weight: var(--type-ui-title-weight, 600);
+	line-height: var(--type-ui-title-leading, 20px);
+	letter-spacing: -0.005em;
 }
 
 /* The reading variant — descriptions and help text inside chrome. */
@@ -1599,6 +1684,17 @@
    ========================================================================== */
 [data-density="compact"] {
 	/*
+	 * The remap stops at a comfortable boundary. A reading view inside a tool —
+	 * an issue's overview, a settings form — is wrapped in
+	 * `<Density value="comfortable">` to get page type back, and the descendant
+	 * selectors alone still matched it, so the wrapper restored the control
+	 * ladder and left the prose at 11px. `:not(compact comfortable *)` rather
+	 * than `@scope (compact) to (comfortable)`: @scope would be the exact tool,
+	 * but a browser without it (Safari < 17.4, older Firefox — inside Tailwind
+	 * v4's support range) drops the whole block, and the register's type with
+	 * it. Limit: a compact scope nested inside that comfortable one gets page
+	 * type too, a third level of nesting nothing ships.
+	 *
 	 * Every value is `min(page, workspace)`, so the register can only ever
 	 * COMPRESS. Without it these grow on some apps: the page tiers are `rem`
 	 * and the workspace tiers are absolute px, so at a 14px root
@@ -1606,59 +1702,63 @@
 	 * tool panel — a "denser" register rendering larger text than the page it
 	 * sits beside. `min()` makes that impossible at any root size.
 	 */
-	& .text-body-lg {
-		font-size: min(1.0625rem, var(--type-ui-md-size, 12px));
+	& .text-body-lg:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
+		font-size: min(calc(1.0625rem * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
 		line-height: var(--type-ui-leading, 16px);
 	}
-	& .text-body-md {
-		font-size: min(0.9375rem, var(--type-ui-md-size, 12px));
+	& .text-body-md:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
+		font-size: min(calc(0.9375rem * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
 		line-height: var(--type-ui-leading, 16px);
 	}
-	& .text-body-sm {
-		font-size: min(0.8125rem, var(--type-ui-sm-size, 11px));
+	& .text-body-sm:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
+		font-size: min(calc(0.8125rem * var(--type-base, 16) / 16), var(--type-ui-sm-size, 11px));
 		line-height: var(--type-ui-leading, 16px);
 	}
-	& .text-body-xs,
-	& .text-caption {
-		font-size: min(0.75rem, var(--type-ui-sm-size, 11px));
+	& .text-body-xs:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *),
+	& .text-caption:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
+		font-size: min(calc(0.75rem * var(--type-base, 16) / 16), var(--type-ui-sm-size, 11px));
 		line-height: var(--type-ui-leading, 16px);
 	}
-	& .text-label-lg {
-		font-size: min(0.875rem, var(--type-ui-md-size, 12px));
+	& .text-label-lg:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
+		font-size: min(calc(0.875rem * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
 		font-weight: var(--type-ui-md-weight, 500);
 		line-height: var(--type-ui-leading, 16px);
 	}
-	& .text-label-md {
-		font-size: min(0.75rem, var(--type-ui-md-size, 12px));
+	& .text-label-md:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
+		font-size: min(calc(0.75rem * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
 		font-weight: var(--type-ui-md-weight, 500);
 		line-height: var(--type-ui-leading, 16px);
 	}
 	/* The list utilities carry their own type, so they follow the same tiers:
 	   items and values as body-md, terms as label-md. */
-	& :is(.sable-list, .sable-list-numbered, .sable-list-dl) {
-		font-size: min(0.9375rem, var(--type-ui-md-size, 12px));
+	& :is(.sable-list, .sable-list-numbered, .sable-list-dl):not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
+		font-size: min(calc(0.9375rem * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
 		line-height: var(--type-ui-leading, 16px);
 	}
-	& .sable-list-dl > :where(dt) {
-		font-size: min(0.75rem, var(--type-ui-md-size, 12px));
+	& .sable-list-dl > :where(dt):not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
+		font-size: min(calc(0.75rem * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
 		font-weight: var(--type-ui-md-weight, 500);
 		line-height: var(--type-ui-leading, 16px);
 	}
-	& .text-label-sm,
-	& .text-label-xs {
-		font-size: min(0.6875rem, var(--type-ui-micro-size, 10px));
+	& .text-label-sm:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *),
+	& .text-label-xs:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
+		font-size: min(calc(0.6875rem * var(--type-base, 16) / 16), var(--type-ui-micro-size, 10px));
 		font-weight: var(--type-ui-micro-weight, 450);
 		line-height: 14px;
 	}
-	& .text-title-sm {
-		font-size: min(0.875rem, var(--type-ui-md-size, 12px));
+	& .text-title-sm:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
+		font-size: min(calc(0.875rem * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
 		font-weight: var(--type-ui-section-weight, 550);
 		line-height: var(--type-ui-leading, 16px);
 	}
-	& .text-title-lg {
-		font-size: min(1rem, var(--type-ui-md-size, 12px));
-		font-weight: var(--type-ui-section-weight, 550);
-		line-height: var(--type-ui-leading, 16px);
+	/* title-lg names the thing a panel is about (the issue open in an inspector,
+	   the selected layer), so it takes the ui TITLE tier rather than ui-md. On
+	   ui-md it measured 12px/550 against a 12px description beneath it — the
+	   title and its own body the same size, hierarchy carried by weight alone. */
+	& .text-title-lg:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
+		font-size: min(calc(1rem * var(--type-base, 16) / 16), var(--type-ui-title-size, 14px));
+		font-weight: var(--type-ui-title-weight, 600);
+		line-height: var(--type-ui-title-leading, 20px);
 	}
 }
 
@@ -1706,9 +1806,16 @@
    top-right one.
    - Where there is room, a stack on the sheet's side moves beside it. The sheet
      publishes its real width (--sable-sheet-right-w / -left-w) while mounted.
-   - On a narrower screen the sheet leaves no room beside it. A bottom stack
-     moves to the top, off the footer's actions; a top stack stays, over the
-     header.
+   - On a narrower screen the sheet leaves no room beside it and both of its
+     edges hold controls: a footer of actions (a composer, Check out) and a
+     header with its close button. So every stack — any position, either side
+     — moves to the top and drops below a PROTECTED INSET: the sheet's padding
+     plus one control row, which clears a padded SheetHeader with a close
+     button and a 48px bar alike. It then covers the top of the sheet's
+     scrolling content, never an action. The first version moved bottom stacks
+     to the top edge itself, straight over the close button, and an app worked
+     around it by switching to bottom-center — over its composer's send button.
+     A sheet whose header is taller sets `--sable-sheet-top-inset` on <html>.
    - A bottom sheet sends a bottom stack to the top, a top sheet sends a top
      stack to the bottom, at any width.
    A stack that moves to the other edge re-anchors its stacked toasts too: they
@@ -1723,13 +1830,11 @@
 	}
 }
 @media (width < 52rem) {
-	:root:has([data-sable-sheet="right"][data-open]) [data-sable-toast-viewport][data-position="bottom-right"],
-	:root:has([data-sable-sheet="left"][data-open]) [data-sable-toast-viewport][data-position="bottom-left"] {
-		top: calc(var(--spacing) * 4);
+	:root:has(:is([data-sable-sheet="right"], [data-sable-sheet="left"])[data-open]) [data-sable-toast-viewport] {
+		top: var(--sable-sheet-top-inset, calc(var(--spacing) * 8 + var(--control-md)));
 		bottom: auto;
 	}
-	:root:has([data-sable-sheet="right"][data-open]) [data-sable-toast-viewport][data-position="bottom-right"] [data-sable-toast-stacked],
-	:root:has([data-sable-sheet="left"][data-open]) [data-sable-toast-viewport][data-position="bottom-left"] [data-sable-toast-stacked] {
+	:root:has(:is([data-sable-sheet="right"], [data-sable-sheet="left"])[data-open]) [data-sable-toast-viewport][data-position^="bottom"] [data-sable-toast-stacked] {
 		top: 0;
 		bottom: auto;
 		transform-origin: top;
@@ -2051,7 +2156,7 @@
 @utility checkerboard {
 	background-image: repeating-conic-gradient(
 		var(--panel) 0% 25%,
-		var(--checkerboard-alt, color-mix(in oklch, var(--panel) 88%, var(--foreground)))
+		var(--checkerboard-alt, color-mix(in oklab, var(--panel) 88%, var(--foreground)))
 			0% 50%
 	);
 	background-size: var(--checkerboard-size, 16px) var(--checkerboard-size, 16px);

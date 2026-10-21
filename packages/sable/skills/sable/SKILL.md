@@ -35,9 +35,11 @@ the check turns up more than the fix. Say that you escalated, and why.
    `sable lint`, and `sable grade` and exits 1 if any fails. Repair the findings
    instead of suppressing them, then run it again until it passes. Act on its
    notes too: they don't fail the check but name real work, such as trimming the
-   CSS to the components the app imports (`sable sources`), or an Adoption block
+   CSS to the components the app imports (`sable sources`), an Adoption block
    listing app-built components Sable already ships, which you put to the user
-   (see "Adoption" under Verify and deliver). Also run the
+   (see "Adoption" under Verify and deliver), a Rebuilt parts block (elements
+   and app CSS standing in for a part, or reaching into one), and a colour-modes
+   warning, which you fix rather than explain. Also run the
    project's own build and type checks.
 2. Review the rendered design: `sable docs reviewing-a-design`. Capture desktop and
    mobile in every promised colour mode, and judge brief fit, composition,
@@ -51,8 +53,8 @@ the check turns up more than the fix. Say that you escalated, and why.
    `"reduced"`), state still changes and nothing keeps moving.
 6. Write the reuse inventory: the Sable components, parts, utilities, and token
    groups used, and every app-owned UI or CSS addition with the catalog search
-   that justified it. Start from the app-owned surfaces `sable check` lists,
-   which are notes, not failures: for each, write one line saying you used the
+   that justified it. Start from the app-owned surfaces and rebuilt parts
+   `sable check` lists, which are notes, not failures: for each, write one line saying you used the
    Sable part named beside it or kept your own, and why ("composed our own
    product tile from AspectBox + Badge: the brief wants the price over the
    photo"). Keeping your own layout is fine. Behaviour still comes from Sable.
@@ -98,6 +100,15 @@ SearchInput, feedback is toast. `@sableui/react/ios` supplies only system chrome
 IosSheet, NavigationStack). Never import from `konsta`; sable-lint flags it
 (`native-ui-import`). `sable target ios --component <Name>` confirms a decision;
 almost every component is `preserve`. Every rule below applies to the prototype.
+
+A **tool** brief (an editor, a console, or a records workspace such as an issue
+tracker, a support queue or a pipeline, "like Linear", "compact and technical")
+selects the workspace register. Read `sable docs building-a-tool` before
+composing; a records workspace starts from `sable pattern TrackerPage
+--skeleton`. Its rail is Sidebar's own parts (SidebarGroup, SidebarAccount), its
+list is one grouped DataTable, its inspector is a `Panel narrow="sheet"`, reading
+tabs sit in `<Density value="comfortable">`, and "compact" in the brief means a
+preset with `type-base` 13 or 14, not per-tier type overrides.
 
 For inspiration, extract useful visual relationships into a preset. For an audit,
 evaluate the target product. A URL does not automatically mean copying its page.
@@ -200,6 +211,16 @@ The installed catalog and guides are authoritative for API and token names.
      MediaTile): use one when its layout fits the brief. When it doesn't, compose
      your own from parts; that is not a gap and needs no apology. Apps on Sable
      should not all look alike.
+
+   Search before you name anything. Before writing an app-local component or
+   CSS class for a part you can recognize, search its plain name and its role:
+   `sable search breadcrumb`, `sable search "top bar"`, `sable search "property
+   row"`. Parts count: `PropertyRow`, `WorkspaceBar` and `CollapsibleIndicator`
+   are listed by name and `sable component <Part>` answers with the entry that
+   documents them. A disagreement with what you found (a height, a size, where a
+   heading sits) is answered by the part's variant or prop, or reported as a
+   missing variant; it is never a reason to rebuild the part. Check icon names
+   with `sable icon <name>` before using them: an unknown name draws nothing.
 2. Resolve styling in this order: Sable component/variant, Sable utility or recipe,
    semantic token, then app-owned CSS for a genuinely uncovered need. Colour
    beyond the roles (tags, avatars, labels, legends) comes from the generated
@@ -254,6 +275,14 @@ make it SableThemeProvider's default theme and mode in place of the old one, run
 the build and the finish checklist, and look at it rendered. Don't stop at a saved
 file plus a list of wiring steps for the user. Stop after saving only when the
 user says so or the project has no app yet.
+
+Ship both colour modes unless the brief rules one out. App colours go in a
+preset with light and dark values (`sable preset --template`, then `sable
+preset --css`), never as light-only overrides on `:root`: those leave dark mode
+as Sable's palette under the app's accents. Mount `ThemeSwitcher` under
+`SableThemeProvider` (a settings menu, the sidebar footer) so the user can
+switch modes and review both. A one-mode brief pins that mode
+(`defaultPreference`) and says so in the brief.
 
 Without a preset, develop an appropriate direction from the brief. Use the bundled
 presets as starting points or create original app-owned tokens. When the project has

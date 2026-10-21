@@ -224,6 +224,13 @@ const COMMANDS = [
 		returns: ["provider.list", "provider.detail", "provider.props", "provider.examples"],
 	},
 	{
+		name: "icon",
+		summary: "The icon names <Icon name> renders with the bundled set. Check a name before using it: an unknown one renders nothing.",
+		arg: { name: "name", required: false },
+		flags: [],
+		returns: ["icon.list", "icon.detail"],
+	},
+	{
 		name: "token",
 		summary: "The token contract, with intent — what each token means and what it is NOT.",
 		arg: { name: "group", required: false },
@@ -388,6 +395,7 @@ const ERROR_CODES = [
 	{ code: "ERR_UNKNOWN_UTILITY", when: "No utility or variant by that name. `suggestions` carries near matches." },
 	{ code: "ERR_UNKNOWN_DOC", when: "No package guide or doc mirror by that slug. `suggestions` carries near matches and the package guides." },
 	{ code: "ERR_UNKNOWN_PROVIDER", when: "No provider by that name. `suggestions` carries near matches." },
+	{ code: "ERR_UNKNOWN_ICON", when: "No icon by that name in the contract. `suggestions` carries the names to use instead." },
 	{ code: "ERR_UNKNOWN_EXAMPLE", when: "The component has no example with that label. `suggestions` carries near matches as commands." },
 	{ code: "ERR_LINT_INPUT", when: "sable lint --json: a path to lint does not exist." },
 	{ code: "ERR_CHECK_FAILED", when: "sable check: doctor, lint, or grade failed. `data.checks` names which." },
@@ -571,14 +579,32 @@ const importLine = (name) => `import { ${name} } from "@sableui/react"`
 const PROVIDERS = R.providers?.items ?? []
 const findProvider = (name) => PROVIDERS.find((p) => p.name.toLowerCase() === String(name).toLowerCase())
 
+/**
+ * Exported parts by name → the entry that documents them. `PropertyRow`,
+ * `WorkspaceBar`, `CollapsibleIndicator` and `Panel` are real exports with no
+ * entry of their own, and `sable component PropertyRow` used to answer
+ * ERR_UNKNOWN_COMPONENT — so an agent that knew the right name concluded the
+ * part did not exist and built its own. A part shared by two entries (a
+ * MenuRadioGroup under Menu and SettingsMenu) resolves to the first.
+ */
+const PARTS = new Map()
+for (const c of COMPONENTS)
+	for (const s of c.subcomponents ?? []) {
+		const sub = typeof s === "string" ? { name: s.split(/\s+[—-]\s+/)[0].trim(), description: s } : s
+		if (sub.name && !PARTS.has(sub.name.toLowerCase())) PARTS.set(sub.name.toLowerCase(), { parent: c, part: sub })
+	}
+const findPart = (name) => PARTS.get(String(name).toLowerCase())
+
 function findComponent(name) {
 	const hit = COMPONENTS.find((c) => c.name.toLowerCase() === name.toLowerCase())
 	if (hit) return hit
+	const part = findPart(name)
+	if (part) return { ...part.parent, partOf: part.parent.name, part: part.part }
 	fail(
 		"ERR_UNKNOWN_COMPONENT",
 		`No component named "${name}".`,
 		[
-			...nearest(name, [...COMPONENTS, ...PROVIDERS].map((c) => c.name)).map((n) => `Did you mean ${n}?`),
+			...nearest(name, [...COMPONENTS, ...PROVIDERS].map((c) => c.name).concat([...PARTS.values()].map((p) => p.part.name))).map((n) => `Did you mean ${n}?`),
 			`sable search "${name}" — searches summaries and keywords too`,
 			"sable component --list",
 		],
@@ -649,14 +675,23 @@ function cmdSearch() {
 
 	const pool = []
 	if (!type || type === "component")
-		for (const c of COMPONENTS)
+		for (const c of COMPONENTS) {
 			pool.push({ kind: "component", name: c.name, summary: c.summary, status: c.status, group: c.group, ...(c.composition ? { reference: true, parts: c.composition } : {}), _s: score({ name: c.name, keywords: c.keywords, text: `${c.summary} ${c.usage?.description ?? ""}` }) })
+			// Parts are found by their own name and description: `WorkspaceBar` and
+			// `PropertyRow` are what a need is called, and they used to match nothing
+			// (or rank ColorField first, for a word in its prose). A part's hit names
+			// its entry, which is where its contract lives.
+			for (const s of c.subcomponents ?? []) {
+				if (typeof s !== "object" || !s.name || PARTS.get(s.name.toLowerCase())?.parent !== c) continue
+				pool.push({ kind: "component", name: s.name, partOf: c.name, summary: `${s.description ?? ""} Part of ${c.name}.`.trim(), status: c.status, group: c.group, _s: score({ name: s.name, text: s.description ?? "" }) })
+			}
+		}
 	if (!type || type === "provider")
 		for (const p of PROVIDERS)
 			pool.push({ kind: "provider", name: p.name, summary: p.summary, _s: score({ name: p.name, keywords: ["provider", ...(p.companions ?? [])], text: `${p.summary} ${p.placement ?? ""}` }) })
 	if (!type || type === "pattern")
 		for (const p of PATTERNS)
-			pool.push({ kind: "pattern", name: p.name, summary: p.summary, _s: score({ name: p.name, text: `${p.summary} ${p.intent ?? ""}` }) })
+			pool.push({ kind: "pattern", name: p.name, summary: p.summary, _s: score({ name: p.name, keywords: p.keywords, text: `${p.summary} ${p.intent ?? ""}` }) })
 	if (!type || type === "block")
 		for (const b of BLOCKS)
 			pool.push({ kind: "block", name: b.name, summary: b.summary, family: b.family, _s: score({ name: b.name, keywords: [b.family.toLowerCase()], text: `${b.summary} ${b.intent ?? ""}` }) })
@@ -716,7 +751,9 @@ function cmdSearch() {
 		retrieve:
 			h.kind === "example"
 				? `sable component ${h.component} --example "${h.label.replace(/"/g, '\\"')}"`
-				: `sable ${h.kind === "doc" ? "docs" : h.kind} ${h.name}`,
+				: h.partOf
+					? `sable component ${h.partOf} --props`
+					: `sable ${h.kind === "doc" ? "docs" : h.kind} ${h.name}`,
 	}))
 	const anyReference = results.some((h) => h.reference)
 	ok("search", { query, count: results.length, results }, () =>
@@ -724,7 +761,7 @@ function cmdSearch() {
 			...results.map((h) =>
 				DENSE
 					? `${h.kind}/${h.name}${h.reference ? " (reference)" : ""}`
-					: `${h.kind.padEnd(9)} ${`${h.name}${h.reference ? " ◇" : ""}`.padEnd(24)} ${firstSentence(h.summary ?? "")}`,
+					: `${h.kind.padEnd(9)} ${`${h.name}${h.reference ? " ◇" : ""}`.padEnd(24)} ${h.partOf ? `(part of ${h.partOf}) ` : ""}${firstSentence(h.summary ?? "")}`,
 			),
 			...(anyReference && !DENSE
 				? ["", "◇ a reference layout: use it when it fits the brief, or compose your own from Sable's parts. Either is fine. Behaviour components (controls, overlays, fields) are always used, never rebuilt."]
@@ -801,6 +838,36 @@ function firstSentence(s) {
 	return text
 }
 
+/* ── icon ───────────────────────────────────────────────────────────────────── */
+
+/**
+ * The names `<Icon name>` draws, and the other sets' names it accepts for them
+ * (registry → iconContract, generated from src/icon/names.ts). A work tracker
+ * asked for nine names that did not exist, got blank space, and wrote its own
+ * alias map, because nothing listed the names that do.
+ */
+function cmdIcon() {
+	const names = R.iconContract?.names ?? []
+	const aliases = R.iconContract?.aliases ?? {}
+	const set = new Set(names)
+	const name = rest[0]
+	if (!name)
+		return ok("icon.list", { count: names.length, names, aliases, note: R.iconContract?.note }, () =>
+			[`${names.length} icon names (the bundled Reicon set). An app adds more with composeIconSets and lists them in .sable/icons.json.`, "", names.join("  ")].join("\n"),
+		)
+	if (set.has(name)) return ok("icon.detail", { name, known: true, usage: `<Icon name="${name}" />` }, () => `${name} — in the contract.\n<Icon name="${name}" />`)
+	if (aliases[name])
+		return ok("icon.detail", { name, known: false, alias: aliases[name], usage: `<Icon name="${aliases[name]}" />` }, () =>
+			`${name} is another set's name for ${aliases[name]}: <Icon> draws it, but write the contract name.\n<Icon name="${aliases[name]}" />`,
+		)
+	const use = nearest(name, names)
+	fail("ERR_UNKNOWN_ICON", `No icon named "${name}"; <Icon name="${name}"> renders nothing.`, [
+		...use.map((n) => `Use "${n}"`),
+		"Or add the glyph to the app's set with composeIconSets and list it in .sable/icons.json",
+		"sable icon — every name",
+	])
+}
+
 /* ── component ──────────────────────────────────────────────────────────────── */
 
 function cmdComponent() {
@@ -833,12 +900,16 @@ function cmdComponent() {
 	// A provider is asked for the way a component is. Answer with its entry rather
 	// than ERR_UNKNOWN_COMPONENT, which is what `sable component SableThemeProvider`
 	// used to say.
-	if (!COMPONENTS.some((c) => c.name.toLowerCase() === rest[0].toLowerCase()) && findProvider(rest[0])) return cmdProvider()
+	if (!COMPONENTS.some((c) => c.name.toLowerCase() === rest[0].toLowerCase()) && !findPart(rest[0]) && findProvider(rest[0])) return cmdProvider()
 	const c = findComponent(rest[0])
+	// Asked for a part: answer with its entry, and say so first, so the agent
+	// knows the part exists, what to import, and where the rest of it is documented.
+	const part = c.partOf ? { name: c.part.name, partOf: c.partOf, import: `import { ${c.partOf}, ${c.part.name} } from "@sableui/react"`, ...(c.part.type ? { type: c.part.type } : {}), description: c.part.description ?? "" } : null
+	const partLine = part ? `${part.name} is part of ${part.partOf}.${part.description ? ` ${part.description}` : ""}\n${part.import}\n` : ""
 
 	if (flags.has("props"))
-		return ok("component.props", { name: c.name, props: c.props ?? [], subcomponents: c.subcomponents ?? [] }, () =>
-			renderProps(c),
+		return ok("component.props", { name: c.name, ...(part ? { part } : {}), props: c.props ?? [], subcomponents: c.subcomponents ?? [] }, () =>
+			`${partLine}${part ? "\n" : ""}${renderProps(c)}`,
 		)
 	if (flags.has("examples"))
 		return ok("component.examples", { name: c.name, examples: c.examples ?? [] }, () => renderExamples(c))
@@ -869,6 +940,7 @@ function cmdComponent() {
 		import: importLine(c.name),
 		summary: c.summary,
 		...(c.composition ? { composition: c.composition } : {}),
+		...(part ? { part } : {}),
 	}
 	if (level !== "brief") {
 		data.props = c.props ?? []
@@ -886,6 +958,7 @@ function cmdComponent() {
 
 	ok("component.detail", data, () =>
 		[
+			partLine,
 			`${c.name}  [${c.status}]  ${c.group}  register:${c.register}`,
 			c.summary,
 			c.composition
@@ -1834,7 +1907,7 @@ const MANUAL_REVIEW = [
 	{ step: "Walk the journey", how: "sable docs reviewing-a-journey — operate the primary task and its recovery path end to end; loading, empty, error and success states; keyboard and touch." },
 	{ step: "Review the motion", how: "sable docs reviewing-motion — observe playback and interruption for anything that moves." },
 	{ step: "Check reduced motion", how: "Turn on prefers-reduced-motion (or MotionProvider \"reduced\"): state still changes, nothing essential depends on animation, nothing keeps moving." },
-	{ step: "Write the reuse inventory", how: "List the Sable components, parts, utilities and token groups used, and every app-owned UI or CSS addition with the catalog search that justified it. Start from the app-owned surfaces sable check lists (sable grade --json → inventory) and note, for each, whether you used the Sable part named beside it or kept your own. Either is fine for layout and look. Behaviour (controls, overlays, keyboard handling) comes from Sable." },
+	{ step: "Write the reuse inventory", how: "List the Sable components, parts, utilities and token groups used, and every app-owned UI or CSS addition with the catalog search that justified it. Start from the app-owned surfaces and rebuilt parts sable check lists (sable grade --json → inventory, rebuiltParts) and note, for each, whether you used the Sable part named beside it or kept your own, and why. Either is fine for layout and look. Behaviour (controls, overlays, keyboard handling) comes from Sable." },
 	{ step: "Record what you learned", how: "sable docs learning-from-builds — keep conditional lessons with evidence (sable learn --record); never record human approval you did not get." },
 ]
 
@@ -1904,7 +1977,7 @@ function cmdCheck() {
 		const LABELS = { hallucinatedComponent: "hallucinated components", hallucinatedProp: "hallucinated props", radixIdiom: "Radix idioms", hardcodedControl: "hardcoded control heights", offContractIcon: "off-contract icons" }
 		const found = Object.entries(LABELS).filter(([k]) => grade.counts[k])
 		const reviewMissing = review.length > 0 && grade.review?.status !== "review-recorded"
-		const details = found.flatMap(([k]) => grade.findings[k].map((f) => `${LABELS[k]} — ${f.file}:${f.line} → ${f.name ?? f.prop ?? f.what ?? f.match}${f.component ? ` on ${f.component}` : ""}${f.from ? ` from ${f.from}${f.reason ? ` (${f.reason})` : ""}` : ""}`))
+		const details = found.flatMap(([k]) => grade.findings[k].map((f) => `${LABELS[k]} — ${f.file}:${f.line} → ${f.name ?? f.prop ?? f.what ?? f.match}${f.component ? ` on ${f.component}` : ""}${f.from ? ` from ${f.from}${f.reason ? ` (${f.reason})` : ""}` : ""}${f.via ? ` via ${f.via}` : ""}${f.suggest?.length ? `; the set has ${f.suggest.join(", ")} (sable icon)` : ""}`))
 		if (reviewMissing) details.push(`review: ${grade.review?.status ?? "missing"}${grade.review?.problems?.length ? ` — ${grade.review.problems.join("; ")}` : ""}`)
 		checks.push({
 			name: "grade",
@@ -1917,7 +1990,13 @@ function cmdCheck() {
 				.filter(Boolean)
 				.join("; "),
 			details,
-			data: { score: grade.score, contract: grade.contract, counts: grade.counts, review: grade.review, findings: grade.findings },
+			// A half-themed palette passes the contract and breaks the moment
+			// someone switches modes, so it is said on the grade line, as a warning.
+			notes: [
+				...(grade.modes?.status === "warn" ? [`warn — colour modes: ${grade.modes.lightOnly.length} colour token(s) set for light with no dark value (${grade.modes.lightOnly.slice(0, 4).map((t) => `--${t.name}`).join(", ")}${grade.modes.lightOnly.length > 4 ? ", …" : ""}) → ${grade.modes.fix}`] : []),
+				...(grade.modes && !grade.modes.modeControl ? ["colour modes: nothing imports ThemeSwitcher, ThemeSelector or useSableTheme, so no one can switch modes to review both → mount ThemeSwitcher under SableThemeProvider, or pin the one mode the brief asks for"] : []),
+			],
+			data: { score: grade.score, contract: grade.contract, counts: grade.counts, review: grade.review, findings: grade.findings, modes: grade.modes },
 		})
 	}
 	/* App-owned surfaces, from grade. Never a failure: the input to the reuse
@@ -1926,6 +2005,9 @@ function cmdCheck() {
 	/* Adoption, from grade. Never a failure either: wiring can hold while the app
 	 * composes almost none of Sable, and the move onto it is the user's call. */
 	const adoption = grade && grade.type !== "error" ? (grade.adoption ?? null) : null
+	/* Rebuilt parts, from grade: elements and app CSS standing in for a part
+	 * Sable ships, or reaching into one. Notes, answered in the reuse inventory. */
+	const rebuilt = grade && grade.type !== "error" ? (grade.rebuiltParts ?? null) : null
 	const lowAdoption = adoption && (adoption.level === "none" || adoption.level === "low")
 
 	const failed = checks.filter((c) => c.status !== "pass").map((c) => c.name)
@@ -1936,7 +2018,7 @@ function cmdCheck() {
 		...MANUAL_REVIEW,
 		...(doctor.checks.some((c) => c.name === "css:size") ? [{ step: "Ship only the CSS you use", how: "sable sources --write src/sable-sources.css, then @import it in place of the whole-package @source (about 32 KB of CSS gzipped down to what the app imports). Re-run it whenever you import something new from Sable; sable check fails while it is stale." }] : []),
 	]
-	const data = { paths, passed: !failed.length, failed, checks, inventory, adoption, manualReview: manual }
+	const data = { paths, passed: !failed.length, failed, checks, inventory, adoption, rebuiltParts: rebuilt, manualReview: manual }
 	const MARK = { pass: "✓", fail: "✗", error: "✗" }
 	const MAX_DETAILS = 12
 	const summaryText = () =>
@@ -1946,7 +2028,7 @@ function cmdCheck() {
 				`  ${MARK[c.status]} ${c.name.padEnd(7)}${c.summary}`,
 				...c.details.slice(0, MAX_DETAILS).map((d) => `      ${d}`),
 				...(c.details.length > MAX_DETAILS ? [`      … ${c.details.length - MAX_DETAILS} more: sable ${c.name}${c.name === "doctor" ? "" : ` ${paths.join(" ")}`}`] : []),
-				...(c.notes ?? []).map((n) => `      note — ${n}`),
+				...(c.notes ?? []).map((n) => (n.startsWith("warn — ") ? `      ${n}` : `      note — ${n}`)),
 			]),
 			"",
 			failed.length ? `[sable check] ✗ ${failed.join(", ")} failed. Fix these and run sable check again.` : "[sable check] ✓ doctor, lint and grade pass.",
@@ -1959,6 +2041,17 @@ function cmdCheck() {
 			`App-owned surfaces, for the reuse inventory — ${list.length}. Notes, not failures: use the Sable part named if it fits your design, or keep yours.`,
 			...list.slice(0, MAX_DETAILS).map((s) => `      ${s.file}:${s.line}  <${s.tag}> ${s.kind} (${s.classes}) → Sable has ${s.consider}`),
 			...(list.length > MAX_DETAILS ? [`      … ${list.length - MAX_DETAILS} more: sable grade ${paths.join(" ")} --json → inventory.surfaces`] : []),
+			"",
+		].join("\n")
+	}
+	const rebuiltText = () => {
+		const list = rebuilt?.items ?? []
+		if (!list.length) return ""
+		return [
+			"",
+			`Rebuilt parts — ${list.length}. Sable ships these, or the app styles one from outside. Use the part (or its variant or prop), or say in the reuse inventory why yours stays. A part that cannot fit your design is a missing variant to report, not a reason to rebuild it.`,
+			...list.slice(0, MAX_DETAILS).map((r) => `      ${r.file}:${r.line}  ${r.what}${r.count ? ` ×${r.count}` : ""} → ${r.consider}`),
+			...(list.length > MAX_DETAILS ? [`      … ${list.length - MAX_DETAILS} more: sable grade ${paths.join(" ")} --json → rebuiltParts.items`] : []),
 			"",
 		].join("\n")
 	}
@@ -2001,7 +2094,7 @@ function cmdCheck() {
 	}
 
 	if (JSON_OUT) process.stdout.write(`${JSON.stringify({ type: "check", data }, null, DENSE ? 0 : 1)}\n`)
-	else process.stdout.write(`${summaryText()}\n${adoptionText()}${inventoryText()}${manualText()}\n`)
+	else process.stdout.write(`${summaryText()}\n${adoptionText()}${rebuiltText()}${inventoryText()}${manualText()}\n`)
 	logInvocation(failed.length ? 1 : 0, failed.length ? "ERR_CHECK_FAILED" : undefined)
 	process.exit(failed.length ? 1 : 0)
 }
@@ -2091,6 +2184,7 @@ const HANDLERS = {
 	setup: cmdSetup,
 	check: cmdCheck,
 	provider: cmdProvider,
+	icon: cmdIcon,
 	manifest: cmdManifest,
 	search: cmdSearch,
 	component: cmdComponent,

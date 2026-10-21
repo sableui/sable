@@ -76,6 +76,14 @@ const typography: Foundation = {
 			why: "balance evens short headlines; pretty only refuses a one-word last line. Both cost layout work that long prose does not repay.",
 		},
 		{
+			rule: "To make all the type smaller or larger, set the base: --type-base: 14 (a unitless px number; 16 is the default). Never retune tiers one by one for it.",
+			why: "Every tier is authored on a 16px base and keeps its ratio to it, so one number rebuilds the whole scale, headings to captions, and the baseline step and spacing follow the body. Shrinking tiers individually breaks the ratios between them. Set it on :root, a theme scope or a preset (tokens.shared[\"type-base\"]) so the rhythm follows too.",
+		},
+		{
+			rule: "Inside a Workspace, a panel's title is text-ui-title (14px · 600); compact text-title-lg resolves to it. A reading view inside the tool (an overview, a document, a long form) is wrapped in <Density value=\"comfortable\"> and gets the page tiers back.",
+			why: "The compact register remaps page tiers onto the 10-12px chrome ramp, which is right for chrome and wrong for prose: an issue overview set in a tool rendered its paragraphs at 11px. The remap stops at a comfortable boundary, so the wrapper is the whole fix.",
+		},
+		{
 			rule: "A mark attached to a line of type (a dot, a bullet, a timeline marker, a leading icon) sits in a box one line tall (h-[1lh] items-center) and is sized in em.",
 			why: "1lh is the line-height of the text beside it, so the mark centres on that line in every tier, density and theme. A px size with a mt-[3px] nudge is right for one font at one size and wrong everywhere else.",
 		},
@@ -107,6 +115,11 @@ const typography: Foundation = {
 			never: "Justified text, or reading copy below body-sm.",
 			instead: "Ragged-right at body-md; body-xs only for dense data.",
 			why: "Justification opens rivers on the web, which has no hyphenation control; 12px prose fails people with low vision.",
+		},
+		{
+			never: "Changing the root font-size (html { font-size: 14px }) to make a product denser.",
+			instead: "--type-base: 14, with Workspace or <Density value=\"compact\"> for denser controls.",
+			why: "The root also sizes every rem the app wrote: widths, insets, media queries. --type-base moves only the type and the rhythm built on it, and density moves the controls, so each can be chosen on its own.",
 		},
 		{
 			never: "A new font family, or raw font-feature-settings / font-variation-settings.",

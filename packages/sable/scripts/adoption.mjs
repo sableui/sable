@@ -98,6 +98,11 @@ const ALIASES = {
 	chip: ["Pill", "Badge"], tag: ["Badge"], alert: ["Banner"], callout: ["Note"], confirmdialog: ["DestructiveActionModal", "Dialog"],
 	contextmenu: ["ContextMenu"], hovercard: ["ContextCard"], numberinput: ["NumberField"], otpinput: ["OtpField"], pininput: ["OtpField"],
 	colorpicker: ["ColorField"], rating: ["RadioCard"], stepper: ["Stepper"], wizard: ["Stepper"], kbd: ["Kbd"],
+	property: ["PropertyRow"], propertyrow: ["PropertyRow"], proprow: ["PropertyRow"], picker: ["Select", "Combobox"],
+	statusmark: ["StatusDot"], statusindicator: ["StatusDot"], presencedot: ["StatusDot"], avatarstack: ["AvatarGroup"],
+	facepile: ["AvatarGroup"], topnav: ["WorkspaceBar", "AppHeader"], appbar: ["WorkspaceBar", "AppHeader"],
+	headerbar: ["WorkspaceBar", "AppHeader"], themetoggle: ["ThemeSwitcher"], modetoggle: ["ThemeSwitcher"],
+	darkmodetoggle: ["ThemeSwitcher"], colormodeswitch: ["ThemeSwitcher"],
 }
 
 /**
@@ -107,6 +112,14 @@ const ALIASES = {
  */
 function matcher(components) {
 	const byName = new Map(components.map((c) => [c.name.toLowerCase(), c]))
+	// Parts count: `PropertyRow`, `WorkspaceBar` and `AvatarGroup` are exported
+	// names an app's `Property` or `TeamAvatars` stands in for. A part inherits
+	// its entry's group, so a part of a behaviour component is behaviour too.
+	for (const c of components)
+		for (const s of c.subcomponents ?? []) {
+			const name = typeof s === "string" ? s : s.name
+			if (name && !byName.has(name.toLowerCase())) byName.set(name.toLowerCase(), { name, group: c.group, partOf: c.name })
+		}
 	return (appName) => {
 		if (STRUCTURAL.test(appName)) return []
 		const w = words(appName)
@@ -167,7 +180,7 @@ export function adoptionReport({ files, components, deps = null }) {
 			const behaviour = hits.some(isBehaviour)
 			const body = text.slice(index, starts.find((s) => s > index) ?? text.length)
 			if (behaviour && !HAND_BEHAVIOUR.some((re) => re.test(body))) continue
-			swaps.push({ file: rel, line: lineOf(text, index), name, sable: hits.map((c) => c.name), behaviour })
+			swaps.push({ file: rel, line: lineOf(text, index), name, sable: hits.map((c) => c.name), behaviour, ...(hits[0].partOf ? { partOf: hits[0].partOf } : {}) })
 		}
 	}
 
@@ -233,7 +246,7 @@ function recommendationOf({ level, foundation, libraries, behaviourSwaps }) {
 
 /** One line per swap, for text output. */
 export function swapLines(report, limit = 12, indent = "      ") {
-	const lines = report.swaps.slice(0, limit).map((s) => `${indent}${s.file}:${s.line}  ${s.name} → Sable has ${s.sable.join(" or ")}${s.behaviour ? " (behaviour)" : ""}`)
+	const lines = report.swaps.slice(0, limit).map((s) => `${indent}${s.file}:${s.line}  ${s.name} → Sable has ${s.sable.join(" or ")}${s.partOf ? ` (part of ${s.partOf})` : ""}${s.behaviour ? " (behaviour)" : ""}`)
 	if (report.swaps.length > limit) lines.push(`${indent}… ${report.swaps.length - limit} more: sable grade <paths> --json → adoption.swaps`)
 	return lines
 }

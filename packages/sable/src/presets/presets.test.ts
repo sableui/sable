@@ -24,6 +24,13 @@ describe("portable Sable presets", () => {
 		expect(css).toContain("--motion-duration-fast: calc(120ms * var(--motion-scale));")
 		expect(css).toContain("--motion-duration-exit: var(--motion-duration-fast);")
 	})
+	it("carries a base type size, which rebuilds the scale and the rhythm in the preset's scope", () => {
+		const preset = fixture()
+		preset.tokens.shared["type-base"] = "14"
+		const css = presetCss(parsePreset(JSON.parse(JSON.stringify(preset))))
+		expect(css).toContain("--type-base: 14;")
+		expect(css).toContain('[data-sable-theme="clay"]')
+	})
 	it("round-trips JSON and produces scoped CSS and a provider manifest", () => {
 		const preset = parsePreset(JSON.parse(JSON.stringify(fixture())))
 		expect(presetManifest(preset)).toMatchObject({ id: "clay", modes: ["light", "dark"], defaultMode: "dark" })

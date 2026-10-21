@@ -7,6 +7,9 @@ export const datePickerMeta: ComponentMeta = {
 	status: "stable",
 	keywords: [
 		"date picker",
+		"due date",
+		"property row",
+		"inspector",
 		"calendar",
 		"date input",
 		"date time picker",
@@ -114,6 +117,19 @@ export const datePickerMeta: ComponentMeta = {
 				"Latest selectable day (inclusive). Later days are disabled and navigation is bounded.",
 		},
 		{
+			name: "size",
+			type: '"md" | "xs"',
+			default: '"md"',
+			description:
+				"The trigger's rung. md is the form field beside Input and Select. xs is the property-grid rung (24px in a workspace): an inset panel-field well with no border, the same shape as SelectTrigger size=\"xs\" and ScrubField on the neighbouring rows of an inspector — use it for a due date in a PropertyRow instead of a native date input.",
+		},
+		{
+			name: "formatOptions",
+			type: "Intl.DateTimeFormatOptions",
+			description:
+				"How the trigger writes the chosen date, as Intl.DateTimeFormat options in the reader's locale — { month: \"short\", day: \"numeric\" } for \"Oct 23\" where the rest of a list writes dates that way. Omitted: \"Oct 23, 2026\" (with \"at 14:30\" under granularity=\"minute\").",
+		},
+		{
 			name: "className",
 			type: "string",
 			description: "Extra classes merged onto the trigger.",
@@ -147,6 +163,14 @@ export const datePickerMeta: ComponentMeta = {
 		"With granularity=\"minute\" the hour and minute Selects are full Base UI listboxes (typeahead, ARIA) labelled \"Hour\" and \"Minute\"; selecting a day keeps the chosen time-of-day, so day and time can be set in any order.",
 	],
 	examples: [
+		{
+			label: "In an inspector row",
+			code: `<PanelSection title="Properties">
+	<PropertyRow label="Due date">
+		<DatePicker size="xs" aria-label="Due date" value={due} onValueChange={setDue} formatOptions={{ month: "short", day: "numeric" }} />
+	</PropertyRow>
+</PanelSection>`,
+		},
 		{
 			label: "Controlled",
 			code: "const [date, setDate] = useState<Date>()\n<DatePicker value={date} onValueChange={setDate} />",

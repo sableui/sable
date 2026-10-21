@@ -39,6 +39,7 @@ const dsTypographyTokens = [
 	// not optional bookkeeping: an unrecognised `text-*` class lands in
 	// tailwind-merge's COLOUR group, so `cn("text-ui-md", "text-primary-foreground")`
 	// would drop the colour and render, for instance, white text on a white button.
+	"ui-title",
 	"ui-md",
 	"ui-sm",
 	"ui-body",

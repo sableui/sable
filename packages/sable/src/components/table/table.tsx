@@ -1,19 +1,30 @@
+"use client"
+
 import type { ComponentPropsWithRef } from "react"
 import { cn } from "../../lib/cn"
+import { useDensity } from "../../lib/density"
 
 /**
  * Styled native table. Wraps the <table> in a horizontally scrollable frame so
  * wide tables stay responsive without breaking layout. Caption renders at the
  * bottom. No rounding on cells; rows are separated by hairline borders.
+ *
+ * Density-aware. The head height and the cells' block padding read
+ * `--table-head-h` / `--table-cell-py`, which the compact scope sets (28px
+ * head, 32px rows), and the cells' type follows the register: body-sm on a
+ * page, the 12px ui reading tier in a workspace — a row is the content a
+ * tracker is read for, so it takes prose weight, not the 11px supporting tier
+ * the compact remap would otherwise give body-sm.
  */
 export function Table({ className, ...props }: ComponentPropsWithRef<"table">) {
+	const tier = useDensity() === "compact" ? "text-ui-body" : "text-body-sm"
 	return (
 		// Thin scrollbar so a wide table's horizontal bar reads as part of the
 		// table rather than as chrome, and contained overscroll so swiping past
 		// the last column does not trigger the browser's back gesture.
 		<div className="w-full overflow-x-auto overscroll-x-contain scrollbar-quiet">
 			<table
-				className={cn("w-full caption-bottom text-body-sm", className)}
+				className={cn("w-full caption-bottom", tier, className)}
 				{...props}
 			/>
 		</div>
@@ -98,7 +109,7 @@ export function TableHead({ className, numeric = false, ...props }: TableHeadPro
 	return (
 		<th
 			className={cn(
-				"h-10 px-3 text-start align-middle text-label-md text-muted-foreground first:ps-[var(--table-edge-px,--spacing(3))] last:pe-[var(--table-edge-px,--spacing(3))]",
+				"h-[var(--table-head-h,--spacing(10))] px-3 text-start align-middle text-label-md text-muted-foreground first:ps-[var(--table-edge-px,--spacing(3))] last:pe-[var(--table-edge-px,--spacing(3))]",
 				numeric && NUMERIC,
 				className,
 			)}
@@ -118,7 +129,7 @@ export function TableCell({ className, numeric = false, ...props }: TableCellPro
 	return (
 		<td
 			className={cn(
-				"px-3 py-2.5 align-middle first:ps-[var(--table-edge-px,--spacing(3))] last:pe-[var(--table-edge-px,--spacing(3))]",
+				"px-3 py-[var(--table-cell-py,--spacing(2.5))] align-middle first:ps-[var(--table-edge-px,--spacing(3))] last:pe-[var(--table-edge-px,--spacing(3))]",
 				numeric && NUMERIC,
 				className,
 			)}

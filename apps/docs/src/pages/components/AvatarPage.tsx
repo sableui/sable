@@ -83,21 +83,44 @@ export function AvatarPage() {
 
 			<Section
 				title="Sizes"
-				description="sm, md and lg for rows: 32, 40 and 48px. xl (96px) and 2xl (160px) are portraits — a profile header, an artist hero, a roster tile. The initials and a status dot scale with them."
+				description="2xs and xs for compact workspace rows: 20 and 24px. sm, md and lg for rows: 32, 40 and 48px. xl (96px) and 2xl (160px) are portraits — a profile header, an artist hero, a roster tile. The initials and a status dot scale with them."
 			>
 				<Example
-					code={`<Avatar src="/media/avatars/ana-chen.jpg" alt="Ana Chen" fallback="AC" size="sm" />
+					code={`<Avatar src="/media/avatars/ana-chen.jpg" alt="Ana Chen" fallback="AC" size="2xs" />
+<Avatar src="/media/avatars/ana-chen.jpg" alt="Ana Chen" fallback="AC" size="xs" />
+<Avatar src="/media/avatars/ana-chen.jpg" alt="Ana Chen" fallback="AC" size="sm" />
 <Avatar src="/media/avatars/ana-chen.jpg" alt="Ana Chen" fallback="AC" size="md" />
 <Avatar src="/media/avatars/ana-chen.jpg" alt="Ana Chen" fallback="AC" size="lg" />
 <Avatar src="/media/avatars/ana-chen.jpg" alt="Ana Chen" fallback="AC" size="xl" />
 <Avatar src="/media/avatars/ana-chen.jpg" alt="Ana Chen" fallback="AC" size="2xl" />`}
 				>
 					<div className="flex flex-wrap items-end justify-center gap-4">
+						<Avatar src={photo("ana-chen")} alt="Ana Chen" fallback="AC" size="2xs" />
+						<Avatar src={photo("ana-chen")} alt="Ana Chen" fallback="AC" size="xs" />
 						<Avatar src={photo("ana-chen")} alt="Ana Chen" fallback="AC" size="sm" />
 						<Avatar src={photo("ana-chen")} alt="Ana Chen" fallback="AC" size="md" />
 						<Avatar src={photo("ana-chen")} alt="Ana Chen" fallback="AC" size="lg" />
 						<Avatar src={photo("ana-chen")} alt="Ana Chen" fallback="AC" size="xl" />
 						<Avatar src={photo("ana-chen")} alt="Ana Chen" fallback="AC" size="2xl" />
+					</div>
+				</Example>
+			</Section>
+
+			<Section
+				title="Marks for what is not a person"
+				description='shape="square" for a workspace, a project, an org or a team, so circles keep meaning people. tone paints a palette family behind the initials, one colour per project, held to contrast in every theme.'
+			>
+				<Example
+					code={`<Avatar shape="square" tone="teal" size="xs" fallback="N" alt="Northwind storefront" />
+<Avatar shape="square" tone="orange" size="xs" fallback="H" alt="Harbor brand refresh" />
+<Avatar shape="square" tone="purple" size="sm" fallback="L" alt="Lumen editorial" />
+<Avatar shape="square" tone="blue" size="lg" fallback="FS" alt="Forma Studio" />`}
+				>
+					<div className="flex flex-wrap items-end justify-center gap-4">
+						<Avatar shape="square" tone="teal" size="xs" fallback="N" alt="Northwind storefront" />
+						<Avatar shape="square" tone="orange" size="xs" fallback="H" alt="Harbor brand refresh" />
+						<Avatar shape="square" tone="purple" size="sm" fallback="L" alt="Lumen editorial" />
+						<Avatar shape="square" tone="blue" size="lg" fallback="FS" alt="Forma Studio" />
 					</div>
 				</Example>
 			</Section>

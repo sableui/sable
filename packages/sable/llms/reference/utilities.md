@@ -91,7 +91,7 @@ The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, wh
     - **Instead of** `scrollbar-quiet` on a vertical list. A vertical region with no bar and no fade tells a reader nothing about how far through they are.
     - `<div className="flex gap-3 overflow-x-auto scrollbar-hidden">…</div>`
 
-### text (12)
+### text (13)
 
 - **`sable-list`** — A bulleted list as typography: body type, a hanging muted marker, and item rhythm. Put it on a native `<ul>`. *Use for:* Running content with bullets: release notes, a feature list, steps that are not ordered.
     - **Instead of** A stack of `<div>`s with a hand-drawn dot, or an unstyled `<ul>` that inherits the reset (no markers, no indent).
@@ -108,6 +108,9 @@ The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, wh
 - **`text-overline`** — The eyebrow / overline / kicker tier: small, letter-spaced, uppercase by default (a theme may set sentence case via `--type-overline-transform`). *Use for:* A section eyebrow above a heading, a stat's label, a badge-style category line. Sits ABOVE and categorises.
     - **Instead of** `text-label-xs uppercase tracking-wider` assembled by hand, or `text-caption`, which sits BELOW and explains. In tool chrome, panel headers use `text-ui-section` instead.
     - `<p className="text-overline text-muted-foreground">Latest news</p>`
+- **`text-ui-title`** — The title of what a panel or inspector shows — the open issue, the selected object: 14px at 600 on a 20px line, one step above `text-ui-md`. *Use for:* The one title at the top of an inspector, a docked panel or a peek view inside the workspace register. Compact `text-title-lg` resolves to it on its own.
+    - **Instead of** `text-ui-md` made heavier (a title the size of the description under it reads as a label), or `text-heading-*`, which is page structure rather than chrome.
+    - `<h2 className="text-ui-title text-panel-foreground">Refine product detail page</h2>`
 - **`text-ui-md`** — Workspace-register chrome text, the default tier: ~12px at weight ~500 on 16px leading. *Use for:* Labels and values in tool chrome — panels, inspectors, toolbars, trees — inside the workspace register.
     - **Instead of** `text-label-sm` or `text-body-sm` in a dense panel (the page register's weights read as shouting at this size), or a size class plus a weight class composed by hand.
     - `<span className="text-ui-md text-panel-foreground">Opacity</span>`

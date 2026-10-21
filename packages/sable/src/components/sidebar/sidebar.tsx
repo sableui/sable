@@ -7,9 +7,12 @@ import {
 	type ReactElement,
 	type ReactNode,
 	useContext,
+	useId,
 	useState,
 } from "react"
+import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
+import { useDensity } from "../../lib/density"
 import { HighlightGlide } from "../../lib/highlight-glide"
 import { type MotionLevel, motionAttribute } from "../../motion/MotionProvider"
 import { useAppShellFrame } from "../app-shell/app-shell-frame"
@@ -25,10 +28,19 @@ type SidebarContextValue = {
 	 * paint, so an expanded rail's labels are simply there on load.
 	 */
 	reopened?: boolean
+	/**
+	 * The row rung every part of the rail draws from: `rail` on a page,
+	 * `rail-compact` inside a compact scope such as a Workspace. One value, so
+	 * the brand, the items, the group labels and the account row stay on the
+	 * same columns at either density.
+	 */
+	rung: RailRung
 }
+type RailRung = "rail" | "rail-compact"
 const SidebarContext = createContext<SidebarContextValue>({
 	collapsed: false,
 	icons: true,
+	rung: "rail",
 })
 
 /** Read the rail's collapsed state — e.g. to swap a full wordmark for a mark. */
@@ -174,8 +186,11 @@ export function Sidebar({
 	// Set only by AppShell around its `sidebar` slot — the coupling is documented
 	// in app-shell/app-shell-frame.tsx.
 	const inset = useAppShellFrame() === "inset"
+	// A rail in a tool (a compact Workspace) takes the compact rung: 32px rows
+	// and a 20px icon beside 28px chrome, not a page's 44px rows.
+	const rung: RailRung = useDensity() === "compact" ? "rail-compact" : "rail"
 	return (
-		<SidebarContext.Provider value={{ collapsed, icons, reopened: hasCollapsed && !collapsed }}>
+		<SidebarContext.Provider value={{ collapsed, icons, reopened: hasCollapsed && !collapsed, rung }}>
 			<aside
 				data-motion={motionAttribute(motion)}
 				data-collapsed={collapsed || undefined}
@@ -228,11 +243,14 @@ export function SidebarHeader({
 	className,
 	...props
 }: ComponentPropsWithRef<"div">) {
-	const { collapsed } = useSidebar()
+	const { collapsed, rung } = useSidebar()
 	return (
 		<div
 			className={cn(
-				"flex min-h-16 flex-wrap content-center items-center gap-y-2 px-3 has-[>:nth-child(2)]:py-3",
+				"flex flex-wrap content-center items-center gap-y-2 px-3",
+				// Compact, the brand row is the height of the tool's own chrome bar,
+				// so it lines up with the WorkspaceBar beside it.
+				rung === "rail-compact" ? "min-h-(--chrome-bar-height) has-[>:nth-child(2)]:py-2" : "min-h-16 has-[>:nth-child(2)]:py-3",
 				// Collapsed, the brand mark centres on the same axis as the item icons.
 				collapsed && "justify-center px-0",
 				className,
@@ -263,7 +281,7 @@ export interface SidebarBrandProps extends Omit<ComponentPropsWithRef<"div">, "c
  *   </SidebarHeader>
  */
 export function SidebarBrand({ mark, label, render, className, "aria-label": ariaLabel, ...props }: SidebarBrandProps) {
-	const { collapsed, reopened } = useSidebar()
+	const { collapsed, reopened, rung } = useSidebar()
 	return useRender({
 		render: render ?? <div />,
 		props: {
@@ -280,7 +298,7 @@ export function SidebarBrand({ mark, label, render, className, "aria-label": ari
 			),
 			children: (
 				<>
-					<span className={sideNavItemIconVariants({ size: "rail" })}>{mark}</span>
+					<span className={sideNavItemIconVariants({ size: rung })}>{mark}</span>
 					{collapsed ? null : <span className={cn("min-w-0 truncate text-title-sm", reopened && LABEL_FADE)}>{label}</span>}
 				</>
 			),
@@ -304,13 +322,15 @@ export function SidebarNav({
 	children,
 	...props
 }: ComponentPropsWithRef<"nav">) {
+	const { rung } = useSidebar()
 	return (
 		<nav
 			className={cn(
 					// Thin scrollbar so a long nav does not hand a fat platform bar to a
 					// narrow rail, and contained overscroll so a wheel gesture that runs
 					// out of nav stops there instead of scrolling the page behind it.
-					"flex flex-1 flex-col gap-1 overflow-y-auto overscroll-contain px-3 py-4 scrollbar-quiet",
+					"flex flex-1 flex-col overflow-y-auto overscroll-contain px-3 scrollbar-quiet",
+					rung === "rail-compact" ? "gap-0.5 py-2" : "gap-1 py-4",
 					"[&[data-glide]_[data-active]]:bg-transparent",
 					className,
 				)}
@@ -329,10 +349,12 @@ export function SidebarFooter({
 	...props
 }: ComponentPropsWithRef<"div">) {
 	const inset = useAppShellFrame() === "inset"
+	const { rung } = useSidebar()
 	return (
 		<div
 			className={cn(
-				"flex flex-col gap-1 border-t border-sidebar-border px-3 py-4",
+				"flex flex-col gap-1 border-t border-sidebar-border px-3",
+				rung === "rail-compact" ? "py-2" : "py-4",
 				// In an inset shell the rail has no edge of its own (the gap is the
 				// divider), so a full-width rule ran out into that gap and stopped on
 				// nothing. Inset to the content column it spans what the rows span:
@@ -376,7 +398,7 @@ export function SidebarItem({
 	"aria-label": ariaLabel,
 	...props
 }: SidebarItemProps) {
-	const { collapsed, icons, reopened } = useSidebar()
+	const { collapsed, icons, reopened, rung } = useSidebar()
 	// Collapsed is icon-only, so it always shows the icon; otherwise the rail's
 	// `icons` flag decides (a text-only rail drops it).
 	const showIcon = icon != null && (icons || collapsed)
@@ -393,14 +415,14 @@ export function SidebarItem({
 				ariaLabel ?? (collapsed && typeof label === "string" ? label : undefined),
 			className: cn(
 				// SideNav's row recipe on the rail rung — one row, not a copy.
-				sideNavItemVariants({ size: "rail", activeVariant: "sidebar" }),
+				sideNavItemVariants({ size: rung, activeVariant: "sidebar" }),
 				collapsed && "justify-center px-0",
 				className,
 			),
 			children: (
 				<>
 					{showIcon ? (
-						<span className={sideNavItemIconVariants({ size: "rail" })}>
+						<span className={sideNavItemIconVariants({ size: rung })}>
 							{icon}
 						</span>
 					) : null}
@@ -426,3 +448,140 @@ export function SidebarItem({
 	return element
 }
 SidebarItem.displayName = "SidebarItem"
+
+export interface SidebarGroupProps extends ComponentPropsWithRef<"div"> {
+	/** The group's name, shown above its items on the rail's columns. Collapsed, a hairline stands in for it. */
+	label?: ReactNode
+}
+
+/**
+ * A labelled run of SidebarItems inside SidebarNav: "Workspace", "Favorites".
+ * The label starts on the items' icon column, so a group reads as part of the
+ * rail rather than a heading dropped onto it. Without it, a rail that needed
+ * groups reached for SideNav, whose rows sit on different columns from the
+ * brand above and the account row below.
+ *
+ *   <SidebarNav>
+ *     <SidebarGroup label="Workspace">
+ *       <SidebarItem icon={<Icon name="folder" />} label="Projects" />
+ *     </SidebarGroup>
+ *   </SidebarNav>
+ */
+export function SidebarGroup({ label, className, children, ...props }: SidebarGroupProps) {
+	const { collapsed, rung } = useSidebar()
+	const labelId = useId()
+	return (
+		<div
+			role="group"
+			aria-labelledby={label ? labelId : undefined}
+			className={cn("flex flex-col", rung === "rail-compact" ? "gap-0.5" : "gap-1", className)}
+			{...props}
+		>
+			{label ? (
+				collapsed ? (
+					<>
+						<span id={labelId} className="sr-only">{label}</span>
+						<div aria-hidden className="mx-3 my-2 h-px bg-sidebar-border" />
+					</>
+				) : (
+					<div id={labelId} className="truncate px-3 pt-4 pb-1 text-caption text-muted-foreground">
+						{label}
+					</div>
+				)
+			) : null}
+			{children}
+		</div>
+	)
+}
+SidebarGroup.displayName = "SidebarGroup"
+
+export interface SidebarAccountProps extends Omit<ComponentPropsWithRef<"button">, "children" | "title"> {
+	/** The person or workspace: an Avatar sized to the slot, `xs` on a page rail and `2xs` in a compact one. */
+	avatar: ReactNode
+	/** The name, on the items' label column. */
+	label: ReactNode
+	/** One quiet line under the label: a plan, a role, a workspace, "Demo". Not a badge. */
+	detail?: ReactNode
+	/**
+	 * The trailing glyph that says the row opens something. Defaults to an
+	 * up-down chevron (the row usually opens a menu of account actions); `false`
+	 * drops it.
+	 */
+	indicator?: ReactNode | false
+	/** Render as another element, most often an account Menu's trigger through `MenuTrigger render`. */
+	render?: useRender.RenderProp
+}
+
+/**
+ * The account row at the foot of the rail: the avatar in the items' icon slot,
+ * the name on their label column, one detail line, and a chevron that says it
+ * opens a menu. Settings, appearance and sign-out live in that menu, so the
+ * footer is one row instead of a Settings button stacked over a person.
+ *
+ *   <SidebarFooter>
+ *     <Menu>
+ *       <MenuTrigger render={<SidebarAccount avatar={<Avatar size="2xs" fallback="EL" alt="" />} label="Emma Lee" detail="Forma Studio" />} />
+ *       <MenuContent side="top" align="start">…</MenuContent>
+ *     </Menu>
+ *   </SidebarFooter>
+ *
+ * It replaces an Entity patched with `[--entity-py:0]`: an Entity has its own
+ * insets and lands on none of the rail's columns. Collapsed, the avatar alone
+ * stays, centred on the icon column, with the label in a tooltip.
+ */
+export function SidebarAccount({
+	avatar,
+	label,
+	detail,
+	indicator,
+	render,
+	className,
+	"aria-label": ariaLabel,
+	...props
+}: SidebarAccountProps) {
+	const { collapsed, reopened, rung } = useSidebar()
+	const element = useRender({
+		// design-lint-disable-next-line raw-button -- a rail row with its own anatomy (avatar slot, two-line label, chevron) on SidebarItem's row recipe, and usually a MenuTrigger's render target; not a button-shaped action
+		render: render ?? <button type="button" />,
+		props: {
+			...props,
+			"aria-label": ariaLabel ?? (collapsed && typeof label === "string" ? label : undefined),
+			className: cn(
+				sideNavItemVariants({ size: rung, activeVariant: "sidebar" }),
+				// Holds the hover fill while its menu is open, so the row reads as
+				// the thing the menu came from.
+				"data-[popup-open]:bg-sidebar-accent data-[popup-open]:text-sidebar-accent-foreground",
+				collapsed && "justify-center px-0",
+				className,
+			),
+			children: (
+				<>
+					<span className={sideNavItemIconVariants({ size: rung })}>{avatar}</span>
+					{collapsed ? null : (
+						<>
+							<span className={cn("flex min-w-0 flex-1 flex-col", reopened && LABEL_FADE)}>
+								<span className="truncate">{label}</span>
+								{detail ? <span className="truncate text-caption text-muted-foreground">{detail}</span> : null}
+							</span>
+							{indicator === false ? null : (
+								<span className="ms-auto flex shrink-0 text-muted-foreground" aria-hidden>
+									{indicator ?? <Icon name="chevron-up-down" className="text-base" />}
+								</span>
+							)}
+						</>
+					)}
+				</>
+			),
+		},
+		defaultTagName: "button",
+	}) as ReactElement
+	if (collapsed) {
+		return (
+			<SimpleTooltip content={label} side="right">
+				{element}
+			</SimpleTooltip>
+		)
+	}
+	return element
+}
+SidebarAccount.displayName = "SidebarAccount"

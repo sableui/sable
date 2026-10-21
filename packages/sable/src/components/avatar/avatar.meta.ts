@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const avatarMeta: ComponentMeta = {
 	name: "Avatar",
 	summary:
-		"Circular profile image over Base UI Avatar — automatic image-load tracking with an initials/glyph fallback. Ergonomic Avatar plus low-level AvatarRoot/AvatarImage/AvatarFallback parts, and AvatarGroup for an overlapping stack with a \"+N\" overflow count.",
+		"Circular (or square) profile image over Base UI Avatar — automatic image-load tracking with an initials/glyph fallback. Ergonomic Avatar plus low-level AvatarRoot/AvatarImage/AvatarFallback parts, and AvatarGroup for an overlapping stack with a \"+N\" overflow count.",
 	keywords: [
 		"avatar",
 		"profile",
@@ -17,6 +17,11 @@ export const avatarMeta: ComponentMeta = {
 		"overflow",
 		"collaborators",
 		"facepile",
+		"monogram",
+		"project mark",
+		"workspace icon",
+		"org logo",
+		"assignee",
 	],
 	usage: {
 		description:
@@ -40,12 +45,17 @@ export const avatarMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
-					"Pick the size by the job: sm in dense rows and tables, md (the default) beside one line of text, lg in a row with a title and subtitle, xl (96px) for a profile header beside the person's name, 2xl (160px) for an artist or profile hero and roster portraits. Keep one size within a list or group.",
+					"Pick the size by the job: 2xs (20px) or xs (24px) in a compact workspace row (an assignee in an issue list, a project mark in a nav item), sm in dense rows and tables, md (the default) beside one line of text, lg in a row with a title and subtitle, xl (96px) for a profile header beside the person's name, 2xl (160px) for an artist or profile hero and roster portraits. Keep one size within a list or group.",
 			},
 			{
 				guidance: "do",
 				description:
 					"Use AvatarGroup for a stack of people, and give it an aria-label with the real count (\"12 collaborators\"). Set `surface` (or `--avatar-group-ring`) to whatever the group sits on, so the separating ring matches a card or popover, not the page. When it shares a row with actions, set `fit` so it gives up avatars to the \"+N\" count before the row has to wrap.",
+			},
+			{
+				guidance: "do",
+				description:
+					'Use `shape="square"` for what is not a person (a workspace, a project, an org, a team), with `tone` set to a palette family so each one keeps its own colour: `<Avatar shape="square" tone="teal" fallback="N" alt="Northwind storefront" size="xs" />`. Circles mean people; keep that distinction across the app.',
 			},
 			{
 				guidance: "dont",
@@ -65,7 +75,7 @@ export const avatarMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description:
-					"Build a portrait by stretching an Avatar with size classes (`className=\"size-40\"`) — the initials, the status indicator and the image fade stay at row scale. Use size=\"xl\" or \"2xl\", which scale all three. Past 160px, or for a non-circular cover, it is media: an AspectBox, not an avatar.",
+					"Resize an Avatar with size classes (`className=\"size-5\"`, `className=\"size-40\"`) — the initials, the status indicator and the image fade stay at the size they were drawn for. Use size=\"2xs\"/\"xs\" for dense rows and size=\"xl\"/\"2xl\" for portraits, which scale all three. Don't hand-build a tinted initials tile for a project or workspace mark either: that is Avatar shape=\"square\" with a tone. Past 160px, or for a cover, it is media: an AspectBox, not an avatar.",
 			},
 		],
 		anatomy: [
@@ -138,9 +148,21 @@ export const avatarMeta: ComponentMeta = {
 		},
 		{
 			name: "size",
-			type: '"sm" | "md" | "lg" | "xl" | "2xl"',
+			type: '"2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl"',
 			default: '"md"',
-			description: "Square footprint: 32px / 40px / 48px for rows; 96px / 160px for portraits (a profile header, an artist hero, a roster tile). The initials, a status indicator and its cut-out ring scale with it, and at the portrait sizes the photo fades in over the resting surface.",
+			description: "Square footprint: 20px / 24px for compact workspace rows; 32px / 40px / 48px for rows; 96px / 160px for portraits (a profile header, an artist hero, a roster tile). The initials, a status indicator and its cut-out ring scale with it, and at the portrait sizes the photo fades in over the resting surface.",
+		},
+		{
+			name: "shape",
+			type: '"circle" | "square"',
+			default: '"circle"',
+			description: "The frame's corner. circle is a person. square is what is not a face — a workspace, a project, an org, a team — with a radius from the theme's steps that grows with the size (4px at 20–24px to 20px at 160px), so a square theme stays square. A status indicator sits on the square's corner.",
+		},
+		{
+			name: "tone",
+			type: '"neutral" | "red" | "orange" | "yellow" | "green" | "teal" | "blue" | "purple" | "pink"',
+			default: '"neutral"',
+			description: "The fallback's colour. neutral is the muted surface; a palette family paints its wash behind the initials and its deep ink on them (a soft Badge's pair, held to contrast in every theme), for a category colour such as one per project. Ignored by variant=\"art\", which colours by seed.",
 		},
 		{
 			name: "variant",
@@ -157,7 +179,7 @@ export const avatarMeta: ComponentMeta = {
 	subcomponents: [
 		{
 			name: "AvatarRoot",
-			type: "Base UI Avatar.Root props + size + className",
+			type: "Base UI Avatar.Root props + size + shape + tone + className",
 			description:
 				"Low-level circular frame for full composition control — clips the image and holds the `size` axis. Wraps AvatarImage and AvatarFallback.",
 		},
@@ -175,19 +197,20 @@ export const avatarMeta: ComponentMeta = {
 		},
 		{
 			name: "AvatarGroup",
-			type: '{ size?: "sm" | "md" | "lg"; surface?: "background" | "card" | "popover" | "muted"; max?: number; fit?: boolean; total?: number; countLabel?: (count: number) => string; "aria-label"?: string; className?: string; children: ReactNode }',
+			type: '{ size?: "2xs" | "xs" | "sm" | "md" | "lg"; surface?: "background" | "card" | "popover" | "muted"; max?: number; fit?: boolean; total?: number; countLabel?: (count: number) => string; "aria-label"?: string; className?: string; children: ReactNode }',
 			description:
 				"Overlapping stack (role=group) — name it with aria-label (\"12 collaborators\"). `size` applies to every avatar inside. `max` shows that many and collapses the rest into a \"+N\" count; `total` is the real head-count when you only pass some people. `fit` shows only as many avatars as fit the width the group is given (it fills the space left in a flex row) and folds the rest into the count, so a tight row reads \"MO SR +5\" instead of wrapping. The separating ring reads the inherited `--avatar-group-ring` (default: the page background); `surface` sets it to card, popover, or muted.",
 		},
 		{
 			name: "AvatarGroupCount",
-			type: '{ count: number; label?: string; size?: "sm" | "md" | "lg"; className?: string }',
+			type: '{ count: number; label?: string; size?: "2xs" | "xs" | "sm" | "md" | "lg"; className?: string }',
 			description:
 				"The \"+N\" avatar. Shows \"+4\" and reads \"and 4 more\" (override with label). AvatarGroup renders it for you from max/total; use it directly only when composing the stack yourself.",
 		},
 	],
 	variants: {
-		size: ["sm", "md", "lg", "xl", "2xl"],
+		size: ["2xs", "xs", "sm", "md", "lg", "xl", "2xl"],
+		shape: ["circle", "square"],
 		variant: ["neutral", "art"],
 	},
 	tokensUsed: ["muted", "muted-foreground", "background", "card", "popover", "overlay", "overlay-foreground"],
@@ -230,6 +253,17 @@ export const avatarMeta: ComponentMeta = {
 		<p className="text-body-sm text-muted-foreground">1.2M monthly listeners</p>
 	</div>
 </div>`,
+		},
+		{
+			label: "Dense row sizes",
+			code: `<Avatar fallback="EL" alt="Emma Lee" size="2xs" />
+<Avatar fallback="EL" alt="Emma Lee" size="xs" />`,
+		},
+		{
+			label: "Project marks",
+			code: `<Avatar shape="square" tone="teal" size="xs" fallback="N" alt="Northwind storefront" />
+<Avatar shape="square" tone="orange" size="xs" fallback="H" alt="Harbor brand refresh" />
+<Avatar shape="square" tone="purple" size="xs" fallback="L" alt="Lumen editorial" />`,
 		},
 		{
 			label: "Low-level parts",

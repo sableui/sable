@@ -15,9 +15,10 @@ import {
 } from "react"
 import { cn } from "../../lib/cn"
 import { GradientArt } from "../gradient-art"
+import { isPaletteColor, type PaletteColor } from "../../lib/palette"
 import { mergeRefs } from "../../lib/refs"
 import { useResizeObserver } from "../../lib/use-resize-observer"
-import { avatarGroupVariants, avatarVariants } from "./avatar.variants"
+import { AVATAR_SQUARE_RADIUS, avatarGroupVariants, avatarVariants } from "./avatar.variants"
 
 /**
  * Avatar — themed wrapper over Base UI's Avatar (Root + Image + Fallback). Base
@@ -31,8 +32,18 @@ import { avatarGroupVariants, avatarVariants } from "./avatar.variants"
  *   <Avatar src={user.pfp} alt={user.name} fallback="AM" size="lg" />
  */
 
+/** The fallback's colour: the muted surface, or a palette family's wash and ink. */
+export type AvatarTone = "neutral" | PaletteColor
+
 type RootProps = Omit<ComponentProps<typeof Base.Root>, "className"> &
 	VariantProps<typeof avatarVariants> & {
+		/**
+		 * Paint the resting surface from a palette family instead of the muted
+		 * grey: its wash behind, its deep ink on the initials — the pair a soft
+		 * Badge uses, held to contrast in every theme. For a category colour (a
+		 * project, a workspace, a team) that should not read as a status.
+		 */
+		tone?: AvatarTone
 		className?: string
 	}
 
@@ -65,12 +76,14 @@ const IMAGE_FADE: Partial<Record<AvatarSize, string>> = {
 	"2xl": "motion-fade",
 }
 
-/** The circular frame. Clips the image; holds the `size` axis. */
-export function AvatarRoot({ size, className, ...props }: RootProps) {
+/** The frame. Clips the image; holds the `size`, `shape` and `tone` axes. */
+export function AvatarRoot({ size, shape, tone, className, ...props }: RootProps) {
 	const group = useContext(AvatarGroupContext)
+	const palette = isPaletteColor(tone) ? tone : undefined
 	return (
 		<Base.Root
-			className={cn(avatarVariants({ size: group?.size ?? size }), className)}
+			data-palette={palette}
+			className={cn(avatarVariants({ size: group?.size ?? size, shape }), palette && "bg-palette-wash", className)}
 			{...props}
 		/>
 	)
@@ -100,8 +113,9 @@ type FallbackProps = Omit<ComponentProps<typeof Base.Fallback>, "className"> & {
 export function AvatarFallback({ className, ...props }: FallbackProps) {
 	return (
 		<Base.Fallback
-			// Type comes from the root's size (avatarVariants).
-			className={cn("text-muted-foreground", className)}
+			// Type comes from the root's size (avatarVariants); a toned root's
+			// family ink replaces the muted one.
+			className={cn("text-muted-foreground [[data-palette]>&]:text-palette-text", className)}
 			{...props}
 		/>
 	)
@@ -149,6 +163,8 @@ export function Avatar({
 	fallback,
 	fallbackDelay,
 	size,
+	shape,
+	tone,
 	status,
 	variant = "neutral",
 	seed,
@@ -160,7 +176,7 @@ export function Avatar({
 	// being dropped with the <img> that never rendered.
 	const named = !src && alt ? { role: "img" as const, "aria-label": alt } : null
 	const avatar = (
-		<AvatarRoot size={size} className={status == null ? className : undefined} {...named} {...props}>
+		<AvatarRoot size={size} shape={shape} tone={variant === "art" ? undefined : tone} className={status == null ? className : undefined} {...named} {...props}>
 			{src ? <AvatarImage src={src} alt={alt ?? ""} className={size ? IMAGE_FADE[size] : undefined} /> : null}
 			{variant === "art" ? (
 				<AvatarFallback delay={fallbackDelay} aria-hidden={named ? true : undefined} className="size-full">
@@ -180,18 +196,21 @@ export function Avatar({
 	)
 	if (status == null) return avatar
 	// The root clips (overflow-hidden), so the indicator needs an unclipped
-	// anchor around it. `rounded-full` keeps a group's ring round on the anchor.
+	// anchor around it, rounded like the avatar so a group's ring follows it.
+	const anchorRadius = shape === "square" ? AVATAR_SQUARE_RADIUS[size ?? "md"] : "rounded-full"
 	return (
-		<span data-slot="avatar-status-anchor" className={cn("relative inline-flex shrink-0 rounded-full", className)}>
+		<span data-slot="avatar-status-anchor" className={cn("relative inline-flex shrink-0", anchorRadius, className)}>
 			{avatar}
 			{/* Centred ON the circle's rim at 45°, not in the bounding box's corner
 			    (which lies ~15% of the size outside the circle, so the dot floated
 			    off it): r(1 − 1/√2) ≈ 14.6% in from each edge, then pulled back by
-			    half its own size. */}
+			    half its own size. A square has a real corner, so the dot sits on
+			    it, a little inside where the rounding begins. */}
 			<span
 				data-slot="avatar-status"
 				className={cn(
-					"absolute end-[14.6%] bottom-[14.6%] flex translate-x-1/2 translate-y-1/2 rounded-full rtl:-translate-x-1/2 *:ring-2 *:ring-[color:var(--avatar-group-ring,var(--background))]",
+					"absolute flex translate-x-1/2 translate-y-1/2 rounded-full rtl:-translate-x-1/2 *:ring-2 *:ring-[color:var(--avatar-group-ring,var(--background))]",
+					shape === "square" ? "end-[6%] bottom-[6%]" : "end-[14.6%] bottom-[14.6%]",
 					size ? STATUS_SCALE[size] : undefined,
 				)}
 			>
@@ -235,6 +254,8 @@ AvatarGroupCount.displayName = "AvatarGroupCount"
 
 /** Two circles less one overlap, per size (see avatarGroupVariants). */
 const FIT_MIN_WIDTH: Record<AvatarGroupSize, string> = {
+	"2xs": "min-w-9",
+	xs: "min-w-11",
 	sm: "min-w-15",
 	md: "min-w-[--spacing(18.5)]",
 	lg: "min-w-22",
@@ -243,7 +264,8 @@ const FIT_MIN_WIDTH: Record<AvatarGroupSize, string> = {
 export interface AvatarGroupProps
 	extends Omit<ComponentProps<"div">, "className"> {
 	/**
-	 * Size of every avatar in the group: 32px / 40px / 48px. Overrides each
+	 * Size of every avatar in the group: 20px / 24px for dense rows, 32px /
+	 * 40px / 48px otherwise. Overrides each
 	 * child's own size. The portrait sizes (`xl`, `2xl`) are not offered: a
 	 * stack is a row-sized summary of people, never a set of portraits.
 	 */

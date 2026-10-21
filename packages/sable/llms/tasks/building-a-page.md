@@ -2,8 +2,9 @@
 
 Marketing, docs, settings, a feed, a dashboard — anything whose primary
 interaction is reading and navigating. This is the default register; if you are
-building an editor or a canvas app, see
-[building-a-tool.md](./building-a-tool.md).
+building an editor, a canvas app, or a records workspace where people work
+through items with the selected one open beside the list (an issue tracker, a
+support queue), see [building-a-tool.md](./building-a-tool.md).
 
 ## Start from the brief, then choose composition
 

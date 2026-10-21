@@ -2,9 +2,9 @@
 
 **Status:** stable
 
-Circular profile image over Base UI Avatar — automatic image-load tracking with an initials/glyph fallback. Ergonomic Avatar plus low-level AvatarRoot/AvatarImage/AvatarFallback parts, and AvatarGroup for an overlapping stack with a "+N" overflow count.
+Circular (or square) profile image over Base UI Avatar — automatic image-load tracking with an initials/glyph fallback. Ergonomic Avatar plus low-level AvatarRoot/AvatarImage/AvatarFallback parts, and AvatarGroup for an overlapping stack with a "+N" overflow count.
 
-**Keywords:** avatar, profile, user, identity, initials, fallback, group, team, stack, overflow, collaborators, facepile
+**Keywords:** avatar, profile, user, identity, initials, fallback, group, team, stack, overflow, collaborators, facepile, monogram, project mark, workspace icon, org logo, assignee
 
 ## Usage
 
@@ -15,12 +15,13 @@ Use Avatar to represent a person, team, or account with a compact visual identit
 - Do: Use `variant="art"` where people without photos sit side by side — a member list, an activity feed, a chat. Seeded by the person, each gets their own colour, so faces stay tellable apart at a glance; the neutral fallback makes everyone the same grey circle.
 - Do: Provide meaningful alt text for profile images, or an empty alt when the adjacent text already names the person.
 - Do: Use initials or a simple glyph fallback so missing images still communicate identity.
-- Do: Pick the size by the job: sm in dense rows and tables, md (the default) beside one line of text, lg in a row with a title and subtitle, xl (96px) for a profile header beside the person's name, 2xl (160px) for an artist or profile hero and roster portraits. Keep one size within a list or group.
+- Do: Pick the size by the job: 2xs (20px) or xs (24px) in a compact workspace row (an assignee in an issue list, a project mark in a nav item), sm in dense rows and tables, md (the default) beside one line of text, lg in a row with a title and subtitle, xl (96px) for a profile header beside the person's name, 2xl (160px) for an artist or profile hero and roster portraits. Keep one size within a list or group.
 - Do: Use AvatarGroup for a stack of people, and give it an aria-label with the real count ("12 collaborators"). Set `surface` (or `--avatar-group-ring`) to whatever the group sits on, so the separating ring matches a card or popover, not the page. When it shares a row with actions, set `fit` so it gives up avatars to the "+N" count before the row has to wrap.
+- Do: Use `shape="square"` for what is not a person (a workspace, a project, an org, a team), with `tone` set to a palette family so each one keeps its own colour: `<Avatar shape="square" tone="teal" fallback="N" alt="Northwind storefront" size="xs" />`. Circles mean people; keep that distinction across the app.
 - Don't: Hand-build a stack with negative margins and per-avatar ring classes, or fake the overflow as an Avatar with "+4" initials — screen readers hear "plus 4" with no context. Use AvatarGroup's `max`/`total`, or AvatarGroupCount.
 - Don't: Use avatars as decoration without nearby identity context. They should help users recognize a person or account.
 - Don't: Overload a dense table with large avatars; use sm or omit images when scanning data is more important.
-- Don't: Build a portrait by stretching an Avatar with size classes (`className="size-40"`) — the initials, the status indicator and the image fade stay at row scale. Use size="xl" or "2xl", which scale all three. Past 160px, or for a non-circular cover, it is media: an AspectBox, not an avatar.
+- Don't: Resize an Avatar with size classes (`className="size-5"`, `className="size-40"`) — the initials, the status indicator and the image fade stay at the size they were drawn for. Use size="2xs"/"xs" for dense rows and size="xl"/"2xl" for portraits, which scale all three. Don't hand-build a tinted initials tile for a project or workspace mark either: that is Avatar shape="square" with a tone. Past 160px, or for a cover, it is media: an AspectBox, not an avatar.
 
 ### Anatomy
 
@@ -36,11 +37,11 @@ Use Avatar to represent a person, team, or account with a compact visual identit
 
 | Name | Type | Description |
 | --- | --- | --- |
-| AvatarRoot | Base UI Avatar.Root props + size + className | Low-level circular frame for full composition control — clips the image and holds the `size` axis. Wraps AvatarImage and AvatarFallback. |
+| AvatarRoot | Base UI Avatar.Root props + size + shape + tone + className | Low-level circular frame for full composition control — clips the image and holds the `size` axis. Wraps AvatarImage and AvatarFallback. |
 | AvatarImage | Base UI Avatar.Image props + className | The profile image. Fills and crops the frame; hidden by Base UI until it loads. |
 | AvatarFallback | Base UI Avatar.Fallback props (delay) + className | Shown when no image is available — typically initials or a glyph. Accepts a delay prop. |
-| AvatarGroup | { size?: "sm" \| "md" \| "lg"; surface?: "background" \| "card" \| "popover" \| "muted"; max?: number; fit?: boolean; total?: number; countLabel?: (count: number) => string; "aria-label"?: string; className?: string; children: ReactNode } | Overlapping stack (role=group) — name it with aria-label ("12 collaborators"). `size` applies to every avatar inside. `max` shows that many and collapses the rest into a "+N" count; `total` is the real head-count when you only pass some people. `fit` shows only as many avatars as fit the width the group is given (it fills the space left in a flex row) and folds the rest into the count, so a tight row reads "MO SR +5" instead of wrapping. The separating ring reads the inherited `--avatar-group-ring` (default: the page background); `surface` sets it to card, popover, or muted. |
-| AvatarGroupCount | { count: number; label?: string; size?: "sm" \| "md" \| "lg"; className?: string } | The "+N" avatar. Shows "+4" and reads "and 4 more" (override with label). AvatarGroup renders it for you from max/total; use it directly only when composing the stack yourself. |
+| AvatarGroup | { size?: "2xs" \| "xs" \| "sm" \| "md" \| "lg"; surface?: "background" \| "card" \| "popover" \| "muted"; max?: number; fit?: boolean; total?: number; countLabel?: (count: number) => string; "aria-label"?: string; className?: string; children: ReactNode } | Overlapping stack (role=group) — name it with aria-label ("12 collaborators"). `size` applies to every avatar inside. `max` shows that many and collapses the rest into a "+N" count; `total` is the real head-count when you only pass some people. `fit` shows only as many avatars as fit the width the group is given (it fills the space left in a flex row) and folds the rest into the count, so a tight row reads "MO SR +5" instead of wrapping. The separating ring reads the inherited `--avatar-group-ring` (default: the page background); `surface` sets it to card, popover, or muted. |
+| AvatarGroupCount | { count: number; label?: string; size?: "2xs" \| "xs" \| "sm" \| "md" \| "lg"; className?: string } | The "+N" avatar. Shows "+4" and reads "and 4 more" (override with label). AvatarGroup renders it for you from max/total; use it directly only when composing the stack yourself. |
 
 ## Props
 
@@ -51,13 +52,16 @@ Use Avatar to represent a person, team, or account with a compact visual identit
 | fallback | ReactNode | — | Initials or a glyph rendered when no image is displayed. |
 | fallbackDelay | number | — | Delay before showing the fallback, in ms — avoids a flash on fast loads. |
 | status | ReactNode | — | A presence indicator pinned to the bottom-end edge, usually <StatusDot tone="success" />. It sits outside the clipped circle and wears a ring in the surface colour (--avatar-group-ring, else the page background). Use this instead of absolutely positioning a dot over an Avatar. |
-| size | "sm" \| "md" \| "lg" \| "xl" \| "2xl" | "md" | Square footprint: 32px / 40px / 48px for rows; 96px / 160px for portraits (a profile header, an artist hero, a roster tile). The initials, a status indicator and its cut-out ring scale with it, and at the portrait sizes the photo fades in over the resting surface. |
+| size | "2xs" \| "xs" \| "sm" \| "md" \| "lg" \| "xl" \| "2xl" | "md" | Square footprint: 20px / 24px for compact workspace rows; 32px / 40px / 48px for rows; 96px / 160px for portraits (a profile header, an artist hero, a roster tile). The initials, a status indicator and its cut-out ring scale with it, and at the portrait sizes the photo fades in over the resting surface. |
+| shape | "circle" \| "square" | "circle" | The frame's corner. circle is a person. square is what is not a face — a workspace, a project, an org, a team — with a radius from the theme's steps that grows with the size (4px at 20–24px to 20px at 160px), so a square theme stays square. A status indicator sits on the square's corner. |
+| tone | "neutral" \| "red" \| "orange" \| "yellow" \| "green" \| "teal" \| "blue" \| "purple" \| "pink" | "neutral" | The fallback's colour. neutral is the muted surface; a palette family paints its wash behind the initials and its deep ink on them (a soft Badge's pair, held to contrast in every theme), for a category colour such as one per project. Ignored by variant="art", which colours by seed. |
 | variant | "neutral" \| "art" | "neutral" | What the fallback looks like. neutral: initials on the muted surface. art: initials over GradientArt seeded by the person, so each person without a photo gets their own stable colour from the theme. |
 | seed | string \| number | — | The art variant's seed. Defaults to the fallback text, then `alt`, so a person keeps one colour wherever they appear; pass a user id to tell apart two people who share initials. |
 
 ## Variants
 
-- **size**: sm, md, lg, xl, 2xl
+- **size**: 2xs, xs, sm, md, lg, xl, 2xl
+- **shape**: circle, square
 - **variant**: neutral, art
 
 ## Tokens used
@@ -132,6 +136,25 @@ import { Avatar, StatusDot } from "@sableui/react"
 		<p className="text-body-sm text-muted-foreground">1.2M monthly listeners</p>
 	</div>
 </div>
+```
+
+### Dense row sizes
+
+```tsx
+import { Avatar } from "@sableui/react"
+
+<Avatar fallback="EL" alt="Emma Lee" size="2xs" />
+<Avatar fallback="EL" alt="Emma Lee" size="xs" />
+```
+
+### Project marks
+
+```tsx
+import { Avatar } from "@sableui/react"
+
+<Avatar shape="square" tone="teal" size="xs" fallback="N" alt="Northwind storefront" />
+<Avatar shape="square" tone="orange" size="xs" fallback="H" alt="Harbor brand refresh" />
+<Avatar shape="square" tone="purple" size="xs" fallback="L" alt="Lumen editorial" />
 ```
 
 ### Low-level parts

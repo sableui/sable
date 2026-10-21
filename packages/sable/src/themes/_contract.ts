@@ -202,6 +202,10 @@ export type TypeScaleToken = (typeof TYPE_SCALE_TOKENS)[number]
  * Compact controls still follow TYPE_UI_TOKENS for the workspace register.
  */
 export const TYPE_REFINEMENT_TOKENS = [
+	// The base the page scale is built on, as a unitless px number (default 16).
+	// `14` rebuilds every page tier, and the baseline rhythm, at 14 — see
+	// styles.css → Typography → "The base size".
+	"type-base",
 	"type-display-4xl-size",
 	"type-title-lg-size",
 	"type-title-sm-size",
@@ -596,6 +600,10 @@ export const TYPE_UI_TOKENS = [
 	"type-ui-section-weight",
 	"type-ui-micro-size",
 	"type-ui-micro-weight",
+	// The panel/inspector title, one step above ui-md (compact `text-title-lg`).
+	"type-ui-title-size",
+	"type-ui-title-weight",
+	"type-ui-title-leading",
 ] as const
 
 export type TypeUiToken = (typeof TYPE_UI_TOKENS)[number]

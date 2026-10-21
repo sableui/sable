@@ -115,4 +115,22 @@ describe("DatePicker", () => {
 		expect(trigger.className).toContain("rounded-sm")
 		expect(trigger.className).toContain("border-field-border")
 	})
+
+	it("sits on the property-grid rung at size xs, the same well as SelectTrigger xs", () => {
+		renderWithProviders(<DatePicker size="xs" aria-label="Due date" />)
+		const trigger = screen.getByRole("button", { name: "Due date" })
+		expect(trigger.className).toContain("h-(--control-xs)")
+		expect(trigger.className).toContain("bg-panel-field")
+		expect(trigger.className).toContain("border-transparent")
+		expect(trigger.className).not.toContain("border-field-border")
+		expect(trigger.className).not.toContain("max-sm:text-body-lg")
+	})
+
+	it("writes the date with formatOptions when given", () => {
+		const date = new Date(2026, 9, 23)
+		renderWithProviders(<DatePicker value={date} formatOptions={{ month: "short", day: "numeric" }} aria-label="Due date" />)
+		const expected = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date)
+		expect(screen.getByRole("button", { name: "Due date" })).toHaveTextContent(expected)
+		expect(screen.getByRole("button", { name: "Due date" })).not.toHaveTextContent("2026")
+	})
 })

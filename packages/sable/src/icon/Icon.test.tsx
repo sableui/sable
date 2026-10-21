@@ -2,7 +2,8 @@ import { render } from "@testing-library/react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it, vi } from "vitest"
 import { fallbackIconSet, reiconIconSet } from "../icon-sets/reicon"
-import { Icon, MISSING_ICON_PROVIDER } from "./Icon"
+import { Icon, MISSING_ICON_PROVIDER, missingIconMessage } from "./Icon"
+import { ICON_ALIASES, ICON_NAMES, nearestIconNames, resolveIconAlias } from "./names"
 import { IconProvider } from "./IconProvider"
 import { composeIconSets } from "./compose"
 
@@ -47,5 +48,73 @@ describe("Icon sets and overrides", () => {
 
 	it("preserves the old export only as a Reicon alias, on the Reicon subpath", () => {
 		expect(fallbackIconSet).toBe(reiconIconSet)
+	})
+})
+
+describe("Icon names the set does not have", () => {
+	const recorder = () => {
+		const asked: string[] = []
+		const set = ({ name }: { name: string }) => {
+			asked.push(name)
+			return name === "circle-check" || name === "gear" ? <span data-icon={name} /> : null
+		}
+		return { asked, set }
+	}
+
+	it("draws another library's spelling through the contract name", () => {
+		const { asked, set } = recorder()
+		const { container } = render(<IconProvider set={set}><Icon name="check-circle" /><Icon name="settings" /></IconProvider>)
+		expect(container.querySelector('[data-icon="circle-check"]')).not.toBeNull()
+		expect(container.querySelector('[data-icon="gear"]')).not.toBeNull()
+		// The set is asked for the name first, so an app that maps "settings" itself wins.
+		expect(asked.slice(0, 2)).toEqual(["check-circle", "circle-check"])
+	})
+
+	it("warns once per missing name in development, naming the nearest contract names", () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+		try {
+			const { set } = recorder()
+			const { container } = render(
+				<IconProvider set={set}>
+					<Icon name="userz-missing" />
+					<Icon name="userz-missing" />
+					<Icon name="another-missing-glyph" />
+				</IconProvider>,
+			)
+			expect(container.innerHTML).toBe("")
+			const messages = warn.mock.calls.map(([m]) => String(m)).filter((m) => m.includes("resolved to nothing"))
+			expect(messages).toHaveLength(2)
+			expect(messages[0]).toBe(missingIconMessage("userz-missing"))
+			expect(messages[0]).toContain("Nearest contract names:")
+		} finally {
+			warn.mockRestore()
+		}
+	})
+
+	it("does not warn when a composed set falls through to one that has the name", () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+		try {
+			const first = () => null
+			render(<IconProvider set={composeIconSets(first, reiconIconSet)}><Icon name="kanban" /></IconProvider>)
+			expect(warn.mock.calls.filter(([m]) => String(m).includes("resolved to nothing"))).toHaveLength(0)
+		} finally {
+			warn.mockRestore()
+		}
+	})
+
+	it("suggests names that share a word first", () => {
+		expect(nearestIconNames("user-avatar")).toContain("user")
+		expect(nearestIconNames("chevrons-down")[0]).toBe("chevron-down")
+	})
+
+	it("aliases only to contract names, never to itself", () => {
+		for (const [alias, target] of Object.entries(ICON_ALIASES)) {
+			expect(ICON_NAMES, `${alias} → ${target}`).toContain(target)
+			expect(alias).not.toBe(target)
+			// An alias must not shadow a real contract name.
+			expect(ICON_NAMES as readonly string[], alias).not.toContain(alias)
+		}
+		expect(resolveIconAlias("gear")).toBeUndefined()
+		expect(resolveIconAlias("menu")).toBe("bars")
 	})
 })

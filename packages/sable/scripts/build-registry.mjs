@@ -263,10 +263,12 @@ function collectExportSurface() {
 
 const SURFACE = collectExportSurface()
 
-// Icon names an example may use — the consumer-buildable icon contract.
-const ICON_CONTRACT = new Set(
-	JSON.parse(readFileSync(REGISTRY_PATH, "utf8")).iconContract?.names ?? [],
-)
+// Icon names an example may use — the consumer-buildable icon contract. Read
+// from src/icon/names.ts, the list <Icon> itself resolves against, with the
+// aliases it accepts (other sets' names for the same glyphs), so the CLI and
+// grade in a consumer project suggest what <Icon> would draw.
+const ICON_NAMES_MOD = await import(pathToFileURL(join(PKG_ROOT, "src", "icon", "names.ts")).href)
+const ICON_CONTRACT = new Set(ICON_NAMES_MOD.ICON_NAMES)
 
 /**
  * Attribute names per JSX tag, as [{ tag, props }].
@@ -1067,6 +1069,7 @@ async function loadCompositions(kind, dir, extra = () => ({})) {
 			path: `${kind}s/${base}.tsx`,
 			summary: meta.summary,
 			intent: meta.intent,
+			...(meta.keywords ? { keywords: meta.keywords } : {}),
 			...extra(meta),
 			...(meta.notes ? { notes: meta.notes } : {}),
 			...(meta.a11y ? { a11y: meta.a11y } : {}),
@@ -1803,6 +1806,7 @@ if (contractErrors.length) {
 /* ── Preserve the hand-authored static blocks; regenerate version + components. */
 const registry = JSON.parse(readFileSync(REGISTRY_PATH, "utf8"))
 registry.version = PKG.version
+registry.iconContract = { ...registry.iconContract, names: [...ICON_NAMES_MOD.ICON_NAMES], aliases: { ...ICON_NAMES_MOD.ICON_ALIASES } }
 registry.description = "Themeable React components, semantic tokens, layout patterns, presets, and package-owned agent skills. Default theme: Sable."
 // Where and how to install comes from package.json, so the recipe agents read
 // can never disagree with where the package is actually published.

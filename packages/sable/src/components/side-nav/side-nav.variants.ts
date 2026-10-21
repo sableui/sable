@@ -26,6 +26,11 @@ export const sideNavItemVariants = cva(
 				lg: "gap-3 rounded-sm px-3 py-2 text-body-md",
 				// The app rail (Sidebar): chrome-weight rows on the label tier.
 				rail: `${RAIL_ROW_INLINE} rounded-sm py-2.5 text-label-lg`,
+				// The same rail inside a compact scope (a Workspace): the same
+				// columns, a 20px icon and a 32px row. Sidebar picks it from the
+				// density, so a tool's rail is not a page's 44px rows beside
+				// 28px chrome.
+				"rail-compact": `${RAIL_ROW_INLINE} rounded-sm py-1.5 text-label-lg`,
 			},
 			activeVariant: {
 				content:
@@ -48,8 +53,8 @@ export const sideNavItemVariants = cva(
 export const sideNavItemIconVariants = cva(
 	"flex shrink-0 items-center justify-center",
 	{
-		// md 20px icon in a 20px box; lg 20px in 24px; rail 24px in 24px.
-		variants: { size: { md: "size-[1em] text-xl", lg: "size-[1.2em] text-xl", rail: "size-[1em] text-2xl" } },
+		// md 20px icon in a 20px box; lg 20px in 24px; rail 24px in 24px; compact rail 20px in 20px.
+		variants: { size: { md: "size-[1em] text-xl", lg: "size-[1.2em] text-xl", rail: "size-[1em] text-2xl", "rail-compact": "size-[1em] text-xl" } },
 		defaultVariants: { size: "md" },
 	},
 )

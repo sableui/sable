@@ -21,6 +21,7 @@ import { ChevronRight } from "reicon-react/icons/ChevronRight"
 import { ArrowUp } from "reicon-react/icons/ArrowUp"
 import { ArrowUpRight } from "reicon-react/icons/ArrowUpRight"
 import { ChevronUp } from "reicon-react/icons/ChevronUp"
+import { ChevronExpandY } from "reicon-react/icons/ChevronExpandY"
 import { Comment } from "reicon-react/icons/Comment"
 import { Component2 } from "reicon-react/icons/Component2"
 import { Copy } from "reicon-react/icons/Copy"
@@ -102,6 +103,12 @@ import { SignalStream } from "reicon-react/icons/SignalStream"
 import { Doc2 } from "reicon-react/icons/Doc2"
 import { Palette2 } from "reicon-react/icons/Palette2"
 import { Gamepad } from "reicon-react/icons/Gamepad"
+import { Users } from "reicon-react/icons/Users"
+import { Archive } from "reicon-react/icons/Archive"
+import { Kanban } from "reicon-react/icons/Kanban"
+import { Sliders } from "reicon-react/icons/Sliders"
+import { HelpCircle } from "reicon-react/icons/HelpCircle"
+import { SidebarLeft } from "reicon-react/icons/SidebarLeft"
 import { type ComponentProps, memo } from "react"
 import type { IconRenderProps, IconSet } from "../icon/registry"
 
@@ -131,6 +138,7 @@ const ICONS: Record<string, IconComponent> = {
 	xmark: Xmark,
 	"chevron-down": ChevronDown,
 	"chevron-up": ChevronUp,
+	"chevron-up-down": ChevronExpandY,
 	"arrow-up": ArrowUp,
 	"arrow-up-right": ArrowUpRight,
 	"chevron-left": ChevronLeft,
@@ -230,6 +238,16 @@ const ICONS: Record<string, IconComponent> = {
 	newspaper: Doc2,
 	palette: Palette2,
 	gamepad: Gamepad,
+	// Added when an issue tracker had no glyph for its team list, backlog,
+	// board view, display options or help, aliased Backlog to `inbox` (two nav
+	// rows, one glyph) and Clients to `briefcase`. `sidebar` is the left-panel
+	// toggle a collapsible rail needs.
+	users: Users,
+	archive: Archive,
+	kanban: Kanban,
+	sliders: Sliders,
+	help: HelpCircle,
+	sidebar: SidebarLeft,
 }
 
 /** Sable's `variant` → Reicon's weight names. */

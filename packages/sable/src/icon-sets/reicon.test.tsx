@@ -4,6 +4,7 @@ import { render } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 import { composeIconSets } from "../icon/compose"
 import { brandIconSet } from "./brands"
+import { ICON_ALIASES, ICON_NAMES } from "../icon/names"
 import { reiconIconNames, reiconIconSet } from "./reicon"
 
 /**
@@ -56,6 +57,17 @@ describe("reiconIconSet", () => {
 			if (reiconIconSet({ name, variant: "regular" }) == null) empty.push(name)
 		}
 		expect(empty, `resolved to null: ${empty.join(", ")}`).toEqual([])
+	})
+
+	it("keeps the core's name list and the registry contract the same list", () => {
+		// <Icon> suggests from ICON_NAMES without importing any set, so it has to
+		// be the contract, and the contract has to be what this adapter draws.
+		expect([...ICON_NAMES].sort()).toEqual([...contractNames].sort())
+	})
+
+	it("draws every alias's target", () => {
+		const missing = Object.values(ICON_ALIASES).filter((name) => !reiconIconNames.includes(name))
+		expect(missing).toEqual([])
 	})
 
 	it("returns null for an unknown name so composed sets can fall through", () => {

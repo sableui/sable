@@ -122,9 +122,9 @@ export const menuMeta: ComponentMeta = {
 		},
 		{
 			name: "MenuSubmenuTrigger",
-			type: "Base UI Menu.SubmenuTrigger props + value: ReactNode + className",
+			type: "Base UI Menu.SubmenuTrigger props + value: ReactNode + icon: ReactNode + className",
 			description:
-				"The row that opens a submenu: item styling, a trailing chevron, and an optional `value` showing the current choice so the row reads \"Effort  High ›\" rather than making the reader open it to find out.",
+				"The row that opens a submenu: item styling, a trailing chevron, and an optional `value` showing the current choice so the row reads \"Effort  High ›\" rather than making the reader open it to find out. `icon` leads the row as MenuItem's does; give it one whenever the items around it have icons, or its label starts a column to their left.",
 		},
 		{
 			name: "MenuRadioGroup",

@@ -436,7 +436,10 @@ keyboard/focus behavior, semantic token roles and motion policy. Explain which
 behavior a replacement gains and what must remain. An unused page pattern is not
 drift; repeated overrides can indicate a missing system hook rather than app misuse.
 Run relevant `sable doctor`, `sable lint <paths> --json` and `sable grade <paths>
---json` checks. Lint is lexical; source grades and pattern similarity do not judge
+--json` checks. Grade's `rebuiltParts` lists elements whose class names stand in
+for a part (`.crumb` for Breadcrumbs, `.property` for PropertyRow) and app CSS
+that re-lays a component from outside; `modes` lists colours set for light with no
+dark value, and whether anything lets a user switch modes. Report each. Lint is lexical; source grades and pattern similarity do not judge
 taste. Deliberately static motion slots remain valid with appropriate feedback.
 Lint's `label-contrast` measures an app's overrides of the brand fills (`--primary`,
 `--sidebar-primary`, `--highlight`) and status fills (`--destructive`, `--success`,
@@ -806,8 +809,9 @@ For the full screen (header, grouping, avatars, answer actions, the empty state)
 
 Marketing, docs, settings, a feed, a dashboard — anything whose primary
 interaction is reading and navigating. This is the default register; if you are
-building an editor or a canvas app, see
-[building-a-tool.md](./building-a-tool.md).
+building an editor, a canvas app, or a records workspace where people work
+through items with the selected one open beside the list (an issue tracker, a
+support queue), see [building-a-tool.md](./building-a-tool.md).
 
 ## Start from the brief, then choose composition
 
@@ -987,12 +991,16 @@ source checks alone says nothing about hierarchy, story, or the resulting polish
 
 # Task: building a tool (workspace register)
 
-An editor, a canvas app, a console — anything whose primary interaction is
-*operating on something* rather than reading and navigating.
+An editor, a canvas app, a console, or a records workspace (an issue tracker, a
+support queue, a pipeline): anything whose primary interaction is *operating on
+something* rather than reading and navigating.
 
 If the primary interaction is reading down a page, stop: you want
 [building-a-page.md](./building-a-page.md). A dashboard that scrolls is a page
-with dense content, not a workspace.
+with dense content, not a workspace. A tracker or inbox where people work
+through records one at a time, with the selected one open beside the list, is a
+workspace. Start that one from the `TrackerPage` pattern
+(`sable pattern TrackerPage --skeleton`) and read "A records workspace" below.
 
 ## The shell
 
@@ -1016,11 +1024,87 @@ hierarchy do not automatically transfer to dense operating surfaces.
 </Workspace>
 ```
 
+Every slot is optional; the body is always the one growing row. A bar that
+belongs to one column (a list's breadcrumbs and view switch, with the inspector
+running the full height beside it, as in Linear) is a `WorkspaceBar` placed first
+inside that column, not the `toolbar` slot.
+
 `Workspace` sets the compact density scope for its whole subtree. Nothing
 hardcodes a height: every control reads `--control-*`, so the same
 `<Button size="md">` is 40px on a page and 32px here. A `Dialog` opened from
 inside resets to comfortable, because a modal is a page-register surface even
 when a tool launched it.
+
+## A records workspace
+
+The shape of an issue tracker, a support queue or a CRM pipeline. Every piece
+below exists, so the build is composition; `sable pattern TrackerPage
+--skeleton` has the whole tree.
+
+```tsx
+<Workspace statusBar={<StatusBar>…</StatusBar>} bottomNav={<BottomNav>…</BottomNav>}>
+  <PanelGroup>
+    <Panel label="Navigation" width={220} narrow="sheet" side="left"
+           open={narrow ? navOpen : true} onOpenChange={setNavOpen} scroll={false}>
+      <Sidebar variant="inline">
+        <SidebarHeader><SidebarBrand mark={…} label="Studio" />{search}</SidebarHeader>
+        <SidebarNav>
+          <SidebarItem icon={…} label="Inbox" badge={…} />
+          <SidebarGroup label="Workspace">{items}</SidebarGroup>
+        </SidebarNav>
+        <SidebarFooter>
+          <Menu>
+            <MenuTrigger render={<SidebarAccount avatar={<Avatar size="2xs" … />} label="Emma Lee" detail="Studio" />} />
+            <MenuContent side="top" align="start">{settings, appearance, sign out}</MenuContent>
+          </Menu>
+        </SidebarFooter>
+      </Sidebar>
+    </Panel>
+    <WorkspaceCanvas className="flex flex-col">
+      <WorkspaceBar><Breadcrumbs>…</Breadcrumbs></WorkspaceBar>
+      <WorkspaceBar><Tabs><TabsList variant="pill">…</TabsList></Tabs></WorkspaceBar>
+      {filters}
+      <DataTable groupBy={(r) => r.status} groups={…} isRowSelected={…} onRowClick={…} />
+    </WorkspaceCanvas>
+    <Panel label="Details" width={320} narrow="sheet" open={selected != null}
+           onOpenChange={(o) => !o && setSelected(null)} scroll={false}>
+      <PanelSection title="Properties"><PropertyRow label="Status">…</PropertyRow></PanelSection>
+    </Panel>
+  </PanelGroup>
+</Workspace>
+```
+
+The decisions that keep it one system:
+
+- **One grid down the rail.** SidebarBrand, SidebarItem, SidebarGroup and
+  SidebarAccount share the icon and label columns, and inside the compact scope
+  they take 32px rows on their own. Do not drop SideNav, an Entity or a stack of
+  ghost Buttons into the rail: each brings its own insets.
+- **The account is one row and a menu.** Settings, appearance (light, dark,
+  system) and sign-out go in the SidebarAccount's menu, not in a Settings button
+  above it or a badge beside it. Its detail line ("Studio · Demo") carries what a
+  badge would.
+- **One table, grouped.** Rows grouped by state are one `DataTable` with
+  `groupBy`: one header, columns that line up, a count and an add action per
+  group. Not one table per group inside Collapsibles.
+- **The inspector renders once.** `Panel narrow="sheet"` docks it on a desktop
+  and makes it a Sheet below `lg`. Not a media-query hook plus a second copy in a
+  Sheet. The nav rail does the same from the left, and fills its sheet.
+- **Reading inside the tool is page-sized.** An overview, a description, notes or
+  a docs tab goes in `<Density value="comfortable">`, or its prose renders at the
+  11px chrome tier.
+- **A view switch in chrome is a pill.** `TabsList variant="pill"`: its fill takes
+  the compact `--button-radius`, about 5px, so it reads as a segment. Underline
+  tabs are the page-section idiom.
+- **Ship both modes, and a way to switch.** The look is a preset with light and
+  dark; SableThemeProvider applies it, and the account menu or a Settings dialog
+  holds the mode switch. A tool asked to be compact and technical takes
+  `type-base` (13 or 14) in the preset, which rebuilds the whole type scale,
+  instead of per-tier overrides.
+- **State has a shape.** A status with more than on and off (partly done, in
+  review) can be an app-owned glyph, but give it a label (`role="img"`,
+  `aria-label`) and colour it from the palette (`var(--yellow-500)`) so it
+  follows the mode.
 
 ## What you will need, and what to avoid reaching for
 
@@ -1033,6 +1117,17 @@ when a tool launched it.
 | a colour property | `ColorField` | `<input type="color">` — OS dialog, ignores the theme, wrong size |
 | ambient document facts | `StatusBar` | a toolbar — status is glanced at, not operated |
 | chrome typography | `text-ui-md` / `-sm` / `-body` / `-section` / `-micro` / `-num` | `text-body-*` — page tiers, ~1/3 too large here |
+| a title in a panel | `text-title-lg` (14px `text-ui-title` in compact) | a heading tier, or a page-tier override on `:root` |
+| a top bar over one column | `WorkspaceBar` first in the column, with `Breadcrumbs` | a hand-built `<header>` with `/` spans |
+| nav groups in a rail | `SidebarGroup` | `SideNav` + `SideNavGroup` — another set of columns |
+| the account at the foot of a rail | `SidebarAccount` as a `MenuTrigger` | an Entity + a Settings Button + a Badge |
+| a view switch in a bar | `TabsList variant="pill"` | underline tabs (page idiom), a hand-built segmented row |
+| rows grouped by state | `DataTable groupBy` + `groups` | a DataTable per group in Collapsibles |
+| a date property | `DatePicker size="xs"` | `<input type="date">` — OS format, wrong size |
+| a person in a row | `Avatar size="2xs"` / `"xs"`, `AvatarGroup` for several | a class on Avatar to shrink it |
+| a project or workspace mark | `Avatar shape="square" tone="…"` | a tinted `<span>` |
+| an inspector on a phone | `Panel narrow="sheet"` | a media-query hook and a second render in a Sheet |
+| a reading tab | `<Density value="comfortable">` | prose in chrome tiers |
 
 ## Menus, selects and popovers adapt on their own
 
@@ -1091,9 +1186,12 @@ a modal is its own surface rather than part of the control that opened it.
   the nesting reads inverted. Use `treeIndent(depth)`; never hand-write an inset.
 - **No pills in chrome.** The compact scope flattens `--button-radius` to ~5px —
   one of two page-register rules the workspace register deliberately reverses.
+  `TabsList variant="pill"` takes that radius too, so in a bar it is a segment.
 - **Drag with window listeners, not `setPointerCapture`.** Capture throws for an
   inactive pointer id and the throw aborts the handler mid-gesture, silently.
-- **An unmapped `<Icon name>` renders nothing.** No error. Check the contract.
+- **An unmapped `<Icon name>` renders nothing.** A development build warns and
+  names the nearest names, and Lucide or Heroicons spellings resolve, but check
+  with `sable icon <name>` before you write one, through a wrapper too.
 
 ## Verify
 
@@ -1123,8 +1221,10 @@ and distinguish observed behavior from untested claims.
 ## Read next
 
 - `DESIGN.md → Registers` — doctrine, measured numbers, the two reversals
+- `sable pattern TrackerPage --skeleton` — the records workspace, whole
 - `llms/components/workspace.md`, `panel-group.md`, `panel-section.md`,
-  `tree.md`, `scrub-field.md`, `status-bar.md`, `color-field.md`
+  `sidebar.md`, `data-table.md`, `tree.md`, `scrub-field.md`, `status-bar.md`,
+  `color-field.md`
 - `llms/reference/token-intent.md` — which token to reach for
 
 ---
@@ -1290,7 +1390,13 @@ for each recognizable element with `sable search "<need>" --json`; inspect the
 matching `component <Name> --props` and `--examples` before implementation.
 Use Sable's composed anatomy and supported variants. A hand-built button, field,
 menu, dialog, table, or card that imitates a shipped component violates the contract.
-That binds behaviour and parts, not layouts. Results marked ◇ (patterns, blocks,
+That binds behaviour and parts, not layouts. Search a part by its plain name and
+its role before writing a class or component for it (`sable search breadcrumb`,
+`sable search "top bar"`); exported parts such as `PropertyRow` and `WorkspaceBar`
+are listed by name, and `sable component <Part>` answers with their entry. When a
+part's look or size disagrees with the design, use its variant or prop, or report
+the missing variant; never rebuild it. `sable icon <name>` says whether an icon
+exists. Results marked ◇ (patterns, blocks,
 and compositions such as MediaTile) are references: use one when its layout fits
 the brief, otherwise compose your own from Sable's parts. The brief's signature
 surfaces, where the product's identity lives, are designed from its direction.
@@ -1309,8 +1415,10 @@ implement genuinely app-specific structure without creating parallel controls.
 
 ## Finish the working product
 
-Run `sable doctor`, `sable lint <source paths> --json`, and the project's build/type
-checks. Inspect desktop/mobile layouts, operate the primary task and recovery
+Run `sable check <source paths>` (doctor, lint and grade) and the project's
+build/type checks. Answer each Rebuilt parts note in the reuse inventory, and fix
+a colour-modes warning: app colours live in a preset with both modes, and a
+`ThemeSwitcher` under `SableThemeProvider` lets the user review each. Inspect desktop/mobile layouts, operate the primary task and recovery
 path, and check keyboard focus, fonts, reduced motion, and meaningful states.
 Use [reviewing-a-design.md](./reviewing-a-design.md),
 [reviewing-a-journey.md](./reviewing-a-journey.md), and
@@ -1620,6 +1728,15 @@ Leave it unset to keep headings in `fonts.sans`. Page widths
 are optional: set `page-inset` and the `region-*` caps (`form`, `feed`, `content`,
 `wide`, `full`) in `tokens.shared` only when the direction calls for a different
 page proportion, and keep each cap's role.
+
+Overall type size is one token. Sable's scale is built on a 16px base;
+`"type-base": "14"` (or 13) in `tokens.shared` rebuilds every page tier at that
+base, keeping their ratios, and spacing follows because the rhythm is derived
+from body size. Use it when the direction is denser or more technical than the
+bundled presets (a tracker, a console, "like Linear"). Don't rescale the root
+font-size, and don't override tiers one by one to the same end. Retune a single
+tier only when that tier's role changes. Inside a Workspace the chrome already
+uses its own compact `ui-*` tiers.
 
 ```bash
 pnpm exec sable preset --template
@@ -3579,7 +3696,9 @@ Every tier belongs to one family, and the family is the decision. Size follows f
 6. **Cap reading text at --measure-prose (65ch).** Past roughly 75 characters the eye loses the line return. A wide region can still hold a 65ch column.
 7. **Numbers that must align use a mono tier (tabular figures).** Proportional digits change width as values update, so totals and columns shimmy.
 8. **text-wrap: balance on headings, pretty on ledes, neither on long prose.** balance evens short headlines; pretty only refuses a one-word last line. Both cost layout work that long prose does not repay.
-9. **A mark attached to a line of type (a dot, a bullet, a timeline marker, a leading icon) sits in a box one line tall (h-[1lh] items-center) and is sized in em.** 1lh is the line-height of the text beside it, so the mark centres on that line in every tier, density and theme. A px size with a mt-[3px] nudge is right for one font at one size and wrong everywhere else.
+9. **To make all the type smaller or larger, set the base: --type-base: 14 (a unitless px number; 16 is the default). Never retune tiers one by one for it.** Every tier is authored on a 16px base and keeps its ratio to it, so one number rebuilds the whole scale, headings to captions, and the baseline step and spacing follow the body. Shrinking tiers individually breaks the ratios between them. Set it on :root, a theme scope or a preset (tokens.shared["type-base"]) so the rhythm follows too.
+10. **Inside a Workspace, a panel's title is text-ui-title (14px · 600); compact text-title-lg resolves to it. A reading view inside the tool (an overview, a document, a long form) is wrapped in <Density value="comfortable"> and gets the page tiers back.** The compact register remaps page tiers onto the 10-12px chrome ramp, which is right for chrome and wrong for prose: an issue overview set in a tool rendered its paragraphs at 11px. The remap stops at a comfortable boundary, so the wrapper is the whole fix.
+11. **A mark attached to a line of type (a dot, a bullet, a timeline marker, a leading icon) sits in a box one line tall (h-[1lh] items-center) and is sized in em.** 1lh is the line-height of the text beside it, so the mark centres on that line in every tier, density and theme. A px size with a mt-[3px] nudge is right for one font at one size and wrong everywhere else.
 
 ## Never
 
@@ -3588,6 +3707,7 @@ Every tier belongs to one family, and the family is the decision. Size follows f
 - **Never:** Uppercase in product chrome: nav and menu group labels, page eyebrows, table headers, section titles. **Instead:** Sentence-case text-caption or text-label-md in muted-foreground; hierarchy from size, weight and space. Tracked capitals spread across a UI read as shouting and slow word recognition. The eyebrow tier (label-xs / overline) is an editorial accent: at most one per marketing view.
 - **Never:** Display tiers inside product UI, or two display sizes in one view. **Instead:** heading-1 for a page title; mono-xl for a metric. Display is type as image. In chrome it competes with the content it is supposed to frame.
 - **Never:** Justified text, or reading copy below body-sm. **Instead:** Ragged-right at body-md; body-xs only for dense data. Justification opens rivers on the web, which has no hyphenation control; 12px prose fails people with low vision.
+- **Never:** Changing the root font-size (html { font-size: 14px }) to make a product denser. **Instead:** --type-base: 14, with Workspace or <Density value="compact"> for denser controls. The root also sizes every rem the app wrote: widths, insets, media queries. --type-base moves only the type and the rhythm built on it, and density moves the controls, so each can be chosen on its own.
 - **Never:** A new font family, or raw font-feature-settings / font-variation-settings. **Instead:** The theme's sans, mono and optional display; font-variant-numeric and font-weight. Raw axis tags silently do nothing on a fallback font, and every theme declares a fallback stack.
 
 ## Details
@@ -5150,7 +5270,7 @@ App-shell admin dashboard: a branded Sidebar with an account footer (AppHeader +
 ## Source
 
 ```tsx
-import { AppHeader, AppShell, Avatar, Badge, BottomNav, BottomNavItem, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, DataTable, Entity, Grid, Icon, MenuItem, MenuSeparator, Meter, NotificationBadge, OverflowMenu, Page, PageHeader, RelativeTime, Row, Sidebar, SidebarBrand, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav, Stack } from "@sableui/react"
+import { AppHeader, AppShell, Avatar, Badge, BottomNav, BottomNavItem, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, DataTable, Entity, Grid, Icon, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger, Meter, NotificationBadge, Page, PageHeader, RelativeTime, Row, Sidebar, SidebarAccount, SidebarBrand, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav, Stack } from "@sableui/react"
 
 // Account status → Badge tone. Sable has no status vocabulary of its own;
 // an app maps ITS states onto tones once, here, and every badge follows.
@@ -5262,20 +5382,23 @@ export function DashboardPage() {
 						<SidebarItem icon={<Icon name="gear" />} label="Settings" render={<a href="/settings" />} />
 					</SidebarNav>
 					<SidebarFooter>
-						<Entity
-							className="[--entity-py:0]"
-							leading={<Avatar variant="art" size="sm" fallback="AL" alt="" />}
-							title="Ada Lovelace"
-							subtitle="@ada"
-							action={
-								<OverflowMenu label="Account" size="icon-sm">
-									<MenuItem render={<a href="/@ada" />}>View profile</MenuItem>
-									<MenuItem render={<a href="/settings" />}>Settings</MenuItem>
-									<MenuSeparator />
-									<MenuItem>Sign out</MenuItem>
-								</OverflowMenu>
-							}
-						/>
+						<Menu>
+							<MenuTrigger
+								render={
+									<SidebarAccount
+										avatar={<Avatar variant="art" size="xs" fallback="AL" alt="" />}
+										label="Ada Lovelace"
+										detail="@ada"
+									/>
+								}
+							/>
+							<MenuContent side="top" align="start">
+								<MenuItem render={<a href="/@ada" />}>View profile</MenuItem>
+								<MenuItem render={<a href="/settings" />}>Settings</MenuItem>
+								<MenuSeparator />
+								<MenuItem>Sign out</MenuItem>
+							</MenuContent>
+						</Menu>
 					</SidebarFooter>
 				</Sidebar>
 			}
@@ -7040,6 +7163,459 @@ export function SettingsPage() {
 				onConfirm={() => setDeleteOpen(false)}
 			/>
 		</AppShell>
+	)
+}
+```
+
+---
+
+# TrackerPage
+
+Records workspace in the tool register: a Sidebar rail of grouped views ending in an account menu, a WorkspaceBar of Breadcrumbs over pill Tabs, a filter row, one grouped DataTable, and a docked inspector of PanelSection property rows with a pinned comment form. Below lg the rail and the inspector become sheets and a BottomNav takes the last row.
+
+**Intent:** Reach for this when a team works through records in a dense tool — an issue tracker, a support queue, a pipeline: a grouped list, a docked inspector for the selected record, and a rail of views. For records a person reads and edits one at a time on a page, ListDetailPage is the page-register shape; for monitoring with headline numbers, DashboardPage.
+
+## Notes
+
+- Workspace sets the compact density for everything inside: 32px rail rows, 28px tables, 24px property fields. Nothing in the pattern sizes a control or a row by hand. The Overview tab is a reading view, so it sits in `<Density value="comfortable">` and its prose gets page type back.
+- The rail is Sable's own parts on one grid: SidebarBrand, SidebarGroup, SidebarItem and SidebarAccount share the icon and label columns. The account row is the trigger of the account Menu, which holds Settings, an Appearance submenu wired to useSableTheme (light, dark, system) and Sign out. No Settings button or badge sits in the footer.
+- There is no Workspace `toolbar`: the bars belong to the list column, so the inspector runs the full height beside them. The first WorkspaceBar carries Breadcrumbs; the second carries pill Tabs, a view switch in chrome, which sits beside the bar's other controls rather than drawing a rule.
+- One DataTable groups the rows (`groupBy`, `groups`): one header for every group, a StatusDot, a count and an add action per group header, and Done starting closed. The segmented ToggleGroup switches the grouping between status and assignee. Filtering to nothing swaps the table for an EmptyState with a Clear filters action.
+- Workflow states map onto StatusDot tones once (`STATUSES`), so group headers and the status Select read from one place. A product with a richer status glyph keeps that one mapping and swaps the icon.
+- The inspector is a Panel with `narrow="sheet"`: docked at 320px from lg, a right sheet below it, its content rendered once. Below lg it opens only when a row is picked (`inspecting`), so a phone never loads with a sheet over the list. Properties are PanelSection + PropertyRow with xs Select triggers and an xs DatePicker; Activity uses RelativeTime; the comment Form is pinned under the scrolling body.
+- The rail is a Panel with `narrow="sheet" side="left"`, opened from a `lg:hidden` menu button in the first bar; in the sheet the Sidebar fills its width. Workspace `bottomNav` reserves the BottomNav's row below lg, so the status bar ends above it.
+
+## Accessibility
+
+- Workspace renders a skip link to the canvas (`Skip to issues`) and WorkspaceCanvas is the main landmark; the rail and the inspector are labelled complementary regions (`Workspace navigation`, `Issue details`), and as sheets they keep those labels as their dialog titles.
+- The page has one level-1 heading (visually hidden; the breadcrumb shows the place) and the inspector's title is a level-2 heading.
+- Group header rows are real buttons with aria-expanded; rows open the inspector from the keyboard (DataTable's row activation). Every icon-only action has an accessible name and a tooltip.
+- Each SidebarGroup is a named group; the account row names the person, and its menu is a standard Menu with a radio group for the colour mode.
+
+## Source
+
+```tsx
+import { useState } from "react"
+import { Avatar, Badge, BottomNav, BottomNavItem, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, Breadcrumbs, BreadcrumbSeparator, Button, DataTable, DatePicker, Density, EmptyState, Form, Icon, Kbd, Menu, MenuContent, MenuItem, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuSubmenu, MenuSubmenuTrigger, MenuTrigger, Panel, PanelGroup, PanelSection, PropertyRow, RelativeTime, SearchInput, Select, SelectContent, SelectItem, SelectTrigger, Sidebar, SidebarAccount, SidebarBrand, SidebarFooter, SidebarGroup, SidebarHeader, SidebarItem, SidebarNav, SimpleTooltip, StatusBar, StatusBarGroup, StatusDot, Tabs, TabsList, TabsPanel, TabsTrigger, Textarea, Toggle, ToggleGroup, useBelowBreakpoint, useSableTheme, Workspace, WorkspaceBar, WorkspaceCanvas, type DataTableColumn } from "@sableui/react"
+
+// Workflow states → StatusDot tones, mapped once here so every group header,
+// row and select follows. Sable has no status vocabulary of its own.
+const STATUSES = [
+	{ key: "progress", label: "In progress", tone: "warning" },
+	{ key: "review", label: "In review", tone: "2" },
+	{ key: "todo", label: "Todo", tone: "neutral" },
+	{ key: "done", label: "Done", tone: "success" },
+] as const
+type Status = (typeof STATUSES)[number]["key"]
+
+const PRIORITIES = ["Urgent", "High", "Medium", "Low"] as const
+type Priority = (typeof PRIORITIES)[number]
+
+const people: Record<string, string> = {
+	AK: "Ama Kusi",
+	JR: "Jonas Reiter",
+	LM: "Lena Moreau",
+	TO: "Tomás Ortega",
+}
+
+const MIN = 60 * 1000
+const HOUR = 60 * MIN
+const DAY = 24 * HOUR
+const isoDay = (offset: number) => {
+	const d = new Date(Date.now() + offset)
+	return new Date(d.getFullYear(), d.getMonth(), d.getDate())
+}
+
+type Note = { id: string; who: string; text: string; at: number }
+type Issue = {
+	id: string
+	title: string
+	detail: string
+	status: Status
+	priority: Priority
+	assignee: string
+	label: string
+	due: Date
+	notes: Note[]
+}
+
+const initialIssues: Issue[] = [
+	{ id: "FW-104", title: "Sync offline edits when the app reconnects", detail: "Edits made offline are queued but replayed out of order after a reconnect. Replay them by timestamp and surface conflicts.", status: "progress", priority: "Urgent", assignee: "AK", label: "Sync", due: isoDay(2 * DAY), notes: [{ id: "n1", who: "JR", text: "Repro steps are in the test plan. It only happens after a cold start.", at: -3 * HOUR }] },
+	{ id: "FW-105", title: "Onboarding checklist on first launch", detail: "Three steps: connect a calendar, invite a teammate, create a first project.", status: "progress", priority: "Medium", assignee: "LM", label: "Onboarding", due: isoDay(5 * DAY), notes: [] },
+	{ id: "FW-108", title: "Push notification settings per project", detail: "Let people mute a project without muting the workspace.", status: "review", priority: "High", assignee: "TO", label: "Notifications", due: isoDay(1 * DAY), notes: [] },
+	{ id: "FW-110", title: "Crash when attaching a large photo", detail: "Photos over 20 MB crash the uploader on older devices.", status: "review", priority: "Urgent", assignee: "JR", label: "Bug", due: isoDay(-1 * DAY), notes: [] },
+	{ id: "FW-112", title: "Search across archived projects", detail: "Archived projects are left out of search today.", status: "todo", priority: "Low", assignee: "AK", label: "Search", due: isoDay(9 * DAY), notes: [] },
+	{ id: "FW-113", title: "Keyboard shortcuts for the board view", detail: "J and K move between cards; C creates an issue in the focused column.", status: "todo", priority: "Medium", assignee: "LM", label: "Board", due: isoDay(12 * DAY), notes: [] },
+	{ id: "FW-114", title: "Export a project as CSV", detail: "One row per issue, with status, assignee and dates.", status: "todo", priority: "Low", assignee: "TO", label: "Export", due: isoDay(14 * DAY), notes: [] },
+	{ id: "FW-101", title: "Dark mode for the widget", detail: "The home-screen widget ignores the system appearance.", status: "done", priority: "Medium", assignee: "JR", label: "Widget", due: isoDay(-4 * DAY), notes: [] },
+]
+
+const MODE_LABEL = { light: "Light", dark: "Dark", system: "System" } as const
+
+/** One icon-only action with a visible name on hover and focus. */
+export function TrackerPage() {
+	const [issues, setIssues] = useState(initialIssues)
+	const [selectedId, setSelectedId] = useState<string | null>("FW-104")
+	// Below lg the inspector is a sheet; it opens only when someone picks a row,
+	// so a phone does not load with a sheet over the list.
+	const [inspecting, setInspecting] = useState(false)
+	const [navOpen, setNavOpen] = useState(false)
+	const [query, setQuery] = useState("")
+	const [priority, setPriority] = useState<"all" | Priority>("all")
+	const [groupBy, setGroupBy] = useState<"status" | "assignee">("status")
+	const [tab, setTab] = useState("issues")
+	const [draft, setDraft] = useState("")
+	const narrow = useBelowBreakpoint("lg")
+	const { preference, setPreference } = useSableTheme()
+
+	const needle = query.trim().toLowerCase()
+	const visible = issues.filter(
+		(i) =>
+			(priority === "all" || i.priority === priority) &&
+			`${i.id} ${i.title} ${i.label}`.toLowerCase().includes(needle),
+	)
+	const selected = issues.find((i) => i.id === selectedId) ?? null
+	const done = issues.filter((i) => i.status === "done").length
+
+	function update(id: string, patch: Partial<Issue>) {
+		setIssues((all) => all.map((i) => (i.id === id ? { ...i, ...patch } : i)))
+	}
+	function open(id: string) {
+		setSelectedId(id)
+		setInspecting(true)
+	}
+	function close() {
+		setInspecting(false)
+		if (!narrow) setSelectedId(null)
+	}
+	function addIssue(status: Status = "todo") {
+		const id = `FW-${115 + issues.length}`
+		setIssues((all) => [
+			...all,
+			{ id, title: "New issue", detail: "", status, priority: "Medium", assignee: "AK", label: "Triage", due: isoDay(7 * DAY), notes: [] },
+		])
+		open(id)
+	}
+	function addNote() {
+		if (!selected || !draft.trim()) return
+		update(selected.id, { notes: [...selected.notes, { id: `n${Date.now()}`, who: "AK", text: draft.trim(), at: 0 }] })
+		setDraft("")
+	}
+
+	const columns: DataTableColumn<Issue>[] = [
+		{ key: "id", header: "ID", className: "w-20 whitespace-nowrap", cell: (i) => <span className="text-ui-num text-muted-foreground">{i.id}</span> },
+		{ key: "title", header: "Issue", className: "w-full max-w-0", cell: (i) => <span className="block truncate">{i.title}</span> },
+		{ key: "label", header: "Label", className: "w-28 max-sm:hidden", cell: (i) => <Badge appearance="outline" size="sm">{i.label}</Badge> },
+		{ key: "due", header: "Due", className: "w-20 whitespace-nowrap max-sm:hidden", sortValue: (i) => i.due.getTime(), cell: (i) => <span className="text-muted-foreground">{i.due.toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span> },
+		{ key: "assignee", header: <span className="sr-only">Assignee</span>, className: "w-10", cell: (i) => <Avatar size="2xs" fallback={i.assignee} alt={people[i.assignee]} /> },
+	]
+
+	const groups =
+		groupBy === "status"
+			? STATUSES.map((s) => ({
+					key: s.key,
+					label: s.label,
+					icon: <StatusDot tone={s.tone} />,
+					action: <SimpleTooltip content={`Add to ${s.label}`}><Button size="icon-xs" variant="ghost" aria-label={`Add to ${s.label}`} onClick={() => addIssue(s.key)}><Icon name="plus" /></Button></SimpleTooltip>,
+					defaultExpanded: s.key !== "done",
+				}))
+			: Object.entries(people).map(([key, name]) => ({
+					key,
+					label: name,
+					icon: <Avatar size="2xs" fallback={key} alt="" />,
+				}))
+
+	const sidebar = (
+		<Sidebar variant="inline" className="h-full w-full">
+			<SidebarHeader>
+				<SidebarBrand mark={<Avatar shape="square" size="2xs" tone="teal" fallback="F" alt="" />} label="Fieldwork" />
+				<Button variant="outline" size="sm" className="basis-full justify-between">
+					<span className="flex items-center gap-2">
+						<Icon name="search" />
+						Search
+					</span>
+					<Kbd>Ctrl K</Kbd>
+				</Button>
+			</SidebarHeader>
+			<SidebarNav aria-label="Workspace">
+				<SidebarItem icon={<Icon name="inbox" />} label="Inbox" badge={<span className="text-ui-num text-muted-foreground">3</span>} />
+				<SidebarItem icon={<Icon name="circle-check" />} label="My issues" />
+				<SidebarGroup label="Mobile app">
+					<SidebarItem icon={<Icon name="layers" />} label="Issues" active />
+					<SidebarItem icon={<Icon name="refresh" />} label="Cycles" />
+					<SidebarItem icon={<Icon name="archive" />} label="Backlog" />
+				</SidebarGroup>
+				<SidebarGroup label="Workspace">
+					<SidebarItem icon={<Icon name="folder" />} label="Projects" />
+					<SidebarItem icon={<Icon name="users" />} label="Members" />
+				</SidebarGroup>
+			</SidebarNav>
+			<SidebarFooter>
+				<Menu>
+					<MenuTrigger
+						render={<SidebarAccount avatar={<Avatar size="2xs" fallback="AK" alt="" />} label="Ama Kusi" detail="Fieldwork · Admin" />}
+					/>
+					<MenuContent side="top" align="start">
+						<MenuItem icon={<Icon name="gear" />}>Settings</MenuItem>
+						<MenuSubmenu>
+							<MenuSubmenuTrigger
+								icon={<Icon name={preference === "dark" ? "moon" : preference === "light" ? "sun" : "desktop"} />}
+								value={MODE_LABEL[preference]}
+							>
+								Appearance
+							</MenuSubmenuTrigger>
+							<MenuContent side="inline-end">
+								<MenuRadioGroup value={preference} onValueChange={(v) => setPreference(v as typeof preference)}>
+									<MenuRadioItem value="light">Light</MenuRadioItem>
+									<MenuRadioItem value="dark">Dark</MenuRadioItem>
+									<MenuRadioItem value="system">System</MenuRadioItem>
+								</MenuRadioGroup>
+							</MenuContent>
+						</MenuSubmenu>
+						<MenuSeparator />
+						<MenuItem icon={<Icon name="logout" />}>Sign out</MenuItem>
+					</MenuContent>
+				</Menu>
+			</SidebarFooter>
+		</Sidebar>
+	)
+
+	const list =
+		visible.length === 0 ? (
+			<EmptyState
+				icon={<Icon name="search" />}
+				title="No issues match"
+				description="Try another search, or clear the priority filter."
+				action={
+					<Button
+						variant="secondary"
+						size="sm"
+						onClick={() => {
+							setQuery("")
+							setPriority("all")
+						}}
+					>
+						Clear filters
+					</Button>
+				}
+			/>
+		) : (
+			<DataTable
+				columns={columns}
+				data={visible}
+				rowKey={(i) => i.id}
+				groupBy={(i) => (groupBy === "status" ? i.status : i.assignee)}
+				groups={groups}
+				onRowClick={(i) => open(i.id)}
+				// A phone shows the selection only while its sheet is open.
+				isRowSelected={(i) => i.id === selectedId && (!narrow || inspecting)}
+			/>
+		)
+
+	const inspector = selected ? (
+		<div className="flex h-full min-h-0 flex-col">
+			<WorkspaceBar className="justify-between">
+				<span className="text-ui-num text-muted-foreground">{selected.id}</span>
+				<SimpleTooltip content="Close issue"><Button size="icon-xs" variant="ghost" aria-label="Close issue" onClick={close}><Icon name="xmark" /></Button></SimpleTooltip>
+			</WorkspaceBar>
+			<div className="min-h-0 flex-1 overflow-y-auto scrollbar-quiet">
+				<div className="flex flex-col gap-2 px-2 pt-4 pb-3">
+					<h2 className="text-title-lg">{selected.title}</h2>
+					<p className="text-ui-body text-muted-foreground">{selected.detail || "Add the details the team needs."}</p>
+				</div>
+				<PanelSection title="Properties">
+					<PropertyRow label="Status">
+						<Select value={selected.status} items={STATUSES.map((s) => ({ value: s.key, label: s.label }))} onValueChange={(v) => v && update(selected.id, { status: v as Status })}>
+							<SelectTrigger size="xs" aria-label="Status" />
+							<SelectContent>
+								{STATUSES.map((s) => (
+									<SelectItem key={s.key} value={s.key}>{s.label}</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</PropertyRow>
+					<PropertyRow label="Priority">
+						<Select value={selected.priority} onValueChange={(v) => v && update(selected.id, { priority: v as Priority })}>
+							<SelectTrigger size="xs" aria-label="Priority" />
+							<SelectContent>
+								{PRIORITIES.map((p) => (
+									<SelectItem key={p} value={p}>{p}</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</PropertyRow>
+					<PropertyRow label="Assignee">
+						<Select value={selected.assignee} items={people} onValueChange={(v) => v && update(selected.id, { assignee: v })}>
+							<SelectTrigger size="xs" aria-label="Assignee" />
+							<SelectContent>
+								{Object.entries(people).map(([key, name]) => (
+									<SelectItem key={key} value={key}>{name}</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</PropertyRow>
+					<PropertyRow label="Due date">
+						<DatePicker
+							size="xs"
+							aria-label="Due date"
+							value={selected.due}
+							formatOptions={{ month: "short", day: "numeric", year: "numeric" }}
+							onValueChange={(d) => d && update(selected.id, { due: d })}
+						/>
+					</PropertyRow>
+				</PanelSection>
+				<PanelSection title="Activity">
+					<div className="flex flex-col gap-3 pb-4">
+						<div className="flex items-center gap-2 text-ui-sm text-muted-foreground">
+							<Icon name="plus" />
+							<span>Created in Mobile app</span>
+						</div>
+						{selected.notes.map((n) => (
+							<div key={n.id} className="flex items-start gap-2">
+								<Avatar size="2xs" fallback={n.who} alt="" />
+								<div className="min-w-0">
+									<div className="flex items-center gap-2">
+										<span className="text-ui-md">{people[n.who]}</span>
+										<RelativeTime date={new Date(Date.now() + n.at)} className="text-ui-sm text-muted-foreground" />
+									</div>
+									<p className="mt-1 text-ui-body">{n.text}</p>
+								</div>
+							</div>
+						))}
+					</div>
+				</PanelSection>
+			</div>
+			<Form
+				className="flex shrink-0 flex-col gap-2 border-t border-hairline p-2"
+				onSubmit={(e) => {
+					e.preventDefault()
+					addNote()
+				}}
+			>
+				<Textarea aria-label="Add a comment" placeholder="Leave a comment…" rows={2} value={draft} onChange={(e) => setDraft(e.target.value)} />
+				<Button size="xs" variant="secondary" type="submit" className="self-end" disabled={!draft.trim()} iconStart={<Icon name="arrow-up" />}>
+					Comment
+				</Button>
+			</Form>
+		</div>
+	) : null
+
+	return (
+		<Workspace
+			skipLinkLabel="Skip to issues"
+			statusBar={
+				<StatusBar>
+					<span className="flex items-center gap-2">
+						<StatusDot tone="success" size="sm" />
+						Saved
+					</span>
+					<span className="max-sm:hidden">
+						{issues.length} issues · {done} done
+					</span>
+					<StatusBarGroup align="end">
+						<span className="max-sm:hidden">Ctrl K to search</span>
+					</StatusBarGroup>
+				</StatusBar>
+			}
+			bottomNav={
+				<BottomNav aria-label="Primary">
+					<BottomNavItem icon={<Icon name="inbox" />} label="Inbox" showLabel />
+					<BottomNavItem icon={<Icon name="layers" />} label="Issues" showLabel active />
+					<BottomNavItem icon={<Icon name="folder" />} label="Projects" showLabel />
+					<BottomNavItem icon={<Icon name="users" />} label="Members" showLabel />
+				</BottomNav>
+			}
+		>
+			<PanelGroup>
+				{/* Docked from lg; below it the same rail is a left sheet. */}
+				<Panel label="Workspace navigation" width={232} narrow="sheet" side="left" open={narrow ? navOpen : true} onOpenChange={setNavOpen} scroll={false}>
+					{sidebar}
+				</Panel>
+				<WorkspaceCanvas className="flex flex-col">
+					<WorkspaceBar className="gap-2 px-3">
+						<span className="lg:hidden">
+							<SimpleTooltip content="Open navigation"><Button size="icon-xs" variant="ghost" aria-label="Open navigation" onClick={() => setNavOpen(true)}><Icon name="bars" /></Button></SimpleTooltip>
+						</span>
+						<h1 className="sr-only">Mobile app issues</h1>
+						<Breadcrumbs className="min-w-0">
+							<BreadcrumbItem className="max-sm:hidden">
+								<BreadcrumbLink href="#">Fieldwork</BreadcrumbLink>
+							</BreadcrumbItem>
+							<BreadcrumbSeparator className="max-sm:hidden" />
+							<BreadcrumbItem>
+								<BreadcrumbPage>Mobile app</BreadcrumbPage>
+							</BreadcrumbItem>
+						</Breadcrumbs>
+					</WorkspaceBar>
+					<Tabs value={tab} onValueChange={(v) => setTab(String(v))} className="flex min-h-0 flex-1 flex-col">
+						{/* A view switch in tool chrome: pill, beside the bar's other controls. */}
+						<WorkspaceBar className="px-3">
+							<TabsList variant="pill">
+								<TabsTrigger value="issues">
+									Issues <span className="text-ui-num text-muted-foreground">{issues.length}</span>
+								</TabsTrigger>
+								<TabsTrigger value="overview">Overview</TabsTrigger>
+							</TabsList>
+						</WorkspaceBar>
+						<TabsPanel value="issues" className="flex min-h-0 flex-1 flex-col">
+							<div className="flex flex-wrap items-center gap-2 border-b border-hairline px-3 py-2">
+								<Menu>
+									<MenuTrigger render={<Button variant="ghost" size="xs" iconStart={<Icon name="filter" />}>{priority === "all" ? "Filter" : priority}</Button>} />
+									<MenuContent>
+										<MenuRadioGroup value={priority} onValueChange={(v) => setPriority(v as typeof priority)}>
+											<MenuRadioItem value="all">All priorities</MenuRadioItem>
+											{PRIORITIES.map((p) => (
+												<MenuRadioItem key={p} value={p}>{p}</MenuRadioItem>
+											))}
+										</MenuRadioGroup>
+									</MenuContent>
+								</Menu>
+								<SearchInput size="xs" value={query} onValueChange={setQuery} placeholder="Find issue…" aria-label="Find issue" className="w-40" />
+								<ToggleGroup appearance="segmented" value={[groupBy]} onValueChange={(v) => v[0] && setGroupBy(v[0] as typeof groupBy)} aria-label="Group by" className="ms-auto">
+									<Toggle value="status">Status</Toggle>
+									<Toggle value="assignee">Assignee</Toggle>
+								</ToggleGroup>
+								<Button size="xs" iconStart={<Icon name="plus" />} onClick={() => addIssue()}>
+									New issue
+								</Button>
+							</div>
+							<div className="min-h-0 flex-1 overflow-y-auto scrollbar-quiet">{list}</div>
+						</TabsPanel>
+						<TabsPanel value="overview" className="flex min-h-0 flex-1 flex-col">
+							{/* A reading view: page type comes back inside the compact workspace. */}
+							<Density value="comfortable" className="min-h-0 flex-1 overflow-y-auto scrollbar-quiet">
+								<article className="flex max-w-prose flex-col gap-4 p-8 max-sm:p-5">
+									<h2 className="text-heading-3">Mobile app</h2>
+									<p className="text-body-md text-muted-foreground">
+										The phone app for field teams: capture work on site, sync it when the signal comes back, and hand it to the office without retyping anything.
+									</p>
+									<dl className="sable-list-dl">
+										<dt>Lead</dt>
+										<dd>{people.AK}</dd>
+										<dt>Open issues</dt>
+										<dd>{issues.length - done}</dd>
+										<dt>Target</dt>
+										<dd>{isoDay(30 * DAY).toLocaleDateString("en-US", { month: "long", day: "numeric" })}</dd>
+									</dl>
+								</article>
+							</Density>
+						</TabsPanel>
+					</Tabs>
+				</WorkspaceCanvas>
+				{/* Docked beside the list from lg; a sheet below it. Its content renders once. */}
+				<Panel
+					label="Issue details"
+					width={320}
+					narrow="sheet"
+					open={narrow ? inspecting && selected !== null : selected !== null}
+					onOpenChange={(next) => !next && close()}
+					scroll={false}
+					className="border-s border-hairline"
+				>
+					{inspector}
+				</Panel>
+			</PanelGroup>
+		</Workspace>
 	)
 }
 ```
@@ -11717,9 +12293,9 @@ import { Attachment, Message, RelativeTime } from "@sableui/react"
 
 **Status:** stable
 
-Circular profile image over Base UI Avatar — automatic image-load tracking with an initials/glyph fallback. Ergonomic Avatar plus low-level AvatarRoot/AvatarImage/AvatarFallback parts, and AvatarGroup for an overlapping stack with a "+N" overflow count.
+Circular (or square) profile image over Base UI Avatar — automatic image-load tracking with an initials/glyph fallback. Ergonomic Avatar plus low-level AvatarRoot/AvatarImage/AvatarFallback parts, and AvatarGroup for an overlapping stack with a "+N" overflow count.
 
-**Keywords:** avatar, profile, user, identity, initials, fallback, group, team, stack, overflow, collaborators, facepile
+**Keywords:** avatar, profile, user, identity, initials, fallback, group, team, stack, overflow, collaborators, facepile, monogram, project mark, workspace icon, org logo, assignee
 
 ## Usage
 
@@ -11730,12 +12306,13 @@ Use Avatar to represent a person, team, or account with a compact visual identit
 - Do: Use `variant="art"` where people without photos sit side by side — a member list, an activity feed, a chat. Seeded by the person, each gets their own colour, so faces stay tellable apart at a glance; the neutral fallback makes everyone the same grey circle.
 - Do: Provide meaningful alt text for profile images, or an empty alt when the adjacent text already names the person.
 - Do: Use initials or a simple glyph fallback so missing images still communicate identity.
-- Do: Pick the size by the job: sm in dense rows and tables, md (the default) beside one line of text, lg in a row with a title and subtitle, xl (96px) for a profile header beside the person's name, 2xl (160px) for an artist or profile hero and roster portraits. Keep one size within a list or group.
+- Do: Pick the size by the job: 2xs (20px) or xs (24px) in a compact workspace row (an assignee in an issue list, a project mark in a nav item), sm in dense rows and tables, md (the default) beside one line of text, lg in a row with a title and subtitle, xl (96px) for a profile header beside the person's name, 2xl (160px) for an artist or profile hero and roster portraits. Keep one size within a list or group.
 - Do: Use AvatarGroup for a stack of people, and give it an aria-label with the real count ("12 collaborators"). Set `surface` (or `--avatar-group-ring`) to whatever the group sits on, so the separating ring matches a card or popover, not the page. When it shares a row with actions, set `fit` so it gives up avatars to the "+N" count before the row has to wrap.
+- Do: Use `shape="square"` for what is not a person (a workspace, a project, an org, a team), with `tone` set to a palette family so each one keeps its own colour: `<Avatar shape="square" tone="teal" fallback="N" alt="Northwind storefront" size="xs" />`. Circles mean people; keep that distinction across the app.
 - Don't: Hand-build a stack with negative margins and per-avatar ring classes, or fake the overflow as an Avatar with "+4" initials — screen readers hear "plus 4" with no context. Use AvatarGroup's `max`/`total`, or AvatarGroupCount.
 - Don't: Use avatars as decoration without nearby identity context. They should help users recognize a person or account.
 - Don't: Overload a dense table with large avatars; use sm or omit images when scanning data is more important.
-- Don't: Build a portrait by stretching an Avatar with size classes (`className="size-40"`) — the initials, the status indicator and the image fade stay at row scale. Use size="xl" or "2xl", which scale all three. Past 160px, or for a non-circular cover, it is media: an AspectBox, not an avatar.
+- Don't: Resize an Avatar with size classes (`className="size-5"`, `className="size-40"`) — the initials, the status indicator and the image fade stay at the size they were drawn for. Use size="2xs"/"xs" for dense rows and size="xl"/"2xl" for portraits, which scale all three. Don't hand-build a tinted initials tile for a project or workspace mark either: that is Avatar shape="square" with a tone. Past 160px, or for a cover, it is media: an AspectBox, not an avatar.
 
 ### Anatomy
 
@@ -11751,11 +12328,11 @@ Use Avatar to represent a person, team, or account with a compact visual identit
 
 | Name | Type | Description |
 | --- | --- | --- |
-| AvatarRoot | Base UI Avatar.Root props + size + className | Low-level circular frame for full composition control — clips the image and holds the `size` axis. Wraps AvatarImage and AvatarFallback. |
+| AvatarRoot | Base UI Avatar.Root props + size + shape + tone + className | Low-level circular frame for full composition control — clips the image and holds the `size` axis. Wraps AvatarImage and AvatarFallback. |
 | AvatarImage | Base UI Avatar.Image props + className | The profile image. Fills and crops the frame; hidden by Base UI until it loads. |
 | AvatarFallback | Base UI Avatar.Fallback props (delay) + className | Shown when no image is available — typically initials or a glyph. Accepts a delay prop. |
-| AvatarGroup | { size?: "sm" \| "md" \| "lg"; surface?: "background" \| "card" \| "popover" \| "muted"; max?: number; fit?: boolean; total?: number; countLabel?: (count: number) => string; "aria-label"?: string; className?: string; children: ReactNode } | Overlapping stack (role=group) — name it with aria-label ("12 collaborators"). `size` applies to every avatar inside. `max` shows that many and collapses the rest into a "+N" count; `total` is the real head-count when you only pass some people. `fit` shows only as many avatars as fit the width the group is given (it fills the space left in a flex row) and folds the rest into the count, so a tight row reads "MO SR +5" instead of wrapping. The separating ring reads the inherited `--avatar-group-ring` (default: the page background); `surface` sets it to card, popover, or muted. |
-| AvatarGroupCount | { count: number; label?: string; size?: "sm" \| "md" \| "lg"; className?: string } | The "+N" avatar. Shows "+4" and reads "and 4 more" (override with label). AvatarGroup renders it for you from max/total; use it directly only when composing the stack yourself. |
+| AvatarGroup | { size?: "2xs" \| "xs" \| "sm" \| "md" \| "lg"; surface?: "background" \| "card" \| "popover" \| "muted"; max?: number; fit?: boolean; total?: number; countLabel?: (count: number) => string; "aria-label"?: string; className?: string; children: ReactNode } | Overlapping stack (role=group) — name it with aria-label ("12 collaborators"). `size` applies to every avatar inside. `max` shows that many and collapses the rest into a "+N" count; `total` is the real head-count when you only pass some people. `fit` shows only as many avatars as fit the width the group is given (it fills the space left in a flex row) and folds the rest into the count, so a tight row reads "MO SR +5" instead of wrapping. The separating ring reads the inherited `--avatar-group-ring` (default: the page background); `surface` sets it to card, popover, or muted. |
+| AvatarGroupCount | { count: number; label?: string; size?: "2xs" \| "xs" \| "sm" \| "md" \| "lg"; className?: string } | The "+N" avatar. Shows "+4" and reads "and 4 more" (override with label). AvatarGroup renders it for you from max/total; use it directly only when composing the stack yourself. |
 
 ## Props
 
@@ -11766,13 +12343,16 @@ Use Avatar to represent a person, team, or account with a compact visual identit
 | fallback | ReactNode | — | Initials or a glyph rendered when no image is displayed. |
 | fallbackDelay | number | — | Delay before showing the fallback, in ms — avoids a flash on fast loads. |
 | status | ReactNode | — | A presence indicator pinned to the bottom-end edge, usually <StatusDot tone="success" />. It sits outside the clipped circle and wears a ring in the surface colour (--avatar-group-ring, else the page background). Use this instead of absolutely positioning a dot over an Avatar. |
-| size | "sm" \| "md" \| "lg" \| "xl" \| "2xl" | "md" | Square footprint: 32px / 40px / 48px for rows; 96px / 160px for portraits (a profile header, an artist hero, a roster tile). The initials, a status indicator and its cut-out ring scale with it, and at the portrait sizes the photo fades in over the resting surface. |
+| size | "2xs" \| "xs" \| "sm" \| "md" \| "lg" \| "xl" \| "2xl" | "md" | Square footprint: 20px / 24px for compact workspace rows; 32px / 40px / 48px for rows; 96px / 160px for portraits (a profile header, an artist hero, a roster tile). The initials, a status indicator and its cut-out ring scale with it, and at the portrait sizes the photo fades in over the resting surface. |
+| shape | "circle" \| "square" | "circle" | The frame's corner. circle is a person. square is what is not a face — a workspace, a project, an org, a team — with a radius from the theme's steps that grows with the size (4px at 20–24px to 20px at 160px), so a square theme stays square. A status indicator sits on the square's corner. |
+| tone | "neutral" \| "red" \| "orange" \| "yellow" \| "green" \| "teal" \| "blue" \| "purple" \| "pink" | "neutral" | The fallback's colour. neutral is the muted surface; a palette family paints its wash behind the initials and its deep ink on them (a soft Badge's pair, held to contrast in every theme), for a category colour such as one per project. Ignored by variant="art", which colours by seed. |
 | variant | "neutral" \| "art" | "neutral" | What the fallback looks like. neutral: initials on the muted surface. art: initials over GradientArt seeded by the person, so each person without a photo gets their own stable colour from the theme. |
 | seed | string \| number | — | The art variant's seed. Defaults to the fallback text, then `alt`, so a person keeps one colour wherever they appear; pass a user id to tell apart two people who share initials. |
 
 ## Variants
 
-- **size**: sm, md, lg, xl, 2xl
+- **size**: 2xs, xs, sm, md, lg, xl, 2xl
+- **shape**: circle, square
 - **variant**: neutral, art
 
 ## Tokens used
@@ -11847,6 +12427,25 @@ import { Avatar, StatusDot } from "@sableui/react"
 		<p className="text-body-sm text-muted-foreground">1.2M monthly listeners</p>
 	</div>
 </div>
+```
+
+### Dense row sizes
+
+```tsx
+import { Avatar } from "@sableui/react"
+
+<Avatar fallback="EL" alt="Emma Lee" size="2xs" />
+<Avatar fallback="EL" alt="Emma Lee" size="xs" />
+```
+
+### Project marks
+
+```tsx
+import { Avatar } from "@sableui/react"
+
+<Avatar shape="square" tone="teal" size="xs" fallback="N" alt="Northwind storefront" />
+<Avatar shape="square" tone="orange" size="xs" fallback="H" alt="Harbor brand refresh" />
+<Avatar shape="square" tone="purple" size="xs" fallback="L" alt="Lumen editorial" />
 ```
 
 ### Low-level parts
@@ -13912,7 +14511,7 @@ import { CodeBlock } from "@sableui/react"
 
 Show/hide a panel of content over Base UI Collapsible — open/close state, ARIA expanded wiring, and the animated height transition. The minimal primitive behind Accordion: a trigger that toggles an overflow-clipped panel.
 
-**Keywords:** collapsible, disclosure, expand, collapse
+**Keywords:** collapsible, disclosure, expand, collapse, chevron, caret, rotate, group header, section toggle
 
 ## Usage
 
@@ -13939,7 +14538,7 @@ Use Collapsible for a single piece of optional content that can expand in place.
 | --- | --- | --- |
 | CollapsibleTrigger | Base UI Collapsible.Trigger props + render | The button that toggles the panel. Compose with render={<Button variant="ghost" … />}. |
 | CollapsiblePanel | Base UI Collapsible.Panel props + className (keepMounted, hiddenUntilFound) | The collapsible contents. Overflow-hidden; animates height via the --collapsible-panel-height var Base UI sets. |
-| CollapsibleIndicator | { className? } | Auto-rotating disclosure chevron. Place it inside the trigger content and add the `group/collapsible` class to the trigger so it flips 180° on open. |
+| CollapsibleIndicator | { direction?: "down" \| "end"; className? } | Auto-rotating disclosure chevron. Place it anywhere inside the trigger content; it reads the trigger's open state itself, no class to add. direction="down" (default) flips 180° on open; direction="end" points to the inline end while closed and turns down on open — the caret for a grouped list's section header or a tree row. Use it instead of rotating your own chevron with CSS, which snaps with no transition. |
 
 ## Props
 
@@ -13958,7 +14557,7 @@ Use Collapsible for a single piece of optional content that can expand in place.
 - **arrival** · Root · _no motion_ — A collapsible is part of the page it sits in, present from first paint. Its trigger is what the reader notices, not an entrance.
 - **response** · CollapsibleTrigger · _no motion_ — The trigger is whatever the consumer renders (usually a Button), and that control brings its own response. Adding one here would double it.
 - **transition** · CollapsiblePanel · `motion-disclosure` — The height change ties the content that appears to the trigger that was pressed; snapped open, everything below jumps with nothing linking cause to effect.
-- **transition** · CollapsibleIndicator · `motion-interactive` — The chevron turns with the panel rather than flipping in one frame: motion-interactive lists `rotate`, the property rotate-180 writes.
+- **transition** · CollapsibleIndicator · `motion-interactive` — The chevron turns with the panel rather than flipping in one frame: motion-interactive lists `rotate`, the property rotate-180 and rotate-0 write.
 - **activity** · Root · _no motion_ — Nothing here is indeterminate; content that loads on open should put its own loader inside the panel.
 
 ## Accessibility
@@ -13995,7 +14594,15 @@ import { Button, Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@sabl
 ```tsx
 import { Button, Collapsible, CollapsibleIndicator, CollapsiblePanel, CollapsibleTrigger } from "@sableui/react"
 
-<Collapsible><CollapsibleTrigger className="group/collapsible" render={<Button variant="ghost">Details <CollapsibleIndicator /></Button>} /><CollapsiblePanel><p className="pt-3">Revealed on toggle.</p></CollapsiblePanel></Collapsible>
+<Collapsible><CollapsibleTrigger render={<Button variant="ghost">Details <CollapsibleIndicator /></Button>} /><CollapsiblePanel><p className="pt-3">Revealed on toggle.</p></CollapsiblePanel></Collapsible>
+```
+
+### Group header with a side caret
+
+```tsx
+import { Button, Collapsible, CollapsibleIndicator, CollapsiblePanel, CollapsibleTrigger } from "@sableui/react"
+
+<Collapsible defaultOpen><CollapsibleTrigger render={<Button variant="ghost" size="xs"><CollapsibleIndicator direction="end" />In progress <span className="text-ui-num text-muted-foreground">5</span></Button>} /><CollapsiblePanel><ul className="text-ui-body"><li>Refine product detail page</li><li>Build the ingredient library</li></ul></CollapsiblePanel></Collapsible>
 ```
 
 ---
@@ -14683,9 +15290,9 @@ import { ContextMenu, ContextMenuContent, ContextMenuGroup, ContextMenuGroupLabe
 
 **Status:** stable
 
-A data-driven table over the Table primitives — a columns def + data array with built-in client-side sorting (click a sortable header to cycle asc → desc → none), optional row click / selection, and an empty state. For server data or paging, sort/page the data and pair with Pagination.
+A data-driven table over the Table primitives — a columns def + data array with built-in client-side sorting (click a sortable header to cycle asc → desc → none), optional row click / selection, rows grouped under collapsible header rows (groupBy), and an empty state. For server data or paging, sort/page the data and pair with Pagination.
 
-**Keywords:** data table, table, sortable, columns, rows, empty state, pagination, list
+**Keywords:** data table, table, sortable, columns, rows, empty state, pagination, list, grouped, group by, sections, issue list, issue tracker, status groups, collapsible groups
 
 ## Usage
 
@@ -14697,7 +15304,8 @@ Use DataTable when a data array and column definition should render a sortable, 
 - Do: Provide stable rowKey values for dynamic data so selection and sorting do not jump.
 - Do: Use sortable only on columns where ordering is obvious and useful.
 - Do: Pair server-side datasets with Pagination and pass already-sorted/paged rows.
-- Do: Move to TanStack Table, rendered with Sable's Table parts, once the table needs server-side sorting or filtering, column visibility or resizing, grouping, or virtualised rows. DataTable stays dependency-free and does not grow into a data grid; `sable docs tables-with-tanstack` maps one onto the other.
+- Do: Group rows by status for an issue tracker (or by owner, by day) with groupBy + groups on ONE DataTable: every group shares the header and the column widths, each header row carries the group's count and an add action, and sorting applies within each group. Do not stack one DataTable per group inside Collapsibles; the header repeats and the columns stop lining up.
+- Do: Move to TanStack Table, rendered with Sable's Table parts, once the table needs server-side sorting or filtering, column visibility or resizing, nested or aggregated grouping, or virtualised rows. DataTable stays dependency-free and does not grow into a data grid; `sable docs tables-with-tanstack` maps one onto the other.
 - Don't: Make every row clickable and also fill it with competing buttons. Choose a clear row interaction model.
 - Don't: Use DataTable for heterogeneous cards or timeline content. A list or card layout will scan better.
 
@@ -14708,6 +15316,7 @@ Use DataTable when a data array and column definition should render a sortable, 
 | Columns | yes | Definitions for headers, cell renderers, sorting, alignment, and classes. |
 | Rows | yes | The data array rendered through the column definitions. |
 | Empty state | no | Content spanning all columns when the row array is empty. |
+| Group header row | no | With groupBy: one row per group heading its own tbody (a th with scope=rowgroup across every column) holding the disclosure toggle, the group's icon, label and count, and an optional trailing action. |
 | Caption | no | Accessible table caption rendered by the underlying Table. |
 
 ## Props
@@ -14726,6 +15335,11 @@ Use DataTable when a data array and column definition should render a sortable, 
 | defaultSort | { key: string; direction: "asc" \| "desc" } | — | Initial sort column + direction. |
 | empty | ReactNode | "No results." | Rendered spanning all columns when data is empty. Pass an EmptyState for the full treatment (icon, title, next step). |
 | caption | ReactNode | — | Bottom table caption. |
+| groupBy | (row) => string | — | Group the rows under header rows by the key this returns (a status, an owner, a day). One header serves every group, so the columns line up across them; sorting applies within each group. |
+| groups | { key: string; label?: ReactNode; icon?: ReactNode; action?: ReactNode; defaultExpanded?: boolean }[] | — | Order and presentation of the groups, by key: the header row's label (defaults to the key), a leading icon such as a status mark, a trailing action such as an icon Button that adds a row to the group, and whether it starts open (default true). Groups groupBy returns that are not listed follow, in the order their first row appears in data. A listed group with no rows is not shown. |
+| collapsible | boolean | true | Whether each group's header row is a toggle that opens and closes the group. A closed group keeps its header row and count; its rows are hidden and select-all skips them. |
+| expandedGroups | ReadonlySet<string> | — | The open groups, by key (controlled). Without it each group starts at its defaultExpanded and the table holds the state. |
+| onExpandedGroupsChange | (keys: Set<string>) => void | — | Called with the new set of open group keys when a group header is toggled. |
 
 ## Tokens used
 
@@ -14734,9 +15348,11 @@ Use DataTable when a data array and column definition should render a sortable, 
 ## Motion
 
 - **arrival** · Root · _no motion_ — Rows render with the page or the query that produced them. Staggering rows in delays reading a table someone opened to scan.
+- **arrival** · Group rows · _no motion_ — Opening a group shows its rows at once: table rows cannot animate their height without leaving the table layout, and the rows are the content the reader asked for.
 - **response** · Row · `motion-interactive` — Body rows ease to a muted wash under the pointer (TableRow's recipe), which keeps the eye on the right line across a wide row of numbers. Sortable headers are ghost Buttons and answer on Button's recipe.
 - **transition** · Sort chevron · `motion-interactive` — One chevron turns to show direction instead of two glyphs swapping, so ascending to descending reads as the same column reversing. Its opacity rises from the resting 60% as the column becomes the sort.
 - **transition** · Row · `motion-interactive` — A checked row's fill eases in across its cells, so selecting by checkbox reads as the row being picked rather than a band stamped over it.
+- **transition** · Group chevron · `motion-interactive` — A group's chevron turns from pointing along the reading direction (closed) to down (open), so the group reads as folding rather than a glyph being swapped.
 - **activity** · Root · _no motion_ — DataTable has no loading state. While data is fetched, render Skeleton rows (motion-shimmer) in its place — only the caller knows a fetch is in flight.
 
 ## Accessibility
@@ -14744,6 +15360,7 @@ Use DataTable when a data array and column definition should render a sortable, 
 - Sorted columns set aria-sort=ascending/descending on the header cell.
 - Sortable headers are real <button>s with a focus-visible ring, keyboard-operable.
 - Inherits the Table's scrollable frame and semantic <table>/<th>/<td> structure.
+- Grouped, each group is its own <tbody> (a rowgroup) headed by a <th scope="rowgroup"> spanning the columns, so group headers are never read as data rows; the toggle is a real button with aria-expanded and aria-controls naming that tbody.
 
 ## Related
 
@@ -14812,6 +15429,33 @@ import { Card, CardContent, CardHeader, CardTitle, DataTable } from "@sableui/re
 <Card><CardHeader><CardTitle>Deployments</CardTitle></CardHeader><CardContent flush><DataTable data={deployments} rowKey={(row) => row.id} columns={[{ key: "project", header: "Project", sortable: true }, { key: "duration", header: "Duration", align: "end" }]} /></CardContent></Card>
 ```
 
+### Issues grouped by status
+
+```tsx
+import { Button, DataTable, Icon, StatusDot } from "@sableui/react"
+
+const STATUSES = [
+	{ key: "in-progress", label: "In progress", icon: <StatusDot tone="warning" /> },
+	{ key: "in-review", label: "In review", icon: <StatusDot tone="purple" /> },
+	{ key: "todo", label: "Todo", icon: <StatusDot /> },
+	{ key: "done", label: "Done", icon: <StatusDot tone="success" />, defaultExpanded: false },
+]
+
+<DataTable
+	data={issues}
+	rowKey={(t) => t.id}
+	groupBy={(t) => t.status}
+	groups={STATUSES.map((s) => ({ ...s, action: <Button variant="ghost" size="icon-xs" aria-label={`Add issue to ${s.label}`} onClick={() => create(s.key)}><Icon name="plus" /></Button> }))}
+	onRowClick={(t) => setSelectedId(t.id)}
+	isRowSelected={(t) => t.id === selectedId}
+	columns={[
+		{ key: "id", header: "ID", className: "w-20", cell: (t) => <span className="text-mono-caption text-muted-foreground">{t.id}</span> },
+		{ key: "title", header: "Issue", sortable: true },
+		{ key: "due", header: "Due", sortable: true, sortValue: (t) => t.due.getTime(), cell: (t) => formatDate(t.due) },
+	]}
+/>
+```
+
 ### Empty state
 
 ```tsx
@@ -14828,7 +15472,7 @@ import { Button, DataTable, EmptyState, Icon } from "@sableui/react"
 
 Date (and optionally time) picker: a field-shaped trigger (the Input / SelectTrigger shell) opens a Popover holding Sable's Calendar. With granularity="day" selecting a day fires onValueChange and closes; granularity="minute" adds an hour + minute row of Selects and keeps the time-of-day when the day changes.
 
-**Keywords:** date picker, calendar, date input, date time picker, time, schedule, form
+**Keywords:** date picker, due date, property row, inspector, calendar, date input, date time picker, time, schedule, form
 
 ## Usage
 
@@ -14857,6 +15501,8 @@ Use DatePicker when users need to choose one date — or, with granularity="minu
 | disabled | boolean | — | Disable the trigger and block selection. |
 | minDate | Date | — | Earliest selectable day (inclusive). Earlier days are disabled and navigation is bounded. |
 | maxDate | Date | — | Latest selectable day (inclusive). Later days are disabled and navigation is bounded. |
+| size | "md" \| "xs" | "md" | The trigger's rung. md is the form field beside Input and Select. xs is the property-grid rung (24px in a workspace): an inset panel-field well with no border, the same shape as SelectTrigger size="xs" and ScrubField on the neighbouring rows of an inspector — use it for a due date in a PropertyRow instead of a native date input. |
+| formatOptions | Intl.DateTimeFormatOptions | — | How the trigger writes the chosen date, as Intl.DateTimeFormat options in the reader's locale — { month: "short", day: "numeric" } for "Oct 23" where the rest of a list writes dates that way. Omitted: "Oct 23, 2026" (with "at 14:30" under granularity="minute"). |
 | className | string | — | Extra classes merged onto the trigger. |
 | id / aria-label / aria-labelledby / aria-describedby / aria-invalid / aria-required | button attributes | — | Forwarded to the trigger, so a wrapping Field ties its label to the picker and announces its description and error. Pass them yourself only when labelling the picker without a Field. |
 
@@ -14877,6 +15523,18 @@ Use DatePicker when users need to choose one date — or, with granularity="minu
 - Components: Calendar, Field
 
 ## Examples
+
+### In an inspector row
+
+```tsx
+import { DatePicker, PanelSection, PropertyRow } from "@sableui/react"
+
+<PanelSection title="Properties">
+	<PropertyRow label="Due date">
+		<DatePicker size="xs" aria-label="Due date" value={due} onValueChange={setDue} formatOptions={{ month: "short", day: "numeric" }} />
+	</PropertyRow>
+</PanelSection>
+```
 
 ### Controlled
 
@@ -17532,7 +18190,7 @@ Use Menu for a compact list of actions opened from a visible trigger.
 | MenuLinkItem | Base UI Menu.LinkItem props (href, target, closeOnClick) + className + icon?: ReactNode + description?: ReactNode | A row that navigates: a real <a>, so it opens in a new tab, middle-clicks and copies as a link. With target="_blank" it adds rel="noopener noreferrer" and a trailing ↗. Takes icon and description like MenuItem. |
 | MenuSeparator | Base UI Separator props + className | Hairline rule between item runs. |
 | MenuSubmenu | Base UI Menu.SubmenuRoot props | A nested menu. Wraps a MenuSubmenuTrigger and its own MenuContent — pass side="inline-end" to that content so the submenu opens away from its parent in RTL as well as LTR. |
-| MenuSubmenuTrigger | Base UI Menu.SubmenuTrigger props + value: ReactNode + className | The row that opens a submenu: item styling, a trailing chevron, and an optional `value` showing the current choice so the row reads "Effort  High ›" rather than making the reader open it to find out. |
+| MenuSubmenuTrigger | Base UI Menu.SubmenuTrigger props + value: ReactNode + icon: ReactNode + className | The row that opens a submenu: item styling, a trailing chevron, and an optional `value` showing the current choice so the row reads "Effort  High ›" rather than making the reader open it to find out. `icon` leads the row as MenuItem's does; give it one whenever the items around it have icons, or its label starts a column to their left. |
 | MenuRadioGroup | Base UI Menu.RadioGroup props (value, defaultValue, onValueChange) | A single-choice group inside a menu. Controlled via value/onValueChange, uncontrolled via defaultValue. |
 | MenuRadioItem | Base UI Menu.RadioItem props + className (value, disabled) | One option in a MenuRadioGroup, rendered as menuitemradio with a real checked state. The check sits in a reserved leading column so labels never shift sideways as the highlight moves. |
 | MenuCheckboxItem | Base UI Menu.CheckboxItem props + className + { checked?: boolean; defaultChecked?: boolean; onCheckedChange?: (checked: boolean) => void; disabled?: boolean } | A toggling row, with the same reserved leading column as MenuRadioItem so a menu mixing the two keeps one text margin. |
@@ -19132,7 +19790,7 @@ const [page, setPage] = useState(searchParams.page ?? 1)
 
 A row of docked chrome panels around a flexible centre, with draggable and keyboard-resizable edges and optional persisted widths.
 
-**Keywords:** panel, panels, resize, resizable, splitter, docked, workspace, tool, chrome, inspector, layout
+**Keywords:** panel, panels, resize, resizable, splitter, docked, workspace, tool, chrome, inspector, layout, mobile, responsive, sheet, drawer, narrow, detail pane
 
 ## Usage
 
@@ -19143,6 +19801,8 @@ Use PanelGroup for the body of a tool workspace: fixed-width Panels docked left 
 - Do: Give every docked Panel a fixed width and leave the centre Panel width-less so it absorbs the remaining space.
 - Do: Drive the width with usePanelWidth and pass a storageKey, so a user's layout survives a reload. Spread its bounds onto the PanelResizer rather than repeating min and max by hand.
 - Do: Label every Panel — they are landmarks, and 'Layers' or 'Properties' is what a screen-reader user navigates by.
+- Do: Decide what each docked Panel becomes on a phone with `narrow`: "sheet" for an inspector or a navigation rail the user opens on demand, "hidden" for chrome a phone does without. Drive a sheet's `open` from the same state that selects the record, so selecting a row opens the inspector at every width.
+- Don't: Render the same inspector twice, once in a Panel and once in a Sheet behind a hand-rolled viewport check. `narrow="sheet"` renders the content once, in whichever place applies.
 - Don't: Let the group scroll. Only panels and the canvas scroll; a scrolling group means the shell lost its height constraint.
 - Don't: Use it for page content columns — that's Grid or Columns. PanelGroup is chrome, and it sits outside the content grid.
 - Don't: Omit PanelResizer to save effort and then let users live with a fixed panel. If a panel holds a tree or a property grid, its width is a preference.
@@ -19159,7 +19819,7 @@ Use PanelGroup for the body of a tool workspace: fixed-width Panels docked left 
 
 | Name | Type | Description |
 | --- | --- | --- |
-| Panel | { label: string; width?: number; scroll?: boolean } | A docked or flexible column. `label` names the landmark; omit `width` for the flexible centre. `scroll` defaults to true — set it false for a header + scrolling body + pinned footer, so the footer doesn't scroll away with the list. When you own the layout, give the header and footer shrink-0 and the middle min-h-0 flex-1 overflow-y-auto. overflow-y-auto only activates if every flex ancestor can shrink: a single missing min-h-0 anywhere up the chain makes the panel grow instead of scroll, and nothing reports it. |
+| Panel | { label: string; width?: number; scroll?: boolean; narrow?: "dock" \| "sheet" \| "hidden"; open?: boolean; onOpenChange?: (open: boolean) => void; side?: "left" \| "right"; below?: "sm" \| "md" \| "lg" \| "xl" \| "2xl" } | A docked or flexible column. Below `below` (default lg, where Sidebar and BottomNav swap), `narrow` decides what it becomes: "dock" (default) stays docked, "sheet" renders the same content once inside a Sheet from `side` (default "right"; a panel before the canvas is "left"), titled by `label`, open while `open` is true and closed through `onOpenChange` (Esc, scrim, swipe), and "hidden" drops it. `open` defaults to true docked (false removes the column, so the canvas takes its width) and false as a sheet. Crossing the breakpoint remounts the content, so keep state that must survive it in the app. `label` names the landmark; omit `width` for the flexible centre. `scroll` defaults to true — set it false for a header + scrolling body + pinned footer, so the footer doesn't scroll away with the list. When you own the layout, give the header and footer shrink-0 and the middle min-h-0 flex-1 overflow-y-auto. overflow-y-auto only activates if every flex ancestor can shrink: a single missing min-h-0 anywhere up the chain makes the panel grow instead of scroll, and nothing reports it. |
 | PanelResizer | { side: 'left' \| 'right'; width: number; onWidthChange: (n: number) => void; label: string; min?: number; max?: number; step?: number } | The draggable edge. `side` says which side the resized panel is on, so the drag delta's sign is right. |
 | usePanelWidth | (defaultWidth: number, options?: { storageKey?: string; min?: number; max?: number }) => readonly [number, (n: number) => void, { min: number; max: number }] | Controlled width for a Panel, clamped and optionally persisted to localStorage (only when `storageKey` is passed). Read through useSyncExternalStore, so there is no server/client hydration mismatch and no setState in an effect; do not hand-roll a localStorage read during render or a write from an effect. Without `storageKey` the width is kept in memory per hook instance. The third element is the `{ min, max }` it clamps to: spread it onto the paired PanelResizer so the separator's aria-valuemin/max and Home/End match the real clamp. |
 
@@ -19231,6 +19891,36 @@ function Body() {
             <ScrubField label="Opacity" icon="grid" suffix="%" value={100} min={0} max={100} />
             <ScrubField label="Blur" value={0} min={0} max={64} suffix="px" />
           </PropertyPair>
+        </PanelSection>
+      </Panel>
+    </PanelGroup>
+  )
+}
+```
+
+### Inspector that becomes a sheet on phones
+
+```tsx
+import { Button, Input, Panel, PanelGroup, PanelSection, PropertyRow } from "@sableui/react"
+
+function Body() {
+  const [selected, setSelected] = useState<string | null>(null)
+  return (
+    <PanelGroup>
+      <Panel label="Issues">
+        <div className="p-2">
+          <Button size="xs" variant="ghost" onClick={() => setSelected("AES-104")}>AES-104 Refine product page</Button>
+        </div>
+      </Panel>
+      <Panel
+        label="Issue details"
+        width={320}
+        narrow="sheet"
+        open={selected !== null}
+        onOpenChange={(open) => !open && setSelected(null)}
+      >
+        <PanelSection title={selected ?? ""}>
+          <PropertyRow label="Status"><Input defaultValue="In progress" /></PropertyRow>
         </PanelSection>
       </Panel>
     </PanelGroup>
@@ -21756,9 +22446,9 @@ import { ShowMore } from "@sableui/react"
 
 **Status:** stable
 
-Desktop side-navigation rail (in-flow sticky, hidden below lg) with SidebarHeader / SidebarBrand / SidebarNav / SidebarItem / SidebarFooter parts. Items are router-agnostic via the `render` prop; an optional collapsed icon-rail mode reveals labels in tooltips.
+Desktop side-navigation rail (in-flow sticky, hidden below lg) with SidebarHeader / SidebarBrand / SidebarNav / SidebarGroup / SidebarItem / SidebarFooter / SidebarAccount parts, all on one set of columns. Items are router-agnostic via the `render` prop; an optional collapsed icon-rail mode reveals labels in tooltips.
 
-**Keywords:** sidebar, navigation, app chrome, rail
+**Keywords:** sidebar, navigation, app chrome, rail, nav group, section label, account, user menu, profile, account switcher, workspace switcher, sidebar footer
 
 ## Usage
 
@@ -21770,6 +22460,9 @@ Use Sidebar for persistent desktop navigation or application chrome outside the 
 - Do: Keep item labels predictable and active state obvious.
 - Do: Set surface="page" when a full-width top bar sits above the rail. A theme's tinted or dark rail is for a full-height rail that frames the app.
 - Do: Keep surface="rail" inside AppShell frame="inset": the rail's tint becomes the ground the main panel floats on. Do not add a border-r class back — the gap is the divider.
+- Do: Group items with SidebarGroup and end the rail with one SidebarAccount that opens the account menu (settings, appearance, sign out). Every part sits on the same icon and label columns, at either density.
+- Don't: Do not put SideNav, an Entity or a stack of ghost Buttons in the rail. Each brings its own insets, so the icons and labels land on four different columns. SideNav is the in-page section list; the rail has its own parts.
+- Don't: Do not put a Badge or pill in the account row. Its one quiet detail line carries the plan, role or 'Demo'.
 - Don't: Do not use Sidebar for page-local settings, filters, or temporary action groups.
 - Don't: Do not put page content in it. It is fixed-width chrome OUTSIDE the content grid, so anything in it is exempt from the page's measure and rhythm.
 
@@ -21784,9 +22477,11 @@ Use Sidebar for persistent desktop navigation or application chrome outside the 
 
 | Name | Type | Description |
 | --- | --- | --- |
-| SidebarHeader | div props | The top of the rail, at least 64px tall. It holds SidebarBrand and may take a second row under it, such as a search field or a notifications button: give that row basis-full and the header grows to hold it instead of clipping. |
+| SidebarHeader | div props | The top of the rail, at least 64px tall (the chrome bar's height inside a compact Workspace, so it lines up with the WorkspaceBar beside it). It holds SidebarBrand and may take a second row under it, such as a search field or a notifications button: give that row basis-full and the header grows to hold it instead of clipping. |
 | SidebarBrand | { mark: ReactNode; label: ReactNode; render?: useRender.RenderProp } + div props | The brand row, inside SidebarHeader, on the same grid as SidebarItem: mark in the icons' 24px slot, label on the labels' column, so a logo lines up with the nav below it without copying the rail's inset numbers. Collapsed, it shows the mark alone (named by a string label). render={<Link to="/" />} makes it the home link. |
-| SidebarItem | { label: ReactNode; icon?: ReactNode; active?: boolean; badge?: ReactNode; render?: useRender.RenderProp } + button props | A single nav row. label is the row text (inline when expanded, in a hover tooltip when collapsed); icon is the leading icon node (the consumer swaps fill weight for the active state); active marks the current route (accent fill + aria-current="page"); badge is a trailing node (e.g. a count) pushed to the row end and hidden when collapsed; render composes another element, e.g. render={<Link to="/x" />}. |
+| SidebarItem | { label: ReactNode; icon?: ReactNode; active?: boolean; badge?: ReactNode; render?: useRender.RenderProp } + button props | A single nav row, 44px on a page and 32px inside a compact scope such as a Workspace (the rail reads the density; nothing to set). label is the row text (inline when expanded, in a hover tooltip when collapsed); icon is the leading icon node (the consumer swaps fill weight for the active state); active marks the current route (accent fill + aria-current="page"); badge is a trailing node (e.g. a count) pushed to the row end and hidden when collapsed; render composes another element, e.g. render={<Link to="/x" />}. |
+| SidebarGroup | { label?: ReactNode } + div props | A labelled run of SidebarItems inside SidebarNav ("Workspace", "Favorites"). The label starts on the items' icon column; collapsed, a hairline stands in for it and the label stays as the group's accessible name. |
+| SidebarAccount | { avatar: ReactNode; label: ReactNode; detail?: ReactNode; indicator?: ReactNode \| false; render?: useRender.RenderProp } + button props | The account row at the foot of the rail, inside SidebarFooter: the avatar in the icon slot (Avatar xs on a page rail, 2xs in a compact one), the label on the label column, one muted detail line, and an up-down chevron. Make it the trigger of the account Menu (render it through MenuTrigger render) and put Settings, appearance and sign-out there; it holds its fill while the menu is open. Collapsed, the avatar alone, with the label in a tooltip. |
 
 ## Props
 
@@ -21844,6 +22539,14 @@ import { Button, Icon, Sidebar, SidebarFooter, SidebarItem, SidebarNav } from "@
 
 const [collapsed, setCollapsed] = useState(false)
 <Sidebar collapsed={collapsed}><SidebarNav><SidebarItem icon={<Icon name="home" />} label="Home" active render={<Link to="/" />} /></SidebarNav><SidebarFooter><Button variant="ghost" size="icon" onClick={() => setCollapsed((c) => !c)} aria-label="Toggle sidebar"><Icon name="chevron-left" /></Button></SidebarFooter></Sidebar>
+```
+
+### Grouped nav with an account menu
+
+```tsx
+import { Avatar, Icon, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger, Sidebar, SidebarAccount, SidebarBrand, SidebarFooter, SidebarGroup, SidebarHeader, SidebarItem, SidebarNav } from "@sableui/react"
+
+<Sidebar><SidebarHeader><SidebarBrand mark={<Avatar shape="square" size="xs" fallback="F" alt="" />} label="Forma Studio" /></SidebarHeader><SidebarNav><SidebarItem icon={<Icon name="inbox" />} label="Inbox" badge={<span className="text-ui-num">4</span>} /><SidebarGroup label="Workspace"><SidebarItem icon={<Icon name="folder" />} label="Projects" active /><SidebarItem icon={<Icon name="users" />} label="Clients" /></SidebarGroup></SidebarNav><SidebarFooter><Menu><MenuTrigger render={<SidebarAccount avatar={<Avatar size="xs" fallback="EL" alt="" />} label="Emma Lee" detail="Forma Studio" />} /><MenuContent side="top" align="start"><MenuItem>Settings</MenuItem><MenuSeparator /><MenuItem>Sign out</MenuItem></MenuContent></Menu></SidebarFooter></Sidebar>
 ```
 
 ### Inline (inside a bounded frame)
@@ -22960,6 +23663,7 @@ Use Tabs to switch between related panels within the same page context.
 ### Best practices
 
 - Do: Use tabs when each panel is peer content and users may compare or switch often.
+- Do: In tool chrome (a WorkspaceBar, a compact panel header) use variant="pill" for a view switch such as Overview / Issues / Updates: it reads as a control beside the bar's other controls. Underline is the page-section idiom; inside a WorkspaceBar it sits on the bar's hairline rather than drawing its own.
 - Do: Keep tab labels short and make the active tab unmistakable.
 - Do: Use variant="pill" for a short switcher inside a card or toolbar (Preview / Code, List / Grid); keep the default underline for sections of a page.
 - Don't: Do not use Tabs for unrelated pages or primary navigation that needs distinct URLs. → use **SideNav**, **NavigationMenu**
@@ -24448,7 +25152,7 @@ import { Video } from "@sableui/react"
 
 The shell for a tool: a fixed viewport partitioned into independently scrolling regions, with a compact density scope, a skip link, and a canvas landmark.
 
-**Keywords:** workspace, tool, editor, shell, frame, canvas, chrome, panels, density, viewport
+**Keywords:** workspace, tool, editor, shell, frame, canvas, chrome, panels, density, viewport, issue tracker, tracker, inspector, reading view, mobile, responsive, bottom nav, media query, breakpoint, top bar, topbar
 
 ## Usage
 
@@ -24459,6 +25163,9 @@ Use Workspace as the outer frame for a tool — an editor, a console, a canvas a
 - Do: Put a PanelGroup in the body and a WorkspaceCanvas inside it, so panels are aside chrome and the work surface is the main landmark.
 - Do: Let each panel own its scrolling. The shell never scrolls, and the canvas clips rather than scrolls — panning is the viewport's job.
 - Do: Keep the density scope at compact unless you have a specific reason; the workspace register's measured control ladder is what makes tool chrome read as tool chrome.
+- Do: Put a WorkspaceBar inside a column when the bar belongs to that column only. An issue tracker's bar (breadcrumb, view tabs, filters) sits above the list, while the sidebar and the inspector beside it run the full height: put the WorkspaceBar first inside the WorkspaceCanvas, not in the `toolbar` slot, which spans every panel. Don't hand-build a fixed-height header for it.
+- Do: Wrap a reading view inside the workspace (a project overview, an update, a doc, release notes) in <Density value="comfortable">. The compact scope maps body text to the 11–12px UI tiers, which is right for chrome and too small for paragraphs; the comfortable scope gives prose its page size again while the chrome around it stays compact.
+- Do: Plan the phone layout with the shell rather than around it: pass a BottomNav to `bottomNav`, and give docked Panels `narrow="sheet"` (an inspector, a navigation rail) or `narrow="hidden"`. Don't measure the viewport with a resize listener, render the inspector twice, or subtract the nav's height from 100dvh.
 - Don't: Nest a Region or Page inside it to set a width. Region caps are a page-register idea; a workspace is edge-to-edge and its panels are fixed-width chrome outside the content grid.
 - Don't: Hardcode a control height (h-[32px]). CI rejects it (raw-control-height); read the ladder instead, e.g. h-(--control-sm), so the density scope can size it.
 - Don't: Put a Card in the chrome. Use PanelSection — a card inside a narrow panel spends its border and inset on nothing.
@@ -24472,6 +25179,7 @@ Use Workspace as the outer frame for a tool — an editor, a console, a canvas a
 | Body | yes | The flexible middle row, normally a PanelGroup. Constrained so its children can shrink and scroll. |
 | WorkspaceCanvas | no | The work surface and the main#main-content landmark the skip link targets. Clips rather than scrolls. |
 | StatusBar | no | Bottom chrome for ambient document facts. |
+| BottomNav | no | Phone navigation in the `bottomNav` slot. Its row is reserved below lg and gone above it, so the body ends where the nav begins. |
 
 ## Subcomponents
 
@@ -24479,6 +25187,8 @@ Use Workspace as the outer frame for a tool — an editor, a console, a canvas a
 | --- | --- | --- |
 | WorkspaceBar | ComponentProps<'header'> | The top chrome strip, sized to --chrome-bar-height with a hairline beneath. |
 | WorkspaceCanvas | ComponentProps<'main'> | The work surface: renders main#main-content, fills the body, clips its overflow. |
+| useMediaQuery | (query: string, options?: { serverValue?: boolean }) => boolean | True while a media query matches, read through useSyncExternalStore: no resize listener, no setState in an effect, no hydration mismatch (the server reports serverValue, default false). Use it to branch structure a class cannot express; style-only changes stay as lg: classes. |
+| useBelowBreakpoint | (breakpoint?: "sm" \| "md" \| "lg" \| "xl" \| "2xl", options?: { serverValue?: boolean }) => boolean | True below a named breakpoint (default lg), flipping at the width where that breakpoint's classes start to apply (Tailwind's sm 40 / md 48 / lg 64 / xl 80 / 2xl 96rem). Panel's `narrow` uses it; reach for it instead of a hand-rolled window.innerWidth check. |
 
 ## Props
 
@@ -24486,6 +25196,7 @@ Use Workspace as the outer frame for a tool — an editor, a console, a canvas a
 | --- | --- | --- | --- |
 | toolbar | ReactNode | — | Top chrome, normally a WorkspaceBar. |
 | statusBar | ReactNode | — | Bottom chrome, normally a StatusBar. |
+| bottomNav | ReactNode | — | Phone navigation, normally a BottomNav. Below lg (BottomNav's own breakpoint) the shell reserves the nav's height as its last row, so the body and the status bar end above the nav instead of under it; above lg the row is gone. Every slot is optional: the body is the shell's one growing row whichever of toolbar, statusBar and bottomNav are present. |
 | density | "compact" \| "comfortable" | "compact" | Density scope for everything inside. Sets the --control-* ladder via data-density; compact is the workspace register. Nothing hardcodes a height, so the same size="md" Button is 40px on a page and 32px inside a compact Workspace. A Dialog opened from inside resets to comfortable, because a modal is a page-register surface even when a tool launched it. |
 | skipLinkLabel | string | "Skip to canvas" | Text for the skip link that targets the canvas landmark. |
 
@@ -24562,6 +25273,79 @@ import { Input, Panel, PanelGroup, PanelSection, PropertyRow, StatusBar, Workspa
     </Panel>
     <WorkspaceCanvas className="overflow-y-auto scrollbar-quiet">
       <div className="p-3 text-ui-num text-muted-foreground">log output…</div>
+    </WorkspaceCanvas>
+  </PanelGroup>
+</Workspace>
+```
+
+### Issue tracker: column bar, docked inspector, phone sheet
+
+```tsx
+import { BottomNav, BottomNavItem, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, Breadcrumbs, BreadcrumbSeparator, Button, Icon, Input, Panel, PanelGroup, PanelSection, PropertyRow, StatusBar, Workspace, WorkspaceBar, WorkspaceCanvas } from "@sableui/react"
+
+function Tracker() {
+  const [selected, setSelected] = useState<string | null>("AES-104")
+  return (
+    <Workspace
+      bottomNav={
+        <BottomNav>
+          <BottomNavItem showLabel label="Issues" icon={<Icon name="list" />} active />
+          <BottomNavItem showLabel label="Inbox" icon={<Icon name="inbox" />} />
+        </BottomNav>
+      }
+      statusBar={<StatusBar><span>12 issues</span></StatusBar>}
+    >
+      <PanelGroup>
+        <Panel label="Navigation" width={220} narrow="hidden">
+          <PanelSection title="Workspace">
+            <PropertyRow label="Team"><Input defaultValue="Studio" /></PropertyRow>
+          </PanelSection>
+        </Panel>
+        <WorkspaceCanvas className="flex flex-col">
+          <WorkspaceBar>
+            <Breadcrumbs>
+              <BreadcrumbItem><BreadcrumbLink href="#">Studio</BreadcrumbLink></BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem><BreadcrumbPage>Digital flagship</BreadcrumbPage></BreadcrumbItem>
+            </Breadcrumbs>
+          </WorkspaceBar>
+          <div className="min-h-0 flex-1 overflow-y-auto scrollbar-quiet">
+            <Button size="xs" variant="ghost" onClick={() => setSelected("AES-104")}>AES-104 Refine product page</Button>
+          </div>
+        </WorkspaceCanvas>
+        <Panel
+          label="Issue details"
+          width={320}
+          narrow="sheet"
+          open={selected !== null}
+          onOpenChange={(open) => !open && setSelected(null)}
+        >
+          <PanelSection title={selected ?? ""}>
+            <PropertyRow label="Status"><Input defaultValue="In progress" /></PropertyRow>
+          </PanelSection>
+        </Panel>
+      </PanelGroup>
+    </Workspace>
+  )
+}
+```
+
+### Reading view inside a workspace
+
+```tsx
+import { Density, PanelGroup, Workspace, WorkspaceCanvas } from "@sableui/react"
+
+<Workspace>
+  <PanelGroup>
+    <WorkspaceCanvas className="overflow-y-auto scrollbar-quiet">
+      <Density value="comfortable">
+        <article className="max-w-prose p-6">
+          <h2 className="text-heading-3">Project overview</h2>
+          <p className="mt-3 text-body-md text-muted-foreground">
+            Paragraphs keep their page size here, while the chrome around the canvas stays compact.
+          </p>
+        </article>
+      </Density>
     </WorkspaceCanvas>
   </PanelGroup>
 </Workspace>
@@ -24776,8 +25560,10 @@ Which token to reach for, and what it is most often confused with. Generated fro
 - **`region-ultrawide (legacy — prefer region-full)`** — Deprecated. Kept so existing usage keeps resolving. *Use for:* Nothing new. Use `region-full`.
     - **Not** `region-full`, which is what this became.
 
-### typographyOverrides (60)
+### typographyOverrides (61)
 
+- **`type-base`** — The base size the page type scale is built on, as a unitless px number — 16 by default. Every page tier keeps its ratio to it, so `14` rebuilds the whole scale at 14, and the baseline step and spacing follow the body down. *Use for:* When the product asks for smaller or larger type everywhere: a dense technical tool at 13-14, a reading product at 17. Set it on :root, a theme scope or a preset (`tokens.shared["type-base"]: "14"`), not per component.
+    - **Not** Changing the root font-size, which also moves every rem the app wrote and the control ladder; or overriding tier sizes one by one, which breaks the ratios between them. Unitless: `14`, never `14px`.
 - **`type-display-4xl-size`** — The largest type: display-lg through display-4xl. Marketing-scale, one per view at most. *Use for:* A landing page hero, a section opener on a brand surface.
     - **Not** `heading-1` for page titles. Display is a *statement*; headings are *structure*. A settings page titled in display-3xl looks like an advert.
 - **`type-title-lg-size`** — The title of a *component*, not of a document. *Use for:* A card's heading, a dialog title, a section label inside a panel.
@@ -25051,7 +25837,7 @@ The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, wh
     - **Instead of** `scrollbar-quiet` on a vertical list. A vertical region with no bar and no fade tells a reader nothing about how far through they are.
     - `<div className="flex gap-3 overflow-x-auto scrollbar-hidden">…</div>`
 
-### text (12)
+### text (13)
 
 - **`sable-list`** — A bulleted list as typography: body type, a hanging muted marker, and item rhythm. Put it on a native `<ul>`. *Use for:* Running content with bullets: release notes, a feature list, steps that are not ordered.
     - **Instead of** A stack of `<div>`s with a hand-drawn dot, or an unstyled `<ul>` that inherits the reset (no markers, no indent).
@@ -25068,6 +25854,9 @@ The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, wh
 - **`text-overline`** — The eyebrow / overline / kicker tier: small, letter-spaced, uppercase by default (a theme may set sentence case via `--type-overline-transform`). *Use for:* A section eyebrow above a heading, a stat's label, a badge-style category line. Sits ABOVE and categorises.
     - **Instead of** `text-label-xs uppercase tracking-wider` assembled by hand, or `text-caption`, which sits BELOW and explains. In tool chrome, panel headers use `text-ui-section` instead.
     - `<p className="text-overline text-muted-foreground">Latest news</p>`
+- **`text-ui-title`** — The title of what a panel or inspector shows — the open issue, the selected object: 14px at 600 on a 20px line, one step above `text-ui-md`. *Use for:* The one title at the top of an inspector, a docked panel or a peek view inside the workspace register. Compact `text-title-lg` resolves to it on its own.
+    - **Instead of** `text-ui-md` made heavier (a title the size of the description under it reads as a label), or `text-heading-*`, which is page structure rather than chrome.
+    - `<h2 className="text-ui-title text-panel-foreground">Refine product detail page</h2>`
 - **`text-ui-md`** — Workspace-register chrome text, the default tier: ~12px at weight ~500 on 16px leading. *Use for:* Labels and values in tool chrome — panels, inspectors, toolbars, trees — inside the workspace register.
     - **Instead of** `text-label-sm` or `text-body-sm` in a dense panel (the page register's weights read as shouting at this size), or a size class plus a weight class composed by hand.
     - `<span className="text-ui-md text-panel-foreground">Opacity</span>`

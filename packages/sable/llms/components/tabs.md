@@ -13,6 +13,7 @@ Use Tabs to switch between related panels within the same page context.
 ### Best practices
 
 - Do: Use tabs when each panel is peer content and users may compare or switch often.
+- Do: In tool chrome (a WorkspaceBar, a compact panel header) use variant="pill" for a view switch such as Overview / Issues / Updates: it reads as a control beside the bar's other controls. Underline is the page-section idiom; inside a WorkspaceBar it sits on the bar's hairline rather than drawing its own.
 - Do: Keep tab labels short and make the active tab unmistakable.
 - Do: Use variant="pill" for a short switcher inside a card or toolbar (Preview / Code, List / Grid); keep the default underline for sections of a page.
 - Don't: Do not use Tabs for unrelated pages or primary navigation that needs distinct URLs. → use **SideNav**, **NavigationMenu**

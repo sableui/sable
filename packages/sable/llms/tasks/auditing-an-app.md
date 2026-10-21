@@ -49,7 +49,10 @@ keyboard/focus behavior, semantic token roles and motion policy. Explain which
 behavior a replacement gains and what must remain. An unused page pattern is not
 drift; repeated overrides can indicate a missing system hook rather than app misuse.
 Run relevant `sable doctor`, `sable lint <paths> --json` and `sable grade <paths>
---json` checks. Lint is lexical; source grades and pattern similarity do not judge
+--json` checks. Grade's `rebuiltParts` lists elements whose class names stand in
+for a part (`.crumb` for Breadcrumbs, `.property` for PropertyRow) and app CSS
+that re-lays a component from outside; `modes` lists colours set for light with no
+dark value, and whether anything lets a user switch modes. Report each. Lint is lexical; source grades and pattern similarity do not judge
 taste. Deliberately static motion slots remain valid with appropriate feedback.
 Lint's `label-contrast` measures an app's overrides of the brand fills (`--primary`,
 `--sidebar-primary`, `--highlight`) and status fills (`--destructive`, `--success`,

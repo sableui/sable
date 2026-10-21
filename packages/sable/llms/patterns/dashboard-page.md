@@ -29,7 +29,7 @@ App-shell admin dashboard: a branded Sidebar with an account footer (AppHeader +
 ## Source
 
 ```tsx
-import { AppHeader, AppShell, Avatar, Badge, BottomNav, BottomNavItem, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, DataTable, Entity, Grid, Icon, MenuItem, MenuSeparator, Meter, NotificationBadge, OverflowMenu, Page, PageHeader, RelativeTime, Row, Sidebar, SidebarBrand, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav, Stack } from "@sableui/react"
+import { AppHeader, AppShell, Avatar, Badge, BottomNav, BottomNavItem, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, DataTable, Entity, Grid, Icon, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger, Meter, NotificationBadge, Page, PageHeader, RelativeTime, Row, Sidebar, SidebarAccount, SidebarBrand, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav, Stack } from "@sableui/react"
 
 // Account status → Badge tone. Sable has no status vocabulary of its own;
 // an app maps ITS states onto tones once, here, and every badge follows.
@@ -141,20 +141,23 @@ export function DashboardPage() {
 						<SidebarItem icon={<Icon name="gear" />} label="Settings" render={<a href="/settings" />} />
 					</SidebarNav>
 					<SidebarFooter>
-						<Entity
-							className="[--entity-py:0]"
-							leading={<Avatar variant="art" size="sm" fallback="AL" alt="" />}
-							title="Ada Lovelace"
-							subtitle="@ada"
-							action={
-								<OverflowMenu label="Account" size="icon-sm">
-									<MenuItem render={<a href="/@ada" />}>View profile</MenuItem>
-									<MenuItem render={<a href="/settings" />}>Settings</MenuItem>
-									<MenuSeparator />
-									<MenuItem>Sign out</MenuItem>
-								</OverflowMenu>
-							}
-						/>
+						<Menu>
+							<MenuTrigger
+								render={
+									<SidebarAccount
+										avatar={<Avatar variant="art" size="xs" fallback="AL" alt="" />}
+										label="Ada Lovelace"
+										detail="@ada"
+									/>
+								}
+							/>
+							<MenuContent side="top" align="start">
+								<MenuItem render={<a href="/@ada" />}>View profile</MenuItem>
+								<MenuItem render={<a href="/settings" />}>Settings</MenuItem>
+								<MenuSeparator />
+								<MenuItem>Sign out</MenuItem>
+							</MenuContent>
+						</Menu>
 					</SidebarFooter>
 				</Sidebar>
 			}

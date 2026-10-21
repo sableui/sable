@@ -104,7 +104,15 @@ export function TabsList({ className, variant = "underline", children, ...props 
 				data-variant={variant}
 				className={cn(
 					variant === "underline"
-						? cn("relative inline-flex items-center gap-1 border-b border-border", UNDERLINE_HANDOFF)
+						? cn(
+								"relative inline-flex items-center gap-1 border-b border-border",
+								// In a WorkspaceBar the bar's hairline IS the divider: the list
+								// fills the bar's height, drops its own rule (which stopped
+								// after the last tab, a second line above the bar's), and the
+								// mark lands on the bar's edge.
+								"[[data-workspace-bar]_&]:self-stretch [[data-workspace-bar]_&]:border-b-0",
+								UNDERLINE_HANDOFF,
+							)
 						: cn("relative inline-flex items-center gap-1", PILL_HANDOFF),
 					className,
 				)}
@@ -145,7 +153,7 @@ export function TabsTrigger({ className, children, ...props }: TriggerProps) {
 				variant === "underline"
 					? // On the control ladder like the pill variant (it was py-2 plus
 					// the label's line, ~36px — no rung).
-					"-mb-px inline-flex h-(--control-md) items-center gap-(--control-gap) border-b-2 border-transparent px-3 data-[active]:border-foreground"
+					"-mb-px inline-flex h-(--control-md) items-center gap-(--control-gap) border-b-2 border-transparent px-3 data-[active]:border-foreground [[data-workspace-bar]_&]:h-full"
 					: "inline-flex h-(--control-sm) items-center gap-(--control-gap) rounded-[var(--button-radius,9999px)] px-3 data-[active]:bg-muted",
 				className,
 			)}

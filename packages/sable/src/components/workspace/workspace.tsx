@@ -10,6 +10,12 @@ type WorkspaceProps = Omit<ComponentProps<"div">, "children"> & {
 	/** Bottom chrome — usually a StatusBar. */
 	statusBar?: ReactNode
 	/**
+	 * Phone navigation — usually a BottomNav. Its row is reserved below `lg`
+	 * (BottomNav's own breakpoint) and gone above it, so the body ends where the
+	 * nav begins without the app subtracting the nav's height from the viewport.
+	 */
+	bottomNav?: ReactNode
+	/**
 	 * Density scope for everything inside. Defaults to `compact`, because a
 	 * workspace IS the compact register — see DESIGN.md → Registers.
 	 */
@@ -36,7 +42,14 @@ type WorkspaceProps = Omit<ComponentProps<"div">, "children"> & {
  *     </PanelGroup>
  *   </Workspace>
  *
- * Two structural details do the real work:
+ * Three structural details do the real work:
+ *
+ * - The shell is a flex column and the body is its only `flex-1` row. Every
+ *   slot is optional, and a fixed `auto / 1fr / auto` grid assumed all of them:
+ *   with no toolbar, the body fell into the first `auto` track and the status
+ *   bar took the `1fr` one, so the body sized to its content and the status bar
+ *   was pushed off the bottom. A slot whose component renders nothing now costs
+ *   nothing too, which a track list counted from the props could not promise.
  *
  * - `min-h-0` on the body row. Without it a grid/flex child refuses to shrink
  *   below its content, `overflow-y-auto` never activates on a panel, and panels
@@ -48,6 +61,7 @@ type WorkspaceProps = Omit<ComponentProps<"div">, "children"> & {
 export function Workspace({
 	toolbar,
 	statusBar,
+	bottomNav,
 	density = "compact",
 	skipLinkLabel = "Skip to canvas",
 	className,
@@ -64,7 +78,7 @@ export function Workspace({
 		<div
 			data-density={density}
 			className={cn(
-				"grid h-dvh grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden bg-canvas text-canvas-foreground",
+				"flex h-dvh flex-col overflow-hidden bg-canvas text-canvas-foreground",
 				className,
 			)}
 			{...props}
@@ -79,8 +93,21 @@ export function Workspace({
 			</a>
 
 			{toolbar}
-			<div className="grid min-h-0 grid-cols-1">{children}</div>
+			<div data-workspace-body="" className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)]">
+				{children}
+			</div>
 			{statusBar}
+			{/* BottomNav is fixed to the viewport (it is AppShell's too), so this row
+			    holds its height open rather than containing it. Gone at lg, where
+			    BottomNav hides itself. */}
+			{bottomNav ? (
+				<div
+					data-workspace-bottom-nav=""
+					className="h-[calc(var(--nav-height,56px)+env(safe-area-inset-bottom,0px))] shrink-0 lg:hidden"
+				>
+					{bottomNav}
+				</div>
+			) : null}
 		</div>
 		</DensityProvider>
 	)
@@ -116,6 +143,10 @@ WorkspaceCanvas.displayName = "WorkspaceCanvas"
 export function WorkspaceBar({ className, children, ...props }: ComponentProps<"header">) {
 	return (
 		<header
+			// Lets a part inside sit on the bar's own edge: underline tabs stretch
+			// to its height and draw their mark on its hairline instead of a
+			// second, shorter rule of their own.
+			data-workspace-bar=""
 			className={cn(
 				"flex h-(--chrome-bar-height) shrink-0 items-center gap-1 border-b border-hairline bg-panel px-2",
 				className,
