@@ -1,6 +1,6 @@
 {
 	"name": "@sableui/react",
-	"version": "0.20.1",
+	"version": "0.21.0",
 	"description": "Sable: themeable React components, layout patterns, and tools for coding agents.",
 	"type": "module",
 	"sideEffects": [
