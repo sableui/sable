@@ -1163,6 +1163,15 @@ export function makeRules({ semanticTokens, motionTokens, labelContrast = null, 
 			},
 		},
 		{
+			id: "agent-initials",
+			scope: "both",
+			since: "0.21.0",
+			code: true,
+			why:
+				"An AI agent drawn as an Avatar with initials (`fallback=\"AI\"`, \"Bot\", \"GPT\"). \"AI\" in a circle reads as a person called A. I., and it cannot show the agent working. An agent's turns take `<AgentAvatar state=… />`: the default agent identity, which sinks to think and comes up to talk, so the row needs no spinner of its own. Pass `live={false}` on every agent turn but the newest.",
+			regex: /<Avatar\b[^>]*?\bfallback=\{?["'](?:AI|A\.I\.|Bot|GPT)["']\}?/g,
+		},
+		{
 			id: "lookalike-avatar",
 			scope: "consumer",
 			since: "0.7.0",

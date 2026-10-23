@@ -92,6 +92,8 @@ import {
 	textareaMeta,
 	ThinkingOrb,
 	thinkingOrbMeta,
+	AgentAvatar,
+	agentAvatarMeta,
 	toastMeta,
 	Toggle,
 	ToggleGroup,
@@ -515,6 +517,11 @@ export const PREVIEWS: Record<string, PreviewEntry> = {
 		meta: thinkingOrbMeta,
 		only: ["mode", "size", "paused"],
 		render: (values) => <ThinkingOrb {...as<ComponentProps<typeof ThinkingOrb>>(values)} />,
+	},
+	"agent-avatar": {
+		meta: agentAvatarMeta,
+		only: ["state", "size", "live"],
+		render: (values) => <AgentAvatar {...as<ComponentProps<typeof AgentAvatar>>(values)} />,
 	},
 	"empty-state": {
 		meta: emptyStateMeta,

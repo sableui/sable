@@ -17,9 +17,9 @@ A full-height conversation surface: titled header, scrolling transcript, and a c
 - The assistant's long-form answer uses `variant="plain"` and continues the same grouped run. A tinted box around a code block reads as a quote rather than as a turn. A plain Bubble sizes to its content with no measure cap, so it takes `max-w-full` here: bounded by the column, a wide code line scrolls inside the CodeBlock instead of pushing the transcript sideways on a phone.
 - A settled answer carries its actions (copy, regenerate) in the Message `footer` as a `Toolbar` of icon `ToolbarButton`s with tooltips — one tab stop, arrow keys between them. The answer still streaming has none: there is nothing to copy or regenerate until it settles, and Stop lives in the composer.
 - One turn, one Message: the reader's question and the file it refers to stack inside a single end-aligned Message rather than being sent as two.
-- Assistant turns share one Avatar with a glyph fallback and `alt="Assistant"` — initials like "AI" read as a person, and a fallback-only avatar is otherwise unnamed.
-- The answer in flight is a `StreamingText` in a `plain` Bubble, and ONE `pending` flag drives both it and the composer's `busy`. They are the same wait reported at the two ends of the panel; letting them drift gives you a composer still saying 'sending' under an answer that already finished.
-- A spinner `Marker` (or `ThinkingOrb`) belongs BEFORE the first token and is replaced once tokens land, not kept alongside. Two indicators for one wait read as two things happening — which is also why `StreamingText` takes `caret={false}` when something adjacent already reports it.
+- Assistant turns use `AgentAvatar` — initials like "AI" read as a person called A. I. Settled turns pass `live={false}` and rest; only the turn in flight is live, so the transcript is not a column of eyes following the reader.
+- The answer in flight is a `StreamingText` in a `plain` Bubble, and ONE `pending` flag drives it, its AgentAvatar's `state` and the composer's `busy`. They are the same wait reported across the panel; letting them drift gives you a composer still saying 'sending' under an answer that already finished.
+- The in-flight avatar's `thinking` state is the wait before the first token, so the row needs no spinner `Marker` or `ThinkingOrb` of its own. Two indicators for one wait read as two things happening — which is also why `StreamingText` takes `caret={false}` when something adjacent already reports it.
 - MessageScroller needs no configuring for this: it re-follows on "a message grew" (ResizeObserver) as well as "a message arrived", so the newest token stays pinned while a reader who has scrolled up is left alone.
 - For a new thread, swap the transcript's children for an `<EmptyState>` inside the same MessageScroller — the panel, header and composer are unchanged, which is the point of keeping them separate.
 
@@ -32,14 +32,15 @@ A full-height conversation surface: titled header, scrolling transcript, and a c
 ## Source
 
 ```tsx
-import { Attachment, Avatar, Bubble, Button, Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle, ChatComposer, CodeBlock, Icon, Marker, MenuRadioGroup, MenuRadioItem, Message, MessageScroller, Page, SettingsMenu, SettingsRow, SimpleTooltip, StreamingText, Toolbar, ToolbarButton } from "@sableui/react"
+import { AgentAvatar, Attachment, Bubble, Button, Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle, ChatComposer, CodeBlock, Icon, Marker, MenuRadioGroup, MenuRadioItem, Message, MessageScroller, Page, SettingsMenu, SettingsRow, SimpleTooltip, StreamingText, Toolbar, ToolbarButton } from "@sableui/react"
 
 /**
  * The request is in flight. In an app this is your send state — from `useChat`,
- * a fetch, whatever owns the turn — and it is deliberately ONE flag driving two
- * places: the composer's `busy` and the answer's `streaming`. They are the same
- * wait reported at both ends of the panel, and letting them drift is how you get
- * a composer that still says "sending" under an answer that already finished.
+ * a fetch, whatever owns the turn — and it is deliberately ONE flag driving three
+ * places: the composer's `busy`, the answer's `streaming` and its avatar's
+ * `state`. They are the same wait reported across the panel, and letting them
+ * drift is how you get a composer that still says "sending" under an answer that
+ * already finished.
  */
 const pending = true
 
@@ -72,18 +73,11 @@ const turns: { id: string; mine: boolean; step?: string; body: string }[] = [
 ]
 
 export function ChatPanel() {
-	// One identity for every assistant turn. A glyph rather than initials: "AI"
-	// in a circle reads as a person called A. I. The glyph is sized to the
-	// circle (the fallback's own size is tuned for two letters, and a lone icon
-	// at that size reads as a speck); `alt` names it for a screen reader, which
-	// otherwise gets nothing from a fallback-only avatar.
-	const assistant = (
-		<Avatar variant="art"
-			size="sm"
-			alt="Assistant"
-			fallback={<Icon name="sparkles" className="text-base" />}
-		/>
-	)
+	// One identity for every assistant turn: AgentAvatar, not initials ("AI" in
+	// a circle reads as a person called A. I.). Settled turns are not `live`, so
+	// they rest and stop watching the pointer; only the turn in flight moves. A
+	// transcript where every row followed the reader would be a wall of eyes.
+	const assistant = <AgentAvatar size="sm" live={false} />
 
 	return (
 		<Page as="main" max="feed" gap={0} className="py-6">
@@ -205,11 +199,11 @@ export function ChatPanel() {
 						/>
 					</Message>
 
-					{/* The answer arriving. A `Marker` with a spinner — or ThinkingOrb —
-					    is what sits here BEFORE the first token; once tokens land it is
-					    replaced rather than kept, because two indicators for one wait
-					    read as two things happening. What stays is the step it took,
-					    as a finished note in the header.
+					{/* The answer arriving. Its avatar is the one live AgentAvatar in
+					    the transcript: `thinking` before the first token, `speaking`
+					    while tokens land, so the row needs no spinner of its own — two
+					    indicators for one wait read as two things happening. What
+					    stays is the step it took, as a finished note in the header.
 
 					    No bubble, same as the long-form answer above: a tinted box
 					    around a growing paragraph makes the reflow look like the box
@@ -222,7 +216,7 @@ export function ChatPanel() {
 					    up without being yanked back. */}
 					<Message
 						messageId="t_06"
-						avatar={assistant}
+						avatar={<AgentAvatar size="sm" state={pending ? "speaking" : "idle"} />}
 						header={
 							<Marker variant="note" icon="file" className="justify-start">
 								Read scroller.tsx

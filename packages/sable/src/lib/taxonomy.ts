@@ -249,6 +249,7 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 	   across five groups. The rule that keeps it from becoming a second home for
 	   everything: a member exists ONLY inside a conversation. A Button used in a
 	   chat is still a Button; a Message has no meaning outside one. */
+	AgentAvatar: ["Chat & AI", "either"],
 	Attachment: ["Chat & AI", "either"],
 	Bubble: ["Chat & AI", "either"],
 	ChatComposer: ["Chat & AI", "either"],

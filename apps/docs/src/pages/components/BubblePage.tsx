@@ -1,4 +1,5 @@
 import {
+	AgentAvatar,
 	Avatar,
 	Bubble,
 	BubbleReaction,
@@ -111,7 +112,7 @@ export function BubblePage() {
 			>
 				<Example>
 					<Frame>
-						<Message messageId="p1" avatar={<Avatar size="sm" fallback="AI" />}>
+						<Message messageId="p1" avatar={<AgentAvatar size="sm" />}>
 							<Bubble variant="plain" className="space-y-3">
 								<p className="text-body-md text-foreground">
 									Three things changed in this release:

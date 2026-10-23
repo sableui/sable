@@ -38,6 +38,12 @@ export const avatarMeta: ComponentMeta = {
 					"Provide meaningful alt text for profile images, or an empty alt when the adjacent text already names the person.",
 			},
 			{
+				guidance: "dont",
+				description:
+					'Do not stand in for an AI agent with initials like "AI" or a glyph fallback. "AI" in a circle reads as a person called A. I. An agent\'s turns take AgentAvatar, whose states also show the agent working.',
+				instead: ["AgentAvatar"],
+			},
+			{
 				guidance: "do",
 				description:
 					"Use initials or a simple glyph fallback so missing images still communicate identity.",

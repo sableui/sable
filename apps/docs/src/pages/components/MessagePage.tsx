@@ -1,4 +1,5 @@
 import {
+	AgentAvatar,
 	Attachment,
 	Avatar,
 	Bubble,
@@ -127,7 +128,7 @@ export function MessagePage() {
 					<Frame>
 						<Message
 							messageId="c1"
-							avatar={<Avatar size="sm" fallback="AI" />}
+							avatar={<AgentAvatar size="sm" />}
 							header={<strong className="text-foreground">Assistant</strong>}
 						>
 							<Bubble variant="plain">

@@ -5,7 +5,7 @@ export const PREVIEW_SLUGS = [
 	"banner", "inline-status", "label",
 	"notification-badge", "marker", "bubble", "separator", "card",
 	"toast", "spinner", "progress", "meter", "kbd", "input", "textarea",
-	"thinking-orb", "empty-state", "entity", "attachment", "checkbox-card",
+	"thinking-orb", "agent-avatar", "empty-state", "entity", "attachment", "checkbox-card",
 	"radio-card", "toggle", "stepper", "file-dropzone", "message", "toolbar",
 	"sheet", "dialog", "tooltip", "settings-menu", "gradient-art", "media-tile",
 ] as const

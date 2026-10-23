@@ -1,6 +1,6 @@
 import {
 	Attachment,
-	Avatar,
+	AgentAvatar,
 	Bubble,
 	Button,
 	Card,
@@ -107,7 +107,7 @@ function LiveChat() {
 							messageId={turn.id}
 							align={turn.mine ? "end" : "start"}
 							grouped={i > 0 && turns[i - 1].mine === turn.mine}
-							avatar={turn.mine ? undefined : <Avatar size="sm" fallback="AI" />}
+							avatar={turn.mine ? undefined : <AgentAvatar size="sm" />}
 						>
 							<Bubble
 								variant={turn.mine ? "primary" : "muted"}
@@ -218,7 +218,7 @@ function CompactSample() {
 				<Marker variant="separator">Today</Marker>
 				<Message
 					messageId="d1"
-					avatar={<Avatar size="sm" fallback="AI" />}
+					avatar={<AgentAvatar size="sm" />}
 					header={<strong className="text-foreground">Agent</strong>}
 				>
 					<Bubble>Which layer should the grain sit on?</Bubble>

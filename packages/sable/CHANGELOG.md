@@ -1,5 +1,25 @@
 # What's new
 
+## 0.21.0
+
+An agent gets its own face.
+
+- **`AgentAvatar`.** The default avatar for an AI agent's turns: a sable
+  looking out of its den. It peeks at rest and climbs out to look when the
+  pointer comes near. It sinks low to think and comes up to talk, so the
+  message row needs no spinner of its own. `state` is `idle`, `thinking` or
+  `speaking`; `size` is the Avatar ladder. Pass `live={false}` on every agent
+  turn but the newest, so a long transcript settles instead of watching the
+  reader from every row. It is drawn from the foreground, background and
+  muted tokens, so every theme and dark mode works. All agent avatars on a
+  page share one animation loop. `motion="subtle"` keeps the states and drops
+  the tracking, blinks and twitches; reduced motion draws each state still.
+- **No more "AI" initials.** "AI" in a circle reads as a person called A. I.
+  The ChatPanel pattern, the Bubble, Message, Marker and ChatComposer docs
+  and the Bubble example now use AgentAvatar, with ChatPanel's in-flight turn
+  driven from its `pending` flag. A new `agent-initials` lint rule flags an
+  Avatar with an `"AI"`, `"Bot"` or `"GPT"` fallback.
+
 ## 0.20.1
 
 Glitch adopted 0.20 and reported back. Two of the four gaps were Sable's.

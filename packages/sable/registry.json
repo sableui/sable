@@ -1796,6 +1796,10 @@
       {
         "id": "shadcn-leftover",
         "fails-on": "Leftover shadcn/ui or Radix code. Sable replaces the stack: `asChild` → `render`, `@radix-ui/*` and `@/components/ui/*` → the Sable component (`sable search \"<name>\"`), `lucide-react` → <Icon name> under IconProvider, `sonner` → ToastProvider + toast, `vaul` → Sheet, `cmdk` → CommandMenu, `input-otp` → OtpField, `next-themes` → SableThemeProvider. `sable docs migrating-from-shadcn` has the full map."
+      },
+      {
+        "id": "agent-initials",
+        "fails-on": "An AI agent drawn as an Avatar with initials (`fallback=\"AI\"`, \"Bot\", \"GPT\"). \"AI\" in a circle reads as a person called A. I., and it cannot show the agent working. An agent's turns take `<AgentAvatar state=… />`: the default agent identity, which sinks to think and comes up to talk, so the row needs no spinner of its own. Pass `live={false}` on every agent turn but the newest."
       }
     ],
     "escapeHatch": {
@@ -3387,6 +3391,173 @@
       ]
     },
     {
+      "name": "AgentAvatar",
+      "status": "stable",
+      "group": "Chat & AI",
+      "register": "either",
+      "path": "components/agent-avatar",
+      "summary": "The default avatar for an AI agent's turns: a sable looking out of its den. It peeks at rest, climbs out to look at a nearby pointer, sinks low to think and comes up to talk, so the avatar itself says the agent is working. SVG from semantic tokens on the Avatar size ladder; every agent avatar on a page shares one animation loop.",
+      "keywords": [
+        "agent",
+        "assistant",
+        "ai",
+        "bot",
+        "chat",
+        "avatar",
+        "copilot",
+        "llm",
+        "thinking",
+        "speaking",
+        "mascot",
+        "sable"
+      ],
+      "usage": {
+        "description": "Use AgentAvatar as the avatar of every AI agent turn in a conversation — the Message `avatar` of an assistant reply, the header of an agent panel. Drive `state` from the turn's own pending state: `thinking` before the first token, `speaking` while the reply streams, `idle` once it settles. It replaces the \"AI\" initials avatar, which reads as a person called A. I.",
+        "bestPractices": [
+          {
+            "guidance": "do",
+            "description": "Keep only the newest agent turn live. Pass `live={false}` to every earlier turn: they settle into the resting frame and stop tracking the pointer, so a long transcript does not watch the reader from every row."
+          },
+          {
+            "guidance": "do",
+            "description": "Drive `state` from the same flag that drives the composer's busy state and the reply's streaming, so the avatar, the composer and the message never disagree about whether the agent is still working."
+          },
+          {
+            "guidance": "do",
+            "description": "Let the thinking state stand in for a spinner in the message row. Pair it with a text status (role=status) for thinking, writing and completion, so the wait remains understandable without animation or sight. A second animated indicator is unnecessary."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not use it for a person, a team or an account. People are an Avatar — a photo, initials, or GradientArt seeded by the person. A character on a human's turn reads as a joke at their expense.",
+            "instead": [
+              "Avatar"
+            ]
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not use it as a standalone loading indicator outside a conversation. It is an identity that also shows state; a wait with no agent attached is a Spinner, or a ThinkingOrb when the wait is the experience.",
+            "instead": [
+              "Spinner",
+              "ThinkingOrb"
+            ]
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not wrap it in a button or make it clickable to fake an interaction. The pointer reactions are ambient; a control that looks like the agent belongs in the panel header as a real Button.",
+            "instead": [
+              "Button"
+            ]
+          }
+        ]
+      },
+      "related": {
+        "components": [
+          "Avatar",
+          "Message",
+          "ThinkingOrb",
+          "ChatComposer",
+          "StreamingText",
+          "Bubble"
+        ]
+      },
+      "props": [
+        {
+          "name": "state",
+          "type": "\"idle\" | \"thinking\" | \"speaking\"",
+          "default": "\"idle\"",
+          "description": "What the agent is doing. `thinking` sinks it low in the den with its eyes scanning upward; `speaking` brings it up to talk, bobbing with the reply; `idle` peeks."
+        },
+        {
+          "name": "size",
+          "type": "\"2xs\" | \"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xl\"",
+          "default": "\"md\"",
+          "description": "The Avatar size ladder: 20 / 24 / 32 / 40 / 48px for rows, 96 / 160px for portraits. In a Message, match its `avatarSize` (default `sm`)."
+        },
+        {
+          "name": "live",
+          "type": "boolean",
+          "default": "true",
+          "description": "Whether it animates. `false` settles into the resting frame (ignoring `state`) and stops tracking the pointer — for every agent turn except the newest."
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "default": "\"Assistant\"",
+          "description": "The accessible name (role=img). Use the agent's product name if it has one."
+        },
+        {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "description": "Turns this avatar's motion down. `subtle` keeps the states (sinking to think, bobbing to speak) and drops the flourishes: pointer tracking, blinks, ear twitches, idle glances, the spring's overshoot. `off` draws each state as a still pose. The reader's reduce-motion setting always wins."
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "description": "Layout only. The frame and ink come from the theme's muted, foreground and background tokens."
+        }
+      ],
+      "tokensUsed": [
+        "muted",
+        "foreground",
+        "background"
+      ],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "It arrives with its message, and the message owns the arrival. Its first painted frame is already the resting pose for its state, so there is nothing to stage."
+        },
+        {
+          "slot": "response",
+          "recipe": "custom",
+          "part": "Root",
+          "why": "Within about four of its widths it notices the pointer: the eyes follow it, the ears perk and it climbs out of the den; over it, the eyes turn happy. Driven per frame in JS from one shared pointer listener, expressive motion only, and only on a live avatar. It is not a control, so there is no press."
+        },
+        {
+          "slot": "transition",
+          "recipe": "custom",
+          "part": "Root",
+          "why": "Between states the body travels on a spring: up to speak, down to think, back to peeking. The spring's overshoot is expressive; under `subtle` it becomes a plain ease that still carries the state change."
+        },
+        {
+          "slot": "activity",
+          "recipe": "custom",
+          "part": "Root",
+          "why": "Thinking scans the eyes upward and speaking bobs the body with the reply — the avatar's own way of saying the agent is working, in place of a spinner. These run under `subtle` too; under reduced motion or `off`, each state is a still pose (thinking: sunk low, eyes up)."
+        }
+      ],
+      "a11y": [
+        "role=img with an aria-label (default \"Assistant\"); the SVG is aria-hidden.",
+        "State changes are not announced by the image. Provide a separate text status (role=status) for thinking, writing and completion. Keep announcements to phase changes rather than every streamed token.",
+        "Not focusable and not clickable: every reaction is ambient, so nothing is lost to a keyboard or switch user.",
+        "Honours the motion policy: reduce-motion or MotionProvider off draws a still pose per state and never starts the loop; `subtle` drops tracking, blinks and twitches.",
+        "Ink is the theme's foreground on the muted frame, held to contrast in every theme; the eyes are the background colour, so they read in light and dark alike."
+      ],
+      "examples": [
+        {
+          "label": "Default",
+          "code": "<AgentAvatar />",
+          "imports": "import { AgentAvatar } from \"@sableui/react\""
+        },
+        {
+          "label": "States",
+          "code": "<AgentAvatar size=\"lg\" />\n<AgentAvatar size=\"lg\" state=\"thinking\" />\n<AgentAvatar size=\"lg\" state=\"speaking\" />",
+          "imports": "import { AgentAvatar } from \"@sableui/react\""
+        },
+        {
+          "label": "Sizes",
+          "code": "<AgentAvatar size=\"2xs\" />\n<AgentAvatar size=\"xs\" />\n<AgentAvatar size=\"sm\" />\n<AgentAvatar size=\"md\" />\n<AgentAvatar size=\"lg\" />\n<AgentAvatar size=\"xl\" />",
+          "imports": "import { AgentAvatar } from \"@sableui/react\""
+        },
+        {
+          "label": "In a conversation (only the newest turn is live)",
+          "code": "<Message messageId=\"a1\" avatar={<AgentAvatar size=\"sm\" live={false} />}>\n\t<Bubble>Anchor on the oldest rendered message instead.</Bubble>\n</Message>\n<Message messageId=\"u1\" align=\"end\">\n\t<Bubble variant=\"primary\" align=\"end\">Does that cover new messages too?</Bubble>\n</Message>\n<Message messageId=\"a2\" avatar={<AgentAvatar size=\"sm\" state=\"speaking\" />}>\n\t<Bubble>Yes. Appends leave the anchor alone, so the same rule covers both.</Bubble>\n</Message>",
+          "imports": "import { AgentAvatar, Bubble, Message } from \"@sableui/react\""
+        }
+      ]
+    },
+    {
       "name": "AppHeader",
       "status": "stable",
       "group": "Layout",
@@ -4161,6 +4332,13 @@
           {
             "guidance": "do",
             "description": "Provide meaningful alt text for profile images, or an empty alt when the adjacent text already names the person."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not stand in for an AI agent with initials like \"AI\" or a glyph fallback. \"AI\" in a circle reads as a person called A. I. An agent's turns take AgentAvatar, whose states also show the agent working.",
+            "instead": [
+              "AgentAvatar"
+            ]
           },
           {
             "guidance": "do",
@@ -5680,8 +5858,8 @@
         },
         {
           "label": "Long-form assistant output",
-          "code": "<Message messageId=\"a1\" avatar={<Avatar size=\"sm\" fallback=\"AI\" />}>\n\t<Bubble variant=\"plain\" className=\"space-y-3\">\n\t\t<p className=\"text-body-md text-foreground\">Three things changed in this release:</p>\n\t\t<CodeBlock code={diff} filename=\"CHANGELOG.md\" />\n\t</Bubble>\n</Message>",
-          "imports": "import { Avatar, Bubble, CodeBlock, Message } from \"@sableui/react\""
+          "code": "<Message messageId=\"a1\" avatar={<AgentAvatar size=\"sm\" />}>\n\t<Bubble variant=\"plain\" className=\"space-y-3\">\n\t\t<p className=\"text-body-md text-foreground\">Three things changed in this release:</p>\n\t\t<CodeBlock code={diff} filename=\"CHANGELOG.md\" />\n\t</Bubble>\n</Message>",
+          "imports": "import { AgentAvatar, Bubble, CodeBlock, Message } from \"@sableui/react\""
         },
         {
           "label": "With reactions",
@@ -25369,9 +25547,9 @@
           "The assistant's long-form answer uses `variant=\"plain\"` and continues the same grouped run. A tinted box around a code block reads as a quote rather than as a turn. A plain Bubble sizes to its content with no measure cap, so it takes `max-w-full` here: bounded by the column, a wide code line scrolls inside the CodeBlock instead of pushing the transcript sideways on a phone.",
           "A settled answer carries its actions (copy, regenerate) in the Message `footer` as a `Toolbar` of icon `ToolbarButton`s with tooltips — one tab stop, arrow keys between them. The answer still streaming has none: there is nothing to copy or regenerate until it settles, and Stop lives in the composer.",
           "One turn, one Message: the reader's question and the file it refers to stack inside a single end-aligned Message rather than being sent as two.",
-          "Assistant turns share one Avatar with a glyph fallback and `alt=\"Assistant\"` — initials like \"AI\" read as a person, and a fallback-only avatar is otherwise unnamed.",
-          "The answer in flight is a `StreamingText` in a `plain` Bubble, and ONE `pending` flag drives both it and the composer's `busy`. They are the same wait reported at the two ends of the panel; letting them drift gives you a composer still saying 'sending' under an answer that already finished.",
-          "A spinner `Marker` (or `ThinkingOrb`) belongs BEFORE the first token and is replaced once tokens land, not kept alongside. Two indicators for one wait read as two things happening — which is also why `StreamingText` takes `caret={false}` when something adjacent already reports it.",
+          "Assistant turns use `AgentAvatar` — initials like \"AI\" read as a person called A. I. Settled turns pass `live={false}` and rest; only the turn in flight is live, so the transcript is not a column of eyes following the reader.",
+          "The answer in flight is a `StreamingText` in a `plain` Bubble, and ONE `pending` flag drives it, its AgentAvatar's `state` and the composer's `busy`. They are the same wait reported across the panel; letting them drift gives you a composer still saying 'sending' under an answer that already finished.",
+          "The in-flight avatar's `thinking` state is the wait before the first token, so the row needs no spinner `Marker` or `ThinkingOrb` of its own. Two indicators for one wait read as two things happening — which is also why `StreamingText` takes `caret={false}` when something adjacent already reports it.",
           "MessageScroller needs no configuring for this: it re-follows on \"a message grew\" (ResizeObserver) as well as \"a message arrived\", so the newest token stays pinned while a reader who has scrolled up is left alone.",
           "For a new thread, swap the transcript's children for an `<EmptyState>` inside the same MessageScroller — the panel, header and composer are unchanged, which is the point of keeping them separate."
         ],
@@ -25380,8 +25558,8 @@
           "The answer in flight carries `aria-busy` rather than sitting in a live region. That is deliberate: a live region around streamed text announces every token, which is unusable. Announce once when the turn settles, from whatever owns the turn — the incomplete state is still exposed, just not narrated.",
           "The composer is a real <form> whose Enter handling skips IME composition, and every icon-only control in the panel carries an accessible label — the answer actions also carry a tooltip, and the stop control is named for what it stops (`stopLabel=\"Stop answering\"`)."
         ],
-        "imports": "import { Attachment, Avatar, Bubble, Button, Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle, ChatComposer, CodeBlock, Icon, Marker, MenuRadioGroup, MenuRadioItem, Message, MessageScroller, Page, SettingsMenu, SettingsRow, SimpleTooltip, StreamingText, Toolbar, ToolbarButton } from \"@sableui/react\"",
-        "code": "/**\n * The request is in flight. In an app this is your send state — from `useChat`,\n * a fetch, whatever owns the turn — and it is deliberately ONE flag driving two\n * places: the composer's `busy` and the answer's `streaming`. They are the same\n * wait reported at both ends of the panel, and letting them drift is how you get\n * a composer that still says \"sending\" under an answer that already finished.\n */\nconst pending = true\n\n/** The answer so far. Append tokens to this; `StreamingText` assumes it only grows. */\nconst streamed =\n\t\"Yes, appends are already safe: your layout effect measures before paint. The jump is on the prepend path, which reads scrollHeight after the new rows\"\n\n/**\n * The opening exchange. `step` is what the assistant did before answering — a\n * doc it read, a tool it ran — and it rides in that message's header, so it\n * reads as part of the turn rather than as an event between turns.\n */\nconst turns: { id: string; mine: boolean; step?: string; body: string }[] = [\n\t{\n\t\tid: \"t_01\",\n\t\tmine: true,\n\t\tbody: \"Our chat scroll jumps every time older messages load. What are we doing wrong?\",\n\t},\n\t{\n\t\tid: \"t_02\",\n\t\tmine: false,\n\t\tstep: \"Read message-scroller.md\",\n\t\tbody: \"Almost always the anchor. If you preserve the scroll position by measuring the container, prepending history moves everything under the reader.\",\n\t},\n\t{\n\t\tid: \"t_03\",\n\t\tmine: false,\n\t\tbody: \"Anchor on the oldest rendered message instead and add back however far it moved. Appends leave it alone, so the same rule covers both.\",\n\t},\n]\n\nexport function ChatPanel() {\n\t// One identity for every assistant turn. A glyph rather than initials: \"AI\"\n\t// in a circle reads as a person called A. I. The glyph is sized to the\n\t// circle (the fallback's own size is tuned for two letters, and a lone icon\n\t// at that size reads as a speck); `alt` names it for a screen reader, which\n\t// otherwise gets nothing from a fallback-only avatar.\n\tconst assistant = (\n\t\t<Avatar variant=\"art\"\n\t\t\tsize=\"sm\"\n\t\t\talt=\"Assistant\"\n\t\t\tfallback={<Icon name=\"sparkles\" className=\"text-base\" />}\n\t\t/>\n\t)\n\n\treturn (\n\t\t<Page as=\"main\" max=\"feed\" gap={0} className=\"py-6\">\n\t\t\t{/* h-dvh minus the page's own padding (py-6 = 12 spacing units, in\n\t\t\t    spacing units so density moves both together): the panel owns the\n\t\t\t    viewport, and the transcript — not the page — is the thing that\n\t\t\t    scrolls. The panel is a Card; its parts inset by the card's own\n\t\t\t    --card-p, so header, transcript and composer share one edge. */}\n\t\t\t<Card\n\t\t\t\trender={<section aria-labelledby=\"chat-title\" />}\n\t\t\t\tclassName=\"flex h-[calc(100dvh_-_--spacing(12))] flex-col overflow-hidden\"\n\t\t\t>\n\t\t\t\t<CardHeader className=\"pb-(--card-p) shadow-[inset_0_-1px_0_var(--border)]\">\n\t\t\t\t\t{/* CardTitle carries the type; the h1 inside it is the page heading. */}\n\t\t\t\t\t<CardTitle>\n\t\t\t\t\t\t<h1 id=\"chat-title\">Scroll behaviour</h1>\n\t\t\t\t\t</CardTitle>\n\t\t\t\t\t<CardDescription>Assistant · answers from your team's docs</CardDescription>\n\t\t\t\t\t<CardAction>\n\t\t\t\t\t\t{/* Labelled, not a bare plus: the composer already has a plus\n\t\t\t\t\t\t    (attach), and two identical glyphs a panel apart that do\n\t\t\t\t\t\t    different things is a guessing game. */}\n\t\t\t\t\t\t<Button variant=\"ghost\" size=\"sm\">\n\t\t\t\t\t\t\t<Icon name=\"edit\" />\n\t\t\t\t\t\t\tNew chat\n\t\t\t\t\t\t</Button>\n\t\t\t\t\t</CardAction>\n\t\t\t\t</CardHeader>\n\n\t\t\t\t{/* flex-1 min-h-0 is the whole layout: it bounds the scroll region\n\t\t\t\t    against the panel instead of letting the transcript grow the page. */}\n\t\t\t\t<MessageScroller className=\"min-h-0 flex-1 p-(--card-p)\">\n\t\t\t\t\t<Marker variant=\"separator\">Today</Marker>\n\n\t\t\t\t\t{turns.map((turn, i) => {\n\t\t\t\t\t\t// Derived, not hand-set: a turn continues a run when the one\n\t\t\t\t\t\t// before it has the same author. A continuation drops its\n\t\t\t\t\t\t// avatar (Message keeps the column) AND its tail (Bubble keeps\n\t\t\t\t\t\t// the ear's space) — together, that makes the run one block.\n\t\t\t\t\t\tconst continues = i > 0 && turns[i - 1].mine === turn.mine\n\t\t\t\t\t\treturn (\n\t\t\t\t\t\t\t<Message\n\t\t\t\t\t\t\t\tkey={turn.id}\n\t\t\t\t\t\t\t\tmessageId={turn.id}\n\t\t\t\t\t\t\t\talign={turn.mine ? \"end\" : \"start\"}\n\t\t\t\t\t\t\t\tgrouped={continues}\n\t\t\t\t\t\t\t\tavatar={turn.mine ? undefined : assistant}\n\t\t\t\t\t\t\t\theader={\n\t\t\t\t\t\t\t\t\tturn.step ? (\n\t\t\t\t\t\t\t\t\t\t<Marker variant=\"note\" icon=\"book\" className=\"justify-start\">\n\t\t\t\t\t\t\t\t\t\t\t{turn.step}\n\t\t\t\t\t\t\t\t\t\t</Marker>\n\t\t\t\t\t\t\t\t\t) : undefined\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t<Bubble\n\t\t\t\t\t\t\t\t\tvariant={turn.mine ? \"primary\" : \"muted\"}\n\t\t\t\t\t\t\t\t\talign={turn.mine ? \"end\" : \"start\"}\n\t\t\t\t\t\t\t\t\ttail={!continues}\n\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t\t{turn.body}\n\t\t\t\t\t\t\t\t</Bubble>\n\t\t\t\t\t\t\t</Message>\n\t\t\t\t\t\t)\n\t\t\t\t\t})}\n\n\t\t\t\t\t{/* The same run, continued: long-form output with no bubble,\n\t\t\t\t\t    because a tinted box around a code block reads as a quote\n\t\t\t\t\t    rather than as a turn. Its footer carries what the reader does\n\t\t\t\t\t    WITH a settled answer, as a Toolbar: one tab stop, arrow keys\n\t\t\t\t\t    between the actions. */}\n\t\t\t\t\t<Message\n\t\t\t\t\t\tmessageId=\"t_04\"\n\t\t\t\t\t\tgrouped\n\t\t\t\t\t\tavatar={assistant}\n\t\t\t\t\t\tfooter={\n\t\t\t\t\t\t\t<Toolbar aria-label=\"Answer actions\">\n\t\t\t\t\t\t\t\t<SimpleTooltip content=\"Copy answer\">\n\t\t\t\t\t\t\t\t\t<ToolbarButton size=\"icon-sm\" aria-label=\"Copy answer\">\n\t\t\t\t\t\t\t\t\t\t<Icon name=\"copy\" />\n\t\t\t\t\t\t\t\t\t</ToolbarButton>\n\t\t\t\t\t\t\t\t</SimpleTooltip>\n\t\t\t\t\t\t\t\t<SimpleTooltip content=\"Regenerate\">\n\t\t\t\t\t\t\t\t\t<ToolbarButton size=\"icon-sm\" aria-label=\"Regenerate answer\">\n\t\t\t\t\t\t\t\t\t\t<Icon name=\"refresh\" />\n\t\t\t\t\t\t\t\t\t</ToolbarButton>\n\t\t\t\t\t\t\t\t</SimpleTooltip>\n\t\t\t\t\t\t\t</Toolbar>\n\t\t\t\t\t\t}\n\t\t\t\t\t>\n\t\t\t\t\t\t{/* max-w-full: a plain Bubble sizes to its content with no\n\t\t\t\t\t\t    measure cap, and a code line is wider than a phone. Bounded\n\t\t\t\t\t\t    by the column, the CodeBlock scrolls inside itself instead of\n\t\t\t\t\t\t    pushing the whole transcript sideways. */}\n\t\t\t\t\t\t<Bubble variant=\"plain\" className=\"max-w-full\">\n\t\t\t\t\t\t\t<p className=\"text-body-md text-foreground\">\n\t\t\t\t\t\t\t\tHere is the shape of it:\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t\t<CodeBlock\n\t\t\t\t\t\t\t\tcode={\n\t\t\t\t\t\t\t\t\t\"const shift = anchor.offsetTop - lastTop\\nif (shift !== 0) viewport.scrollTop += shift\"\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\tfilename=\"preserve.ts\"\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t</Bubble>\n\t\t\t\t\t</Message>\n\n\t\t\t\t\t{/* The reader's follow-up is one turn: the question and the file\n\t\t\t\t\t    it refers to stack in a single Message, so they share a side, an\n\t\t\t\t\t    edge and a timestamp rather than reading as two sends. */}\n\t\t\t\t\t<Message messageId=\"t_05\" align=\"end\">\n\t\t\t\t\t\t<Bubble variant=\"primary\" align=\"end\">\n\t\t\t\t\t\t\tHere's ours. Does the same fix cover new messages arriving?\n\t\t\t\t\t\t</Bubble>\n\t\t\t\t\t\t<Attachment\n\t\t\t\t\t\t\tname=\"scroller.tsx\"\n\t\t\t\t\t\t\tmeta=\"4.2 KB · TSX\"\n\t\t\t\t\t\t\tonOpen={() => undefined}\n\t\t\t\t\t\t/>\n\t\t\t\t\t</Message>\n\n\t\t\t\t\t{/* The answer arriving. A `Marker` with a spinner — or ThinkingOrb —\n\t\t\t\t\t    is what sits here BEFORE the first token; once tokens land it is\n\t\t\t\t\t    replaced rather than kept, because two indicators for one wait\n\t\t\t\t\t    read as two things happening. What stays is the step it took,\n\t\t\t\t\t    as a finished note in the header.\n\n\t\t\t\t\t    No bubble, same as the long-form answer above: a tinted box\n\t\t\t\t\t    around a growing paragraph makes the reflow look like the box\n\t\t\t\t\t    breathing. And no answer actions yet — there is nothing to copy\n\t\t\t\t\t    or regenerate until it settles; Stop lives in the composer.\n\n\t\t\t\t\t    MessageScroller needs no help with this — it already re-follows on\n\t\t\t\t\t    \"a message grew\" (ResizeObserver), not just on \"a message arrived\",\n\t\t\t\t\t    so the newest token stays pinned while the reader can still scroll\n\t\t\t\t\t    up without being yanked back. */}\n\t\t\t\t\t<Message\n\t\t\t\t\t\tmessageId=\"t_06\"\n\t\t\t\t\t\tavatar={assistant}\n\t\t\t\t\t\theader={\n\t\t\t\t\t\t\t<Marker variant=\"note\" icon=\"file\" className=\"justify-start\">\n\t\t\t\t\t\t\t\tRead scroller.tsx\n\t\t\t\t\t\t\t</Marker>\n\t\t\t\t\t\t}\n\t\t\t\t\t>\n\t\t\t\t\t\t<Bubble variant=\"plain\">\n\t\t\t\t\t\t\t<StreamingText text={streamed} streaming={pending} />\n\t\t\t\t\t\t</Bubble>\n\t\t\t\t\t</Message>\n\t\t\t\t</MessageScroller>\n\n\t\t\t\t<CardFooter className=\"pt-(--card-p) shadow-[inset_0_1px_0_var(--border)]\">\n\t\t\t\t\t<ChatComposer\n\t\t\t\t\t\tclassName=\"flex-1\"\n\t\t\t\t\t\tplaceholder=\"Ask a follow-up…\"\n\t\t\t\t\t\t// Same flag as the answer's `streaming`, which is what turns Send\n\t\t\t\t\t\t// into Stop. A composer that stays sendable mid-answer invites a\n\t\t\t\t\t\t// second request on top of the one still running.\n\t\t\t\t\t\tbusy={pending}\n\t\t\t\t\t\tonStop={() => undefined}\n\t\t\t\t\t\tstopLabel=\"Stop answering\"\n\t\t\t\t\t\tonAttach={() => undefined}\n\t\t\t\t\t\t// A keyboard hint, so only where Enter sends: on touch Return\n\t\t\t\t\t\t// breaks the line and the button sends, and the row goes away.\n\t\t\t\t\t\tfooter={({ sendOn }) => (sendOn === \"enter\" ? \"Enter to send · Shift+Enter for a new line\" : null)}\n\t\t\t\t\t\t// Model and effort sit in `actions`, at the send end of the row:\n\t\t\t\t\t\t// they qualify the message about to be sent, so they belong beside\n\t\t\t\t\t\t// the button that sends it rather than next to the attach control.\n\t\t\t\t\t\tactions={\n\t\t\t\t\t\t\t<SettingsMenu\n\t\t\t\t\t\t\t\tvariant=\"subtle\"\n\t\t\t\t\t\t\t\tsize=\"xs\"\n\t\t\t\t\t\t\t\tlabel=\"Change model and effort\"\n\t\t\t\t\t\t\t\tsummary={\n\t\t\t\t\t\t\t\t\t<>\n\t\t\t\t\t\t\t\t\t\t<span className=\"text-foreground\">5.6 Sol</span>{\" \"}\n\t\t\t\t\t\t\t\t\t\t<span className=\"text-muted-foreground\">High</span>\n\t\t\t\t\t\t\t\t\t</>\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t<SettingsRow label=\"Model\" value=\"5.6 Sol\">\n\t\t\t\t\t\t\t\t\t<MenuRadioGroup defaultValue=\"sol\">\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"sol\">5.6 Sol</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"lite\">5.6 Lite</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t</MenuRadioGroup>\n\t\t\t\t\t\t\t\t</SettingsRow>\n\t\t\t\t\t\t\t\t<SettingsRow label=\"Effort\" value=\"High\">\n\t\t\t\t\t\t\t\t\t<MenuRadioGroup defaultValue=\"high\">\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"low\">Low</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"standard\">Standard</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"high\">High</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t</MenuRadioGroup>\n\t\t\t\t\t\t\t\t</SettingsRow>\n\t\t\t\t\t\t\t\t<SettingsRow label=\"Speed\" value=\"Standard\">\n\t\t\t\t\t\t\t\t\t<MenuRadioGroup defaultValue=\"standard\">\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"standard\">Standard</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"priority\">Priority</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t</MenuRadioGroup>\n\t\t\t\t\t\t\t\t</SettingsRow>\n\t\t\t\t\t\t\t</SettingsMenu>\n\t\t\t\t\t\t}\n\t\t\t\t\t/>\n\t\t\t\t</CardFooter>\n\t\t\t</Card>\n\t\t</Page>\n\t)\n}"
+        "imports": "import { AgentAvatar, Attachment, Bubble, Button, Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle, ChatComposer, CodeBlock, Icon, Marker, MenuRadioGroup, MenuRadioItem, Message, MessageScroller, Page, SettingsMenu, SettingsRow, SimpleTooltip, StreamingText, Toolbar, ToolbarButton } from \"@sableui/react\"",
+        "code": "/**\n * The request is in flight. In an app this is your send state — from `useChat`,\n * a fetch, whatever owns the turn — and it is deliberately ONE flag driving three\n * places: the composer's `busy`, the answer's `streaming` and its avatar's\n * `state`. They are the same wait reported across the panel, and letting them\n * drift is how you get a composer that still says \"sending\" under an answer that\n * already finished.\n */\nconst pending = true\n\n/** The answer so far. Append tokens to this; `StreamingText` assumes it only grows. */\nconst streamed =\n\t\"Yes, appends are already safe: your layout effect measures before paint. The jump is on the prepend path, which reads scrollHeight after the new rows\"\n\n/**\n * The opening exchange. `step` is what the assistant did before answering — a\n * doc it read, a tool it ran — and it rides in that message's header, so it\n * reads as part of the turn rather than as an event between turns.\n */\nconst turns: { id: string; mine: boolean; step?: string; body: string }[] = [\n\t{\n\t\tid: \"t_01\",\n\t\tmine: true,\n\t\tbody: \"Our chat scroll jumps every time older messages load. What are we doing wrong?\",\n\t},\n\t{\n\t\tid: \"t_02\",\n\t\tmine: false,\n\t\tstep: \"Read message-scroller.md\",\n\t\tbody: \"Almost always the anchor. If you preserve the scroll position by measuring the container, prepending history moves everything under the reader.\",\n\t},\n\t{\n\t\tid: \"t_03\",\n\t\tmine: false,\n\t\tbody: \"Anchor on the oldest rendered message instead and add back however far it moved. Appends leave it alone, so the same rule covers both.\",\n\t},\n]\n\nexport function ChatPanel() {\n\t// One identity for every assistant turn: AgentAvatar, not initials (\"AI\" in\n\t// a circle reads as a person called A. I.). Settled turns are not `live`, so\n\t// they rest and stop watching the pointer; only the turn in flight moves. A\n\t// transcript where every row followed the reader would be a wall of eyes.\n\tconst assistant = <AgentAvatar size=\"sm\" live={false} />\n\n\treturn (\n\t\t<Page as=\"main\" max=\"feed\" gap={0} className=\"py-6\">\n\t\t\t{/* h-dvh minus the page's own padding (py-6 = 12 spacing units, in\n\t\t\t    spacing units so density moves both together): the panel owns the\n\t\t\t    viewport, and the transcript — not the page — is the thing that\n\t\t\t    scrolls. The panel is a Card; its parts inset by the card's own\n\t\t\t    --card-p, so header, transcript and composer share one edge. */}\n\t\t\t<Card\n\t\t\t\trender={<section aria-labelledby=\"chat-title\" />}\n\t\t\t\tclassName=\"flex h-[calc(100dvh_-_--spacing(12))] flex-col overflow-hidden\"\n\t\t\t>\n\t\t\t\t<CardHeader className=\"pb-(--card-p) shadow-[inset_0_-1px_0_var(--border)]\">\n\t\t\t\t\t{/* CardTitle carries the type; the h1 inside it is the page heading. */}\n\t\t\t\t\t<CardTitle>\n\t\t\t\t\t\t<h1 id=\"chat-title\">Scroll behaviour</h1>\n\t\t\t\t\t</CardTitle>\n\t\t\t\t\t<CardDescription>Assistant · answers from your team's docs</CardDescription>\n\t\t\t\t\t<CardAction>\n\t\t\t\t\t\t{/* Labelled, not a bare plus: the composer already has a plus\n\t\t\t\t\t\t    (attach), and two identical glyphs a panel apart that do\n\t\t\t\t\t\t    different things is a guessing game. */}\n\t\t\t\t\t\t<Button variant=\"ghost\" size=\"sm\">\n\t\t\t\t\t\t\t<Icon name=\"edit\" />\n\t\t\t\t\t\t\tNew chat\n\t\t\t\t\t\t</Button>\n\t\t\t\t\t</CardAction>\n\t\t\t\t</CardHeader>\n\n\t\t\t\t{/* flex-1 min-h-0 is the whole layout: it bounds the scroll region\n\t\t\t\t    against the panel instead of letting the transcript grow the page. */}\n\t\t\t\t<MessageScroller className=\"min-h-0 flex-1 p-(--card-p)\">\n\t\t\t\t\t<Marker variant=\"separator\">Today</Marker>\n\n\t\t\t\t\t{turns.map((turn, i) => {\n\t\t\t\t\t\t// Derived, not hand-set: a turn continues a run when the one\n\t\t\t\t\t\t// before it has the same author. A continuation drops its\n\t\t\t\t\t\t// avatar (Message keeps the column) AND its tail (Bubble keeps\n\t\t\t\t\t\t// the ear's space) — together, that makes the run one block.\n\t\t\t\t\t\tconst continues = i > 0 && turns[i - 1].mine === turn.mine\n\t\t\t\t\t\treturn (\n\t\t\t\t\t\t\t<Message\n\t\t\t\t\t\t\t\tkey={turn.id}\n\t\t\t\t\t\t\t\tmessageId={turn.id}\n\t\t\t\t\t\t\t\talign={turn.mine ? \"end\" : \"start\"}\n\t\t\t\t\t\t\t\tgrouped={continues}\n\t\t\t\t\t\t\t\tavatar={turn.mine ? undefined : assistant}\n\t\t\t\t\t\t\t\theader={\n\t\t\t\t\t\t\t\t\tturn.step ? (\n\t\t\t\t\t\t\t\t\t\t<Marker variant=\"note\" icon=\"book\" className=\"justify-start\">\n\t\t\t\t\t\t\t\t\t\t\t{turn.step}\n\t\t\t\t\t\t\t\t\t\t</Marker>\n\t\t\t\t\t\t\t\t\t) : undefined\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t<Bubble\n\t\t\t\t\t\t\t\t\tvariant={turn.mine ? \"primary\" : \"muted\"}\n\t\t\t\t\t\t\t\t\talign={turn.mine ? \"end\" : \"start\"}\n\t\t\t\t\t\t\t\t\ttail={!continues}\n\t\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t\t{turn.body}\n\t\t\t\t\t\t\t\t</Bubble>\n\t\t\t\t\t\t\t</Message>\n\t\t\t\t\t\t)\n\t\t\t\t\t})}\n\n\t\t\t\t\t{/* The same run, continued: long-form output with no bubble,\n\t\t\t\t\t    because a tinted box around a code block reads as a quote\n\t\t\t\t\t    rather than as a turn. Its footer carries what the reader does\n\t\t\t\t\t    WITH a settled answer, as a Toolbar: one tab stop, arrow keys\n\t\t\t\t\t    between the actions. */}\n\t\t\t\t\t<Message\n\t\t\t\t\t\tmessageId=\"t_04\"\n\t\t\t\t\t\tgrouped\n\t\t\t\t\t\tavatar={assistant}\n\t\t\t\t\t\tfooter={\n\t\t\t\t\t\t\t<Toolbar aria-label=\"Answer actions\">\n\t\t\t\t\t\t\t\t<SimpleTooltip content=\"Copy answer\">\n\t\t\t\t\t\t\t\t\t<ToolbarButton size=\"icon-sm\" aria-label=\"Copy answer\">\n\t\t\t\t\t\t\t\t\t\t<Icon name=\"copy\" />\n\t\t\t\t\t\t\t\t\t</ToolbarButton>\n\t\t\t\t\t\t\t\t</SimpleTooltip>\n\t\t\t\t\t\t\t\t<SimpleTooltip content=\"Regenerate\">\n\t\t\t\t\t\t\t\t\t<ToolbarButton size=\"icon-sm\" aria-label=\"Regenerate answer\">\n\t\t\t\t\t\t\t\t\t\t<Icon name=\"refresh\" />\n\t\t\t\t\t\t\t\t\t</ToolbarButton>\n\t\t\t\t\t\t\t\t</SimpleTooltip>\n\t\t\t\t\t\t\t</Toolbar>\n\t\t\t\t\t\t}\n\t\t\t\t\t>\n\t\t\t\t\t\t{/* max-w-full: a plain Bubble sizes to its content with no\n\t\t\t\t\t\t    measure cap, and a code line is wider than a phone. Bounded\n\t\t\t\t\t\t    by the column, the CodeBlock scrolls inside itself instead of\n\t\t\t\t\t\t    pushing the whole transcript sideways. */}\n\t\t\t\t\t\t<Bubble variant=\"plain\" className=\"max-w-full\">\n\t\t\t\t\t\t\t<p className=\"text-body-md text-foreground\">\n\t\t\t\t\t\t\t\tHere is the shape of it:\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t\t<CodeBlock\n\t\t\t\t\t\t\t\tcode={\n\t\t\t\t\t\t\t\t\t\"const shift = anchor.offsetTop - lastTop\\nif (shift !== 0) viewport.scrollTop += shift\"\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\tfilename=\"preserve.ts\"\n\t\t\t\t\t\t\t/>\n\t\t\t\t\t\t</Bubble>\n\t\t\t\t\t</Message>\n\n\t\t\t\t\t{/* The reader's follow-up is one turn: the question and the file\n\t\t\t\t\t    it refers to stack in a single Message, so they share a side, an\n\t\t\t\t\t    edge and a timestamp rather than reading as two sends. */}\n\t\t\t\t\t<Message messageId=\"t_05\" align=\"end\">\n\t\t\t\t\t\t<Bubble variant=\"primary\" align=\"end\">\n\t\t\t\t\t\t\tHere's ours. Does the same fix cover new messages arriving?\n\t\t\t\t\t\t</Bubble>\n\t\t\t\t\t\t<Attachment\n\t\t\t\t\t\t\tname=\"scroller.tsx\"\n\t\t\t\t\t\t\tmeta=\"4.2 KB · TSX\"\n\t\t\t\t\t\t\tonOpen={() => undefined}\n\t\t\t\t\t\t/>\n\t\t\t\t\t</Message>\n\n\t\t\t\t\t{/* The answer arriving. Its avatar is the one live AgentAvatar in\n\t\t\t\t\t    the transcript: `thinking` before the first token, `speaking`\n\t\t\t\t\t    while tokens land, so the row needs no spinner of its own — two\n\t\t\t\t\t    indicators for one wait read as two things happening. What\n\t\t\t\t\t    stays is the step it took, as a finished note in the header.\n\n\t\t\t\t\t    No bubble, same as the long-form answer above: a tinted box\n\t\t\t\t\t    around a growing paragraph makes the reflow look like the box\n\t\t\t\t\t    breathing. And no answer actions yet — there is nothing to copy\n\t\t\t\t\t    or regenerate until it settles; Stop lives in the composer.\n\n\t\t\t\t\t    MessageScroller needs no help with this — it already re-follows on\n\t\t\t\t\t    \"a message grew\" (ResizeObserver), not just on \"a message arrived\",\n\t\t\t\t\t    so the newest token stays pinned while the reader can still scroll\n\t\t\t\t\t    up without being yanked back. */}\n\t\t\t\t\t<Message\n\t\t\t\t\t\tmessageId=\"t_06\"\n\t\t\t\t\t\tavatar={<AgentAvatar size=\"sm\" state={pending ? \"speaking\" : \"idle\"} />}\n\t\t\t\t\t\theader={\n\t\t\t\t\t\t\t<Marker variant=\"note\" icon=\"file\" className=\"justify-start\">\n\t\t\t\t\t\t\t\tRead scroller.tsx\n\t\t\t\t\t\t\t</Marker>\n\t\t\t\t\t\t}\n\t\t\t\t\t>\n\t\t\t\t\t\t<Bubble variant=\"plain\">\n\t\t\t\t\t\t\t<StreamingText text={streamed} streaming={pending} />\n\t\t\t\t\t\t</Bubble>\n\t\t\t\t\t</Message>\n\t\t\t\t</MessageScroller>\n\n\t\t\t\t<CardFooter className=\"pt-(--card-p) shadow-[inset_0_1px_0_var(--border)]\">\n\t\t\t\t\t<ChatComposer\n\t\t\t\t\t\tclassName=\"flex-1\"\n\t\t\t\t\t\tplaceholder=\"Ask a follow-up…\"\n\t\t\t\t\t\t// Same flag as the answer's `streaming`, which is what turns Send\n\t\t\t\t\t\t// into Stop. A composer that stays sendable mid-answer invites a\n\t\t\t\t\t\t// second request on top of the one still running.\n\t\t\t\t\t\tbusy={pending}\n\t\t\t\t\t\tonStop={() => undefined}\n\t\t\t\t\t\tstopLabel=\"Stop answering\"\n\t\t\t\t\t\tonAttach={() => undefined}\n\t\t\t\t\t\t// A keyboard hint, so only where Enter sends: on touch Return\n\t\t\t\t\t\t// breaks the line and the button sends, and the row goes away.\n\t\t\t\t\t\tfooter={({ sendOn }) => (sendOn === \"enter\" ? \"Enter to send · Shift+Enter for a new line\" : null)}\n\t\t\t\t\t\t// Model and effort sit in `actions`, at the send end of the row:\n\t\t\t\t\t\t// they qualify the message about to be sent, so they belong beside\n\t\t\t\t\t\t// the button that sends it rather than next to the attach control.\n\t\t\t\t\t\tactions={\n\t\t\t\t\t\t\t<SettingsMenu\n\t\t\t\t\t\t\t\tvariant=\"subtle\"\n\t\t\t\t\t\t\t\tsize=\"xs\"\n\t\t\t\t\t\t\t\tlabel=\"Change model and effort\"\n\t\t\t\t\t\t\t\tsummary={\n\t\t\t\t\t\t\t\t\t<>\n\t\t\t\t\t\t\t\t\t\t<span className=\"text-foreground\">5.6 Sol</span>{\" \"}\n\t\t\t\t\t\t\t\t\t\t<span className=\"text-muted-foreground\">High</span>\n\t\t\t\t\t\t\t\t\t</>\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t<SettingsRow label=\"Model\" value=\"5.6 Sol\">\n\t\t\t\t\t\t\t\t\t<MenuRadioGroup defaultValue=\"sol\">\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"sol\">5.6 Sol</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"lite\">5.6 Lite</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t</MenuRadioGroup>\n\t\t\t\t\t\t\t\t</SettingsRow>\n\t\t\t\t\t\t\t\t<SettingsRow label=\"Effort\" value=\"High\">\n\t\t\t\t\t\t\t\t\t<MenuRadioGroup defaultValue=\"high\">\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"low\">Low</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"standard\">Standard</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"high\">High</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t</MenuRadioGroup>\n\t\t\t\t\t\t\t\t</SettingsRow>\n\t\t\t\t\t\t\t\t<SettingsRow label=\"Speed\" value=\"Standard\">\n\t\t\t\t\t\t\t\t\t<MenuRadioGroup defaultValue=\"standard\">\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"standard\">Standard</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t\t<MenuRadioItem value=\"priority\">Priority</MenuRadioItem>\n\t\t\t\t\t\t\t\t\t</MenuRadioGroup>\n\t\t\t\t\t\t\t\t</SettingsRow>\n\t\t\t\t\t\t\t</SettingsMenu>\n\t\t\t\t\t\t}\n\t\t\t\t\t/>\n\t\t\t\t</CardFooter>\n\t\t\t</Card>\n\t\t</Page>\n\t)\n}"
       },
       {
         "name": "DashboardPage",
@@ -29092,6 +29270,13 @@
         "weekStart",
         "weekdayLabels",
         "year"
+      ],
+      "AgentAvatar": [
+        "label",
+        "live",
+        "motion",
+        "size",
+        "state"
       ],
       "AlertDialog": [
         "actionsRef",

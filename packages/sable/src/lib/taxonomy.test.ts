@@ -113,6 +113,8 @@ describe("taxonomy", () => {
 		// Spinner) keep their kind's home — this list is the whole membership, so
 		// adding to it is a decision someone has to make here, in review.
 		expect(componentsInGroup("Chat & AI")).toEqual([
+			// An agent's identity: it has no meaning where no agent speaks.
+			"AgentAvatar",
 			"Attachment",
 			"Bubble",
 			"ChatComposer",

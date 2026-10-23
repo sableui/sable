@@ -1,6 +1,6 @@
 import { Icon } from "../icon"
 import { Attachment } from "../components/attachment"
-import { Avatar } from "../components/avatar"
+import { AgentAvatar } from "../components/agent-avatar"
 import { Bubble } from "../components/bubble"
 import { Button } from "../components/button"
 import {
@@ -26,10 +26,11 @@ import { Page } from "../layout"
 // ---pattern-code---
 /**
  * The request is in flight. In an app this is your send state — from `useChat`,
- * a fetch, whatever owns the turn — and it is deliberately ONE flag driving two
- * places: the composer's `busy` and the answer's `streaming`. They are the same
- * wait reported at both ends of the panel, and letting them drift is how you get
- * a composer that still says "sending" under an answer that already finished.
+ * a fetch, whatever owns the turn — and it is deliberately ONE flag driving three
+ * places: the composer's `busy`, the answer's `streaming` and its avatar's
+ * `state`. They are the same wait reported across the panel, and letting them
+ * drift is how you get a composer that still says "sending" under an answer that
+ * already finished.
  */
 const pending = true
 
@@ -62,18 +63,11 @@ const turns: { id: string; mine: boolean; step?: string; body: string }[] = [
 ]
 
 export function ChatPanel() {
-	// One identity for every assistant turn. A glyph rather than initials: "AI"
-	// in a circle reads as a person called A. I. The glyph is sized to the
-	// circle (the fallback's own size is tuned for two letters, and a lone icon
-	// at that size reads as a speck); `alt` names it for a screen reader, which
-	// otherwise gets nothing from a fallback-only avatar.
-	const assistant = (
-		<Avatar variant="art"
-			size="sm"
-			alt="Assistant"
-			fallback={<Icon name="sparkles" className="text-base" />}
-		/>
-	)
+	// One identity for every assistant turn: AgentAvatar, not initials ("AI" in
+	// a circle reads as a person called A. I.). Settled turns are not `live`, so
+	// they rest and stop watching the pointer; only the turn in flight moves. A
+	// transcript where every row followed the reader would be a wall of eyes.
+	const assistant = <AgentAvatar size="sm" live={false} />
 
 	return (
 		<Page as="main" max="feed" gap={0} className="py-6">
@@ -195,11 +189,11 @@ export function ChatPanel() {
 						/>
 					</Message>
 
-					{/* The answer arriving. A `Marker` with a spinner — or ThinkingOrb —
-					    is what sits here BEFORE the first token; once tokens land it is
-					    replaced rather than kept, because two indicators for one wait
-					    read as two things happening. What stays is the step it took,
-					    as a finished note in the header.
+					{/* The answer arriving. Its avatar is the one live AgentAvatar in
+					    the transcript: `thinking` before the first token, `speaking`
+					    while tokens land, so the row needs no spinner of its own — two
+					    indicators for one wait read as two things happening. What
+					    stays is the step it took, as a finished note in the header.
 
 					    No bubble, same as the long-form answer above: a tinted box
 					    around a growing paragraph makes the reflow look like the box
@@ -212,7 +206,7 @@ export function ChatPanel() {
 					    up without being yanked back. */}
 					<Message
 						messageId="t_06"
-						avatar={assistant}
+						avatar={<AgentAvatar size="sm" state={pending ? "speaking" : "idle"} />}
 						header={
 							<Marker variant="note" icon="file" className="justify-start">
 								Read scroller.tsx

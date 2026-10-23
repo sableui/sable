@@ -92,9 +92,9 @@ import { Bubble, Message } from "@sableui/react"
 ### Long-form assistant output
 
 ```tsx
-import { Avatar, Bubble, CodeBlock, Message } from "@sableui/react"
+import { AgentAvatar, Bubble, CodeBlock, Message } from "@sableui/react"
 
-<Message messageId="a1" avatar={<Avatar size="sm" fallback="AI" />}>
+<Message messageId="a1" avatar={<AgentAvatar size="sm" />}>
 	<Bubble variant="plain" className="space-y-3">
 		<p className="text-body-md text-foreground">Three things changed in this release:</p>
 		<CodeBlock code={diff} filename="CHANGELOG.md" />

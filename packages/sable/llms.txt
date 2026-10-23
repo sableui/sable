@@ -1,6 +1,6 @@
 # Sable (@sableui/react)
 
-> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 123 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
+> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 124 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
 
 ## Start here — brief, composition, evidence
 
@@ -374,10 +374,11 @@ import { Button, Card, IconProvider, MotionProvider, SableThemeProvider, useSabl
 - **ToastProvider** (part of Toast) — Wraps Base UI Toast.Provider and renders the themed Viewport + toast list.
 - **TooltipProvider** (part of Tooltip) — Wraps an app or group of Tooltips to share open/close delays.
 
-### Components (123) — full props/subcomponents/variants/guidance/a11y/examples in registry.json → components
+### Components (124) — full props/subcomponents/variants/guidance/a11y/examples in registry.json → components
 
 - **Accordion** — Stacked, collapsible disclosure sections over Base UI Accordion — roving focus, arrow-key navigation, ARIA region/heading/button wiring, and an animated height transition. *Parts:* AccordionItem, AccordionTrigger, AccordionPanel. → [`llms/components/accordion.md`](./llms/components/accordion.md)
 - **ActivityHeatmap** — A calendar heatmap: one value per day as a grid of weeks by weekdays — the GitHub contribution graph, for any daily measure. → [`llms/components/activity-heatmap.md`](./llms/components/activity-heatmap.md)
+- **AgentAvatar** — The default avatar for an AI agent's turns: a sable looking out of its den. → [`llms/components/agent-avatar.md`](./llms/components/agent-avatar.md)
 - **AppHeader** — Mobile top bar (sticky, hidden at lg) with leading / title / actions slots on a 3-column grid that keeps the title optically centered. → [`llms/components/app-header.md`](./llms/components/app-header.md)
 - **AppShell** — The application frame: slots for status banners, a mobile header, a desktop sidebar, main content, a mobile bottom nav, a persistent dock (a now-playing or call bar), and floating overlays — plus a built-in skip link and #main-content target. *Parts:* SkipLink. → [`llms/components/app-shell.md`](./llms/components/app-shell.md)
 - **AreaChart** — **BETA.** A trend over a sequence, filled to the baseline: overlapping translucent series, stacked, or stacked to 100%, with smooth, linear or step curves and optional gradient fills. → [`llms/components/area-chart.md`](./llms/components/area-chart.md)

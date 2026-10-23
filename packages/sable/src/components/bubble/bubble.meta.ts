@@ -199,7 +199,7 @@ export const bubbleMeta: ComponentMeta = {
 		},
 		{
 			label: "Long-form assistant output",
-			code: '<Message messageId="a1" avatar={<Avatar size="sm" fallback="AI" />}>\n\t<Bubble variant="plain" className="space-y-3">\n\t\t<p className="text-body-md text-foreground">Three things changed in this release:</p>\n\t\t<CodeBlock code={diff} filename="CHANGELOG.md" />\n\t</Bubble>\n</Message>',
+			code: '<Message messageId="a1" avatar={<AgentAvatar size="sm" />}>\n\t<Bubble variant="plain" className="space-y-3">\n\t\t<p className="text-body-md text-foreground">Three things changed in this release:</p>\n\t\t<CodeBlock code={diff} filename="CHANGELOG.md" />\n\t</Bubble>\n</Message>',
 		},
 		{
 			label: "With reactions",

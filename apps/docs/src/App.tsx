@@ -371,6 +371,10 @@ const pages: Record<string, ComponentType> = {
 		() => import("./pages/components/GlidingHighlightPage"),
 		"GlidingHighlightPage",
 	),
+	"agent-avatar": page(
+		() => import("./pages/components/AgentAvatarPage"),
+		"AgentAvatarPage",
+	),
 	"thinking-orb": page(
 		() => import("./pages/components/ThinkingOrbPage"),
 		"ThinkingOrbPage",

@@ -629,6 +629,24 @@ export const A = () => <div role="slider" />`,
 		})
 	})
 
+	describe("agent-initials", () => {
+		it.each([
+			[`<Avatar size="sm" fallback="AI" />`],
+			[`<Avatar fallback={"Bot"} alt="Assistant" />`],
+			[`<Avatar variant="art" fallback='GPT' />`],
+		])("catches an agent drawn as initials: %s", (jsx) => {
+			expect(lint(`export const A = () => ${jsx}`).out).toContain("agent-initials")
+		})
+
+		it.each([
+			["a person's initials", `<Avatar fallback="AM" alt="Alex Morgan" />`],
+			["initials that start with AI", `<Avatar fallback="AIX" />`],
+			["the agent avatar", `<AgentAvatar size="sm" />`],
+		])("leaves %s alone", (_, jsx) => {
+			expect(lint(`export const A = () => ${jsx}`).out).not.toContain("agent-initials")
+		})
+	})
+
 	describe("lookalike-media-frame", () => {
 		it("catches a ratio frame around art or an image and names the ratio", () => {
 			const art = lint(`export const A = ({ a }) => <div className="aspect-square overflow-hidden rounded-md"><GradientArt seed={a.title} /></div>`)

@@ -1,6 +1,6 @@
 # Sable (@sableui/react)
 
-> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 123 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
+> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 124 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
 
 ## Start here — brief, composition, evidence
 
@@ -4962,9 +4962,9 @@ A full-height conversation surface: titled header, scrolling transcript, and a c
 - The assistant's long-form answer uses `variant="plain"` and continues the same grouped run. A tinted box around a code block reads as a quote rather than as a turn. A plain Bubble sizes to its content with no measure cap, so it takes `max-w-full` here: bounded by the column, a wide code line scrolls inside the CodeBlock instead of pushing the transcript sideways on a phone.
 - A settled answer carries its actions (copy, regenerate) in the Message `footer` as a `Toolbar` of icon `ToolbarButton`s with tooltips — one tab stop, arrow keys between them. The answer still streaming has none: there is nothing to copy or regenerate until it settles, and Stop lives in the composer.
 - One turn, one Message: the reader's question and the file it refers to stack inside a single end-aligned Message rather than being sent as two.
-- Assistant turns share one Avatar with a glyph fallback and `alt="Assistant"` — initials like "AI" read as a person, and a fallback-only avatar is otherwise unnamed.
-- The answer in flight is a `StreamingText` in a `plain` Bubble, and ONE `pending` flag drives both it and the composer's `busy`. They are the same wait reported at the two ends of the panel; letting them drift gives you a composer still saying 'sending' under an answer that already finished.
-- A spinner `Marker` (or `ThinkingOrb`) belongs BEFORE the first token and is replaced once tokens land, not kept alongside. Two indicators for one wait read as two things happening — which is also why `StreamingText` takes `caret={false}` when something adjacent already reports it.
+- Assistant turns use `AgentAvatar` — initials like "AI" read as a person called A. I. Settled turns pass `live={false}` and rest; only the turn in flight is live, so the transcript is not a column of eyes following the reader.
+- The answer in flight is a `StreamingText` in a `plain` Bubble, and ONE `pending` flag drives it, its AgentAvatar's `state` and the composer's `busy`. They are the same wait reported across the panel; letting them drift gives you a composer still saying 'sending' under an answer that already finished.
+- The in-flight avatar's `thinking` state is the wait before the first token, so the row needs no spinner `Marker` or `ThinkingOrb` of its own. Two indicators for one wait read as two things happening — which is also why `StreamingText` takes `caret={false}` when something adjacent already reports it.
 - MessageScroller needs no configuring for this: it re-follows on "a message grew" (ResizeObserver) as well as "a message arrived", so the newest token stays pinned while a reader who has scrolled up is left alone.
 - For a new thread, swap the transcript's children for an `<EmptyState>` inside the same MessageScroller — the panel, header and composer are unchanged, which is the point of keeping them separate.
 
@@ -4977,14 +4977,15 @@ A full-height conversation surface: titled header, scrolling transcript, and a c
 ## Source
 
 ```tsx
-import { Attachment, Avatar, Bubble, Button, Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle, ChatComposer, CodeBlock, Icon, Marker, MenuRadioGroup, MenuRadioItem, Message, MessageScroller, Page, SettingsMenu, SettingsRow, SimpleTooltip, StreamingText, Toolbar, ToolbarButton } from "@sableui/react"
+import { AgentAvatar, Attachment, Bubble, Button, Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle, ChatComposer, CodeBlock, Icon, Marker, MenuRadioGroup, MenuRadioItem, Message, MessageScroller, Page, SettingsMenu, SettingsRow, SimpleTooltip, StreamingText, Toolbar, ToolbarButton } from "@sableui/react"
 
 /**
  * The request is in flight. In an app this is your send state — from `useChat`,
- * a fetch, whatever owns the turn — and it is deliberately ONE flag driving two
- * places: the composer's `busy` and the answer's `streaming`. They are the same
- * wait reported at both ends of the panel, and letting them drift is how you get
- * a composer that still says "sending" under an answer that already finished.
+ * a fetch, whatever owns the turn — and it is deliberately ONE flag driving three
+ * places: the composer's `busy`, the answer's `streaming` and its avatar's
+ * `state`. They are the same wait reported across the panel, and letting them
+ * drift is how you get a composer that still says "sending" under an answer that
+ * already finished.
  */
 const pending = true
 
@@ -5017,18 +5018,11 @@ const turns: { id: string; mine: boolean; step?: string; body: string }[] = [
 ]
 
 export function ChatPanel() {
-	// One identity for every assistant turn. A glyph rather than initials: "AI"
-	// in a circle reads as a person called A. I. The glyph is sized to the
-	// circle (the fallback's own size is tuned for two letters, and a lone icon
-	// at that size reads as a speck); `alt` names it for a screen reader, which
-	// otherwise gets nothing from a fallback-only avatar.
-	const assistant = (
-		<Avatar variant="art"
-			size="sm"
-			alt="Assistant"
-			fallback={<Icon name="sparkles" className="text-base" />}
-		/>
-	)
+	// One identity for every assistant turn: AgentAvatar, not initials ("AI" in
+	// a circle reads as a person called A. I.). Settled turns are not `live`, so
+	// they rest and stop watching the pointer; only the turn in flight moves. A
+	// transcript where every row followed the reader would be a wall of eyes.
+	const assistant = <AgentAvatar size="sm" live={false} />
 
 	return (
 		<Page as="main" max="feed" gap={0} className="py-6">
@@ -5150,11 +5144,11 @@ export function ChatPanel() {
 						/>
 					</Message>
 
-					{/* The answer arriving. A `Marker` with a spinner — or ThinkingOrb —
-					    is what sits here BEFORE the first token; once tokens land it is
-					    replaced rather than kept, because two indicators for one wait
-					    read as two things happening. What stays is the step it took,
-					    as a finished note in the header.
+					{/* The answer arriving. Its avatar is the one live AgentAvatar in
+					    the transcript: `thinking` before the first token, `speaking`
+					    while tokens land, so the row needs no spinner of its own — two
+					    indicators for one wait read as two things happening. What
+					    stays is the step it took, as a finished note in the header.
 
 					    No bubble, same as the long-form answer above: a tinted box
 					    around a growing paragraph makes the reflow look like the box
@@ -5167,7 +5161,7 @@ export function ChatPanel() {
 					    up without being yanked back. */}
 					<Message
 						messageId="t_06"
-						avatar={assistant}
+						avatar={<AgentAvatar size="sm" state={pending ? "speaking" : "idle"} />}
 						header={
 							<Marker variant="note" icon="file" className="justify-start">
 								Read scroller.tsx
@@ -11768,6 +11762,112 @@ const [day, setDay] = useState<string | null>(null)
 
 ---
 
+# AgentAvatar
+
+**Status:** stable
+
+The default avatar for an AI agent's turns: a sable looking out of its den. It peeks at rest, climbs out to look at a nearby pointer, sinks low to think and comes up to talk, so the avatar itself says the agent is working. SVG from semantic tokens on the Avatar size ladder; every agent avatar on a page shares one animation loop.
+
+**Keywords:** agent, assistant, ai, bot, chat, avatar, copilot, llm, thinking, speaking, mascot, sable
+
+## Usage
+
+Use AgentAvatar as the avatar of every AI agent turn in a conversation — the Message `avatar` of an assistant reply, the header of an agent panel. Drive `state` from the turn's own pending state: `thinking` before the first token, `speaking` while the reply streams, `idle` once it settles. It replaces the "AI" initials avatar, which reads as a person called A. I.
+
+### Best practices
+
+- Do: Keep only the newest agent turn live. Pass `live={false}` to every earlier turn: they settle into the resting frame and stop tracking the pointer, so a long transcript does not watch the reader from every row.
+- Do: Drive `state` from the same flag that drives the composer's busy state and the reply's streaming, so the avatar, the composer and the message never disagree about whether the agent is still working.
+- Do: Let the thinking state stand in for a spinner in the message row. Pair it with a text status (role=status) for thinking, writing and completion, so the wait remains understandable without animation or sight. A second animated indicator is unnecessary.
+- Don't: Do not use it for a person, a team or an account. People are an Avatar — a photo, initials, or GradientArt seeded by the person. A character on a human's turn reads as a joke at their expense. → use **Avatar**
+- Don't: Do not use it as a standalone loading indicator outside a conversation. It is an identity that also shows state; a wait with no agent attached is a Spinner, or a ThinkingOrb when the wait is the experience. → use **Spinner**, **ThinkingOrb**
+- Don't: Do not wrap it in a button or make it clickable to fake an interaction. The pointer reactions are ambient; a control that looks like the agent belongs in the panel header as a real Button. → use **Button**
+
+## Props
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| state | "idle" \| "thinking" \| "speaking" | "idle" | What the agent is doing. `thinking` sinks it low in the den with its eyes scanning upward; `speaking` brings it up to talk, bobbing with the reply; `idle` peeks. |
+| size | "2xs" \| "xs" \| "sm" \| "md" \| "lg" \| "xl" \| "2xl" | "md" | The Avatar size ladder: 20 / 24 / 32 / 40 / 48px for rows, 96 / 160px for portraits. In a Message, match its `avatarSize` (default `sm`). |
+| live | boolean | true | Whether it animates. `false` settles into the resting frame (ignoring `state`) and stops tracking the pointer — for every agent turn except the newest. |
+| label | string | "Assistant" | The accessible name (role=img). Use the agent's product name if it has one. |
+| motion | "full" \| "subtle" \| "off" | — | Turns this avatar's motion down. `subtle` keeps the states (sinking to think, bobbing to speak) and drops the flourishes: pointer tracking, blinks, ear twitches, idle glances, the spring's overshoot. `off` draws each state as a still pose. The reader's reduce-motion setting always wins. |
+| className | string | — | Layout only. The frame and ink come from the theme's muted, foreground and background tokens. |
+
+## Tokens used
+
+`muted`, `foreground`, `background`
+
+## Motion
+
+- **arrival** · Root · _no motion_ — It arrives with its message, and the message owns the arrival. Its first painted frame is already the resting pose for its state, so there is nothing to stage.
+- **response** · Root · _custom (outside the recipe layer)_ — Within about four of its widths it notices the pointer: the eyes follow it, the ears perk and it climbs out of the den; over it, the eyes turn happy. Driven per frame in JS from one shared pointer listener, expressive motion only, and only on a live avatar. It is not a control, so there is no press.
+- **transition** · Root · _custom (outside the recipe layer)_ — Between states the body travels on a spring: up to speak, down to think, back to peeking. The spring's overshoot is expressive; under `subtle` it becomes a plain ease that still carries the state change.
+- **activity** · Root · _custom (outside the recipe layer)_ — Thinking scans the eyes upward and speaking bobs the body with the reply — the avatar's own way of saying the agent is working, in place of a spinner. These run under `subtle` too; under reduced motion or `off`, each state is a still pose (thinking: sunk low, eyes up).
+
+## Accessibility
+
+- role=img with an aria-label (default "Assistant"); the SVG is aria-hidden.
+- State changes are not announced by the image. Provide a separate text status (role=status) for thinking, writing and completion. Keep announcements to phase changes rather than every streamed token.
+- Not focusable and not clickable: every reaction is ambient, so nothing is lost to a keyboard or switch user.
+- Honours the motion policy: reduce-motion or MotionProvider off draws a still pose per state and never starts the loop; `subtle` drops tracking, blinks and twitches.
+- Ink is the theme's foreground on the muted frame, held to contrast in every theme; the eyes are the background colour, so they read in light and dark alike.
+
+## Related
+
+- Components: Avatar, Message, ThinkingOrb, ChatComposer, StreamingText, Bubble
+
+## Examples
+
+### Default
+
+```tsx
+import { AgentAvatar } from "@sableui/react"
+
+<AgentAvatar />
+```
+
+### States
+
+```tsx
+import { AgentAvatar } from "@sableui/react"
+
+<AgentAvatar size="lg" />
+<AgentAvatar size="lg" state="thinking" />
+<AgentAvatar size="lg" state="speaking" />
+```
+
+### Sizes
+
+```tsx
+import { AgentAvatar } from "@sableui/react"
+
+<AgentAvatar size="2xs" />
+<AgentAvatar size="xs" />
+<AgentAvatar size="sm" />
+<AgentAvatar size="md" />
+<AgentAvatar size="lg" />
+<AgentAvatar size="xl" />
+```
+
+### In a conversation (only the newest turn is live)
+
+```tsx
+import { AgentAvatar, Bubble, Message } from "@sableui/react"
+
+<Message messageId="a1" avatar={<AgentAvatar size="sm" live={false} />}>
+	<Bubble>Anchor on the oldest rendered message instead.</Bubble>
+</Message>
+<Message messageId="u1" align="end">
+	<Bubble variant="primary" align="end">Does that cover new messages too?</Bubble>
+</Message>
+<Message messageId="a2" avatar={<AgentAvatar size="sm" state="speaking" />}>
+	<Bubble>Yes. Appends leave the anchor alone, so the same rule covers both.</Bubble>
+</Message>
+```
+
+---
+
 # AppHeader
 
 **Status:** stable
@@ -12310,6 +12410,7 @@ Use Avatar to represent a person, team, or account with a compact visual identit
 - Do: Pick the size by the job: 2xs (20px) or xs (24px) in a compact workspace row (an assignee in an issue list, a project mark in a nav item), sm in dense rows and tables, md (the default) beside one line of text, lg in a row with a title and subtitle, xl (96px) for a profile header beside the person's name, 2xl (160px) for an artist or profile hero and roster portraits. Keep one size within a list or group.
 - Do: Use AvatarGroup for a stack of people, and give it an aria-label with the real count ("12 collaborators"). Set `surface` (or `--avatar-group-ring`) to whatever the group sits on, so the separating ring matches a card or popover, not the page. When it shares a row with actions, set `fit` so it gives up avatars to the "+N" count before the row has to wrap.
 - Do: Use `shape="square"` for what is not a person (a workspace, a project, an org, a team), with `tone` set to a palette family so each one keeps its own colour: `<Avatar shape="square" tone="teal" fallback="N" alt="Northwind storefront" size="xs" />`. Circles mean people; keep that distinction across the app.
+- Don't: Do not stand in for an AI agent with initials like "AI" or a glyph fallback. "AI" in a circle reads as a person called A. I. An agent's turns take AgentAvatar, whose states also show the agent working. → use **AgentAvatar**
 - Don't: Hand-build a stack with negative margins and per-avatar ring classes, or fake the overflow as an Avatar with "+4" initials — screen readers hear "plus 4" with no context. Use AvatarGroup's `max`/`total`, or AvatarGroupCount.
 - Don't: Use avatars as decoration without nearby identity context. They should help users recognize a person or account.
 - Don't: Overload a dense table with large avatars; use sm or omit images when scanning data is more important.
@@ -13216,9 +13317,9 @@ import { Bubble, Message } from "@sableui/react"
 ### Long-form assistant output
 
 ```tsx
-import { Avatar, Bubble, CodeBlock, Message } from "@sableui/react"
+import { AgentAvatar, Bubble, CodeBlock, Message } from "@sableui/react"
 
-<Message messageId="a1" avatar={<Avatar size="sm" fallback="AI" />}>
+<Message messageId="a1" avatar={<AgentAvatar size="sm" />}>
 	<Bubble variant="plain" className="space-y-3">
 		<p className="text-body-md text-foreground">Three things changed in this release:</p>
 		<CodeBlock code={diff} filename="CHANGELOG.md" />

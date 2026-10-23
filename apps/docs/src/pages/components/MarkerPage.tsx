@@ -1,5 +1,5 @@
 import {
-	Avatar,
+	AgentAvatar,
 	Bubble,
 	Button,
 	Card,
@@ -108,7 +108,7 @@ export function MarkerPage() {
 									Can you summarise the 0.44 releases?
 								</Bubble>
 							</Message>
-							<Message messageId="k2" avatar={<Avatar size="sm" fallback="AI" />}>
+							<Message messageId="k2" avatar={<AgentAvatar size="sm" />}>
 								<Bubble>Three fixes and one new component. The changelog has the details.</Bubble>
 							</Message>
 							<Marker variant="separator">Today</Marker>
