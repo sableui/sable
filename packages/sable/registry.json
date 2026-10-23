@@ -26625,7 +26625,7 @@
           "why": "Every tier is authored on a 16px base and keeps its ratio to it, so one number rebuilds the whole scale, headings to captions, and the baseline step and spacing follow the body. Shrinking tiers individually breaks the ratios between them. Set it on :root, a theme scope or a preset (tokens.shared[\"type-base\"]) so the rhythm follows too."
         },
         {
-          "rule": "Inside a Workspace, a panel's title is text-ui-title (14px · 600); compact text-title-lg resolves to it. A reading view inside the tool (an overview, a document, a long form) is wrapped in <Density value=\"comfortable\"> and gets the page tiers back.",
+          "rule": "Inside a Workspace, a panel's title is text-ui-title (14px · 600); compact text-title-lg resolves to it. Code follows too: text-mono-md and text-mono-caption compress to 12 / 11px at their own weight, so a CodeBlock matches the inputs beside it. A reading view inside the tool (an overview, a document, a long form) is wrapped in <Density value=\"comfortable\"> and gets the page tiers back.",
           "why": "The compact register remaps page tiers onto the 10-12px chrome ramp, which is right for chrome and wrong for prose: an issue overview set in a tool rendered its paragraphs at 11px. The remap stops at a comfortable boundary, so the wrapper is the whole fix."
         },
         {

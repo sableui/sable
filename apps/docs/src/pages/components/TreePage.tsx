@@ -194,6 +194,51 @@ function FileTreeDemo() {
 	)
 }
 
+/**
+ * Rows whose click does more than select. An artboard row here makes that
+ * artboard active and opens it, so with selectionFollowsFocus it opts out
+ * (`selectOnFocus={false}`): the arrows pass over it without reshaping the
+ * tree, and Enter or a click still switches to it. Its layers select as the
+ * arrows land on them.
+ */
+function ArtboardsDemo() {
+	const boards = [
+		{ id: "home", name: "Home", layers: ["Hero", "Nav"] },
+		{ id: "pricing", name: "Pricing", layers: ["Plans", "FAQ"] },
+	]
+	const [active, setActive] = useState("home")
+	const [selected, setSelected] = useState("Hero")
+	return (
+		<div data-density="compact" className="sable-frame sable-frame-tool overflow-hidden w-(--panel-width) bg-panel">
+			<Tree aria-label="Artboards" selectionFollowsFocus>
+				{boards.map((board) => (
+					<TreeRow
+						key={board.id}
+						icon={<Icon name="layout" />}
+						toggleLabel={board.name}
+						expanded={active === board.id}
+						onExpandedChange={(open) => open && setActive(board.id)}
+						selectOnFocus={false}
+						onClick={() => setActive(board.id)}
+						subtree={board.layers.map((layer) => (
+							<TreeRow
+								key={layer}
+								icon={<Icon name="image-stack" />}
+								selected={selected === layer}
+								onClick={() => setSelected(layer)}
+							>
+								{layer}
+							</TreeRow>
+						))}
+					>
+						{board.name}
+					</TreeRow>
+				))}
+			</Tree>
+		</div>
+	)
+}
+
 export function TreePage() {
 	return (
 		<>
@@ -211,6 +256,13 @@ export function TreePage() {
 				description="Folders open and close on their own and start closed unless set open; the rows an open reveals unfold into place. Click a file to select it, or use the arrow keys."
 			>
 				<FileTreeDemo />
+			</Section>
+
+			<Section
+				title="Rows that only take focus"
+				description="An artboard row switches the active artboard and opens it, which is more than a selection. With selectOnFocus={false} the arrows pass over it without reshaping the tree; Enter or a click still switches to it. Its layers select as the arrows land on them."
+			>
+				<ArtboardsDemo />
 			</Section>
 
 			<Section
