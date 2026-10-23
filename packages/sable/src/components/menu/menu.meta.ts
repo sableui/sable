@@ -27,6 +27,10 @@ export const menuMeta: ComponentMeta = {
 				description: "Do not use Menu for complex forms, persistent navigation, or arbitrary rich content.",
 			},
 			{
+				guidance: "do",
+				description: "Show a command's keyboard shortcut with `shortcut` on the row (`<MenuItem shortcut=\"Ctrl S\">Save</MenuItem>`), not a span you push right yourself: the column stays aligned and muted under the highlight. A menu is where people learn the keys.",
+			},
+			{
 				guidance: "dont",
 				description: "Do not build a Select out of it. A menu fires actions and has no value; a Select holds one and reports changes. Swapping them loses form semantics and keyboard type-ahead.",
 				instead: ["Select"],
@@ -99,9 +103,9 @@ export const menuMeta: ComponentMeta = {
 		},
 		{
 			name: "MenuItem",
-			type: 'Base UI Menu.Item props + className (disabled, closeOnClick, onClick) + variant?: "default" | "destructive" + icon?: ReactNode + description?: ReactNode',
+			type: 'Base UI Menu.Item props + className (disabled, closeOnClick, onClick) + variant?: "default" | "destructive" + icon?: ReactNode + description?: ReactNode + shortcut?: ReactNode',
 			description:
-				"An interactive row. Highlights via data-[highlighted]; dims via data-[disabled]. variant=\"destructive\" for a delete or irreversible action: it keeps the destructive ink when highlighted (never className=\"text-destructive\", which the highlight repaints). `icon` leads the row; `description` adds a quieter second line saying what the action does, and the icon then sits in a small tile spanning both lines.",
+				"An interactive row. Highlights via data-[highlighted]; dims via data-[disabled]. variant=\"destructive\" for a delete or irreversible action: it keeps the destructive ink when highlighted (never className=\"text-destructive\", which the highlight repaints). `icon` leads the row; `description` adds a quieter second line saying what the action does, and the icon then sits in a small tile spanning both lines. `shortcut` ends the row with the key that runs the action from outside the menu (\"Ctrl S\", or ghost Kbd caps), muted and end-aligned so a column of them lines up; it is display only, so bind the key yourself.",
 		},
 		{
 			name: "MenuLinkItem",
@@ -140,9 +144,9 @@ export const menuMeta: ComponentMeta = {
 		},
 		{
 			name: "MenuCheckboxItem",
-			type: "Base UI Menu.CheckboxItem props + className + { checked?: boolean; defaultChecked?: boolean; onCheckedChange?: (checked: boolean) => void; disabled?: boolean }",
+			type: "Base UI Menu.CheckboxItem props + className + shortcut?: ReactNode + { checked?: boolean; defaultChecked?: boolean; onCheckedChange?: (checked: boolean) => void; disabled?: boolean }",
 			description:
-				"A toggling row, with the same reserved leading column as MenuRadioItem so a menu mixing the two keeps one text margin.",
+				"A toggling row, with the same reserved leading column as MenuRadioItem so a menu mixing the two keeps one text margin. Takes `shortcut` like MenuItem (View → Show ruler  Ctrl R).",
 		},
 		{
 			name: "MenuGroup",
@@ -188,6 +192,10 @@ export const menuMeta: ComponentMeta = {
 		{
 			label: "Rows with icons and descriptions, and links",
 			code: '<Menu>\n\t<MenuTrigger render={<Button variant="outline" size="sm">Share</Button>} />\n\t<MenuContent align="end">\n\t\t<MenuItem icon={<Icon name="copy" />} description="Copy page as Markdown for LLMs" onClick={copy}>Copy page</MenuItem>\n\t\t<MenuLinkItem icon={<Icon name="file" />} description="View this page as plain text" href={markdownUrl} target="_blank">View as Markdown</MenuLinkItem>\n\t</MenuContent>\n</Menu>',
+		},
+		{
+			label: "With keyboard shortcuts",
+			code: '<Menu>\n\t<MenuTrigger render={<Button variant="secondary">Edit</Button>} />\n\t<MenuContent>\n\t\t<MenuItem shortcut="Ctrl Z" onClick={undo}>Undo</MenuItem>\n\t\t<MenuItem shortcut="Ctrl Shift Z" onClick={redo}>Redo</MenuItem>\n\t\t<MenuSeparator />\n\t\t<MenuItem shortcut={<KbdGroup><Kbd variant="ghost" mod /><Kbd variant="ghost">D</Kbd></KbdGroup>} onClick={duplicate}>Duplicate</MenuItem>\n\t</MenuContent>\n</Menu>',
 		},
 		{
 			label: "Toggling rows",

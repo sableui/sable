@@ -30,8 +30,8 @@ function EditorMenubar() {
 			<Menu>
 				<MenubarTrigger>File</MenubarTrigger>
 				<MenuContent>
-					<MenuItem>New</MenuItem>
-					<MenuItem>Open…</MenuItem>
+					<MenuItem shortcut="Ctrl N">New</MenuItem>
+					<MenuItem shortcut="Ctrl O">Open…</MenuItem>
 					<MenuSubmenu>
 						<MenuSubmenuTrigger>Open recent</MenuSubmenuTrigger>
 						<MenuContent side="inline-end" align="start" sideOffset={4}>
@@ -40,25 +40,25 @@ function EditorMenubar() {
 						</MenuContent>
 					</MenuSubmenu>
 					<MenuSeparator />
-					<MenuItem>Save</MenuItem>
-					<MenuItem>Export…</MenuItem>
+					<MenuItem shortcut="Ctrl S">Save</MenuItem>
+					<MenuItem shortcut="Ctrl Shift E">Export…</MenuItem>
 				</MenuContent>
 			</Menu>
 			<Menu>
 				<MenubarTrigger>Edit</MenubarTrigger>
 				<MenuContent>
-					<MenuItem>Undo</MenuItem>
-					<MenuItem>Redo</MenuItem>
+					<MenuItem shortcut="Ctrl Z">Undo</MenuItem>
+					<MenuItem shortcut="Ctrl Shift Z">Redo</MenuItem>
 					<MenuSeparator />
-					<MenuItem>Cut</MenuItem>
-					<MenuItem>Copy</MenuItem>
-					<MenuItem>Paste</MenuItem>
+					<MenuItem shortcut="Ctrl X">Cut</MenuItem>
+					<MenuItem shortcut="Ctrl C">Copy</MenuItem>
+					<MenuItem shortcut="Ctrl V">Paste</MenuItem>
 				</MenuContent>
 			</Menu>
 			<Menu>
 				<MenubarTrigger>View</MenubarTrigger>
 				<MenuContent>
-					<MenuCheckboxItem checked={ruler} onCheckedChange={setRuler}>
+					<MenuCheckboxItem checked={ruler} onCheckedChange={setRuler} shortcut="Ctrl R">
 						Show ruler
 					</MenuCheckboxItem>
 					<MenuSubmenu>
@@ -90,11 +90,11 @@ export function MenubarPage() {
 
 			<Section
 				title="Editor menus"
-				description="Open one menu, then point at the next title: the bar switches menus without another click. With the keyboard, ←/→ move between titles and ↓ opens one."
+				description="Open one menu, then point at the next title: the bar switches menus without another click. With the keyboard, ←/→ move between titles and ↓ opens one. Each command shows its key in the row's shortcut column."
 			>
 				<Example
 					code={
-						'<Menubar aria-label="Editor">\n\t<Menu>\n\t\t<MenubarTrigger>File</MenubarTrigger>\n\t\t<MenuContent>\n\t\t\t<MenuItem>New</MenuItem>\n\t\t\t<MenuItem>Open…</MenuItem>\n\t\t\t<MenuSeparator />\n\t\t\t<MenuItem>Save</MenuItem>\n\t\t</MenuContent>\n\t</Menu>\n\t<Menu>\n\t\t<MenubarTrigger>Edit</MenubarTrigger>\n\t\t<MenuContent>\n\t\t\t<MenuItem>Undo</MenuItem>\n\t\t\t<MenuItem>Redo</MenuItem>\n\t\t</MenuContent>\n\t</Menu>\n</Menubar>'
+						'<Menubar aria-label="Editor">\n\t<Menu>\n\t\t<MenubarTrigger>File</MenubarTrigger>\n\t\t<MenuContent>\n\t\t\t<MenuItem shortcut="Ctrl N">New</MenuItem>\n\t\t\t<MenuItem shortcut="Ctrl O">Open…</MenuItem>\n\t\t\t<MenuSeparator />\n\t\t\t<MenuItem shortcut="Ctrl S">Save</MenuItem>\n\t\t</MenuContent>\n\t</Menu>\n\t<Menu>\n\t\t<MenubarTrigger>Edit</MenubarTrigger>\n\t\t<MenuContent>\n\t\t\t<MenuItem shortcut="Ctrl Z">Undo</MenuItem>\n\t\t\t<MenuItem shortcut="Ctrl Shift Z">Redo</MenuItem>\n\t\t</MenuContent>\n\t</Menu>\n</Menubar>'
 					}
 				>
 					<EditorMenubar />

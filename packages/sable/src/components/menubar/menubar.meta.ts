@@ -93,7 +93,7 @@ export const menubarMeta: ComponentMeta = {
 	examples: [
 		{
 			label: "Editor menus",
-			code: '<Menubar aria-label="Editor">\n\t<Menu>\n\t\t<MenubarTrigger>File</MenubarTrigger>\n\t\t<MenuContent>\n\t\t\t<MenuItem>New</MenuItem>\n\t\t\t<MenuItem>Open…</MenuItem>\n\t\t\t<MenuSeparator />\n\t\t\t<MenuItem>Save</MenuItem>\n\t\t</MenuContent>\n\t</Menu>\n\t<Menu>\n\t\t<MenubarTrigger>Edit</MenubarTrigger>\n\t\t<MenuContent>\n\t\t\t<MenuItem>Undo</MenuItem>\n\t\t\t<MenuItem>Redo</MenuItem>\n\t\t</MenuContent>\n\t</Menu>\n</Menubar>',
+			code: '<Menubar aria-label="Editor">\n\t<Menu>\n\t\t<MenubarTrigger>File</MenubarTrigger>\n\t\t<MenuContent>\n\t\t\t<MenuItem shortcut="Ctrl N">New</MenuItem>\n\t\t\t<MenuItem shortcut="Ctrl O">Open…</MenuItem>\n\t\t\t<MenuSeparator />\n\t\t\t<MenuItem shortcut="Ctrl S">Save</MenuItem>\n\t\t</MenuContent>\n\t</Menu>\n\t<Menu>\n\t\t<MenubarTrigger>Edit</MenubarTrigger>\n\t\t<MenuContent>\n\t\t\t<MenuItem shortcut="Ctrl Z">Undo</MenuItem>\n\t\t\t<MenuItem shortcut="Ctrl Shift Z">Redo</MenuItem>\n\t\t</MenuContent>\n\t</Menu>\n</Menubar>',
 		},
 		{
 			label: "With a submenu and toggling rows",

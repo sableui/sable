@@ -54,6 +54,13 @@ export default function App() { return <main><Property label="Status"><Picker va
 		expect(r.swaps.map((s: { name: string; sable: string[]; partOf?: string }) => [s.name, s.sable[0], s.partOf])).toEqual([["Property", "PropertyRow", "PanelSection"]])
 	})
 
+	it("offers a top bar the workspace bar before the mobile header", () => {
+		// A tool's TopBar is desktop chrome; AppHeader alone (hidden at lg) was the
+		// wrong first answer for Glitch's.
+		const r = report({ "src/TopBar.tsx": `export function TopBar() { return <header className="flex h-10 items-center"><span>Untitled</span></header> }` })
+		expect(r.swaps.map((s: { name: string; sable: string[] }) => [s.name, s.sable])).toEqual([["TopBar", ["WorkspaceBar", "AppHeader"]]])
+	})
+
 	it("leaves an app's own structure alone", () => {
 		const r = report({ "src/pages/HomePage.tsx": `export function HomePage() { return <button onClick={() => {}}>Go</button> }`, "src/Layout.tsx": `export function Layout() { return <div onClick={() => {}} /> }` })
 		expect(r.swaps).toEqual([])

@@ -156,7 +156,7 @@ const COMMANDS = [
 		summary: "Run before declaring a build done: doctor, lint and grade in one pass, then the review steps no tool can verify. Exits 1 if any check fails.",
 		arg: { name: "path...", required: false },
 		flags: [
-			{ name: "--ignore", value: "glob", repeatable: true, describe: "Skip matching paths in lint and grade. Repeatable." },
+			{ name: "--ignore", value: "glob", repeatable: true, describe: "Skip matching paths in lint and grade. Repeatable. Without it, check uses the --ignore globs of the package.json script that runs sable-lint." },
 			{ name: "--review", value: "review.json", describe: "Also require recorded review evidence (as sable grade --review)." },
 			{ name: "--icons", value: "icons.json", describe: "Icon names the app adds, as for sable grade --icons." },
 			{ name: "--root", value: "dir", describe: "Check this project directory instead of the current one. Under --stop-hook it is relative to $CLAUDE_PROJECT_DIR." },
@@ -1595,7 +1595,9 @@ function doctorReport() {
 	 * agent to re-run the repro instead of keeping or losing a fix silently. */
 	checks.push(...patchChecks(PKG_ROOT, CWD, R.version))
 
-	if (pkg && !/resolve\s*:\s*\{[^}]*dedupe|dedupe/.test(readConfigs()))
+	// Next.js resolves react to its own bundled copy, so there is no second React
+	// to dedupe and no resolve.dedupe to add (the fixer skips it there too).
+	if (pkg && detectFramework(CWD).id !== "next" && !/resolve\s*:\s*\{[^}]*dedupe|dedupe/.test(readConfigs()))
 		add("info", "dedupe", "Could not confirm React dedupe in a bundler config.", 'resolve.dedupe: ["react","react-dom"] — a second React is an invalid-hook blank page.')
 
 	return { version: R.version, checks, failed: checks.filter((c) => c.status === "fail").length }
@@ -1856,6 +1858,25 @@ function collectSources(match, limit = 4000) {
 }
 
 
+/**
+ * The `--ignore` globs of the first package.json script that runs sable-lint
+ * with any (`"lint:design": "sable-lint src --ignore=src/lib/**"`), or null.
+ */
+function scriptLintIgnores() {
+	let scripts = {}
+	try {
+		scripts = JSON.parse(readFileSync(join(CWD, "package.json"), "utf8")).scripts ?? {}
+	} catch {
+		return null
+	}
+	for (const [script, command] of Object.entries(scripts)) {
+		if (typeof command !== "string" || !/\bsable-lint\b/.test(command)) continue
+		const globs = [...command.matchAll(/--ignore(?:=|\s+)(?:"([^"]+)"|'([^']+)'|(\S+))/g)].map((m) => m[1] ?? m[2] ?? m[3])
+		if (globs.length) return { script, globs }
+	}
+	return null
+}
+
 function readConfigs() {
 	return ["vite.config.ts", "vite.config.mts", "vite.config.js", "vite.config.mjs", "next.config.ts", "next.config.js", "next.config.mjs", "webpack.config.js"]
 		.map((f) => (existsSync(join(CWD, f)) ? readFileSync(join(CWD, f), "utf8") : ""))
@@ -1927,7 +1948,15 @@ function cmdCheck() {
 		CWD = target
 	}
 	const paths = rest.length ? rest : ["src"]
-	const ignore = [flags.get("ignore") ?? []].flat().filter((g) => typeof g === "string").flatMap((g) => ["--ignore", g])
+	/* The app's lint scope. An app that keeps data in its source (a design tool's
+	 * document colours) already says so in the sable-lint command it runs, and a
+	 * check that ignored that command failed on the data, and taught the agent to
+	 * "fix" artwork. Still no config file: the globs come from a command anyone
+	 * can read, check prints where it got them, and --ignore replaces them. */
+	const given = [flags.get("ignore") ?? []].flat().filter((g) => typeof g === "string")
+	const inherited = given.length ? null : scriptLintIgnores()
+	const ignoreGlobs = inherited ? inherited.globs : given
+	const ignore = ignoreGlobs.flatMap((g) => ["--ignore", g])
 	const checks = []
 
 	const doctor = doctorReport()
@@ -1963,6 +1992,7 @@ function cmdCheck() {
 			status: v.length ? "fail" : "pass",
 			summary: v.length ? `${v.length} violation(s) in ${lint.data.filesScanned} files` : `${lint.data.filesScanned} files clean`,
 			details: v.map((x) => `${x.ruleId} — ${x.file}:${x.line} → ${x.match}`),
+			notes: inherited ? [`scope: ${inherited.globs.map((g) => `--ignore ${g}`).join(" ")}, from package.json "${inherited.script}" (pass --ignore to replace it)`] : [],
 			data: lint.data,
 		})
 	}

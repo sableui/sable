@@ -1112,7 +1112,8 @@ The decisions that keep it one system:
 |---|---|---|
 | a property grid | `PanelSection` + `PropertyRow` / `PropertyPair` | `Card` — in 240px it spends its border and inset on nothing |
 | a numeric property | `ScrubField` | `NumberField` — its two steppers put a ~112px floor on a ~44px slot |
-| a layers / object list | `Tree` | a hand-nested list — no selection model or keyboard |
+| a layers / object list | `Tree`, with `selectionFollowsFocus` when the arrows should select | a hand-nested list — no selection model or keyboard; ArrowUp/Down handled on each row |
+| the app's menus (File, Edit, View) | `Menubar` + `MenubarTrigger`, items with `shortcut` | one `Menu` per title side by side — ←/→ never leave the open menu |
 | an empty panel section | `TreeEmpty` | `EmptyState` — `px-6 py-12` around a `size-12` disc |
 | a colour property | `ColorField` | `<input type="color">` — OS dialog, ignores the theme, wrong size |
 | ambient document facts | `StatusBar` | a toolbar — status is glanced at, not operated |
@@ -15240,7 +15241,7 @@ Use ContextMenu for actions that are specific to the object or area the user inv
 | --- | --- | --- |
 | ContextMenuTrigger | Base UI ContextMenu.Trigger props + className + render | The right-clickable area that opens the menu on contextmenu (right click) or long press. Renders a <div>. |
 | ContextMenuContent | Base UI Popup props + { side, align, sideOffset, className } | Portal + Positioner + Popup. Positions at the pointer. side is which side of the anchor the popup renders against (auto-flips on collision), align its alignment along that side, sideOffset the gap in px. Defaults to side='bottom', align='start', sideOffset=6. |
-| ContextMenuItem | Base UI ContextMenu.Item props + variant?: "default" \| "destructive" + className (disabled, closeOnClick, onClick) | An interactive row. Lays out as a flex row, so a leading Icon sits inline before the label. Highlights via data-[highlighted]; dims via data-[disabled], and disabled items are skipped by keyboard focus. variant="destructive" marks a destructive command (Delete, Remove) and keeps its destructive ink while highlighted; never fake it with a text-destructive class, which the highlight repaints. |
+| ContextMenuItem | Base UI ContextMenu.Item props + variant?: "default" \| "destructive" + shortcut?: ReactNode + className (disabled, closeOnClick, onClick) | An interactive row. Lays out as a flex row, so a leading Icon sits inline before the label. Highlights via data-[highlighted]; dims via data-[disabled], and disabled items are skipped by keyboard focus. variant="destructive" marks a destructive command (Delete, Remove) and keeps its destructive ink while highlighted; never fake it with a text-destructive class, which the highlight repaints. `shortcut` ends the row with the command's key, muted and end-aligned, as on MenuItem. |
 | ContextMenuSeparator | Base UI Separator props + className | Hairline rule between item runs. |
 | ContextMenuGroup | Base UI ContextMenu.Group props + className | Groups related items under an accessible label auto-associated with the group. |
 | ContextMenuGroupLabel | Base UI ContextMenu.GroupLabel props + className | The label for a ContextMenuGroup. Auto-associated with the group it sits in. |
@@ -15273,7 +15274,7 @@ Use ContextMenu for actions that are specific to the object or area the user inv
 ```tsx
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@sableui/react"
 
-<ContextMenu><ContextMenuTrigger className="rounded-md border border-dashed border-border p-8 text-center text-body-sm text-muted-foreground">Right-click here</ContextMenuTrigger><ContextMenuContent><ContextMenuItem>Cut</ContextMenuItem><ContextMenuItem>Copy</ContextMenuItem><ContextMenuItem>Paste</ContextMenuItem><ContextMenuSeparator /><ContextMenuItem variant="destructive">Delete</ContextMenuItem></ContextMenuContent></ContextMenu>
+<ContextMenu><ContextMenuTrigger className="rounded-md border border-dashed border-border p-8 text-center text-body-sm text-muted-foreground">Right-click here</ContextMenuTrigger><ContextMenuContent><ContextMenuItem shortcut="Ctrl X">Cut</ContextMenuItem><ContextMenuItem shortcut="Ctrl C">Copy</ContextMenuItem><ContextMenuItem shortcut="Ctrl V">Paste</ContextMenuItem><ContextMenuSeparator /><ContextMenuItem variant="destructive">Delete</ContextMenuItem></ContextMenuContent></ContextMenu>
 ```
 
 ### Grouped
@@ -18165,6 +18166,7 @@ Use Menu for a compact list of actions opened from a visible trigger.
 
 - Do: Use it for secondary or grouped commands that do not need to be visible all the time.
 - Do: Keep item labels action-oriented and easy to scan.
+- Do: Show a command's keyboard shortcut with `shortcut` on the row (`<MenuItem shortcut="Ctrl S">Save</MenuItem>`), not a span you push right yourself: the column stays aligned and muted under the highlight. A menu is where people learn the keys.
 - Do: Inside a <Workspace> a Menu adapts automatically — its popup re-applies the compact density across the portal, so items render on the chrome type tier and the control ladder resolves to workspace sizes. Do NOT override the size per call site; that was necessary before v0.41 and is now drift.
 - Don't: Do not use Menu for complex forms, persistent navigation, or arbitrary rich content.
 - Don't: Do not build a Select out of it. A menu fires actions and has no value; a Select holds one and reports changes. Swapping them loses form semantics and keyboard type-ahead. → use **Select**
@@ -18186,14 +18188,14 @@ Use Menu for a compact list of actions opened from a visible trigger.
 | --- | --- | --- |
 | MenuTrigger | Base UI Menu.Trigger props + render | The button that opens the menu. Compose with render={<Button … />}. |
 | MenuContent | Base UI Popup props + side: 'top' \| 'right' \| 'bottom' \| 'left' + align: 'start' \| 'center' \| 'end' + sideOffset: number + className | Portal + Positioner + Popup. side picks which side of the trigger the popup renders against (auto-flips on collision; defaults to 'bottom'); align sets alignment along that side (defaults to 'start'); sideOffset is the gap in px between trigger and popup (defaults to 6). |
-| MenuItem | Base UI Menu.Item props + className (disabled, closeOnClick, onClick) + variant?: "default" \| "destructive" + icon?: ReactNode + description?: ReactNode | An interactive row. Highlights via data-[highlighted]; dims via data-[disabled]. variant="destructive" for a delete or irreversible action: it keeps the destructive ink when highlighted (never className="text-destructive", which the highlight repaints). `icon` leads the row; `description` adds a quieter second line saying what the action does, and the icon then sits in a small tile spanning both lines. |
+| MenuItem | Base UI Menu.Item props + className (disabled, closeOnClick, onClick) + variant?: "default" \| "destructive" + icon?: ReactNode + description?: ReactNode + shortcut?: ReactNode | An interactive row. Highlights via data-[highlighted]; dims via data-[disabled]. variant="destructive" for a delete or irreversible action: it keeps the destructive ink when highlighted (never className="text-destructive", which the highlight repaints). `icon` leads the row; `description` adds a quieter second line saying what the action does, and the icon then sits in a small tile spanning both lines. `shortcut` ends the row with the key that runs the action from outside the menu ("Ctrl S", or ghost Kbd caps), muted and end-aligned so a column of them lines up; it is display only, so bind the key yourself. |
 | MenuLinkItem | Base UI Menu.LinkItem props (href, target, closeOnClick) + className + icon?: ReactNode + description?: ReactNode | A row that navigates: a real <a>, so it opens in a new tab, middle-clicks and copies as a link. With target="_blank" it adds rel="noopener noreferrer" and a trailing ↗. Takes icon and description like MenuItem. |
 | MenuSeparator | Base UI Separator props + className | Hairline rule between item runs. |
 | MenuSubmenu | Base UI Menu.SubmenuRoot props | A nested menu. Wraps a MenuSubmenuTrigger and its own MenuContent — pass side="inline-end" to that content so the submenu opens away from its parent in RTL as well as LTR. |
 | MenuSubmenuTrigger | Base UI Menu.SubmenuTrigger props + value: ReactNode + icon: ReactNode + className | The row that opens a submenu: item styling, a trailing chevron, and an optional `value` showing the current choice so the row reads "Effort  High ›" rather than making the reader open it to find out. `icon` leads the row as MenuItem's does; give it one whenever the items around it have icons, or its label starts a column to their left. |
 | MenuRadioGroup | Base UI Menu.RadioGroup props (value, defaultValue, onValueChange) | A single-choice group inside a menu. Controlled via value/onValueChange, uncontrolled via defaultValue. |
 | MenuRadioItem | Base UI Menu.RadioItem props + className (value, disabled) | One option in a MenuRadioGroup, rendered as menuitemradio with a real checked state. The check sits in a reserved leading column so labels never shift sideways as the highlight moves. |
-| MenuCheckboxItem | Base UI Menu.CheckboxItem props + className + { checked?: boolean; defaultChecked?: boolean; onCheckedChange?: (checked: boolean) => void; disabled?: boolean } | A toggling row, with the same reserved leading column as MenuRadioItem so a menu mixing the two keeps one text margin. |
+| MenuCheckboxItem | Base UI Menu.CheckboxItem props + className + shortcut?: ReactNode + { checked?: boolean; defaultChecked?: boolean; onCheckedChange?: (checked: boolean) => void; disabled?: boolean } | A toggling row, with the same reserved leading column as MenuRadioItem so a menu mixing the two keeps one text margin. Takes `shortcut` like MenuItem (View → Show ruler  Ctrl R). |
 | MenuGroup | Base UI Menu.Group props + className | Groups related items; pair with MenuGroupLabel for an accessible group name. |
 | MenuGroupLabel | Base UI Menu.GroupLabel props + className | The label for a MenuGroup — auto-associated with the group for screen readers. |
 
@@ -18269,6 +18271,22 @@ import { Button, Icon, Menu, MenuContent, MenuItem, MenuLinkItem, MenuTrigger } 
 	<MenuContent align="end">
 		<MenuItem icon={<Icon name="copy" />} description="Copy page as Markdown for LLMs" onClick={copy}>Copy page</MenuItem>
 		<MenuLinkItem icon={<Icon name="file" />} description="View this page as plain text" href={markdownUrl} target="_blank">View as Markdown</MenuLinkItem>
+	</MenuContent>
+</Menu>
+```
+
+### With keyboard shortcuts
+
+```tsx
+import { Button, Kbd, KbdGroup, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from "@sableui/react"
+
+<Menu>
+	<MenuTrigger render={<Button variant="secondary">Edit</Button>} />
+	<MenuContent>
+		<MenuItem shortcut="Ctrl Z" onClick={undo}>Undo</MenuItem>
+		<MenuItem shortcut="Ctrl Shift Z" onClick={redo}>Redo</MenuItem>
+		<MenuSeparator />
+		<MenuItem shortcut={<KbdGroup><Kbd variant="ghost" mod /><Kbd variant="ghost">D</Kbd></KbdGroup>} onClick={duplicate}>Duplicate</MenuItem>
 	</MenuContent>
 </Menu>
 ```
@@ -18360,17 +18378,17 @@ import { Menu, Menubar, MenubarTrigger, MenuContent, MenuItem, MenuSeparator } f
 	<Menu>
 		<MenubarTrigger>File</MenubarTrigger>
 		<MenuContent>
-			<MenuItem>New</MenuItem>
-			<MenuItem>Open…</MenuItem>
+			<MenuItem shortcut="Ctrl N">New</MenuItem>
+			<MenuItem shortcut="Ctrl O">Open…</MenuItem>
 			<MenuSeparator />
-			<MenuItem>Save</MenuItem>
+			<MenuItem shortcut="Ctrl S">Save</MenuItem>
 		</MenuContent>
 	</Menu>
 	<Menu>
 		<MenubarTrigger>Edit</MenubarTrigger>
 		<MenuContent>
-			<MenuItem>Undo</MenuItem>
-			<MenuItem>Redo</MenuItem>
+			<MenuItem shortcut="Ctrl Z">Undo</MenuItem>
+			<MenuItem shortcut="Ctrl Shift Z">Redo</MenuItem>
 		</MenuContent>
 	</Menu>
 </Menubar>
@@ -24846,6 +24864,7 @@ Use Tree for the hierarchy panel in a workspace: layers, objects, an inspector o
 ### Best practices
 
 - Do: Give Tree an aria-label naming the hierarchy ("Layers", "Files"). It is a role="tree", and an unnamed tree is announced as just "tree".
+- Do: In a layers panel, where the arrows should select, set `selectionFollowsFocus` (and aria-multiselectable when Shift extends) instead of handling ArrowUp/Down on the rows: the tree keeps Home/End, ←/→ and the tab stop, and the row's onClick stays the one selection path.
 - Do: For a file tree, nest with `subtree` and use the icon convention: `icon={<Icon name="folder" />}` on a row with a subtree, `icon={<Icon name="file" />}` on a leaf. There are no folder/file presets — they would only bind those two props.
 - Do: Give TreeAddRow the same depth as the rows it adds to, so its mark lands in their type column: one deeper than the parent for a child list, the parent's own depth for a sibling list.
 - Do: Put mutable per-row state (visibility, solo, a row menu) in `actions`, on the right rail. Show it on hover with `reveal-on-hover` (the row is its `group`), and at rest only when its value is the non-default one.
@@ -24895,6 +24914,7 @@ Use Tree for the hierarchy panel in a workspace: layers, objects, an inspector o
 | actions | ReactNode | — | Right-rail controls for a TreeRow: visibility, solo, a row menu. |
 | label | ReactNode | — | TreeAddRow's visible label. Name what gets added — 'Add effect', not 'Add'. |
 | motion | "full" \| "subtle" \| "off" | "full" | On Tree. How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Under `subtle` expanded rows appear at once instead of unfolding; the chevron still turns. |
+| selectionFollowsFocus | boolean | false | On Tree. The arrow keys select the row they land on, as a layers panel does, instead of only moving focus. The row is activated as a click carrying the key's Shift, so its own onClick (reading event.shiftKey for a range) extends the selection on Shift+Arrow; Ctrl/⌘+Arrow moves without selecting. Only rows with an onClick are selected — a disclosure-only row or a TreeAddRow is just focused. Pass aria-multiselectable on the Tree when more than one row can be selected. |
 
 ## Tokens used
 
@@ -24910,7 +24930,8 @@ Use Tree for the hierarchy panel in a workspace: layers, objects, an inspector o
 ## Accessibility
 
 - Tree implements the ARIA tree view pattern: Tree is role="tree", each TreeRow and TreeAddRow is role="treeitem" with aria-level, expandable rows carry aria-expanded, and a TreeSection is a role="group" labelled by its heading. Rows stay flat in the DOM — hierarchy is aria-level — so the fills span the panel's full width.
-- Keyboard: exactly one row is in the tab order (roving tabindex, seeded on the selected row, else the first). ArrowUp/Down move between visible rows; ArrowRight expands a collapsed row, then steps to its first child; ArrowLeft collapses an expanded row, else steps to its parent; Home/End jump to the ends; Enter/Space activate the row — its onClick, or toggling it when it has none. Keys pressed inside a row's own controls (an action button, a rename field) are left to that control.
+- Keyboard: exactly one row is in the tab order (roving tabindex, seeded on the selected row, else the first). ArrowUp/Down move between visible rows; ArrowRight expands a collapsed row, then steps to its first child; ArrowLeft collapses an expanded row, else steps to its parent; Home/End jump to the ends; Enter/Space activate the row — its onClick, or toggling it when it has none. Keys pressed inside a row's own controls (an action button, a rename field) are left to that control. Every key the tree handles is preventDefault-ed, so a page-wide arrow binding (a canvas nudge) should skip an event whose defaultPrevented is true rather than stopping propagation row by row.
+- With `selectionFollowsFocus`, selection moves with the arrows (Shift extends, Ctrl/⌘ moves focus only), matching the ARIA multi-select tree model; announce it with aria-multiselectable on the Tree.
 - Selection has one mapping: inside a Tree, `selected` is aria-selected on the treeitem; outside a Tree the row is a plain div, where aria-selected is invalid, so it falls back to aria-current. A navigation tree that wants aria-current="page" passes it through props.
 - Each treeitem is named by its own label (aria-labelledby the name), never by the text of its icon or action buttons.
 - The disclosure is a real button with aria-expanded and a label naming what it discloses, and it stops propagation so collapsing a group never changes the selection. Inside a Tree the treeitem carries aria-expanded and the arrow keys, so the button becomes a pointer target only: aria-hidden, out of the tab order, and it leaves focus where it was when clicked.
@@ -25036,6 +25057,27 @@ import { Icon, Tree, TreeRow } from "@sableui/react"
     Group 1
   </TreeRow>
   {open ? <TreeRow depth={1} icon={<Icon name="file" />}>Child</TreeRow> : null}
+</Tree>
+```
+
+### Selection follows the arrows, Shift extends
+
+```tsx
+import { Icon, Tree, TreeRow } from "@sableui/react"
+
+// A layers panel: the arrows select as they move. The row's own onClick is
+// the one selection path; Shift+Arrow arrives as a click with shiftKey.
+<Tree aria-label="Layers" aria-multiselectable selectionFollowsFocus>
+  {layers.map((layer) => (
+    <TreeRow
+      key={layer.id}
+      icon={<Icon name="image-stack" />}
+      selected={selection.includes(layer.id)}
+      onClick={(event) => (event.shiftKey ? extendTo(layer.id) : selectOnly(layer.id))}
+    >
+      {layer.name}
+    </TreeRow>
+  ))}
 </Tree>
 ```
 

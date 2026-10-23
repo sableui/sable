@@ -1,5 +1,39 @@
 # What's new
 
+## 0.20.0
+
+A second audit of Glitch, a design tool built on Sable, after its upgrade to
+0.19. What it turned up was mostly Sable's: checks that disagreed with the
+app's own lint scope, a doctor note that doesn't apply to Next.js, and two
+behaviours an editor needs that Sable didn't have, so the app wrote them by hand.
+
+- **Menu rows take a `shortcut`.** `<MenuItem shortcut="Ctrl S">Save</MenuItem>`
+  ends the row with the command's key, muted and end-aligned, so a column of
+  them lines up and stays muted under the highlight. Text or ghost `Kbd` caps.
+  On `MenuItem`, `MenuCheckboxItem` and `ContextMenuItem`. It is a label: bind
+  the key yourself. Apps used to push a span right by hand.
+- **`Tree selectionFollowsFocus`.** The arrow keys select the row they land on,
+  the way a layers panel does, instead of only moving focus. The row gets a
+  click carrying the key's Shift, so its own `onClick` stays the one selection
+  path and Shift+Arrow extends a range. Ctrl/⌘+Arrow moves focus only. A
+  disclosure-only row or a `TreeAddRow` is only focused, never clicked. Pass
+  `aria-multiselectable` when Shift extends. Glitch handled ArrowUp/Down on
+  every row to get this.
+- **`sable check` uses the app's lint scope.** Without `--ignore`, it takes the
+  `--ignore` globs from the package.json script that runs `sable-lint`, and
+  says so on the lint line. A design tool's document colours live in its
+  source; its `lint:design` skipped them, and `sable check` failed on them.
+  That taught the next agent to "fix" the artwork. Still no config file:
+  the globs come from a command anyone can read, and `--ignore` replaces them.
+- **No dedupe note for Next.js.** Next resolves React to its own bundled copy,
+  so `sable doctor` no longer asks for a `resolve.dedupe` that doesn't apply.
+  `doctor --fix` already skipped it.
+- **Checks find a menu bar built from separate menus.** Two or more titled
+  menus side by side with no `Menubar` (literal triggers, or a local wrapper
+  like `BarMenu label="File"` used more than once) is listed under rebuilt
+  parts. A title is the signal: a row menu repeated down a list is not a menu
+  bar. Adoption now offers a `TopBar` `WorkspaceBar` first, then `AppHeader`.
+
 ## 0.19.0
 
 A compact work tracker, built on Sable by an agent, rebuilt about thirty parts

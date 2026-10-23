@@ -34,7 +34,7 @@ Use ContextMenu for actions that are specific to the object or area the user inv
 | --- | --- | --- |
 | ContextMenuTrigger | Base UI ContextMenu.Trigger props + className + render | The right-clickable area that opens the menu on contextmenu (right click) or long press. Renders a <div>. |
 | ContextMenuContent | Base UI Popup props + { side, align, sideOffset, className } | Portal + Positioner + Popup. Positions at the pointer. side is which side of the anchor the popup renders against (auto-flips on collision), align its alignment along that side, sideOffset the gap in px. Defaults to side='bottom', align='start', sideOffset=6. |
-| ContextMenuItem | Base UI ContextMenu.Item props + variant?: "default" \| "destructive" + className (disabled, closeOnClick, onClick) | An interactive row. Lays out as a flex row, so a leading Icon sits inline before the label. Highlights via data-[highlighted]; dims via data-[disabled], and disabled items are skipped by keyboard focus. variant="destructive" marks a destructive command (Delete, Remove) and keeps its destructive ink while highlighted; never fake it with a text-destructive class, which the highlight repaints. |
+| ContextMenuItem | Base UI ContextMenu.Item props + variant?: "default" \| "destructive" + shortcut?: ReactNode + className (disabled, closeOnClick, onClick) | An interactive row. Lays out as a flex row, so a leading Icon sits inline before the label. Highlights via data-[highlighted]; dims via data-[disabled], and disabled items are skipped by keyboard focus. variant="destructive" marks a destructive command (Delete, Remove) and keeps its destructive ink while highlighted; never fake it with a text-destructive class, which the highlight repaints. `shortcut` ends the row with the command's key, muted and end-aligned, as on MenuItem. |
 | ContextMenuSeparator | Base UI Separator props + className | Hairline rule between item runs. |
 | ContextMenuGroup | Base UI ContextMenu.Group props + className | Groups related items under an accessible label auto-associated with the group. |
 | ContextMenuGroupLabel | Base UI ContextMenu.GroupLabel props + className | The label for a ContextMenuGroup. Auto-associated with the group it sits in. |
@@ -67,7 +67,7 @@ Use ContextMenu for actions that are specific to the object or area the user inv
 ```tsx
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@sableui/react"
 
-<ContextMenu><ContextMenuTrigger className="rounded-md border border-dashed border-border p-8 text-center text-body-sm text-muted-foreground">Right-click here</ContextMenuTrigger><ContextMenuContent><ContextMenuItem>Cut</ContextMenuItem><ContextMenuItem>Copy</ContextMenuItem><ContextMenuItem>Paste</ContextMenuItem><ContextMenuSeparator /><ContextMenuItem variant="destructive">Delete</ContextMenuItem></ContextMenuContent></ContextMenu>
+<ContextMenu><ContextMenuTrigger className="rounded-md border border-dashed border-border p-8 text-center text-body-sm text-muted-foreground">Right-click here</ContextMenuTrigger><ContextMenuContent><ContextMenuItem shortcut="Ctrl X">Cut</ContextMenuItem><ContextMenuItem shortcut="Ctrl C">Copy</ContextMenuItem><ContextMenuItem shortcut="Ctrl V">Paste</ContextMenuItem><ContextMenuSeparator /><ContextMenuItem variant="destructive">Delete</ContextMenuItem></ContextMenuContent></ContextMenu>
 ```
 
 ### Grouped

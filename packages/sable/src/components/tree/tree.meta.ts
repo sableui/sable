@@ -33,6 +33,11 @@ export const treeMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
+					"In a layers panel, where the arrows should select, set `selectionFollowsFocus` (and aria-multiselectable when Shift extends) instead of handling ArrowUp/Down on the rows: the tree keeps Home/End, ←/→ and the tab stop, and the row's onClick stays the one selection path.",
+			},
+			{
+				guidance: "do",
+				description:
 					"For a file tree, nest with `subtree` and use the icon convention: `icon={<Icon name=\"folder\" />}` on a row with a subtree, `icon={<Icon name=\"file\" />}` on a leaf. There are no folder/file presets — they would only bind those two props.",
 			},
 			{
@@ -205,6 +210,13 @@ export const treeMeta: ComponentMeta = {
 			description:
 				"On Tree. How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Under `subtle` expanded rows appear at once instead of unfolding; the chevron still turns.",
 		},
+		{
+			name: "selectionFollowsFocus",
+			type: "boolean",
+			default: "false",
+			description:
+				"On Tree. The arrow keys select the row they land on, as a layers panel does, instead of only moving focus. The row is activated as a click carrying the key's Shift, so its own onClick (reading event.shiftKey for a range) extends the selection on Shift+Arrow; Ctrl/⌘+Arrow moves without selecting. Only rows with an onClick are selected — a disclosure-only row or a TreeAddRow is just focused. Pass aria-multiselectable on the Tree when more than one row can be selected.",
+		},
 	],
 	subcomponents: [
 		{
@@ -239,7 +251,8 @@ export const treeMeta: ComponentMeta = {
 	],
 	a11y: [
 		"Tree implements the ARIA tree view pattern: Tree is role=\"tree\", each TreeRow and TreeAddRow is role=\"treeitem\" with aria-level, expandable rows carry aria-expanded, and a TreeSection is a role=\"group\" labelled by its heading. Rows stay flat in the DOM — hierarchy is aria-level — so the fills span the panel's full width.",
-		"Keyboard: exactly one row is in the tab order (roving tabindex, seeded on the selected row, else the first). ArrowUp/Down move between visible rows; ArrowRight expands a collapsed row, then steps to its first child; ArrowLeft collapses an expanded row, else steps to its parent; Home/End jump to the ends; Enter/Space activate the row — its onClick, or toggling it when it has none. Keys pressed inside a row's own controls (an action button, a rename field) are left to that control.",
+		"Keyboard: exactly one row is in the tab order (roving tabindex, seeded on the selected row, else the first). ArrowUp/Down move between visible rows; ArrowRight expands a collapsed row, then steps to its first child; ArrowLeft collapses an expanded row, else steps to its parent; Home/End jump to the ends; Enter/Space activate the row — its onClick, or toggling it when it has none. Keys pressed inside a row's own controls (an action button, a rename field) are left to that control. Every key the tree handles is preventDefault-ed, so a page-wide arrow binding (a canvas nudge) should skip an event whose defaultPrevented is true rather than stopping propagation row by row.",
+		"With `selectionFollowsFocus`, selection moves with the arrows (Shift extends, Ctrl/⌘ moves focus only), matching the ARIA multi-select tree model; announce it with aria-multiselectable on the Tree.",
 		"Selection has one mapping: inside a Tree, `selected` is aria-selected on the treeitem; outside a Tree the row is a plain div, where aria-selected is invalid, so it falls back to aria-current. A navigation tree that wants aria-current=\"page\" passes it through props.",
 		"Each treeitem is named by its own label (aria-labelledby the name), never by the text of its icon or action buttons.",
 		"The disclosure is a real button with aria-expanded and a label naming what it discloses, and it stops propagation so collapsing a group never changes the selection. Inside a Tree the treeitem carries aria-expanded and the arrow keys, so the button becomes a pointer target only: aria-hidden, out of the tab order, and it leaves focus where it was when clicked.",
@@ -372,6 +385,23 @@ export const treeMeta: ComponentMeta = {
     Group 1
   </TreeRow>
   {open ? <TreeRow depth={1} icon={<Icon name="file" />}>Child</TreeRow> : null}
+</Tree>`,
+		},
+		{
+			label: "Selection follows the arrows, Shift extends",
+			code: `// A layers panel: the arrows select as they move. The row's own onClick is
+// the one selection path; Shift+Arrow arrives as a click with shiftKey.
+<Tree aria-label="Layers" aria-multiselectable selectionFollowsFocus>
+  {layers.map((layer) => (
+    <TreeRow
+      key={layer.id}
+      icon={<Icon name="image-stack" />}
+      selected={selection.includes(layer.id)}
+      onClick={(event) => (event.shiftKey ? extendTo(layer.id) : selectOnly(layer.id))}
+    >
+      {layer.name}
+    </TreeRow>
+  ))}
 </Tree>`,
 		},
 		{

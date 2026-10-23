@@ -220,6 +220,11 @@ const ITEM_FOCUS =
  * between visible rows, ArrowRight expands a collapsed row and then steps to its
  * first child, ArrowLeft collapses an expanded row or steps to its parent,
  * Home/End jump to the ends, and Enter/Space activate the row (its `onClick`).
+ * The keys it handles are preventDefault-ed, so a page-wide arrow binding (a
+ * canvas nudge) can skip an event whose `defaultPrevented` is true.
+ *
+ * `selectionFollowsFocus` makes the arrows select as well as move, the way a
+ * layers panel does; with a multi-select tree pass `aria-multiselectable`.
  *
  * Does not scroll on its own; put it in a scrolling `Panel`, or pass
  * `className="min-h-0 flex-1 overflow-y-auto scrollbar-quiet"` when the tree is
@@ -233,9 +238,19 @@ type TreeProps = ComponentProps<"div"> & {
 	 * setting. Under `subtle` expanded rows appear at once instead of unfolding.
 	 */
 	motion?: MotionLevel
+	/**
+	 * Select the row the arrow keys land on, the way a layers panel does,
+	 * instead of only moving focus to it. The row is activated as a click
+	 * carrying the key's Shift, so the row's own `onClick` (which already reads
+	 * `event.shiftKey` for a range) extends the selection on Shift+Arrow.
+	 * Ctrl/⌘+Arrow moves focus without selecting. Only rows with an `onClick`
+	 * are selected: a disclosure-only row or a TreeAddRow is just focused.
+	 * @default false
+	 */
+	selectionFollowsFocus?: boolean
 }
 
-export function Tree({ className, children, onKeyDown, motion, ...props }: TreeProps) {
+export function Tree({ className, children, onKeyDown, motion, selectionFollowsFocus = false, ...props }: TreeProps) {
 	const [focusedId, setFocusedId] = useState<string | null>(null)
 	const rootRef = useRef<HTMLDivElement | null>(null)
 
@@ -284,6 +299,11 @@ export function Tree({ className, children, onKeyDown, motion, ...props }: TreeP
 		const move = (el: HTMLElement | undefined) => {
 			event.preventDefault()
 			el?.focus()
+			// Selection follows focus onto rows that select, never onto one whose
+			// click would toggle it or add something. A synthetic click rather than
+			// a callback, so the row's existing onClick stays the one selection path.
+			if (el && selectionFollowsFocus && !event.ctrlKey && !event.metaKey && el.hasAttribute("data-tree-select"))
+				el.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, shiftKey: event.shiftKey }))
 		}
 
 		switch (event.key) {
@@ -530,6 +550,9 @@ export function TreeRow({
 			}}
 			id={item.inTree ? item.id : idProp}
 			data-selected={selected || undefined}
+			// Rows with their own onClick select; Tree's selectionFollowsFocus
+			// activates only these.
+			data-tree-select={item.inTree && onClick ? "" : undefined}
 			// One mapping (see "Tree semantics"): a treeitem exposes selection with
 			// aria-selected; outside a Tree the row is a plain div, where only
 			// aria-current is valid. `data-selected` is the styling hook for both.

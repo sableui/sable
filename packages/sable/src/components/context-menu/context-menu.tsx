@@ -5,7 +5,7 @@ import { cn } from "../../lib/cn"
 import { withPortalThemeScope } from "../../lib/portal-theme-scope"
 import { useAnchoredDensity, useTypeTier } from "../../lib/density"
 import { HighlightGlide } from "../../lib/highlight-glide"
-import { MENU_ITEM_DESTRUCTIVE } from "../menu/menu"
+import { MENU_ITEM_DESTRUCTIVE, MenuItemShortcut, type ItemShortcut } from "../menu/menu"
 
 /*
  * Source of truth: ../menu/menu.tsx. ContextMenu is Menu opened by a right
@@ -103,18 +103,19 @@ export function ContextMenuContent({
 	)
 }
 
-type ItemProps = Omit<ComponentProps<typeof Base.Item>, "className"> & {
-	className?: string
-	/**
-	 * `destructive` for an action that deletes or cannot be undone: keeps the
-	 * destructive ink when highlighted (see MenuItem).
-	 * @default "default"
-	 */
-	variant?: "default" | "destructive"
-}
+type ItemProps = Omit<ComponentProps<typeof Base.Item>, "className"> &
+	ItemShortcut & {
+		className?: string
+		/**
+		 * `destructive` for an action that deletes or cannot be undone: keeps the
+		 * destructive ink when highlighted (see MenuItem).
+		 * @default "default"
+		 */
+		variant?: "default" | "destructive"
+	}
 
 /** A single interactive row. Highlights via Base UI's data-[highlighted]. */
-export function ContextMenuItem({ className, variant = "default", ...props }: ItemProps) {
+export function ContextMenuItem({ className, variant = "default", shortcut, children, ...props }: ItemProps) {
 	const tier = useTypeTier()
 	return (
 		<Base.Item
@@ -124,7 +125,10 @@ export function ContextMenuItem({ className, variant = "default", ...props }: It
 				className,
 			)}
 			{...props}
-		/>
+		>
+			{children}
+			{shortcut != null ? <MenuItemShortcut>{shortcut}</MenuItemShortcut> : null}
+		</Base.Item>
 	)
 }
 

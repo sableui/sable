@@ -517,6 +517,43 @@ export function compositionNotes(text, parts) {
 			break
 		}
 	}
+	// Menus side by side, each its own: a File / Edit / View row that the
+	// keyboard can't walk (no ←/→ between titles) and the pointer can't sweep (no
+	// hover switch once one is open). Only TITLED triggers count, since a word
+	// is what makes a menu bar: a literal trigger whose content is text, or a
+	// local wrapper (`function BarMenu`) that renders one and is called with a
+	// `label`/`title` string. A row menu repeated down a list (an icon trigger,
+	// or a wrapper called per item) is not a menu bar.
+	if (parts.has("Menubar") && !/<Menubar\b/.test(src)) {
+		const literal = [...src.matchAll(/<MenuTrigger\b/g)]
+		// The trigger's own content: its tag (a render={<Button>File</Button>}
+		// lives there) and, unless it self-closes, its children. Walked by brace
+		// depth, since the render prop's JSX has its own `>` and `/>`.
+		const titled = (at) => {
+			let depth = 0
+			let i = at
+			for (; i < src.length; i++) {
+				const c = src[i]
+				if (c === "{") depth++
+				else if (c === "}") depth--
+				else if (depth === 0 && c === ">") break
+			}
+			const selfClosing = src[i - 1] === "/"
+			const close = selfClosing ? -1 : src.indexOf("</MenuTrigger>", i)
+			const inner = src.slice(at, close < 0 ? i + 1 : close + 1)
+			return !/<Icon\b/.test(inner) && />\s*[A-Z][\w &]{0,24}\s*</.test(inner)
+		}
+		let triggers = literal.filter((m) => titled(m.index)).length
+		for (const m of src.matchAll(/function\s+([A-Z]\w*)\s*\(|const\s+([A-Z]\w*)\s*=\s*\(/g)) {
+			const name = m[1] ?? m[2]
+			const next = src.slice(m.index + m[0].length).search(/\n(?:export\s+)?(?:function|const)\s+[A-Z]/)
+			const body = src.slice(m.index, next < 0 ? src.length : m.index + m[0].length + next)
+			if (/<MenuTrigger\b/.test(body))
+				triggers += [...src.matchAll(new RegExp(`<${name}\\b[^>]*\\b(?:label|title)=["'][^"']+["']`, "g"))].length
+		}
+		if (triggers >= 2 && literal[0])
+			out.push({ index: literal[0].index, what: `${triggers} menus side by side, each its own`, consider: "Menubar with MenubarTrigger titles, when they are the app's menus (File, Edit, View): ←/→ moves between them and hover switches once one is open. Unrelated menus in a toolbar stay separate" })
+	}
 	// A native date field: the OS draws its own format and size, beside a
 	// product that formats dates its own way everywhere else.
 	const date = /<(?:input|Input)\b[^>]*\btype=["']date["']/.exec(src)

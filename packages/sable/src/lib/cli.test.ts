@@ -604,6 +604,47 @@ describe("sable check", () => {
 		}
 	}, 60_000)
 
+	it("checks in the scope the app's own sable-lint script declares, and says so", () => {
+		// A design tool keeps document colours in its source. Its lint script
+		// already skips them; a check that didn't failed on the artwork and taught
+		// the agent to "fix" it (Glitch, 2026-10-23).
+		const root = project()
+		try {
+			mkdirSync(join(root, "src", "data"))
+			writeFileSync(join(root, "src", "data", "swatches.ts"), 'export const INK = "#1a1b1e"\n')
+			const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"))
+			expect(JSON.parse(runIn(root, ["check", "--json"]).out).data.failed).toEqual(["lint"])
+			writeFileSync(join(root, "package.json"), JSON.stringify({ ...pkg, scripts: { "lint:design": "sable-lint src --ignore=src/data/**" } }))
+			const { data } = JSON.parse(runIn(root, ["check", "--json"]).out)
+			expect(data.failed).toEqual([])
+			expect(data.checks[1].notes.join(" ")).toContain('--ignore src/data/**, from package.json "lint:design"')
+			// An explicit --ignore replaces the script's scope rather than adding to it.
+			expect(JSON.parse(runIn(root, ["check", "--ignore", "src/other/**", "--json"]).out).data.failed).toEqual(["lint"])
+		} finally {
+			rmSync(root, { recursive: true, force: true })
+		}
+	}, 60_000)
+
+	it("does not ask a Next.js app to dedupe React", () => {
+		const root = project()
+		try {
+			rmSync(join(root, "vite.config.ts"))
+			const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"))
+			writeFileSync(join(root, "package.json"), JSON.stringify({ ...pkg, dependencies: { ...pkg.dependencies, next: "^16" } }))
+			writeFileSync(join(root, "next.config.mjs"), "export default {}\n")
+			const doctor = JSON.parse(runIn(root, ["check", "--json"]).out).data.checks[0].data
+			expect(doctor.checks.map((c: { name: string }) => c.name)).not.toContain("dedupe")
+			// A Vite app with no dedupe still hears about it.
+			rmSync(join(root, "next.config.mjs"))
+			writeFileSync(join(root, "package.json"), JSON.stringify(pkg))
+			writeFileSync(join(root, "vite.config.ts"), "export default {}\n")
+			const vite = JSON.parse(runIn(root, ["check", "--json"]).out).data.checks[0].data
+			expect(vite.checks.map((c: { name: string }) => c.name)).toContain("dedupe")
+		} finally {
+			rmSync(root, { recursive: true, force: true })
+		}
+	}, 60_000)
+
 	it("notes, without failing, arrow keys handled by hand", () => {
 		const app = CLEAN_APP.replace(
 			/\n?$/,

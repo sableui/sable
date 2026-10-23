@@ -94,9 +94,9 @@ export const contextMenuMeta: ComponentMeta = {
 		},
 		{
 			name: "ContextMenuItem",
-			type: 'Base UI ContextMenu.Item props + variant?: "default" | "destructive" + className (disabled, closeOnClick, onClick)',
+			type: 'Base UI ContextMenu.Item props + variant?: "default" | "destructive" + shortcut?: ReactNode + className (disabled, closeOnClick, onClick)',
 			description:
-				"An interactive row. Lays out as a flex row, so a leading Icon sits inline before the label. Highlights via data-[highlighted]; dims via data-[disabled], and disabled items are skipped by keyboard focus. variant=\"destructive\" marks a destructive command (Delete, Remove) and keeps its destructive ink while highlighted; never fake it with a text-destructive class, which the highlight repaints.",
+				"An interactive row. Lays out as a flex row, so a leading Icon sits inline before the label. Highlights via data-[highlighted]; dims via data-[disabled], and disabled items are skipped by keyboard focus. variant=\"destructive\" marks a destructive command (Delete, Remove) and keeps its destructive ink while highlighted; never fake it with a text-destructive class, which the highlight repaints. `shortcut` ends the row with the command's key, muted and end-aligned, as on MenuItem.",
 		},
 		{
 			name: "ContextMenuSeparator",
@@ -133,7 +133,7 @@ export const contextMenuMeta: ComponentMeta = {
 	examples: [
 		{
 			label: "Basic",
-			code: '<ContextMenu><ContextMenuTrigger className="rounded-md border border-dashed border-border p-8 text-center text-body-sm text-muted-foreground">Right-click here</ContextMenuTrigger><ContextMenuContent><ContextMenuItem>Cut</ContextMenuItem><ContextMenuItem>Copy</ContextMenuItem><ContextMenuItem>Paste</ContextMenuItem><ContextMenuSeparator /><ContextMenuItem variant="destructive">Delete</ContextMenuItem></ContextMenuContent></ContextMenu>',
+			code: '<ContextMenu><ContextMenuTrigger className="rounded-md border border-dashed border-border p-8 text-center text-body-sm text-muted-foreground">Right-click here</ContextMenuTrigger><ContextMenuContent><ContextMenuItem shortcut="Ctrl X">Cut</ContextMenuItem><ContextMenuItem shortcut="Ctrl C">Copy</ContextMenuItem><ContextMenuItem shortcut="Ctrl V">Paste</ContextMenuItem><ContextMenuSeparator /><ContextMenuItem variant="destructive">Delete</ContextMenuItem></ContextMenuContent></ContextMenu>',
 		},
 		{
 			label: "Grouped",

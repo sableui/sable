@@ -9215,8 +9215,8 @@
         },
         {
           "name": "ContextMenuItem",
-          "type": "Base UI ContextMenu.Item props + variant?: \"default\" | \"destructive\" + className (disabled, closeOnClick, onClick)",
-          "description": "An interactive row. Lays out as a flex row, so a leading Icon sits inline before the label. Highlights via data-[highlighted]; dims via data-[disabled], and disabled items are skipped by keyboard focus. variant=\"destructive\" marks a destructive command (Delete, Remove) and keeps its destructive ink while highlighted; never fake it with a text-destructive class, which the highlight repaints."
+          "type": "Base UI ContextMenu.Item props + variant?: \"default\" | \"destructive\" + shortcut?: ReactNode + className (disabled, closeOnClick, onClick)",
+          "description": "An interactive row. Lays out as a flex row, so a leading Icon sits inline before the label. Highlights via data-[highlighted]; dims via data-[disabled], and disabled items are skipped by keyboard focus. variant=\"destructive\" marks a destructive command (Delete, Remove) and keeps its destructive ink while highlighted; never fake it with a text-destructive class, which the highlight repaints. `shortcut` ends the row with the command's key, muted and end-aligned, as on MenuItem."
         },
         {
           "name": "ContextMenuSeparator",
@@ -9251,7 +9251,7 @@
       "examples": [
         {
           "label": "Basic",
-          "code": "<ContextMenu><ContextMenuTrigger className=\"rounded-md border border-dashed border-border p-8 text-center text-body-sm text-muted-foreground\">Right-click here</ContextMenuTrigger><ContextMenuContent><ContextMenuItem>Cut</ContextMenuItem><ContextMenuItem>Copy</ContextMenuItem><ContextMenuItem>Paste</ContextMenuItem><ContextMenuSeparator /><ContextMenuItem variant=\"destructive\">Delete</ContextMenuItem></ContextMenuContent></ContextMenu>",
+          "code": "<ContextMenu><ContextMenuTrigger className=\"rounded-md border border-dashed border-border p-8 text-center text-body-sm text-muted-foreground\">Right-click here</ContextMenuTrigger><ContextMenuContent><ContextMenuItem shortcut=\"Ctrl X\">Cut</ContextMenuItem><ContextMenuItem shortcut=\"Ctrl C\">Copy</ContextMenuItem><ContextMenuItem shortcut=\"Ctrl V\">Paste</ContextMenuItem><ContextMenuSeparator /><ContextMenuItem variant=\"destructive\">Delete</ContextMenuItem></ContextMenuContent></ContextMenu>",
           "imports": "import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from \"@sableui/react\""
         },
         {
@@ -13933,6 +13933,10 @@
             "description": "Do not use Menu for complex forms, persistent navigation, or arbitrary rich content."
           },
           {
+            "guidance": "do",
+            "description": "Show a command's keyboard shortcut with `shortcut` on the row (`<MenuItem shortcut=\"Ctrl S\">Save</MenuItem>`), not a span you push right yourself: the column stays aligned and muted under the highlight. A menu is where people learn the keys."
+          },
+          {
             "guidance": "dont",
             "description": "Do not build a Select out of it. A menu fires actions and has no value; a Select holds one and reports changes. Swapping them loses form semantics and keyboard type-ahead.",
             "instead": [
@@ -14004,8 +14008,8 @@
         },
         {
           "name": "MenuItem",
-          "type": "Base UI Menu.Item props + className (disabled, closeOnClick, onClick) + variant?: \"default\" | \"destructive\" + icon?: ReactNode + description?: ReactNode",
-          "description": "An interactive row. Highlights via data-[highlighted]; dims via data-[disabled]. variant=\"destructive\" for a delete or irreversible action: it keeps the destructive ink when highlighted (never className=\"text-destructive\", which the highlight repaints). `icon` leads the row; `description` adds a quieter second line saying what the action does, and the icon then sits in a small tile spanning both lines."
+          "type": "Base UI Menu.Item props + className (disabled, closeOnClick, onClick) + variant?: \"default\" | \"destructive\" + icon?: ReactNode + description?: ReactNode + shortcut?: ReactNode",
+          "description": "An interactive row. Highlights via data-[highlighted]; dims via data-[disabled]. variant=\"destructive\" for a delete or irreversible action: it keeps the destructive ink when highlighted (never className=\"text-destructive\", which the highlight repaints). `icon` leads the row; `description` adds a quieter second line saying what the action does, and the icon then sits in a small tile spanning both lines. `shortcut` ends the row with the key that runs the action from outside the menu (\"Ctrl S\", or ghost Kbd caps), muted and end-aligned so a column of them lines up; it is display only, so bind the key yourself."
         },
         {
           "name": "MenuLinkItem",
@@ -14039,8 +14043,8 @@
         },
         {
           "name": "MenuCheckboxItem",
-          "type": "Base UI Menu.CheckboxItem props + className + { checked?: boolean; defaultChecked?: boolean; onCheckedChange?: (checked: boolean) => void; disabled?: boolean }",
-          "description": "A toggling row, with the same reserved leading column as MenuRadioItem so a menu mixing the two keeps one text margin."
+          "type": "Base UI Menu.CheckboxItem props + className + shortcut?: ReactNode + { checked?: boolean; defaultChecked?: boolean; onCheckedChange?: (checked: boolean) => void; disabled?: boolean }",
+          "description": "A toggling row, with the same reserved leading column as MenuRadioItem so a menu mixing the two keeps one text margin. Takes `shortcut` like MenuItem (View → Show ruler  Ctrl R)."
         },
         {
           "name": "MenuGroup",
@@ -14088,6 +14092,11 @@
           "label": "Rows with icons and descriptions, and links",
           "code": "<Menu>\n\t<MenuTrigger render={<Button variant=\"outline\" size=\"sm\">Share</Button>} />\n\t<MenuContent align=\"end\">\n\t\t<MenuItem icon={<Icon name=\"copy\" />} description=\"Copy page as Markdown for LLMs\" onClick={copy}>Copy page</MenuItem>\n\t\t<MenuLinkItem icon={<Icon name=\"file\" />} description=\"View this page as plain text\" href={markdownUrl} target=\"_blank\">View as Markdown</MenuLinkItem>\n\t</MenuContent>\n</Menu>",
           "imports": "import { Button, Icon, Menu, MenuContent, MenuItem, MenuLinkItem, MenuTrigger } from \"@sableui/react\""
+        },
+        {
+          "label": "With keyboard shortcuts",
+          "code": "<Menu>\n\t<MenuTrigger render={<Button variant=\"secondary\">Edit</Button>} />\n\t<MenuContent>\n\t\t<MenuItem shortcut=\"Ctrl Z\" onClick={undo}>Undo</MenuItem>\n\t\t<MenuItem shortcut=\"Ctrl Shift Z\" onClick={redo}>Redo</MenuItem>\n\t\t<MenuSeparator />\n\t\t<MenuItem shortcut={<KbdGroup><Kbd variant=\"ghost\" mod /><Kbd variant=\"ghost\">D</Kbd></KbdGroup>} onClick={duplicate}>Duplicate</MenuItem>\n\t</MenuContent>\n</Menu>",
+          "imports": "import { Button, Kbd, KbdGroup, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from \"@sableui/react\""
         },
         {
           "label": "Toggling rows",
@@ -14223,7 +14232,7 @@
       "examples": [
         {
           "label": "Editor menus",
-          "code": "<Menubar aria-label=\"Editor\">\n\t<Menu>\n\t\t<MenubarTrigger>File</MenubarTrigger>\n\t\t<MenuContent>\n\t\t\t<MenuItem>New</MenuItem>\n\t\t\t<MenuItem>Open…</MenuItem>\n\t\t\t<MenuSeparator />\n\t\t\t<MenuItem>Save</MenuItem>\n\t\t</MenuContent>\n\t</Menu>\n\t<Menu>\n\t\t<MenubarTrigger>Edit</MenubarTrigger>\n\t\t<MenuContent>\n\t\t\t<MenuItem>Undo</MenuItem>\n\t\t\t<MenuItem>Redo</MenuItem>\n\t\t</MenuContent>\n\t</Menu>\n</Menubar>",
+          "code": "<Menubar aria-label=\"Editor\">\n\t<Menu>\n\t\t<MenubarTrigger>File</MenubarTrigger>\n\t\t<MenuContent>\n\t\t\t<MenuItem shortcut=\"Ctrl N\">New</MenuItem>\n\t\t\t<MenuItem shortcut=\"Ctrl O\">Open…</MenuItem>\n\t\t\t<MenuSeparator />\n\t\t\t<MenuItem shortcut=\"Ctrl S\">Save</MenuItem>\n\t\t</MenuContent>\n\t</Menu>\n\t<Menu>\n\t\t<MenubarTrigger>Edit</MenubarTrigger>\n\t\t<MenuContent>\n\t\t\t<MenuItem shortcut=\"Ctrl Z\">Undo</MenuItem>\n\t\t\t<MenuItem shortcut=\"Ctrl Shift Z\">Redo</MenuItem>\n\t\t</MenuContent>\n\t</Menu>\n</Menubar>",
           "imports": "import { Menu, Menubar, MenubarTrigger, MenuContent, MenuItem, MenuSeparator } from \"@sableui/react\""
         },
         {
@@ -24662,6 +24671,10 @@
           },
           {
             "guidance": "do",
+            "description": "In a layers panel, where the arrows should select, set `selectionFollowsFocus` (and aria-multiselectable when Shift extends) instead of handling ArrowUp/Down on the rows: the tree keeps Home/End, ←/→ and the tab stop, and the row's onClick stays the one selection path."
+          },
+          {
+            "guidance": "do",
             "description": "For a file tree, nest with `subtree` and use the icon convention: `icon={<Icon name=\"folder\" />}` on a row with a subtree, `icon={<Icon name=\"file\" />}` on a leaf. There are no folder/file presets — they would only bind those two props."
           },
           {
@@ -24812,6 +24825,12 @@
           "type": "\"full\" | \"subtle\" | \"off\"",
           "default": "\"full\"",
           "description": "On Tree. How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Under `subtle` expanded rows appear at once instead of unfolding; the chevron still turns."
+        },
+        {
+          "name": "selectionFollowsFocus",
+          "type": "boolean",
+          "default": "false",
+          "description": "On Tree. The arrow keys select the row they land on, as a layers panel does, instead of only moving focus. The row is activated as a click carrying the key's Shift, so its own onClick (reading event.shiftKey for a range) extends the selection on Shift+Arrow; Ctrl/⌘+Arrow moves without selecting. Only rows with an onClick are selected — a disclosure-only row or a TreeAddRow is just focused. Pass aria-multiselectable on the Tree when more than one row can be selected."
         }
       ],
       "subcomponents": [
@@ -24877,7 +24896,8 @@
       ],
       "a11y": [
         "Tree implements the ARIA tree view pattern: Tree is role=\"tree\", each TreeRow and TreeAddRow is role=\"treeitem\" with aria-level, expandable rows carry aria-expanded, and a TreeSection is a role=\"group\" labelled by its heading. Rows stay flat in the DOM — hierarchy is aria-level — so the fills span the panel's full width.",
-        "Keyboard: exactly one row is in the tab order (roving tabindex, seeded on the selected row, else the first). ArrowUp/Down move between visible rows; ArrowRight expands a collapsed row, then steps to its first child; ArrowLeft collapses an expanded row, else steps to its parent; Home/End jump to the ends; Enter/Space activate the row — its onClick, or toggling it when it has none. Keys pressed inside a row's own controls (an action button, a rename field) are left to that control.",
+        "Keyboard: exactly one row is in the tab order (roving tabindex, seeded on the selected row, else the first). ArrowUp/Down move between visible rows; ArrowRight expands a collapsed row, then steps to its first child; ArrowLeft collapses an expanded row, else steps to its parent; Home/End jump to the ends; Enter/Space activate the row — its onClick, or toggling it when it has none. Keys pressed inside a row's own controls (an action button, a rename field) are left to that control. Every key the tree handles is preventDefault-ed, so a page-wide arrow binding (a canvas nudge) should skip an event whose defaultPrevented is true rather than stopping propagation row by row.",
+        "With `selectionFollowsFocus`, selection moves with the arrows (Shift extends, Ctrl/⌘ moves focus only), matching the ARIA multi-select tree model; announce it with aria-multiselectable on the Tree.",
         "Selection has one mapping: inside a Tree, `selected` is aria-selected on the treeitem; outside a Tree the row is a plain div, where aria-selected is invalid, so it falls back to aria-current. A navigation tree that wants aria-current=\"page\" passes it through props.",
         "Each treeitem is named by its own label (aria-labelledby the name), never by the text of its icon or action buttons.",
         "The disclosure is a real button with aria-expanded and a label naming what it discloses, and it stops propagation so collapsing a group never changes the selection. Inside a Tree the treeitem carries aria-expanded and the arrow keys, so the button becomes a pointer target only: aria-hidden, out of the tab order, and it leaves focus where it was when clicked.",
@@ -24905,6 +24925,11 @@
         {
           "label": "Selection and disclosure",
           "code": "<Tree aria-label=\"Layers\">\n  <TreeRow\n    depth={0}\n    expandable\n    expanded={open}\n    onExpandedChange={setOpen}\n    toggleLabel=\"Group 1\"\n    icon={<Icon name=\"folder\" />}\n    selected\n    onClick={() => select(\"group-1\")}\n  >\n    Group 1\n  </TreeRow>\n  {open ? <TreeRow depth={1} icon={<Icon name=\"file\" />}>Child</TreeRow> : null}\n</Tree>",
+          "imports": "import { Icon, Tree, TreeRow } from \"@sableui/react\""
+        },
+        {
+          "label": "Selection follows the arrows, Shift extends",
+          "code": "// A layers panel: the arrows select as they move. The row's own onClick is\n// the one selection path; Shift+Arrow arrives as a click with shiftKey.\n<Tree aria-label=\"Layers\" aria-multiselectable selectionFollowsFocus>\n  {layers.map((layer) => (\n    <TreeRow\n      key={layer.id}\n      icon={<Icon name=\"image-stack\" />}\n      selected={selection.includes(layer.id)}\n      onClick={(event) => (event.shiftKey ? extendTo(layer.id) : selectOnly(layer.id))}\n    >\n      {layer.name}\n    </TreeRow>\n  ))}\n</Tree>",
           "imports": "import { Icon, Tree, TreeRow } from \"@sableui/react\""
         },
         {
@@ -29888,6 +29913,7 @@
         "nativeButton",
         "onClick",
         "render",
+        "shortcut",
         "style",
         "variant"
       ],
@@ -30388,6 +30414,7 @@
         "onCheckedChange",
         "onClick",
         "render",
+        "shortcut",
         "style"
       ],
       "MenuContent": [
@@ -30423,6 +30450,7 @@
         "nativeButton",
         "onClick",
         "render",
+        "shortcut",
         "style",
         "variant"
       ],
@@ -31837,7 +31865,8 @@
         "style"
       ],
       "Tree": [
-        "motion"
+        "motion",
+        "selectionFollowsFocus"
       ],
       "TreeAddRow": [
         "depth",

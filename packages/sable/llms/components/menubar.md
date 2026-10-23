@@ -69,17 +69,17 @@ import { Menu, Menubar, MenubarTrigger, MenuContent, MenuItem, MenuSeparator } f
 	<Menu>
 		<MenubarTrigger>File</MenubarTrigger>
 		<MenuContent>
-			<MenuItem>New</MenuItem>
-			<MenuItem>Open…</MenuItem>
+			<MenuItem shortcut="Ctrl N">New</MenuItem>
+			<MenuItem shortcut="Ctrl O">Open…</MenuItem>
 			<MenuSeparator />
-			<MenuItem>Save</MenuItem>
+			<MenuItem shortcut="Ctrl S">Save</MenuItem>
 		</MenuContent>
 	</Menu>
 	<Menu>
 		<MenubarTrigger>Edit</MenubarTrigger>
 		<MenuContent>
-			<MenuItem>Undo</MenuItem>
-			<MenuItem>Redo</MenuItem>
+			<MenuItem shortcut="Ctrl Z">Undo</MenuItem>
+			<MenuItem shortcut="Ctrl Shift Z">Redo</MenuItem>
 		</MenuContent>
 	</Menu>
 </Menubar>

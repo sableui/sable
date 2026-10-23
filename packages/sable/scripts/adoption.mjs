@@ -94,7 +94,7 @@ const ALIASES = {
 	searchbox: ["SearchInput"], searchfield: ["SearchInput"], iconbutton: ["Button"], fileupload: ["FileDropzone"],
 	uploader: ["FileDropzone"], dropzone: ["FileDropzone"], collapse: ["Collapsible"], disclosure: ["Collapsible"],
 	commandpalette: ["CommandMenu"], datepicker: ["DatePicker"], toggleswitch: ["Switch"], segmentedcontrol: ["Tabs", "ButtonGroup"],
-	tabbar: ["Tabs", "BottomNav"], navbar: ["AppHeader", "NavigationMenu"], topbar: ["AppHeader"], breadcrumb: ["Breadcrumbs"],
+	tabbar: ["Tabs", "BottomNav"], navbar: ["AppHeader", "NavigationMenu"], topbar: ["WorkspaceBar", "AppHeader"], breadcrumb: ["Breadcrumbs"],
 	chip: ["Pill", "Badge"], tag: ["Badge"], alert: ["Banner"], callout: ["Note"], confirmdialog: ["DestructiveActionModal", "Dialog"],
 	contextmenu: ["ContextMenu"], hovercard: ["ContextCard"], numberinput: ["NumberField"], otpinput: ["OtpField"], pininput: ["OtpField"],
 	colorpicker: ["ColorField"], rating: ["RadioCard"], stepper: ["Stepper"], wizard: ["Stepper"], kbd: ["Kbd"],

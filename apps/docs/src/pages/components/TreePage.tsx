@@ -47,7 +47,9 @@ function TreeDemo() {
 				style={broken ? ({ "--tree-indent": "10px" } as React.CSSProperties) : undefined}
 				className="sable-frame sable-frame-tool overflow-hidden w-(--panel-width) bg-panel"
 			>
-				<Tree aria-label="Layers">
+				{/* selectionFollowsFocus: the arrows select as they move, as in a
+				    layers panel; Tab back in lands on the selected row. */}
+				<Tree aria-label="Layers" selectionFollowsFocus>
 					<TreeSection title="Document effects" hint="Applied to the flattened composite">
 						<TreeRow
 							depth={0}
@@ -199,7 +201,7 @@ export function TreePage() {
 
 			<Section
 				title="Live preview"
-				description="Select a row, open and close a group, hover a row to hide it. The switch shows the broken nesting this component prevents."
+				description="Select a row, open and close a group, hover a row to hide it. From the keyboard the arrows select as they move (selectionFollowsFocus); an add row is only focused. The switch shows the broken nesting this component prevents."
 			>
 				<TreeDemo />
 			</Section>

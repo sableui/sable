@@ -1,6 +1,7 @@
 import { act, render, screen } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
 import { axe } from "jest-axe"
+import { useState } from "react"
 import { describe, expect, it, vi } from "vitest"
 import { IconProvider } from "../../icon"
 import { reiconIconSet } from "../../icon-sets/reicon"
@@ -528,6 +529,64 @@ describe("Tree — keyboard navigation", () => {
 		more.focus()
 		await userEvent.keyboard("{ArrowDown}")
 		expect(more).toHaveFocus()
+	})
+})
+
+describe("Tree — selectionFollowsFocus", () => {
+	/** A layers list: each row selects on click, Shift extends from the anchor. */
+	function Layers({ follows = true }: { follows?: boolean }) {
+		const names = ["Title", "Photo", "Grain"]
+		const [selected, setSelected] = useState<string[]>(["Title"])
+		const [anchor, setAnchor] = useState("Title")
+		const select = (name: string, shift: boolean) => {
+			if (!shift) {
+				setSelected([name])
+				setAnchor(name)
+				return
+			}
+			const [a, b] = [names.indexOf(anchor), names.indexOf(name)].sort((x, y) => x - y)
+			setSelected(names.slice(a, b + 1))
+		}
+		return (
+			<Tree aria-label="Layers" aria-multiselectable selectionFollowsFocus={follows}>
+				{names.map((name) => (
+					<TreeRow key={name} selected={selected.includes(name)} onClick={(e) => select(name, e.shiftKey)}>
+						{name}
+					</TreeRow>
+				))}
+				<TreeAddRow label="Add layer" onClick={() => setSelected(["added"])} />
+			</Tree>
+		)
+	}
+	const isSelected = (name: string) => screen.getByRole("treeitem", { name }).getAttribute("aria-selected") === "true"
+
+	it("selects the row the arrows land on, and Shift+Arrow extends through the row's own onClick", async () => {
+		render(<Layers />)
+		screen.getByRole("treeitem", { name: "Title" }).focus()
+		await userEvent.keyboard("{ArrowDown}")
+		expect(screen.getByRole("treeitem", { name: "Photo" })).toHaveFocus()
+		expect([isSelected("Title"), isSelected("Photo")]).toEqual([false, true])
+		await userEvent.keyboard("{Shift>}{ArrowDown}{/Shift}")
+		expect([isSelected("Photo"), isSelected("Grain")]).toEqual([true, true])
+	})
+
+	it("moves without selecting on Ctrl+Arrow, and never clicks an add row", async () => {
+		render(<Layers />)
+		screen.getByRole("treeitem", { name: "Title" }).focus()
+		await userEvent.keyboard("{Control>}{ArrowDown}{/Control}")
+		expect(screen.getByRole("treeitem", { name: "Photo" })).toHaveFocus()
+		expect(isSelected("Title")).toBe(true)
+		await userEvent.keyboard("{End}")
+		expect(screen.getByRole("treeitem", { name: "Add layer" })).toHaveFocus()
+		expect(isSelected("Title")).toBe(true)
+	})
+
+	it("only moves focus without it", async () => {
+		render(<Layers follows={false} />)
+		screen.getByRole("treeitem", { name: "Title" }).focus()
+		await userEvent.keyboard("{ArrowDown}")
+		expect(screen.getByRole("treeitem", { name: "Photo" })).toHaveFocus()
+		expect(isSelected("Title")).toBe(true)
 	})
 })
 

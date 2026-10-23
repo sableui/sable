@@ -468,6 +468,31 @@ export function App({ rows }) {
 		expect(report.score).toBe(100)
 	})
 
+	it("notes an app's menus written side by side instead of a Menubar, and not a row menu", () => {
+		// Glitch's File / Edit bar: a local wrapper rendering Menu + MenuTrigger,
+		// called once per title. ←/→ never left File (observed 2026-10-23).
+		const BAR = `import { Button, Icon, Menu, MenuContent, MenuItem, MenuTrigger } from "@sableui/react"
+function BarMenu({ label, children }) {
+	return <Menu><MenuTrigger render={<Button size="sm" variant="ghost">{label}</Button>} /><MenuContent>{children}</MenuContent></Menu>
+}
+export function TopBar() {
+	return <div><BarMenu label="File"><MenuItem>Open</MenuItem></BarMenu><BarMenu label="Edit"><MenuItem>Undo</MenuItem></BarMenu></div>
+}`
+		const ROWS = `import { Button, Icon, Menu, MenuContent, MenuItem, MenuTrigger } from "@sableui/react"
+function RowMenu({ id }) {
+	return <Menu><MenuTrigger render={<Button size="icon-xs" variant="ghost" aria-label="Row actions"><Icon name="more" /></Button>} /><MenuContent><MenuItem>Delete</MenuItem></MenuContent></Menu>
+}
+export function Rows({ ids }) {
+	return <ul><li><RowMenu id="a" /></li><li><RowMenu id="b" /></li><li><RowMenu id="c" /></li></ul>
+}`
+		const dir = makeFixture()
+		writeFileSync(join(dir, "TopBar.tsx"), BAR)
+		writeFileSync(join(dir, "Rows.tsx"), ROWS)
+		const items = (run(dir, ["TopBar.tsx", "Rows.tsx"]).data.rebuiltParts.items as { file: string; kind: string; what: string; consider: string }[]).filter((i) => i.kind === "composition")
+		expect(items.map((i) => [i.file.split("/").at(-1), i.what])).toEqual([["TopBar.tsx", "2 menus side by side, each its own"]])
+		expect(items[0]?.consider).toMatch(/^Menubar/)
+	})
+
 	it("says nothing when the rail, the tabs and the table use their own parts", () => {
 		const dir = makeFixture()
 		writeFileSync(join(dir, "Tracker.tsx"), FINE)

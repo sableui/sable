@@ -90,8 +90,32 @@ export type ItemContent = {
 	description?: ReactNode
 }
 
+export type ItemShortcut = {
+	/**
+	 * The key that runs this action from outside the menu, end-aligned in the
+	 * row so a column of them lines up: text ("Ctrl S") or ghost Kbd caps. It
+	 * stays muted under the highlight, as a description does. Display only: bind
+	 * the key yourself, and pass `aria-keyshortcuts` when it is a real binding.
+	 */
+	shortcut?: ReactNode
+}
+
+/**
+ * The shortcut column of a menu row. Shared with ContextMenuItem so the two
+ * cannot drift apart. `ms-auto` takes the row's spare width, `ps-4` keeps a
+ * long label off the keys.
+ */
+export function MenuItemShortcut({ children }: { children: ReactNode }) {
+	return (
+		<span data-slot="menu-item-shortcut" className="ms-auto shrink-0 ps-4 text-muted-foreground tabular-nums">
+			{children}
+		</span>
+	)
+}
+
 type ItemProps = Omit<ComponentProps<typeof Base.Item>, "className"> &
-	ItemContent & {
+	ItemContent &
+	ItemShortcut & {
 		className?: string
 		/**
 		 * `destructive` for an action that deletes or cannot be undone. It keeps the
@@ -145,7 +169,7 @@ export const MENU_ITEM_DESTRUCTIVE =
 	"text-[color-mix(in_oklch,var(--destructive-text)_75%,var(--foreground))] data-[highlighted]:bg-destructive-mark/10 data-[highlighted]:text-[color-mix(in_oklch,var(--destructive-text)_75%,var(--foreground))]"
 
 /** A single interactive row. Highlights via Base UI's data-[highlighted]. */
-export function MenuItem({ className, variant = "default", icon, description, children, ...props }: ItemProps) {
+export function MenuItem({ className, variant = "default", icon, description, shortcut, children, ...props }: ItemProps) {
 	const tier = useTypeTier()
 	const content = useItemContent(children as ReactNode, { icon, description })
 	return (
@@ -154,6 +178,7 @@ export function MenuItem({ className, variant = "default", icon, description, ch
 			{...props}
 		>
 			{content}
+			{shortcut != null ? <MenuItemShortcut>{shortcut}</MenuItemShortcut> : null}
 		</Base.Item>
 	)
 }
@@ -343,7 +368,8 @@ export function MenuRadioItem({ className, children, ...props }: RadioItemProps)
 type CheckboxItemProps = Omit<
 	ComponentProps<typeof Base.CheckboxItem>,
 	"className"
-> & { className?: string }
+> &
+	ItemShortcut & { className?: string }
 
 /**
  * A toggling row. Same reserved leading column as MenuRadioItem, so a menu
@@ -351,6 +377,7 @@ type CheckboxItemProps = Omit<
  */
 export function MenuCheckboxItem({
 	className,
+	shortcut,
 	children,
 	...props
 }: CheckboxItemProps) {
@@ -369,6 +396,7 @@ export function MenuCheckboxItem({
 				</Base.CheckboxItemIndicator>
 			</span>
 			<span className="flex-1 truncate">{children}</span>
+			{shortcut != null ? <MenuItemShortcut>{shortcut}</MenuItemShortcut> : null}
 		</Base.CheckboxItem>
 	)
 }

@@ -2,7 +2,7 @@ import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 import { renderWithProviders, screen } from "../../test/render"
 import { Button } from "../button"
-import { Menu, MenuContent, MenuItem, MenuLinkItem, MenuSubmenu, MenuSubmenuTrigger, MenuTrigger } from "./menu"
+import { Menu, MenuCheckboxItem, MenuContent, MenuItem, MenuLinkItem, MenuSubmenu, MenuSubmenuTrigger, MenuTrigger } from "./menu"
 
 function PageActions({ onCopy = () => undefined }: { onCopy?: () => void }) {
 	return (
@@ -75,5 +75,31 @@ describe("MenuSubmenuTrigger icon", () => {
 		// The icon is the row's first child, as it is in MenuItem.
 		expect(trigger.firstElementChild).toBe(screen.getByTestId("submenu-icon"))
 		expect(screen.getByRole("menuitem", { name: "Settings" }).firstElementChild).toBe(screen.getByTestId("item-icon"))
+	})
+})
+
+describe("Menu row shortcuts", () => {
+	it("ends the row with the shortcut, muted, on MenuItem and MenuCheckboxItem", async () => {
+		renderWithProviders(
+			<Menu>
+				<MenuTrigger render={<Button>Edit</Button>} />
+				<MenuContent>
+					<MenuItem shortcut="Ctrl Z">Undo</MenuItem>
+					<MenuCheckboxItem shortcut="Ctrl R">Show ruler</MenuCheckboxItem>
+					<MenuItem>Select all</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+		await userEvent.click(screen.getByRole("button", { name: "Edit" }))
+		const undo = await screen.findByRole("menuitem", { name: /Undo/ })
+		const shortcut = undo.querySelector('[data-slot="menu-item-shortcut"]')
+		expect(shortcut).toHaveTextContent("Ctrl Z")
+		expect(undo.lastElementChild).toBe(shortcut)
+		expect(shortcut?.className).toContain("ms-auto")
+		expect(shortcut?.className).toContain("text-muted-foreground")
+		const ruler = screen.getByRole("menuitemcheckbox", { name: /Show ruler/ })
+		expect(ruler.querySelector('[data-slot="menu-item-shortcut"]')).toHaveTextContent("Ctrl R")
+		// No column when there is no shortcut.
+		expect(screen.getByRole("menuitem", { name: "Select all" }).querySelector('[data-slot="menu-item-shortcut"]')).toBeNull()
 	})
 })
