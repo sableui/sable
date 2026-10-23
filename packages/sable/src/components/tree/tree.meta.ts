@@ -215,7 +215,14 @@ export const treeMeta: ComponentMeta = {
 			type: "boolean",
 			default: "false",
 			description:
-				"On Tree. The arrow keys select the row they land on, as a layers panel does, instead of only moving focus. The row is activated as a click carrying the key's Shift, so its own onClick (reading event.shiftKey for a range) extends the selection on Shift+Arrow; Ctrl/⌘+Arrow moves without selecting. Only rows with an onClick are selected — a disclosure-only row or a TreeAddRow is just focused. Pass aria-multiselectable on the Tree when more than one row can be selected.",
+				"On Tree. The arrow keys select the row they land on, as a layers panel does, instead of only moving focus. The row is activated as a click carrying the key's Shift, so its own onClick (reading event.shiftKey for a range) extends the selection on Shift+Arrow; Ctrl/⌘+Arrow moves without selecting. Only rows with an onClick are selected — a disclosure-only row, a TreeAddRow or a row with selectOnFocus={false} is just focused. Pass aria-multiselectable on the Tree when more than one row can be selected.",
+		},
+		{
+			name: "selectOnFocus",
+			type: "boolean",
+			default: "true",
+			description:
+				"On TreeRow. Pass false for a row whose click does more than select — it switches the active document, or opens itself — so the Tree's selectionFollowsFocus only focuses it as the arrows pass and the tree doesn't reshape under the cursor. Enter/Space and a pointer click still activate it.",
 		},
 	],
 	subcomponents: [

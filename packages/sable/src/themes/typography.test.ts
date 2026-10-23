@@ -119,6 +119,16 @@ describe("typography art direction", () => {
 		})
 	})
 
+	it("compresses code in a compact scope to the chrome sizes, keeping its own weight", () => {
+		// A CodeBlock beside xs inputs in a compact dialog stayed at 13px.
+		const compact = css.slice(css.indexOf("The type half of the density ladder"))
+		const rule = (tier: string) => compact.match(new RegExp(`& \\.text-${tier}:not[^{]*\\{([^}]+)\\}`))?.[1] ?? ""
+		expect(rule("mono-md")).toContain("var(--type-ui-md-size, 12px)")
+		expect(rule("mono-caption")).toContain("var(--type-ui-sm-size, 11px)")
+		for (const tier of ["mono-md", "mono-caption"]) expect(rule(tier), tier).not.toContain("font-weight")
+		expect(rule("mono-lg")).toBe("")
+	})
+
 	it("gives a compact panel title its own tier above the description", () => {
 		const title = utilities.find((u) => u[1] === "ui-title")?.[2] ?? ""
 		expect(title).toContain("font-size: var(--type-ui-title-size, 14px)")

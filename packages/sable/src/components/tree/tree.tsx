@@ -244,7 +244,8 @@ type TreeProps = ComponentProps<"div"> & {
 	 * carrying the key's Shift, so the row's own `onClick` (which already reads
 	 * `event.shiftKey` for a range) extends the selection on Shift+Arrow.
 	 * Ctrl/⌘+Arrow moves focus without selecting. Only rows with an `onClick`
-	 * are selected: a disclosure-only row or a TreeAddRow is just focused.
+	 * are selected: a disclosure-only row, a TreeAddRow, or a row with
+	 * `selectOnFocus={false}` is just focused.
 	 * @default false
 	 */
 	selectionFollowsFocus?: boolean
@@ -434,6 +435,14 @@ type RowProps = ComponentProps<"div"> & {
 	/** Half-opacity, for a row whose contribution is currently switched off. */
 	dimmed?: boolean
 	/**
+	 * Whether Tree's `selectionFollowsFocus` clicks this row when an arrow lands
+	 * on it. Pass false for a row whose click does more than select (it switches
+	 * the active document, or opens itself), so arrowing past it doesn't reshape
+	 * the tree: the row is focused, and Enter/Space still activate it.
+	 * @default true
+	 */
+	selectOnFocus?: boolean
+	/**
 	 * Whether this row has children to disclose.
 	 * @default true when `subtree` is passed, else false
 	 */
@@ -505,6 +514,7 @@ export function TreeRow({
 	id: idProp,
 	onClick,
 	onFocus,
+	selectOnFocus = true,
 	children,
 	...props
 }: RowProps) {
@@ -551,8 +561,8 @@ export function TreeRow({
 			id={item.inTree ? item.id : idProp}
 			data-selected={selected || undefined}
 			// Rows with their own onClick select; Tree's selectionFollowsFocus
-			// activates only these.
-			data-tree-select={item.inTree && onClick ? "" : undefined}
+			// activates only these, and only those that haven't opted out.
+			data-tree-select={item.inTree && onClick && selectOnFocus ? "" : undefined}
 			// One mapping (see "Tree semantics"): a treeitem exposes selection with
 			// aria-selected; outside a Tree the row is a plain div, where only
 			// aria-current is valid. `data-selected` is the styling hook for both.

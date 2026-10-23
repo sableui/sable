@@ -1760,6 +1760,18 @@
 		font-weight: var(--type-ui-title-weight, 600);
 		line-height: var(--type-ui-title-leading, 20px);
 	}
+	/* Code and technical values follow too. A CodeBlock in a compact settings
+	   screen stayed at 13px beside 12px xs inputs showing the same endpoint in
+	   the same face (Glitch, 2026-10-23). Sizes only: code keeps its own 400
+	   weight, never the chrome's 500, and mono-lg/-xl stay metric display. */
+	& .text-mono-md:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
+		font-size: min(calc(0.8125rem * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
+		line-height: var(--type-ui-leading, 16px);
+	}
+	& .text-mono-caption:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
+		font-size: min(calc(0.75rem * var(--type-base, 16) / 16), var(--type-ui-sm-size, 11px));
+		line-height: var(--type-ui-leading, 16px);
+	}
 }
 
 /* ==========================================================================

@@ -581,6 +581,26 @@ describe("Tree — selectionFollowsFocus", () => {
 		expect(isSelected("Title")).toBe(true)
 	})
 
+	it("only focuses a row that opts out with selectOnFocus={false}, which Enter still activates", async () => {
+		// Glitch's artboard rows switch the active artboard and expand on click;
+		// arrowing past one reshaped the tree under the cursor.
+		const onArtboard = vi.fn()
+		render(
+			<Tree aria-label="Layers" selectionFollowsFocus>
+				<TreeRow onClick={() => undefined}>Title</TreeRow>
+				<TreeRow selectOnFocus={false} onClick={onArtboard}>
+					Artboard 2
+				</TreeRow>
+			</Tree>,
+		)
+		screen.getByRole("treeitem", { name: "Title" }).focus()
+		await userEvent.keyboard("{ArrowDown}")
+		expect(screen.getByRole("treeitem", { name: "Artboard 2" })).toHaveFocus()
+		expect(onArtboard).not.toHaveBeenCalled()
+		await userEvent.keyboard("{Enter}")
+		expect(onArtboard).toHaveBeenCalledOnce()
+	})
+
 	it("only moves focus without it", async () => {
 		render(<Layers follows={false} />)
 		screen.getByRole("treeitem", { name: "Title" }).focus()

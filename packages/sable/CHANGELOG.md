@@ -1,5 +1,21 @@
 # What's new
 
+## 0.20.1
+
+Glitch adopted 0.20 and reported back. Two of the four gaps were Sable's.
+
+- **`TreeRow selectOnFocus={false}`.** With `Tree selectionFollowsFocus`, the
+  arrows clicked every row with an `onClick`, including Glitch's artboard
+  rows, whose click switches the active artboard and expands it, so the tree
+  changed shape as you arrowed through it. A row that opts out is only
+  focused as the arrows pass; Enter, Space and a pointer click still activate
+  it.
+- **Code follows compact density.** `text-mono-md` and `text-mono-caption`
+  compress to the chrome sizes (12px and 11px) inside a compact scope, as the
+  body and label tiers already did. A CodeBlock in a compact settings screen
+  stayed at 13px beside 12px inputs. Code keeps its own weight; `mono-lg` and
+  `mono-xl` stay metric display.
+
 ## 0.20.0
 
 A second audit of Glitch, a design tool built on Sable, after its upgrade to
