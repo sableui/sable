@@ -595,16 +595,42 @@ for (const c of COMPONENTS)
 	}
 const findPart = (name) => PARTS.get(String(name).toLowerCase())
 
+/**
+ * Names models carry over from other libraries. A fuzzy match sends them
+ * somewhere wrong (Box → Checkbox, Container → FontPicker), so a miss on one of
+ * these names Sable's answer instead.
+ */
+const ELSEWHERE = {
+	box: "Sable has no Box: lay out with Stack or Row (sable layout Stack), paint an area with sable-surface (sable utility sable-surface).",
+	container: "Sable has no Container: a page's width is a Region (sable layout Region).",
+	flex: "Sable has no Flex: use Stack for a column, Row for a row (sable layout Stack).",
+	modal: "Sable's modal is Dialog (sable component Dialog).",
+	text: "Sable has no Text: write p or span with the type scale (sable docs typography).",
+	typography: "Sable has no Typography component: write semantic elements with the type scale (sable docs typography).",
+	heading: "Sable has no Heading: write h1–h6 with the type scale (sable docs typography).",
+}
+
+/** A name that misses as a component but is a layout primitive, pattern or block points to that command. */
+function elsewhere(name) {
+	const key = name.toLowerCase()
+	for (const [kind, label, items] of [["layout", "a layout primitive", PRIMITIVES], ["pattern", "a pattern", PATTERNS], ["block", "a block", BLOCKS]]) {
+		const m = items.find((x) => x.name.toLowerCase() === key)
+		if (m) return `${m.name} is ${label}: sable ${kind} ${m.name}`
+	}
+	return ELSEWHERE[key]
+}
+
 function findComponent(name) {
 	const hit = COMPONENTS.find((c) => c.name.toLowerCase() === name.toLowerCase())
 	if (hit) return hit
 	const part = findPart(name)
 	if (part) return { ...part.parent, partOf: part.parent.name, part: part.part }
+	const redirect = elsewhere(name)
 	fail(
 		"ERR_UNKNOWN_COMPONENT",
 		`No component named "${name}".`,
 		[
-			...nearest(name, [...COMPONENTS, ...PROVIDERS].map((c) => c.name).concat([...PARTS.values()].map((p) => p.part.name))).map((n) => `Did you mean ${n}?`),
+			...(redirect ? [redirect] : nearest(name, [...COMPONENTS, ...PROVIDERS].map((c) => c.name).concat([...PARTS.values()].map((p) => p.part.name))).map((n) => `Did you mean ${n}?`)),
 			`sable search "${name}" — searches summaries and keywords too`,
 			"sable component --list",
 		],

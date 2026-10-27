@@ -33,6 +33,7 @@ const PROTOCOLS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"]
 const INSTRUCTIONS = [
 	`Sable (${PACKAGE}) catalog: the same answers as the \`sable\` CLI that ships in the package.`,
 	"Start with `search`, then `get` the entries it names.",
+	"Answers name CLI commands: `sable <kind> <Name>` is `get` with that kind and name, `sable search` is `search`, `sable docs` is `docs`.",
 	"If the project already has the package installed, prefer `pnpm exec sable …`: it runs offline at the installed version.",
 	"Otherwise pass `version` (the installed one) so answers match it.",
 	"Not installed yet? `pnpm add @sableui/react`, then `pnpm exec sable init`.",

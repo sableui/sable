@@ -68,6 +68,15 @@ describe("error envelopes", () => {
 		expect(err.suggestions.join(" ")).toContain("Button")
 	})
 
+	it("points a layout primitive or another library's name at Sable's answer, not a fuzzy match", () => {
+		// `component Stack` used to suggest Tabs, and `component Box` Checkbox.
+		const first = (name: string) => JSON.parse(run(["component", name, "--json"]).out).suggestions[0]
+		expect(first("Stack")).toBe("Stack is a layout primitive: sable layout Stack")
+		expect(first("DashboardPage")).toBe("DashboardPage is a pattern: sable pattern DashboardPage")
+		expect(first("Box")).toContain("Stack or Row")
+		expect(first("Modal")).toContain("Dialog")
+	})
+
 	it("resolves an exported part to the entry that documents it instead of ERR_UNKNOWN_COMPONENT", () => {
 		// `sable component PropertyRow` used to fail, so an agent that knew the
 		// right name decided the part did not exist and built its own row.

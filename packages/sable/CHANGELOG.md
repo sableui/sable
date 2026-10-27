@@ -1,5 +1,15 @@
 # What's new
 
+## 0.21.1
+
+- **Misses that point somewhere useful.** `sable component Stack` suggested
+  Tabs, and `Box` suggested Checkbox. A name that is a layout primitive,
+  pattern or block now names the command that has it (`sable layout Stack`),
+  and the names models bring from other libraries (Box, Container, Flex,
+  Modal, Text, Typography, Heading) get Sable's answer. Misspellings still
+  get the nearest match. The hosted MCP gives the same answers, and its
+  instructions now map the CLI commands in them to its tools.
+
 ## 0.21.0
 
 An agent gets its own face.
