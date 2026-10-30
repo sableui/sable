@@ -71,6 +71,40 @@ describe("GradientArt", () => {
 		expect(background.match(/calc\(c \* 0\.5\)/g)).toHaveLength(3)
 	})
 
+	it("paints linear art as two neighbouring colours, with no shader", () => {
+		const { container } = renderWithProviders(<GradientArt variant="linear" seed="MO" />)
+		const background = root(container).style.background
+		expect(background).toMatch(/^linear-gradient\(135deg in oklab, /)
+		expect(background.match(/min\(calc\(l \+ 0\.06\), 0\.97\) c calc\(h \+ 45\)/g)).toHaveLength(1)
+		expect(container.querySelector("canvas")).toBeNull()
+		expect(root(container)).toHaveAttribute("data-variant", "linear")
+	})
+
+	it("leads linear art with a slot every preset sets, never an optional one", () => {
+		const lead = (seed: string) => root(renderWithProviders(<GradientArt variant="linear" seed={seed} />).container).style.background
+		const seeds = Array.from({ length: 40 }, (_, i) => `person ${i}`)
+		for (const seed of seeds) expect(lead(seed)).toMatch(/var\(--art-[1-4]\)/)
+		expect(new Set(seeds.map((seed) => /var\(--art-\d\)/.exec(lead(seed))?.[0])).size).toBe(4)
+	})
+
+	it("paints vivid linear art bright and saturated, and leaves soft a pastel", () => {
+		const paint = (intensity: "vivid" | "soft") => root(renderWithProviders(<GradientArt variant="linear" seed="MO" intensity={intensity} />).container).style.background
+		const lead = /0\.\d{3} min\(calc\(c \* 1\.6\), 0\.24\) h\)/
+		expect(paint("vivid")).toMatch(lead)
+		expect(paint("soft")).not.toMatch(lead)
+		expect(paint("soft")).toContain("calc(c * 0.5)")
+	})
+
+	it("sets a linear lead's lightness by seed, inside the bright band", () => {
+		const light = (seed: string) => Number(/(0\.\d{3}) min\(calc\(c \* 1\.6\), 0\.24\) h\)/.exec(root(renderWithProviders(<GradientArt variant="linear" seed={seed} />).container).style.background)?.[1])
+		const lights = Array.from({ length: 40 }, (_, i) => light(`person ${i}`))
+		for (const l of lights) {
+			expect(l).toBeGreaterThanOrEqual(0.58)
+			expect(l).toBeLessThanOrEqual(0.66)
+		}
+		expect(new Set(lights).size).toBeGreaterThan(10)
+	})
+
 	it("hides the art from assistive tech and renders children above it", () => {
 		renderWithProviders(
 			<GradientArt seed="Mara Okafor" aria-label="Mara Okafor" role="img">

@@ -56,7 +56,7 @@ Use Avatar to represent a person, team, or account with a compact visual identit
 | size | "2xs" \| "xs" \| "sm" \| "md" \| "lg" \| "xl" \| "2xl" | "md" | Square footprint: 20px / 24px for compact workspace rows; 32px / 40px / 48px for rows; 96px / 160px for portraits (a profile header, an artist hero, a roster tile). The initials, a status indicator and its cut-out ring scale with it, and at the portrait sizes the photo fades in over the resting surface. |
 | shape | "circle" \| "square" | "circle" | The frame's corner. circle is a person. square is what is not a face — a workspace, a project, an org, a team — with a radius from the theme's steps that grows with the size (4px at 20–24px to 20px at 160px), so a square theme stays square. A status indicator sits on the square's corner. |
 | tone | "neutral" \| "red" \| "orange" \| "yellow" \| "green" \| "teal" \| "blue" \| "purple" \| "pink" | "neutral" | The fallback's colour. neutral is the muted surface; a palette family paints its wash behind the initials and its deep ink on them (a soft Badge's pair, held to contrast in every theme), for a category colour such as one per project. Ignored by variant="art", which colours by seed. |
-| variant | "neutral" \| "art" | "neutral" | What the fallback looks like. neutral: initials on the muted surface. art: initials over GradientArt seeded by the person, so each person without a photo gets their own stable colour from the theme. |
+| variant | "neutral" \| "art" | "neutral" | What the fallback looks like. neutral: initials on the muted surface. art: initials over a two-colour GradientArt (variant="linear") seeded by the person, so each person without a photo gets their own stable colour from the theme. |
 | seed | string \| number | — | The art variant's seed. Defaults to the fallback text, then `alt`, so a person keeps one colour wherever they appear; pass a user id to tell apart two people who share initials. |
 
 ## Variants
@@ -67,7 +67,7 @@ Use Avatar to represent a person, team, or account with a compact visual identit
 
 ## Tokens used
 
-`muted`, `muted-foreground`, `background`, `card`, `popover`, `overlay`, `overlay-foreground`
+`muted`, `muted-foreground`, `background`, `card`, `popover`, `overlay-foreground`
 
 ## Motion
 

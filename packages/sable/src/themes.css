@@ -25,6 +25,3 @@
 @import "./themes/verdant/verdant.css";
 @import "./themes/ember/ember.css";
 @import "./themes/poppy/poppy.css";
-
-/* Legacy selectors remain available for existing consumers. */
-@import "./themes/atelier/atelier.css";

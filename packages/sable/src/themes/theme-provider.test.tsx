@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react"
+import type { ComponentProps } from "react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import {
 	SABLE_COLOR_STORAGE_KEY,
@@ -76,7 +77,7 @@ function Probe() {
 afterEach(resetRootTheme)
 
 describe("SableThemeProvider", () => {
-	it.each(["retired-theme", "atelier", "base"])("migrates stored %s to Sable and features six presets", (legacyId) => {
+	it.each(["retired-theme", "base"])("migrates stored %s to Sable and features six presets", (legacyId) => {
 		window.localStorage.setItem(SABLE_THEME_STORAGE_KEY, legacyId)
 		function PresetProbe() {
 			const { themeId, themes } = useSableTheme()
@@ -85,6 +86,17 @@ describe("SableThemeProvider", () => {
 		render(<SableThemeProvider><PresetProbe /></SableThemeProvider>)
 		expect(screen.getByTestId("presets")).toHaveTextContent("sable:sable,meridian,prism,verdant,ember,poppy")
 		expect(document.documentElement).not.toHaveAttribute(SABLE_THEME_ATTRIBUTE)
+	})
+	it("moves a stored deprecated theme to its replacement", () => {
+		window.localStorage.setItem(SABLE_THEME_STORAGE_KEY, "old-brand")
+		const customThemes = [
+			{ id: "old-brand", label: "Old brand", deprecated: { replacement: "ember" }, modes: ["light"], defaultMode: "light" },
+		] as ComponentProps<typeof SableThemeProvider>["customThemes"]
+		function ThemeProbe() {
+			return <p data-testid="theme">{useSableTheme().themeId}</p>
+		}
+		render(<SableThemeProvider customThemes={customThemes}><ThemeProbe /></SableThemeProvider>)
+		expect(screen.getByTestId("theme")).toHaveTextContent("ember")
 	})
 	it.each([
 		[false, "light"],

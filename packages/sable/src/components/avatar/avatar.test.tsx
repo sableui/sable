@@ -217,6 +217,15 @@ describe("Avatar art fallback", () => {
 		const { container } = render(<Avatar fallback="MO" alt="Mara Okafor" />)
 		expect(art(container)).toBeNull()
 	})
+
+	// A mesh turns to mud at avatar size, and a shader per face costs a frame for nothing.
+	it("paints a plain two-colour gradient, with no shader and no scrim over it", () => {
+		const { container } = render(<Avatar variant="art" fallback="MO" alt="Mara Okafor" />)
+		expect(art(container)).toHaveAttribute("data-variant", "linear")
+		expect(container.querySelector("canvas")).toBeNull()
+		expect(container.querySelector('[class*="bg-overlay"]')).toBeNull()
+		expect(art(container)?.className).toContain("text-overlay-foreground")
+	})
 })
 
 describe("Avatar shape, tone and dense sizes", () => {

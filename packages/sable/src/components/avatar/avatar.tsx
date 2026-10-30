@@ -140,8 +140,9 @@ export interface AvatarProps extends RootProps {
 	status?: ReactNode
 	/**
 	 * What shows when there is no image. `neutral` (default): initials on the
-	 * muted surface. `art`: initials over GradientArt seeded by the person, so
-	 * everyone without a photo still gets their own, stable colour from the theme.
+	 * muted surface. `art`: initials over a two-colour GradientArt seeded by the
+	 * person, so everyone without a photo still gets their own, stable colour from
+	 * the theme.
 	 */
 	variant?: "neutral" | "art"
 	/**
@@ -180,11 +181,8 @@ export function Avatar({
 			{src ? <AvatarImage src={src} alt={alt ?? ""} className={size ? IMAGE_FADE[size] : undefined} /> : null}
 			{variant === "art" ? (
 				<AvatarFallback delay={fallbackDelay} aria-hidden={named ? true : undefined} className="size-full">
-					<GradientArt seed={seed ?? ((typeof fallback === "string" && fallback) || alt || undefined)} className="flex size-full items-center justify-center text-overlay-foreground">
-						{/* The art runs from deep corners to bright light; a 30% overlay scrim
-						    keeps the overlay ink readable on the brightest spot. */}
-						<span aria-hidden className="absolute inset-0 bg-overlay/30" />
-						<span className="relative">{fallback}</span>
+					<GradientArt variant="linear" seed={seed ?? ((typeof fallback === "string" && fallback) || alt || undefined)} className="flex size-full items-center justify-center text-overlay-foreground">
+						{fallback}
 					</GradientArt>
 				</AvatarFallback>
 			) : (

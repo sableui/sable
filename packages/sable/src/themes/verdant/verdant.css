@@ -15,8 +15,7 @@
 	 * Region/page-inset foundation vars, explicitly declared per the Sable theme
 	 * plugin's theme.md "Layout foundation" rule (previously omitted here, which
 	 * meant every Region in this build was silently drawing on the original default theme's own
-	 * defaults via styles.css's unconditional default-theme import — see atelier's
-	 * theme for the full writeup of that bug). Findings doc measured a ~1280px
+	 * defaults via styles.css's unconditional default-theme import). Findings doc measured a ~1280px
 	 * capped inner container almost everywhere — matches Sable's own --region-wide
 	 * default exactly, so no deviation needed; --page-inset has no direct
 	 * measurement in the findings doc, defaulted to Sable's standard clamp.

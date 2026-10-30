@@ -23,7 +23,7 @@ export const gradientArtMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
-					"Keep the default `mesh` for covers, tiles and avatars. Reach for `grain` where a printed, tactile surface suits — a banner, a hero card — and keep one variant per surface type so art reads as a system.",
+					"Keep the default `mesh` for covers and tiles, and use `linear` at avatar and icon sizes, where a mesh has no room and turns to mud. Reach for `grain` where a printed, tactile surface suits — a banner, a hero card — and keep one variant per surface type so art reads as a system.",
 			},
 			{
 				guidance: "do",
@@ -38,7 +38,7 @@ export const gradientArtMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description:
-					"Do not put body text over it. The art spans the palette's lightest and most saturated tones, so no single ink is guaranteed to clear contrast across it; reserve overlays for a short label on a scrim or an avatar's initials.",
+					"Do not put body text over it. The art spans the palette's lightest and most saturated tones, so no single ink is guaranteed to clear contrast across it; reserve overlays for a short label on a scrim, or an avatar's initials on `linear` art, where the name is carried by `alt`.",
 			},
 			{
 				guidance: "dont",
@@ -54,7 +54,7 @@ export const gradientArtMeta: ComponentMeta = {
 	},
 	related: { components: ["Avatar", "Card", "AspectBox"] },
 	props: [
-		{ name: "variant", type: '"mesh" | "grain"', default: '"mesh"', description: "mesh: soft spots of colour pulled together by gentle waves. grain: glowing light over deep corners with a printed texture." },
+		{ name: "variant", type: '"mesh" | "grain" | "linear"', default: '"mesh"', description: "mesh: soft spots of colour pulled together by gentle waves. grain: glowing light over deep corners with a printed texture. linear: two vivid neighbouring colours in a plain CSS gradient, for avatar and icon sizes; it loads no shader, and takes overlay ink for short initials." },
 		{
 			name: "tones",
 			type: '("info" | "3" | "2" | "1" | "warning")[]',
@@ -71,7 +71,7 @@ export const gradientArtMeta: ComponentMeta = {
 		{ name: "children", type: "ReactNode", description: "Rendered above the art — initials, a glyph, a short label." },
 		{ name: "className", type: "string", description: "Size and shape: aspect, height, rounding." },
 	],
-	variants: { variant: ["mesh", "grain"], intensity: ["vivid", "soft"] },
+	variants: { variant: ["mesh", "grain", "linear"], intensity: ["vivid", "soft"] },
 	tokensUsed: ["art-1", "art-2", "art-3", "art-4", "art-5", "art-6", "art-ground", "art-warp", "art-softness", "art-grain", "primary", "tone-info", "tone-3", "tone-2", "tone-1", "tone-warning"],
 	motion: [
 		{
@@ -98,7 +98,7 @@ export const gradientArtMeta: ComponentMeta = {
 		{ label: "Grain banner", code: '<GradientArt variant="grain" seed="juno" tones={["info", "1"]} className="h-20 rounded-md" />' },
 		{
 			label: "Avatar with initials",
-			code: '<GradientArt seed="Mara Okafor" className="grid size-10 place-items-center rounded-full text-label-md text-overlay-foreground">MO</GradientArt>',
+			code: '<GradientArt variant="linear" seed="Mara Okafor" className="grid size-10 place-items-center rounded-full text-label-md text-overlay-foreground">MO</GradientArt>',
 		},
 		{
 			label: "Soft header band with logo tiles",

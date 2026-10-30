@@ -14,10 +14,10 @@ Use GradientArt where a real image belongs but none exists yet, or where the ima
 
 - Do: Pass a stable `seed` per item — the name for an avatar, the title for a cover. Each item then keeps the same art across renders, reloads and themes, which is what lets someone recognise it.
 - Do: Size it with layout classes (`aspect-[4/3]`, `h-20`, `size-10 rounded-full`) and put any glyph or initials inside as children; they render above the art.
-- Do: Keep the default `mesh` for covers, tiles and avatars. Reach for `grain` where a printed, tactile surface suits — a banner, a hero card — and keep one variant per surface type so art reads as a system.
+- Do: Keep the default `mesh` for covers and tiles, and use `linear` at avatar and icon sizes, where a mesh has no room and turns to mud. Reach for `grain` where a printed, tactile surface suits — a banner, a hero card — and keep one variant per surface type so art reads as a system.
 - Do: Use `intensity="soft"` as a stage: a card or modal header band, the art on an integration or pricing card, a field behind floating prompt chips or rounded logo tiles. Make the tiles and chips floating surfaces (`bg-popover` with `border-border-floating` and a shadow, or a `floating` Button) so they lift off the wash; soft stays light in dark mode too, so the same composition holds in both.
 - Don't: Do not put text straight on soft art with `text-overlay-foreground` ink. Soft is a light ground in every mode, so overlay ink washes out on it; put the content on a Card or a chip over the art, or use the default vivid intensity for a short overlay label.
-- Don't: Do not put body text over it. The art spans the palette's lightest and most saturated tones, so no single ink is guaranteed to clear contrast across it; reserve overlays for a short label on a scrim or an avatar's initials.
+- Don't: Do not put body text over it. The art spans the palette's lightest and most saturated tones, so no single ink is guaranteed to clear contrast across it; reserve overlays for a short label on a scrim, or an avatar's initials on `linear` art, where the name is carried by `alt`.
 - Don't: Do not pass colours, and reach for `tones` rarely. The art follows the preset's --art-* tokens on purpose; to change how a product's art looks, set the --theme-art-* hooks in its theme or preset, so every cover, banner and avatar changes together.
 - Don't: Do not use it as a page or hero background. It paints at the element's pixel size, so a full-viewport instance costs a large frame on every theme change; it is sized for covers, banners and tiles.
 
@@ -25,7 +25,7 @@ Use GradientArt where a real image belongs but none exists yet, or where the ima
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| variant | "mesh" \| "grain" | "mesh" | mesh: soft spots of colour pulled together by gentle waves. grain: glowing light over deep corners with a printed texture. |
+| variant | "mesh" \| "grain" \| "linear" | "mesh" | mesh: soft spots of colour pulled together by gentle waves. grain: glowing light over deep corners with a printed texture. linear: two vivid neighbouring colours in a plain CSS gradient, for avatar and icon sizes; it loads no shader, and takes overlay ink for short initials. |
 | tones | ("info" \| "3" \| "2" \| "1" \| "warning")[] | — | Paint these `--tone-*` colours instead of the preset's art palette. Leave unset to follow the preset's art direction. |
 | seed | string \| number | — | Fixes the composition: the same seed paints the same art in every theme. Pass a stable id. |
 | intensity | "vivid" \| "soft" | "vivid" | vivid: the preset's art at full strength. soft: every colour and the ground lifted to a light pastel of itself (high lightness, half chroma) — a wash for header bands and for staging chips and logo tiles, light in both modes. |
@@ -34,7 +34,7 @@ Use GradientArt where a real image belongs but none exists yet, or where the ima
 
 ## Variants
 
-- **variant**: mesh, grain
+- **variant**: mesh, grain, linear
 - **intensity**: vivid, soft
 
 ## Tokens used
@@ -80,7 +80,7 @@ import { GradientArt } from "@sableui/react"
 ```tsx
 import { GradientArt } from "@sableui/react"
 
-<GradientArt seed="Mara Okafor" className="grid size-10 place-items-center rounded-full text-label-md text-overlay-foreground">MO</GradientArt>
+<GradientArt variant="linear" seed="Mara Okafor" className="grid size-10 place-items-center rounded-full text-label-md text-overlay-foreground">MO</GradientArt>
 ```
 
 ### Soft header band with logo tiles

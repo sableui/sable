@@ -752,7 +752,7 @@ export function makeRules({ semanticTokens, motionTokens, labelContrast = null, 
 			scope: "both",
 			code: true,
 			since: "0.1.0",
-			why: "`highlight` is a SURFACE, always paired with `highlight-foreground` (bg-highlight text-highlight-foreground). Presets disagree on what it looks like (a vivid accent in some, a quiet wash in Atelier and Verdant), so as a bare text or icon ink it vanishes in half of them. For an accented mark put the icon in a bg-highlight chip; for links and hovers use text-foreground.",
+			why: "`highlight` is a SURFACE, always paired with `highlight-foreground` (bg-highlight text-highlight-foreground). Presets disagree on what it looks like (a vivid accent in some, a quiet wash in others), so as a bare text or icon ink it vanishes in half of them. For an accented mark put the icon in a bg-highlight chip; for links and hovers use text-foreground.",
 			regex: /\btext-highlight(?!-foreground)\b/g,
 		},
 		{

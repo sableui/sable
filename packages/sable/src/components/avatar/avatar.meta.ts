@@ -174,7 +174,7 @@ export const avatarMeta: ComponentMeta = {
 			name: "variant",
 			type: '"neutral" | "art"',
 			default: '"neutral"',
-			description: "What the fallback looks like. neutral: initials on the muted surface. art: initials over GradientArt seeded by the person, so each person without a photo gets their own stable colour from the theme.",
+			description: "What the fallback looks like. neutral: initials on the muted surface. art: initials over a two-colour GradientArt (variant=\"linear\") seeded by the person, so each person without a photo gets their own stable colour from the theme.",
 		},
 		{
 			name: "seed",
@@ -219,7 +219,7 @@ export const avatarMeta: ComponentMeta = {
 		shape: ["circle", "square"],
 		variant: ["neutral", "art"],
 	},
-	tokensUsed: ["muted", "muted-foreground", "background", "card", "popover", "overlay", "overlay-foreground"],
+	tokensUsed: ["muted", "muted-foreground", "background", "card", "popover", "overlay-foreground"],
 	a11y: [
 		"Base UI tracks the image loading status and swaps to the fallback on missing/loading/error — no manual onError wiring.",
 		"Provide meaningful alt text via the alt prop; pass an empty alt for decorative avatars.",

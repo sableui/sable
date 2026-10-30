@@ -243,31 +243,6 @@
           "mono": "\"Red Hat Mono\", ui-monospace, monospace",
           "display": "\"Unbounded\", ui-sans-serif, system-ui, sans-serif"
         }
-      },
-      {
-        "id": "atelier",
-        "label": "Atelier",
-        "deprecated": {
-          "replacement": "sable"
-        },
-        "featured": false,
-        "css": "./src/themes/atelier/atelier.css",
-        "manifest": "./src/themes/atelier/index.ts",
-        "import": "@sableui/react/theme/atelier.css",
-        "modes": [
-          "light",
-          "dark"
-        ],
-        "defaultMode": "light",
-        "fonts": {
-          "sans": "Inter",
-          "mono": "Martian Mono"
-        },
-        "fontStacks": {
-          "sans": "\"Inter\", system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
-          "mono": "\"Martian Mono\", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Courier New\", monospace"
-        },
-        "artDirection": "./src/themes/atelier/art-direction.md"
       }
     ],
     "fontsNote": "fonts is the first family of each role's stack; fontStacks is the full stack the theme CSS declares. The host app loads the files (Google Fonts for every built-in primary). Generated from src/themes/*/index.ts — do not hand-edit."
@@ -1699,7 +1674,7 @@
       },
       {
         "id": "highlight-as-ink",
-        "fails-on": "`highlight` is a SURFACE, always paired with `highlight-foreground` (bg-highlight text-highlight-foreground). Presets disagree on what it looks like (a vivid accent in some, a pale wash in Atelier, Inkwell and Verdant), so as a bare text or icon ink it vanishes in half of them. For an accented mark put the icon in a bg-highlight chip; for links and hovers use text-foreground."
+        "fails-on": "`highlight` is a SURFACE, always paired with `highlight-foreground` (bg-highlight text-highlight-foreground). Presets disagree on what it looks like (a vivid accent in some, a pale wash in others), so as a bare text or icon ink it vanishes in half of them. For an accented mark put the icon in a bg-highlight chip; for links and hovers use text-foreground."
       },
       {
         "id": "hand-rolled-control",
@@ -4462,7 +4437,7 @@
           "name": "variant",
           "type": "\"neutral\" | \"art\"",
           "default": "\"neutral\"",
-          "description": "What the fallback looks like. neutral: initials on the muted surface. art: initials over GradientArt seeded by the person, so each person without a photo gets their own stable colour from the theme."
+          "description": "What the fallback looks like. neutral: initials on the muted surface. art: initials over a two-colour GradientArt (variant=\"linear\") seeded by the person, so each person without a photo gets their own stable colour from the theme."
         },
         {
           "name": "seed",
@@ -4522,7 +4497,6 @@
         "background",
         "card",
         "popover",
-        "overlay",
         "overlay-foreground"
       ],
       "motion": [
@@ -12112,7 +12086,7 @@
           },
           {
             "guidance": "do",
-            "description": "Keep the default `mesh` for covers, tiles and avatars. Reach for `grain` where a printed, tactile surface suits — a banner, a hero card — and keep one variant per surface type so art reads as a system."
+            "description": "Keep the default `mesh` for covers and tiles, and use `linear` at avatar and icon sizes, where a mesh has no room and turns to mud. Reach for `grain` where a printed, tactile surface suits — a banner, a hero card — and keep one variant per surface type so art reads as a system."
           },
           {
             "guidance": "do",
@@ -12124,7 +12098,7 @@
           },
           {
             "guidance": "dont",
-            "description": "Do not put body text over it. The art spans the palette's lightest and most saturated tones, so no single ink is guaranteed to clear contrast across it; reserve overlays for a short label on a scrim or an avatar's initials."
+            "description": "Do not put body text over it. The art spans the palette's lightest and most saturated tones, so no single ink is guaranteed to clear contrast across it; reserve overlays for a short label on a scrim, or an avatar's initials on `linear` art, where the name is carried by `alt`."
           },
           {
             "guidance": "dont",
@@ -12146,9 +12120,9 @@
       "props": [
         {
           "name": "variant",
-          "type": "\"mesh\" | \"grain\"",
+          "type": "\"mesh\" | \"grain\" | \"linear\"",
           "default": "\"mesh\"",
-          "description": "mesh: soft spots of colour pulled together by gentle waves. grain: glowing light over deep corners with a printed texture."
+          "description": "mesh: soft spots of colour pulled together by gentle waves. grain: glowing light over deep corners with a printed texture. linear: two vivid neighbouring colours in a plain CSS gradient, for avatar and icon sizes; it loads no shader, and takes overlay ink for short initials."
         },
         {
           "name": "tones",
@@ -12180,7 +12154,8 @@
       "variants": {
         "variant": [
           "mesh",
-          "grain"
+          "grain",
+          "linear"
         ],
         "intensity": [
           "vivid",
@@ -12248,7 +12223,7 @@
         },
         {
           "label": "Avatar with initials",
-          "code": "<GradientArt seed=\"Mara Okafor\" className=\"grid size-10 place-items-center rounded-full text-label-md text-overlay-foreground\">MO</GradientArt>",
+          "code": "<GradientArt variant=\"linear\" seed=\"Mara Okafor\" className=\"grid size-10 place-items-center rounded-full text-label-md text-overlay-foreground\">MO</GradientArt>",
           "imports": "import { GradientArt } from \"@sableui/react\""
         },
         {

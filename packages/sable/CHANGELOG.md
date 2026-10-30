@@ -1,6 +1,8 @@
 # What's new
 
-## 0.21.1
+## 0.22.0
+
+Vivid art avatars, and one theme fewer.
 
 - **Misses that point somewhere useful.** `sable component Stack` suggested
   Tabs, and `Box` suggested Checkbox. A name that is a layout primitive,
@@ -9,6 +11,19 @@
   Modal, Text, Typography, Heading) get Sable's answer. Misspellings still
   get the nearest match. The hosted MCP gives the same answers, and its
   instructions now map the CLI commands in them to its tools.
+- **Vivid art avatars.** `Avatar variant="art"` was a mesh gradient under a
+  dark scrim, which turned to mud at 40px. It is now two vivid neighbouring
+  colours in a plain gradient, with no scrim and no shader to load, and each
+  person still keeps their own colour from the theme. White initials sit
+  below 4.5:1 on colours this bright. Pass `alt`, which carries the person's
+  name. The look comes from a new `GradientArt variant="linear"`, for art at
+  avatar and icon sizes.
+- **Atelier is gone.** The deprecated theme is removed, along with
+  `atelierTheme` and the `./theme/atelier` and `./theme/atelier.css` exports.
+  To migrate, drop those imports and any `data-sable-theme="atelier"`, or move
+  to `sable`, the replacement it already pointed to. A stored `atelier`
+  choice falls back to your default theme on its own. The six featured themes
+  are unchanged.
 
 ## 0.21.0
 

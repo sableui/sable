@@ -38,11 +38,6 @@
 			"default": "./src/themes/meridian/index.ts"
 		},
 		"./theme/meridian.css": "./src/themes/meridian/meridian.css",
-		"./theme/atelier": {
-			"types": "./src/themes/atelier/index.ts",
-			"default": "./src/themes/atelier/index.ts"
-		},
-		"./theme/atelier.css": "./src/themes/atelier/atelier.css",
 		"./theme/prism": {
 			"types": "./src/themes/prism/index.ts",
 			"default": "./src/themes/prism/index.ts"
@@ -184,11 +179,6 @@
 				"default": "./dist/themes/meridian/index.js"
 			},
 			"./theme/meridian.css": "./dist/themes/meridian/meridian.css",
-			"./theme/atelier": {
-				"types": "./dist/themes/atelier/index.d.ts",
-				"default": "./dist/themes/atelier/index.js"
-			},
-			"./theme/atelier.css": "./dist/themes/atelier/atelier.css",
 			"./theme/prism": {
 				"types": "./dist/themes/prism/index.d.ts",
 				"default": "./dist/themes/prism/index.js"

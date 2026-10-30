@@ -68,7 +68,7 @@ describe("theme registry", () => {
 	it("exports all theme manifests and the public theme helpers", () => {
 		expect(DEFAULT_THEME_ID).toBe("sable")
 		expect(SABLE_THEME_ATTRIBUTE).toBe("data-sable-theme")
-		expect(themeIds).toEqual(["sable", "meridian", "prism", "verdant", "ember", "poppy", "atelier"])
+		expect(themeIds).toEqual(["sable", "meridian", "prism", "verdant", "ember", "poppy"])
 		expect(themeManifests.map((theme) => theme.id)).toEqual(themeIds)
 		expect(isThemeId("sable")).toBe(true)
 		expect(isThemeId("meridian")).toBe(true)
@@ -389,8 +389,8 @@ describe("workspace register foundation", () => {
 
 	it("declares the whole layering scale in styles.css, not in a theme", () => {
 		// The bug this pins: the scale lived in the original default theme's CSS and worked only because
-		// that block carries a `:root` arm. A consumer shipping atelier/meridian/
-		// prism/verdant on its own got no --z-* at all, and every z-(--z-*) utility
+		// that block carries a `:root` arm. A consumer shipping meridian/prism/
+		// verdant on its own got no --z-* at all, and every z-(--z-*) utility
 		// in the components resolved to `z-index: auto` — silently, and only under a
 		// non-default theme, which is the hardest kind of failure to attribute.
 		const rootBlocks = stylesCss
@@ -610,7 +610,7 @@ describe("theme contrast", () => {
 	 * between near-blacks, so the same visible difference measures smaller.
 	 *
 	 * The dark card floor was 1.04, and that passed surfaces nobody could tell
-	 * apart: Meridian's card in a muted well measured 1.06, Atelier's 1.04,
+	 * apart: Meridian's card in a muted well measured 1.06,
 	 * Verdant's 1.05 (muted DARKER than the card), Ember's secondary Button on a
 	 * card 1.05 — every canvas stage and playground frame in those presets read
 	 * as one flat plane in dark mode, held together only by hairlines. The
@@ -684,9 +684,8 @@ describe("theme contrast", () => {
 			 * Elevation): a shadow on a near-black canvas barely registers. So a
 			 * floating surface (`bg-popover` — Menu, Select, Popover) opened over a
 			 * resting one (`bg-card` — Dialog, Sheet, Card) is visible ONLY if the
-			 * two differ. Five of seven themes shipped them equal or inverted
-			 * (Atelier's popover was darker than its card), so a menu inside a
-			 * dialog was the same colour as the dialog. The floor is a luminance
+			 * two differ. Most themes shipped them equal or inverted, so a menu
+			 * inside a dialog was the same colour as the dialog. The floor is a luminance
 			 * step a reader can see, not merely a different value.
 			 */
 			const vars = resolveVars(cssFor(themeId), "dark")
@@ -708,8 +707,8 @@ describe("theme contrast", () => {
 			/*
 			 * The same reasoning as popover/card, one layer down. Every docs
 			 * playground, anatomy frame and app dashboard puts cards straight on
-			 * the page. Meridian (1.08), Atelier (1.09), Prism (1.06) and Ember
-			 * (1.07) shipped a dark card a hair off the page, so cards read as
+			 * the page. Meridian (1.08), Prism (1.06) and Ember (1.07)
+			 * shipped a dark card a hair off the page, so cards read as
 			 * outlines on one flat plane; Sable (1.17) and Verdant (1.19) read
 			 * as layers. 1.12 is the floor where a card is a surface, not a frame.
 			 */
@@ -804,8 +803,7 @@ describe("theme contrast", () => {
 			 * legitimate voice. What it cannot be is the SAME surface as the fills
 			 * that meet it: a card in a `bg-muted` well, a pressed Toggle or
 			 * selected row (`bg-accent`) on a card, a secondary Button
-			 * (`bg-secondary`) on a card. Atelier's light card equalled its accent
-			 * and sat darker than its muted well; Verdant's equalled muted and
+			 * (`bg-secondary`) on a card. Verdant's light card equalled muted and
 			 * secondary. The gate is the relationship, not the colour.
 			 */
 			const failures: string[] = []
@@ -1020,7 +1018,6 @@ describe("theme contrast", () => {
 		ember: 0.082, // --ember-100: oklch(94% 0.045 32.9)
 		meridian: 0.032, // --meridian-ember-50: oklch(97% 0.02 30)
 		verdant: 0.018, // --success: oklch(50% 0.11 173)
-		atelier: 0.005, // --success: oklch(50% 0.10 173)
 	}
 
 	it.each(themeIds)("%s authors every colour inside the sRGB gamut", (themeId) => {

@@ -85,13 +85,46 @@ function rotate<T>(items: readonly T[], seed: number): T[] {
  */
 const HUE_TURN = 20
 const LIGHT_STEP = 0.04
+const frac = (n: number) => n - Math.floor(n)
 function nudge(color: string, seed: number): string {
-	const frac = (n: number) => n - Math.floor(n)
 	// Decorrelated from `rotate`'s pick of the leading colour, so the two vary independently.
 	const dh = ((frac(seed * 7.31) * 2 - 1) * HUE_TURN).toFixed(1)
 	const dl = ((frac(seed * 13.7) * 2 - 1) * LIGHT_STEP).toFixed(3)
 	// design-lint-disable-next-line inline-color -- relative colour over the theme's own art token
 	return `oklch(from ${color} clamp(0, calc(l + ${dl}), 1) c calc(h + ${dh}))`
+}
+
+/**
+ * The linear variant's two stops: one palette colour, then that colour turned
+ * a short way round the hue wheel and a step lighter. Two different palette
+ * colours can sit across the wheel from each other, and the blend between those
+ * goes through grey; a neighbour stays clean in every preset, and the step gives
+ * a monochrome preset, which has no hue to turn, a gradient as well. Only the
+ * first four slots lead, the ones every preset sets: a transparent lead would
+ * paint nothing.
+ */
+const LINEAR_SLOTS = ART_SLOTS.slice(0, 4)
+const LINEAR_TURN = 45
+const LINEAR_STEP = 0.06
+function linear(color: string): string {
+	// design-lint-disable-next-line inline-color -- relative colour over the theme's own art token
+	return `linear-gradient(135deg in oklab, ${color}, oklch(from ${color} min(calc(l + ${LINEAR_STEP}), 0.97) c calc(h + ${LINEAR_TURN})))`
+}
+
+/**
+ * A vivid linear lead: lifted and saturated, because a colour held dark enough
+ * for full text contrast turns yellow and orange to olive and brown. Overlay ink
+ * on it is legible rather than AA: the art's short labels are initials, a
+ * decorative cue beside a name that `alt` carries. The seed picks the spot in the
+ * lightness band, so people stay tellable apart in a monochrome preset. Chroma
+ * scales rather than pins, so a neutral slot stays neutral.
+ */
+const BRIGHT_LIGHT = 0.58
+const BRIGHT_BAND = 0.08
+function bright(color: string, seed: number): string {
+	const light = (BRIGHT_LIGHT + frac(seed * 23.1) * BRIGHT_BAND).toFixed(3)
+	// design-lint-disable-next-line inline-color -- relative colour over the theme's own art token
+	return `oklch(from ${color} ${light} min(calc(c * 1.6), 0.24) h)`
 }
 
 /** How strongly the art is painted: the preset's art as-is, or a pastel wash of it. */
@@ -123,9 +156,11 @@ export interface GradientArtProps extends ComponentProps<"div"> {
 	/**
 	 * `mesh` (default) — soft spots of colour pulled together by gentle waves
 	 * (Paper's static mesh gradient). `grain` — glowing light over deep corners
-	 * with a printed, grainy texture (Paper's grain gradient).
+	 * with a printed, grainy texture (Paper's grain gradient). `linear` — two
+	 * neighbouring colours in a plain CSS gradient, for small sizes where a mesh
+	 * turns to mud. It loads no shader, and takes overlay ink for short initials.
 	 */
-	variant?: ArtVariant
+	variant?: ArtVariant | "linear"
 	/**
 	 * Paint these `--tone-*` colours instead of the theme's art palette. Leave it
 	 * unset to follow the preset's own art direction (the --art-* tokens).
@@ -167,18 +202,23 @@ export function GradientArt({ variant = "mesh", tones, seed, intensity = "vivid"
 	const canvas = useRef<HTMLCanvasElement>(null)
 	const probes = useRef<HTMLSpanElement>(null)
 	const value = seedValue(seed)
-	const finish = (color: string) => (intensity === "soft" ? pastel(nudge(color, value)) : nudge(color, value))
-	const palette = (tones?.length ? tones.map(lifted) : ART_SLOTS).map(finish)
+	const flat = variant === "linear"
+	const finish = (color: string) => {
+		if (intensity === "soft") return pastel(nudge(color, value))
+		return flat ? bright(nudge(color, value), value) : nudge(color, value)
+	}
+	const palette = (tones?.length ? tones.map(lifted) : flat ? LINEAR_SLOTS : ART_SLOTS).map(finish)
 	const groundColor = finish(tones?.length ? ground(tones[0]) : ART_GROUND)
 	// The ground is in the key too: grain paints it, and soft changes it.
 	const paletteKey = [groundColor, ...palette].join(" ")
-	const background = fallback(rotate(palette, value), groundColor, value)
+	const background = flat ? linear(rotate(palette, value)[0]) : fallback(rotate(palette, value), groundColor, value)
 
 	useEffect(() => {
 		const element = root.current
 		const target = canvas.current
 		const swatches = probes.current
-		if (!element || !target || !swatches) return
+		if (variant === "linear" || !element || !target || !swatches) return
+		const shader = variant
 		if (typeof IntersectionObserver === "undefined" || typeof ResizeObserver === "undefined") return
 		let cancelled = false
 		let teardown: (() => void) | undefined
@@ -225,14 +265,14 @@ export function GradientArt({ variant = "mesh", tones, seed, intensity = "vivid"
 				if (!colors.length) return
 				const own = getComputedStyle(element)
 				const character = { warp: param(own, "--art-warp", 0.8), softness: param(own, "--art-softness", 0.88), grain: param(own, "--art-grain", 0) }
-				const key = JSON.stringify([variant, value, width, height, colors, groundRgba, character])
+				const key = JSON.stringify([shader, value, width, height, colors, groundRgba, character])
 				if (key === last) return
 				// Grain lays its bands over the ground. Mesh paints only the palette:
 				// every colour there is a spot of equal weight, and a dark ground as one
 				// of them cut a streak through the field. A theme that wants dark in its
 				// mesh (Ember's falloff into black) puts it in the palette on purpose.
-				const ordered = variant === "grain" && groundRgba ? [groundRgba, ...colors] : colors
-				if (paintArt(target, { variant, colors: ordered, seed: value, width, height, pixelRatio: ratio, ...character })) {
+				const ordered = shader === "grain" && groundRgba ? [groundRgba, ...colors] : colors
+				if (paintArt(target, { variant: shader, colors: ordered, seed: value, width, height, pixelRatio: ratio, ...character })) {
 					last = key
 					target.dataset.painted = ""
 				}
@@ -277,20 +317,24 @@ export function GradientArt({ variant = "mesh", tones, seed, intensity = "vivid"
 			style={{ background, ...style }}
 			{...props}
 		>
-			{/* Behind the children (isolate makes the negative z stay inside), over the fallback. */}
-			<canvas
-				ref={canvas}
-				aria-hidden
-				className="pointer-events-none absolute inset-0 -z-10 size-full opacity-0 motion-interactive data-[painted]:opacity-100"
-				style={{ transitionProperty: "opacity" }}
-			/>
-			{/* The colours the shader paints, resolved by the browser in this element's cascade. */}
-			<span ref={probes} hidden>
-				<span style={{ color: groundColor }} />
-				{palette.map((color) => (
-					<span key={color} style={{ color }} />
-				))}
-			</span>
+			{flat ? null : (
+				<>
+					{/* Behind the children (isolate makes the negative z stay inside), over the fallback. */}
+					<canvas
+						ref={canvas}
+						aria-hidden
+						className="pointer-events-none absolute inset-0 -z-10 size-full opacity-0 motion-interactive data-[painted]:opacity-100"
+						style={{ transitionProperty: "opacity" }}
+					/>
+					{/* The colours the shader paints, resolved by the browser in this element's cascade. */}
+					<span ref={probes} hidden>
+						<span style={{ color: groundColor }} />
+						{palette.map((color) => (
+							<span key={color} style={{ color }} />
+						))}
+					</span>
+				</>
+			)}
 			{children}
 		</div>
 	)

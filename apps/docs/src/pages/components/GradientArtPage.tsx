@@ -25,10 +25,10 @@ export function GradientArtPage() {
 
 			<ComponentPlayground meta={gradientArtMeta} />
 
-			<Section title="Mesh and grain" description="The same seed and tones in both variants. Mesh, the default, is soft and glassy; grain glows over deep corners with a printed texture.">
+			<Section title="Variants" description="The same seed in each variant. Mesh, the default, is soft and glassy; grain glows over deep corners with a printed texture; linear is two neighbouring colours, for avatar and icon sizes.">
 				<Example>
-					<Grid cols={2} gap={2} className="w-full max-w-lg">
-						{(["mesh", "grain"] as const).map((variant) => (
+					<Grid cols={3} gap={2} className="w-full max-w-2xl">
+						{(["mesh", "grain", "linear"] as const).map((variant) => (
 							<figure key={variant} className="grid gap-2">
 								<GradientArt variant={variant} seed="Untitled (gold rush)" className="aspect-[4/3] rounded-lg" />
 								<figcaption className="text-caption text-muted-foreground">{variant}</figcaption>
@@ -111,7 +111,7 @@ export function GradientArtPage() {
 				</Example>
 			</Section>
 
-			<Section title="Avatar fallback" description="Initials over art seeded by the name: every person without a photo still gets their own, stable colour. Avatar ships this as variant=&quot;art&quot;.">
+			<Section title="Avatar fallback" description="Initials over linear art seeded by the name: every person without a photo still gets their own, stable colour. Avatar ships this as variant=&quot;art&quot;.">
 				<Example>
 					<div className="flex flex-wrap gap-3">
 						{PEOPLE.map((person) => (
@@ -119,6 +119,7 @@ export function GradientArtPage() {
 								key={person.name}
 								role="img"
 								aria-label={person.name}
+								variant="linear"
 								seed={person.name}
 								className="grid size-10 place-items-center rounded-full text-label-md text-overlay-foreground"
 							>

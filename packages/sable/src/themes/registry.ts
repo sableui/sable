@@ -1,5 +1,4 @@
 import type { ThemeManifest } from "./_contract"
-import { atelierTheme } from "./atelier"
 import { meridianTheme } from "./meridian"
 import { prismTheme } from "./prism"
 import { verdantTheme } from "./verdant"
@@ -18,10 +17,9 @@ export const themeManifests = [
 	verdantTheme,
 	emberTheme,
 	poppyTheme,
-	atelierTheme,
 ] as const satisfies readonly ThemeManifest[]
 
-/** Six distinct starting points; legacy themes remain addressable separately. */
+/** The themes a picker offers: every one that is not deprecated. */
 export const featuredThemeManifests = themeManifests.filter(theme => !theme.deprecated)
 
 export type ThemeId = (typeof themeManifests)[number]["id"]
@@ -67,7 +65,6 @@ export function isKnownThemeId(
 export {
 	sableTheme,
 	poppyTheme,
-	atelierTheme,
 	emberTheme,
 	meridianTheme,
 	prismTheme,
