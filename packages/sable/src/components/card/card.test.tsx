@@ -95,7 +95,17 @@ describe("CardList", () => {
 })
 
 describe("CardList edge rows", () => {
-	it("keeps the half padding beside a header or footer hairline", () => {
+	it("gives the first and last rows no padding of their own, so every row matches", () => {
+		const { container } = render(
+			<Card>
+				<CardList><div>One</div><div>Two</div></CardList>
+			</Card>,
+		)
+		const list = container.querySelector("[data-slot=card-list]") as HTMLElement
+		expect(list.className).not.toMatch(/\*:(first|last):p[tb]-/)
+	})
+
+	it("sets the hairline under a header off from the title", () => {
 		const { container } = render(
 			<Card>
 				<CardHeader><CardTitle>Members</CardTitle></CardHeader>
@@ -104,8 +114,6 @@ describe("CardList edge rows", () => {
 			</Card>,
 		)
 		const list = container.querySelector("[data-slot=card-list]") as HTMLElement
-		expect(list.className).toContain("[[data-slot=card-header]+&>*:first-child]:pt-(--entity-py)")
-		expect(list.className).toContain("[&:has(+[data-slot=card-footer])>*:last-child]:pb-(--entity-py)")
 		// The title has the card padding above it, so its hairline takes the same below.
 		expect(list.className).toContain("[[data-slot=card-header]+&]:mt-[var(--card-p,--spacing(6))]")
 	})

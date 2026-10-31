@@ -52,6 +52,7 @@ export function Stack({
 	return (
 		<div
 			ref={ref}
+			data-slot="stack"
 			className={cn(
 				"flex flex-col gap-(--sable-stack-gap)",
 				ALIGN[align],

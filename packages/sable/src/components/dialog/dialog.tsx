@@ -305,7 +305,10 @@ export function DialogHeader({
 	className,
 	...props
 }: ComponentProps<"div">) {
-	return <div data-slot="dialog-header" className={cn("mb-4 flex flex-col gap-1.5", className)} {...props} />
+	// The margin spaces it from content in plain flow. In a Stack the gap already
+	// does that, and the two added up to more space below the header than below
+	// anything else in the dialog.
+	return <div data-slot="dialog-header" className={cn("mb-4 flex flex-col gap-1.5 [[data-slot=stack]>&]:mb-0", className)} {...props} />
 }
 
 export function DialogFooter({

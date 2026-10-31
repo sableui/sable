@@ -1,5 +1,15 @@
 # What's new
 
+## 0.23.1
+
+- **Every `CardList` row is the same height.** First and last rows took the
+  full card padding against the card's edge, so a list on its own had two rows
+  taller than the rest. That was already gone beside a `CardHeader` or
+  `CardFooter`; now it is gone everywhere.
+- **A `DialogHeader` in a `Stack` takes the `Stack`'s gap.** Its own 16px margin
+  was added on top, so the space under the header was bigger than the space
+  under anything else in the dialog. Outside a `Stack` nothing changes.
+
 ## 0.23.0
 
 Fixes and options from building a finance dashboard on Sable.
