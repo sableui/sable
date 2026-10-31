@@ -29,7 +29,7 @@ Use BarChart to compare amounts across categories — the default chart for "how
 | valueFormatter | (value: number) => string | — | Format values everywhere (axis, labels, tooltip, table) — units like "$12,480". Default: compact on the axis, full elsewhere. |
 | indexFormatter | (value: string) => string | — | Shorten category labels on the axis ("January" → "Jan"); the tooltip keeps the full value. |
 | locale | string | runtime locale | BCP 47 locale for default number and date formatting. |
-| tooltip | boolean \| { indicator?: "dot" \| "line" \| "dashed" \| "none"; hideLabel?: boolean; labelFormatter?: (label, datum) => ReactNode; showTotal?: boolean } | true | Show a tooltip on hover and keyboard focus, or configure it: the row marker, hiding the heading, rewriting it, adding a Total row. |
+| tooltip | boolean \| { indicator?: "dot" \| "line" \| "dashed" \| "none"; hideLabel?: boolean; labelFormatter?: (label, datum) => ReactNode; showTotal?: boolean; order?: "series" \| "reverse" } | true | Show a tooltip on hover and keyboard focus, or configure it: the row marker, hiding the heading, rewriting it, adding a Total row, the row order. A vertical stack lists its rows top to bottom; order: "series" keeps the series order. |
 | legend | boolean | true when there is more than one series | Show the legend under the chart. |
 | grid | boolean | true (false for horizontal bars) | Hairline gridlines along the value axis. |
 | xAxis | boolean | true for columns; false for horizontal bars | The horizontal axis. |

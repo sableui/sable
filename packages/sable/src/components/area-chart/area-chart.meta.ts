@@ -94,9 +94,9 @@ export const areaChartMeta: ComponentMeta = {
 		},
 		{
 			name: "tooltip",
-			type: "boolean | { indicator?: \"dot\" | \"line\" | \"dashed\" | \"none\"; hideLabel?: boolean; labelFormatter?: (label, datum) => ReactNode; showTotal?: boolean }",
+			type: "boolean | { indicator?: \"dot\" | \"line\" | \"dashed\" | \"none\"; hideLabel?: boolean; labelFormatter?: (label, datum) => ReactNode; showTotal?: boolean; cursor?: \"line\" | \"dashed\" | \"none\"; order?: \"series\" | \"reverse\" }",
 			default: "true",
-			description: "Show a tooltip on hover and keyboard focus, or configure it: the row marker, hiding the heading, rewriting it, adding a Total row."
+			description: "Show a tooltip on hover and keyboard focus, or configure it: the row marker, hiding the heading, rewriting it, adding a Total row, the cursor, the row order. A stack lists its rows top to bottom; order: \"series\" keeps the series order."
 		},
 		{
 			name: "legend",

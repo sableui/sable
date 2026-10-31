@@ -1,5 +1,11 @@
 # What's new
 
+## 0.23.2
+
+- **The chart docs list `tooltip`'s `cursor` and `order`.** Both shipped in 0.23.0
+  but were missing from the props on `AreaChart` and `LineChart`. `BarChart`
+  lists `order`; bars always take a band, so `cursor` does nothing there.
+
 ## 0.23.1
 
 - **Every `CardList` row is the same height.** First and last rows took the
