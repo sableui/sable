@@ -57,7 +57,7 @@ export const DialogPortal = withPortalThemeScope(Base.Portal)
  * viewport, and the darker scrim and the floating close button follow from that: at
  * full bleed the backdrop is the viewing surface, not a dimming layer.
  */
-export type DialogSize = "default" | "fullscreen"
+export type DialogSize = "default" | "lg" | "fullscreen"
 
 type OverlayProps = Omit<ComponentProps<typeof Base.Backdrop>, "className"> & {
 	className?: string
@@ -74,6 +74,7 @@ export function DialogOverlay({ className, size = "default", ...props }: Overlay
 	return (
 		<Base.Backdrop
 			data-size={size}
+			data-sable-scrim=""
 			className={cn(
 				"fixed inset-0 z-(--z-overlay) motion-fade",
 				size === "fullscreen" ? "bg-overlay/95" : "bg-overlay/(--scrim-alpha)",
@@ -87,7 +88,8 @@ export function DialogOverlay({ className, size = "default", ...props }: Overlay
 type PopupProps = Omit<ComponentProps<typeof Base.Popup>, "className"> & {
 	className?: string
 	/**
-	 * "default" is the centred card (max-width 500px). "fullscreen" is the media
+	 * "default" is the centred card (max-width 500px), "lg" the same card at
+	 * 720px for a form with a preview or a table. "fullscreen" is the media
 	 * viewer: near-opaque scrim, edge-to-edge popup that centres its children with
 	 * no card chrome, fade instead of pop, and a safe-area-aware floating close
 	 * button shown by default. Content-agnostic — an <img>, a <video>, a Carousel.
@@ -144,6 +146,7 @@ export function DialogContent({
 		<FullscreenContent showCloseButton={showCloseButton ?? true} {...focus} {...props} />
 	) : (
 		<CardContent
+			size={size}
 			showCloseButton={showCloseButton ?? false}
 			scroll={scroll ?? true}
 			{...focus}
@@ -204,15 +207,17 @@ function CardContent({
 	showCloseButton,
 	scroll,
 	keepMounted,
+	size,
 	...props
-}: Omit<PopupProps, "size">) {
+}: PopupProps) {
 	return (
 		<DialogPortal keepMounted={keepMounted}>
 			<DialogOverlay />
 			<Base.Popup
-				data-size="default"
+				data-size={size}
 				className={cn(
-					"fixed left-1/2 top-1/2 z-(--z-overlay) flex w-[calc(100%-2rem)] max-w-125 -translate-x-1/2 -translate-y-1/2 flex-col rounded-lg border border-border-floating bg-popover sable-surface-popover p-6 text-popover-foreground shadow-lg outline-none",
+					"fixed left-1/2 top-1/2 z-(--z-overlay) flex w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-lg border border-border-floating bg-popover sable-surface-popover p-6 text-popover-foreground shadow-lg outline-none",
+					size === "lg" ? "max-w-180" : "max-w-125",
 					// A dialog is viewport-anchored, so it caps against the viewport with
 					// its own 1rem margin on each side accounted for. Without the cap a
 					// tall dialog centred on the viewport overflows BOTH edges and the top

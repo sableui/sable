@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const pillMeta: ComponentMeta = {
 	name: "Pill",
 	summary:
-		"A chip someone clicks: a filter, a tag choice, an option in a row. Always a button with aria-pressed. appearance=\"solid\" (filters; selected lifts onto the primary surface) or \"outline\" (quiet chips that annotate content, like reactions); size lg, md or sm. A static label is a Badge.",
+		"A chip someone clicks: a filter, a tag choice, an option in a row. Always a button; pass selected to make it a toggle with aria-pressed, and leave it unset on a chip that fires an action. appearance=\"solid\" (filters; selected lifts onto the primary surface) or \"outline\" (quiet chips that annotate content, like reactions); size lg, md or sm. A static label is a Badge.",
 	status: "stable",
 	keywords: [
 		"pill",
@@ -56,7 +56,7 @@ export const pillMeta: ComponentMeta = {
 			type: "boolean",
 			default: "false",
 			description:
-				"Marks the pill as chosen. Solid lifts onto the primary surface; outline takes a primary tint and soft primary edge. Sets aria-pressed.",
+				"Marks the pill as chosen. Solid lifts onto the primary surface; outline takes a primary tint and soft primary edge. Passing it, true or false, sets aria-pressed; left unset the chip is a plain action button.",
 		},
 		{
 			name: "appearance",
@@ -143,7 +143,7 @@ export const pillMeta: ComponentMeta = {
 	],
 	a11y: [
 		"Renders a native <button type=\"button\"> for focus and keyboard activation.",
-		"Selected state is exposed via aria-pressed.",
+		"Selected state is exposed via aria-pressed when selected is passed; a chip without it is a plain button.",
 	],
 	examples: [
 		{

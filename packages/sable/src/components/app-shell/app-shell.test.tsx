@@ -88,7 +88,8 @@ describe("AppShell", () => {
 		expect(shell).toHaveClass("min-h-screen")
 		expect(shell.className).not.toContain("lg:bg-shell-ground")
 		expect(main.className).not.toContain("overflow-y-auto")
-		expect(main).not.toHaveAttribute("tabindex")
+		// The skip link and a route change focus it, so it takes focus in both frames.
+		expect(main).toHaveAttribute("tabindex", "-1")
 		expect(rail).not.toHaveAttribute("data-frame")
 		expect(rail).toHaveClass("border-r", "lg:self-start")
 		expect(rail.className).not.toContain("lg:border-r-0")

@@ -25,6 +25,7 @@ Use Entity to show a compact identity block for a person, organization, file, pr
 | leading | ReactNode | — | Leading visual — typically an Avatar or an Icon. |
 | title | ReactNode | — | Primary line (text-title-sm, truncated). Required. |
 | subtitle | ReactNode | — | Secondary line (text-body-sm muted, truncated). |
+| subtitleWrap | boolean | false | Let the subtitle wrap instead of truncating, when it is a description rather than a label. |
 | action | ReactNode | — | Trailing slot — typically a ghost icon Button or a StatusDot. |
 | interactive | boolean | false | Make the whole row a target: the leading visual and text become a native <button> whose hit area stretches over the row (focus ring, Enter/Space). The action stays outside it. Requires onSelect. |
 | onSelect | () => void | — | Activation handler for an interactive row (fired on click and Enter/Space). Required when interactive. |

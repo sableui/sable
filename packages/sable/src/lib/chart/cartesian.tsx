@@ -8,16 +8,18 @@ import { ChartLegend } from "./chart-legend"
 import { ChartTooltipContent } from "./chart-tooltip"
 import { approxTextWidth, categoryText, chartFormatters } from "./format"
 import { FILL_HOVER, dimmed } from "./dim"
-import { areaPath, type ChartCurve, linePath, type Point, rectPath } from "./geometry"
-import { GLIDE, barTransition, drawTransition, morphTransition, pathStyle, riseTransition, stagger } from "./motion"
+import { brokenAreaPath, brokenLinePath, type ChartCurve, type Point, rectPath } from "./geometry"
+import { GLIDE, barTransition, dashedTransition, denseChart, drawTransition, morphTransition, pathStyle, riseTransition, stagger } from "./motion"
 import { bandScale, extent, linearScale, niceTicks, pointScale, stack } from "./scale"
 import {
 	type ChartDatum,
+	type ChartReferenceLine,
 	type ChartSeries,
 	type ChartTone,
 	type ChartTooltipOptions,
 	type ChartValueFormatter,
 	chartColor,
+	hasValue,
 	numberValue,
 	resolveSeries,
 	toneColor,
@@ -36,6 +38,8 @@ export interface CartesianBaseProps {
 	className?: string
 	/** Format values on the axis, in labels, the tooltip and the data table. Default: compact on the axis, full elsewhere. */
 	valueFormatter?: ChartValueFormatter
+	/** Format values on the axis alone, when it needs less than `valueFormatter` prints: `$50K` beside `$41,746.08`. */
+	axisFormatter?: ChartValueFormatter
 	/** Format category labels on the axis ("January" → "Jan"). The tooltip keeps the full value. */
 	indexFormatter?: (value: string) => string
 	/** BCP 47 locale for default number and date formatting. */
@@ -50,6 +54,26 @@ export interface CartesianBaseProps {
 	xAxis?: boolean
 	/** The vertical axis. @default false for values (columns), true for categories (horizontal bars) */
 	yAxis?: boolean
+	/** Which edge the value axis sits on, on a vertical chart. @default "left" */
+	yAxisSide?: "left" | "right"
+	/**
+	 * The vertical axis's label width, in px. Left unset it follows the longest
+	 * label, so the plot slides sideways when new data changes the labels; set it
+	 * where a chart swaps data in place, such as tabs.
+	 */
+	yAxisWidth?: number
+	/** At most this many category labels. They already thin to fit, from the latest back; this asks for fewer. */
+	categoryTicks?: number
+	/**
+	 * The value axis's range. `"auto"` fits the data, so a price line uses the
+	 * plot instead of sitting at the top of an axis from zero; line charts do this
+	 * already, and bars ignore it, because a bar's length is its value. A
+	 * `[min, max]` pair fixes the range, and values past it stop at the plot's edge.
+	 * @default zero to the data, for areas and bars
+	 */
+	domain?: "auto" | [number, number]
+	/** Mark positions on the plot: "Today" on a category, "Target" on a value. */
+	referenceLines?: ChartReferenceLine[]
 	/**
 	 * How much motion this component uses: `full` (default) inherits the app's
 	 * policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It
@@ -83,6 +107,8 @@ export interface CartesianChartProps extends CartesianBaseProps {
 	negativeTone?: ChartTone
 	radius?: number
 	barWidth?: number
+	lineWidth?: number
+	fillStrength?: number
 }
 
 const AXIS_TEXT = "fill-muted-foreground text-caption tabular-nums"
@@ -92,6 +118,8 @@ const RULE = "stroke-foreground/10"
 const SURFACE = "stroke-(--sable-surface-bg,var(--background))"
 /** Touching marks (stacked segments, grouped bars) are separated by this much surface. */
 const GAP = 2
+/** The dash of a hover cursor, a reference line and a dashed series, per unit of line weight. */
+const DASH = 2
 
 /**
  * The engine behind AreaChart, LineChart and BarChart: one layout (scales,
@@ -111,6 +139,7 @@ export function CartesianChart(props: CartesianChartProps) {
 		label,
 		className,
 		valueFormatter,
+		axisFormatter,
 		indexFormatter,
 		locale,
 		tooltip = true,
@@ -130,27 +159,43 @@ export function CartesianChart(props: CartesianChartProps) {
 		negativeTone,
 		radius = 4,
 		barWidth = 24,
+		yAxisSide = "left",
+		yAxisWidth,
+		categoryTicks,
+		domain: domainProp,
+		referenceLines,
+		lineWidth = 2,
+		fillStrength,
 	} = props
 	const horizontal = kind === "bar" && orientation === "horizontal"
 	const xAxis = props.xAxis ?? !horizontal
 	const yAxis = props.yAxis ?? horizontal
 	const grid = props.grid ?? !horizontal
+	const valuesRight = !horizontal && yAxis && yAxisSide === "right"
 	const uid = useId().replace(/:/g, "")
 	const series = resolveSeries(rawSeries)
-	const fmt = chartFormatters(locale, valueFormatter)
+	const fmt = chartFormatters(locale, valueFormatter, axisFormatter)
 	const expand = stacked === "expand"
 	const percent = new Intl.NumberFormat(locale, { style: "percent", maximumFractionDigits: 0 })
 	const n = data.length
 	const values = series.map((s) => data.map((d) => numberValue(d[s.key])))
+	// A missing value is not a zero: it plots nothing and breaks the line. It
+	// still sums as 0, so a stack above it keeps its place.
+	const present = series.map((s) => data.map((d) => hasValue(d[s.key])))
 	const stacks = stacked ? stack(values, expand) : null
 	const categories = data.map((d) => categoryText(d[index], locale))
 	const tickText = (i: number) => (indexFormatter ? indexFormatter(categories[i]) : categories[i])
 	const tooltipOptions: ChartTooltipOptions = typeof tooltip === "object" ? tooltip : {}
+	// A stack reads top to bottom, the last series first. Listed the other way the
+	// tooltip was upside down against the chart beside it.
+	const reverseRows = (tooltipOptions.order ?? (stacked && !horizontal ? "reverse" : "series")) === "reverse"
 	const showLegend = legend ?? series.length > 1
 	const hasNegative = values.some((s) => s.some((v) => v < 0))
 
-	const domainValues = stacks ? stacks.flatMap((s) => s.map(([a, b]) => [a, b])) : values
-	const [lo, hi] = expand ? [0, 1] : extent(domainValues, kind !== "line")
+	const domainValues = stacks ? stacks.flatMap((s) => s.map(([a, b]) => [a, b])) : values.map((s, k) => s.map((v, i) => (present[k][i] ? v : Number.NaN)))
+	const fit = kind === "line" || (kind === "area" && domainProp === "auto")
+	const fixed = !expand && Array.isArray(domainProp) ? domainProp : null
+	const [lo, hi] = expand ? [0, 1] : (fixed ?? extent(domainValues, !fit))
 	const colorAt = (s: number, i: number) => {
 		if (negativeTone && values[s][i] < 0) return toneColor(negativeTone)
 		if (colorBy === "index") return chartColor(i)
@@ -158,6 +203,7 @@ export function CartesianChart(props: CartesianChartProps) {
 	}
 	const axisValue = (v: number) => (expand ? percent.format(v) : fmt.axis(v))
 	const fullValue = (s: number, i: number) => {
+		if (!present[s][i]) return "—"
 		const v = values[s][i]
 		if (!expand || !stacks) return fmt.full(v)
 		const [a, b] = stacks[s][i]
@@ -167,22 +213,25 @@ export function CartesianChart(props: CartesianChartProps) {
 	const layoutFor = (size: ChartSize) => {
 		const valueSpan = horizontal ? size.width : size.height
 		const ticks = niceTicks(lo, hi, Math.max(2, Math.min(6, Math.round(valueSpan / 56))))
-		const domain: [number, number] = expand ? [0, 1] : [ticks[0], ticks[ticks.length - 1]]
-		const valueTicks = expand ? [0, 0.25, 0.5, 0.75, 1] : ticks
+		const domain: [number, number] = expand ? [0, 1] : (fixed ?? [ticks[0], ticks[ticks.length - 1]])
+		const valueTicks = expand ? [0, 0.25, 0.5, 0.75, 1] : fixed ? ticks.filter((t) => t >= fixed[0] && t <= fixed[1]) : ticks
 		const categoryWidth = Math.max(0, ...categories.map((_, i) => approxTextWidth(tickText(i))))
 		const valueWidth = Math.max(0, ...valueTicks.map((t) => approxTextWidth(axisValue(t))))
 		const labelRoom = labels ? (horizontal ? Math.max(...values.flat().map((v) => approxTextWidth(fmt.full(v)))) + 8 : 20) : 0
 		// Dots and line caps reach past their point; keep them inside the box.
 		const inset = kind === "bar" ? 0 : dots ? 6 : 2
-		const left = (yAxis ? (horizontal ? categoryWidth : valueWidth) + 10 : 0) + inset
-		const right = inset + (horizontal ? labelRoom : 0)
+		const axisWidth = yAxisWidth ?? (horizontal ? categoryWidth : valueWidth)
+		const left = (yAxis && !valuesRight ? axisWidth + 10 : 0) + inset
+		const right = inset + (horizontal ? labelRoom : 0) + (valuesRight ? axisWidth + 10 : 0)
 		const top = (dots ? 6 : 4) + (horizontal ? 0 : labelRoom)
 		const bottom = xAxis ? 26 : dots ? 6 : 2
 		const x0 = left
 		const x1 = Math.max(x0 + 1, size.width - right)
 		const y0 = top
 		const y1 = Math.max(y0 + 1, size.height - bottom)
-		const value = horizontal ? linearScale(domain, [x0, x1]) : linearScale(domain, [y1, y0])
+		const scale = horizontal ? linearScale(domain, [x0, x1]) : linearScale(domain, [y1, y0])
+		// A fixed range is a promise about the plot: marks past it stop at the edge.
+		const value = fixed ? (v: number) => scale(Math.max(domain[0], Math.min(domain[1], v))) : scale
 		const base = value(Math.max(domain[0], Math.min(domain[1], 0)))
 		const catRange: [number, number] = horizontal ? [y0, y1] : [x0, x1]
 		const band = kind === "bar" ? bandScale(n, catRange, series.length > 1 && !stacked ? 0.2 : 0.3, 0) : null
@@ -207,11 +256,16 @@ export function CartesianChart(props: CartesianChartProps) {
 		return best
 	}
 
-	const describe = (i: number) => `${categories[i]}: ${series.map((s, k) => `${s.label} ${fullValue(k, i)}`).join(", ")}`
+	const describe = (i: number) => {
+		const read = series.flatMap((s, k) => (present[k][i] ? [`${s.label} ${fullValue(k, i)}`] : []))
+		return `${categories[i]}: ${read.length ? read.join(", ") : "no data"}`
+	}
 
 	const tooltipFor = (i: number, size: ChartSize) => {
 		const L = layoutFor(size)
 		const total = values.reduce((sum, s) => sum + s[i], 0)
+		// A series with no value here has nothing to say about this position.
+		const rows = series.flatMap((s, k) => (present[k][i] ? [{ key: s.key, label: s.label, value: fullValue(k, i), color: colorAt(k, i), icon: s.icon }] : []))
 		const content = (
 			<ChartTooltipContent
 				indicator={tooltipOptions.indicator}
@@ -222,7 +276,7 @@ export function CartesianChart(props: CartesianChartProps) {
 							? tooltipOptions.labelFormatter(categories[i], data[i])
 							: categories[i]
 				}
-				rows={series.map((s, k) => ({ key: s.key, label: s.label, value: fullValue(k, i), color: colorAt(k, i), icon: s.icon }))}
+				rows={reverseRows ? rows.reverse() : rows}
 				total={tooltipOptions.showTotal ? fmt.full(total) : undefined}
 			/>
 		)
@@ -268,7 +322,7 @@ export function CartesianChart(props: CartesianChartProps) {
 				   never hang past its edges. */
 				const widths = categories.map((_, i) => approxTextWidth(tickText(i)))
 				const slot = ((horizontal ? L.y1 - L.y0 : L.x1 - L.x0) / Math.max(1, n)) || 1
-				const every = Math.max(1, Math.ceil((horizontal ? 18 : Math.max(0, ...widths) + 12) / slot))
+				const every = Math.max(1, Math.ceil((horizontal ? 18 : Math.max(0, ...widths) + 12) / slot), categoryTicks ? Math.ceil(n / categoryTicks) : 1)
 				const categoryAxis = categories.map((_, i) => {
 					if ((n - 1 - i) % every !== 0) return null
 					const p = L.center(i)
@@ -303,9 +357,37 @@ export function CartesianChart(props: CartesianChartProps) {
 							{axisValue(t)}
 						</text>
 					) : (
-						<text key={`v${t}`} x={L.x0 - 10} y={p} dy="0.32em" textAnchor="end" className={AXIS_TEXT}>
+						<text key={`v${t}`} x={valuesRight ? size.width : L.x0 - 10} y={p} dy="0.32em" textAnchor="end" className={AXIS_TEXT}>
 							{axisValue(t)}
 						</text>
+					)
+				})
+
+				/* Above the marks and below the axes, so a Today line crosses the fill
+				   and its label stays clear of the labels on the axis. */
+				const references = (referenceLines ?? []).map((ref, r) => {
+					const i = ref.category === undefined ? -1 : categories.indexOf(ref.category)
+					const onCategory = i >= 0
+					if (!onCategory && ref.value === undefined) return null
+					const p = onCategory ? L.center(i) : L.value(ref.value as number)
+					const across = onCategory !== horizontal
+					const stroke = ref.tone ? toneColor(ref.tone) : undefined
+					// The label sits inside the plot, on the side with room for it.
+					const room = approxTextWidth(ref.label ?? "") + 6
+					const flip = across && p + room > L.x1
+					return (
+						<g key={`ref${r}`} aria-hidden>
+							{across ? (
+								<line x1={p} x2={p} y1={L.y0} y2={L.y1} strokeDasharray={`${DASH * 2} ${DASH * 2}`} className={stroke ? undefined : "stroke-foreground/40"} style={stroke ? { stroke } : undefined} />
+							) : (
+								<line x1={L.x0} x2={L.x1} y1={p} y2={p} strokeDasharray={`${DASH * 2} ${DASH * 2}`} className={stroke ? undefined : "stroke-foreground/40"} style={stroke ? { stroke } : undefined} />
+							)}
+							{ref.label ? (
+								<text x={across ? p + (flip ? -6 : 6) : L.x1} y={across ? L.y0 + 10 : p - 6} textAnchor={across && !flip ? "start" : "end"} className={AXIS_TEXT}>
+									{ref.label}
+								</text>
+							) : null}
+						</g>
 					)
 				})
 
@@ -314,9 +396,10 @@ export function CartesianChart(props: CartesianChartProps) {
 				   jumping; a band is the band's own width, so it never runs past the
 				   plot's edges. */
 				let cursor: ReactNode = null
+				const glide = denseChart(size.width, n) ? undefined : GLIDE
 				if (active != null && active < n) {
 					const c = L.center(active)
-					const move = { transform: horizontal ? `translate(0px, ${c}px)` : `translate(${c}px, 0px)`, transition: GLIDE } as CSSProperties
+					const move = { transform: horizontal ? `translate(0px, ${c}px)` : `translate(${c}px, 0px)`, transition: glide } as CSSProperties
 					if (L.band) {
 						const w = L.band.bandwidth
 						cursor = (
@@ -328,10 +411,10 @@ export function CartesianChart(props: CartesianChartProps) {
 								)}
 							</g>
 						)
-					} else {
+					} else if (tooltipOptions.cursor !== "none") {
 						cursor = (
 							<g style={move}>
-								<line x1={0} x2={0} y1={L.y0} y2={L.y1} className="stroke-foreground/25" />
+								<line x1={0} x2={0} y1={L.y0} y2={L.y1} strokeDasharray={tooltipOptions.cursor === "dashed" ? `${DASH} ${DASH * 1.5}` : undefined} className="stroke-foreground/25" />
 							</g>
 						)
 					}
@@ -347,7 +430,7 @@ export function CartesianChart(props: CartesianChartProps) {
 					series.forEach((_, k) => {
 						for (let i = 0; i < n; i++) {
 							const [a, b] = stacks ? stacks[k][i] : [0, values[k][i]]
-							if (a === b) continue
+							if (a === b || !present[k][i]) continue
 							const offset = band.at(i) + (band.bandwidth - groupSize) / 2 + (stacked ? 0 : k * (thickness + GAP))
 							const positive = b >= a
 							// A segment sitting on another takes a surface gap at its base.
@@ -417,21 +500,22 @@ export function CartesianChart(props: CartesianChartProps) {
 				} else if (L.point) {
 					const pts = (k: number, which: 0 | 1): Point[] =>
 						data.map((_, i) => [L.center(i), L.value(stacks ? stacks[k][i][which] : which === 0 ? 0 : values[k][i])])
+					const gapped = (line: Point[], k: number) => line.map((p, i) => (present[k][i] ? p : null))
 					// Areas paint back to front so the first series sits on top of an overlap.
 					const order = series.map((_, k) => k)
 					if (kind === "area" && !stacks) order.reverse()
 					for (const k of order) {
 						const s = series[k]
-						const top = pts(k, 1)
+						const top = gapped(pts(k, 1), k)
 						if (kind === "area") {
-							const bottom = stacks ? pts(k, 0) : top.map(([x]) => [x, L.base] as Point)
-							const d = areaPath(top, bottom, curve)
+							const bottom = stacks ? pts(k, 0) : data.map((_, i) => [L.center(i), L.base] as Point)
+							const d = brokenAreaPath(top, bottom, curve)
 							const fillId = `${uid}-fill-${k}`
 							if (gradient) {
 								marks.push(
 									<defs key={`d${k}`}>
 										<linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
-											<stop offset="0%" stopColor={s.colorValue} stopOpacity={stacks ? 0.5 : 0.22} />
+											<stop offset="0%" stopColor={s.colorValue} stopOpacity={fillStrength ?? (stacks ? 0.5 : 0.22)} />
 											<stop offset="100%" stopColor={s.colorValue} stopOpacity={0.02} />
 										</linearGradient>
 									</defs>,
@@ -446,29 +530,45 @@ export function CartesianChart(props: CartesianChartProps) {
 										...pathStyle(d),
 										fill: gradient ? `url(#${fillId})` : s.colorValue,
 										// A wash where areas overlap; firmer when stacked, where each band is its own.
-										fillOpacity: gradient ? 1 : stacks ? 0.32 : 0.14,
+										fillOpacity: gradient ? 1 : (fillStrength ?? (stacks ? 0.32 : 0.14)),
 										transformOrigin: `0px ${L.base}px`,
 										transition: riseTransition(stagger(k, 80)),
 									} as CSSProperties}
 								/>,
 							)
 						}
-						const line = linePath(top, curve)
+						const line = brokenLinePath(top, curve)
 						marks.push(
-							<path
-								key={`s${k}`}
-								d={line}
-								pathLength={1}
-								fill="none"
-								strokeWidth={2}
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								className="[stroke-dasharray:1] [stroke-dashoffset:0] [[data-reveal=out]_&]:[stroke-dashoffset:1]"
-								style={{ ...pathStyle(line), stroke: s.colorValue, transition: drawTransition(stagger(k, 120)) } as CSSProperties}
-							/>,
+							s.dashed ? (
+								<path
+									key={`s${k}`}
+									d={line}
+									fill="none"
+									strokeWidth={lineWidth}
+									strokeLinecap="butt"
+									strokeLinejoin="round"
+									strokeDasharray={`${lineWidth * DASH} ${lineWidth * DASH}`}
+									className="[[data-reveal=out]_&]:opacity-0"
+									style={{ ...pathStyle(line), stroke: s.colorValue, transition: dashedTransition(stagger(k, 120)) } as CSSProperties}
+								/>
+							) : (
+								<path
+									key={`s${k}`}
+									d={line}
+									pathLength={1}
+									fill="none"
+									strokeWidth={lineWidth}
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									className="[stroke-dasharray:1] [stroke-dashoffset:0] [[data-reveal=out]_&]:[stroke-dashoffset:1]"
+									style={{ ...pathStyle(line), stroke: s.colorValue, transition: drawTransition(stagger(k, 120)) } as CSSProperties}
+								/>
+							),
 						)
 						if (dots || labels) {
-							top.forEach(([x, y], i) => {
+							top.forEach((point, i) => {
+								if (!point) return
+								const [x, y] = point
 								if (dots)
 									marks.push(
 										<circle
@@ -489,11 +589,12 @@ export function CartesianChart(props: CartesianChartProps) {
 									)
 							})
 						}
-						if (active != null && active < n) {
-							const [x, y] = top[active]
+						const activePoint = active != null && active < n ? top[active] : null
+						if (activePoint) {
+							const [x, y] = activePoint
 							// One dot per series, kept mounted while hovering, so it glides from
 							// point to point instead of blinking out and in.
-							activeDots.push(<circle key={`ap${k}`} cx={x} cy={y} r={5} strokeWidth={2} className={SURFACE} style={{ fill: s.colorValue, cx: x, cy: y, transition: GLIDE } as CSSProperties} />)
+							activeDots.push(<circle key={`ap${k}`} cx={x} cy={y} r={5} strokeWidth={2} className={SURFACE} style={{ fill: s.colorValue, cx: x, cy: y, transition: glide } as CSSProperties} />)
 						}
 					}
 				}
@@ -504,6 +605,7 @@ export function CartesianChart(props: CartesianChartProps) {
 						{grid ? <g>{gridLines}</g> : null}
 						{cursor}
 						<g>{marks}</g>
+						{references}
 						<g>{activeDots}</g>
 						{zero ? (
 							horizontal ? (

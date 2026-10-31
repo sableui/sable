@@ -7,6 +7,7 @@ import {
 	cloneElement,
 	type ComponentPropsWithRef,
 	type FormEvent,
+	isValidElement,
 	type ReactElement,
 	type ReactNode,
 	useId,
@@ -243,9 +244,29 @@ export interface FieldProps
 	 * price, with the label taking the rest.
 	 */
 	trailing?: ReactNode
+	/**
+	 * Something at the end of the label's row, on a vertical Field: a balance, a
+	 * Max button, a "Forgot password?" link. It sits outside the label, so a
+	 * control in it does not take the label's click.
+	 */
+	labelTrailing?: ReactNode
 	className?: string
 	/** The single control element (e.g. `<Input />`, `<Textarea />`, `<Select…>`). */
 	children: ReactElement
+}
+
+/**
+ * The id a caller gave the control: on Field's child, or one level in, where a
+ * wrapper holds the real control (`<InputGroup><Input id /></InputGroup>`,
+ * `<Select><SelectTrigger id /></Select>`). Field passes its id down, so it has to
+ * adopt that one, or it replaces it and the label points at nothing.
+ */
+function callerControlId(child: ReactElement<Record<string, unknown>>): string | undefined {
+	if (typeof child.props.id === "string") return child.props.id
+	for (const inner of Children.toArray(child.props.children as ReactNode)) {
+		if (isValidElement<{ id?: unknown }>(inner) && typeof inner.props.id === "string") return inner.props.id
+	}
+	return undefined
 }
 
 /**
@@ -285,13 +306,14 @@ export function Field({
 	validationDebounceTime,
 	orientation = "vertical",
 	trailing,
+	labelTrailing,
 	className,
 	children,
 	...props
 }: FieldProps) {
 	const generatedId = useId()
 	const child = Children.only(children) as ReactElement<Record<string, unknown>>
-	const controlId = (child.props.id as string | undefined) ?? generatedId
+	const controlId = callerControlId(child) ?? generatedId
 	const descId = description ? `${controlId}-description` : undefined
 	const errId = `${controlId}-error`
 	const hasError = error != null && error !== false && error !== ""
@@ -401,7 +423,14 @@ export function Field({
 				</div>
 			) : (
 				<>
-					{labelNode}
+					{labelTrailing != null ? (
+						<div className="flex items-center justify-between gap-2">
+							{labelNode}
+							{labelTrailing}
+						</div>
+					) : (
+						labelNode
+					)}
 					{trailing != null ? (
 						<div className="flex items-start gap-2">
 							<div className="min-w-0 flex-1">{control}</div>

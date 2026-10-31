@@ -4,8 +4,10 @@ import { Select as Base } from "@base-ui/react/select"
 import {
 	Children,
 	type ComponentProps,
+	createContext,
 	isValidElement,
 	type ReactNode,
+	useContext,
 } from "react"
 import { Icon } from "../../icon"
 import { anchoredListScroll } from "../../lib/anchored-scroll"
@@ -100,7 +102,16 @@ function deriveItemLabels(
  * the SelectItem children are scanned so the closed trigger shows each item's
  * display text (string/number children or `label`) instead of its raw `value`.
  */
+/**
+ * The id set on `<Select>`, for the trigger. It is the trigger that a label
+ * points at, and inside a Field both the root and the trigger register an id:
+ * the trigger's generated one won, and an id on the root (Field's included)
+ * named nothing, which left `<label for>` pointing at no element.
+ */
+const SelectIdContext = createContext<string | undefined>(undefined)
+
 export function Select<Value, Multiple extends boolean | undefined = false>({
+	id,
 	items,
 	children,
 	...props
@@ -112,9 +123,11 @@ export function Select<Value, Multiple extends boolean | undefined = false>({
 		items ??
 		(derived && Object.keys(derived).length > 0 ? derived : undefined)
 	return (
-		<Base.Root items={resolvedItems} {...props}>
-			{children}
-		</Base.Root>
+		<SelectIdContext.Provider value={id}>
+			<Base.Root id={id} items={resolvedItems} {...props}>
+				{children}
+			</Base.Root>
+		</SelectIdContext.Provider>
 	)
 }
 export const SelectPortal = withPortalThemeScope(Base.Portal)
@@ -151,9 +164,12 @@ type TriggerProps = Omit<
 	 * Glitch's inspector had eleven of those, and both tells are visible at a
 	 * glance in a 240px panel.
 	 *
+	 * `sm` is `md` one rung down, the same raised field: a select in a toolbar
+	 * beside `sm` buttons.
+	 *
 	 * @default "md"
 	 */
-	size?: "md" | "xs"
+	size?: "md" | "sm" | "xs"
 	/** Override the rendered value content (receives the selected value). */
 	children?: ComponentProps<typeof Base.Value>["children"]
 }
@@ -167,9 +183,11 @@ export function SelectTrigger({
 	placeholder,
 	size = "md",
 	children,
+	id,
 	...props
 }: TriggerProps) {
 	const tier = useTypeTier()
+	const rootId = useContext(SelectIdContext)
 	// The 16px iOS floor, shared with Input/Textarea (full rationale in
 	// components/input/input.tsx). This trigger is a <button>, so Safari does not
 	// zoom on IT — but it stands in a form row beside fields that now render
@@ -183,12 +201,13 @@ export function SelectTrigger({
 		density === "comfortable" && size === "md" && MOBILE_FIELD_TIER
 	return (
 		<Base.Trigger
+			id={id ?? rootId}
 			className={cn(
 				`flex w-full items-center justify-between ${tier.body} text-foreground motion-interactive`,
 				mobileTier,
-				size === "xs"
-					? cn("h-(--control-xs) gap-1 px-1.5", FIELD_SHELL_XS)
-					: "h-(--control-md) gap-2 rounded-sm border border-field-border bg-field px-3",
+				size === "xs" && cn("h-(--control-xs) gap-1 px-1.5", FIELD_SHELL_XS),
+				size === "sm" && "h-(--control-sm) gap-1.5 rounded-sm border border-field-border bg-field px-2.5",
+				size === "md" && "h-(--control-md) gap-2 rounded-sm border border-field-border bg-field px-3",
 				"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
 				"data-[popup-open]:ring-2 data-[popup-open]:ring-ring",
 				// Invalid like every other field: Base UI marks the trigger

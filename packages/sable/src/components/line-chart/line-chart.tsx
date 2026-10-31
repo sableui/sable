@@ -10,6 +10,8 @@ export interface LineChartProps extends CartesianBaseProps {
 	colorBy?: "series" | "index"
 	/** Print each point's value above it. @default false */
 	labels?: boolean
+	/** The line's weight, in px. @default 2 */
+	lineWidth?: number
 }
 
 /**

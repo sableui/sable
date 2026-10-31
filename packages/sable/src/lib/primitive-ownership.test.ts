@@ -48,6 +48,10 @@ const OWNERS: Record<string, { owners: string[]; why?: string }> = {
 	"@base-ui/react/meter": { owners: ["meter"] },
 	"@base-ui/react/number-field": { owners: ["number-field"] },
 	"@base-ui/react/otp-field": { owners: ["otp-field"] },
+	"@base-ui/react/scroll-area": {
+		owners: ["scroller"],
+		why: "Scroller's vertical bar. Every other region composes Scroller or takes scrollbar-quiet.",
+	},
 	"@base-ui/react/popover": { owners: ["popover"] },
 	"@base-ui/react/preview-card": { owners: ["context-card"] },
 	"@base-ui/react/progress": { owners: ["progress"] },

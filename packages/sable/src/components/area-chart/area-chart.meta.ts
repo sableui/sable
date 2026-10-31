@@ -24,6 +24,10 @@ export const areaChartMeta: ComponentMeta = {
 			},
 			{
 				guidance: "do",
+				description: "Leave a value out with null, never 0: a gap breaks the line, and a zero is a claim about the data. A forecast is a second, dashed series with values only where it runs."
+			},
+			{
+				guidance: "do",
 				description: "Set a height on className (h-72, aspect-video h-auto); the chart fills the box it is given."
 			},
 			{
@@ -117,6 +121,48 @@ export const areaChartMeta: ComponentMeta = {
 			type: "boolean",
 			default: "false for columns; true for horizontal bars",
 			description: "The vertical axis."
+		},
+		{
+			name: "yAxisSide",
+			type: "\"left\" | \"right\"",
+			default: "\"left\"",
+			description: "Which edge the value axis sits on, on a vertical chart."
+		},
+		{
+			name: "yAxisWidth",
+			type: "number",
+			description: "The vertical axis's label width, in px. Left unset it follows the longest label, so the plot slides sideways when new data changes the labels; set it where a chart swaps data in place, such as tabs."
+		},
+		{
+			name: "categoryTicks",
+			type: "number",
+			description: "At most this many category labels. They already thin to fit, from the latest back; this asks for fewer."
+		},
+		{
+			name: "domain",
+			type: "\"auto\" | [number, number]",
+			description: "The value axis's range. \"auto\" fits the data, so a price line uses the plot instead of sitting at the top of an axis from zero. A [min, max] pair fixes the range, and values past it stop at the plot's edge. Defaults to zero up to the data."
+		},
+		{
+			name: "referenceLines",
+			type: "ChartReferenceLine[]",
+			description: "Mark positions on the plot, each { category } or { value }, with an optional label and tone: a Today line, a target."
+		},
+		{
+			name: "axisFormatter",
+			type: "(value: number) => string",
+			description: "Format values on the axis alone, when it needs less than valueFormatter prints: $50K beside $41,746.08."
+		},
+		{
+			name: "lineWidth",
+			type: "number",
+			default: "2",
+			description: "The line's weight, in px."
+		},
+		{
+			name: "fillStrength",
+			type: "number",
+			description: "How strong the fill is, from 0 to 1: the tint's opacity, or the top of the gradient. Lower it when stacked bands read as one wall of colour. Defaults to 0.14, or 0.32 stacked; with gradient, 0.22, or 0.5 stacked."
 		},
 		{
 			name: "motion",
@@ -216,6 +262,10 @@ export const areaChartMeta: ComponentMeta = {
 		"Colour is never the only key: series are named in the legend, tooltip and table."
 	],
 	examples: [
+		{
+			label: "A forecast and a Today line",
+			code: "const prices = [\n\t{ day: \"Mon\", price: 41200, forecast: null },\n\t{ day: \"Tue\", price: 41900, forecast: null },\n\t{ day: \"Wed\", price: 42300, forecast: 42300 },\n\t{ day: \"Thu\", price: null, forecast: 43100 },\n\t{ day: \"Fri\", price: null, forecast: 44200 },\n]\n\n<AreaChart\n\tlabel=\"Price\"\n\tdata={prices}\n\tindex=\"day\"\n\tseries={[\n\t\t{ key: \"price\", label: \"Price\" },\n\t\t{ key: \"forecast\", label: \"Forecast\", dashed: true },\n\t]}\n\tdomain=\"auto\"\n\tgradient\n\tyAxis\n\tyAxisSide=\"right\"\n\tyAxisWidth={48}\n\taxisFormatter={(v) => `$${Math.round(v / 1000)}K`}\n\tvalueFormatter={(v) => `$${v.toLocaleString()}`}\n\treferenceLines={[{ category: \"Wed\", label: \"Today\" }]}\n/>",
+		},
 		{
 			label: "Two series with a legend",
 			code: "const visitors = [\n\t{ month: \"January\", desktop: 186, mobile: 80 },\n\t{ month: \"February\", desktop: 305, mobile: 200 },\n\t{ month: \"March\", desktop: 237, mobile: 120 },\n\t{ month: \"April\", desktop: 73, mobile: 190 },\n\t{ month: \"May\", desktop: 209, mobile: 130 },\n\t{ month: \"June\", desktop: 214, mobile: 140 },\n]\n\n<AreaChart\n\tlabel=\"Visitors, January to June\"\n\tdata={visitors}\n\tindex=\"month\"\n\tseries={[\n\t\t{ key: \"desktop\", label: \"Desktop\" },\n\t\t{ key: \"mobile\", label: \"Mobile\" },\n\t]}\n\tindexFormatter={(m) => m.slice(0, 3)}\n\tgradient\n/>"

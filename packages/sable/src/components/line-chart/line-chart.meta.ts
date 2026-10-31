@@ -117,6 +117,43 @@ export const lineChartMeta: ComponentMeta = {
 			description: "The vertical axis."
 		},
 		{
+			name: "yAxisSide",
+			type: "\"left\" | \"right\"",
+			default: "\"left\"",
+			description: "Which edge the value axis sits on, on a vertical chart."
+		},
+		{
+			name: "yAxisWidth",
+			type: "number",
+			description: "The vertical axis's label width, in px. Left unset it follows the longest label, so the plot slides sideways when new data changes the labels; set it where a chart swaps data in place, such as tabs."
+		},
+		{
+			name: "categoryTicks",
+			type: "number",
+			description: "At most this many category labels. They already thin to fit, from the latest back; this asks for fewer."
+		},
+		{
+			name: "domain",
+			type: "\"auto\" | [number, number]",
+			description: "The value axis's range. A line chart already fits its data; a [min, max] pair fixes the range, and values past it stop at the plot's edge."
+		},
+		{
+			name: "referenceLines",
+			type: "ChartReferenceLine[]",
+			description: "Mark positions on the plot, each { category } or { value }, with an optional label and tone: a Today line, a target."
+		},
+		{
+			name: "axisFormatter",
+			type: "(value: number) => string",
+			description: "Format values on the axis alone, when it needs less than valueFormatter prints: $50K beside $41,746.08."
+		},
+		{
+			name: "lineWidth",
+			type: "number",
+			default: "2",
+			description: "The line's weight, in px."
+		},
+		{
 			name: "motion",
 			type: "\"full\" | \"subtle\" | \"off\"",
 			default: "\"full\"",

@@ -2,6 +2,7 @@
 
 import { type KeyboardEvent, type PointerEvent, type ReactNode, useEffect, useId, useRef, useState } from "react"
 import { type MotionLevel, motionAttribute, useMotionLevel } from "../../motion/MotionProvider"
+import { denseChart } from "./motion"
 import { useArrival } from "./use-arrival"
 import { cn } from "../cn"
 
@@ -173,6 +174,7 @@ export function ChartFrame({
 	}
 
 	const placement = size && active != null && tooltip ? tooltip(active, size) : null
+	const dense = size ? denseChart(size.width, count) : false
 	// Flip to the left of the anchor past the plot's midline, so the card never runs off the edge.
 	const flip = placement && size ? placement.x > size.width / 2 : false
 
@@ -221,7 +223,7 @@ export function ChartFrame({
 						className={cn(
 							"pointer-events-none absolute start-0 top-0 z-10",
 							// Glides between positions; appears in place the first time.
-							!appeared.current && "transition-transform duration-(--motion-duration-fast) ease-standard",
+							!appeared.current && !dense && "transition-transform duration-(--motion-duration-fast) ease-standard",
 						)}
 						style={{ transform: `translate(${Math.round(placement.x)}px, ${Math.round(placement.y)}px)` }}
 					>
@@ -232,33 +234,37 @@ export function ChartFrame({
 				) : null}
 			</div>
 			{legend}
-			<table id={tableId} className="sr-only">
-				<caption>{label}</caption>
-				<thead>
-					<tr>
-						{table.headers.map((h) => (
-							<th key={h} scope="col">
-								{h}
-							</th>
-						))}
-					</tr>
-				</thead>
-				<tbody>
-					{table.rows.map((row) => (
-						<tr key={row[0]}>
-							{row.map((cell, i) =>
-								i === 0 ? (
-									<th key={`h-${cell}`} scope="row">
-										{cell}
-									</th>
-								) : (
-									<td key={`${table.headers[i]}`}>{cell}</td>
-								),
-							)}
+			{/* The clip is a wrapper's: a table ignores `height: 1px`, so `sr-only` on
+			    the table itself left every row taking space and stretching the page. */}
+			<div className="sr-only">
+				<table id={tableId}>
+					<caption>{label}</caption>
+					<thead>
+						<tr>
+							{table.headers.map((h) => (
+								<th key={h} scope="col">
+									{h}
+								</th>
+							))}
 						</tr>
-					))}
-				</tbody>
-			</table>
+					</thead>
+					<tbody>
+						{table.rows.map((row) => (
+							<tr key={row[0]}>
+								{row.map((cell, i) =>
+									i === 0 ? (
+										<th key={`h-${cell}`} scope="row">
+											{cell}
+										</th>
+									) : (
+										<td key={`${table.headers[i]}`}>{cell}</td>
+									),
+								)}
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
 			<div aria-live="polite" className="sr-only">
 				{viaKeyboard && active != null ? describe(active) : ""}
 			</div>

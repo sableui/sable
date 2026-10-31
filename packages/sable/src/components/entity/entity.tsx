@@ -10,6 +10,8 @@ interface EntityBaseProps extends VariantProps<typeof entityVariants> {
 	title: ReactNode
 	/** Secondary line (text-body-sm muted, truncated). */
 	subtitle?: ReactNode
+	/** Let the subtitle wrap instead of truncating, when it is a description rather than a label. @default false */
+	subtitleWrap?: boolean
 	/** Trailing slot — typically a ghost icon Button or a StatusDot. */
 	action?: ReactNode
 }
@@ -55,6 +57,7 @@ export function Entity({
 	leading,
 	title,
 	subtitle,
+	subtitleWrap = false,
 	action,
 	density,
 	className,
@@ -71,7 +74,7 @@ export function Entity({
 			<div className="flex min-w-0 flex-1 flex-col">
 				<span className="truncate text-title-sm text-foreground">{title}</span>
 				{subtitle != null ? (
-					<span className="truncate text-body-sm text-muted-foreground">
+					<span className={cn("text-body-sm text-muted-foreground", !subtitleWrap && "truncate")}>
 						{subtitle}
 					</span>
 				) : null}
@@ -95,12 +98,14 @@ export function Entity({
 			{...props}
 		>
 			{interactive ? (
+				// The ring is inset: rows run to the edge of a CardList or SheetList,
+				// where anything outside the row is clipped away on three sides.
 				// design-lint-disable-next-line raw-button -- the whole row is the hit target (stretched ::after); a row has its own anatomy, not a Button's height/padding
 				<button
 					type="button"
 					onClick={onSelect}
 					aria-current={selected ? "true" : undefined}
-					className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-start outline-none motion-interactive after:absolute after:inset-0 after:rounded-[var(--entity-radius,var(--radius-md))] focus-visible:after:ring-2 focus-visible:after:ring-ring"
+					className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-start outline-none motion-interactive after:absolute after:inset-0 after:rounded-[var(--entity-radius,var(--radius-md))] focus-visible:after:ring-2 focus-visible:after:ring-inset focus-visible:after:ring-ring"
 				>
 					{body}
 				</button>

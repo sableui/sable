@@ -122,11 +122,14 @@ export function AppShell({
 				<AppShellMain
 					id="main-content"
 					scrolls={inset}
-					// Inset, main is the scroll container, so the skip link has to land
-					// focus IN it or PageDown and the arrows have nothing to scroll. -1
-					// keeps it out of the tab order (Chrome's focusable-scroller rule
-					// would otherwise add a tab stop for the whole panel).
-					tabIndex={inset ? -1 : undefined}
+					// The focus target for the skip link and for a route change, in both
+					// frames: without it `.focus()` does nothing and focus stays on the
+					// link that was just activated. Inset, main is also the scroll
+					// container, so focus has to land IN it or PageDown and the arrows
+					// have nothing to scroll. -1 keeps it out of the tab order (Chrome's
+					// focusable-scroller rule would otherwise add a tab stop for the
+					// whole panel).
+					tabIndex={-1}
 					// A query container so layout primitives can size to the content
 					// area, not the raw viewport — chiefly `Bleed`, which then fills the
 					// space beside a fixed Sidebar instead of bleeding under it.
@@ -135,7 +138,7 @@ export function AppShell({
 					// so they're unaffected.)
 					style={{ containerType: "inline-size" }}
 					className={cn(
-						"min-w-0 flex-1",
+						"min-w-0 flex-1 outline-none",
 						bottomNav &&
 							"pb-[calc(var(--nav-height)+env(safe-area-inset-bottom,0px))] lg:pb-0",
 						// The inset panel. A spacing-step gap on the open sides (the rail
@@ -146,7 +149,7 @@ export function AppShell({
 						// edge and the subtlest raise, never a floating shadow.
 						inset &&
 							cn(
-								"outline-none lg:m-2 lg:overflow-y-auto lg:overscroll-contain scrollbar-quiet",
+								"lg:m-2 lg:overflow-y-auto lg:overscroll-contain scrollbar-quiet",
 								"lg:rounded-lg lg:border lg:border-border lg:bg-background lg:shadow-sm",
 								sidebar && "lg:ms-0",
 							),

@@ -80,6 +80,42 @@ export function areaPath(top: Point[], bottom: Point[], curve: ChartCurve = "smo
 	return `${linePath(top, curve)}L${f(back[0][0])},${f(back[0][1])}${segments(back, curve)}Z`
 }
 
+/** Consecutive runs of the positions holding a point. */
+function presentRuns(pts: (Point | null)[]): number[][] {
+	const runs: number[][] = []
+	let run: number[] = []
+	pts.forEach((p, i) => {
+		if (p) run.push(i)
+		else if (run.length) {
+			runs.push(run)
+			run = []
+		}
+	})
+	if (run.length) runs.push(run)
+	return runs
+}
+
+/**
+ * A line that breaks wherever a point is missing, rather than drawing through
+ * it. A point alone between two gaps is a zero-length segment, which a round
+ * cap draws as a dot; otherwise it would vanish from the chart.
+ */
+export function brokenLinePath(pts: (Point | null)[], curve: ChartCurve = "smooth"): string {
+	return presentRuns(pts)
+		.map((run) => {
+			const line = linePath(run.map((i) => pts[i] as Point), curve)
+			return run.length === 1 ? `${line}h0` : line
+		})
+		.join("")
+}
+
+/** A filled band that breaks with its line: one closed shape per unbroken run. */
+export function brokenAreaPath(top: (Point | null)[], bottom: Point[], curve: ChartCurve = "smooth"): string {
+	return presentRuns(top)
+		.map((run) => areaPath(run.map((i) => top[i] as Point), run.map((i) => bottom[i]), curve))
+		.join("")
+}
+
 /**
  * A rectangle with each corner rounded on its own — a bar rounds only its far
  * end, and a stack rounds only its outer segments. Radii clamp to the bar.

@@ -26,9 +26,6 @@ import {
 	Spinner,
 	StatusDot,
 	Switch,
-	Tabs,
-	TabsList,
-	TabsTrigger,
 	TextReveal,
 	Toggle,
 	ToggleGroup,
@@ -205,13 +202,11 @@ function LevelDemo({ title, note }: { title: string; note: string }) {
 				<p className="text-body-sm text-muted-foreground">{note}</p>
 			</div>
 			<TextReveal as="p" className="text-heading-3" text="Your workspace is ready." />
-			<Tabs defaultValue="week">
-				<TabsList variant="pill">
-					<TabsTrigger value="day">Day</TabsTrigger>
-					<TabsTrigger value="week">Week</TabsTrigger>
-					<TabsTrigger value="month">Month</TabsTrigger>
-				</TabsList>
-			</Tabs>
+			<ToggleGroup appearance="segmented" aria-label="Range" defaultValue={["week"]}>
+				<Toggle value="day">Day</Toggle>
+				<Toggle value="week">Week</Toggle>
+				<Toggle value="month">Month</Toggle>
+			</ToggleGroup>
 			<div className="flex flex-wrap gap-x-6 gap-y-3">
 				<Field label="Email me" orientation="horizontal">
 					<Checkbox defaultChecked />

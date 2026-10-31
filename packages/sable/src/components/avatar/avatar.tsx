@@ -92,13 +92,15 @@ AvatarRoot.displayName = "AvatarRoot"
 
 type ImageProps = Omit<ComponentProps<typeof Base.Image>, "className"> & {
 	className?: string
+	/** `cover` fills and crops the frame, for a photo. `contain` fits the whole image inside it, for a logo. @default "cover" */
+	fit?: "cover" | "contain"
 }
 
 /** The profile image. Fills and crops the frame; hidden by Base UI until loaded. */
-export function AvatarImage({ className, ...props }: ImageProps) {
+export function AvatarImage({ className, fit = "cover", ...props }: ImageProps) {
 	return (
 		<Base.Image
-			className={cn("aspect-square size-full object-cover", className)}
+			className={cn("aspect-square size-full", fit === "contain" ? "object-contain" : "object-cover", className)}
 			{...props}
 		/>
 	)
@@ -152,6 +154,8 @@ export interface AvatarProps extends RootProps {
 	 * Pass a user id to tell apart two people who share initials.
 	 */
 	seed?: string | number
+	/** How the image fills the frame: `cover` crops it, for a photo; `contain` fits all of it inside, for a logo. @default "cover" */
+	fit?: "cover" | "contain"
 }
 
 /**
@@ -169,6 +173,7 @@ export function Avatar({
 	status,
 	variant = "neutral",
 	seed,
+	fit,
 	className,
 	...props
 }: AvatarProps) {
@@ -178,7 +183,7 @@ export function Avatar({
 	const named = !src && alt ? { role: "img" as const, "aria-label": alt } : null
 	const avatar = (
 		<AvatarRoot size={size} shape={shape} tone={variant === "art" ? undefined : tone} className={status == null ? className : undefined} {...named} {...props}>
-			{src ? <AvatarImage src={src} alt={alt ?? ""} className={size ? IMAGE_FADE[size] : undefined} /> : null}
+			{src ? <AvatarImage src={src} alt={alt ?? ""} fit={fit} className={size ? IMAGE_FADE[size] : undefined} /> : null}
 			{variant === "art" ? (
 				<AvatarFallback delay={fallbackDelay} aria-hidden={named ? true : undefined} className="size-full">
 					<GradientArt variant="linear" seed={seed ?? ((typeof fallback === "string" && fallback) || alt || undefined)} className="flex size-full items-center justify-center text-overlay-foreground">

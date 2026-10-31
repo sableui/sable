@@ -1303,6 +1303,34 @@
 	}
 }
 
+/* The gutter behind a modal. Base UI's scroll lock keeps the page from jumping
+   by holding `scrollbar-gutter: stable` on <html> while a modal is open, and it
+   does this in every app, not only one that sets the property. Nothing fixed can
+   paint in a gutter, so a scrim stopped short of the window's edge and left an
+   undimmed strip, and a right sheet stopped 15px short of the edge it is pinned
+   to. A gutter shows the root's own background, so that is what follows the
+   overlay: the scrim's colour over the page, or the sheet's surface beside it.
+   The gutter stays reserved, because releasing it is what would reflow the page.
+
+   The page itself must not pick that colour up. <html> paints the page in the
+   base layer, so while the root is tinted <body> takes over, and it fills the
+   window so a short page does not show the tint under the scrim. In the base
+   layer: an app that paints its own body keeps it. */
+html:has([data-sable-scrim]) {
+	background-color: color-mix(in oklab, var(--overlay) var(--scrim-alpha), var(--background));
+	transition: background-color var(--motion-duration-base) var(--motion-ease-standard);
+}
+html:not([dir="rtl"]):has([data-sable-sheet="right"]),
+html[dir="rtl"]:has([data-sable-sheet="left"]) {
+	background-color: var(--popover);
+}
+@layer base {
+	:where(html:has([data-sable-scrim])) body {
+		background-color: var(--background);
+		min-height: 100dvh;
+	}
+}
+
 /* Reveal on hover — row and tile actions that rest hidden and appear when the
    pointer is over their item, without ever becoming unreachable.
 
@@ -2376,12 +2404,14 @@
    it on data-[starting-style]/data-[ending-style]; this recipe carries the
    overflow, the transition, and the content fade. */
 @utility motion-disclosure {
-	/* Clipped for the height animation, with a margin so a focus ring (or a
-	   control a few pixels proud of its row) at the panel's edge is not cut
-	   off. `hidden` is the fallback where `clip` is unsupported. */
-	overflow: hidden;
-	overflow: clip;
-	overflow-clip-margin: calc(var(--spacing) * 1);
+	/* Clipped for the height animation, and only for that: the sides stay open,
+	   so a focus ring or a `bleed` button at the panel's edge is whole, and the
+	   top and bottom keep a margin for a ring. A clip-path rather than
+	   `overflow: clip`, which cannot open one axis: `overflow-clip-margin` is the
+	   same on every side, so a margin wide enough for a bleed would show the
+	   closing content past the panel's bottom. It also rejects `calc()` in
+	   Chromium, which left this at 0 and cut every ring. */
+	clip-path: inset(calc(var(--spacing) * -1) -100vw);
 	transition-property: height, opacity;
 	transition-duration: var(--motion-duration-base);
 	transition-timing-function: var(--motion-ease-standard);

@@ -1,5 +1,14 @@
 /** Sample data shared by the chart pages and the chart blocks' docs. */
 
+/** A price that stops at Wednesday, with a forecast that picks up from the same point. */
+export const PRICES = [
+	{ day: "Mon", price: 41200, forecast: null },
+	{ day: "Tue", price: 41900, forecast: null },
+	{ day: "Wed", price: 42300, forecast: 42300 },
+	{ day: "Thu", price: null, forecast: 43100 },
+	{ day: "Fri", price: null, forecast: 44200 },
+]
+
 export const VISITORS = [
 	{ month: "January", desktop: 186, mobile: 80 },
 	{ month: "February", desktop: 305, mobile: 200 },

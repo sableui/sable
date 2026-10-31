@@ -1,7 +1,7 @@
 import { AreaChart, Toggle, ToggleGroup, areaChartMeta } from "@sableui/react"
 import { useState } from "react"
 import { ComponentPlayground, Example, MetaFooter, PageHeader, Section, ledeFor } from "../../components/docs-ui"
-import { DAILY, DEVICES, DEVICES_WITH_ICONS, VISITORS, shortDate, shortMonth } from "../../content/chart-data"
+import { DAILY, DEVICES, DEVICES_WITH_ICONS, PRICES, VISITORS, shortDate, shortMonth } from "../../content/chart-data"
 
 const RANGES = { "90d": 90, "30d": 30, "7d": 7 } as const
 
@@ -64,6 +64,28 @@ export function AreaChartPage() {
 			<Section title="Gradient" description="A fade from the series colour, for a lighter fill on landing pages and decks.">
 				<Example replayable>
 					<AreaChart label="Visitors by device" data={VISITORS} index="month" series={DEVICES} indexFormatter={shortMonth} gradient />
+				</Example>
+			</Section>
+
+			<Section title="A forecast" description="Missing values break a line, so a forecast is a second, dashed series that starts where the first one stops. An auto domain fits the axis to the price, and a reference line marks today.">
+				<Example replayable>
+					<AreaChart
+						label="Price with a forecast"
+						data={PRICES}
+						index="day"
+						series={[
+							{ key: "price", label: "Price" },
+							{ key: "forecast", label: "Forecast", dashed: true },
+						]}
+						domain="auto"
+						gradient
+						yAxis
+						yAxisSide="right"
+						yAxisWidth={48}
+						axisFormatter={(v) => `$${Math.round(v / 1000)}K`}
+						valueFormatter={(v) => `$${v.toLocaleString("en-US")}`}
+						referenceLines={[{ category: "Wed", label: "Today" }]}
+					/>
 				</Example>
 			</Section>
 

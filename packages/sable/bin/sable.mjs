@@ -92,7 +92,7 @@ const COMMANDS = [
 		arg: null,
 		flags: [
 			{ name: "--template", value: null, describe: "Print a complete editable Sable preset JSON record." },
-			{ name: "--check", value: "file.json", describe: "Validate the schema, the Sable token contract, and labels on brand and status fills (accept a pair with `exceptions`)." },
+			{ name: "--check", value: "file.json", describe: "Validate the schema, the Sable token contract, and labels on brand and status fills (accept a pair with `exceptions`). Warns when a control fill or surface nearly matches the one beneath it." },
 			{ name: "--css", value: "file.json", describe: "Generate scoped theme CSS from a validated preset." },
 		],
 		returns: ["preset.template", "preset.check", "preset.css"],
@@ -146,7 +146,7 @@ const COMMANDS = [
 		summary: "One ranked result set across components, providers, patterns, blocks, layout primitives, utilities, tokens, and docs.",
 		arg: { name: "query", required: true },
 		flags: [
-			{ name: "--type", value: "component|provider|pattern|block|example|layout|utility|token|doc", describe: "Restrict to one kind. `example` finds a component example by what it shows (\"multiple selection\", \"server errors\")." },
+			{ name: "--type", value: "component|provider|pattern|block|example|layout|utility|token|icon|doc", describe: "Restrict to one kind. `example` finds a component example by what it shows (\"multiple selection\", \"server errors\")." },
 			{ name: "--limit", value: "n", describe: "Cap results. Default 20." },
 		],
 		returns: ["search"],
@@ -730,6 +730,12 @@ function cmdSearch() {
 	if (!type || type === "token")
 		for (const t of R.tokens?.semantic ?? [])
 			pool.push({ kind: "token", name: t.name, summary: t.intent, _s: score({ name: t.name, text: `${t.intent} ${t.whenToUse ?? ""}` }) })
+	// Other sets' names count as keywords, so `check-circle` finds `circle-check`.
+	if (!type || type === "icon") {
+		const aliases = Object.entries(R.iconContract?.aliases ?? {})
+		for (const name of R.iconContract?.names ?? [])
+			pool.push({ kind: "icon", name, summary: `<Icon name="${name}" />`, _s: score({ name, keywords: aliases.filter(([, to]) => to === name).map(([from]) => from), text: "" }) })
+	}
 	if (!type || type === "doc")
 		for (const d of docSlugs())
 			pool.push({ kind: "doc", name: d.slug, summary: `${d.kind} mirror`, _s: score({ name: d.slug, text: d.kind }) })
@@ -743,7 +749,7 @@ function cmdSearch() {
 	// Ties resolve in the order AGENTS.md tells an agent to resolve a need:
 	// a component first, then a pattern or primitive, then a utility, then a
 	// token. "segmented" should land on ToggleGroup before the well behind it.
-	const KIND_ORDER = ["component", "provider", "pattern", "block", "example", "layout", "utility", "token", "doc"]
+	const KIND_ORDER = ["component", "provider", "pattern", "block", "example", "layout", "utility", "token", "icon", "doc"]
 	// A popular label ("Controlled value") exists on dozens of components, so
 	// examples are capped twice: per component, and as a share of the list, or
 	// one query would bury every component under its own examples.

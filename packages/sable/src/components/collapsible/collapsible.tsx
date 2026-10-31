@@ -67,8 +67,8 @@ type PanelProps = Omit<ComponentProps<typeof Base.Panel>, "className"> & {
 }
 
 /**
- * The collapsible contents. Stays overflow-hidden so the height transition
- * clips cleanly; Base UI drives the height from --collapsible-panel-height.
+ * The collapsible contents. `motion-disclosure` clips the height transition
+ * top and bottom; Base UI drives the height from --collapsible-panel-height.
  */
 export function CollapsiblePanel({ className, ...props }: PanelProps) {
 	return (

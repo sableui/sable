@@ -63,7 +63,7 @@ Use Dialog for focused decisions, short modal forms, confirmations, and content 
 
 ## Variants
 
-- **size**: default, fullscreen
+- **size**: default, lg, fullscreen
 
 ## Tokens used
 

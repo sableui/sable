@@ -34,6 +34,12 @@ Use BarChart to compare amounts across categories — the default chart for "how
 | grid | boolean | true (false for horizontal bars) | Hairline gridlines along the value axis. |
 | xAxis | boolean | true for columns; false for horizontal bars | The horizontal axis. |
 | yAxis | boolean | false for columns; true for horizontal bars | The vertical axis. |
+| yAxisSide | "left" \| "right" | "left" | Which edge the value axis sits on, on a vertical chart. |
+| yAxisWidth | number | — | The vertical axis's label width, in px. Left unset it follows the longest label, so the plot slides sideways when new data changes the labels; set it where a chart swaps data in place, such as tabs. |
+| categoryTicks | number | — | At most this many category labels. They already thin to fit, from the latest back; this asks for fewer. |
+| domain | "auto" \| [number, number] | — | A [min, max] pair fixes the value axis's range, and values past it stop at the plot's edge. "auto" is ignored: a bar's length is its value, so bars always start at zero. |
+| referenceLines | ChartReferenceLine[] | — | Mark positions on the plot, each { category } or { value }, with an optional label and tone: a Today line, a target. |
+| axisFormatter | (value: number) => string | — | Format values on the axis alone, when it needs less than valueFormatter prints: $50K beside $41,746.08. |
 | motion | "full" \| "subtle" \| "off" | "full" | How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The arrival (bars rising in sequence) and the data-change morph are the flourish; the hover dim and gliding cursor are the feedback `subtle` keeps. |
 | animate | boolean | true | Play the arrival once the chart scrolls into view. Reduced motion shows the finished chart. `animate={false}` is `motion="subtle"`. |
 | activeIndex | number \| null | — | The highlighted row (controlled); `null` for none. |

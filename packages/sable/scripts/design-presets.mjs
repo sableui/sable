@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs"
 import { parse, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
-import { LABEL_CONTRAST_RULE, parsePreset, presetCss, presetLabelContrast } from "../dist/presets/index.js"
+import { LABEL_CONTRAST_RULE, parsePreset, presetCss, presetLabelContrast, presetSurfaceContrast } from "../dist/presets/index.js"
 import { parseFlags } from "./design-preferences.mjs"
 import { packageManager } from "./agent-setup.mjs"
 
@@ -97,6 +97,9 @@ try {
 			}
 			const accepted = labels.accepted.map(f => `\n  accepted: ${pair(f)} — ${f.reason}`).join("")
 			const unmeasured = labels.unmeasured.length ? `, ${labels.unmeasured.length} unmeasured (${labels.unmeasured.join(", ")})` : ""
+			// Surfaces warn rather than fail: a quiet fill can be a design, and only the page can say.
+			const surfaces = presetSurfaceContrast(preset)
+			const surfaceText = surfaces.map((f) => `\nWarning: ${f.mode} ${f.fill} on ${f.surface} is ${f.ratio.toFixed(2)}:1, under ${f.floor}:1. Controls using it can vanish on that surface.\n  → Move ${f.fill} further from ${f.surface}, then check chips and secondary buttons on a card.`).join("")
 			// A passing check is the start of applying a preset, not the end: say what
 			// makes the app use it, so a check does not read as "done".
 			const fonts = [...new Set(Object.values(preset.fonts).filter(Boolean).map(stack => stack.split(",")[0].trim().replace(/^["']|["']$/g, "")))]
@@ -108,8 +111,8 @@ try {
 			]
 			emit(
 				"preset.check",
-				{ valid: true, id: preset.id, revision: preset.revision, authoredWith: preset.sableVersion, installed, warnings, labelContrast: { measured: labels.measured, accepted: labels.accepted, unmeasured: labels.unmeasured }, fonts, next },
-				`Valid preset ${preset.id}, revision ${preset.revision}. Labels on filled roles: ${labels.measured} pairs measured${unmeasured}.${accepted}${warningText}\nReview rendered contrast and brief fit separately.\nTo apply it to an app:\n${next.map(step => `  - ${step}`).join("\n")}`,
+				{ valid: true, id: preset.id, revision: preset.revision, authoredWith: preset.sableVersion, installed, warnings, surfaces, labelContrast: { measured: labels.measured, accepted: labels.accepted, unmeasured: labels.unmeasured }, fonts, next },
+				`Valid preset ${preset.id}, revision ${preset.revision}. Labels on filled roles: ${labels.measured} pairs measured${unmeasured}.${accepted}${surfaceText}${warningText}\nReview rendered contrast and brief fit separately.\nTo apply it to an app:\n${next.map(step => `  - ${step}`).join("\n")}`,
 			)
 		} else {
 			const css = presetCss(preset)

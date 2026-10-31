@@ -141,7 +141,7 @@ export const dialogMeta: ComponentMeta = {
 		{ name: "onOpenChange", type: "(open: boolean, eventDetails) => void", description: "Called when the dialog asks to open or close (a trigger, Esc, an outside click, DialogClose)." },
 	],
 	variants: {
-		size: ["default", "fullscreen"],
+		size: ["default", "lg", "fullscreen"],
 	},
 	subcomponents: [
 		{

@@ -337,6 +337,8 @@ export const MenuRadioGroup = Base.RadioGroup
 
 type RadioItemProps = Omit<ComponentProps<typeof Base.RadioItem>, "className"> & {
 	className?: string
+	/** Which end of the row holds the check. `end` frees the leading column, for rows that lead with an avatar. @default "start" */
+	indicatorSide?: "start" | "end"
 }
 
 /**
@@ -345,8 +347,15 @@ type RadioItemProps = Omit<ComponentProps<typeof Base.RadioItem>, "className"> &
  * label shifts sideways as the reader moves the highlight, which is the exact
  * thing a menu of options must not do.
  */
-export function MenuRadioItem({ className, children, ...props }: RadioItemProps) {
+export function MenuRadioItem({ className, children, indicatorSide = "start", ...props }: RadioItemProps) {
 	const tier = useTypeTier()
+	const indicator = (
+		<span className="flex size-4 shrink-0 items-center justify-center">
+			<Base.RadioItemIndicator>
+				<Icon name="check" className="text-xs" />
+			</Base.RadioItemIndicator>
+		</span>
+	)
 	return (
 		<Base.RadioItem
 			className={cn(
@@ -355,12 +364,9 @@ export function MenuRadioItem({ className, children, ...props }: RadioItemProps)
 			)}
 			{...props}
 		>
-			<span className="flex size-4 shrink-0 items-center justify-center">
-				<Base.RadioItemIndicator>
-					<Icon name="check" className="text-xs" />
-				</Base.RadioItemIndicator>
-			</span>
+			{indicatorSide === "start" ? indicator : null}
 			<span className="flex-1 truncate">{children}</span>
+			{indicatorSide === "end" ? indicator : null}
 		</Base.RadioItem>
 	)
 }

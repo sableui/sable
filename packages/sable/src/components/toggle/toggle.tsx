@@ -37,7 +37,7 @@ export function Toggle({ className, ...props }: ToggleProps) {
 		<BaseToggle
 			className={cn(
 				appearance === "segmented"
-					? cn(SEGMENTED_ITEM, "cursor-pointer px-2 text-label-md data-[pressed]:hover:text-accent-foreground")
+					? cn(SEGMENTED_ITEM, "cursor-pointer whitespace-nowrap px-2 text-label-md data-[pressed]:hover:text-accent-foreground")
 					: cn(
 							"inline-flex h-(--control-sm) min-w-(--control-sm) cursor-pointer items-center justify-center rounded-sm px-2.5 text-label-md text-muted-foreground motion-interactive motion-press",
 							// Hover is the surface's quiet step, NOT the pressed fill: with
@@ -76,6 +76,8 @@ type ToggleGroupProps = Omit<
 	 * @default "default"
 	 */
 	appearance?: ToggleGroupAppearance
+	/** Run the whole width, sharing it equally between the toggles. @default false */
+	stretch?: boolean
 	/**
 	 * How much motion this component uses: `full` (default) inherits the app's
 	 * policy, `subtle` keeps feedback and drops the glide, `off` stills it. It
@@ -107,11 +109,22 @@ const SEGMENTED_GLIDE_HANDOFF = "[&[data-glide]>[data-pressed]]:bg-transparent"
 export function ToggleGroup({
 	className,
 	appearance = "default",
+	stretch = false,
 	motion,
 	children,
+	onValueChange,
 	...props
 }: ToggleGroupProps) {
 	const glide = appearance === "segmented" && !props.multiple
+	// A view switch always shows a view: pressing the chosen option is not a way
+	// to choose nothing, so that press is declined rather than left to every caller.
+	const handleValueChange: ToggleGroupProps["onValueChange"] = (value, details) => {
+		if (glide && value.length === 0) {
+			details.cancel()
+			return
+		}
+		onValueChange?.(value, details)
+	}
 	return (
 		<ToggleAppearanceContext.Provider value={appearance}>
 			<BaseToggleGroup
@@ -120,9 +133,11 @@ export function ToggleGroup({
 				className={cn(
 					appearance === "segmented" ? SEGMENTED_TRACK : "inline-flex items-center gap-1",
 					glide && SEGMENTED_GLIDE_HANDOFF,
+					stretch && "flex w-full *:flex-1",
 					className,
 				)}
 				{...props}
+				onValueChange={handleValueChange}
 				// Base UI's composite emits orientation, but role=group does not
 				// support that ARIA attribute. Keep the keyboard orientation prop.
 				aria-orientation={props.role === "toolbar" ? props.orientation ?? "horizontal" : undefined}

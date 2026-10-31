@@ -6,6 +6,7 @@ import { Icon } from "../../icon"
 import { type MotionLevel, motionAttribute } from "../../motion/MotionProvider"
 import { cn } from "../../lib/cn"
 import {
+	SEGMENTED_GLIDER_SIZE,
 	SEGMENTED_INNER_RADIUS,
 	SEGMENTED_ITEM,
 	SEGMENTED_STEP,
@@ -104,7 +105,9 @@ export function ThemeSwitcher({
 			<span
 				aria-hidden
 				className={cn(
-					"pointer-events-none absolute start-0.5 top-0.5 size-7 bg-accent motion-glide",
+					"pointer-events-none absolute start-0.5 top-0.5 bg-accent motion-glide",
+					SEGMENTED_GLIDER_SIZE,
+					SEGMENTED_STEP,
 					SEGMENTED_INNER_RADIUS,
 					"[translate:calc(var(--segment-index)*var(--segment-step))_0] rtl:[translate:calc(var(--segment-index)*var(--segment-step)*-1)_0]",
 					activeIndex < 0 && "opacity-0",
@@ -112,7 +115,6 @@ export function ThemeSwitcher({
 				style={
 					{
 						"--segment-index": Math.max(activeIndex, 0),
-						"--segment-step": SEGMENTED_STEP,
 					} as CSSProperties
 				}
 			/>

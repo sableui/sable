@@ -11992,7 +11992,7 @@ Use AppShell as the outer product frame for authenticated or app-like experience
 | bottomNav | ReactNode | — | Mobile bottom navigation (e.g. BottomNav); fixed to the bottom edge. main reserves space for it. |
 | dock | ReactNode | — | Persistent chrome kept on screen across routes (a now-playing bar, an active-call bar, an upload tray). Full width, sticky to the bottom edge and above bottomNav on mobile; its height is published as --dock-height and the app Sidebar subtracts it. In flow, so main needs no reserved space. The contents paint their own surface and top border, and name themselves (e.g. <section aria-label="Player">). Mount AppShell in a layout that survives navigation, or the playback restarts. |
 | overlays | ReactNode | — | Floating overlays — a message launcher, FAB, or modal mount points. |
-| frame | "flush" \| "inset" | "flush" | How the desktop frame (lg and up) holds the content; below lg both are the same mobile layout with page scroll. "flush": main sits on the page beside the rail and the document scrolls. "inset": the shell fills the viewport and paints the shell-ground token (one step off the rail's surface, tunable with --theme-shell-ground) behind the rail and around the panel; main becomes a rounded-lg panel with a hairline border and shadow-sm, inset by a spacing step from the window edges, that scrolls inside itself (scrollbar-quiet) while the rail stays put. The Sidebar in the sidebar slot drops its right border and fills the row. main stays the #main-content target (tabIndex -1, so the skip link lands focus in the scroller) and the inline-size query container; sticky children stick to the panel's top; banners and the dock stay in flow, so the panel's bottom gap sits above a dock. With Sidebar surface="page" the ground is the page colour and the panel's border alone lifts it. |
+| frame | "flush" \| "inset" | "flush" | How the desktop frame (lg and up) holds the content; below lg both are the same mobile layout with page scroll. "flush": main sits on the page beside the rail and the document scrolls. "inset": the shell fills the viewport and paints the shell-ground token (one step off the rail's surface, tunable with --theme-shell-ground) behind the rail and around the panel; main becomes a rounded-lg panel with a hairline border and shadow-sm, inset by a spacing step from the window edges, that scrolls inside itself (scrollbar-quiet) while the rail stays put. The Sidebar in the sidebar slot drops its right border and fills the row. main stays the #main-content focus target (tabIndex -1 in both frames, so the skip link lands focus in the scroller) and the inline-size query container; sticky children stick to the panel's top; banners and the dock stay in flow, so the panel's bottom gap sits above a dock. With Sidebar surface="page" the ground is the page colour and the panel's border alone lifts it. |
 
 ## Tokens used
 
@@ -12174,6 +12174,7 @@ Use AreaChart for volume over time — visitors, revenue, usage — where the fi
 ### Best practices
 
 - Do: Keep to one to three series; past that the tints muddy — stack them or switch to LineChart.
+- Do: Leave a value out with null, never 0: a gap breaks the line, and a zero is a claim about the data. A forecast is a second, dashed series with values only where it runs.
 - Do: Set a height on className (h-72, aspect-video h-auto); the chart fills the box it is given.
 - Don't: Overlap more than two unstacked series — the translucent tints blend into a colour no series has.
 - Don't: Use it for data-heavy views — streaming or real-time data, thousands of points, zoom and brushing, trading charts. Those belong on a charting library (Recharts, visx, ECharts); Sable's charts are for dashboards, landing pages and decks.
@@ -12195,6 +12196,14 @@ Use AreaChart for volume over time — visitors, revenue, usage — where the fi
 | grid | boolean | true (false for horizontal bars) | Hairline gridlines along the value axis. |
 | xAxis | boolean | true for columns; false for horizontal bars | The horizontal axis. |
 | yAxis | boolean | false for columns; true for horizontal bars | The vertical axis. |
+| yAxisSide | "left" \| "right" | "left" | Which edge the value axis sits on, on a vertical chart. |
+| yAxisWidth | number | — | The vertical axis's label width, in px. Left unset it follows the longest label, so the plot slides sideways when new data changes the labels; set it where a chart swaps data in place, such as tabs. |
+| categoryTicks | number | — | At most this many category labels. They already thin to fit, from the latest back; this asks for fewer. |
+| domain | "auto" \| [number, number] | — | The value axis's range. "auto" fits the data, so a price line uses the plot instead of sitting at the top of an axis from zero. A [min, max] pair fixes the range, and values past it stop at the plot's edge. Defaults to zero up to the data. |
+| referenceLines | ChartReferenceLine[] | — | Mark positions on the plot, each { category } or { value }, with an optional label and tone: a Today line, a target. |
+| axisFormatter | (value: number) => string | — | Format values on the axis alone, when it needs less than valueFormatter prints: $50K beside $41,746.08. |
+| lineWidth | number | 2 | The line's weight, in px. |
+| fillStrength | number | — | How strong the fill is, from 0 to 1: the tint's opacity, or the top of the gradient. Lower it when stacked bands read as one wall of colour. Defaults to 0.14, or 0.32 stacked; with gradient, 0.22, or 0.5 stacked. |
 | motion | "full" \| "subtle" \| "off" | "full" | How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The arrival (draw-on, rising fill) and the data-change morph are the flourish; the gliding cursor and tooltip are the feedback `subtle` keeps. |
 | animate | boolean | true | Play the arrival once the chart scrolls into view. Reduced motion shows the finished chart. `animate={false}` is `motion="subtle"`. |
 | activeIndex | number \| null | — | The highlighted row (controlled); `null` for none. |
@@ -12226,6 +12235,38 @@ Use AreaChart for volume over time — visitors, revenue, usage — where the fi
 - Components: LineChart, BarChart, Sparkline, Card
 
 ## Examples
+
+### A forecast and a Today line
+
+```tsx
+import { AreaChart } from "@sableui/react"
+
+const prices = [
+	{ day: "Mon", price: 41200, forecast: null },
+	{ day: "Tue", price: 41900, forecast: null },
+	{ day: "Wed", price: 42300, forecast: 42300 },
+	{ day: "Thu", price: null, forecast: 43100 },
+	{ day: "Fri", price: null, forecast: 44200 },
+]
+
+<AreaChart
+	label="Price"
+	data={prices}
+	index="day"
+	series={[
+		{ key: "price", label: "Price" },
+		{ key: "forecast", label: "Forecast", dashed: true },
+	]}
+	domain="auto"
+	gradient
+	yAxis
+	yAxisSide="right"
+	yAxisWidth={48}
+	axisFormatter={(v) => `$${Math.round(v / 1000)}K`}
+	valueFormatter={(v) => `$${v.toLocaleString()}`}
+	referenceLines={[{ category: "Wed", label: "Today" }]}
+/>
+```
 
 ### Two series with a legend
 
@@ -12431,7 +12472,7 @@ Use Avatar to represent a person, team, or account with a compact visual identit
 | Name | Type | Description |
 | --- | --- | --- |
 | AvatarRoot | Base UI Avatar.Root props + size + shape + tone + className | Low-level circular frame for full composition control — clips the image and holds the `size` axis. Wraps AvatarImage and AvatarFallback. |
-| AvatarImage | Base UI Avatar.Image props + className | The profile image. Fills and crops the frame; hidden by Base UI until it loads. |
+| AvatarImage | Base UI Avatar.Image props + fit?: "cover" \| "contain" + className | The profile image. Fills and crops the frame, or fits inside it with fit="contain"; hidden by Base UI until it loads. |
 | AvatarFallback | Base UI Avatar.Fallback props (delay) + className | Shown when no image is available — typically initials or a glyph. Accepts a delay prop. |
 | AvatarGroup | { size?: "2xs" \| "xs" \| "sm" \| "md" \| "lg"; surface?: "background" \| "card" \| "popover" \| "muted"; max?: number; fit?: boolean; total?: number; countLabel?: (count: number) => string; "aria-label"?: string; className?: string; children: ReactNode } | Overlapping stack (role=group) — name it with aria-label ("12 collaborators"). `size` applies to every avatar inside. `max` shows that many and collapses the rest into a "+N" count; `total` is the real head-count when you only pass some people. `fit` shows only as many avatars as fit the width the group is given (it fills the space left in a flex row) and folds the rest into the count, so a tight row reads "MO SR +5" instead of wrapping. The separating ring reads the inherited `--avatar-group-ring` (default: the page background); `surface` sets it to card, popover, or muted. |
 | AvatarGroupCount | { count: number; label?: string; size?: "2xs" \| "xs" \| "sm" \| "md" \| "lg"; className?: string } | The "+N" avatar. Shows "+4" and reads "and 4 more" (override with label). AvatarGroup renders it for you from max/total; use it directly only when composing the stack yourself. |
@@ -12446,6 +12487,7 @@ Use Avatar to represent a person, team, or account with a compact visual identit
 | fallbackDelay | number | — | Delay before showing the fallback, in ms — avoids a flash on fast loads. |
 | status | ReactNode | — | A presence indicator pinned to the bottom-end edge, usually <StatusDot tone="success" />. It sits outside the clipped circle and wears a ring in the surface colour (--avatar-group-ring, else the page background). Use this instead of absolutely positioning a dot over an Avatar. |
 | size | "2xs" \| "xs" \| "sm" \| "md" \| "lg" \| "xl" \| "2xl" | "md" | Square footprint: 20px / 24px for compact workspace rows; 32px / 40px / 48px for rows; 96px / 160px for portraits (a profile header, an artist hero, a roster tile). The initials, a status indicator and its cut-out ring scale with it, and at the portrait sizes the photo fades in over the resting surface. |
+| fit | "cover" \| "contain" | "cover" | How the image fills the frame. cover crops it to fill, for a photo. contain fits the whole image inside, for a logo, which then needs no safe area built into the file. |
 | shape | "circle" \| "square" | "circle" | The frame's corner. circle is a person. square is what is not a face — a workspace, a project, an org, a team — with a radius from the theme's steps that grows with the size (4px at 20–24px to 20px at 160px), so a square theme stays square. A status indicator sits on the square's corner. |
 | tone | "neutral" \| "red" \| "orange" \| "yellow" \| "green" \| "teal" \| "blue" \| "purple" \| "pink" | "neutral" | The fallback's colour. neutral is the muted surface; a palette family paints its wash behind the initials and its deep ink on them (a soft Badge's pair, held to contrast in every theme), for a category colour such as one per project. Ignored by variant="art", which colours by seed. |
 | variant | "neutral" \| "art" | "neutral" | What the fallback looks like. neutral: initials on the muted surface. art: initials over a two-colour GradientArt (variant="linear") seeded by the person, so each person without a photo gets their own stable colour from the theme. |
@@ -12878,6 +12920,12 @@ Use BarChart to compare amounts across categories — the default chart for "how
 | grid | boolean | true (false for horizontal bars) | Hairline gridlines along the value axis. |
 | xAxis | boolean | true for columns; false for horizontal bars | The horizontal axis. |
 | yAxis | boolean | false for columns; true for horizontal bars | The vertical axis. |
+| yAxisSide | "left" \| "right" | "left" | Which edge the value axis sits on, on a vertical chart. |
+| yAxisWidth | number | — | The vertical axis's label width, in px. Left unset it follows the longest label, so the plot slides sideways when new data changes the labels; set it where a chart swaps data in place, such as tabs. |
+| categoryTicks | number | — | At most this many category labels. They already thin to fit, from the latest back; this asks for fewer. |
+| domain | "auto" \| [number, number] | — | A [min, max] pair fixes the value axis's range, and values past it stop at the plot's edge. "auto" is ignored: a bar's length is its value, so bars always start at zero. |
+| referenceLines | ChartReferenceLine[] | — | Mark positions on the plot, each { category } or { value }, with an optional label and tone: a Today line, a target. |
+| axisFormatter | (value: number) => string | — | Format values on the axis alone, when it needs less than valueFormatter prints: $50K beside $41,746.08. |
 | motion | "full" \| "subtle" \| "off" | "full" | How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The arrival (bars rising in sequence) and the data-change morph are the flourish; the hover dim and gliding cursor are the feedback `subtle` keeps. |
 | animate | boolean | true | Play the arrival once the chart scrolls into view. Reduced motion shows the finished chart. `animate={false}` is `motion="subtle"`. |
 | activeIndex | number \| null | — | The highlighted row (controlled); `null` for none. |
@@ -15908,7 +15956,7 @@ Use Dialog for focused decisions, short modal forms, confirmations, and content 
 
 ## Variants
 
-- **size**: default, fullscreen
+- **size**: default, lg, fullscreen
 
 ## Tokens used
 
@@ -16319,6 +16367,7 @@ Use Entity to show a compact identity block for a person, organization, file, pr
 | leading | ReactNode | — | Leading visual — typically an Avatar or an Icon. |
 | title | ReactNode | — | Primary line (text-title-sm, truncated). Required. |
 | subtitle | ReactNode | — | Secondary line (text-body-sm muted, truncated). |
+| subtitleWrap | boolean | false | Let the subtitle wrap instead of truncating, when it is a description rather than a label. |
 | action | ReactNode | — | Trailing slot — typically a ghost icon Button or a StatusDot. |
 | interactive | boolean | false | Make the whole row a target: the leading visual and text become a native <button> whose hit area stretches over the row (focus ring, Enter/Space). The action stays outside it. Requires onSelect. |
 | onSelect | () => void | — | Activation handler for an interactive row (fired on click and Enter/Space). Required when interactive. |
@@ -16840,6 +16889,7 @@ Use Form and Field as the default wrapper for Sable form controls. Field owns th
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
 | Form | { validationMode?: "onSubmit" \| "onBlur" \| "onChange"; errors?: Record<string, string \| string[]>; onFormSubmit?: (values, details) => void; actionsRef?: RefObject<Form.Actions> } + ComponentPropsWithRef<"form"> | — | A <form> laid out as a vertical column with comfortable field spacing (override with className, e.g. gap-4). On submit it validates every Field (native constraints plus Field validate), shows each message under its field, focuses the first invalid control, and only then calls onSubmit. validationMode defaults to "onSubmit" (then live re-validation on change). errors shows external (e.g. server) messages keyed by Field name and clears one when its field is edited. onFormSubmit receives the named Field values and prevents the native submit. A control outside any Field is still checked by the browser before onSubmit runs. Validating in your own code (react-hook-form, a schema, state)? Pass noValidate: onSubmit always runs and each Field shows the error you set; without it an empty required Field stops the submit before your handler can set that error. Either way, once onSubmit returns (or the promise it returns settles), the first control a Field marks invalid takes focus. |
+| labelTrailing | ReactNode | — | On Field, vertical: something at the end of the label's row, such as a balance, a Max button or a "Forgot password?" link. It sits outside the label, so a control in it does not take the label's click. |
 | onSubmit | (event: FormEvent<HTMLFormElement>) => unknown | — | The native submit handler. It may return a promise. When it returns, or its promise settles, the first control a Field marks invalid takes focus, so errors your own code sets get the same treatment as Sable's validation. |
 | validationMode | "onSubmit" \| "onBlur" \| "onChange" | "onSubmit" | When Fields validate. After the first submit, fields re-check as the user edits. A Field's own validationMode wins. |
 | errors | Record<string, string \| string[]> | — | External (e.g. server) messages keyed by Field name, shown under that field. Each clears when its field is edited. |
@@ -17699,6 +17749,13 @@ Use LineChart to compare how two or more measures change over the same sequence,
 | grid | boolean | true (false for horizontal bars) | Hairline gridlines along the value axis. |
 | xAxis | boolean | true for columns; false for horizontal bars | The horizontal axis. |
 | yAxis | boolean | false for columns; true for horizontal bars | The vertical axis. |
+| yAxisSide | "left" \| "right" | "left" | Which edge the value axis sits on, on a vertical chart. |
+| yAxisWidth | number | — | The vertical axis's label width, in px. Left unset it follows the longest label, so the plot slides sideways when new data changes the labels; set it where a chart swaps data in place, such as tabs. |
+| categoryTicks | number | — | At most this many category labels. They already thin to fit, from the latest back; this asks for fewer. |
+| domain | "auto" \| [number, number] | — | The value axis's range. A line chart already fits its data; a [min, max] pair fixes the range, and values past it stop at the plot's edge. |
+| referenceLines | ChartReferenceLine[] | — | Mark positions on the plot, each { category } or { value }, with an optional label and tone: a Today line, a target. |
+| axisFormatter | (value: number) => string | — | Format values on the axis alone, when it needs less than valueFormatter prints: $50K beside $41,746.08. |
+| lineWidth | number | 2 | The line's weight, in px. |
 | motion | "full" \| "subtle" \| "off" | "full" | How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. The arrival (lines drawing on) and the data-change morph are the flourish; the gliding cursor, dots and tooltip are the feedback `subtle` keeps. |
 | animate | boolean | true | Play the arrival once the chart scrolls into view. Reduced motion shows the finished chart. `animate={false}` is `motion="subtle"`. |
 | activeIndex | number \| null | — | The highlighted row (controlled); `null` for none. |
@@ -18295,7 +18352,7 @@ Use Menu for a compact list of actions opened from a visible trigger.
 | MenuSubmenu | Base UI Menu.SubmenuRoot props | A nested menu. Wraps a MenuSubmenuTrigger and its own MenuContent — pass side="inline-end" to that content so the submenu opens away from its parent in RTL as well as LTR. |
 | MenuSubmenuTrigger | Base UI Menu.SubmenuTrigger props + value: ReactNode + icon: ReactNode + className | The row that opens a submenu: item styling, a trailing chevron, and an optional `value` showing the current choice so the row reads "Effort  High ›" rather than making the reader open it to find out. `icon` leads the row as MenuItem's does; give it one whenever the items around it have icons, or its label starts a column to their left. |
 | MenuRadioGroup | Base UI Menu.RadioGroup props (value, defaultValue, onValueChange) | A single-choice group inside a menu. Controlled via value/onValueChange, uncontrolled via defaultValue. |
-| MenuRadioItem | Base UI Menu.RadioItem props + className (value, disabled) | One option in a MenuRadioGroup, rendered as menuitemradio with a real checked state. The check sits in a reserved leading column so labels never shift sideways as the highlight moves. |
+| MenuRadioItem | Base UI Menu.RadioItem props + indicatorSide?: "start" \| "end" + className (value, disabled) | One option in a MenuRadioGroup, rendered as menuitemradio with a real checked state. The check sits in a reserved leading column so labels never shift sideways as the highlight moves; indicatorSide="end" moves it to the row's end, for a picker whose rows lead with an avatar. |
 | MenuCheckboxItem | Base UI Menu.CheckboxItem props + className + shortcut?: ReactNode + { checked?: boolean; defaultChecked?: boolean; onCheckedChange?: (checked: boolean) => void; disabled?: boolean } | A toggling row, with the same reserved leading column as MenuRadioItem so a menu mixing the two keeps one text margin. Takes `shortcut` like MenuItem (View → Show ruler  Ctrl R). |
 | MenuGroup | Base UI Menu.Group props + className | Groups related items; pair with MenuGroupLabel for an accessible group name. |
 | MenuGroupLabel | Base UI Menu.GroupLabel props + className | The label for a MenuGroup — auto-associated with the group for screen readers. |
@@ -20411,7 +20468,7 @@ import { PieChart } from "@sableui/react"
 
 **Status:** stable
 
-A chip someone clicks: a filter, a tag choice, an option in a row. Always a button with aria-pressed. appearance="solid" (filters; selected lifts onto the primary surface) or "outline" (quiet chips that annotate content, like reactions); size lg, md or sm. A static label is a Badge.
+A chip someone clicks: a filter, a tag choice, an option in a row. Always a button; pass selected to make it a toggle with aria-pressed, and leave it unset on a chip that fires an action. appearance="solid" (filters; selected lifts onto the primary surface) or "outline" (quiet chips that annotate content, like reactions); size lg, md or sm. A static label is a Badge.
 
 **Keywords:** pill, chip, filter, tag, toggle chip, category
 
@@ -20432,7 +20489,7 @@ Use Pill for a row of filters or choices a person clicks to narrow or toggle wha
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| selected | boolean | false | Marks the pill as chosen. Solid lifts onto the primary surface; outline takes a primary tint and soft primary edge. Sets aria-pressed. |
+| selected | boolean | false | Marks the pill as chosen. Solid lifts onto the primary surface; outline takes a primary tint and soft primary edge. Passing it, true or false, sets aria-pressed; left unset the chip is a plain action button. |
 | appearance | "solid" \| "outline" | "solid" | solid for a filter row; outline for quiet chips that annotate other content (a reaction under a message, a tag on a card), where a filled chip would compete with what it annotates. |
 | size | "lg" \| "md" \| "sm" | "md" | lg sits on --control-sm (32px, 28 compact), the toolbar rung it shares with SearchInput sm and Button sm, for a filter row beside a search field. md sits on --control-xs (28px, 24 compact), the chip in a row of its own or among content. sm is a fixed 24px (the target floor, which density does not shrink), for chips under or inside other content. |
 | tone | "neutral" \| "red" \| "orange" \| "yellow" \| "green" \| "teal" \| "blue" \| "purple" \| "pink" | "neutral" | neutral is the chip as described. A palette family colours it as a category, like the choices in a tag picker: a wash at rest, the solid family colour when selected. Painted from the theme's generated palette. |
@@ -20460,7 +20517,7 @@ Use Pill for a row of filters or choices a person clicks to narrow or toggle wha
 ## Accessibility
 
 - Renders a native <button type="button"> for focus and keyboard activation.
-- Selected state is exposed via aria-pressed.
+- Selected state is exposed via aria-pressed when selected is passed; a chip without it is a plain button.
 
 ## Related
 
@@ -22076,7 +22133,7 @@ Use Select when users choose one value from a known, finite set. Use Combobox fo
 
 | Name | Type | Description |
 | --- | --- | --- |
-| SelectTrigger | Base UI Trigger props + placeholder?: ReactNode + size?: "md" \| "xs" + className | The button. Composes Trigger + Value + a chevron Icon that flips on open (data-[popup-open]). `size="xs"` is the property-grid rung — height, padding, radius AND surface move together, which is why it is a prop and not a className: the xs trigger is an inset `bg-panel-field` field with no border, matching ScrubField on the same row. A consumer overriding only the height gets an md-register 8px radius on a 24px box and a raised card sitting among inset fields; one inspector panel had eleven of those, and both tells are visible at a glance. |
+| SelectTrigger | Base UI Trigger props + placeholder?: ReactNode + size?: "md" \| "sm" \| "xs" + className | The button. Composes Trigger + Value + a chevron Icon that flips on open (data-[popup-open]). `size="sm"` is the same raised field one rung down, for a toolbar beside `sm` buttons. `size="xs"` is the property-grid rung — height, padding, radius AND surface move together, which is why it is a prop and not a className: the xs trigger is an inset `bg-panel-field` field with no border, matching ScrubField on the same row. A consumer overriding only the height gets an md-register 8px radius on a 24px box and a raised card sitting among inset fields; one inspector panel had eleven of those, and both tells are visible at a glance. |
 | SelectContent | Base UI Popup props + side, align, sideOffset + className | Portal + Positioner + Popup + List. side="bottom", align="start", sideOffset=6 by default; matches trigger width. |
 | SelectItem | { value: string; disabled?: boolean; label?: string } + className | An option. Composes Item + ItemText + a check ItemIndicator for the selected row. String children double as the item's `label`, so the closed trigger shows the display text — pass `label` explicitly only when children are richer than a string. |
 | SelectGroup | Base UI Group props + className | Optional grouping of related options. |
@@ -24479,7 +24536,8 @@ Use Toggle for button-like controls that can be pressed on or off within a toolb
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| appearance | "default" \| "segmented" | "default" | On ToggleGroup: `default` is a loose row of toggles; `segmented` draws the capsule segmented control (one track, the pressed option filled) shared with ThemeSwitcher. Single-select segmented draws ONE fill that glides to the pressed option and resizes to its label; multi-select keeps a fill per pressed option. Toggles inside inherit it. |
+| appearance | "default" \| "segmented" | "default" | On ToggleGroup: `default` is a loose row of toggles; `segmented` draws the capsule segmented control (one track, the pressed option filled) shared with ThemeSwitcher. Single-select segmented draws ONE fill that glides to the pressed option and resizes to its label, and always keeps an option chosen: pressing the chosen one does nothing. Multi-select keeps a fill per pressed option. Toggles inside inherit it. |
+| stretch | boolean | false | On ToggleGroup: run the whole width, sharing it equally between the toggles. |
 | multiple | boolean | false | On ToggleGroup: allow several toggles pressed at once. The default is single-select, which behaves like a radio group. |
 | motion | "full" \| "subtle" \| "off" | "full" | On ToggleGroup: how much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the glide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. |
 | Toggle | Base UI Toggle props (pressed, defaultPressed, onPressedChange, disabled, value) + className | defaultPressed: false | A two-state button. Uncontrolled via defaultPressed; controlled via pressed + onPressedChange. Pass value to identify it inside a ToggleGroup. |

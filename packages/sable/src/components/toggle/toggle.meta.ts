@@ -72,7 +72,13 @@ export const toggleMeta: ComponentMeta = {
 			type: '"default" | "segmented"',
 			default: '"default"',
 			description:
-				"On ToggleGroup: `default` is a loose row of toggles; `segmented` draws the capsule segmented control (one track, the pressed option filled) shared with ThemeSwitcher. Single-select segmented draws ONE fill that glides to the pressed option and resizes to its label; multi-select keeps a fill per pressed option. Toggles inside inherit it.",
+				"On ToggleGroup: `default` is a loose row of toggles; `segmented` draws the capsule segmented control (one track, the pressed option filled) shared with ThemeSwitcher. Single-select segmented draws ONE fill that glides to the pressed option and resizes to its label, and always keeps an option chosen: pressing the chosen one does nothing. Multi-select keeps a fill per pressed option. Toggles inside inherit it.",
+		},
+		{
+			name: "stretch",
+			type: "boolean",
+			default: "false",
+			description: "On ToggleGroup: run the whole width, sharing it equally between the toggles.",
 		},
 		{
 			name: "multiple",

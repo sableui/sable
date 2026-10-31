@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { SEMANTIC_TOKENS } from "../themes/_contract"
-import { LABELLED_FILLS, parsePreset, presetCss, presetLabelContrast, presetManifest, validatePreset, type SablePreset } from "./index"
+import { LABELLED_FILLS, parsePreset, presetCss, presetLabelContrast, presetManifest, presetSurfaceContrast, validatePreset, type SablePreset } from "./index"
 
 const fixture = (): SablePreset => ({
 	schemaVersion: 1, id: "clay", label: "Clay", revision: 1, sableVersion: "0.64.0",
@@ -11,6 +11,32 @@ const fixture = (): SablePreset => ({
 		light: Object.fromEntries(SEMANTIC_TOKENS.map(name => [name, "oklch(98% 0 0)"])),
 		dark: Object.fromEntries(SEMANTIC_TOKENS.map(name => [name, "oklch(20% 0 0)"])),
 	},
+})
+
+describe("surface contrast", () => {
+	const withValues = (values: Record<string, string>) => {
+		const preset = fixture()
+		for (const mode of ["light", "dark"] as const) Object.assign(preset.tokens[mode], values)
+		return preset
+	}
+
+	it("flags a control fill that vanishes on the surface beneath it", () => {
+		const findings = presetSurfaceContrast(withValues({ secondary: "#1e232d", card: "#1a1f28", background: "#0d1017", muted: "#2e3440", accent: "#2e3440", popover: "#2e3440" }))
+		const found = findings.find((f) => f.fill === "secondary" && f.surface === "card")
+		expect(found?.ratio).toBeLessThan(1.1)
+	})
+
+	it("flags a popover that matches the card in dark mode, where its step is all that separates them", () => {
+		const same = { card: "#1a1f28", popover: "#1a1f28" }
+		const findings = presetSurfaceContrast(withValues(same)).filter((f) => f.fill === "popover")
+		expect(findings.map((f) => f.mode)).toEqual(["dark"])
+	})
+
+	it("passes values it can tell apart, and skips what it cannot read", () => {
+		const distinct = { secondary: "#e5e5e5", muted: "#e5e5e5", accent: "#e5e5e5", card: "#ffffff", background: "#ffffff", popover: "#2e3440" }
+		expect(presetSurfaceContrast(withValues(distinct))).toEqual([])
+		expect(presetSurfaceContrast(withValues({ ...distinct, secondary: "color-mix(in oklab, red, blue)" }))).toEqual([])
+	})
 })
 
 describe("portable Sable presets", () => {

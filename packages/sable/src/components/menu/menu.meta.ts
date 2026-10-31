@@ -138,9 +138,9 @@ export const menuMeta: ComponentMeta = {
 		},
 		{
 			name: "MenuRadioItem",
-			type: "Base UI Menu.RadioItem props + className (value, disabled)",
+			type: 'Base UI Menu.RadioItem props + indicatorSide?: "start" | "end" + className (value, disabled)',
 			description:
-				"One option in a MenuRadioGroup, rendered as menuitemradio with a real checked state. The check sits in a reserved leading column so labels never shift sideways as the highlight moves.",
+				"One option in a MenuRadioGroup, rendered as menuitemradio with a real checked state. The check sits in a reserved leading column so labels never shift sideways as the highlight moves; indicatorSide=\"end\" moves it to the row's end, for a picker whose rows lead with an avatar.",
 		},
 		{
 			name: "MenuCheckboxItem",

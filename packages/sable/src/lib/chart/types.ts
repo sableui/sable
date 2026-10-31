@@ -70,6 +70,12 @@ export interface ChartSeries {
 	color?: string
 	/** A Sable icon name shown in the legend and tooltip instead of the swatch. */
 	icon?: string
+	/**
+	 * Draw the line dashed, for values that are not measurements. A forecast is
+	 * a second series, dashed, with values only where the forecast runs: missing
+	 * values break a line, so the two meet at the join.
+	 */
+	dashed?: boolean
 }
 
 /** One row of chart data: the category under `index`, numbers under each series key. */
@@ -116,6 +122,24 @@ export interface ChartCenterLabel {
 /** How the tooltip marks each row. */
 export type ChartTooltipIndicator = "dot" | "line" | "dashed" | "none"
 
+/** The rule that marks the hovered position on a line or area chart. */
+export type ChartCursor = "line" | "dashed" | "none"
+
+/**
+ * A marked position on the plot, with an optional label: "Today" on a category,
+ * "Target" on a value. Give `category` or `value`.
+ */
+export interface ChartReferenceLine {
+	/** The category to mark, as it reads in the data under `index`. */
+	category?: string
+	/** The value to mark, on the value axis. */
+	value?: number
+	/** A short caption beside the line. */
+	label?: string
+	/** The line's colour by role. Omitted, it is a quiet neutral. */
+	tone?: ChartTone
+}
+
 export interface ChartTooltipOptions {
 	/** Each row's marker. @default "dot" */
 	indicator?: ChartTooltipIndicator
@@ -125,6 +149,13 @@ export interface ChartTooltipOptions {
 	labelFormatter?: (label: string, datum: ChartDatum) => ReactNode
 	/** Add a Total row summing every series at that category. */
 	showTotal?: boolean
+	/** How the hovered position is marked on a line or area chart. Bars always take a band. @default "line" */
+	cursor?: ChartCursor
+	/**
+	 * The order of the rows. `reverse` puts the last series first, which is how a
+	 * stack reads from top to bottom. @default "reverse" for a vertical stack, "series" otherwise
+	 */
+	order?: "series" | "reverse"
 }
 
 /** A number as it should read on the axis (compact) and in the tooltip (full). */
@@ -133,4 +164,10 @@ export type ChartValueFormatter = (value: number) => string
 export function numberValue(v: unknown): number {
 	const n = typeof v === "number" ? v : Number(v)
 	return Number.isFinite(n) ? n : 0
+}
+
+/** Whether a datum holds a value at all. Missing is not 0: `null`, `undefined`, `""` and non-numbers plot nothing. */
+export function hasValue(v: unknown): boolean {
+	if (v == null || v === "") return false
+	return Number.isFinite(typeof v === "number" ? v : Number(v))
 }

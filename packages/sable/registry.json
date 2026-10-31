@@ -1775,6 +1775,10 @@
       {
         "id": "agent-initials",
         "fails-on": "An AI agent drawn as an Avatar with initials (`fallback=\"AI\"`, \"Bot\", \"GPT\"). \"AI\" in a circle reads as a person called A. I., and it cannot show the agent working. An agent's turns take `<AgentAvatar state=… />`: the default agent identity, which sinks to think and comes up to talk, so the row needs no spinner of its own. Pass `live={false}` on every agent turn but the newest."
+      },
+      {
+        "id": "tabs-without-panels",
+        "fails-on": "A `TabsList` with no `TabsPanel`. Tabs announce a panel for each tab, so a tab row that only switches or filters what is already on the page tells a screen reader about panels that do not exist. For a view switch use `<ToggleGroup appearance=\"segmented\">`."
       }
     ],
     "escapeHatch": {
@@ -3765,7 +3769,7 @@
           "name": "frame",
           "type": "\"flush\" | \"inset\"",
           "default": "\"flush\"",
-          "description": "How the desktop frame (lg and up) holds the content; below lg both are the same mobile layout with page scroll. \"flush\": main sits on the page beside the rail and the document scrolls. \"inset\": the shell fills the viewport and paints the shell-ground token (one step off the rail's surface, tunable with --theme-shell-ground) behind the rail and around the panel; main becomes a rounded-lg panel with a hairline border and shadow-sm, inset by a spacing step from the window edges, that scrolls inside itself (scrollbar-quiet) while the rail stays put. The Sidebar in the sidebar slot drops its right border and fills the row. main stays the #main-content target (tabIndex -1, so the skip link lands focus in the scroller) and the inline-size query container; sticky children stick to the panel's top; banners and the dock stay in flow, so the panel's bottom gap sits above a dock. With Sidebar surface=\"page\" the ground is the page colour and the panel's border alone lifts it."
+          "description": "How the desktop frame (lg and up) holds the content; below lg both are the same mobile layout with page scroll. \"flush\": main sits on the page beside the rail and the document scrolls. \"inset\": the shell fills the viewport and paints the shell-ground token (one step off the rail's surface, tunable with --theme-shell-ground) behind the rail and around the panel; main becomes a rounded-lg panel with a hairline border and shadow-sm, inset by a spacing step from the window edges, that scrolls inside itself (scrollbar-quiet) while the rail stays put. The Sidebar in the sidebar slot drops its right border and fills the row. main stays the #main-content focus target (tabIndex -1 in both frames, so the skip link lands focus in the scroller) and the inline-size query container; sticky children stick to the panel's top; banners and the dock stay in flow, so the panel's bottom gap sits above a dock. With Sidebar surface=\"page\" the ground is the page colour and the panel's border alone lifts it."
         }
       ],
       "subcomponents": [
@@ -3844,6 +3848,10 @@
           {
             "guidance": "do",
             "description": "Keep to one to three series; past that the tints muddy — stack them or switch to LineChart."
+          },
+          {
+            "guidance": "do",
+            "description": "Leave a value out with null, never 0: a gap breaks the line, and a zero is a claim about the data. A forecast is a second, dashed series with values only where it runs."
           },
           {
             "guidance": "do",
@@ -3939,6 +3947,48 @@
           "type": "boolean",
           "default": "false for columns; true for horizontal bars",
           "description": "The vertical axis."
+        },
+        {
+          "name": "yAxisSide",
+          "type": "\"left\" | \"right\"",
+          "default": "\"left\"",
+          "description": "Which edge the value axis sits on, on a vertical chart."
+        },
+        {
+          "name": "yAxisWidth",
+          "type": "number",
+          "description": "The vertical axis's label width, in px. Left unset it follows the longest label, so the plot slides sideways when new data changes the labels; set it where a chart swaps data in place, such as tabs."
+        },
+        {
+          "name": "categoryTicks",
+          "type": "number",
+          "description": "At most this many category labels. They already thin to fit, from the latest back; this asks for fewer."
+        },
+        {
+          "name": "domain",
+          "type": "\"auto\" | [number, number]",
+          "description": "The value axis's range. \"auto\" fits the data, so a price line uses the plot instead of sitting at the top of an axis from zero. A [min, max] pair fixes the range, and values past it stop at the plot's edge. Defaults to zero up to the data."
+        },
+        {
+          "name": "referenceLines",
+          "type": "ChartReferenceLine[]",
+          "description": "Mark positions on the plot, each { category } or { value }, with an optional label and tone: a Today line, a target."
+        },
+        {
+          "name": "axisFormatter",
+          "type": "(value: number) => string",
+          "description": "Format values on the axis alone, when it needs less than valueFormatter prints: $50K beside $41,746.08."
+        },
+        {
+          "name": "lineWidth",
+          "type": "number",
+          "default": "2",
+          "description": "The line's weight, in px."
+        },
+        {
+          "name": "fillStrength",
+          "type": "number",
+          "description": "How strong the fill is, from 0 to 1: the tint's opacity, or the top of the gradient. Lower it when stacked bands read as one wall of colour. Defaults to 0.14, or 0.32 stacked; with gradient, 0.22, or 0.5 stacked."
         },
         {
           "name": "motion",
@@ -4038,6 +4088,11 @@
         "Colour is never the only key: series are named in the legend, tooltip and table."
       ],
       "examples": [
+        {
+          "label": "A forecast and a Today line",
+          "code": "const prices = [\n\t{ day: \"Mon\", price: 41200, forecast: null },\n\t{ day: \"Tue\", price: 41900, forecast: null },\n\t{ day: \"Wed\", price: 42300, forecast: 42300 },\n\t{ day: \"Thu\", price: null, forecast: 43100 },\n\t{ day: \"Fri\", price: null, forecast: 44200 },\n]\n\n<AreaChart\n\tlabel=\"Price\"\n\tdata={prices}\n\tindex=\"day\"\n\tseries={[\n\t\t{ key: \"price\", label: \"Price\" },\n\t\t{ key: \"forecast\", label: \"Forecast\", dashed: true },\n\t]}\n\tdomain=\"auto\"\n\tgradient\n\tyAxis\n\tyAxisSide=\"right\"\n\tyAxisWidth={48}\n\taxisFormatter={(v) => `$${Math.round(v / 1000)}K`}\n\tvalueFormatter={(v) => `$${v.toLocaleString()}`}\n\treferenceLines={[{ category: \"Wed\", label: \"Today\" }]}\n/>",
+          "imports": "import { AreaChart } from \"@sableui/react\""
+        },
         {
           "label": "Two series with a legend",
           "code": "const visitors = [\n\t{ month: \"January\", desktop: 186, mobile: 80 },\n\t{ month: \"February\", desktop: 305, mobile: 200 },\n\t{ month: \"March\", desktop: 237, mobile: 120 },\n\t{ month: \"April\", desktop: 73, mobile: 190 },\n\t{ month: \"May\", desktop: 209, mobile: 130 },\n\t{ month: \"June\", desktop: 214, mobile: 140 },\n]\n\n<AreaChart\n\tlabel=\"Visitors, January to June\"\n\tdata={visitors}\n\tindex=\"month\"\n\tseries={[\n\t\t{ key: \"desktop\", label: \"Desktop\" },\n\t\t{ key: \"mobile\", label: \"Mobile\" },\n\t]}\n\tindexFormatter={(m) => m.slice(0, 3)}\n\tgradient\n/>",
@@ -4422,6 +4477,12 @@
           "description": "Square footprint: 20px / 24px for compact workspace rows; 32px / 40px / 48px for rows; 96px / 160px for portraits (a profile header, an artist hero, a roster tile). The initials, a status indicator and its cut-out ring scale with it, and at the portrait sizes the photo fades in over the resting surface."
         },
         {
+          "name": "fit",
+          "type": "\"cover\" | \"contain\"",
+          "default": "\"cover\"",
+          "description": "How the image fills the frame. cover crops it to fill, for a photo. contain fits the whole image inside, for a logo, which then needs no safe area built into the file."
+        },
+        {
           "name": "shape",
           "type": "\"circle\" | \"square\"",
           "default": "\"circle\"",
@@ -4453,8 +4514,8 @@
         },
         {
           "name": "AvatarImage",
-          "type": "Base UI Avatar.Image props + className",
-          "description": "The profile image. Fills and crops the frame; hidden by Base UI until it loads."
+          "type": "Base UI Avatar.Image props + fit?: \"cover\" | \"contain\" + className",
+          "description": "The profile image. Fills and crops the frame, or fits inside it with fit=\"contain\"; hidden by Base UI until it loads."
         },
         {
           "name": "AvatarFallback",
@@ -5159,6 +5220,37 @@
           "type": "boolean",
           "default": "false for columns; true for horizontal bars",
           "description": "The vertical axis."
+        },
+        {
+          "name": "yAxisSide",
+          "type": "\"left\" | \"right\"",
+          "default": "\"left\"",
+          "description": "Which edge the value axis sits on, on a vertical chart."
+        },
+        {
+          "name": "yAxisWidth",
+          "type": "number",
+          "description": "The vertical axis's label width, in px. Left unset it follows the longest label, so the plot slides sideways when new data changes the labels; set it where a chart swaps data in place, such as tabs."
+        },
+        {
+          "name": "categoryTicks",
+          "type": "number",
+          "description": "At most this many category labels. They already thin to fit, from the latest back; this asks for fewer."
+        },
+        {
+          "name": "domain",
+          "type": "\"auto\" | [number, number]",
+          "description": "A [min, max] pair fixes the value axis's range, and values past it stop at the plot's edge. \"auto\" is ignored: a bar's length is its value, so bars always start at zero."
+        },
+        {
+          "name": "referenceLines",
+          "type": "ChartReferenceLine[]",
+          "description": "Mark positions on the plot, each { category } or { value }, with an optional label and tone: a Today line, a target."
+        },
+        {
+          "name": "axisFormatter",
+          "type": "(value: number) => string",
+          "description": "Format values on the axis alone, when it needs less than valueFormatter prints: $50K beside $41,746.08."
         },
         {
           "name": "motion",
@@ -10360,6 +10452,7 @@
       "variants": {
         "size": [
           "default",
+          "lg",
           "fullscreen"
         ]
       },
@@ -10933,6 +11026,12 @@
           "name": "subtitle",
           "type": "ReactNode",
           "description": "Secondary line (text-body-sm muted, truncated)."
+        },
+        {
+          "name": "subtitleWrap",
+          "type": "boolean",
+          "default": "false",
+          "description": "Let the subtitle wrap instead of truncating, when it is a description rather than a label."
         },
         {
           "name": "action",
@@ -11810,6 +11909,11 @@
           "name": "Form",
           "type": "{ validationMode?: \"onSubmit\" | \"onBlur\" | \"onChange\"; errors?: Record<string, string | string[]>; onFormSubmit?: (values, details) => void; actionsRef?: RefObject<Form.Actions> } + ComponentPropsWithRef<\"form\">",
           "description": "A <form> laid out as a vertical column with comfortable field spacing (override with className, e.g. gap-4). On submit it validates every Field (native constraints plus Field validate), shows each message under its field, focuses the first invalid control, and only then calls onSubmit. validationMode defaults to \"onSubmit\" (then live re-validation on change). errors shows external (e.g. server) messages keyed by Field name and clears one when its field is edited. onFormSubmit receives the named Field values and prevents the native submit. A control outside any Field is still checked by the browser before onSubmit runs. Validating in your own code (react-hook-form, a schema, state)? Pass noValidate: onSubmit always runs and each Field shows the error you set; without it an empty required Field stops the submit before your handler can set that error. Either way, once onSubmit returns (or the promise it returns settles), the first control a Field marks invalid takes focus."
+        },
+        {
+          "name": "labelTrailing",
+          "type": "ReactNode",
+          "description": "On Field, vertical: something at the end of the label's row, such as a balance, a Max button or a \"Forgot password?\" link. It sits outside the label, so a control in it does not take the label's click."
         },
         {
           "name": "onSubmit",
@@ -13211,6 +13315,43 @@
           "description": "The vertical axis."
         },
         {
+          "name": "yAxisSide",
+          "type": "\"left\" | \"right\"",
+          "default": "\"left\"",
+          "description": "Which edge the value axis sits on, on a vertical chart."
+        },
+        {
+          "name": "yAxisWidth",
+          "type": "number",
+          "description": "The vertical axis's label width, in px. Left unset it follows the longest label, so the plot slides sideways when new data changes the labels; set it where a chart swaps data in place, such as tabs."
+        },
+        {
+          "name": "categoryTicks",
+          "type": "number",
+          "description": "At most this many category labels. They already thin to fit, from the latest back; this asks for fewer."
+        },
+        {
+          "name": "domain",
+          "type": "\"auto\" | [number, number]",
+          "description": "The value axis's range. A line chart already fits its data; a [min, max] pair fixes the range, and values past it stop at the plot's edge."
+        },
+        {
+          "name": "referenceLines",
+          "type": "ChartReferenceLine[]",
+          "description": "Mark positions on the plot, each { category } or { value }, with an optional label and tone: a Today line, a target."
+        },
+        {
+          "name": "axisFormatter",
+          "type": "(value: number) => string",
+          "description": "Format values on the axis alone, when it needs less than valueFormatter prints: $50K beside $41,746.08."
+        },
+        {
+          "name": "lineWidth",
+          "type": "number",
+          "default": "2",
+          "description": "The line's weight, in px."
+        },
+        {
           "name": "motion",
           "type": "\"full\" | \"subtle\" | \"off\"",
           "default": "\"full\"",
@@ -14191,8 +14332,8 @@
         },
         {
           "name": "MenuRadioItem",
-          "type": "Base UI Menu.RadioItem props + className (value, disabled)",
-          "description": "One option in a MenuRadioGroup, rendered as menuitemradio with a real checked state. The check sits in a reserved leading column so labels never shift sideways as the highlight moves."
+          "type": "Base UI Menu.RadioItem props + indicatorSide?: \"start\" | \"end\" + className (value, disabled)",
+          "description": "One option in a MenuRadioGroup, rendered as menuitemradio with a real checked state. The check sits in a reserved leading column so labels never shift sideways as the highlight moves; indicatorSide=\"end\" moves it to the row's end, for a picker whose rows lead with an avatar."
         },
         {
           "name": "MenuCheckboxItem",
@@ -17320,7 +17461,7 @@
       "group": "Badges & pills",
       "register": "page",
       "path": "components/pill",
-      "summary": "A chip someone clicks: a filter, a tag choice, an option in a row. Always a button with aria-pressed. appearance=\"solid\" (filters; selected lifts onto the primary surface) or \"outline\" (quiet chips that annotate content, like reactions); size lg, md or sm. A static label is a Badge.",
+      "summary": "A chip someone clicks: a filter, a tag choice, an option in a row. Always a button; pass selected to make it a toggle with aria-pressed, and leave it unset on a chip that fires an action. appearance=\"solid\" (filters; selected lifts onto the primary surface) or \"outline\" (quiet chips that annotate content, like reactions); size lg, md or sm. A static label is a Badge.",
       "keywords": [
         "pill",
         "chip",
@@ -17373,7 +17514,7 @@
           "name": "selected",
           "type": "boolean",
           "default": "false",
-          "description": "Marks the pill as chosen. Solid lifts onto the primary surface; outline takes a primary tint and soft primary edge. Sets aria-pressed."
+          "description": "Marks the pill as chosen. Solid lifts onto the primary surface; outline takes a primary tint and soft primary edge. Passing it, true or false, sets aria-pressed; left unset the chip is a plain action button."
         },
         {
           "name": "appearance",
@@ -17477,7 +17618,7 @@
       ],
       "a11y": [
         "Renders a native <button type=\"button\"> for focus and keyboard activation.",
-        "Selected state is exposed via aria-pressed."
+        "Selected state is exposed via aria-pressed when selected is passed; a chip without it is a plain button."
       ],
       "examples": [
         {
@@ -20114,8 +20255,8 @@
       "subcomponents": [
         {
           "name": "SelectTrigger",
-          "type": "Base UI Trigger props + placeholder?: ReactNode + size?: \"md\" | \"xs\" + className",
-          "description": "The button. Composes Trigger + Value + a chevron Icon that flips on open (data-[popup-open]). `size=\"xs\"` is the property-grid rung — height, padding, radius AND surface move together, which is why it is a prop and not a className: the xs trigger is an inset `bg-panel-field` field with no border, matching ScrubField on the same row. A consumer overriding only the height gets an md-register 8px radius on a 24px box and a raised card sitting among inset fields; one inspector panel had eleven of those, and both tells are visible at a glance."
+          "type": "Base UI Trigger props + placeholder?: ReactNode + size?: \"md\" | \"sm\" | \"xs\" + className",
+          "description": "The button. Composes Trigger + Value + a chevron Icon that flips on open (data-[popup-open]). `size=\"sm\"` is the same raised field one rung down, for a toolbar beside `sm` buttons. `size=\"xs\"` is the property-grid rung — height, padding, radius AND surface move together, which is why it is a prop and not a className: the xs trigger is an inset `bg-panel-field` field with no border, matching ScrubField on the same row. A consumer overriding only the height gets an md-register 8px radius on a 24px box and a raised card sitting among inset fields; one inspector panel had eleven of those, and both tells are visible at a glance."
         },
         {
           "name": "SelectContent",
@@ -24011,7 +24152,13 @@
           "name": "appearance",
           "type": "\"default\" | \"segmented\"",
           "default": "\"default\"",
-          "description": "On ToggleGroup: `default` is a loose row of toggles; `segmented` draws the capsule segmented control (one track, the pressed option filled) shared with ThemeSwitcher. Single-select segmented draws ONE fill that glides to the pressed option and resizes to its label; multi-select keeps a fill per pressed option. Toggles inside inherit it."
+          "description": "On ToggleGroup: `default` is a loose row of toggles; `segmented` draws the capsule segmented control (one track, the pressed option filled) shared with ThemeSwitcher. Single-select segmented draws ONE fill that glides to the pressed option and resizes to its label, and always keeps an option chosen: pressing the chosen one does nothing. Multi-select keeps a fill per pressed option. Toggles inside inherit it."
+        },
+        {
+          "name": "stretch",
+          "type": "boolean",
+          "default": "false",
+          "description": "On ToggleGroup: run the whole width, sharing it equally between the toggles."
         },
         {
           "name": "multiple",
@@ -29325,25 +29472,33 @@
       "AreaChart": [
         "activeIndex",
         "animate",
+        "axisFormatter",
+        "categoryTicks",
         "className",
         "curve",
         "data",
         "defaultActiveIndex",
+        "domain",
+        "fillStrength",
         "gradient",
         "grid",
         "index",
         "indexFormatter",
         "label",
         "legend",
+        "lineWidth",
         "locale",
         "motion",
         "onActiveIndexChange",
+        "referenceLines",
         "series",
         "stacked",
         "tooltip",
         "valueFormatter",
         "xAxis",
-        "yAxis"
+        "yAxis",
+        "yAxisSide",
+        "yAxisWidth"
       ],
       "AspectBox": [
         "ratio"
@@ -29365,6 +29520,7 @@
         "className",
         "fallback",
         "fallbackDelay",
+        "fit",
         "render",
         "seed",
         "shape",
@@ -29402,6 +29558,7 @@
       ],
       "AvatarImage": [
         "className",
+        "fit",
         "onLoadingStatusChange",
         "render",
         "style"
@@ -29435,11 +29592,14 @@
       "BarChart": [
         "activeIndex",
         "animate",
+        "axisFormatter",
         "barWidth",
+        "categoryTicks",
         "className",
         "colorBy",
         "data",
         "defaultActiveIndex",
+        "domain",
         "grid",
         "index",
         "indexFormatter",
@@ -29452,12 +29612,15 @@
         "onActiveIndexChange",
         "orientation",
         "radius",
+        "referenceLines",
         "series",
         "stacked",
         "tooltip",
         "valueFormatter",
         "xAxis",
-        "yAxis"
+        "yAxis",
+        "yAxisSide",
+        "yAxisWidth"
       ],
       "BottomNavItem": [
         "active",
@@ -30292,6 +30455,7 @@
         "onSelect",
         "selected",
         "subtitle",
+        "subtitleWrap",
         "title"
       ],
       "Feedback": [
@@ -30311,6 +30475,7 @@
         "disabled",
         "error",
         "label",
+        "labelTrailing",
         "messages",
         "name",
         "orientation",
@@ -30457,11 +30622,14 @@
       "LineChart": [
         "activeIndex",
         "animate",
+        "axisFormatter",
+        "categoryTicks",
         "className",
         "colorBy",
         "curve",
         "data",
         "defaultActiveIndex",
+        "domain",
         "dots",
         "grid",
         "index",
@@ -30469,14 +30637,18 @@
         "label",
         "labels",
         "legend",
+        "lineWidth",
         "locale",
         "motion",
         "onActiveIndexChange",
+        "referenceLines",
         "series",
         "tooltip",
         "valueFormatter",
         "xAxis",
-        "yAxis"
+        "yAxis",
+        "yAxisSide",
+        "yAxisWidth"
       ],
       "Marker": [
         "icon",
@@ -30652,6 +30824,7 @@
         "closeOnClick",
         "disabled",
         "id",
+        "indicatorSide",
         "label",
         "nativeButton",
         "onClick",
@@ -31903,6 +32076,7 @@
         "onValueChange",
         "orientation",
         "render",
+        "stretch",
         "style",
         "value"
       ],

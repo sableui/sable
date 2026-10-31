@@ -1,6 +1,6 @@
 import userEvent from "@testing-library/user-event"
 import { axe } from "jest-axe"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import { renderWithProviders, screen } from "../../test/render"
 import { Toggle, ToggleGroup } from "./toggle"
 
@@ -35,6 +35,45 @@ describe("Toggle", () => {
 	it("spaces an icon from its label like Button", () => {
 		renderWithProviders(<Toggle aria-label="Bold"><svg /> Bold</Toggle>)
 		expect(screen.getByRole("button", { name: "Bold" })).toHaveClass("gap-(--control-gap)")
+	})
+})
+
+describe("ToggleGroup segmented", () => {
+	it("keeps an option chosen: pressing the chosen one does nothing", async () => {
+		const onValueChange = vi.fn()
+		renderWithProviders(
+			<ToggleGroup appearance="segmented" defaultValue={["a"]} onValueChange={onValueChange}>
+				<Toggle value="a">Day</Toggle>
+				<Toggle value="b">Week</Toggle>
+			</ToggleGroup>,
+		)
+		const day = screen.getByRole("button", { name: "Day" })
+		await userEvent.click(day)
+		expect(onValueChange).not.toHaveBeenCalled()
+		expect(day).toHaveAttribute("aria-pressed", "true")
+	})
+
+	it("still lets a multi-select group empty", async () => {
+		const onValueChange = vi.fn()
+		renderWithProviders(
+			<ToggleGroup appearance="segmented" multiple defaultValue={["a"]} onValueChange={onValueChange}>
+				<Toggle value="a">Day</Toggle>
+			</ToggleGroup>,
+		)
+		await userEvent.click(screen.getByRole("button", { name: "Day" }))
+		expect(onValueChange.mock.calls[0][0]).toEqual([])
+	})
+
+	it("shares the width, and keeps labels on one line", () => {
+		renderWithProviders(
+			<ToggleGroup appearance="segmented" stretch aria-label="Range">
+				<Toggle value="a">Last week</Toggle>
+			</ToggleGroup>,
+		)
+		const group = screen.getByRole("group", { name: "Range" })
+		expect(group).toHaveClass("flex", "w-full", "*:flex-1")
+		expect(group).not.toHaveClass("w-fit")
+		expect(screen.getByRole("button", { name: "Last week" })).toHaveClass("whitespace-nowrap")
 	})
 })
 
@@ -86,16 +125,14 @@ describe("ToggleGroup segmented glide", () => {
 		expect(glider).toHaveStyle({ opacity: "1" })
 	})
 
-	it("hides the fill when nothing is pressed", async () => {
-		const user = userEvent.setup()
+	it("hides the fill when nothing is pressed", () => {
 		renderWithProviders(
-			<ToggleGroup appearance="segmented" aria-label="Range" defaultValue={["day"]}>
+			<ToggleGroup appearance="segmented" aria-label="Range">
 				<Toggle value="day">Day</Toggle>
 				<Toggle value="week">Week</Toggle>
 			</ToggleGroup>,
 		)
 		const group = screen.getByRole("group", { name: "Range" })
-		await user.click(screen.getByRole("button", { name: "Day" }))
 		expect(screen.getByRole("button", { name: "Day" })).toHaveAttribute("aria-pressed", "false")
 		expect(gliders(group)[0]).toHaveStyle({ opacity: "0" })
 	})

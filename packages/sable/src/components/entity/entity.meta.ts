@@ -56,6 +56,12 @@ export const entityMeta: ComponentMeta = {
 			description: "Secondary line (text-body-sm muted, truncated).",
 		},
 		{
+			name: "subtitleWrap",
+			type: "boolean",
+			default: "false",
+			description: "Let the subtitle wrap instead of truncating, when it is a description rather than a label.",
+		},
+		{
 			name: "action",
 			type: "ReactNode",
 			description: "Trailing slot — typically a ghost icon Button or a StatusDot.",

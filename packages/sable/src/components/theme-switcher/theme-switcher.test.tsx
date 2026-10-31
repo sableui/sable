@@ -56,7 +56,10 @@ describe("ThemeSwitcher glide", () => {
 		)
 		const pill = container.querySelector<HTMLElement>("span[aria-hidden]")
 		expect(pill?.style.getPropertyValue("--segment-index")).toBe("1")
-		expect(pill?.style.getPropertyValue("--segment-step")).toBe("calc(var(--spacing) * 7.5)")
+		expect(pill?.className).toContain("[--segment-step:calc(var(--spacing)*7.5)]")
+		// The glider moves with the options, which grow to the touch floor on a coarse pointer.
+		expect(pill?.className).toContain("pointer-coarse:[--segment-step:calc(var(--spacing)*11.5)]")
+		expect(pill?.className).toContain("pointer-coarse:size-11")
 		expect(pill?.getAttribute("style") ?? "").not.toContain("rem")
 	})
 })

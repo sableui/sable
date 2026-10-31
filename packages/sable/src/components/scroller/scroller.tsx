@@ -1,6 +1,7 @@
 "use client";
 
-import type { ComponentPropsWithRef, KeyboardEvent, UIEvent } from "react"
+import { ScrollArea } from "@base-ui/react/scroll-area"
+import type { ComponentPropsWithRef, CSSProperties, KeyboardEvent, UIEvent } from "react"
 import { useCallback, useRef } from "react"
 import { cn } from "../../lib/cn"
 import { setRef } from "../../lib/refs"
@@ -54,12 +55,18 @@ export interface ScrollerProps extends ComponentPropsWithRef<"div"> {
 
 /**
  * Scroller — a scroll container that fades its edges when content overflows.
- * A single overflow-auto region (thin scrollbar) that alpha-masks its content at
- * the leading/trailing edges so it fades to transparent (blending with any
- * background, never painting over edge content). The fades appear only when there
- * is more content to scroll toward: the start fade once scrolled past the start,
- * the end fade until scrolled to the end. Self-contained state (useState +
- * onScroll); no Base UI behavior.
+ * A single scrolling region that alpha-masks its content at the leading/trailing
+ * edges so it fades to transparent (blending with any background, never painting
+ * over edge content). The fades appear only when there is more content to scroll
+ * toward: the start fade once scrolled past the start, the end fade until
+ * scrolled to the end.
+ *
+ * The vertical bar floats over the content and takes no width, so a list lines
+ * up with the search field above it. No browser offers that any more: a styled
+ * native scrollbar always reserves its gutter, here 10px on Windows. Base UI's
+ * ScrollArea hides the native bar and draws its own; scrolling itself stays
+ * native, so wheel, touch, keys and `scrollIntoView` are untouched. A horizontal
+ * Scroller has no bar and needs none of this.
  *
  * **`className` styles and sizes the Scroller.** `h-64`, `max-h-80`, `flex-1
  * min-h-0`, `rounded-lg border`, `bg-card` — all of it goes there and all of it
@@ -128,6 +135,9 @@ export function Scroller({
 	const trackWheel = useSmoothWheel({ axis: orientation, mapVertical: isHorizontal && wheelScroll, smooth: smoothWheel })
 	const setRegion = useCallback(
 		(node: HTMLDivElement | null) => {
+			// Base UI's viewport calls this unguarded after mount, and jsdom has no
+			// Web Animations: without it a consumer's test suite throws on every Scroller.
+			if (node && !node.getAnimations) node.getAnimations = () => []
 			setRef(ref, node)
 			trackActivity(node)
 			trackWheel(node)
@@ -161,6 +171,10 @@ export function Scroller({
 	)
 
 	const isVertical = orientation === "vertical"
+	const Chrome = isVertical ? ScrollArea.Root : "div"
+	const Region = isVertical ? ScrollArea.Viewport : "div"
+	// Base UI's viewport scrolls both ways; a vertical Scroller never scrolls sideways.
+	const regionStyle: CSSProperties | undefined = isVertical ? { ...fadeStyle, overflowX: "hidden", overflowY: "auto" } : fadeStyle
 
 	return (
 		// The chrome box. Carries the consumer's border/background/radius and the
@@ -170,7 +184,7 @@ export function Scroller({
 		// `min-w-0` because this box, not the scroller inside it, is what a grid
 		// or flex parent sizes: left at `min-width: auto`, a horizontal strip
 		// widened its column to the full length of its content and never scrolled.
-		<div style={style} className={cn("flex min-w-0 flex-col", className)}>
+		<Chrome style={style} className={cn("group/scroller flex min-w-0 flex-col", className)}>
 			{/*
 			 * Everything EXCEPT className/style spreads here, not onto the chrome box.
 			 * The split is by meaning, not convenience: className and style are
@@ -181,7 +195,7 @@ export function Scroller({
 			 * and both have to land on the scrolling element or the palette's ARIA
 			 * wiring addresses an empty wrapper.
 			 */}
-			<div
+			<Region
 				ref={setRegion}
 				onScroll={handleScroll}
 				onKeyDown={handleKeyDown}
@@ -203,7 +217,7 @@ export function Scroller({
 				 * information, not something ARIA has a place for on a scroll region.
 				 */
 				data-orientation={orientation}
-				style={fadeStyle}
+				style={regionStyle}
 				className={cn(
 					// Fill the chrome box without a percentage height. `min-h-0` /
 					// `min-w-0` because a flex item's default `min-size: auto` refuses to
@@ -219,23 +233,33 @@ export function Scroller({
 					// inside a page or a popup, and a wheel gesture that reaches its end
 					// should stop rather than start scrolling whatever is behind it.
 					"overscroll-contain",
-					isVertical
-						? // Vertical: a thin bar, revealed while scrolling. The fade says
-							// "more below"; the bar says how much and where you are — a long
-							// list needs both.
-							"scrollbar-quiet overflow-y-auto overflow-x-hidden"
-						: // Horizontal: no bar at all. The edge fades this component already
-							// draws ARE the affordance, and they say the same thing better —
-							// which is the carousel read a media strip or chip row wants. A
-							// 4px rail under a row of tiles adds chrome and no information.
-							"scrollbar-hidden overflow-x-auto overflow-y-hidden",
+					// Horizontal: no bar at all. The edge fades this component already
+					// draws ARE the affordance, and they say the same thing better —
+					// which is the carousel read a media strip or chip row wants. A 4px
+					// rail under a row of tiles adds chrome and no information.
+					!isVertical && "scrollbar-hidden overflow-x-auto overflow-y-hidden",
 					viewportClassName,
 				)}
 				{...props}
 			>
 				{children}
-			</div>
-		</div>
+			</Region>
+			{/*
+			 * Vertical: a thin bar, revealed while scrolling. The fade says "more
+			 * below"; the bar says how much and where you are, and a long list needs
+			 * both. The same quiet bar as `scrollbar-quiet`: 4px, 2px off the edge,
+			 * wider under the pointer, in on the fast token and out after a short
+			 * hold. Outside the masked region, so the fade never dissolves it.
+			 */}
+			{isVertical ? (
+				<ScrollArea.Scrollbar
+					orientation="vertical"
+					className="z-10 flex w-2.5 justify-end py-1 pe-0.5 opacity-0 transition-opacity delay-[calc(160ms*var(--motion-scale,1))] duration-(--motion-duration-fast) ease-standard group-focus-within/scroller:opacity-100 group-focus-within/scroller:delay-0 data-hovering:opacity-100 data-hovering:delay-0 data-scrolling:opacity-100 data-scrolling:delay-0"
+				>
+					<ScrollArea.Thumb className="w-1 rounded-full bg-foreground/12 motion-interactive hover:w-1.5 hover:bg-foreground/16 active:w-1.5 active:bg-foreground/20" />
+				</ScrollArea.Scrollbar>
+			) : null}
+		</Chrome>
 	)
 }
 Scroller.displayName = "Scroller"

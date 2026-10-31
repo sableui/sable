@@ -36,6 +36,20 @@ export const HOVER = "var(--motion-duration-fast) var(--motion-ease-standard)"
 /** A cursor, active dot or tooltip moving between data positions. */
 export const GLIDE = `transform ${HOVER}, opacity ${HOVER}, cx ${HOVER}, cy ${HOVER}`
 
+/** Below this many px per data position, hover tracks the pointer instead of gliding. */
+const DENSE_STEP = 24
+
+/**
+ * Whether a chart's positions sit too close to glide between. Every position
+ * crossed restarts the transition, so on a dense series it stays in the slow
+ * start of its curve and the cursor trails a fast pointer by a quarter of a
+ * second. Spacing decides this rather than a point count: 90 points on a wide
+ * chart and 30 on a phone are the same problem.
+ */
+export function denseChart(width: number, count: number): boolean {
+	return count > 1 && width / count < DENSE_STEP
+}
+
 /** A bar: rises on arrival (staggered), dims on hover at once, morphs on new data. */
 export function barTransition(delay = "0ms"): string {
 	return `scale ${RISE} ${delay}, opacity ${HOVER}, d ${MORPH}`
@@ -44,6 +58,11 @@ export function barTransition(delay = "0ms"): string {
 /** Stagger arrivals by position, scaled so reduced motion has no dead delay. */
 export function stagger(index: number, stepMs = 35): string {
 	return `calc(${Math.min(index, 24) * stepMs}ms * var(--motion-scale, 1) * var(--motion-expressive, 1))`
+}
+
+/** A dashed line cannot draw on (the dash array is the dash), so it fades up with the marks around it. */
+export function dashedTransition(delay = "0ms"): string {
+	return `opacity ${RISE} ${delay}, d ${MORPH}`
 }
 
 /** A stroked line that draws on and morphs (needs pathLength="1"). */

@@ -2,6 +2,19 @@ import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 import { Pill } from "./pill"
 
+describe("Pill semantics", () => {
+	it("is a toggle only when it holds a selected value", () => {
+		render(
+			<>
+				<Pill selected={false}>Filter</Pill>
+				<Pill>Action</Pill>
+			</>,
+		)
+		expect(screen.getByRole("button", { name: "Filter" })).toHaveAttribute("aria-pressed", "false")
+		expect(screen.getByRole("button", { name: "Action" })).not.toHaveAttribute("aria-pressed")
+	})
+})
+
 describe("Pill", () => {
 	it("rests on the secondary surface and lifts onto the primary when selected", () => {
 		render(

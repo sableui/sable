@@ -52,9 +52,13 @@ const DENSITY_PAD: Record<NonNullable<CardProps["density"]>, string> = {
  *
  * No `motion-press`: a 0.97 settle on a surface this size reads as the layout
  * lurching, not as a press. The hover and ring carry the response.
+ *
+ * A `<button>` centres its content vertically, so one stretched by a grid row
+ * sat lower than the cards beside it. As a top-aligned flex column it lays out
+ * like the `<div>` every other card is.
  */
 const INTERACTIVE_BASE =
-	"[&:is(a[href],button)]:motion-interactive [&:is(a[href],button)]:cursor-pointer [&:is(button)]:w-full [&:is(button)]:text-start focus-visible:ring-2 focus-visible:ring-ring"
+	"[&:is(a[href],button)]:motion-interactive [&:is(a[href],button)]:cursor-pointer [&:is(button)]:flex [&:is(button)]:w-full [&:is(button)]:flex-col [&:is(button)]:justify-start [&:is(button)]:text-start focus-visible:ring-2 focus-visible:ring-ring"
 const INTERACTIVE_HOVER: Record<NonNullable<CardProps["variant"]>, string> = {
 	default: "[&:is(a[href],button)]:hover:outline-border-strong [&:is(a[href],button)]:hover:shadow-md",
 	flat: "[&:is(a[href],button)]:hover:bg-muted",
@@ -81,6 +85,7 @@ export function Card({
 		render: render ?? <div />,
 		ref,
 		props: {
+			"data-slot": "card",
 			...props,
 			className: cn(
 				// group/card: parts can answer the card's hover, e.g. a trailing
@@ -253,9 +258,11 @@ export function CardContent({
  * (`--entity-px` from `--card-p`), so a list card's content lines up with
  * every other card's at any density, instead of each caller tuning row padding
  * by hand. Rows sit closer vertically (half the card padding) because a row's
- * neighbour is the next row; the first and last rows take the full card
- * padding against the card's edge. Under a CardHeader it opens with a hairline
- * and a gap; as the card's only child it fills it. Rows are full-bleed, so an
+ * neighbour is the next row; a first or last row takes the full card padding
+ * only where it meets the card's own edge, not beside a CardHeader or CardFooter
+ * hairline, where it is a row like the others. Under a CardHeader it opens with
+ * a hairline, set off from the title by the card padding, the same space above
+ * the title; as the card's only child it fills it. Rows are full-bleed, so an
  * interactive row's hover and focus shape is square (`--entity-radius: 0`) and
  * the Card clips it to its own rounded corners.
  *
@@ -276,11 +283,14 @@ export function CardList({
 				// Between rows the half padding is enough (each side of a hairline
 				// gets it); against the card's own edge the first and last rows take
 				// the full card padding, so the list is inset like every other card.
+				// Next to a header or footer that edge is a hairline again, so those
+				// rows keep the half padding and stay the same height as the rest.
 				"*:first:pt-[var(--card-p,--spacing(6))] *:last:pb-[var(--card-p,--spacing(6))]",
+				"[[data-slot=card-header]+&>*:first-child]:pt-(--entity-py) [&:has(+[data-slot=card-footer])>*:last-child]:pb-(--entity-py)",
 				// Hairlines between rows are inset shadows, not borders: a 1px border
 				// per row pushed every row below it a pixel further off the rhythm.
 				"[&>*+*]:shadow-[inset_0_1px_0_var(--border)]",
-				"[[data-slot=card-header]+&]:mt-[calc(var(--card-p,--spacing(6))/2)] [[data-slot=card-header]+&>*:first-child]:shadow-[inset_0_1px_0_var(--border)]",
+				"[[data-slot=card-header]+&]:mt-[var(--card-p,--spacing(6))] [[data-slot=card-header]+&>*:first-child]:shadow-[inset_0_1px_0_var(--border)]",
 				className,
 			)}
 			{...props}

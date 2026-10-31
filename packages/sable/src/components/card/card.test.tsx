@@ -94,6 +94,39 @@ describe("CardList", () => {
 	})
 })
 
+describe("CardList edge rows", () => {
+	it("keeps the half padding beside a header or footer hairline", () => {
+		const { container } = render(
+			<Card>
+				<CardHeader><CardTitle>Members</CardTitle></CardHeader>
+				<CardList><div>Row</div></CardList>
+				<CardFooter>Done</CardFooter>
+			</Card>,
+		)
+		const list = container.querySelector("[data-slot=card-list]") as HTMLElement
+		expect(list.className).toContain("[[data-slot=card-header]+&>*:first-child]:pt-(--entity-py)")
+		expect(list.className).toContain("[&:has(+[data-slot=card-footer])>*:last-child]:pb-(--entity-py)")
+		// The title has the card padding above it, so its hairline takes the same below.
+		expect(list.className).toContain("[[data-slot=card-header]+&]:mt-[var(--card-p,--spacing(6))]")
+	})
+})
+
+describe("Card root", () => {
+	it("names itself, so a surface rule can target the card rather than its parts", () => {
+		const { container } = render(<Card>Body</Card>)
+		expect(container.firstChild).toHaveAttribute("data-slot", "card")
+	})
+})
+
+describe("Card as a button", () => {
+	it("lays out like a card, not a centred button", () => {
+		render(<Card render={<button type="button" />}>Open</Card>)
+		const card = screen.getByRole("button", { name: "Open" })
+		expect(card.className).toContain("[&:is(button)]:flex-col")
+		expect(card.className).toContain("[&:is(button)]:justify-start")
+	})
+})
+
 describe("CardContent flush", () => {
 	it("lets the card clip an edge-to-edge table's hover and footer fills to its corners", () => {
 		const { container } = render(

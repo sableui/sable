@@ -1,5 +1,63 @@
 # What's new
 
+## 0.23.0
+
+Fixes and options from building a finance dashboard on Sable.
+
+- **Charts stop stretching the page.** The hidden data table took its full
+  height, because `sr-only` does not clip a table. A 92-row series added about
+  800px of empty scroll and could push a sticky sidebar away.
+- **A missing value is no longer a zero.** `null`, `undefined`, `""` and
+  non-numbers now break the line and the fill. They leave the tooltip, read as a
+  dash in the data table, and no longer pull a fitted axis down to zero.
+- **Dense charts keep up with the pointer.** Below 24px per data position, the
+  cursor, dots and tooltip track directly instead of gliding.
+- **Chart options.** `yAxisSide`, `yAxisWidth`, `categoryTicks`, `domain` (`"auto"`
+  or `[min, max]`), `axisFormatter` and `referenceLines` on all three cartesian
+  charts; `lineWidth` on area and line; `fillStrength` on area. A series takes
+  `dashed`, which with missing values gives you a forecast. `tooltip` takes
+  `cursor` and `order`.
+- **A stacked tooltip reads top to bottom**, the way the chart does. Pass
+  `tooltip={{ order: "series" }}` for the old order.
+- **Focus stays in the overlay that opens as another closes.** The closing one
+  could pull focus back behind the new one when its opener had gone, as a menu
+  item's has.
+- **The strip beside a modal is gone.** Base UI holds the scrollbar's gutter
+  while a modal is open, in every app, and nothing fixed can paint there. The
+  gutter now takes the scrim's colour, or the surface of a sheet beside it.
+- **Focus rings survive `AccordionPanel` and `CollapsiblePanel`.** The clip's
+  margin never applied, because Chromium rejects `calc()` there. The clip now
+  stays open at the sides, so `bleed` buttons are whole too.
+- **`Scroller`'s bar floats over the content.** A vertical list now lines up with
+  the field above it. Scrolling stays native. `overflow-y-auto` and
+  `scrollbar-quiet` are no longer classes on the region; a test that looked for
+  them should read `style.overflowY`.
+- **`Field` labels reach their control.** A `Select` in a `Field` left `<label
+  for>` pointing at nothing, with or without an id, so a click on the label did
+  nothing. `Field` also kept replacing an id set on an inner control, as in
+  `<InputGroup><Input id /></InputGroup>`.
+- **`CardList` rows match.** A first or last row beside a `CardHeader` or
+  `CardFooter` now has the same padding as the rest, and the header's hairline
+  sits the card padding below the title.
+- **`AppShell`'s main takes focus in the flush frame too**, so `#main-content`
+  works as a focus target for a skip link or a route change.
+- **Smaller fixes.** `Entity` draws its focus ring inside the row, so a card no
+  longer clips it. `Card render={<button />}` lays out like a card. `Pill` only
+  sets `aria-pressed` when you pass `selected`. Segmented `ToggleGroup` and
+  `ThemeSwitcher` options reach 44px on touch.
+- **A segmented switch always keeps a choice.** Pressing the chosen option of a
+  single-select segmented `ToggleGroup` now does nothing. For an optional filter
+  that can be cleared, use the default appearance or `multiple`.
+- **Component options.** `Field labelTrailing`, `SelectTrigger size="sm"`,
+  `Dialog size="lg"` (720px), `Avatar fit="contain"`, `Entity subtitleWrap`,
+  `ToggleGroup stretch`, `MenuRadioItem indicatorSide`, and `data-slot="card"` on
+  the `Card` root. Segmented labels stay on one line.
+- **Presets can set the button shape** with `theme-button-radius`.
+- **Two new checks.** `sable preset --check` warns when a control fill nearly
+  matches the surface beneath it, or a dark popover matches its card. `sable
+  lint` reports a `TabsList` with no `TabsPanel` (`tabs-without-panels`).
+- **`sable search` finds icons**, by name and by other sets' names.
+
 ## 0.22.0
 
 Vivid art avatars, and one theme fewer.

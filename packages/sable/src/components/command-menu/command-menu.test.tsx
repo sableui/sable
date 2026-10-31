@@ -524,7 +524,7 @@ describe("CommandMenu — the scrolling list", () => {
 		// column, so `flex-1 min-h-0` here resolves against a definite height.
 		// That pairing is what the 0.44 wrapper lacked — it used `h-full`, which
 		// had no definite height to resolve against, so the region never scrolled.
-		expect(listbox).toHaveClass("overflow-y-auto")
+		expect(listbox.style.overflowY).toBe("auto")
 		expect(listbox).toHaveClass("flex-1")
 		expect(listbox).toHaveClass("min-h-0")
 		expect(listbox).not.toHaveClass("h-full")

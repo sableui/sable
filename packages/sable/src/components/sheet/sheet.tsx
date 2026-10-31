@@ -239,7 +239,7 @@ export function SheetContent({
 
 	return (
 		<SheetPortal>
-			<Base.Backdrop className="fixed inset-0 z-(--z-overlay) bg-overlay/(--scrim-alpha) opacity-[calc(1_-_var(--drawer-swipe-progress))] motion-fade data-[swiping]:transition-none" />
+			<Base.Backdrop data-sable-scrim="" className="fixed inset-0 z-(--z-overlay) bg-overlay/(--scrim-alpha) opacity-[calc(1_-_var(--drawer-swipe-progress))] motion-fade data-[swiping]:transition-none" />
 			<Base.Viewport className="fixed inset-0 z-(--z-overlay)">
 				<Base.Popup
 					ref={mergedRef}

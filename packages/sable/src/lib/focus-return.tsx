@@ -89,15 +89,17 @@ export function useFocusReturn<Args extends unknown[]>(
 			// Base UI reads finalFocus when the popup closes, from the latest props,
 			// so a new function per opener is picked up.
 			finalFocus() {
-				const target = opener
-				if (!target?.isConnected) return true
-				// Focus the user moved out of the surface on purpose (a non-modal
-				// dialog left by clicking into another field) stays where they put
-				// it — the same courtesy Base UI's default extends.
+				// Focus already outside the surface stays where it is: a non-modal
+				// dialog left by clicking into another field, or another overlay that
+				// opened as this one closed. This comes before the opener check on
+				// purpose. Base UI treats any function as an explicit return target,
+				// so `true` here re-focuses its own fallback without the courtesy
+				// check it extends to the default, which pulled focus out from behind
+				// the new overlay whenever this one's opener had gone (a menu item).
 				const active = focusedElement()
 				const popup = popupRef.current
-				if (active && active !== target && popup && !popup.contains(active)) return false
-				return target
+				if (active && active !== opener && popup && !popup.contains(active)) return false
+				return opener?.isConnected ? opener : true
 			},
 		}),
 		[opener],

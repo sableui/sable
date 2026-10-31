@@ -586,6 +586,20 @@ export const A = () => <div role="slider" />`,
 		})
 	})
 
+	describe("tabs-without-panels", () => {
+		it("catches a tab row with no panels", () => {
+			const r = lint(`export const A = () => <Tabs><TabsList><TabsTrigger value="a">A</TabsTrigger></TabsList></Tabs>`)
+			expect(r.out).toContain("tabs-without-panels")
+			expect(r.out).toContain('<ToggleGroup appearance="segmented">')
+		})
+
+		it("leaves tabs with panels alone, wherever in the file they sit", () => {
+			const r = lint(`const P = () => <TabsPanel value="a">A</TabsPanel>
+export const A = () => <Tabs><TabsList><TabsTrigger value="a">A</TabsTrigger></TabsList><P /></Tabs>`)
+			expect(r.out).not.toContain("tabs-without-panels")
+		})
+	})
+
 	describe("form-required-error", () => {
 		it("catches a required Field with an error inside a Form that validates for you", () => {
 			const r = lint(`export const A = ({ e }) => <Form onSubmit={save}><Field label="Subject" required error={e.subject}><Input /></Field></Form>`)

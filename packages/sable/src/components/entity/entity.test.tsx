@@ -3,6 +3,22 @@ import { describe, expect, it, vi } from "vitest"
 import { renderWithProviders, screen } from "../../test/render"
 import { Entity } from "./entity"
 
+describe("Entity subtitle", () => {
+	it("truncates by default and wraps when asked", () => {
+		const { rerender } = renderWithProviders(<Entity title="Ada" subtitle="A long description" />)
+		expect(screen.getByText("A long description")).toHaveClass("truncate")
+		rerender(<Entity title="Ada" subtitle="A long description" subtitleWrap />)
+		expect(screen.getByText("A long description")).not.toHaveClass("truncate")
+	})
+})
+
+describe("Entity focus", () => {
+	it("draws its ring inside the row, where a clipped list cannot cut it", () => {
+		renderWithProviders(<Entity interactive onSelect={() => {}} title="Ada" />)
+		expect(screen.getByRole("button", { name: "Ada" }).className).toContain("focus-visible:after:ring-inset")
+	})
+})
+
 describe("Entity", () => {
 	it("renders a presentational row (no button role) by default", () => {
 		renderWithProviders(<Entity title="Alex" subtitle="@alex" />)

@@ -187,9 +187,8 @@ describe("viewport-anchored surfaces cap against the viewport", () => {
 		// max-h-80: the 20rem cap, on the spacing scale so density moves it.
 		expect(listbox.parentElement?.className).toMatch(/\bmax-h-80\b/)
 		expect(listbox.parentElement?.className).toContain("flex-col")
-		expect(listbox.className).toMatch(/overflow-y-auto/)
+		expect(listbox.style.overflowY).toBe("auto")
 		expect(listbox.className).toContain("overscroll-contain")
-		expect(listbox.className).toContain("scrollbar-quiet")
 		expect(listbox.className).toContain("min-h-0")
 		expect(listbox.className).toContain("flex-1")
 		// The combobox input is a sibling of the scrolling list, never inside it.

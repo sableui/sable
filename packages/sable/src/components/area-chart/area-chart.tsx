@@ -8,6 +8,14 @@ export interface AreaChartProps extends CartesianBaseProps {
 	stacked?: boolean | "expand"
 	/** Fill each area with a fade from its colour to transparent instead of a flat tint. @default false */
 	gradient?: boolean
+	/** The line's weight, in px. @default 2 */
+	lineWidth?: number
+	/**
+	 * How strong the fill is, from 0 to 1: the tint's opacity, or the top of the
+	 * gradient. Lower it when stacked bands read as one wall of colour.
+	 * @default 0.14, or 0.32 stacked; with `gradient`, 0.22, or 0.5 stacked
+	 */
+	fillStrength?: number
 }
 
 /**

@@ -89,6 +89,11 @@ export const formMeta: ComponentMeta = {
 				"A <form> laid out as a vertical column with comfortable field spacing (override with className, e.g. gap-4). On submit it validates every Field (native constraints plus Field validate), shows each message under its field, focuses the first invalid control, and only then calls onSubmit. validationMode defaults to \"onSubmit\" (then live re-validation on change). errors shows external (e.g. server) messages keyed by Field name and clears one when its field is edited. onFormSubmit receives the named Field values and prevents the native submit. A control outside any Field is still checked by the browser before onSubmit runs. Validating in your own code (react-hook-form, a schema, state)? Pass noValidate: onSubmit always runs and each Field shows the error you set; without it an empty required Field stops the submit before your handler can set that error. Either way, once onSubmit returns (or the promise it returns settles), the first control a Field marks invalid takes focus.",
 		},
 		{
+			name: "labelTrailing",
+			type: "ReactNode",
+			description: "On Field, vertical: something at the end of the label's row, such as a balance, a Max button or a \"Forgot password?\" link. It sits outside the label, so a control in it does not take the label's click.",
+		},
+		{
 			name: "onSubmit",
 			type: "(event: FormEvent<HTMLFormElement>) => unknown",
 			description: "The native submit handler. It may return a promise. When it returns, or its promise settles, the first control a Field marks invalid takes focus, so errors your own code sets get the same treatment as Sable's validation.",

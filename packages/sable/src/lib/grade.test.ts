@@ -433,11 +433,11 @@ describe("composition notes", () => {
 	/* The shape a records workspace drifted into before the rail, the grouped
 	 * table and the account row existed: each a Sable part, composed where
 	 * another part already does the job on the right grid. */
-	const APP = `import { Badge, Collapsible, CollapsiblePanel, DataTable, Entity, Input, SideNav, SideNavItem, Sidebar, SidebarFooter, Tabs, TabsList, TabsTrigger, WorkspaceBar } from "@sableui/react"
+	const APP = `import { Badge, Collapsible, CollapsiblePanel, DataTable, Entity, Input, SideNav, SideNavItem, Sidebar, SidebarFooter, Tabs, TabsList, TabsPanel, TabsTrigger, WorkspaceBar } from "@sableui/react"
 export function App({ rows }) {
 	return <div>
 		<Sidebar variant="inline"><SideNav><SideNavItem label="Inbox" /></SideNav><SidebarFooter><Entity title="Emma Lee" action={<Badge>Demo</Badge>} /></SidebarFooter></Sidebar>
-		<WorkspaceBar><Tabs><TabsList><TabsTrigger value="a">Issues</TabsTrigger></TabsList></Tabs></WorkspaceBar>
+		<WorkspaceBar><Tabs><TabsList><TabsTrigger value="a">Issues</TabsTrigger></TabsList><TabsPanel value="a" /></Tabs></WorkspaceBar>
 		<Collapsible><CollapsiblePanel><DataTable columns={[]} data={rows} /></CollapsiblePanel></Collapsible>
 		<Input type="date" aria-label="Due" />
 	</div>

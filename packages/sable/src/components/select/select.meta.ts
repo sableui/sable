@@ -105,9 +105,9 @@ export const selectMeta: ComponentMeta = {
 	subcomponents: [
 		{
 			name: "SelectTrigger",
-			type: 'Base UI Trigger props + placeholder?: ReactNode + size?: "md" | "xs" + className',
+			type: 'Base UI Trigger props + placeholder?: ReactNode + size?: "md" | "sm" | "xs" + className',
 			description:
-				'The button. Composes Trigger + Value + a chevron Icon that flips on open (data-[popup-open]). `size="xs"` is the property-grid rung — height, padding, radius AND surface move together, which is why it is a prop and not a className: the xs trigger is an inset `bg-panel-field` field with no border, matching ScrubField on the same row. A consumer overriding only the height gets an md-register 8px radius on a 24px box and a raised card sitting among inset fields; one inspector panel had eleven of those, and both tells are visible at a glance.',
+				'The button. Composes Trigger + Value + a chevron Icon that flips on open (data-[popup-open]). `size="sm"` is the same raised field one rung down, for a toolbar beside `sm` buttons. `size="xs"` is the property-grid rung — height, padding, radius AND surface move together, which is why it is a prop and not a className: the xs trigger is an inset `bg-panel-field` field with no border, matching ScrubField on the same row. A consumer overriding only the height gets an md-register 8px radius on a 24px box and a raised card sitting among inset fields; one inspector panel had eleven of those, and both tells are visible at a glance.',
 		},
 		{
 			name: "SelectContent",

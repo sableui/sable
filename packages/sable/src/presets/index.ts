@@ -4,7 +4,7 @@ import {
 	LAYERING_TOKENS, WORKSPACE_SURFACE_TOKENS, DERIVED_EDGE_TOKENS, FIELD_TOKENS, APP_SHELL_TOKENS, MARK_TOKENS, TYPE_UI_TOKENS, ART_TOKENS, PALETTE_TOKENS,
 	type ThemeManifest,
 } from "../themes/_contract"
-import { LABEL_CONTRAST_RULE, LABELLED_FILLS, checkLabelledFills, type LabelFinding } from "../themes/contrast"
+import { contrastRatio, HAIRLINE_VISIBILITY_FLOOR, LABEL_CONTRAST_RULE, LABELLED_FILLS, checkLabelledFills, parseColor, type LabelFinding } from "../themes/contrast"
 
 /** Label-on-fill contrast: build a preset's filled colours with these, not a lightness cut. */
 export {
@@ -32,6 +32,9 @@ export const PRESET_TOKEN_NAMES: readonly string[] = [...new Set([
 	...APP_SHELL_TOKENS.map(name => `theme-${name}`),
 	// Graphic-strength status colours: optional — a preset without them derives them from its fills.
 	...MARK_TOKENS.map(name => `theme-${name}`),
+	// The control shape: optional — a preset without it keeps the theme's. The hook
+	// rather than `button-radius` alone, which a density scope sets for itself.
+	"theme-button-radius",
 	// Art direction: optional hooks — a preset without them paints the default art.
 	...ART_TOKENS.map(name => `theme-${name}`),
 	...PALETTE_TOKENS.map(name => `theme-${name}`),
@@ -215,6 +218,56 @@ export function presetCss(input: SablePreset): string {
 	}).join("\n")
 	const shared = { ...preset.tokens.shared, "font-sans": preset.fonts.sans, "font-mono": preset.fonts.mono, "font-display": preset.fonts.display ?? preset.fonts.sans }
 	return `${selector} {\n${declarations({ ...shared, ...preset.tokens.light })}\n}\n\n${selector}.dark, .dark ${selector}:not(.light) {\n${declarations(preset.tokens.dark)}\n}\n\n${selector}.light {\n${declarations(preset.tokens.light)}\n}\n`
+}
+
+/**
+ * A fill that sits on a surface: if the two nearly match, the control disappears.
+ * The floor is the one a hairline has to clear, and every bundled theme clears it.
+ */
+const CONTROL_FILLS: [fill: string, surface: string][] = [
+	["secondary", "card"],
+	["secondary", "background"],
+	["muted", "card"],
+	["accent", "card"],
+]
+/**
+ * How far a floating panel has to sit from a card in dark mode, where its step
+ * is what separates them. Not checked in light mode: every bundled theme sets
+ * `popover` equal to `card` there and leaves the shadow to lift the panel.
+ */
+const POPOVER_FLOOR = 1.05
+
+export interface SurfaceFinding {
+	mode: "light" | "dark"
+	fill: string
+	surface: string
+	ratio: number
+	floor: number
+}
+
+/**
+ * Fills that nearly vanish on the surface beneath them. A warning rather than a
+ * failure: the numbers cannot tell a mistake from a quiet design, but a chip or
+ * a secondary button that disappears on a card shows only on the rendered page.
+ */
+export function presetSurfaceContrast(input: SablePreset): SurfaceFinding[] {
+	const preset = parsePreset(input)
+	const findings: SurfaceFinding[] = []
+	for (const mode of ["light", "dark"] as const) {
+		const all: Record<string, string> = { ...preset.tokens.shared, ...preset.tokens[mode] }
+		const resolve = (value: string | undefined, depth = 0): string | undefined =>
+			value === undefined || depth > 10 ? value : (/^var\(\s*--([\w-]+)\s*\)$/.exec(value)?.[1] ? resolve(all[value.replace(/^var\(\s*--|\s*\)$/g, "")], depth + 1) : value)
+		const measure = (fill: string, surface: string, floor: number) => {
+			const a = parseColor(resolve(all[fill]) ?? "")
+			const b = parseColor(resolve(all[surface]) ?? "")
+			if (!a || !b) return
+			const ratio = contrastRatio(a, b)
+			if (ratio < floor) findings.push({ mode, fill, surface, ratio, floor })
+		}
+		for (const [fill, surface] of CONTROL_FILLS) measure(fill, surface, HAIRLINE_VISIBILITY_FLOOR)
+		if (mode === "dark") measure("popover", "card", POPOVER_FLOOR)
+	}
+	return findings
 }
 
 /**

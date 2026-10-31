@@ -37,7 +37,8 @@ Use Toggle for button-like controls that can be pressed on or off within a toolb
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| appearance | "default" \| "segmented" | "default" | On ToggleGroup: `default` is a loose row of toggles; `segmented` draws the capsule segmented control (one track, the pressed option filled) shared with ThemeSwitcher. Single-select segmented draws ONE fill that glides to the pressed option and resizes to its label; multi-select keeps a fill per pressed option. Toggles inside inherit it. |
+| appearance | "default" \| "segmented" | "default" | On ToggleGroup: `default` is a loose row of toggles; `segmented` draws the capsule segmented control (one track, the pressed option filled) shared with ThemeSwitcher. Single-select segmented draws ONE fill that glides to the pressed option and resizes to its label, and always keeps an option chosen: pressing the chosen one does nothing. Multi-select keeps a fill per pressed option. Toggles inside inherit it. |
+| stretch | boolean | false | On ToggleGroup: run the whole width, sharing it equally between the toggles. |
 | multiple | boolean | false | On ToggleGroup: allow several toggles pressed at once. The default is single-select, which behaves like a radio group. |
 | motion | "full" \| "subtle" \| "off" | "full" | On ToggleGroup: how much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the glide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. |
 | Toggle | Base UI Toggle props (pressed, defaultPressed, onPressedChange, disabled, value) + className | defaultPressed: false | A two-state button. Uncontrolled via defaultPressed; controlled via pressed + onPressedChange. Pass value to identify it inside a ToggleGroup. |

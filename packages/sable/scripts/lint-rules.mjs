@@ -1301,6 +1301,25 @@ export function makeRules({ semanticTokens, motionTokens, labelContrast = null, 
 			},
 		},
 		{
+			id: "tabs-without-panels",
+			/* CONSUMER-scoped. Tabs promise a panel for every tab: `aria-controls`
+			 * points at one and a screen reader says "tab, 1 of 3". A TabsList that
+			 * only filters what is already on the page announces panels that are
+			 * not there, and the control it wants is a segmented ToggleGroup. A
+			 * panel in another file is fine, so this reads the file, not the tag. */
+			scope: "consumer",
+			since: "0.23.0",
+			file: true,
+			code: true,
+			why:
+				"A `TabsList` with no `TabsPanel`. Tabs announce a panel for each tab, so a tab row that only switches or filters what is already on the page tells a screen reader about panels that do not exist. For a view switch use `<ToggleGroup appearance=\"segmented\">`.",
+			scan(text) {
+				const src = maskMarkupTemplates(text)
+				if (/<TabsPanel\b/.test(src)) return []
+				return [...openingTags(src, /^TabsList$/)].map((tag) => ({ index: tag.index, match: "TabsList with no TabsPanel → <ToggleGroup appearance=\"segmented\">" }))
+			},
+		},
+		{
 			id: "hand-derived-surface",
 			/* CONSUMER-scoped. Mixing ink into a surface by hand is what the
 			 * relative-surface utilities compute — and the tell that the library

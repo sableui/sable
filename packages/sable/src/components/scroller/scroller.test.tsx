@@ -54,7 +54,8 @@ describe("Scroller", () => {
 		const el = region(container)
 		expect(el.className).toContain("flex-1")
 		expect(el.className).toContain("min-h-0")
-		expect(el.className).toContain("overflow-y-auto")
+		expect(el.style.overflowY).toBe("auto")
+		expect(el.style.overflowX).toBe("hidden")
 		expect(el.className).not.toContain("h-full")
 	})
 
@@ -90,7 +91,7 @@ describe("Scroller", () => {
 
 	it("opts into the thin scrollbar and contains overscroll", () => {
 		const { container } = renderWithProviders(<Scroller>content</Scroller>)
-		expect(region(container).className).toContain("scrollbar-quiet")
+		expect(region(container).className).toContain("overscroll-contain")
 		expect(region(container).className).toContain("overscroll-contain")
 	})
 

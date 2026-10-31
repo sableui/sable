@@ -159,6 +159,12 @@ export const avatarMeta: ComponentMeta = {
 			description: "Square footprint: 20px / 24px for compact workspace rows; 32px / 40px / 48px for rows; 96px / 160px for portraits (a profile header, an artist hero, a roster tile). The initials, a status indicator and its cut-out ring scale with it, and at the portrait sizes the photo fades in over the resting surface.",
 		},
 		{
+			name: "fit",
+			type: '"cover" | "contain"',
+			default: '"cover"',
+			description: "How the image fills the frame. cover crops it to fill, for a photo. contain fits the whole image inside, for a logo, which then needs no safe area built into the file.",
+		},
+		{
 			name: "shape",
 			type: '"circle" | "square"',
 			default: '"circle"',
@@ -191,9 +197,9 @@ export const avatarMeta: ComponentMeta = {
 		},
 		{
 			name: "AvatarImage",
-			type: "Base UI Avatar.Image props + className",
+			type: 'Base UI Avatar.Image props + fit?: "cover" | "contain" + className',
 			description:
-				"The profile image. Fills and crops the frame; hidden by Base UI until it loads.",
+				"The profile image. Fills and crops the frame, or fits inside it with fit=\"contain\"; hidden by Base UI until it loads.",
 		},
 		{
 			name: "AvatarFallback",

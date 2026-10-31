@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-A chip someone clicks: a filter, a tag choice, an option in a row. Always a button with aria-pressed. appearance="solid" (filters; selected lifts onto the primary surface) or "outline" (quiet chips that annotate content, like reactions); size lg, md or sm. A static label is a Badge.
+A chip someone clicks: a filter, a tag choice, an option in a row. Always a button; pass selected to make it a toggle with aria-pressed, and leave it unset on a chip that fires an action. appearance="solid" (filters; selected lifts onto the primary surface) or "outline" (quiet chips that annotate content, like reactions); size lg, md or sm. A static label is a Badge.
 
 **Keywords:** pill, chip, filter, tag, toggle chip, category
 
@@ -23,7 +23,7 @@ Use Pill for a row of filters or choices a person clicks to narrow or toggle wha
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| selected | boolean | false | Marks the pill as chosen. Solid lifts onto the primary surface; outline takes a primary tint and soft primary edge. Sets aria-pressed. |
+| selected | boolean | false | Marks the pill as chosen. Solid lifts onto the primary surface; outline takes a primary tint and soft primary edge. Passing it, true or false, sets aria-pressed; left unset the chip is a plain action button. |
 | appearance | "solid" \| "outline" | "solid" | solid for a filter row; outline for quiet chips that annotate other content (a reaction under a message, a tag on a card), where a filled chip would compete with what it annotates. |
 | size | "lg" \| "md" \| "sm" | "md" | lg sits on --control-sm (32px, 28 compact), the toolbar rung it shares with SearchInput sm and Button sm, for a filter row beside a search field. md sits on --control-xs (28px, 24 compact), the chip in a row of its own or among content. sm is a fixed 24px (the target floor, which density does not shrink), for chips under or inside other content. |
 | tone | "neutral" \| "red" \| "orange" \| "yellow" \| "green" \| "teal" \| "blue" \| "purple" \| "pink" | "neutral" | neutral is the chip as described. A palette family colours it as a category, like the choices in a tag picker: a wash at rest, the solid family colour when selected. Painted from the theme's generated palette. |
@@ -51,7 +51,7 @@ Use Pill for a row of filters or choices a person clicks to narrow or toggle wha
 ## Accessibility
 
 - Renders a native <button type="button"> for focus and keyboard activation.
-- Selected state is exposed via aria-pressed.
+- Selected state is exposed via aria-pressed when selected is passed; a chip without it is a plain button.
 
 ## Related
 
