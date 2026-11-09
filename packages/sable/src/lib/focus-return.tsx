@@ -24,6 +24,11 @@ import { createContext, useCallback, useContext, useMemo, useRef, useState } fro
  * the content part still wins. When there is no opener to go back to (nothing
  * was focused, or it has since left the DOM) the default falls through to Base
  * UI's own (`true`), so a trigger is still found the way it always was.
+ *
+ * A surface opened from inside another as that one closes (a CommandMenu item
+ * that opens a dialog) records an element about to leave the DOM. So each one
+ * keeps the whole way back: its opener, then the openers of any surface that
+ * opener sat in. The nearest one still in the DOM takes focus.
  */
 
 /** What a popup's `finalFocus` callback may return — Base UI's contract. */
@@ -50,6 +55,19 @@ function focusedElement(): HTMLElement | null {
 	return element instanceof HTMLElement && element !== document.body ? element : null
 }
 
+/** Each open surface's popup, and the way back from it, nearest first. */
+const returnPaths = new WeakMap<HTMLElement, HTMLElement[]>()
+
+/** `element`, then the way back from the surface it sits in, if any. */
+function returnPath(element: HTMLElement | null): HTMLElement[] {
+	if (!element) return []
+	for (let node: HTMLElement | null = element; node; node = node.parentElement) {
+		const path = returnPaths.get(node)
+		if (path) return [element, ...path]
+	}
+	return [element]
+}
+
 /**
  * The root half: wraps the root's `onOpenChange` and watches `open`, and hands
  * the content part its default through context. Pass `onOpenChange` to the
@@ -59,7 +77,7 @@ export function useFocusReturn<Args extends unknown[]>(
 	open: boolean | undefined,
 	onOpenChange: ((open: boolean, ...rest: Args) => void) | undefined,
 ) {
-	const [opener, setOpener] = useState<HTMLElement | null>(null)
+	const [path, setPath] = useState<HTMLElement[]>([])
 	const popupRef = useRef<HTMLElement | null>(null)
 
 	// Controlled `open`: capture in the render that flips it, the sanctioned
@@ -69,13 +87,13 @@ export function useFocusReturn<Args extends unknown[]>(
 	const [wasOpen, setWasOpen] = useState(false)
 	if (open !== undefined && open !== wasOpen) {
 		setWasOpen(open)
-		if (open) setOpener(focusedElement())
+		if (open) setPath(returnPath(focusedElement()))
 	}
 
 	const handleOpenChange = useCallback(
 		(next: boolean, ...rest: Args) => {
 			// Uncontrolled (a trigger, a detached handle): the event is the moment.
-			if (next && open === undefined) setOpener(focusedElement())
+			if (next && open === undefined) setPath(returnPath(focusedElement()))
 			onOpenChange?.(next, ...rest)
 		},
 		[open, onOpenChange],
@@ -85,6 +103,7 @@ export function useFocusReturn<Args extends unknown[]>(
 		() => ({
 			popupRef(node) {
 				popupRef.current = node
+				if (node) returnPaths.set(node, path)
 			},
 			// Base UI reads finalFocus when the popup closes, from the latest props,
 			// so a new function per opener is picked up.
@@ -98,11 +117,11 @@ export function useFocusReturn<Args extends unknown[]>(
 				// the new overlay whenever this one's opener had gone (a menu item).
 				const active = focusedElement()
 				const popup = popupRef.current
-				if (active && active !== opener && popup && !popup.contains(active)) return false
-				return opener?.isConnected ? opener : true
+				if (active && active !== path[0] && popup && !popup.contains(active)) return false
+				return path.find((element) => element.isConnected) ?? true
 			},
 		}),
-		[opener],
+		[path],
 	)
 
 	return { onOpenChange: handleOpenChange, focusReturn: value }

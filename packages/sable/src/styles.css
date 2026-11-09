@@ -3104,6 +3104,44 @@ html[dir="rtl"]:has([data-sable-sheet="left"]) {
 }
 
 /* --------------------------------------------------------------------------
+   TextSwap and CardStack. A short label replacement: the current text is
+   immediate, only the visual copies move. A stack card's fanned pose, which its
+   collection's hover fans further on a fine pointer; its travel between the
+   stack and the list is CardStack's own (card-stack.tsx).
+   -------------------------------------------------------------------------- */
+@keyframes sable-swap-in {
+	from { opacity: 0; transform: translateY(var(--swap-y, 0.25em)); filter: blur(var(--swap-blur, 2px)); }
+	to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+@keyframes sable-swap-out {
+	from { opacity: 1; transform: translateY(0); filter: blur(0); }
+	to { opacity: 0; transform: translateY(calc(-1 * var(--swap-y, 0.25em))); filter: blur(var(--swap-blur, 2px)); }
+}
+@utility motion-swap-in {
+	animation: sable-swap-in calc(var(--motion-duration-base) * var(--motion-expressive, 1)) var(--motion-ease-decelerate) both;
+	[data-effect="fade"] & { --swap-y: 0em; --swap-blur: 0px; }
+	[data-effect="slide"] & { --swap-blur: 0px; }
+}
+@utility motion-swap-out {
+	animation: sable-swap-out calc(var(--motion-duration-fast) * var(--motion-expressive, 1)) var(--motion-ease-standard) forwards;
+	[data-effect="fade"] & { --swap-y: 0em; --swap-blur: 0px; }
+	[data-effect="slide"] & { --swap-blur: 0px; }
+}
+@utility motion-stack-card {
+	/* The same duration and curve CardStack gives its height and travel, so the
+	   fan straightens while the card moves, not after. */
+	transition: transform calc(var(--motion-duration-slow) * var(--motion-expressive, 1)) var(--motion-ease-standard);
+	[data-slot="card-stack"]:not([data-expanded]) & {
+		transform: translateY(var(--stack-shift)) rotate(var(--stack-angle)) scale(var(--stack-scale));
+	}
+	@media (hover: hover) and (pointer: fine) {
+		[data-slot="card-stack"]:not([data-expanded]):hover & {
+			transform: translateY(calc(var(--stack-shift) * (1 + var(--motion-expressive, 1)))) rotate(calc(var(--stack-angle) * (1 + 0.5 * var(--motion-expressive, 1)))) scale(var(--stack-scale));
+		}
+	}
+}
+
+/* --------------------------------------------------------------------------
    Motion policy. Collapsing --motion-scale to 0 damps every token-driven
    duration to 0. Default (no [data-motion]) follows the OS preference; the
    <MotionProvider> sets [data-motion] to force a policy in-app.

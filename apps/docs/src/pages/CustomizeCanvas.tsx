@@ -5,6 +5,7 @@ import {
 	EventCardBlock,
 	FeedbackFormBlock,
 	InviteTeamBlock,
+	InvoicePreviewBlock,
 	MediaPlayerBlock,
 	NotificationListBlock,
 	NotificationSettingsBlock,
@@ -12,7 +13,9 @@ import {
 	PricingCardBlock,
 	ProductCardBlock,
 	ProfileCardBlock,
+	ProjectCollectionBlock,
 	RevenueBreakdownBlock,
+	ScheduleBlock,
 	SignInBlock,
 	TrafficSourcesBlock,
 	TrafficTrendBlock,
@@ -65,6 +68,21 @@ function Stage({ children, className }: { children: ReactNode; className?: strin
  * iPhone canvas the screen is the limit instead (--scene-max: none).
  */
 const SCENE = "max-w-[var(--scene-max,20rem)]"
+
+/** A total that rolls and a button that reports its own progress. */
+export function InvoiceScene() {
+	return <Stage><InvoicePreviewBlock className={SCENE} /></Stage>
+}
+
+/** A label that swaps in place and a card that eases to each day's height. */
+export function ScheduleScene() {
+	return <Stage><ScheduleBlock className={SCENE} /></Stage>
+}
+
+/** A stack that opens into a list, with pointer depth on a mouse. */
+export function CollectionScene() {
+	return <Stage><ProjectCollectionBlock className={SCENE} /></Stage>
+}
 
 export function ProductScene() {
 	return <Stage><ProductCardBlock className={SCENE} /></Stage>
@@ -180,6 +198,9 @@ function ThemeCanvas() {
 			<BillingScene />
 			<NowPlayingScene />
 			<StatScene />
+			<InvoiceScene />
+			<ScheduleScene />
+			<CollectionScene />
 			<SourcesScene />
 			<TypeScene />
 			<ProfileScene />

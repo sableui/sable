@@ -68,10 +68,14 @@ export function TrafficTrendBlock({ className, framed = true }: TrafficTrendBloc
 					className="h-64"
 				/>
 			</CardContent>
-			<CardFooter className="gap-1.5 text-body-sm">
+			{/* One line where it fits. In a narrow card the observation takes its own
+			    line (and drops the separator) rather than wrapping mid-phrase. */}
+			<CardFooter className="flex-wrap gap-x-1.5 gap-y-0.5 text-body-sm">
 				<Icon name="arrow-up" className="text-success" />
-				<span>
-					Up 5.2% on the previous period <span className="text-muted-foreground">· desktop leads every week</span>
+				<span>Up 5.2% on the previous period</span>
+				<span className="text-muted-foreground @max-md/trend:basis-full">
+					<span aria-hidden className="@max-md/trend:hidden">· </span>
+					Desktop leads every week
 				</span>
 			</CardFooter>
 		</Card>

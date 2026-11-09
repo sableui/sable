@@ -176,6 +176,7 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 	Accordion: ["Containers", "either"],
 	Card: ["Containers", "page"],
 	Collapsible: ["Containers", "either"],
+	CardStack: ["Containers", "either"],
 	Scroller: ["Containers", "either"],
 	Separator: ["Containers", "either"],
 
@@ -224,6 +225,7 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 	CodeBlock: ["Text & code", "either"],
 	Kbd: ["Text & code", "either"],
 	MiddleTruncate: ["Text & code", "either"],
+	TextSwap: ["Text & code", "either"],
 
 	/* ── Status ───────────────────────────────────────────────────────────────
 	   Telling the user what happened or what state they are in: alerts,
@@ -268,6 +270,7 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 	Carousel: ["Media & mockups", "page"],
 	GradientArt: ["Media & mockups", "either"],
 	Marquee: ["Media & mockups", "page"],
+	Tilt: ["Media & mockups", "page"],
 	MediaImage: ["Media & mockups", "either"],
 	MediaTile: ["Media & mockups", "page"],
 	Phone: ["Media & mockups", "page"],

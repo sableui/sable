@@ -25,6 +25,10 @@ const OWNERS: Record<string, { owners: string[]; why?: string }> = {
 		owners: ["avatar", "media-image"],
 		why: "Both take Base UI's image-load status, not a copy of it. Avatar's frame is a circle with a size ladder and an initials tier; a cover is none of those, so MediaImage composes the primitive rather than restyling Avatar out of its shape.",
 	},
+	"@base-ui/react/button": {
+		owners: ["card-stack"],
+		why: "CardStack's front card is the expand control. It wraps a consumer's card, block content a native <button> may not hold, so it takes Base UI's button behaviour on a <div> (nativeButton={false}). Sable's Button is a styled action with its own label and sizes, not a behaviour to put on a card.",
+	},
 	"@base-ui/react/checkbox": {
 		owners: ["checkbox", "checkbox-card"],
 		why: "Base UI has no card root; the card shell itself is shared (lib/selection-card).",

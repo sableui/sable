@@ -66,18 +66,77 @@
    header; the glass bar above it keeps its material. */
 .native-tabbar > .pointer-events-none { -webkit-backdrop-filter: none; backdrop-filter: none; }
 .native-tab-scrim { background: linear-gradient(to top, color-mix(in srgb, var(--ios-canvas) 92%, transparent) 25%, color-mix(in srgb, var(--ios-canvas) 60%, transparent) 60%, transparent); }
-.native-tab-glass { display: flex; width: 100%; border-radius: 36px; }
+/* pan-y: a sideways drag belongs to the lens (tab-lens.tsx), so the browser can't
+   claim it as a pan or back-swipe and cancel it partway; vertical scrolling still works. */
+.native-tab-glass { display: flex; width: 100%; border-radius: 36px; touch-action: pan-y; }
 .native-tab-glass > button { flex: 1; position: relative; z-index: 1; }
 .native-tab-glass > button:not([aria-current='page']) { color: var(--ios-ink); }
 .ios-prototype .ios-icon-action { width: 44px; height: 44px; min-width: 44px; padding: 0; flex-shrink: 0; }
 .ios-icon-action svg { flex-shrink: 0; }
-.native-tab-glass > button[aria-current='page']::before {
+/* The selected-tab pill, until the lens has measured the bar (and without script). */
+.native-tab-glass:not([data-lens]) > button[aria-current='page']::before {
   content: ''; position: absolute; inset: 5px 6px; z-index: -1; border-radius: 28px; pointer-events: none;
   background: color-mix(in srgb, var(--ios-ink) 6%, transparent);
   box-shadow: inset 0 .5px 0 rgb(255 255 255 / .3);
+}
+/* The lens (tab-lens.tsx). Script sets --lens-x/y (centre), --lens-w/h (size at rest),
+   --lens-sx/sy (scale with stretch) and --lens-glow (0 at rest, 1 pressed). */
+.native-tab-lens {
+  position: absolute; left: 0; top: 0; z-index: 2; pointer-events: none; overflow: hidden;
+  width: var(--lens-w); height: var(--lens-h); border-radius: 9999px;
+  transform: translate(calc(var(--lens-x) - var(--lens-w) / 2), calc(var(--lens-y) - var(--lens-h) / 2)) scale(var(--lens-sx, 1), var(--lens-sy, 1));
+  background: color-mix(in srgb, var(--ios-ink) calc(6% - var(--lens-glow, 0) * 3%), transparent);
+  box-shadow:
+    inset 0 .5px 0 rgb(255 255 255 / calc(.3 + var(--lens-glow, 0) * .5)),
+    0 calc(var(--lens-glow, 0) * 6px) calc(var(--lens-glow, 0) * 18px) color-mix(in srgb, var(--ios-ink) calc(var(--lens-glow, 0) * 10%), transparent);
+  visibility: hidden;
+}
+.native-tab-glass[data-lens] > .native-tab-lens { visibility: visible; }
+/* Rim light that comes up as the lens lifts: the same directional rim as the bar's glass. */
+.native-tab-lens::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; padding: 1px;
+  background: linear-gradient(145deg, rgb(255 255 255 / .95), rgb(255 255 255 / .1) 32%, rgb(255 255 255 / .4) 60%, rgb(255 255 255 / .8));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: calc(var(--lens-glow, 0) * .9);
+}
+.ios-prototype.dark .native-tab-lens::after { opacity: calc(var(--lens-glow, 0) * .5); }
+/* The copy of the tabs, laid out as the bar is and held still while the lens moves over it. */
+.native-tab-lens-row {
+  --lens-bleed: 0px;
+  position: absolute; left: 0; top: 0; display: flex; box-sizing: border-box;
+  transform-origin: var(--lens-x) var(--lens-y);
+  transform: translate(calc(var(--lens-bleed) - var(--lens-x) + var(--lens-w) / 2), calc(var(--lens-bleed) - var(--lens-y) + var(--lens-h) / 2)) scale(var(--lens-kx, 1), var(--lens-ky, 1));
+}
+/* The refracting layer reaches 16px past the lens so the rim can bend in what lies just
+   outside it. It covers the flat copy and is only drawn while the lens is lifted. */
+.native-tab-lens-optics {
+  position: absolute; left: -16px; top: -16px; width: calc(100% + 32px); height: calc(100% + 32px);
+  opacity: 0; visibility: hidden; transition: opacity 90ms, visibility 0s 90ms;
+}
+.native-tab-lens-optics > .native-tab-lens-row { --lens-bleed: 16px; }
+.native-tab-lens > .native-tab-lens-row { transition: opacity 90ms; }
+.native-tab-glass[data-lens-lifted] .native-tab-lens-optics { opacity: 1; visibility: visible; transition: opacity 90ms; }
+.native-tab-glass[data-lens-lifted] .native-tab-lens > .native-tab-lens-row { opacity: 0; }
+.native-tab-lens-row > * { flex: 1; }
+/* Under the lens, the real tabs give way to the copy: a lens-shaped hole in each tab's content. */
+.native-tab-glass[data-lens] > :is(button, a) > span {
+  --lens-hole-w: calc(var(--lens-w) * var(--lens-sx, 1));
+  --lens-hole-h: calc(var(--lens-h) * var(--lens-sy, 1));
+  -webkit-mask: linear-gradient(#000 0 0), var(--lens-shape) no-repeat;
+  -webkit-mask-size: 100% 100%, var(--lens-hole-w) var(--lens-hole-h);
+  -webkit-mask-position: 0 0, calc(var(--lens-x) - var(--lens-hole-w) / 2 - var(--tab-x, 0px)) calc(var(--lens-y) - var(--lens-hole-h) / 2 - var(--tab-y, 0px));
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0), var(--lens-shape) no-repeat;
+  mask-size: 100% 100%, var(--lens-hole-w) var(--lens-hole-h);
+  mask-position: 0 0, calc(var(--lens-x) - var(--lens-hole-w) / 2 - var(--tab-x, 0px)) calc(var(--lens-y) - var(--lens-hole-h) / 2 - var(--tab-y, 0px));
+  mask-composite: exclude;
 }
 @media (prefers-reduced-transparency: reduce) {
   .ios-prototype .k-glass { -webkit-backdrop-filter: none; backdrop-filter: none; }
   .native-tabbar > .pointer-events-none { -webkit-backdrop-filter: none; backdrop-filter: none; }
   .ios-prototype .k-glass::after { display: none; }
+  .native-tab-lens-optics { filter: none !important; }
 }

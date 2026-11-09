@@ -133,8 +133,17 @@ The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, wh
     - **Instead of** An animated fade or a hand-written `mask-image` gradient. Use `StreamingText` first; this is for a stream rendered without it.
     - `<span className="stream-tail">{latestChunk}</span>`
 
-### motion (31)
+### motion (34)
 
+- **`motion-swap-in`** — The current visual label resolving in with a small fade, slide and blur; expressive and token-scaled. *Use for:* TextSwap owns replacement and accessibility. Retrieve its component before using these visual classes.
+    - **Instead of** Remounting an entire status region, replaying on every render, or announcing both visual labels.
+    - `<TextSwap text="Saved" />`
+- **`motion-swap-out`** — The previous, aria-hidden visual label leaving without delaying current state. *Use for:* The outgoing copy owned by TextSwap. Its animation ends transparent and never receives pointer events.
+    - **Instead of** Keeping stale live text mounted or waiting for an exit before exposing the new label.
+    - `<TextSwap text="Ready" effect="fade" />`
+- **`motion-stack-card`** — A card returning between a compact collection and normal reading flow; expressive and token-scaled. *Use for:* CardStack owns the overlap, expansion control, covered-card inertness and height measurement.
+    - **Instead of** Building a hover-only stack whose covered controls remain focusable.
+    - `<CardStack label="Projects"><Card>Research</Card><Card>Design</Card></CardStack>`
 - **`motion-interactive`** — The transition for interactive chrome: colour, background, border, shadow, opacity, fill, stroke, scale and translate at the fast duration and standard easing. Also removes the mobile tap delay and the platform's grey tap flash. *Use for:* On anything clickable that changes on hover, focus, press or selection: a custom row, a tile, a link, an app-owned button. It is the `response` slot, and the only transition declarer such an element needs.
     - **Instead of** Tailwind's colour-only or all-property transition utilities with a hand-picked duration. Those ignore --motion-scale, skip the transform properties `motion-press` needs, and leave the 300ms tap delay on touch screens. sable-lint's `static-interactive` fires on a hover style with no recipe.
     - `<a href="/inbox" className="motion-interactive link-underline text-primary">Inbox</a>`

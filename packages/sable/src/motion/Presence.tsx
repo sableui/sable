@@ -90,6 +90,14 @@ export function Presence({
 		// visibility has not changed. Changing other props does not replay it.
 		if (was === show && (enabled || !animRef.current)) return
 
+		// Sample before canceling: removing fill first would expose a fixed pose
+		// and make a rapid reversal jump. This preserves position, not velocity.
+		let interrupted: Keyframe | undefined
+		if (enabled && node && animRef.current) {
+			const displayed = getComputedStyle(node)
+			const opacity = Number.parseFloat(displayed.opacity)
+			if (Number.isFinite(opacity)) interrupted = { opacity, transform: displayed.transform || "none" }
+		}
 		// Cancel any in-flight animation from a previous toggle BEFORE starting a
 		// new one — detach its handlers first so a cancelled exit can't fire
 		// `finish` and unmount a child that is now showing again (rapid toggles).
@@ -110,7 +118,7 @@ export function Presence({
 			if (!canAnimate || !node) return
 			animRef.current = node.animate(
 				[
-					{ opacity: 0, transform: `translateY(${offset}px)` },
+					interrupted ?? { opacity: 0, transform: `translateY(${offset}px)` },
 					{ opacity: 1, transform: "translateY(0)" },
 				],
 				{
@@ -139,7 +147,7 @@ export function Presence({
 		}
 		const anim = node.animate(
 			[
-				{ opacity: 1, transform: "translateY(0)" },
+				interrupted ?? { opacity: 1, transform: "translateY(0)" },
 				{ opacity: 0, transform: `translateY(${offset}px)` },
 			],
 			{

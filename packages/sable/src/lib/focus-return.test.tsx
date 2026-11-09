@@ -67,3 +67,46 @@ describe("finalFocus", () => {
 		expect(hook.result.current.focusReturn.finalFocus("")).toBe(true)
 	})
 })
+
+describe("a surface opened from inside one that closes", () => {
+	// A search button opens a command menu, whose search box holds focus when an
+	// item opens a dialog. The box is gone by the time the dialog closes.
+	function handoff() {
+		const trigger = button("search")
+		trigger.focus()
+		const palette = setup(true)
+		palette.popup.querySelector("button")?.focus()
+		const dialog = setup(true)
+		const inside = dialog.popup.querySelector("button")
+		inside?.focus()
+		return { trigger, palette, dialog }
+	}
+
+	it("goes back to the opener of the surface that closed", () => {
+		const { trigger, palette, dialog } = handoff()
+		palette.popup.remove()
+		expect(dialog.hook.result.current.focusReturn.finalFocus("")).toBe(trigger)
+	})
+
+	it("goes back to its own opener while that is still there", () => {
+		const { palette, dialog } = handoff()
+		expect(dialog.hook.result.current.focusReturn.finalFocus("")).toBe(palette.popup.querySelector("button"))
+	})
+
+	it("walks back through more than one", () => {
+		const { trigger, palette, dialog } = handoff()
+		dialog.popup.querySelector("button")?.focus()
+		const third = setup(true)
+		third.popup.querySelector("button")?.focus()
+		palette.popup.remove()
+		dialog.popup.remove()
+		expect(third.hook.result.current.focusReturn.finalFocus("")).toBe(trigger)
+	})
+
+	it("falls through to Base UI when the whole way back has gone", () => {
+		const { trigger, palette, dialog } = handoff()
+		palette.popup.remove()
+		trigger.remove()
+		expect(dialog.hook.result.current.focusReturn.finalFocus("")).toBe(true)
+	})
+})

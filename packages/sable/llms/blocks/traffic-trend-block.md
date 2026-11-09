@@ -9,7 +9,7 @@ A trend card: a stacked gradient AreaChart of two series by day, a time-range To
 ## Notes
 
 - Switching the range eases the chart from one shape to the next instead of redrawing it.
-- The footer states the takeaway in words, so the card says something even before the chart is read.
+- The footer states the takeaway in words, so the card says something even before the chart is read. In a narrow card the observation moves to its own line instead of wrapping mid-phrase.
 - The tooltip heading spells out the weekday; the axis keeps short dates so they fit.
 
 ## Accessibility
@@ -85,10 +85,14 @@ export function TrafficTrendBlock({ className, framed = true }: TrafficTrendBloc
 					className="h-64"
 				/>
 			</CardContent>
-			<CardFooter className="gap-1.5 text-body-sm">
+			{/* One line where it fits. In a narrow card the observation takes its own
+			    line (and drops the separator) rather than wrapping mid-phrase. */}
+			<CardFooter className="flex-wrap gap-x-1.5 gap-y-0.5 text-body-sm">
 				<Icon name="arrow-up" className="text-success" />
-				<span>
-					Up 5.2% on the previous period <span className="text-muted-foreground">· desktop leads every week</span>
+				<span>Up 5.2% on the previous period</span>
+				<span className="text-muted-foreground @max-md/trend:basis-full">
+					<span aria-hidden className="@max-md/trend:hidden">· </span>
+					Desktop leads every week
 				</span>
 			</CardFooter>
 		</Card>

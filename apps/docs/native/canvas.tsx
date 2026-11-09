@@ -8,13 +8,16 @@ import {
 	BillingScene,
 	CanvasContent,
 	ChatScene,
+	CollectionScene,
 	ProductScene,
 	EventScene,
 	FeedbackScene,
 	InviteScene,
+	InvoiceScene,
 	NotificationsScene,
 	NowPlayingScene,
 	ProfileScene,
+	ScheduleScene,
 	ShippingScene,
 	SignInScene,
 	StatScene,
@@ -147,7 +150,7 @@ function CanvasApp() {
 	)
 	return (
 		<IconProvider set={look?.icons === "fallback" ? fallbackIconSet : reiconIconSet}>
-			<MotionProvider>
+			<MotionProvider policy={look?.reducedMotion || look?.tokens["--motion-scale"] === "0" ? "off" : "system"}>
 				<NativeApp mode={look?.mode ?? "light"} reducedMotion={look?.reducedMotion} systemChrome={!BARE}>
 					{/* Inside NativeApp, so the stack can sit under the status bar like an iOS notification. */}
 					<ToastProvider position="top-center" viewportClassName="top-(--ios-safe-top)">
@@ -158,6 +161,9 @@ function CanvasApp() {
 								<TryIt onFeedback={() => setFeedback(true)} onActivity={() => setTab("activity")} />
 								<Scenes>
 									<ProductScene />
+									<InvoiceScene />
+									<ScheduleScene />
+									<CollectionScene />
 									<NowPlayingScene />
 									<ProfileScene />
 									<BillingScene />

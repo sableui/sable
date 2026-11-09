@@ -120,6 +120,8 @@ const SURFACE = "stroke-(--sable-surface-bg,var(--background))"
 const GAP = 2
 /** The dash of a hover cursor, a reference line and a dashed series, per unit of line weight. */
 const DASH = 2
+/** The least space between two category labels, in px. */
+const CATEGORY_GAP = 12
 
 /**
  * The engine behind AreaChart, LineChart and BarChart: one layout (scales,
@@ -319,12 +321,26 @@ export function CartesianChart(props: CartesianChartProps) {
 
 				/* Category labels: thinned from the LATEST row back, so the newest
 				   date always shows, and clamped inside the plot so the end labels
-				   never hang past its edges. */
+				   never hang past its edges. The clamp moves an end label toward its
+				   neighbour after that spacing is set, so a label left on top of the
+				   one after it gives way. The width estimate runs wide, so labels
+				   that clear each other by it still have a real gap between them. */
 				const widths = categories.map((_, i) => approxTextWidth(tickText(i)))
 				const slot = ((horizontal ? L.y1 - L.y0 : L.x1 - L.x0) / Math.max(1, n)) || 1
-				const every = Math.max(1, Math.ceil((horizontal ? 18 : Math.max(0, ...widths) + 12) / slot), categoryTicks ? Math.ceil(n / categoryTicks) : 1)
+				const every = Math.max(1, Math.ceil((horizontal ? 18 : Math.max(0, ...widths) + CATEGORY_GAP) / slot), categoryTicks ? Math.ceil(n / categoryTicks) : 1)
+				const categoryX = (i: number) => Math.min(Math.max(L.center(i), L.x0 + widths[i] / 2), L.x1 - widths[i] / 2)
+				const shownCategories = new Set<number>()
+				let nextLabelStart = Number.POSITIVE_INFINITY
+				for (let i = n - 1; i >= 0; i -= every) {
+					if (horizontal) {
+						shownCategories.add(i)
+					} else if (categoryX(i) + widths[i] / 2 <= nextLabelStart) {
+						shownCategories.add(i)
+						nextLabelStart = categoryX(i) - widths[i] / 2
+					}
+				}
 				const categoryAxis = categories.map((_, i) => {
-					if ((n - 1 - i) % every !== 0) return null
+					if (!shownCategories.has(i)) return null
 					const p = L.center(i)
 					if (horizontal) {
 						return (
@@ -333,10 +349,8 @@ export function CartesianChart(props: CartesianChartProps) {
 							</text>
 						)
 					}
-					const half = widths[i] / 2
-					const x = Math.min(Math.max(p, L.x0 + half), L.x1 - half)
 					return (
-						<text key={`c${i}`} x={x} y={L.y1 + 18} textAnchor="middle" className={AXIS_TEXT}>
+						<text key={`c${i}`} x={categoryX(i)} y={L.y1 + 18} textAnchor="middle" className={AXIS_TEXT}>
 							{tickText(i)}
 						</text>
 					)

@@ -13,6 +13,8 @@ apps/docs/public/llms/
 apps/docs/public/credits.md
 apps/docs/public/whats-new.md
 apps/docs/public/licenses/
+apps/docs/public/THIRD_PARTY_NOTICES.md
+apps/docs/public/third-party/
 
 # apps/docs/scripts/sync-guides.mjs copies these from packages/sable on every predev/prebuild
 apps/docs/src/generated/
@@ -33,3 +35,5 @@ references/**/*.tsx
 # The Sable skill's per-project design state (presets, lessons, preferences).
 # In an app it is committed; in the library repo it is personal working data.
 .sable/
+# Design briefs and screenshots from a build session: working notes, not source.
+apps/docs/design/

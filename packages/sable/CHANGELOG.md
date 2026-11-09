@@ -1,5 +1,49 @@
 # What's new
 
+## 0.24.0
+
+- **Breaking: a saved theme stays in its own app.** localStorage is shared
+  across a domain, so another Sable app's saved theme or colour mode could
+  replace `defaultThemeId` and `defaultPreference`. An app that sets
+  `defaultThemeId` now stores both under keys of its own, `sable-theme-id:<id>`
+  and `sable-color-preference:<id>`. Its visitors' saved choices reset once. To
+  keep them, or if a script reads those keys before paint, pass
+  `themeStorageKey={SABLE_THEME_STORAGE_KEY}` and
+  `colorStorageKey={SABLE_COLOR_STORAGE_KEY}`.
+- **TextSwap, CardStack and Tilt cover changing labels, small collections and
+  optional pointer depth.** They follow full/subtle/off motion and reuse the
+  current measurement and control APIs. CardStack opens and closes as one eased
+  movement: the height and every card travel together on the theme's slow
+  duration and standard curve. Tilt ramps its lean up as the pointer arrives
+  instead of jumping to it, holds a compositor layer only while it leans (so
+  text neither pops nor sits soft), and `maxAngle={0}` eases it flat. Three new
+  blocks put them to work in the Web and iOS canvases: `InvoicePreviewBlock` (a
+  rolling total and a Send button that reports its own progress),
+  `ScheduleBlock` and `ProjectCollectionBlock`.
+- **Interrupted Presence transitions resume from the displayed state.** Reversing
+  an enter or exit samples opacity and transform before canceling the old animation.
+- **Motion guides explain choice, performance and interruption.** Retrieve them
+  through the installed CLI or the selected published version's MCP docs tool.
+  Canvas Still now stops JavaScript-driven motion as well as CSS motion.
+- **The iOS tab bar's selection is a liquid lens.** Press a tab, or drag along
+  the bar, and the selected pill lifts, grows and refracts the tabs it passes
+  over. Releasing a drag selects the tab under it, through that tab's own
+  `onClick`. The bars' refraction is a `backdrop-filter`, which only Chromium
+  draws; the lens bends a copy of the tabs it owns instead, so it refracts in
+  Safari and Firefox too. At rest it is the same flat pill as before. Nothing
+  to change: `IosTabbar` draws it. A sideways drag belongs to the bar
+  (`touch-action: pan-y`), and the lens holds still when `MotionProvider` or a
+  `MotionScope` turns motion off, as well as under reduced motion.
+- **TrafficTrendBlock's footer fits a narrow card.** Below 28rem the
+  observation moves to its own line instead of wrapping mid-phrase.
+- **Chart labels no longer overlap at the end of the axis.** Labels are spaced,
+  then the last is pulled inside the plot, which could push it into its
+  neighbour. That neighbour now gives way, so the newest date stays. It showed
+  on phones and with long labels at any width.
+- **Focus finds its way back through a closed overlay.** Open a dialog from a
+  `CommandMenu` item and close it, and focus fell to `<body>`, because the search
+  box it came from had gone. It now returns to whatever opened the menu.
+
 ## 0.23.2
 
 - **The chart docs list `tooltip`'s `cursor` and `order`.** Both shipped in 0.23.0

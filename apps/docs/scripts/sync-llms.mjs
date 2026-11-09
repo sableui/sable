@@ -24,6 +24,7 @@ const copies = [
 	[join(SABLE_ROOT, "llms.txt"), join(PUBLIC_DIR, "llms.txt")],
 	[join(SABLE_ROOT, "llms-full.txt"), join(PUBLIC_DIR, "llms-full.txt")],
 	[join(SABLE_ROOT, "llms"), join(PUBLIC_DIR, "llms")],
+	[join(SABLE_ROOT, "THIRD_PARTY_NOTICES.md"), join(PUBLIC_DIR, "THIRD_PARTY_NOTICES.md")],
 ]
 
 for (const [src, dest] of copies) {

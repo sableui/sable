@@ -30,6 +30,15 @@ function run(args: string[]): { out: string; code: number } {
 const json = (args: string[]) => JSON.parse(run([...args, "--json"]).out)
 
 describe("sable manifest", () => {
+	it("retrieves the motion guides through the same docs contract used by MCP", () => {
+		for (const slug of ["choosing-motion", "motion-performance", "motion-interruption"]) {
+			const result = json(["docs", slug])
+			expect(result.type).toBe("docs.detail")
+			expect(result.data.slug).toBe(slug)
+			expect(result.data.content).toContain("motion")
+		}
+		expect(json(["search", "motion performance"]).data.results).toEqual(expect.arrayContaining([expect.objectContaining({ kind: "doc", name: "motion-performance" })]))
+	})
 	it("describes exactly the commands that exist", () => {
 		// The manifest is the agent's discovery step. A hand-maintained list would
 		// drift the first time a command was added, and an agent would either miss

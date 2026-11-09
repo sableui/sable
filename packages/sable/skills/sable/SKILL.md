@@ -320,6 +320,12 @@ product assets. A palette alone does not establish a finished design.
 
 ## Verify and deliver
 
+For animation decisions, retrieve `sable docs choosing-motion`; for rendering
+costs, `sable docs motion-performance`; for reversal and cancellation,
+`sable docs motion-interruption`. These contextual guides supplement the current
+component contracts. Measure performance claims and operate interrupted states;
+a source scan cannot establish smoothness or frame rate.
+
 For `audit`, read `sable docs auditing-an-app`; report by default and distinguish
 contract violations, design judgments, intentional choices, and verified library
 gaps. A visual-only review leaves code and unobserved behavior untested. For

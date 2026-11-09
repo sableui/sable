@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, type MockInstance, vi } fr
 import { AreaChart } from "../../components/area-chart"
 import { BarChart } from "../../components/bar-chart"
 import { LineChart } from "../../components/line-chart"
+import { approxTextWidth } from "./format"
 import { brokenAreaPath, brokenLinePath } from "./geometry"
 import { denseChart } from "./motion"
 
@@ -143,6 +144,25 @@ describe("category labels", () => {
 		const data = Array.from({ length: 12 }, (_, i) => ({ d: `D${i}`, v: i }))
 		render(<LineChart label="P" categoryTicks={3} data={data} index="d" series={[{ key: "v", label: "V" }]} />)
 		expect(axisLabels()).toEqual(["D3", "D7", "D11"])
+	})
+
+	it("give way to the latest when the clamp at the edge moves it next to them", () => {
+		const data = Array.from({ length: 10 }, (_, i) => ({ d: `August 0${i}, 2026`, v: i }))
+		render(<LineChart label="P" data={data} index="d" series={[{ key: "v", label: "V" }]} />)
+		const placed = [...document.querySelectorAll<SVGTextElement>('svg text[text-anchor="middle"]')].map((t) => ({
+			text: t.textContent,
+			x: Number(t.getAttribute("x")),
+		}))
+		// Spaced evenly, August 07 stays and runs under the clamped August 09.
+		expect(placed.map((label) => label.text)).toEqual(["August 01, 2026", "August 03, 2026", "August 05, 2026", "August 09, 2026"])
+		const width = approxTextWidth("August 01, 2026")
+		for (const [i, label] of placed.slice(1).entries()) expect(label.x - placed[i].x).toBeGreaterThanOrEqual(width)
+	})
+
+	it("stay when the clamp leaves them clear of each other", () => {
+		const data = Array.from({ length: 10 }, (_, i) => ({ d: `Aug 0${i}, 2026`, v: i }))
+		render(<LineChart label="P" data={data} index="d" series={[{ key: "v", label: "V" }]} />)
+		expect(axisLabels()).toEqual(["Aug 01, 2026", "Aug 03, 2026", "Aug 05, 2026", "Aug 07, 2026", "Aug 09, 2026"])
 	})
 })
 

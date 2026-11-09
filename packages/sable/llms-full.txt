@@ -1,6 +1,6 @@
 # Sable (@sableui/react)
 
-> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 124 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
+> An owned, themeable React component system. Default theme: **Sable** (dark-by-default, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; Reicon icons via a pluggable adapter. 127 components, 13 layout primitives, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
 
 ## Start here — brief, composition, evidence
 
@@ -1325,6 +1325,12 @@ Entity rows in a Card) or `redesign` (desktop workspace tools).
 `--ios-tabbar-bottom`, `--ios-content-bottom` and `--ios-motion`, for the
 standard 402×874 phone. Reduced transparency removes the glass blur.
 
+The selected tab is a liquid lens, drawn by `IosTabbar` with nothing to wire.
+Press or drag along the bar and it lifts and refracts the tabs under it;
+releasing a drag selects the tab beneath, through that tab's own `onClick`.
+It refracts in Safari and Firefox as well as Chromium. Reduced motion snaps it
+into place; reduced transparency keeps it a flat pill.
+
 ## Engineering handoff
 
 The prototype's colors, fonts, radii and spacing are the preset's tokens.
@@ -1543,6 +1549,58 @@ closest component. Do not restyle a component into a different one. If you
 find yourself fighting a component's role, you are holding the wrong one.
 Retrieve its `usage.bestPractices`, which name the neighbouring component to
 use instead.
+
+---
+
+# Choose motion for the interaction
+
+Start with the user's action and the change they must understand. Search by that
+need, then read the component's motion declarations and examples. The installed
+version is authoritative. A CSS recipe does not supply focus, state or lifecycle.
+
+| Need | Current Sable API |
+| --- | --- |
+| A formatted quantity changes | NumberTicker; plain text for updates too frequent to settle |
+| A short label changes | TextSwap; StreamingText for appended prose |
+| Content changes intrinsic size | useAutoSize with motion-size; Collapsible for disclosure |
+| Pending work becomes an outcome | Button loading, InlineStatus, or ToolCall according to context |
+| Loading content arrives | Skeleton and Presence; preserve focus and useful content |
+| A selection travels | Tabs or GlidingHighlight |
+| A person deliberately celebrates | LikeButton or Burst, at full motion |
+| A small collection opens | CardStack, with its visible expansion control |
+
+Name the purpose: response, orientation, continuity, or activity. Repetition matters:
+an effect that helps once can obstruct a task repeated hundreds of times. Do not
+animate every row on mount, fabricate progress, or delay access until animation
+ends. Preserve deliberate immediate changes.
+
+Choose duration for distance, surface size, input and frequency. Use the existing
+tokens and --motion-scale rather than importing another site's numeric scale.
+Feedback should remain connected to input. A large surface may need more time to
+settle than a glyph. The faster pop/slide exit is a recipe decision, not a rule for
+every transition: consider the content it reveals.
+
+Deceleration suits an entrance settling in place; standard easing suits a small
+state change; emphasized easing suits substantial travel. Keep overshoot bounded
+by the object's size. A cubic-bezier overshoot is not a velocity-preserving spring.
+CSS transitions can retarget ordinary changes. Keyframes suit bounded effects
+that can restart. Presence uses WAAPI for removal. Pointer tracking follows the
+latest input without entrance easing. Velocity springs, inertia and shared layout
+belong in an optional adapter, not a new core dependency for a label replacement.
+
+Full inherits the surrounding policy. Subtle retains essential responses and drops
+expressive changes. Off and reduced motion retain every state and action without
+movement. Components and MotionScope only turn motion down. JS uses useMotionLevel:
+enabled for essential work, expressive for flourishes. CSS uses --motion-expressive
+as well as --motion-scale.
+
+Test normal speed, rapid reversal, repetition and full/subtle/off settings. Read
+[motion interruption](./motion-interruption.md) and
+[motion performance](./motion-performance.md) before claiming continuity or speed.
+
+Reference: [Emil Kowalski's animation guidance](https://github.com/emilkowalski/skills/tree/main/skills/animate),
+reviewed as MIT-licensed material, never installed or invoked. See
+[third-party notices](../../THIRD_PARTY_NOTICES.md).
 
 ---
 
@@ -2877,6 +2935,91 @@ passes on markup that never opens.
 
 ---
 
+# Review motion interruption
+
+The final state must reflect the latest user intent. Start a change, reverse it
+before completion, repeat it and resize during it. Test while content is loading,
+when a response arrives late, and when motion turns off during a transition.
+Canceled work must not remove current content or report success.
+
+Prefer one clear cause and response over unrelated effects starting together.
+Overlap old and new visual labels when readable; expose only the current
+accessible string. Keep the focused control mounted. Do not make animationend or
+transitionend the sole path to a terminal state: zero duration, cancellation and
+unmount can remove those events.
+
+When reversing WAAPI, sample the displayed state before canceling. Detach obsolete
+finish/cancel handlers before retargeting. Continue from that displayed state
+instead of a fixed entrance pose. This preserves position, not necessarily
+velocity; inspect the result at normal speed. Clear fill effects and handlers on
+unmount.
+
+Separate tracking, release and cancellation. Tracking follows input; release
+chooses a bounded destination. A canceled pointer or lost capture must not commit
+an action. Scope touch-action to the gesture surface and preserve compatible
+browser scrolling and pinch zoom. Keep a visible keyboard/touch control for every
+essential gesture action.
+
+Retain fixtures for long/localized labels, empty/one/maximum collections, covered
+card focusability, rapid day changes with different heights, stale loading
+responses, and full/subtle/off motion in both color modes. Reuse Tabs, Collapsible,
+Presence, CardStack and ToolCall by role. Hover cannot replace a control; a narrow
+screenshot does not establish touch behavior.
+
+References: [Emil Kowalski's choreography guidance](https://github.com/emilkowalski/skills/tree/main/skills/choreograph),
+[gestures](https://github.com/emilkowalski/skills/tree/main/skills/gestures),
+[MDN transitionend](https://developer.mozilla.org/en-US/docs/Web/API/Element/transitionend_event).
+Adapted as reference material; see [third-party notices](../../THIRD_PARTY_NOTICES.md).
+
+---
+
+# Diagnose motion performance
+
+Record the interaction, representative content, browser and device before changing
+the driver or CSS. Separate scripting, style, layout, paint and compositing.
+Source scans, screenshots and a fast machine cannot establish frame rate.
+Compare the same action and data after the repair.
+
+| Symptom | Investigate | Appropriate repair |
+| --- | --- | --- |
+| Pointer movement slows as content grows | React commits, inherited variables, repeated geometry reads | Coalesce samples to one frame; write locally; read before writing; cancel obsolete work |
+| Motion stalls during navigation | Long main-thread work and the actual driver | Let CSS/WAAPI own a suitable transition; reduce unrelated blocking work |
+| Resizing moves a large page each frame | Layout scope and the required geometry | Bound the region; use useAutoSize when real flow must change |
+| Blur or shadow is expensive | Paint area, layer size and target browser | Reduce area/effect after measurement; test replacements across browsers |
+| A surface shifts when motion starts | Promotion and rasterization | Try temporary will-change only for a measured benefit, then remove it |
+
+Prefer transform and opacity when they preserve the result. Scaling text is not
+equivalent to changing panel height. Current Sable uses bounded layout transitions
+in disclosure, useAutoSize, NumberTicker and intrinsic control sizing. Name and
+measure the tradeoff instead of applying a blanket ban on layout properties.
+
+CSS and WAAPI can allow compositing; neither guarantees hardware acceleration.
+Filters and clip paths require browser/device evidence. A small blur is a starting
+point, not a universal safe threshold. Do not replace shadows with filters solely
+because a property table calls them cheaper.
+
+Keep semantic React state for selected values. Visual pointer samples do not need
+a render. Schedule at most one requestAnimationFrame, keep the latest sample, and
+read geometry before writes. Write transform on the owned element or use a
+non-inheriting registered property. A changing inherited custom property can
+invalidate a large subtree. Cancel frames on leave, pointercancel, unmount and
+motion-policy changes. Preserve consumer handlers and defaultPrevented behavior.
+Tilt is a small reference implementation.
+
+Avoid persistent will-change on every tile. Stop expensive JS loops offscreen or
+in hidden documents; never start an expressive loop when expressive motion is off.
+Bound simultaneous animations. Fewer commits or geometry reads support a cost
+reduction, not a claim of 60/120 FPS. A narrow viewport tests layout; phone GPU,
+touch and software-keyboard behavior require device testing. Keep zoom, selection
+and normal scrolling available.
+
+References: [Emil Kowalski's performance guidance](https://github.com/emilkowalski/skills/tree/main/skills/animation-performance),
+[web.dev](https://web.dev/articles/animations-guide),
+[MDN will-change](https://developer.mozilla.org/en-US/docs/Web/CSS/will-change).
+Adapted as reference material; see [third-party notices](../../THIRD_PARTY_NOTICES.md).
+
+---
+
 # Task: patching a Sable component
 
 A Sable component has a defect that blocks your app, and the fix has not shipped.
@@ -3166,6 +3309,10 @@ broader product reliability and preference claims need broader evaluation.
 ---
 
 # Task: review motion as playable behavior
+
+For implementation decisions, read [choosing motion](./choosing-motion.md).
+For a stutter, read [motion performance](./motion-performance.md); for reversal,
+gesture cancellation and stale work, read [motion interruption](./motion-interruption.md).
 
 Use this workflow when a meaningful transition, direct manipulation, media, or
 story depends on time. Sable already supplies motion tokens and behavior
@@ -4017,7 +4164,7 @@ Match duration to the distance and size of what moves. Each value is multiplied 
 
 | Name | Value | Use |
 |---|---|---|
-| `fast  --motion-duration-fast` | 150ms | Hover, press, focus, tooltips, small toggles. Also every exit. |
+| `fast  --motion-duration-fast` | 150ms | Hover, press, focus, tooltips, small toggles. Pop/slide exits use this step. |
 | `base  --motion-duration-base` | 200ms | Menus, popovers, tabs, disclosure. The default enter. |
 | `slow  --motion-duration-slow` | 300ms | Dialogs, sheets, page-level transitions. |
 
@@ -4083,8 +4230,8 @@ Every interactive component answers all four, by filling the slot or declining i
 
 1. **Every motion has a reason: orientation, feedback, continuity or activity.** Motion with no reason is latency. If you cannot say which of the four it serves, remove it.
 2. **Reach for a recipe first; drop to tokens only when none fits.** Recipes are reviewed once and respect the kill switch. A bespoke transition string is reviewed never. *Enforced by sable-lint: transition-colors, transition-all.*
-3. **Exits are one step faster than entrances, and never overshoot.** Something leaving should get out of the way. A bounce on exit draws the eye to what the user just dismissed.
-4. **Animate opacity and transform only.** They run on the compositor. Width, height, top and left cause layout on every frame. motion-disclosure is the one sanctioned exception.
+3. **Pop and slide exits are faster and do not overshoot; preserve timing chosen for other roles.** Dismissal should feel prompt. A disclosure or crossfade may need symmetric timing; a large reveal may need to settle. Choose by the interaction rather than applying one exit rule everywhere.
+4. **Prefer opacity and transform when they preserve the intended geometry; measure necessary layout motion.** Transform and opacity can avoid layout, but compositing is not guaranteed. Disclosure, useAutoSize and NumberTicker deliberately change flow. Bound that work; scaling text is not an equivalent resize.
 5. **Durations come from tokens, so --motion-scale can stop them.** prefers-reduced-motion and <MotionProvider> off both set --motion-scale to 0. A raw duration ignores that. *Enforced by sable-lint: raw-duration, builtin-animate.*
 6. **Interactive elements always respond. Something styled for hover with no motion recipe snaps.** A snap between states reads as broken. The four prohibitive rules could not catch missing motion, so this one does. *Enforced by sable-lint: static-interactive.*
 7. **JS motion reads useMotion().enabled and does nothing when it is false.** Reduced motion is an accessibility setting, not a style preference.
@@ -8736,6 +8883,128 @@ export function InvoiceHistoryBlock({ className, framed = true, onDownload }: In
 
 ---
 
+# InvoicePreviewBlock
+
+A draft invoice with a discount, a rolling amount due, and sending feedback inside its one button.
+
+**Intent:** A copyable reference for a total that changes and feedback that stays in the action. Replace the one-second stand-in with the real request when integrating billing.
+
+**Block:** Commerce · card · designed for 18rem–20rem wide (fills its container up to the max)
+
+## Notes
+
+- NumberTicker rolls the amount due; TextSwap changes the button's label in place; Button owns the spinner and busy state.
+- The discount Switch applies at once, with the deduction on the same row so the line items reconcile with the amount due.
+- The status Badge moves from Draft to Sent. Changing the discount returns the invoice to draft; pressing Sent sends it again.
+
+## Accessibility
+
+- The button keeps focus through sending and sent, exposes its busy state, and announces its new label; TextSwap's visual copies are hidden.
+- The discount is locked only while sending.
+
+## Source
+
+```tsx
+import { useState, useEffect } from "react"
+import { Badge, Button, Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle, cn, Field, Icon, NumberTicker, Switch, TextSwap } from "@sableui/react"
+
+const invoice = {
+	number: "Invoice 1042",
+	customer: "Mara Okafor · Brand direction",
+	lines: [
+		{ label: "Design review", amount: 480 },
+		{ label: "Project assets", amount: 120 },
+	],
+	discount: 0.1,
+}
+
+const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" })
+
+type SendState = "draft" | "sending" | "sent"
+
+const action: Record<SendState, string> = { draft: "Send invoice", sending: "Sending…", sent: "Sent" }
+
+export interface InvoicePreviewBlockProps {
+	className?: string
+	/** false drops the card's surface and border — for a Sheet or muted section that already frames it. */
+	framed?: boolean
+	/** Called when the invoice is sent. Here the send is a one-second stand-in. */
+	onSend?: (amount: number) => void
+}
+
+export function InvoicePreviewBlock({ className, framed = true, onSend }: InvoicePreviewBlockProps) {
+	const [discounted, setDiscounted] = useState(false)
+	const [state, setState] = useState<SendState>("draft")
+	const subtotal = invoice.lines.reduce((total, line) => total + line.amount, 0)
+	const deduction = discounted ? subtotal * invoice.discount : 0
+	const amount = subtotal - deduction
+	// One label, swapped in place in every state, and announced as it changes.
+	const label = <TextSwap text={action[state]} aria-live="polite" />
+	useEffect(() => {
+		if (state !== "sending") return
+		const timer = setTimeout(() => setState("sent"), 1000)
+		return () => clearTimeout(timer)
+	}, [state])
+	return (
+		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs", className)}>
+			<CardHeader>
+				<CardTitle>{invoice.number}</CardTitle>
+				<CardDescription>{invoice.customer}</CardDescription>
+				<CardAction>
+					<Badge tone={state === "sent" ? "success" : "neutral"} size="sm">
+						{state === "sent" ? "Sent" : "Draft"}
+					</Badge>
+				</CardAction>
+			</CardHeader>
+			<CardContent className="flex flex-col gap-5">
+				<div className="flex flex-col gap-1">
+					<span className="text-body-sm text-muted-foreground">Amount due</span>
+					<NumberTicker value={amount} format={{ style: "currency", currency: "USD" }} className="text-heading-2" />
+				</div>
+				<dl className="flex flex-col gap-2 text-body-sm">
+					{invoice.lines.map((line) => (
+						<div key={line.label} className="flex justify-between gap-3">
+							<dt>{line.label}</dt>
+							<dd>{money.format(line.amount)}</dd>
+						</div>
+					))}
+				</dl>
+				<Field
+					label="10% discount"
+					orientation="horizontal"
+					disabled={state === "sending"}
+					trailing={discounted ? <span className="text-body-sm text-muted-foreground">−{money.format(deduction)}</span> : undefined}
+				>
+					<Switch
+						checked={discounted}
+						onCheckedChange={(on: boolean) => {
+							setDiscounted(on)
+							setState("draft")
+						}}
+					/>
+				</Field>
+				<Button
+					className="w-full"
+					aria-label={action[state]}
+					loading={state === "sending"}
+					loadingLabel={label}
+					iconStart={state === "sent" ? <Icon name="check" /> : undefined}
+					onClick={() => {
+						if (state === "sending") return
+						setState("sending")
+						onSend?.(amount)
+					}}
+				>
+					{label}
+				</Button>
+			</CardContent>
+		</Card>
+	)
+}
+```
+
+---
+
 # KpiSparklineBlock
 
 A KPI row with trends: three stat cards, each the value in the metric mono tier, a Sparkline of its last twelve weeks, and the change as a Badge.
@@ -9819,6 +10088,88 @@ export function ProfileFormBlock({ className, framed = true, onSave }: ProfileFo
 
 ---
 
+# ProjectCollectionBlock
+
+A compact collection of three project summaries that expands into a readable list, with optional pointer depth.
+
+**Intent:** A browsable small collection of related work. Replace the sample projects after copying; use a grid or table for a large workspace.
+
+**Block:** Media & files · card · designed for 18rem–20rem wide (fills its container up to the max)
+
+## Notes
+
+- CardStack owns overlap, hidden-card inertness and explicit expansion. Tilt gives the closed stack a little depth under a mouse; opened, the cards sit flat and still, a list to read. Static on touch and under subtle/off motion.
+- Each project is a Card: a CardHeader with title, description and a count Badge in CardAction, and a footer of collaborators and when it last changed. Cards keep their keys and content while the collection opens; nothing auto-advances.
+
+## Accessibility
+
+- Press the front card to expand or collapse the collection. Base UI owns Enter/Space activation, and the same trigger retains focus in both states.
+- All projects become readable in normal flow when expanded. Tilt adds no tab stops or essential content.
+
+## Source
+
+```tsx
+import { useState } from "react"
+import { Avatar, AvatarGroup, Badge, Card, CardAction, CardDescription, CardFooter, CardHeader, CardStack, CardTitle, cn, Tilt } from "@sableui/react"
+
+const collection = { label: "Projects", expand: "Show 3 projects", collapse: "Collapse projects" }
+
+const projects = [
+	{ title: "Project research", count: "12 docs", description: "Interviews, notes, and the questions to answer next.", people: ["MO", "SR", "JL"], updated: "Updated today" },
+	{ title: "Interface studies", count: "8 studies", description: "Layouts and interaction states for the next review.", people: ["SR", "JL"], updated: "Updated Tue" },
+	{ title: "Final designs", count: "6 screens", description: "The selected direction, ready to discuss with the team.", people: ["MO", "JL"], updated: "Updated last week" },
+]
+
+export interface ProjectCollectionBlockProps {
+	className?: string
+	/** false drops each card's surface and border — for a muted section that already frames them. */
+	framed?: boolean
+}
+
+export function ProjectCollectionBlock({ className, framed = true }: ProjectCollectionBlockProps) {
+	const [open, setOpen] = useState(false)
+	return (
+		// The front card is the expand control, so the cards hold no controls of their own.
+		<CardStack
+			label={collection.label}
+			trigger="stack"
+			expanded={open}
+			onExpandedChange={setOpen}
+			expandLabel={collection.expand}
+			collapseLabel={collection.collapse}
+			className={cn("w-full max-w-xs", className)}
+		>
+			{projects.map((project) => (
+				// Depth invites a press on the closed stack. Opened, the cards are a list
+				// to read: no lean, and the front card eases flat as the stack opens.
+				<Tilt key={project.title} maxAngle={open ? 0 : 3} className="h-full">
+					{/* Full height, so cards behind a taller front card still show their edge. */}
+					<Card variant={framed ? "default" : "flat"} className="h-full">
+						<CardHeader>
+							<CardTitle>{project.title}</CardTitle>
+							<CardDescription>{project.description}</CardDescription>
+							<CardAction>
+								<Badge size="sm">{project.count}</Badge>
+							</CardAction>
+						</CardHeader>
+						<CardFooter className="justify-between gap-3">
+							<AvatarGroup aria-label={`${project.people.length} collaborators`} size="sm" surface={framed ? "card" : undefined}>
+								{project.people.map((initials) => (
+									<Avatar variant="art" key={initials} fallback={initials} alt={initials} />
+								))}
+							</AvatarGroup>
+							<span className="text-caption text-muted-foreground">{project.updated}</span>
+						</CardFooter>
+					</Card>
+				</Tilt>
+			))}
+		</CardStack>
+	)
+}
+```
+
+---
+
 # RevenueBreakdownBlock
 
 A stat card with a breakdown: the KPI in the metric mono tier, its trend Badge, a SegmentedBar of how the total divides, and a StatusDot legend.
@@ -9884,6 +10235,108 @@ export function RevenueBreakdownBlock({ className, framed = true }: RevenueBreak
 						</div>
 					))}
 				</Grid>
+			</CardContent>
+		</Card>
+	)
+}
+```
+
+---
+
+# ScheduleBlock
+
+A three-day schedule: the day as the card title, its events below, and a card height that eases between days, driven by Tabs.
+
+**Intent:** A compact day planner where selecting a day changes the amount of content in place. Edit the sample days after copying.
+
+**Block:** Dashboard · card · designed for 18rem–20rem wide (fills its container up to the max)
+
+## Notes
+
+- Tabs owns selection and keyboard navigation; useAutoSize measures the current panel's actual layout height.
+- TextSwap reflects the selected day. No automatic rotation or timers.
+- The day is the CardTitle, so it sits where every card's title does; the events are Entity rows on the content edge.
+
+## Accessibility
+
+- The tablist has a name and each panel follows its tab.
+- The current day and event details remain present when motion is subtle or off.
+
+## Source
+
+```tsx
+import { useState } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Entity, Tabs, TabsList, TabsPanel, TabsTrigger, TextSwap, useAutoSize } from "@sableui/react"
+
+const month = "November 2026"
+
+const days = [
+	{
+		id: "mon",
+		label: "Mon 9",
+		title: "Monday",
+		events: [
+			{ name: "Studio standup", time: "9:00–9:15" },
+			{ name: "Design review", time: "11:00–12:00" },
+			{ name: "Focus time", time: "14:00–16:00" },
+		],
+	},
+	{ id: "tue", label: "Tue 10", title: "Tuesday", events: [{ name: "Project planning", time: "10:00–11:00" }] },
+	{
+		id: "wed",
+		label: "Wed 11",
+		title: "Wednesday",
+		events: [
+			{ name: "Client review", time: "9:30–10:30" },
+			{ name: "Research", time: "13:00–15:00" },
+		],
+	},
+]
+
+export interface ScheduleBlockProps {
+	className?: string
+	/** false drops the card's surface and border — for a Sheet or muted section that already frames it. */
+	framed?: boolean
+}
+
+export function ScheduleBlock({ className, framed = true }: ScheduleBlockProps) {
+	const [day, setDay] = useState(days[0].id)
+	const selected = days.find((item) => item.id === day) ?? days[0]
+	// Days hold different numbers of events: the card eases to the new height.
+	const size = useAutoSize<HTMLDivElement, HTMLDivElement>({ axis: "height" })
+	return (
+		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs", className)}>
+			<CardHeader>
+				<CardTitle>
+					<TextSwap text={selected.title} />
+				</CardTitle>
+				<CardDescription>{month}</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<Tabs value={day} onValueChange={(value) => setDay(String(value))}>
+					{/* Equal segments across the card, as PricingCard's period toggle: the
+					    row's edges are the content edges whichever day is selected. Left
+					    to their own width, an unselected first pill's label sits one
+					    pill-padding inside the title above it. */}
+					<TabsList variant="pill" aria-label="Day" className="flex w-full">
+						{days.map((item) => (
+							<TabsTrigger key={item.id} value={item.id} className="flex-1 justify-center">
+								{item.label}
+							</TabsTrigger>
+						))}
+					</TabsList>
+					<div ref={size.outerRef} className="motion-size">
+						<div ref={size.innerRef}>
+							{days.map((item) => (
+								<TabsPanel key={item.id} value={item.id}>
+									{item.events.map((event) => (
+										<Entity key={event.name} className="px-0" title={event.name} subtitle={event.time} />
+									))}
+								</TabsPanel>
+							))}
+						</div>
+					</div>
+				</Tabs>
 			</CardContent>
 		</Card>
 	)
@@ -10613,7 +11066,7 @@ A trend card: a stacked gradient AreaChart of two series by day, a time-range To
 ## Notes
 
 - Switching the range eases the chart from one shape to the next instead of redrawing it.
-- The footer states the takeaway in words, so the card says something even before the chart is read.
+- The footer states the takeaway in words, so the card says something even before the chart is read. In a narrow card the observation moves to its own line instead of wrapping mid-phrase.
 - The tooltip heading spells out the weekday; the axis keeps short dates so they fit.
 
 ## Accessibility
@@ -10689,10 +11142,14 @@ export function TrafficTrendBlock({ className, framed = true }: TrafficTrendBloc
 					className="h-64"
 				/>
 			</CardContent>
-			<CardFooter className="gap-1.5 text-body-sm">
+			{/* One line where it fits. In a narrow card the observation takes its own
+			    line (and drops the separator) rather than wrapping mid-phrase. */}
+			<CardFooter className="flex-wrap gap-x-1.5 gap-y-0.5 text-body-sm">
 				<Icon name="arrow-up" className="text-success" />
-				<span>
-					Up 5.2% on the previous period <span className="text-muted-foreground">· desktop leads every week</span>
+				<span>Up 5.2% on the previous period</span>
+				<span className="text-muted-foreground @max-md/trend:basis-full">
+					<span aria-hidden className="@max-md/trend:hidden">· </span>
+					Desktop leads every week
 				</span>
 			</CardFooter>
 		</Card>
@@ -13917,6 +14374,77 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@sabl
 import { Avatar, Card, CardDescription, CardHeader, CardList, CardTitle, Entity } from "@sableui/react"
 
 <Card><CardHeader><CardTitle>Members</CardTitle><CardDescription>3 people can edit this space.</CardDescription></CardHeader><CardList>{people.map((p) => <Entity key={p.id} interactive onSelect={() => open(p)} leading={<Avatar fallback={p.initials} alt={p.name} />} title={p.name} subtitle={p.role} />)}</CardList></Card>
+```
+
+---
+
+# CardStack
+
+**Status:** stable
+
+A compact collection of overlapping cards, opened by pressing the front card or a separate button. Expanded cards return to normal flow; back-card controls are inert while collapsed. Opening and closing is one eased movement: the height and every card travel together.
+
+**Keywords:** card stack, collection, fan, stacked cards, browse collection
+
+## Usage
+
+Use for a small collection someone can inspect together: documents, photographs or project summaries. Supply the cards; CardStack owns overlap and expansion without a second overlay or gesture dependency.
+
+### Best practices
+
+- Do: Use trigger="stack" for presentational cards. Pressing the front card expands or collapses the collection without a separate control.
+- Do: Give label a collection name and expandLabel a concrete action, including the item count when useful.
+- Do: Keep the collection small. Use stable child keys so expanding does not reset state inside a card.
+- Don't: Do not put an essential action exclusively on a covered card. The visible expansion control must reach it by keyboard and touch.
+- Don't: Do not use the front card as a trigger when it contains links, inputs or other controls. Keep the separate button trigger for interactive cards.
+- Don't: Do not use this for a long feed or a multi-page gallery; use a Grid or Carousel instead. → use **Carousel**
+
+## Props
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| label | string | — | Accessible collection name. |
+| expanded | boolean | — | Controlled expansion. |
+| defaultExpanded | boolean | false | Initial uncontrolled expansion. |
+| onExpandedChange | (expanded: boolean) => void | — | Called by the expansion control. |
+| trigger | "button" \| "stack" | "button" | A separate button, or the front card itself. Use stack only when the front card contains no interactive controls. |
+| expandLabel | string | "Browse collection" | Expansion action. Visible on the button trigger; an accessible description on the stack trigger, whose name comes from its visible content. |
+| collapseLabel | string | "Collapse collection" | Collapse action. Visible on the button trigger; an accessible description on the stack trigger. |
+| motion | "full" \| "subtle" \| "off" | — | Only turns motion down. Expansion remains available at every level. |
+
+## Motion
+
+- **arrival** · Collection · _no motion_ — The collection starts at rest, without a page-load stagger.
+- **transition** · Collection and cards · _custom (outside the recipe layer)_ — Height and each card's position ease together on --motion-duration-slow and --motion-ease-standard (WAAPI, read from the tokens), so the cards never hang outside the box or snap into place. Expressive: subtle and off change layout at once. A toggle mid-way starts from what is on screen.
+- **transition** · Cards · `motion-stack-card` — The fan straightens and returns on the same duration and curve as the travel; expanded cards read normally.
+
+## Accessibility
+
+- The trigger exposes aria-expanded and aria-controls. A stack trigger keeps its visible card content as its accessible name; its description names the expansion or collapse action.
+- Base UI owns Enter/Space activation on the stack trigger, which retains focus through expansion and collapse.
+- Covered cards are inert and aria-hidden until expanded. Expansion is explicit on touch and keyboard; hover is never required.
+
+## Related
+
+- Components: Card, Carousel, Collapsible
+
+## Examples
+
+### Project collection
+
+```tsx
+import { Card, CardContent, CardStack } from "@sableui/react"
+
+<CardStack label="Projects" trigger="stack" expandLabel="Show 2 projects"><Card><CardContent>Research</CardContent></Card><Card><CardContent>Design</CardContent></Card></CardStack>
+```
+
+### Controlled and still
+
+```tsx
+import { Card, CardContent, CardStack } from "@sableui/react"
+
+const [open, setOpen] = useState(true)
+<CardStack label="Documents" expanded={open} onExpandedChange={setOpen} motion="off"><Card><CardContent>Brief</CardContent></Card><Card><CardContent>Notes</CardContent></Card></CardStack>
 ```
 
 ---
@@ -24021,6 +24549,69 @@ import { Textarea } from "@sableui/react"
 
 ---
 
+# TextSwap
+
+**Status:** stable
+
+A short label changing in place, with blur, slide or fade replacement. One accessible current string; static first paint, immediate updates under subtle/off motion.
+
+**Keywords:** text replacement, text swap, changing label, status text, blur, crossfade
+
+## Usage
+
+Use for short supplied labels that change after an action, such as a schedule's day or an invoice's current state. It presents state; it never invents progress or cycles messages on a timer.
+
+### Best practices
+
+- Do: Keep the label beside the control or object that changed it, so the replacement explains cause and effect.
+- Do: Put aria-live=polite on the root only when the update would otherwise be missed. Visual copies are hidden from accessibility APIs.
+- Don't: Do not replace form fields or focused controls with it: it accepts text, not interactive children.
+- Don't: Do not use it for numeric quantities or streamed paragraphs. NumberTicker preserves digit places; StreamingText preserves appended prose. → use **NumberTicker**, **StreamingText**
+
+## Props
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| text | string | — | The complete current label. |
+| effect | "blur" \| "slide" \| "fade" | "blur" | The visual replacement; all share the same accessible string. |
+| motion | "full" \| "subtle" \| "off" | "full" | Only turns motion down. Subtle and off replace the label immediately. |
+
+## Motion
+
+- **arrival** · Root · _no motion_ — The initial label is already current and appears at rest.
+- **transition** · Current label · `motion-swap-in` — The new label resolves into place; rapid replacements retain only the latest pair.
+- **transition** · Previous label · `motion-swap-out` — The previous visual label leaves without duplicating the accessible announcement.
+
+## Accessibility
+
+- Exactly one current string is exposed; visual copies are aria-hidden.
+- Motion policy never delays the new text or its announcement. There is no animation on initial mount.
+
+## Related
+
+- Components: NumberTicker, StreamingText, InlineStatus
+
+## Examples
+
+### Action result
+
+```tsx
+import { Button, TextSwap } from "@sableui/react"
+
+const [saved, setSaved] = useState(false)
+<div className="flex items-center gap-3"><Button onClick={() => setSaved(!saved)}>Toggle saved</Button><TextSwap text={saved ? "Saved" : "Unsaved changes"} aria-live="polite" /></div>
+```
+
+### Quiet replacement
+
+```tsx
+import { TextSwap } from "@sableui/react"
+
+<TextSwap text="Monday" effect="fade" motion="subtle" />
+```
+
+---
+
 # ThemeSelector
 
 **Status:** stable
@@ -24348,6 +24939,66 @@ import { InlineStatus, ThinkingOrb } from "@sableui/react"
 import { ThinkingOrb } from "@sableui/react"
 
 <ThinkingOrb size="lg" className="text-primary" paused />
+```
+
+---
+
+# Tilt
+
+**Status:** stable
+
+Optional bounded mouse depth on a surface. Coalesces samples into one requestAnimationFrame and writes transform locally. Static on touch, subtle motion and reduced motion.
+
+**Keywords:** tilt, pointer depth, 3d card, perspective, mouse movement
+
+## Usage
+
+Use for one illustrative card or image whose content already works without the effect. The wrapper owns transform; put an independently transformed element inside it rather than overriding the wrapper's transform while tracking.
+
+### Best practices
+
+- Do: Keep maxAngle small, and inspect the full surface bounds next to neighboring content.
+- Do: Keep the actual action in a Button or link inside the surface. Tilt itself is decorative and never becomes a tab stop.
+- Don't: Do not enable pointer tracking for touch scrolling or when motion is subtle/off. No device-orientation access is required.
+- Don't: Do not apply it to dense reading surfaces or animate pointer samples through React state.
+
+## Props
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| maxAngle | number | 6 | Maximum rotation per axis in degrees, bounded to 0–15. 0 turns the lean off; a surface that was leaning eases back to flat. |
+| motion | "full" \| "subtle" \| "off" | — | Only turns motion down. Pointer depth is expressive. |
+
+## Motion
+
+- **arrival** · Root · _no motion_ — The surface starts flat and still.
+- **response** · Root · _custom (outside the recipe layer)_ — The lean ramps up over --motion-duration-base as the pointer arrives (it enters at an edge, where the lean is largest), then follows the pointer once per frame with no easing behind it. Leaving eases back to flat. The surface takes a compositor layer only while it leans, promoted and released while flat, so text and images neither pop mid-gesture nor sit soft at rest.
+
+## Accessibility
+
+- No information or essential action depends on the tilt; touch and keyboard retain the same content.
+- Respects full/subtle/off motion at the provider, scope and component levels. Adds no interactive role or tab stop.
+
+## Related
+
+- Components: Card, MediaImage, Button
+
+## Examples
+
+### Illustrative surface
+
+```tsx
+import { Card, CardContent, Tilt } from "@sableui/react"
+
+<Tilt><Card><CardContent>Studio membership</CardContent></Card></Tilt>
+```
+
+### Static equivalent
+
+```tsx
+import { Card, CardContent, Tilt } from "@sableui/react"
+
+<Tilt motion="off" maxAngle={3}><Card><CardContent>All content remains available</CardContent></Card></Tilt>
 ```
 
 ---
@@ -26081,8 +26732,17 @@ The `@utility` and `@custom-variant` layer in `styles.css`: what each one is, wh
     - **Instead of** An animated fade or a hand-written `mask-image` gradient. Use `StreamingText` first; this is for a stream rendered without it.
     - `<span className="stream-tail">{latestChunk}</span>`
 
-### motion (31)
+### motion (34)
 
+- **`motion-swap-in`** — The current visual label resolving in with a small fade, slide and blur; expressive and token-scaled. *Use for:* TextSwap owns replacement and accessibility. Retrieve its component before using these visual classes.
+    - **Instead of** Remounting an entire status region, replaying on every render, or announcing both visual labels.
+    - `<TextSwap text="Saved" />`
+- **`motion-swap-out`** — The previous, aria-hidden visual label leaving without delaying current state. *Use for:* The outgoing copy owned by TextSwap. Its animation ends transparent and never receives pointer events.
+    - **Instead of** Keeping stale live text mounted or waiting for an exit before exposing the new label.
+    - `<TextSwap text="Ready" effect="fade" />`
+- **`motion-stack-card`** — A card returning between a compact collection and normal reading flow; expressive and token-scaled. *Use for:* CardStack owns the overlap, expansion control, covered-card inertness and height measurement.
+    - **Instead of** Building a hover-only stack whose covered controls remain focusable.
+    - `<CardStack label="Projects"><Card>Research</Card><Card>Design</Card></CardStack>`
 - **`motion-interactive`** — The transition for interactive chrome: colour, background, border, shadow, opacity, fill, stroke, scale and translate at the fast duration and standard easing. Also removes the mobile tap delay and the platform's grey tap flash. *Use for:* On anything clickable that changes on hover, focus, press or selection: a custom row, a tile, a link, an app-owned button. It is the `response` slot, and the only transition declarer such an element needs.
     - **Instead of** Tailwind's colour-only or all-property transition utilities with a hand-picked duration. Those ignore --motion-scale, skip the transform properties `motion-press` needs, and leave the 300ms tap delay on touch screens. sable-lint's `static-interactive` fires on a hover style with no recipe.
     - `<a href="/inbox" className="motion-interactive link-underline text-primary">Inbox</a>`

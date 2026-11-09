@@ -1,5 +1,9 @@
 # Task: review motion as playable behavior
 
+For implementation decisions, read [choosing motion](./choosing-motion.md).
+For a stutter, read [motion performance](./motion-performance.md); for reversal,
+gesture cancellation and stale work, read [motion interruption](./motion-interruption.md).
+
 Use this workflow when a meaningful transition, direct manipulation, media, or
 story depends on time. Sable already supplies motion tokens and behavior
 primitives. This guide reviews their composition and any external driver. A

@@ -2,30 +2,52 @@ import { useEffect, useId, useRef } from 'react'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
 
-/** A neutral center with a curved displacement profile only near the capsule rim. */
-function refractionMap(width: number, height: number) {
+/**
+ * A displacement map for a capsule: neutral (128) in the middle, bending only in
+ * a band at the rim. Red and green say how far each pixel samples horizontally
+ * and vertically. `ridge` bends most mid-band and eases off at the rim (a soft
+ * swell, for a bar over arbitrary content); `convex` bends more the nearer the
+ * rim, so what lies just outside is drawn in and compressed without ever
+ * folding back on itself, as at the edge of a lens. `vertical` scales the bend
+ * across the long edges, so a wide capsule can keep the text along them legible.
+ * `pad` adds a neutral margin, so the map can fill a filter region larger than
+ * the capsule without any coordinates (engines disagree on feImage's units). A capsule is symmetric, so only the top-left quadrant is
+ * computed and each value is mirrored into the other three, with X negated
+ * across the vertical axis and Y across the horizontal one.
+ */
+export function refractionMap(width: number, height: number, { edge: edgeMax = 12, reach = .45, bend: strength = .44, profile = 'ridge' as 'ridge' | 'convex', vertical = 1, pad = 0 } = {}) {
   const canvas = document.createElement('canvas')
-  canvas.width = Math.ceil(width)
-  canvas.height = Math.ceil(height)
+  const sw = Math.max(1, Math.ceil(width)), sh = Math.max(1, Math.ceil(height))
+  const w = canvas.width = sw + pad * 2
+  const h = canvas.height = sh + pad * 2
   const context = canvas.getContext('2d')!
-  const pixels = context.createImageData(canvas.width, canvas.height)
-  const radius = Math.min(width, height) / 2
-  const edge = Math.min(12, radius * .45)
-  for (let y = 0; y < canvas.height; y++) for (let x = 0; x < canvas.width; x++) {
-    const dx = x + .5 - width / 2, dy = y + .5 - height / 2
-    const qx = Math.abs(dx) - width / 2 + radius
-    const qy = Math.abs(dy) - height / 2 + radius
+  const pixels = context.createImageData(w, h)
+  const radius = Math.min(sw, sh) / 2
+  const edge = Math.min(edgeMax, radius * reach)
+  const write = (x: number, y: number, r: number, g: number) => {
+    const index = (y * w + x) * 4
+    pixels.data[index] = r
+    pixels.data[index + 1] = g
+    pixels.data[index + 2] = 128
+    pixels.data[index + 3] = 255
+  }
+  for (let y = 0; y < Math.ceil(h / 2); y++) for (let x = 0; x < Math.ceil(w / 2); x++) {
+    // Distances from the centre, positive, for a pixel in the top-left quadrant.
+    const ax = w / 2 - x - .5, ay = h / 2 - y - .5
+    const qx = ax - sw / 2 + radius, qy = ay - sh / 2 + radius
     const ox = Math.max(qx, 0), oy = Math.max(qy, 0)
     const length = Math.hypot(ox, oy)
     const depth = radius - length - Math.min(Math.max(qx, qy), 0)
-    const bend = depth > 0 && depth < edge ? Math.sin(depth / edge * Math.PI) * .44 : 0
-    const nx = length ? Math.sign(dx) * ox / length : 0
-    const ny = length ? Math.sign(dy) * oy / length : 0
-    const index = (y * canvas.width + x) * 4
-    pixels.data[index] = Math.round((.5 + nx * bend) * 255)
-    pixels.data[index + 1] = Math.round((.5 + ny * bend) * 255)
-    pixels.data[index + 2] = 128
-    pixels.data[index + 3] = 255
+    const band = depth > 0 && depth < edge ? depth / edge : 1
+    const bend = band >= 1 ? 0 : (profile === 'convex' ? (1 - band) ** 2 : Math.sin(band * Math.PI)) * strength
+    const nx = length ? ox / length * bend : 0, ny = length ? oy / length * bend * vertical : 0
+    // Top-left points up and left (negative); its mirrors flip the sign of the axis they cross.
+    const left = Math.round((.5 - nx) * 255), right = Math.round((.5 + nx) * 255)
+    const up = Math.round((.5 - ny) * 255), down = Math.round((.5 + ny) * 255)
+    write(x, y, left, up)
+    write(w - 1 - x, y, right, up)
+    write(x, h - 1 - y, left, down)
+    write(w - 1 - x, h - 1 - y, right, down)
   }
   context.putImageData(pixels, 0, 0)
   return canvas.toDataURL()

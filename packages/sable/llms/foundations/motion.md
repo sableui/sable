@@ -10,7 +10,7 @@ Match duration to the distance and size of what moves. Each value is multiplied 
 
 | Name | Value | Use |
 |---|---|---|
-| `fast  --motion-duration-fast` | 150ms | Hover, press, focus, tooltips, small toggles. Also every exit. |
+| `fast  --motion-duration-fast` | 150ms | Hover, press, focus, tooltips, small toggles. Pop/slide exits use this step. |
 | `base  --motion-duration-base` | 200ms | Menus, popovers, tabs, disclosure. The default enter. |
 | `slow  --motion-duration-slow` | 300ms | Dialogs, sheets, page-level transitions. |
 
@@ -76,8 +76,8 @@ Every interactive component answers all four, by filling the slot or declining i
 
 1. **Every motion has a reason: orientation, feedback, continuity or activity.** Motion with no reason is latency. If you cannot say which of the four it serves, remove it.
 2. **Reach for a recipe first; drop to tokens only when none fits.** Recipes are reviewed once and respect the kill switch. A bespoke transition string is reviewed never. *Enforced by sable-lint: transition-colors, transition-all.*
-3. **Exits are one step faster than entrances, and never overshoot.** Something leaving should get out of the way. A bounce on exit draws the eye to what the user just dismissed.
-4. **Animate opacity and transform only.** They run on the compositor. Width, height, top and left cause layout on every frame. motion-disclosure is the one sanctioned exception.
+3. **Pop and slide exits are faster and do not overshoot; preserve timing chosen for other roles.** Dismissal should feel prompt. A disclosure or crossfade may need symmetric timing; a large reveal may need to settle. Choose by the interaction rather than applying one exit rule everywhere.
+4. **Prefer opacity and transform when they preserve the intended geometry; measure necessary layout motion.** Transform and opacity can avoid layout, but compositing is not guaranteed. Disclosure, useAutoSize and NumberTicker deliberately change flow. Bound that work; scaling text is not an equivalent resize.
 5. **Durations come from tokens, so --motion-scale can stop them.** prefers-reduced-motion and <MotionProvider> off both set --motion-scale to 0. A raw duration ignores that. *Enforced by sable-lint: raw-duration, builtin-animate.*
 6. **Interactive elements always respond. Something styled for hover with no motion recipe snaps.** A snap between states reads as broken. The four prohibitive rules could not catch missing motion, so this one does. *Enforced by sable-lint: static-interactive.*
 7. **JS motion reads useMotion().enabled and does nothing when it is false.** Reduced motion is an accessibility setting, not a style preference.

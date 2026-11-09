@@ -73,9 +73,15 @@ export interface SableThemeProviderProps {
 	themeId?: AnyThemeId
 	/** Notified whenever setThemeId is called. */
 	onThemeIdChange?: (themeId: AnyThemeId) => void
-	/** localStorage key for the color preference. Pass null to disable persistence. */
+	/**
+	 * localStorage key for the color preference. Pass null to disable persistence.
+	 * An app with its own `defaultThemeId` gets a key of its own by default.
+	 */
 	colorStorageKey?: string | null
-	/** localStorage key for the design theme id. Pass null to disable persistence. */
+	/**
+	 * localStorage key for the design theme id. Pass null to disable persistence.
+	 * An app with its own `defaultThemeId` gets a key of its own by default.
+	 */
 	themeStorageKey?: string | null
 	/**
 	 * Where to write `.dark` and `data-sable-theme`. Defaults to <html> so
@@ -138,6 +144,15 @@ function writeStorage(key: string | null, value: string) {
 	} catch {
 		// Storage may be disabled or quota-limited; theme switching still works.
 	}
+}
+
+/**
+ * The default key for a stored setting. localStorage is shared by every app on
+ * an origin, so an app that names its own theme stores under that name: what
+ * another Sable app on the domain saved can't replace the look it opens in.
+ */
+function defaultStorageKey(key: string, defaultThemeId: AnyThemeId) {
+	return defaultThemeId === sableDefaultThemeId ? key : `${key}:${defaultThemeId}`
 }
 
 function rootElement(): HTMLElement | null {
@@ -262,8 +277,8 @@ export function SableThemeProvider({
 	defaultThemeId = sableDefaultThemeId,
 	themeId: controlledThemeId,
 	onThemeIdChange,
-	colorStorageKey = SABLE_COLOR_STORAGE_KEY,
-	themeStorageKey = SABLE_THEME_STORAGE_KEY,
+	colorStorageKey = defaultStorageKey(SABLE_COLOR_STORAGE_KEY, defaultThemeId),
+	themeStorageKey = defaultStorageKey(SABLE_THEME_STORAGE_KEY, defaultThemeId),
 	target = "root",
 	customThemes,
 }: SableThemeProviderProps) {

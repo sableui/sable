@@ -11,7 +11,7 @@ const motion: Foundation = {
 			title: "Three speeds",
 			note: "Match duration to the distance and size of what moves. Each value is multiplied by --motion-scale. Two edge steps sit outside the three: --motion-duration-instant (75ms) for a checkbox tick or tab swap, and --motion-duration-slower (500ms) for progress and value changes.",
 			terms: [
-				{ name: "fast  --motion-duration-fast", value: "150ms", use: "Hover, press, focus, tooltips, small toggles. Also every exit." },
+				{ name: "fast  --motion-duration-fast", value: "150ms", use: "Hover, press, focus, tooltips, small toggles. Pop/slide exits use this step." },
 				{ name: "base  --motion-duration-base", value: "200ms", use: "Menus, popovers, tabs, disclosure. The default enter." },
 				{ name: "slow  --motion-duration-slow", value: "300ms", use: "Dialogs, sheets, page-level transitions." },
 			],
@@ -83,12 +83,12 @@ const motion: Foundation = {
 			enforcedBy: "sable-lint: transition-colors, transition-all",
 		},
 		{
-			rule: "Exits are one step faster than entrances, and never overshoot.",
-			why: "Something leaving should get out of the way. A bounce on exit draws the eye to what the user just dismissed.",
+			rule: "Pop and slide exits are faster and do not overshoot; preserve timing chosen for other roles.",
+			why: "Dismissal should feel prompt. A disclosure or crossfade may need symmetric timing; a large reveal may need to settle. Choose by the interaction rather than applying one exit rule everywhere.",
 		},
 		{
-			rule: "Animate opacity and transform only.",
-			why: "They run on the compositor. Width, height, top and left cause layout on every frame. motion-disclosure is the one sanctioned exception.",
+			rule: "Prefer opacity and transform when they preserve the intended geometry; measure necessary layout motion.",
+			why: "Transform and opacity can avoid layout, but compositing is not guaranteed. Disclosure, useAutoSize and NumberTicker deliberately change flow. Bound that work; scaling text is not an equivalent resize.",
 		},
 		{
 			rule: "Durations come from tokens, so --motion-scale can stop them.",

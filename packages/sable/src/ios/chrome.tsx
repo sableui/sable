@@ -1,5 +1,6 @@
 import { Button, Glass, Navbar, NavbarBackLink, Page, Tabbar, TabbarLink } from "konsta/react"
-import type { ComponentProps } from "react"
+import { type ComponentProps, useContext } from "react"
+import { TabLens, TabLensCopy } from "./tab-lens"
 
 /*
  * The iOS system chrome, and nothing else. Konsta draws what Sable has no
@@ -18,8 +19,24 @@ export function IosBackLink({ component = "button", ...props }: ComponentProps<t
 	return <NavbarBackLink component={component} {...props} />
 }
 
+const dropLinkRole = (element: HTMLElement | null) => {
+	element?.removeAttribute("role")
+	element?.removeAttribute("tabindex")
+}
+
 /** One tab bar destination. Pass a Sable `<Icon>` as `icon`. */
 export function IosTab({ component = "button", active, ...props }: ComponentProps<typeof TabbarLink>) {
+	const copy = useContext(TabLensCopy)
+	if (copy) {
+		// The lens's copy: every tab in its selected colour, drawn only, never focused or clicked.
+		// The lens is inert; Konsta still stamps role="link" and tabindex="0", so drop them too.
+		const { icon, label, children, className, colors, style } = props
+		return (
+			<TabbarLink component="span" active icon={icon} label={label} className={className} colors={colors} style={style} ref={dropLinkRole}>
+				{children}
+			</TabbarLink>
+		)
+	}
 	return <TabbarLink component={component} active={active} aria-current={active ? "page" : undefined} {...props} />
 }
 
@@ -34,11 +51,14 @@ export function IosNavbar({ titleClassName = "", titleLargeFontSizeIos = "text-[
 	)
 }
 
-/** The tab bar: shared glass material and home-area fade; children are IosTabs. */
+/** The tab bar: shared glass material, home-area fade, and a liquid lens on the selected tab; children are IosTabs. */
 export function IosTabbar({ children, className = "", colors, ...props }: ComponentProps<typeof Tabbar>) {
 	return (
 		<Tabbar labels icons component="nav" {...props} className={`native-tabbar ${className}`} colors={{ bgIos: "native-tab-scrim", ...colors }}>
-			<Glass className="native-tab-glass">{children}</Glass>
+			<Glass className="native-tab-glass">
+				{children}
+				<TabLens>{children}</TabLens>
+			</Glass>
 		</Tabbar>
 	)
 }

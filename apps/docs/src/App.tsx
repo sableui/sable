@@ -393,6 +393,9 @@ const pages: Record<string, ComponentType> = {
 		() => import("./pages/components/NumberTickerPage"),
 		"NumberTickerPage",
 	),
+	"text-swap": page(() => import("./pages/components/TextSwapPage"), "TextSwapPage"),
+	"card-stack": page(() => import("./pages/components/CardStackPage"), "CardStackPage"),
+	tilt: page(() => import("./pages/components/TiltPage"), "TiltPage"),
 	"status-dot": page(
 		() => import("./pages/components/StatusDotPage"),
 		"StatusDotPage",

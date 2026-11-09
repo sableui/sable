@@ -70,6 +70,10 @@ for (const [from, to] of GUIDES) {
 const licensesDir = join(DOCS_ROOT, "public", "licenses")
 mkdirSync(licensesDir, { recursive: true })
 copyFileSync(join(SABLE_ROOT, "third-party/reicon-LICENSE.txt"), join(licensesDir, "reicon.txt"))
+// THIRD_PARTY_NOTICES.md (copied by sync-llms) links its licence texts as ./third-party/…
+const thirdPartyDir = join(DOCS_ROOT, "public", "third-party")
+mkdirSync(thirdPartyDir, { recursive: true })
+copyFileSync(join(SABLE_ROOT, "third-party/emilkowalski-skills-LICENSE.txt"), join(thirdPartyDir, "emilkowalski-skills-LICENSE.txt"))
 copyFileSync(join(SABLE_ROOT, "CHANGELOG.md"), join(DOCS_ROOT, "public/whats-new.md"))
 
 console.log(`[sync-guides] ✓ synced the changelog and catalog data into src/generated.`)

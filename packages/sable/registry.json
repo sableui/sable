@@ -933,6 +933,9 @@
         "motion-arrive",
         "motion-bloom",
         "motion-size",
+        "motion-swap-in",
+        "motion-swap-out",
+        "motion-stack-card",
         "motion-reveal",
         "motion-draw",
         "motion-spin",
@@ -6776,6 +6779,144 @@
           "label": "List card",
           "code": "<Card><CardHeader><CardTitle>Members</CardTitle><CardDescription>3 people can edit this space.</CardDescription></CardHeader><CardList>{people.map((p) => <Entity key={p.id} interactive onSelect={() => open(p)} leading={<Avatar fallback={p.initials} alt={p.name} />} title={p.name} subtitle={p.role} />)}</CardList></Card>",
           "imports": "import { Avatar, Card, CardDescription, CardHeader, CardList, CardTitle, Entity } from \"@sableui/react\""
+        }
+      ]
+    },
+    {
+      "name": "CardStack",
+      "status": "stable",
+      "group": "Containers",
+      "register": "either",
+      "path": "components/card-stack",
+      "summary": "A compact collection of overlapping cards, opened by pressing the front card or a separate button. Expanded cards return to normal flow; back-card controls are inert while collapsed. Opening and closing is one eased movement: the height and every card travel together.",
+      "keywords": [
+        "card stack",
+        "collection",
+        "fan",
+        "stacked cards",
+        "browse collection"
+      ],
+      "usage": {
+        "description": "Use for a small collection someone can inspect together: documents, photographs or project summaries. Supply the cards; CardStack owns overlap and expansion without a second overlay or gesture dependency.",
+        "bestPractices": [
+          {
+            "guidance": "do",
+            "description": "Use trigger=\"stack\" for presentational cards. Pressing the front card expands or collapses the collection without a separate control."
+          },
+          {
+            "guidance": "do",
+            "description": "Give label a collection name and expandLabel a concrete action, including the item count when useful."
+          },
+          {
+            "guidance": "do",
+            "description": "Keep the collection small. Use stable child keys so expanding does not reset state inside a card."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not put an essential action exclusively on a covered card. The visible expansion control must reach it by keyboard and touch."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not use the front card as a trigger when it contains links, inputs or other controls. Keep the separate button trigger for interactive cards."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not use this for a long feed or a multi-page gallery; use a Grid or Carousel instead.",
+            "instead": [
+              "Carousel"
+            ]
+          }
+        ]
+      },
+      "related": {
+        "components": [
+          "Card",
+          "Carousel",
+          "Collapsible"
+        ]
+      },
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "description": "Accessible collection name."
+        },
+        {
+          "name": "expanded",
+          "type": "boolean",
+          "description": "Controlled expansion."
+        },
+        {
+          "name": "defaultExpanded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Initial uncontrolled expansion."
+        },
+        {
+          "name": "onExpandedChange",
+          "type": "(expanded: boolean) => void",
+          "description": "Called by the expansion control."
+        },
+        {
+          "name": "trigger",
+          "type": "\"button\" | \"stack\"",
+          "default": "\"button\"",
+          "description": "A separate button, or the front card itself. Use stack only when the front card contains no interactive controls."
+        },
+        {
+          "name": "expandLabel",
+          "type": "string",
+          "default": "\"Browse collection\"",
+          "description": "Expansion action. Visible on the button trigger; an accessible description on the stack trigger, whose name comes from its visible content."
+        },
+        {
+          "name": "collapseLabel",
+          "type": "string",
+          "default": "\"Collapse collection\"",
+          "description": "Collapse action. Visible on the button trigger; an accessible description on the stack trigger."
+        },
+        {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "description": "Only turns motion down. Expansion remains available at every level."
+        }
+      ],
+      "tokensUsed": [],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Collection",
+          "why": "The collection starts at rest, without a page-load stagger."
+        },
+        {
+          "slot": "transition",
+          "recipe": "custom",
+          "part": "Collection and cards",
+          "why": "Height and each card's position ease together on --motion-duration-slow and --motion-ease-standard (WAAPI, read from the tokens), so the cards never hang outside the box or snap into place. Expressive: subtle and off change layout at once. A toggle mid-way starts from what is on screen."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-stack-card",
+          "part": "Cards",
+          "why": "The fan straightens and returns on the same duration and curve as the travel; expanded cards read normally."
+        }
+      ],
+      "a11y": [
+        "The trigger exposes aria-expanded and aria-controls. A stack trigger keeps its visible card content as its accessible name; its description names the expansion or collapse action.",
+        "Base UI owns Enter/Space activation on the stack trigger, which retains focus through expansion and collapse.",
+        "Covered cards are inert and aria-hidden until expanded. Expansion is explicit on touch and keyboard; hover is never required."
+      ],
+      "examples": [
+        {
+          "label": "Project collection",
+          "code": "<CardStack label=\"Projects\" trigger=\"stack\" expandLabel=\"Show 2 projects\"><Card><CardContent>Research</CardContent></Card><Card><CardContent>Design</CardContent></Card></CardStack>",
+          "imports": "import { Card, CardContent, CardStack } from \"@sableui/react\""
+        },
+        {
+          "label": "Controlled and still",
+          "code": "const [open, setOpen] = useState(true)\n<CardStack label=\"Documents\" expanded={open} onExpandedChange={setOpen} motion=\"off\"><Card><CardContent>Brief</CardContent></Card><Card><CardContent>Notes</CardContent></Card></CardStack>",
+          "imports": "import { Card, CardContent, CardStack } from \"@sableui/react\""
         }
       ]
     },
@@ -23292,6 +23433,110 @@
       ]
     },
     {
+      "name": "TextSwap",
+      "status": "stable",
+      "group": "Text & code",
+      "register": "either",
+      "path": "components/text-swap",
+      "summary": "A short label changing in place, with blur, slide or fade replacement. One accessible current string; static first paint, immediate updates under subtle/off motion.",
+      "keywords": [
+        "text replacement",
+        "text swap",
+        "changing label",
+        "status text",
+        "blur",
+        "crossfade"
+      ],
+      "usage": {
+        "description": "Use for short supplied labels that change after an action, such as a schedule's day or an invoice's current state. It presents state; it never invents progress or cycles messages on a timer.",
+        "bestPractices": [
+          {
+            "guidance": "do",
+            "description": "Keep the label beside the control or object that changed it, so the replacement explains cause and effect."
+          },
+          {
+            "guidance": "do",
+            "description": "Put aria-live=polite on the root only when the update would otherwise be missed. Visual copies are hidden from accessibility APIs."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not replace form fields or focused controls with it: it accepts text, not interactive children."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not use it for numeric quantities or streamed paragraphs. NumberTicker preserves digit places; StreamingText preserves appended prose.",
+            "instead": [
+              "NumberTicker",
+              "StreamingText"
+            ]
+          }
+        ]
+      },
+      "related": {
+        "components": [
+          "NumberTicker",
+          "StreamingText",
+          "InlineStatus"
+        ]
+      },
+      "props": [
+        {
+          "name": "text",
+          "type": "string",
+          "description": "The complete current label."
+        },
+        {
+          "name": "effect",
+          "type": "\"blur\" | \"slide\" | \"fade\"",
+          "default": "\"blur\"",
+          "description": "The visual replacement; all share the same accessible string."
+        },
+        {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "default": "\"full\"",
+          "description": "Only turns motion down. Subtle and off replace the label immediately."
+        }
+      ],
+      "tokensUsed": [],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "The initial label is already current and appears at rest."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-swap-in",
+          "part": "Current label",
+          "why": "The new label resolves into place; rapid replacements retain only the latest pair."
+        },
+        {
+          "slot": "transition",
+          "recipe": "motion-swap-out",
+          "part": "Previous label",
+          "why": "The previous visual label leaves without duplicating the accessible announcement."
+        }
+      ],
+      "a11y": [
+        "Exactly one current string is exposed; visual copies are aria-hidden.",
+        "Motion policy never delays the new text or its announcement. There is no animation on initial mount."
+      ],
+      "examples": [
+        {
+          "label": "Action result",
+          "code": "const [saved, setSaved] = useState(false)\n<div className=\"flex items-center gap-3\"><Button onClick={() => setSaved(!saved)}>Toggle saved</Button><TextSwap text={saved ? \"Saved\" : \"Unsaved changes\"} aria-live=\"polite\" /></div>",
+          "imports": "import { Button, TextSwap } from \"@sableui/react\""
+        },
+        {
+          "label": "Quiet replacement",
+          "code": "<TextSwap text=\"Monday\" effect=\"fade\" motion=\"subtle\" />",
+          "imports": "import { TextSwap } from \"@sableui/react\""
+        }
+      ]
+    },
+    {
       "name": "ThemeSelector",
       "status": "stable",
       "group": "Selection",
@@ -23791,6 +24036,93 @@
           "label": "Tinted and paused",
           "code": "<ThinkingOrb size=\"lg\" className=\"text-primary\" paused />",
           "imports": "import { ThinkingOrb } from \"@sableui/react\""
+        }
+      ]
+    },
+    {
+      "name": "Tilt",
+      "status": "stable",
+      "group": "Media & mockups",
+      "register": "page",
+      "path": "components/tilt",
+      "summary": "Optional bounded mouse depth on a surface. Coalesces samples into one requestAnimationFrame and writes transform locally. Static on touch, subtle motion and reduced motion.",
+      "keywords": [
+        "tilt",
+        "pointer depth",
+        "3d card",
+        "perspective",
+        "mouse movement"
+      ],
+      "usage": {
+        "description": "Use for one illustrative card or image whose content already works without the effect. The wrapper owns transform; put an independently transformed element inside it rather than overriding the wrapper's transform while tracking.",
+        "bestPractices": [
+          {
+            "guidance": "do",
+            "description": "Keep maxAngle small, and inspect the full surface bounds next to neighboring content."
+          },
+          {
+            "guidance": "do",
+            "description": "Keep the actual action in a Button or link inside the surface. Tilt itself is decorative and never becomes a tab stop."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not enable pointer tracking for touch scrolling or when motion is subtle/off. No device-orientation access is required."
+          },
+          {
+            "guidance": "dont",
+            "description": "Do not apply it to dense reading surfaces or animate pointer samples through React state."
+          }
+        ]
+      },
+      "related": {
+        "components": [
+          "Card",
+          "MediaImage",
+          "Button"
+        ]
+      },
+      "props": [
+        {
+          "name": "maxAngle",
+          "type": "number",
+          "default": "6",
+          "description": "Maximum rotation per axis in degrees, bounded to 0–15. 0 turns the lean off; a surface that was leaning eases back to flat."
+        },
+        {
+          "name": "motion",
+          "type": "\"full\" | \"subtle\" | \"off\"",
+          "description": "Only turns motion down. Pointer depth is expressive."
+        }
+      ],
+      "tokensUsed": [],
+      "motion": [
+        {
+          "slot": "arrival",
+          "recipe": "none",
+          "part": "Root",
+          "why": "The surface starts flat and still."
+        },
+        {
+          "slot": "response",
+          "recipe": "custom",
+          "part": "Root",
+          "why": "The lean ramps up over --motion-duration-base as the pointer arrives (it enters at an edge, where the lean is largest), then follows the pointer once per frame with no easing behind it. Leaving eases back to flat. The surface takes a compositor layer only while it leans, promoted and released while flat, so text and images neither pop mid-gesture nor sit soft at rest."
+        }
+      ],
+      "a11y": [
+        "No information or essential action depends on the tilt; touch and keyboard retain the same content.",
+        "Respects full/subtle/off motion at the provider, scope and component levels. Adds no interactive role or tab stop."
+      ],
+      "examples": [
+        {
+          "label": "Illustrative surface",
+          "code": "<Tilt><Card><CardContent>Studio membership</CardContent></Card></Tilt>",
+          "imports": "import { Card, CardContent, Tilt } from \"@sableui/react\""
+        },
+        {
+          "label": "Static equivalent",
+          "code": "<Tilt motion=\"off\" maxAngle={3}><Card><CardContent>All content remains available</CardContent></Card></Tilt>",
+          "imports": "import { Card, CardContent, Tilt } from \"@sableui/react\""
         }
       ]
     },
@@ -26185,6 +26517,29 @@
         "code": "const invoices = [\n\t{ id: \"INV-0042\", date: \"Oct 1, 2026\", plan: \"Studio · yearly\", amount: \"$192.00\", status: \"Paid\" },\n\t{ id: \"INV-0031\", date: \"Sep 1, 2026\", plan: \"Studio · monthly\", amount: \"$20.00\", status: \"Paid\" },\n\t{ id: \"INV-0027\", date: \"Aug 1, 2026\", plan: \"Studio · monthly\", amount: \"$20.00\", status: \"Refunded\" },\n\t{ id: \"INV-0019\", date: \"Jul 1, 2026\", plan: \"Starter\", amount: \"$0.00\", status: \"Paid\" },\n]\n\nexport interface InvoiceHistoryBlockProps {\n\tclassName?: string\n\t/** false drops the card's surface and border — for a muted section that already frames it. */\n\tframed?: boolean\n\t/** Called with the invoice id to download. */\n\tonDownload?: (id: string) => void\n}\n\nexport function InvoiceHistoryBlock({ className, framed = true, onDownload }: InvoiceHistoryBlockProps) {\n\treturn (\n\t\t<Card variant={framed ? \"default\" : \"flat\"} className={cn(\"w-full max-w-2xl\", className)}>\n\t\t\t<CardHeader>\n\t\t\t\t<CardTitle render={<h2 />}>Invoices</CardTitle>\n\t\t\t\t<CardDescription>Sent to billing@studio.com on the 1st of each month.</CardDescription>\n\t\t\t</CardHeader>\n\t\t\t<CardContent flush className=\"overflow-x-auto scrollbar-quiet\">\n\t\t\t\t<Table>\n\t\t\t\t\t<TableHeader>\n\t\t\t\t\t\t<TableRow>\n\t\t\t\t\t\t\t<TableHead>Date</TableHead>\n\t\t\t\t\t\t\t<TableHead>Plan</TableHead>\n\t\t\t\t\t\t\t<TableHead numeric>Amount</TableHead>\n\t\t\t\t\t\t\t<TableHead>Status</TableHead>\n\t\t\t\t\t\t\t<TableHead className=\"w-0\">\n\t\t\t\t\t\t\t\t<span className=\"sr-only\">Download</span>\n\t\t\t\t\t\t\t</TableHead>\n\t\t\t\t\t\t</TableRow>\n\t\t\t\t\t</TableHeader>\n\t\t\t\t\t<TableBody>\n\t\t\t\t\t\t{invoices.map((invoice) => (\n\t\t\t\t\t\t\t<TableRow key={invoice.id}>\n\t\t\t\t\t\t\t\t<TableCell className=\"whitespace-nowrap\">{invoice.date}</TableCell>\n\t\t\t\t\t\t\t\t<TableCell className=\"text-muted-foreground\">{invoice.plan}</TableCell>\n\t\t\t\t\t\t\t\t<TableCell numeric>{invoice.amount}</TableCell>\n\t\t\t\t\t\t\t\t<TableCell>\n\t\t\t\t\t\t\t\t\t<Badge appearance=\"plain\" tone={invoice.status === \"Paid\" ? \"success\" : \"neutral\"} dot>\n\t\t\t\t\t\t\t\t\t\t{invoice.status}\n\t\t\t\t\t\t\t\t\t</Badge>\n\t\t\t\t\t\t\t\t</TableCell>\n\t\t\t\t\t\t\t\t<TableCell>\n\t\t\t\t\t\t\t\t\t<Button variant=\"ghost\" size=\"icon-sm\" aria-label={`Download ${invoice.id}`} onClick={() => onDownload?.(invoice.id)}>\n\t\t\t\t\t\t\t\t\t\t<Icon name=\"download\" />\n\t\t\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t\t\t</TableCell>\n\t\t\t\t\t\t\t</TableRow>\n\t\t\t\t\t\t))}\n\t\t\t\t\t</TableBody>\n\t\t\t\t</Table>\n\t\t\t</CardContent>\n\t\t</Card>\n\t)\n}"
       },
       {
+        "name": "InvoicePreviewBlock",
+        "path": "blocks/invoice-preview-block.tsx",
+        "summary": "A draft invoice with a discount, a rolling amount due, and sending feedback inside its one button.",
+        "intent": "A copyable reference for a total that changes and feedback that stays in the action. Replace the one-second stand-in with the real request when integrating billing.",
+        "family": "Commerce",
+        "kind": "card",
+        "width": {
+          "min": "18rem",
+          "max": "20rem"
+        },
+        "notes": [
+          "NumberTicker rolls the amount due; TextSwap changes the button's label in place; Button owns the spinner and busy state.",
+          "The discount Switch applies at once, with the deduction on the same row so the line items reconcile with the amount due.",
+          "The status Badge moves from Draft to Sent. Changing the discount returns the invoice to draft; pressing Sent sends it again."
+        ],
+        "a11y": [
+          "The button keeps focus through sending and sent, exposes its busy state, and announces its new label; TextSwap's visual copies are hidden.",
+          "The discount is locked only while sending."
+        ],
+        "imports": "import { useState, useEffect } from \"react\"\nimport { Badge, Button, Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle, cn, Field, Icon, NumberTicker, Switch, TextSwap } from \"@sableui/react\"",
+        "code": "const invoice = {\n\tnumber: \"Invoice 1042\",\n\tcustomer: \"Mara Okafor · Brand direction\",\n\tlines: [\n\t\t{ label: \"Design review\", amount: 480 },\n\t\t{ label: \"Project assets\", amount: 120 },\n\t],\n\tdiscount: 0.1,\n}\n\nconst money = new Intl.NumberFormat(\"en-US\", { style: \"currency\", currency: \"USD\" })\n\ntype SendState = \"draft\" | \"sending\" | \"sent\"\n\nconst action: Record<SendState, string> = { draft: \"Send invoice\", sending: \"Sending…\", sent: \"Sent\" }\n\nexport interface InvoicePreviewBlockProps {\n\tclassName?: string\n\t/** false drops the card's surface and border — for a Sheet or muted section that already frames it. */\n\tframed?: boolean\n\t/** Called when the invoice is sent. Here the send is a one-second stand-in. */\n\tonSend?: (amount: number) => void\n}\n\nexport function InvoicePreviewBlock({ className, framed = true, onSend }: InvoicePreviewBlockProps) {\n\tconst [discounted, setDiscounted] = useState(false)\n\tconst [state, setState] = useState<SendState>(\"draft\")\n\tconst subtotal = invoice.lines.reduce((total, line) => total + line.amount, 0)\n\tconst deduction = discounted ? subtotal * invoice.discount : 0\n\tconst amount = subtotal - deduction\n\t// One label, swapped in place in every state, and announced as it changes.\n\tconst label = <TextSwap text={action[state]} aria-live=\"polite\" />\n\tuseEffect(() => {\n\t\tif (state !== \"sending\") return\n\t\tconst timer = setTimeout(() => setState(\"sent\"), 1000)\n\t\treturn () => clearTimeout(timer)\n\t}, [state])\n\treturn (\n\t\t<Card variant={framed ? \"default\" : \"flat\"} className={cn(\"w-full max-w-xs\", className)}>\n\t\t\t<CardHeader>\n\t\t\t\t<CardTitle>{invoice.number}</CardTitle>\n\t\t\t\t<CardDescription>{invoice.customer}</CardDescription>\n\t\t\t\t<CardAction>\n\t\t\t\t\t<Badge tone={state === \"sent\" ? \"success\" : \"neutral\"} size=\"sm\">\n\t\t\t\t\t\t{state === \"sent\" ? \"Sent\" : \"Draft\"}\n\t\t\t\t\t</Badge>\n\t\t\t\t</CardAction>\n\t\t\t</CardHeader>\n\t\t\t<CardContent className=\"flex flex-col gap-5\">\n\t\t\t\t<div className=\"flex flex-col gap-1\">\n\t\t\t\t\t<span className=\"text-body-sm text-muted-foreground\">Amount due</span>\n\t\t\t\t\t<NumberTicker value={amount} format={{ style: \"currency\", currency: \"USD\" }} className=\"text-heading-2\" />\n\t\t\t\t</div>\n\t\t\t\t<dl className=\"flex flex-col gap-2 text-body-sm\">\n\t\t\t\t\t{invoice.lines.map((line) => (\n\t\t\t\t\t\t<div key={line.label} className=\"flex justify-between gap-3\">\n\t\t\t\t\t\t\t<dt>{line.label}</dt>\n\t\t\t\t\t\t\t<dd>{money.format(line.amount)}</dd>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t))}\n\t\t\t\t</dl>\n\t\t\t\t<Field\n\t\t\t\t\tlabel=\"10% discount\"\n\t\t\t\t\torientation=\"horizontal\"\n\t\t\t\t\tdisabled={state === \"sending\"}\n\t\t\t\t\ttrailing={discounted ? <span className=\"text-body-sm text-muted-foreground\">−{money.format(deduction)}</span> : undefined}\n\t\t\t\t>\n\t\t\t\t\t<Switch\n\t\t\t\t\t\tchecked={discounted}\n\t\t\t\t\t\tonCheckedChange={(on: boolean) => {\n\t\t\t\t\t\t\tsetDiscounted(on)\n\t\t\t\t\t\t\tsetState(\"draft\")\n\t\t\t\t\t\t}}\n\t\t\t\t\t/>\n\t\t\t\t</Field>\n\t\t\t\t<Button\n\t\t\t\t\tclassName=\"w-full\"\n\t\t\t\t\taria-label={action[state]}\n\t\t\t\t\tloading={state === \"sending\"}\n\t\t\t\t\tloadingLabel={label}\n\t\t\t\t\ticonStart={state === \"sent\" ? <Icon name=\"check\" /> : undefined}\n\t\t\t\t\tonClick={() => {\n\t\t\t\t\t\tif (state === \"sending\") return\n\t\t\t\t\t\tsetState(\"sending\")\n\t\t\t\t\t\tonSend?.(amount)\n\t\t\t\t\t}}\n\t\t\t\t>\n\t\t\t\t\t{label}\n\t\t\t\t</Button>\n\t\t\t</CardContent>\n\t\t</Card>\n\t)\n}"
+      },
+      {
         "name": "KpiSparklineBlock",
         "path": "blocks/kpi-sparkline-block.tsx",
         "summary": "A KPI row with trends: three stat cards, each the value in the metric mono tier, a Sparkline of its last twelve weeks, and the change as a Badge.",
@@ -26472,6 +26827,28 @@
         "code": "const profile = {\n\tname: \"Ada Lovelace\",\n\tinitials: \"AL\",\n\thandle: \"ada\",\n\tbio: \"Product designer working on tools for small teams. Writing about process every month.\",\n\ttimezone: \"europe-london\",\n}\n\nconst timezones = [\n\t{ value: \"europe-london\", label: \"London (GMT+1)\" },\n\t{ value: \"europe-paris\", label: \"Paris (GMT+2)\" },\n\t{ value: \"america-new-york\", label: \"New York (GMT−4)\" },\n\t{ value: \"america-los-angeles\", label: \"Los Angeles (GMT−7)\" },\n\t{ value: \"asia-tokyo\", label: \"Tokyo (GMT+9)\" },\n]\n\nexport interface ProfileFormBlockProps {\n\tclassName?: string\n\t/** false drops the card's surface and border — for a muted section that already frames it. */\n\tframed?: boolean\n\t/** Called with the form's fields on Save profile. */\n\tonSave?: (fields: FormData) => void\n}\n\nexport function ProfileFormBlock({ className, framed = true, onSave }: ProfileFormBlockProps) {\n\treturn (\n\t\t<Card variant={framed ? \"default\" : \"flat\"} className={cn(\"w-full max-w-2xl\", className)}>\n\t\t\t<CardHeader>\n\t\t\t\t<CardTitle render={<h2 />}>Profile</CardTitle>\n\t\t\t\t<CardDescription>How your team sees you.</CardDescription>\n\t\t\t</CardHeader>\n\t\t\t{/* The one explicit save: profile text is drafted, then committed. */}\n\t\t\t<Form\n\t\t\t\tclassName=\"gap-0\"\n\t\t\t\tonSubmit={(event) => {\n\t\t\t\t\tevent.preventDefault()\n\t\t\t\t\tonSave?.(new FormData(event.currentTarget))\n\t\t\t\t}}\n\t\t\t>\n\t\t\t\t<CardContent>\n\t\t\t\t\t<Stack gap={3}>\n\t\t\t\t\t\t<Row gap={2}>\n\t\t\t\t\t\t\t<Avatar variant=\"art\" size=\"lg\" fallback={profile.initials} alt={profile.name} />\n\t\t\t\t\t\t\t<Stack gap={0.5} align=\"start\">\n\t\t\t\t\t\t\t\t<Row gap={1}>\n\t\t\t\t\t\t\t\t\t<Button type=\"button\" variant=\"outline\" size=\"sm\">\n\t\t\t\t\t\t\t\t\t\tUpload photo\n\t\t\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t\t\t\t<Button type=\"button\" variant=\"ghost\" size=\"sm\">\n\t\t\t\t\t\t\t\t\t\tRemove\n\t\t\t\t\t\t\t\t\t</Button>\n\t\t\t\t\t\t\t\t</Row>\n\t\t\t\t\t\t\t\t<p className=\"text-caption text-muted-foreground\">Square PNG or JPG, at least 400 px.</p>\n\t\t\t\t\t\t\t</Stack>\n\t\t\t\t\t\t</Row>\n\t\t\t\t\t\t<Grid cols={{ base: 1, sm: 2 }} gap={3}>\n\t\t\t\t\t\t\t<Field label=\"Display name\" name=\"displayName\" required>\n\t\t\t\t\t\t\t\t<Input defaultValue={profile.name} autoComplete=\"name\" />\n\t\t\t\t\t\t\t</Field>\n\t\t\t\t\t\t\t<Field label=\"Handle\" name=\"handle\" description={`atelier.com/@${profile.handle}`} required>\n\t\t\t\t\t\t\t\t<Input defaultValue={profile.handle} autoComplete=\"username\" spellCheck={false} />\n\t\t\t\t\t\t\t</Field>\n\t\t\t\t\t\t</Grid>\n\t\t\t\t\t\t<Field label=\"Bio\" name=\"bio\" description=\"Shown on your profile and in comments.\">\n\t\t\t\t\t\t\t<Textarea rows={3} defaultValue={profile.bio} />\n\t\t\t\t\t\t</Field>\n\t\t\t\t\t\t<Grid cols={{ base: 1, sm: 2 }} gap={3}>\n\t\t\t\t\t\t\t<Field label=\"Timezone\" name=\"timezone\" description=\"Release times use this zone.\">\n\t\t\t\t\t\t\t\t<Select defaultValue={profile.timezone} items={timezones}>\n\t\t\t\t\t\t\t\t\t<SelectTrigger />\n\t\t\t\t\t\t\t\t\t<SelectContent>\n\t\t\t\t\t\t\t\t\t\t{timezones.map((zone) => (\n\t\t\t\t\t\t\t\t\t\t\t<SelectItem key={zone.value} value={zone.value}>\n\t\t\t\t\t\t\t\t\t\t\t\t{zone.label}\n\t\t\t\t\t\t\t\t\t\t\t</SelectItem>\n\t\t\t\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t\t\t\t</SelectContent>\n\t\t\t\t\t\t\t\t</Select>\n\t\t\t\t\t\t\t</Field>\n\t\t\t\t\t\t</Grid>\n\t\t\t\t\t</Stack>\n\t\t\t\t</CardContent>\n\t\t\t\t<CardFooter actions className=\"justify-end\">\n\t\t\t\t\t<Button type=\"submit\">Save profile</Button>\n\t\t\t\t</CardFooter>\n\t\t\t</Form>\n\t\t</Card>\n\t)\n}"
       },
       {
+        "name": "ProjectCollectionBlock",
+        "path": "blocks/project-collection-block.tsx",
+        "summary": "A compact collection of three project summaries that expands into a readable list, with optional pointer depth.",
+        "intent": "A browsable small collection of related work. Replace the sample projects after copying; use a grid or table for a large workspace.",
+        "family": "Media & files",
+        "kind": "card",
+        "width": {
+          "min": "18rem",
+          "max": "20rem"
+        },
+        "notes": [
+          "CardStack owns overlap, hidden-card inertness and explicit expansion. Tilt gives the closed stack a little depth under a mouse; opened, the cards sit flat and still, a list to read. Static on touch and under subtle/off motion.",
+          "Each project is a Card: a CardHeader with title, description and a count Badge in CardAction, and a footer of collaborators and when it last changed. Cards keep their keys and content while the collection opens; nothing auto-advances."
+        ],
+        "a11y": [
+          "Press the front card to expand or collapse the collection. Base UI owns Enter/Space activation, and the same trigger retains focus in both states.",
+          "All projects become readable in normal flow when expanded. Tilt adds no tab stops or essential content."
+        ],
+        "imports": "import { useState } from \"react\"\nimport { Avatar, AvatarGroup, Badge, Card, CardAction, CardDescription, CardFooter, CardHeader, CardStack, CardTitle, cn, Tilt } from \"@sableui/react\"",
+        "code": "const collection = { label: \"Projects\", expand: \"Show 3 projects\", collapse: \"Collapse projects\" }\n\nconst projects = [\n\t{ title: \"Project research\", count: \"12 docs\", description: \"Interviews, notes, and the questions to answer next.\", people: [\"MO\", \"SR\", \"JL\"], updated: \"Updated today\" },\n\t{ title: \"Interface studies\", count: \"8 studies\", description: \"Layouts and interaction states for the next review.\", people: [\"SR\", \"JL\"], updated: \"Updated Tue\" },\n\t{ title: \"Final designs\", count: \"6 screens\", description: \"The selected direction, ready to discuss with the team.\", people: [\"MO\", \"JL\"], updated: \"Updated last week\" },\n]\n\nexport interface ProjectCollectionBlockProps {\n\tclassName?: string\n\t/** false drops each card's surface and border — for a muted section that already frames them. */\n\tframed?: boolean\n}\n\nexport function ProjectCollectionBlock({ className, framed = true }: ProjectCollectionBlockProps) {\n\tconst [open, setOpen] = useState(false)\n\treturn (\n\t\t// The front card is the expand control, so the cards hold no controls of their own.\n\t\t<CardStack\n\t\t\tlabel={collection.label}\n\t\t\ttrigger=\"stack\"\n\t\t\texpanded={open}\n\t\t\tonExpandedChange={setOpen}\n\t\t\texpandLabel={collection.expand}\n\t\t\tcollapseLabel={collection.collapse}\n\t\t\tclassName={cn(\"w-full max-w-xs\", className)}\n\t\t>\n\t\t\t{projects.map((project) => (\n\t\t\t\t// Depth invites a press on the closed stack. Opened, the cards are a list\n\t\t\t\t// to read: no lean, and the front card eases flat as the stack opens.\n\t\t\t\t<Tilt key={project.title} maxAngle={open ? 0 : 3} className=\"h-full\">\n\t\t\t\t\t{/* Full height, so cards behind a taller front card still show their edge. */}\n\t\t\t\t\t<Card variant={framed ? \"default\" : \"flat\"} className=\"h-full\">\n\t\t\t\t\t\t<CardHeader>\n\t\t\t\t\t\t\t<CardTitle>{project.title}</CardTitle>\n\t\t\t\t\t\t\t<CardDescription>{project.description}</CardDescription>\n\t\t\t\t\t\t\t<CardAction>\n\t\t\t\t\t\t\t\t<Badge size=\"sm\">{project.count}</Badge>\n\t\t\t\t\t\t\t</CardAction>\n\t\t\t\t\t\t</CardHeader>\n\t\t\t\t\t\t<CardFooter className=\"justify-between gap-3\">\n\t\t\t\t\t\t\t<AvatarGroup aria-label={`${project.people.length} collaborators`} size=\"sm\" surface={framed ? \"card\" : undefined}>\n\t\t\t\t\t\t\t\t{project.people.map((initials) => (\n\t\t\t\t\t\t\t\t\t<Avatar variant=\"art\" key={initials} fallback={initials} alt={initials} />\n\t\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t\t</AvatarGroup>\n\t\t\t\t\t\t\t<span className=\"text-caption text-muted-foreground\">{project.updated}</span>\n\t\t\t\t\t\t</CardFooter>\n\t\t\t\t\t</Card>\n\t\t\t\t</Tilt>\n\t\t\t))}\n\t\t</CardStack>\n\t)\n}"
+      },
+      {
         "name": "RevenueBreakdownBlock",
         "path": "blocks/revenue-breakdown-block.tsx",
         "summary": "A stat card with a breakdown: the KPI in the metric mono tier, its trend Badge, a SegmentedBar of how the total divides, and a StatusDot legend.",
@@ -26493,6 +26870,29 @@
         ],
         "imports": "import { Badge, Card, CardAction, CardContent, CardDescription, CardHeader, cn, Grid, SegmentedBar, StatusDot } from \"@sableui/react\"",
         "code": "const revenue = { label: \"Revenue this month\", total: \"$12,480\", change: \"+8.2%\" }\n\nconst segments = [\n\t{ label: \"Direct\", value: 42, tone: \"1\" },\n\t{ label: \"Partners\", value: 27, tone: \"2\" },\n\t{ label: \"Referrals\", value: 19, tone: \"3\" },\n\t{ label: \"Resellers\", value: 12, tone: \"info\" },\n] as const\n\nexport interface RevenueBreakdownBlockProps {\n\tclassName?: string\n\t/** false drops the card's surface and border — for a muted section that already frames it. */\n\tframed?: boolean\n}\n\nexport function RevenueBreakdownBlock({ className, framed = true }: RevenueBreakdownBlockProps) {\n\treturn (\n\t\t<Card variant={framed ? \"default\" : \"flat\"} className={cn(\"w-full max-w-xs\", className)}>\n\t\t\t<CardHeader>\n\t\t\t\t<CardDescription>{revenue.label}</CardDescription>\n\t\t\t\t<CardAction>\n\t\t\t\t\t<Badge tone=\"success\" size=\"sm\">\n\t\t\t\t\t\t{revenue.change}\n\t\t\t\t\t</Badge>\n\t\t\t\t</CardAction>\n\t\t\t</CardHeader>\n\t\t\t<CardContent className=\"flex flex-col gap-4 pt-2\">\n\t\t\t\t<span className=\"text-mono-xl\">{revenue.total}</span>\n\t\t\t\t<SegmentedBar label=\"Revenue by channel\" segments={[...segments]} size=\"lg\" />\n\t\t\t\t{/* Two columns while each entry fits whole, one when they would not:\n\t\t\t\t    sized in em, so a larger type or a narrower card drops to one.\n\t\t\t\t    aria-hidden: the bar already reads every share aloud. */}\n\t\t\t\t<Grid aria-hidden minItemWidth=\"9.5em\" gap=\"calc(var(--spacing) * 1.5) calc(var(--spacing) * 4)\">\n\t\t\t\t\t{segments.map((s) => (\n\t\t\t\t\t\t<div key={s.label} className=\"flex items-center gap-2 text-body-sm\">\n\t\t\t\t\t\t\t<StatusDot tone={s.tone} />\n\t\t\t\t\t\t\t<span className=\"flex-1 text-muted-foreground\">{s.label}</span>\n\t\t\t\t\t\t\t<span className=\"text-mono-caption\">{s.value}%</span>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t))}\n\t\t\t\t</Grid>\n\t\t\t</CardContent>\n\t\t</Card>\n\t)\n}"
+      },
+      {
+        "name": "ScheduleBlock",
+        "path": "blocks/schedule-block.tsx",
+        "summary": "A three-day schedule: the day as the card title, its events below, and a card height that eases between days, driven by Tabs.",
+        "intent": "A compact day planner where selecting a day changes the amount of content in place. Edit the sample days after copying.",
+        "family": "Dashboard",
+        "kind": "card",
+        "width": {
+          "min": "18rem",
+          "max": "20rem"
+        },
+        "notes": [
+          "Tabs owns selection and keyboard navigation; useAutoSize measures the current panel's actual layout height.",
+          "TextSwap reflects the selected day. No automatic rotation or timers.",
+          "The day is the CardTitle, so it sits where every card's title does; the events are Entity rows on the content edge."
+        ],
+        "a11y": [
+          "The tablist has a name and each panel follows its tab.",
+          "The current day and event details remain present when motion is subtle or off."
+        ],
+        "imports": "import { useState } from \"react\"\nimport { Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Entity, Tabs, TabsList, TabsPanel, TabsTrigger, TextSwap, useAutoSize } from \"@sableui/react\"",
+        "code": "const month = \"November 2026\"\n\nconst days = [\n\t{\n\t\tid: \"mon\",\n\t\tlabel: \"Mon 9\",\n\t\ttitle: \"Monday\",\n\t\tevents: [\n\t\t\t{ name: \"Studio standup\", time: \"9:00–9:15\" },\n\t\t\t{ name: \"Design review\", time: \"11:00–12:00\" },\n\t\t\t{ name: \"Focus time\", time: \"14:00–16:00\" },\n\t\t],\n\t},\n\t{ id: \"tue\", label: \"Tue 10\", title: \"Tuesday\", events: [{ name: \"Project planning\", time: \"10:00–11:00\" }] },\n\t{\n\t\tid: \"wed\",\n\t\tlabel: \"Wed 11\",\n\t\ttitle: \"Wednesday\",\n\t\tevents: [\n\t\t\t{ name: \"Client review\", time: \"9:30–10:30\" },\n\t\t\t{ name: \"Research\", time: \"13:00–15:00\" },\n\t\t],\n\t},\n]\n\nexport interface ScheduleBlockProps {\n\tclassName?: string\n\t/** false drops the card's surface and border — for a Sheet or muted section that already frames it. */\n\tframed?: boolean\n}\n\nexport function ScheduleBlock({ className, framed = true }: ScheduleBlockProps) {\n\tconst [day, setDay] = useState(days[0].id)\n\tconst selected = days.find((item) => item.id === day) ?? days[0]\n\t// Days hold different numbers of events: the card eases to the new height.\n\tconst size = useAutoSize<HTMLDivElement, HTMLDivElement>({ axis: \"height\" })\n\treturn (\n\t\t<Card variant={framed ? \"default\" : \"flat\"} className={cn(\"w-full max-w-xs\", className)}>\n\t\t\t<CardHeader>\n\t\t\t\t<CardTitle>\n\t\t\t\t\t<TextSwap text={selected.title} />\n\t\t\t\t</CardTitle>\n\t\t\t\t<CardDescription>{month}</CardDescription>\n\t\t\t</CardHeader>\n\t\t\t<CardContent>\n\t\t\t\t<Tabs value={day} onValueChange={(value) => setDay(String(value))}>\n\t\t\t\t\t{/* Equal segments across the card, as PricingCard's period toggle: the\n\t\t\t\t\t    row's edges are the content edges whichever day is selected. Left\n\t\t\t\t\t    to their own width, an unselected first pill's label sits one\n\t\t\t\t\t    pill-padding inside the title above it. */}\n\t\t\t\t\t<TabsList variant=\"pill\" aria-label=\"Day\" className=\"flex w-full\">\n\t\t\t\t\t\t{days.map((item) => (\n\t\t\t\t\t\t\t<TabsTrigger key={item.id} value={item.id} className=\"flex-1 justify-center\">\n\t\t\t\t\t\t\t\t{item.label}\n\t\t\t\t\t\t\t</TabsTrigger>\n\t\t\t\t\t\t))}\n\t\t\t\t\t</TabsList>\n\t\t\t\t\t<div ref={size.outerRef} className=\"motion-size\">\n\t\t\t\t\t\t<div ref={size.innerRef}>\n\t\t\t\t\t\t\t{days.map((item) => (\n\t\t\t\t\t\t\t\t<TabsPanel key={item.id} value={item.id}>\n\t\t\t\t\t\t\t\t\t{item.events.map((event) => (\n\t\t\t\t\t\t\t\t\t\t<Entity key={event.name} className=\"px-0\" title={event.name} subtitle={event.time} />\n\t\t\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t\t\t</TabsPanel>\n\t\t\t\t\t\t\t))}\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t</Tabs>\n\t\t\t</CardContent>\n\t\t</Card>\n\t)\n}"
       },
       {
         "name": "SignInBlock",
@@ -26699,7 +27099,7 @@
         },
         "notes": [
           "Switching the range eases the chart from one shape to the next instead of redrawing it.",
-          "The footer states the takeaway in words, so the card says something even before the chart is read.",
+          "The footer states the takeaway in words, so the card says something even before the chart is read. In a narrow card the observation moves to its own line instead of wrapping mid-phrase.",
           "The tooltip heading spells out the weekday; the axis keeps short dates so they fit."
         ],
         "a11y": [
@@ -26707,7 +27107,7 @@
           "The range control is a labelled ToggleGroup; the chart is one tab stop with arrow-key navigation."
         ],
         "imports": "import { useState } from \"react\"\nimport { AreaChart, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, cn, Icon, Toggle, ToggleGroup } from \"@sableui/react\"",
-        "code": "/** 90 days of visitors — replace with your own rows ({ date, desktop, mobile }). */\nconst days = Array.from({ length: 90 }, (_, i) => {\n\tconst wave = Math.sin(i / 6) * 60 + Math.sin(i / 2.3) * 25\n\treturn {\n\t\tdate: new Date(2026, 6, 1 + i).toISOString().slice(0, 10),\n\t\tdesktop: Math.round(240 + wave + (i % 7) * 9),\n\t\tmobile: Math.round(160 + wave * 0.7 + ((i * 3) % 11) * 6),\n\t}\n})\n\nconst series = [\n\t{ key: \"desktop\", label: \"Desktop\" },\n\t{ key: \"mobile\", label: \"Mobile\" },\n]\n\nconst ranges = [\n\t{ id: \"90d\", label: \"3 months\", days: 90 },\n\t{ id: \"30d\", label: \"30 days\", days: 30 },\n\t{ id: \"7d\", label: \"7 days\", days: 7 },\n]\n\nconst shortDate = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString(\"en-US\", { month: \"short\", day: \"numeric\" })\n\nexport interface TrafficTrendBlockProps {\n\tclassName?: string\n\t/** false drops the card's surface and border — for a muted section that already frames it. */\n\tframed?: boolean\n}\n\nexport function TrafficTrendBlock({ className, framed = true }: TrafficTrendBlockProps) {\n\tconst [range, setRange] = useState(\"90d\")\n\tconst shown = days.slice(-(ranges.find((r) => r.id === range)?.days ?? 90))\n\treturn (\n\t\t<Card variant={framed ? \"default\" : \"flat\"} className={cn(\"@container/trend w-full max-w-3xl\", className)}>\n\t\t\t<CardHeader className=\"@max-sm/trend:has-data-[slot=card-action]:grid-cols-1\">\n\t\t\t\t<CardTitle render={<h2 />}>Visitors</CardTitle>\n\t\t\t\t<CardDescription>Desktop and mobile, by day.</CardDescription>\n\t\t\t\t{/* Beside the title on a wide card; under it on a narrow one, where three\n\t\t\t\t    ranges would squeeze the title and description into a sliver. */}\n\t\t\t\t<CardAction className=\"@max-sm/trend:col-start-1 @max-sm/trend:row-span-1 @max-sm/trend:row-start-auto @max-sm/trend:mt-2 @max-sm/trend:justify-self-start\">\n\t\t\t\t\t<ToggleGroup value={[range]} onValueChange={(v: unknown[]) => v[0] && setRange(String(v[0]))} aria-label=\"Time range\">\n\t\t\t\t\t\t{ranges.map((r) => (\n\t\t\t\t\t\t\t<Toggle key={r.id} value={r.id}>\n\t\t\t\t\t\t\t\t{r.label}\n\t\t\t\t\t\t\t</Toggle>\n\t\t\t\t\t\t))}\n\t\t\t\t\t</ToggleGroup>\n\t\t\t\t</CardAction>\n\t\t\t</CardHeader>\n\t\t\t<CardContent>\n\t\t\t\t<AreaChart\n\t\t\t\t\tlabel={`Visitors per day, last ${ranges.find((r) => r.id === range)?.label}`}\n\t\t\t\t\tdata={shown}\n\t\t\t\t\tindex=\"date\"\n\t\t\t\t\tseries={series}\n\t\t\t\t\tindexFormatter={shortDate}\n\t\t\t\t\ttooltip={{ labelFormatter: (d) => new Date(`${d}T00:00:00`).toLocaleDateString(\"en-US\", { weekday: \"short\", month: \"short\", day: \"numeric\" }) }}\n\t\t\t\t\tstacked\n\t\t\t\t\tgradient\n\t\t\t\t\tclassName=\"h-64\"\n\t\t\t\t/>\n\t\t\t</CardContent>\n\t\t\t<CardFooter className=\"gap-1.5 text-body-sm\">\n\t\t\t\t<Icon name=\"arrow-up\" className=\"text-success\" />\n\t\t\t\t<span>\n\t\t\t\t\tUp 5.2% on the previous period <span className=\"text-muted-foreground\">· desktop leads every week</span>\n\t\t\t\t</span>\n\t\t\t</CardFooter>\n\t\t</Card>\n\t)\n}"
+        "code": "/** 90 days of visitors — replace with your own rows ({ date, desktop, mobile }). */\nconst days = Array.from({ length: 90 }, (_, i) => {\n\tconst wave = Math.sin(i / 6) * 60 + Math.sin(i / 2.3) * 25\n\treturn {\n\t\tdate: new Date(2026, 6, 1 + i).toISOString().slice(0, 10),\n\t\tdesktop: Math.round(240 + wave + (i % 7) * 9),\n\t\tmobile: Math.round(160 + wave * 0.7 + ((i * 3) % 11) * 6),\n\t}\n})\n\nconst series = [\n\t{ key: \"desktop\", label: \"Desktop\" },\n\t{ key: \"mobile\", label: \"Mobile\" },\n]\n\nconst ranges = [\n\t{ id: \"90d\", label: \"3 months\", days: 90 },\n\t{ id: \"30d\", label: \"30 days\", days: 30 },\n\t{ id: \"7d\", label: \"7 days\", days: 7 },\n]\n\nconst shortDate = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString(\"en-US\", { month: \"short\", day: \"numeric\" })\n\nexport interface TrafficTrendBlockProps {\n\tclassName?: string\n\t/** false drops the card's surface and border — for a muted section that already frames it. */\n\tframed?: boolean\n}\n\nexport function TrafficTrendBlock({ className, framed = true }: TrafficTrendBlockProps) {\n\tconst [range, setRange] = useState(\"90d\")\n\tconst shown = days.slice(-(ranges.find((r) => r.id === range)?.days ?? 90))\n\treturn (\n\t\t<Card variant={framed ? \"default\" : \"flat\"} className={cn(\"@container/trend w-full max-w-3xl\", className)}>\n\t\t\t<CardHeader className=\"@max-sm/trend:has-data-[slot=card-action]:grid-cols-1\">\n\t\t\t\t<CardTitle render={<h2 />}>Visitors</CardTitle>\n\t\t\t\t<CardDescription>Desktop and mobile, by day.</CardDescription>\n\t\t\t\t{/* Beside the title on a wide card; under it on a narrow one, where three\n\t\t\t\t    ranges would squeeze the title and description into a sliver. */}\n\t\t\t\t<CardAction className=\"@max-sm/trend:col-start-1 @max-sm/trend:row-span-1 @max-sm/trend:row-start-auto @max-sm/trend:mt-2 @max-sm/trend:justify-self-start\">\n\t\t\t\t\t<ToggleGroup value={[range]} onValueChange={(v: unknown[]) => v[0] && setRange(String(v[0]))} aria-label=\"Time range\">\n\t\t\t\t\t\t{ranges.map((r) => (\n\t\t\t\t\t\t\t<Toggle key={r.id} value={r.id}>\n\t\t\t\t\t\t\t\t{r.label}\n\t\t\t\t\t\t\t</Toggle>\n\t\t\t\t\t\t))}\n\t\t\t\t\t</ToggleGroup>\n\t\t\t\t</CardAction>\n\t\t\t</CardHeader>\n\t\t\t<CardContent>\n\t\t\t\t<AreaChart\n\t\t\t\t\tlabel={`Visitors per day, last ${ranges.find((r) => r.id === range)?.label}`}\n\t\t\t\t\tdata={shown}\n\t\t\t\t\tindex=\"date\"\n\t\t\t\t\tseries={series}\n\t\t\t\t\tindexFormatter={shortDate}\n\t\t\t\t\ttooltip={{ labelFormatter: (d) => new Date(`${d}T00:00:00`).toLocaleDateString(\"en-US\", { weekday: \"short\", month: \"short\", day: \"numeric\" }) }}\n\t\t\t\t\tstacked\n\t\t\t\t\tgradient\n\t\t\t\t\tclassName=\"h-64\"\n\t\t\t\t/>\n\t\t\t</CardContent>\n\t\t\t{/* One line where it fits. In a narrow card the observation takes its own\n\t\t\t    line (and drops the separator) rather than wrapping mid-phrase. */}\n\t\t\t<CardFooter className=\"flex-wrap gap-x-1.5 gap-y-0.5 text-body-sm\">\n\t\t\t\t<Icon name=\"arrow-up\" className=\"text-success\" />\n\t\t\t\t<span>Up 5.2% on the previous period</span>\n\t\t\t\t<span className=\"text-muted-foreground @max-md/trend:basis-full\">\n\t\t\t\t\t<span aria-hidden className=\"@max-md/trend:hidden\">· </span>\n\t\t\t\t\tDesktop leads every week\n\t\t\t\t</span>\n\t\t\t</CardFooter>\n\t\t</Card>\n\t)\n}"
       },
       {
         "name": "UploadListBlock",
@@ -27433,7 +27833,7 @@
             {
               "name": "fast  --motion-duration-fast",
               "value": "150ms",
-              "use": "Hover, press, focus, tooltips, small toggles. Also every exit."
+              "use": "Hover, press, focus, tooltips, small toggles. Pop/slide exits use this step."
             },
             {
               "name": "base  --motion-duration-base",
@@ -27642,12 +28042,12 @@
           "enforcedBy": "sable-lint: transition-colors, transition-all"
         },
         {
-          "rule": "Exits are one step faster than entrances, and never overshoot.",
-          "why": "Something leaving should get out of the way. A bounce on exit draws the eye to what the user just dismissed."
+          "rule": "Pop and slide exits are faster and do not overshoot; preserve timing chosen for other roles.",
+          "why": "Dismissal should feel prompt. A disclosure or crossfade may need symmetric timing; a large reveal may need to settle. Choose by the interaction rather than applying one exit rule everywhere."
         },
         {
-          "rule": "Animate opacity and transform only.",
-          "why": "They run on the compositor. Width, height, top and left cause layout on every frame. motion-disclosure is the one sanctioned exception."
+          "rule": "Prefer opacity and transform when they preserve the intended geometry; measure necessary layout motion.",
+          "why": "Transform and opacity can avoid layout, but compositing is not guaranteed. Disclosure, useAutoSize and NumberTicker deliberately change flow. Bound that work; scaling text is not an equivalent resize."
         },
         {
           "rule": "Durations come from tokens, so --motion-scale can stop them.",
@@ -28597,6 +28997,58 @@
         "pairsWith": [
           "motion-stream-in",
           "motion-caret"
+        ]
+      },
+      {
+        "name": "motion-swap-in",
+        "kind": "utility",
+        "family": "motion",
+        "intent": "The current visual label resolving in with a small fade, slide and blur; expressive and token-scaled.",
+        "whenToUse": "TextSwap owns replacement and accessibility. Retrieve its component before using these visual classes.",
+        "insteadOf": "Remounting an entire status region, replaying on every render, or announcing both visual labels.",
+        "example": "<TextSwap text=\"Saved\" />",
+        "keywords": [
+          "text swap",
+          "replacement",
+          "blur",
+          "label"
+        ],
+        "pairsWith": [
+          "motion-swap-out"
+        ]
+      },
+      {
+        "name": "motion-swap-out",
+        "kind": "utility",
+        "family": "motion",
+        "intent": "The previous, aria-hidden visual label leaving without delaying current state.",
+        "whenToUse": "The outgoing copy owned by TextSwap. Its animation ends transparent and never receives pointer events.",
+        "insteadOf": "Keeping stale live text mounted or waiting for an exit before exposing the new label.",
+        "example": "<TextSwap text=\"Ready\" effect=\"fade\" />",
+        "keywords": [
+          "text swap",
+          "outgoing label",
+          "crossfade"
+        ],
+        "pairsWith": [
+          "motion-swap-in"
+        ]
+      },
+      {
+        "name": "motion-stack-card",
+        "kind": "utility",
+        "family": "motion",
+        "intent": "A card returning between a compact collection and normal reading flow; expressive and token-scaled.",
+        "whenToUse": "CardStack owns the overlap, expansion control, covered-card inertness and height measurement.",
+        "insteadOf": "Building a hover-only stack whose covered controls remain focusable.",
+        "example": "<CardStack label=\"Projects\"><Card>Research</Card><Card>Design</Card></CardStack>",
+        "keywords": [
+          "card stack",
+          "collection",
+          "fan"
+        ],
+        "pairsWith": [
+          "motion-size"
         ]
       },
       {
@@ -29780,6 +30232,16 @@
       ],
       "CardFooter": [
         "actions"
+      ],
+      "CardStack": [
+        "collapseLabel",
+        "defaultExpanded",
+        "expandLabel",
+        "expanded",
+        "label",
+        "motion",
+        "onExpandedChange",
+        "trigger"
       ],
       "CardTitle": [
         "render"
@@ -31978,6 +32440,11 @@
         "text",
         "when"
       ],
+      "TextSwap": [
+        "effect",
+        "motion",
+        "text"
+      ],
       "ThemePreview": [
         "mode",
         "size",
@@ -32003,6 +32470,10 @@
         "paused",
         "size",
         "speed"
+      ],
+      "Tilt": [
+        "maxAngle",
+        "motion"
       ],
       "ToastAction": [
         "className",
@@ -32515,13 +32986,13 @@
             "name": "colorStorageKey",
             "type": "string | null",
             "default": "SABLE_COLOR_STORAGE_KEY",
-            "description": "localStorage key for the colour preference. null disables persistence."
+            "description": "localStorage key for the colour preference. null disables persistence. An app that sets `defaultThemeId` stores under `sable-color-preference:<id>`, so another Sable app on the origin can't change its mode. `themeId` alone doesn't: give that app its own key, or set `defaultThemeId` instead."
           },
           {
             "name": "themeStorageKey",
             "type": "string | null",
             "default": "SABLE_THEME_STORAGE_KEY",
-            "description": "localStorage key for the design theme. null disables persistence. The default key is shared by every Sable app on an origin (several apps on localhost:5173 in development), and a stored id another app set wins over `defaultThemeId` when this app knows it too. An app with one fixed preset passes `themeId` (or `themeStorageKey={null}`); an app that lets users switch themes passes its own key."
+            "description": "localStorage key for the design theme. null disables persistence. An app that sets `defaultThemeId` stores under `sable-theme-id:<id>`, so another Sable app on the origin can't replace its theme. Apps on the default theme share `sable-theme-id`, so one that lets users switch themes passes its own key. Pass a key too if `defaultThemeId` may change, or saved settings stay behind with the old id."
           },
           {
             "name": "target",

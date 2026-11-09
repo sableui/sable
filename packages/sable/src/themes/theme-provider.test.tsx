@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react"
+import { act, fireEvent, render, screen } from "@testing-library/react"
 import type { ComponentProps } from "react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import {
@@ -142,6 +142,58 @@ describe("SableThemeProvider", () => {
 		)
 		expect(document.documentElement).not.toHaveAttribute(SABLE_THEME_ATTRIBUTE)
 		expect(window.localStorage.getItem(SABLE_THEME_STORAGE_KEY)).toBe("sable")
+	})
+
+	describe("two apps on one origin", () => {
+		function renderApp(props: Partial<ComponentProps<typeof SableThemeProvider>> = {}) {
+			return render(
+				<SableThemeProvider defaultThemeId="ember" defaultPreference="dark" {...props}>
+					<Probe />
+				</SableThemeProvider>,
+			)
+		}
+
+		it("ignores what another app saved when it names its own theme", () => {
+			window.localStorage.setItem(SABLE_COLOR_STORAGE_KEY, "light")
+			window.localStorage.setItem(SABLE_THEME_STORAGE_KEY, "meridian")
+			renderApp()
+			expect(screen.getByTestId("state")).toHaveTextContent("ember:dark:dark")
+			expect(document.documentElement).toHaveAttribute(SABLE_THEME_ATTRIBUTE, "ember")
+		})
+
+		it("ignores another app's change in another tab", () => {
+			renderApp()
+			window.localStorage.setItem(SABLE_THEME_STORAGE_KEY, "meridian")
+			act(() => {
+				window.dispatchEvent(new StorageEvent("storage", { key: SABLE_THEME_STORAGE_KEY, newValue: "meridian" }))
+			})
+			expect(screen.getByTestId("state")).toHaveTextContent("ember:dark:dark")
+		})
+
+		it("keeps its own choices, and leaves the shared keys alone", () => {
+			const app = renderApp()
+			fireEvent.click(screen.getByRole("button", { name: "Cove" }))
+			fireEvent.click(screen.getByRole("button", { name: "Light" }))
+			app.unmount()
+
+			renderApp()
+			expect(screen.getByTestId("state")).toHaveTextContent("meridian:light:light")
+			expect(window.localStorage.getItem(SABLE_THEME_STORAGE_KEY)).toBeNull()
+			expect(window.localStorage.getItem(SABLE_COLOR_STORAGE_KEY)).toBeNull()
+		})
+
+		it("lets an explicit key share them again", () => {
+			window.localStorage.setItem(SABLE_THEME_STORAGE_KEY, "meridian")
+			renderApp({ themeStorageKey: SABLE_THEME_STORAGE_KEY })
+			expect(screen.getByTestId("state")).toHaveTextContent("meridian:dark:dark")
+		})
+
+		it("stores nothing when persistence is off", () => {
+			renderApp({ colorStorageKey: null, themeStorageKey: null })
+			fireEvent.click(screen.getByRole("button", { name: "Cove" }))
+			fireEvent.click(screen.getByRole("button", { name: "Light" }))
+			expect(window.localStorage).toHaveLength(0)
+		})
 	})
 
 	it("exposes standalone apply helpers for manual app-level control", () => {

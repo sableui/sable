@@ -1,4 +1,4 @@
-import { CodeHighlightProvider, MotionProvider } from "@sableui/react"
+import { CodeHighlightProvider } from "@sableui/react"
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/react"
 import { highlight } from "sugar-high"
@@ -10,6 +10,7 @@ import { RouteErrorBoundary } from "./components/RouteErrorBoundary"
 import { CustomizerProvider } from "./customizer/CustomizerProvider"
 import { ignorePasswordManagers } from "./lib/ignore-password-managers"
 import { ThemeProvider } from "./theme"
+import { CustomizerMotion } from "./components/CustomizerMotion"
 
 const rootEl = document.getElementById("root")
 if (!rootEl) throw new Error("Missing #root element")
@@ -20,7 +21,7 @@ createRoot(rootEl).render(
 	<StrictMode>
 		<ThemeProvider>
 			<CustomizerProvider>
-				<MotionProvider>
+				<CustomizerMotion>
 					{/* One highlighter for every CodeBlock on the site. sugar-high is
 					    ~1KB and escapes its input; its token colours are CSS
 					    variables mapped to Sable tones in app.css, so code follows
@@ -35,7 +36,7 @@ createRoot(rootEl).render(
 					    Vitals, client-side route changes included. */}
 					<Analytics />
 					<SpeedInsights />
-				</MotionProvider>
+				</CustomizerMotion>
 			</CustomizerProvider>
 		</ThemeProvider>
 	</StrictMode>,

@@ -97,6 +97,27 @@ export const INTERNAL_UTILITIES: readonly string[] = [
 ]
 
 export const UTILITY_DOCS: UtilityDoc[] = [
+	{
+		name: "motion-swap-in", kind: "utility", family: "motion",
+		intent: "The current visual label resolving in with a small fade, slide and blur; expressive and token-scaled.",
+		whenToUse: "TextSwap owns replacement and accessibility. Retrieve its component before using these visual classes.",
+		insteadOf: "Remounting an entire status region, replaying on every render, or announcing both visual labels.",
+		example: '<TextSwap text="Saved" />', keywords: ["text swap", "replacement", "blur", "label"], pairsWith: ["motion-swap-out"],
+	},
+	{
+		name: "motion-swap-out", kind: "utility", family: "motion",
+		intent: "The previous, aria-hidden visual label leaving without delaying current state.",
+		whenToUse: "The outgoing copy owned by TextSwap. Its animation ends transparent and never receives pointer events.",
+		insteadOf: "Keeping stale live text mounted or waiting for an exit before exposing the new label.",
+		example: '<TextSwap text="Ready" effect="fade" />', keywords: ["text swap", "outgoing label", "crossfade"], pairsWith: ["motion-swap-in"],
+	},
+	{
+		name: "motion-stack-card", kind: "utility", family: "motion",
+		intent: "A card returning between a compact collection and normal reading flow; expressive and token-scaled.",
+		whenToUse: "CardStack owns the overlap, expansion control, covered-card inertness and height measurement.",
+		insteadOf: "Building a hover-only stack whose covered controls remain focusable.",
+		example: '<CardStack label="Projects"><Card>Research</Card><Card>Design</Card></CardStack>', keywords: ["card stack", "collection", "fan"], pairsWith: ["motion-size"],
+	},
 	/* ── Relative surfaces ─────────────────────────────────────────────────── */
 	{
 		name: "sable-surface",

@@ -53,6 +53,16 @@ function visible(ratio: number, isIntersecting = ratio > 0) {
 }
 
 describe("Presence lifecycle", () => {
+	it("samples the displayed state before canceling in either direction", () => {
+		const view = render(<Presence show><div style={{ opacity: 0.4, transform: "matrix(1, 0, 0, 1, 0, 5)" }}>Interrupted</div></Presence>)
+		view.rerender(<Presence show={false}><div style={{ opacity: 0.4, transform: "matrix(1, 0, 0, 1, 0, 5)" }}>Interrupted</div></Presence>)
+		view.rerender(<Presence show><div style={{ opacity: 0.4, transform: "matrix(1, 0, 0, 1, 0, 5)" }}>Interrupted</div></Presence>)
+		expect(animate.mock.calls[1][0][0]).toEqual({ opacity: 0.4, transform: "matrix(1, 0, 0, 1, 0, 5)" })
+		view.rerender(<Presence show={false}><div style={{ opacity: 0.4, transform: "matrix(1, 0, 0, 1, 0, 5)" }}>Interrupted</div></Presence>)
+		expect(animate.mock.calls[2][0][0]).toEqual({ opacity: 0.4, transform: "matrix(1, 0, 0, 1, 0, 5)" })
+		expect(animations[0].onfinish).toBeNull()
+		expect(animations[0].oncancel).toBeNull()
+	})
 	it("animates the actual node when an initially hidden child opens, including after a completed exit", () => {
 		const complete = vi.fn(() => expect(screen.queryByText("Panel")).not.toBeInTheDocument())
 		const content = (show: boolean) => <Presence show={show} onExitComplete={complete}><div>Panel</div></Presence>

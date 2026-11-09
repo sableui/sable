@@ -5,6 +5,12 @@ Third-party software, fonts, and trademarks retain their own terms.
 
 ## Software
 
+Motion decision, performance and interruption guidance was adapted from
+[Emil Kowalski's skills](https://github.com/emilkowalski/skills) as reference
+material. No external skill is installed or invoked. Copyright (c) 2026 Emil
+Kowalski, MIT; the [license text](./third-party/emilkowalski-skills-LICENSE.txt)
+ships with the package. Sable retains its own APIs, motion policies and tokens.
+
 | Project | License | Role |
 | --- | --- | --- |
 | [Base UI](https://github.com/mui/base-ui) | MIT | Accessible behavior primitives |

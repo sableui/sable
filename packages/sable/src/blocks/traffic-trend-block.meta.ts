@@ -10,7 +10,7 @@ export const trafficTrendBlockMeta: BlockMeta = {
 		"Reach for this as the headline chart of a dashboard or an analytics section on a landing page. For a single number with a small trend beside it, KpiSparklineBlock is lighter.",
 	notes: [
 		"Switching the range eases the chart from one shape to the next instead of redrawing it.",
-		"The footer states the takeaway in words, so the card says something even before the chart is read.",
+		"The footer states the takeaway in words, so the card says something even before the chart is read. In a narrow card the observation moves to its own line instead of wrapping mid-phrase.",
 		"The tooltip heading spells out the weekday; the axis keeps short dates so they fit.",
 	],
 	a11y: [

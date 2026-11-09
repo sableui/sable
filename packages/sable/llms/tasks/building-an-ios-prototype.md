@@ -93,6 +93,12 @@ Entity rows in a Card) or `redesign` (desktop workspace tools).
 `--ios-tabbar-bottom`, `--ios-content-bottom` and `--ios-motion`, for the
 standard 402×874 phone. Reduced transparency removes the glass blur.
 
+The selected tab is a liquid lens, drawn by `IosTabbar` with nothing to wire.
+Press or drag along the bar and it lifts and refracts the tabs under it;
+releasing a drag selects the tab beneath, through that tab's own `onClick`.
+It refracts in Safari and Firefox as well as Chromium. Reduced motion snaps it
+into place; reduced transparency keeps it a flat pill.
+
 ## Engineering handoff
 
 The prototype's colors, fonts, radii and spacing are the preset's tokens.

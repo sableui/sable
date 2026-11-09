@@ -263,6 +263,15 @@
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
+    "CardStack": {
+      "source": "CardStack",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "CardStack"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
     "CaretMenu": {
       "source": "CaretMenu",
       "strategy": "preserve",
@@ -1117,6 +1126,15 @@
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
+    "TextSwap": {
+      "source": "TextSwap",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "TextSwap"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
     "Textarea": {
       "source": "Textarea",
       "strategy": "preserve",
@@ -1150,6 +1168,15 @@
       "importFrom": "@sableui/react",
       "components": [
         "ThinkingOrb"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
+    "Tilt": {
+      "source": "Tilt",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "Tilt"
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },

@@ -1733,6 +1733,9 @@ for (const { dir } of metaFiles) {
  * internal links are verified. */
 const TASKS_DIR = join(PKG_ROOT, "llms", "tasks")
 const REQUIRED_TASKS = [
+	"choosing-motion.md",
+	"motion-performance.md",
+	"motion-interruption.md",
 	"creating-design-assets.md",
 	"reviewing-a-journey.md",
 	"reviewing-motion.md",
