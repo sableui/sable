@@ -1,3 +1,5 @@
+"use client"
+
 import { createContext, type ReactNode, useEffect, useId, useRef, useState } from 'react'
 import { useMotionLevel } from '../motion/MotionProvider'
 import { refractionMap } from './liquid-glass'

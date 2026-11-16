@@ -20,6 +20,8 @@ A closing call to action: a centred h2 and one-line lede on a card, with a prima
 ## Source
 
 ```tsx
+"use client"
+
 import { useId } from "react"
 import { Button, Card, CardContent, cn, Region, Row, Stack } from "@sableui/react"
 

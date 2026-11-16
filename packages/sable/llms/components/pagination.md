@@ -38,6 +38,9 @@ Use Pagination when a result set is split into discrete pages and the user needs
 | pageLink | (page: number) => ReactElement | — | Render each page control as a link: return the element for a page, (page) => <a href={`?page=${page}`} /> or a router's <Link to={`?page=${page}`} />. The current page keeps aria-current; previous/next at the bounds stay disabled buttons. onPageChange becomes optional and, if set, still fires on click. |
 | siblingCount | number | 1 | Page buttons shown on each side of the current page before the list collapses into ellipses. First and last pages are always shown. |
 | label | string | Pagination | Accessible label applied to the surrounding nav element. |
+| previousLabel | string | Previous page | Accessible name of the previous-page button. |
+| nextLabel | string | Next page | Accessible name of the next-page button. |
+| pageLabel | (page: number) => string | (page) => `Page ${page}` | Accessible name of each numbered page button. Translate the whole phrase, page number included. |
 | className | string | — | Extra classes merged onto the nav. |
 
 ## Tokens used

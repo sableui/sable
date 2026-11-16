@@ -51,6 +51,23 @@ export function InputPage() {
 			</Section>
 
 			<Section
+				title="Sizes"
+				description="The field ladder every field shares: md for a form, sm for a toolbar row beside sm buttons and an sm Select, xs for a tool panel's inset field."
+			>
+				<Example
+					code={`<Input placeholder="Medium" />
+<Input size="sm" placeholder="Small" />
+<Input size="xs" placeholder="Extra small" />`}
+				>
+					<div className="flex w-full max-w-xs flex-col gap-3">
+						<Input placeholder="Medium" />
+						<Input size="sm" placeholder="Small" />
+						<Input size="xs" placeholder="Extra small" />
+					</div>
+				</Example>
+			</Section>
+
+			<Section
 				title="States"
 				description="Error, disabled and read-only."
 			>

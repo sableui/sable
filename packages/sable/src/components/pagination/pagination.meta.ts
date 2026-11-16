@@ -125,6 +125,24 @@ export const paginationMeta: ComponentMeta = {
 			description: "Accessible label applied to the surrounding nav element.",
 		},
 		{
+			name: "previousLabel",
+			type: "string",
+			default: "Previous page",
+			description: "Accessible name of the previous-page button.",
+		},
+		{
+			name: "nextLabel",
+			type: "string",
+			default: "Next page",
+			description: "Accessible name of the next-page button.",
+		},
+		{
+			name: "pageLabel",
+			type: "(page: number) => string",
+			default: "(page) => `Page ${page}`",
+			description: "Accessible name of each numbered page button. Translate the whole phrase, page number included.",
+		},
+		{
 			name: "className",
 			type: "string",
 			default: "—",

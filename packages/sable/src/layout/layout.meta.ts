@@ -84,7 +84,7 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 				type: "number | string",
 				default: "4",
 				description:
-					"Vertical gap between stacked page sections. Number = rhythm units (×8px, so 4 = 32px); string = raw CSS.",
+					"Vertical gap between stacked page sections. Number = rhythm units (one baseline step each — 8px at Sable's default type, two Tailwind spacing steps, so gap={2} is gap-4; 4 is 32px at the default type); string = raw CSS.",
 			},
 			{
 				name: "align",
@@ -136,7 +136,7 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 				name: "gap",
 				type: "number | [row, column] | string",
 				default: "var(--grid-gutter)",
-				description: "Gap between cells. Number = rhythm units (×8px); [row, column] = two rhythm counts, for a gallery whose rows want more air than its columns; string = raw CSS.",
+				description: "Gap between cells. Number = rhythm units (one baseline step each — 8px at Sable's default type, two Tailwind spacing steps, so gap={2} is gap-4); [row, column] = two rhythm counts, for a gallery whose rows want more air than its columns; string = raw CSS.",
 			},
 		],
 		tokensUsed: [],
@@ -177,7 +177,7 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 				type: "number | string",
 				default: "var(--grid-gutter)",
 				description:
-						"Gap between columns and rows. Number = rhythm units (×8px); string = raw CSS. The column gap is capped so all gaps together never take more than 75% of the track's width — a large gap can't push a narrow screen into horizontal scroll, and at normal desktop widths it renders exactly as given. The row gap is never capped.",
+						"Gap between columns and rows. Number = rhythm units (one baseline step each — 8px at Sable's default type, two Tailwind spacing steps, so gap={2} is gap-4); string = raw CSS. The column gap is capped so all gaps together never take more than 75% of the track's width — a large gap can't push a narrow screen into horizontal scroll, and at normal desktop widths it renders exactly as given. The row gap is never capped.",
 			},
 		],
 		subcomponents: [
@@ -199,7 +199,7 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 	{
 		name: "Stack",
 		summary:
-			"Vertical flow on the 8px rhythm — the default container for stacked content. Gap by role: tight within a group (1.5–2), looser between groups (3–4), generous between sections (6+). Layout lives in classes (flex flex-col items-* justify-*) and the gap in a CSS variable, never inline style, so className utilities override any prop at a breakpoint (max-lg:hidden, md:flex-row, md:gap-8).",
+			"Vertical flow on the baseline rhythm — the default container for stacked content. Gap by role: tight within a group (1.5–2), looser between groups (3–4), generous between sections (6+). Layout lives in classes (flex flex-col items-* justify-*) and the gap in a CSS variable, never inline style, so className utilities override any prop at a breakpoint (max-lg:hidden, md:flex-row, md:gap-8).",
 		status: "stable",
 		props: [
 			{
@@ -207,7 +207,7 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 				type: "number | string",
 				default: "2",
 				description:
-					"Vertical gap. Number = rhythm units (×8px, fractions ok — 2 = 16px); string = raw CSS.",
+					"Vertical gap. Number = rhythm units (one baseline step each — 8px at Sable's default type, two Tailwind spacing steps, so gap={2} is gap-4; fractions ok); string = raw CSS.",
 			},
 			{
 				name: "align",
@@ -240,7 +240,7 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 				name: "gap",
 				type: "number | string",
 				default: "2",
-				description: "Horizontal gap. Number = rhythm units (×8px); string = raw CSS.",
+				description: "Horizontal gap. Number = rhythm units (one baseline step each — 8px at Sable's default type, two Tailwind spacing steps, so gap={2} is gap-4); string = raw CSS.",
 			},
 			{
 				name: "align",
@@ -283,7 +283,7 @@ export const layoutPrimitiveMetas: ComponentMeta[] = [
 				name: "size",
 				type: "number",
 				default: "1",
-				description: "Fixed size in rhythm units (×8px; fractions ok). Ignored when grow.",
+				description: "Fixed size in rhythm units (one baseline step each — 8px at Sable's default type, two Tailwind spacing steps, so gap={2} is gap-4; fractions ok). Ignored when grow.",
 			},
 			{
 				name: "axis",

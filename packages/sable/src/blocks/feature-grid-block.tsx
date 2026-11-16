@@ -1,6 +1,8 @@
+"use client"
+
 import { useId } from "react"
 import { Card, CardContent } from "../components/card"
-import { Icon } from "../icon"
+import { IconTile } from "../components/icon-tile"
 import { cn } from "../lib/cn"
 import { Grid, Region, Stack } from "../layout"
 
@@ -40,9 +42,7 @@ export function FeatureGridBlock({ className }: FeatureGridBlockProps) {
 					{features.map((feature) => (
 						<Card key={feature.title} render={<article />} className="h-full">
 							<CardContent className="flex flex-col gap-3">
-								<span className="grid size-10 place-items-center rounded-md sable-well">
-									<Icon name={feature.icon} className="text-xl" />
-								</span>
+								<IconTile icon={feature.icon} />
 								<h3 className="pt-2 text-title-lg">{feature.title}</h3>
 								<p className="text-body-sm text-muted-foreground">{feature.body}</p>
 							</CardContent>

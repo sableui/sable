@@ -125,9 +125,9 @@ export const sheetMeta: ComponentMeta = {
 	subcomponents: [
 		{
 			name: "SheetContent",
-			type: 'Base UI Drawer.Popup props (initialFocus, finalFocus, …) + side: "right" | "left" | "top" | "bottom" + className',
+			type: 'Base UI Drawer.Popup props (initialFocus, finalFocus, …) + side: "right" | "left" | "top" | "bottom" + showCloseButton?: boolean + closeLabel?: string + className',
 			description:
-				'Backdrop + edge-anchored popup; portals to <body>. side picks which viewport edge the sheet anchors to and slides in from (defaults to "right"). Left/right are full-height side panels; top/bottom span the width up to 80vh. A bottom sheet with snapPoints is as tall as its highest stop allows (the viewport less a top gap), shows a drag handle, and translates down to the active stop; the part below the screen becomes bottom padding, so its scroll area and SheetFooter end at the visible edge. A bottom sheet rides above the on-screen keyboard (measured from visualViewport). On touch it swipes closed toward that same edge (right swipes right, left swipes left, top swipes up, bottom swipes down).',
+				'Backdrop + edge-anchored popup; portals to <body>. side picks which viewport edge the sheet anchors to and slides in from (defaults to "right"). Left/right are full-height side panels; top/bottom span the width up to 80vh. A bottom sheet with snapPoints is as tall as its highest stop allows (the viewport less a top gap), shows a drag handle, and translates down to the active stop; the part below the screen becomes bottom padding, so its scroll area and SheetFooter end at the visible edge. A bottom sheet rides above the on-screen keyboard (measured from visualViewport). On touch it swipes closed toward that same edge (right swipes right, left swipes left, top swipes up, bottom swipes down). showCloseButton renders the same close (X) as Dialog, a ghost icon button in the top-end corner whose touch target grows to 44px, and the SheetHeader leaves room for it; it defaults to true for left/right (a desktop panel no mouse can swipe) and false for top/bottom. closeLabel (default "Close") is its accessible name.',
 		},
 		{
 			name: "SheetTrigger",
@@ -177,7 +177,7 @@ export const sheetMeta: ComponentMeta = {
 		"Esc and click-outside dismiss by default; on touch, a swipe toward the sheet's own edge dismisses too. A short or slow drag springs back.",
 		"Swipe is an extra path, never the only one: Esc, click-outside and SheetClose all still work.",
 		"Focus matches Dialog: the first tabbable on mouse/keyboard open, the panel itself on touch (so the virtual keyboard stays down). On close, focus returns to the element that held it when the sheet opened: the SheetTrigger, or your own button when it drives a controlled open. It is captured before the content mounts, so an autoFocus field inside cannot displace it; an explicit finalFocus on SheetContent wins.",
-		"Render a SheetClose inside SheetContent so screen-reader users can escape the popup.",
+		"A side sheet carries its own labelled close button (closeLabel), so screen-reader and mouse users can always escape it; a top or bottom sheet needs a SheetClose (or showCloseButton) of its own.",
 		"Slide animation runs via data-[starting-style]/data-[ending-style] attributes on the motion-duration token; while swiping the panel tracks the finger directly, and a released swipe finishes on the same token (scaled by flick speed), so reduced motion makes it instant.",
 		"A mouse drag that starts on sheet content selects text rather than dragging the panel; mouse dragging only starts from the padding edge.",
 		"Snap points add stops, not a gate: at any stop the content scrolls within the visible part and every control stays reachable by keyboard, so nothing needs the drag. The handle is decorative (aria-hidden).",
@@ -194,7 +194,7 @@ export const sheetMeta: ComponentMeta = {
 		},
 		{
 			label: "Left side",
-			code: '<Sheet><SheetTrigger render={<Button variant="secondary">Menu</Button>} /><SheetContent side="left"><SheetHeader><SheetTitle>Navigation</SheetTitle></SheetHeader><SheetFooter><SheetClose render={<Button variant="secondary">Close</Button>} /></SheetFooter></SheetContent></Sheet>',
+			code: '<Sheet><SheetTrigger render={<Button variant="secondary">Menu</Button>} /><SheetContent side="left"><SheetHeader><SheetTitle>Navigation</SheetTitle></SheetHeader></SheetContent></Sheet>',
 		},
 		{
 			label: "Bottom sheet with snap points",

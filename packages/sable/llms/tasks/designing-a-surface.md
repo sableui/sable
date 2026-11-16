@@ -34,12 +34,12 @@ satisfy a checklist.
 ## 2. Retrieve applicable lessons and contracts
 
 ```bash
-npx sable atlas --search "editorial hierarchy" --contrast --limit 3 --json   # the project's atlas, if any
-npx sable prefer --search "hierarchy" --scope project:<project-id> --json
-npx sable learn --search "editorial hierarchy" --json
-npx sable pattern --list
-npx sable pattern LandingPage --skeleton
-npx sable component Button --props
+pnpm exec sable atlas --search "editorial hierarchy" --contrast --limit 3 --json   # the project's atlas, if any
+pnpm exec sable prefer --search "hierarchy" --scope project:<project-id> --json
+pnpm exec sable learn --search "editorial hierarchy" --json
+pnpm exec sable pattern --list
+pnpm exec sable pattern LandingPage --skeleton
+pnpm exec sable component Button --props
 ```
 
 Read each lesson's `appliesWhen`, `avoidWhen`, and provenance. State what transfers

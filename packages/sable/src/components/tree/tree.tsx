@@ -468,6 +468,16 @@ type RowProps = ComponentProps<"div"> & {
 	 * ("Expand Background"). Falls back to a generic label.
 	 */
 	toggleLabel?: string
+	/**
+	 * The toggle's accessible name while collapsed, given `toggleLabel`.
+	 * @default (name = "group") => `Expand ${name}`
+	 */
+	expandLabel?: (name?: string) => string
+	/**
+	 * The toggle's accessible name while expanded, given `toggleLabel`.
+	 * @default (name = "group") => `Collapse ${name}`
+	 */
+	collapseLabel?: (name?: string) => string
 	/** Replaces the built-in disclosure mark. */
 	disclosureIcon?: ReactNode
 	/** The kind marker, rendered in the type column. Size it to `1em`. */
@@ -506,6 +516,8 @@ export function TreeRow({
 	onExpandedChange,
 	subtree,
 	toggleLabel,
+	expandLabel = (name = "group") => `Expand ${name}`,
+	collapseLabel = (name = "group") => `Collapse ${name}`,
 	disclosureIcon,
 	icon,
 	actions,
@@ -606,11 +618,7 @@ export function TreeRow({
 					type="button"
 					data-tree-toggle=""
 					aria-expanded={expanded}
-					aria-label={
-						expanded
-							? `Collapse ${toggleLabel ?? "group"}`
-							: `Expand ${toggleLabel ?? "group"}`
-					}
+					aria-label={expanded ? collapseLabel(toggleLabel) : expandLabel(toggleLabel)}
 					// Inside a Tree the treeitem itself carries aria-expanded and the arrow
 					// keys, so the button is a pointer target only: out of the tab order,
 					// hidden from AT, and it leaves focus where it was when clicked.
@@ -631,8 +639,12 @@ export function TreeRow({
 						hitTargetMin,
 						// motion-interactive lists `rotate` (what -rotate-90 writes), so the
 						// chevron turns with the rows arriving under it instead of snapping.
-						"rounded-xs text-muted-foreground motion-interactive hover:text-foreground",
-						!expanded && "-rotate-90",
+						// A standalone toggle (outside a Tree) is a tab stop, so it shows the
+						// focus ring; inside a Tree the treeitem carries focus instead.
+						"rounded-xs text-muted-foreground motion-interactive hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+						// Collapsed points toward the reading direction: right in LTR, left
+						// in RTL (Collapsible and DataTable turn the same way).
+						!expanded && "-rotate-90 rtl:rotate-90",
 					)}
 				>
 					{disclosureIcon ?? <DisclosureMark />}

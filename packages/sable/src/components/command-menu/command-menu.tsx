@@ -198,6 +198,15 @@ export interface CommandMenuProps
 	placeholder?: string;
 	/** Copy shown when the query matches nothing. @default "No results found." */
 	emptyMessage?: string;
+	/** Accessible name of the search field (`inputProps["aria-label"]` still wins). @default "Command search" */
+	searchLabel?: string;
+	/** Accessible name of the clear button. @default "Clear search" */
+	clearLabel?: string;
+	/**
+	 * What the polite live region says after the list changes.
+	 * @default (count) => count === 0 ? "No results" : `${count} result${count === 1 ? "" : "s"}`
+	 */
+	resultCountLabel?: (count: number) => string;
 	/**
 	 * Accessible name for the palette dialog (visually hidden).
 	 * @default "Command menu"
@@ -274,7 +283,16 @@ export interface CommandMenuProps
 export type CommandMenuPanelProps = Omit<
 	CommandMenuProps,
 	"open" | "onOpenChange" | "finalFocus" | "description"
->;
+> & {
+	/**
+	 * `resting` (default): the inline surface, a bordered card with no shadow.
+	 * `raised`: the card's soft resting shadow too, for a palette shown on its
+	 * own as a card among cards (CommandPaletteBlock). Never shadow-* in its
+	 * className; for a palette that floats, put it in a Popover.
+	 * @default "resting"
+	 */
+	elevation?: "resting" | "raised";
+};
 
 /**
  * The query, owned or controlled. One hook so the dialog and the panel cannot
@@ -296,7 +314,16 @@ function useCommandQuery(
 interface CommandMenuBodyProps
 	extends Pick<
 		CommandMenuProps,
-		"items" | "filter" | "highlightMatches" | "listClassName" | "scope" | "inputProps" | "children"
+		| "items"
+		| "filter"
+		| "highlightMatches"
+		| "listClassName"
+		| "scope"
+		| "inputProps"
+		| "children"
+		| "searchLabel"
+		| "clearLabel"
+		| "resultCountLabel"
 	> {
 	query: string;
 	setQuery: (next: string) => void;
@@ -335,6 +362,9 @@ const COMMAND_GEOMETRY =
  * on a card in the page. Everything about the combobox (the activedescendant
  * model, the keyboard, filtering and grouping) lives here once.
  */
+const defaultResultCountLabel = (count: number) =>
+	count === 0 ? "No results" : `${count} result${count === 1 ? "" : "s"}`;
+
 function CommandMenuBody({
 	query,
 	setQuery,
@@ -347,6 +377,9 @@ function CommandMenuBody({
 	title,
 	scope,
 	inputProps,
+	searchLabel = "Command search",
+	clearLabel = "Clear search",
+	resultCountLabel = defaultResultCountLabel,
 	children,
 	close,
 	open,
@@ -575,7 +608,7 @@ function CommandMenuBody({
 					onChange={(event) => setQuery(event.target.value)}
 					onKeyDown={onInputKeyDown}
 					placeholder={placeholder}
-					aria-label={inputProps?.["aria-label"] ?? "Command search"}
+					aria-label={inputProps?.["aria-label"] ?? searchLabel}
 					className={cn(
 						`w-full border-0 bg-transparent ${tier.body} text-foreground outline-none placeholder:text-muted-foreground`,
 						inputProps?.className,
@@ -593,7 +626,7 @@ function CommandMenuBody({
 						<Button
 							variant="ghost"
 							size="icon-xs"
-							aria-label="Clear search"
+							aria-label={clearLabel}
 							// Off the tab order (Esc clears from the field), and it never takes
 							// focus from the field on press, so a panel that reacts to the
 							// field's blur does not see one.
@@ -616,9 +649,7 @@ function CommandMenuBody({
 			    phrased as a count rather than echoing `emptyMessage` — the empty
 			    copy is already on screen, and announcing it twice is noise. */}
 			<div role="status" aria-live="polite" className="sr-only">
-				{resultCount === 0
-					? "No results"
-					: `${resultCount} result${resultCount === 1 ? "" : "s"}`}
+				{resultCountLabel(resultCount)}
 			</div>
 
 			<Scroller
@@ -702,6 +733,9 @@ export function CommandMenu({
 	finalFocus,
 	scope,
 	inputProps,
+	searchLabel,
+	clearLabel,
+	resultCountLabel,
 	children,
 	className,
 	...props
@@ -754,6 +788,9 @@ export function CommandMenu({
 					title={title}
 					scope={scope}
 					inputProps={inputProps}
+					searchLabel={searchLabel}
+					clearLabel={clearLabel}
+					resultCountLabel={resultCountLabel}
 					close={close}
 					open={open}
 					inline={false}
@@ -764,6 +801,7 @@ export function CommandMenu({
 		</Dialog>
 	);
 }
+CommandMenu.displayName = "CommandMenu"
 
 // A panel has nothing to close; a row still runs its onSelect.
 const noop = () => {};
@@ -793,7 +831,11 @@ export function CommandMenuPanel({
 	title = "Command menu",
 	scope,
 	inputProps,
+	searchLabel,
+	clearLabel,
+	resultCountLabel,
 	children,
+	elevation = "resting",
 	className,
 	...props
 }: CommandMenuPanelProps) {
@@ -803,6 +845,7 @@ export function CommandMenuPanel({
 			data-slot="command-menu-panel"
 			className={cn(
 				"flex min-h-0 flex-col overflow-hidden rounded-lg border border-border bg-card text-card-foreground",
+				elevation === "raised" && "shadow-sm",
 				className,
 			)}
 			{...props}
@@ -819,6 +862,9 @@ export function CommandMenuPanel({
 				title={title}
 				scope={scope}
 				inputProps={inputProps}
+				searchLabel={searchLabel}
+				clearLabel={clearLabel}
+				resultCountLabel={resultCountLabel}
 				close={noop}
 				open
 				inline
@@ -828,6 +874,7 @@ export function CommandMenuPanel({
 		</div>
 	);
 }
+CommandMenuPanel.displayName = "CommandMenuPanel"
 
 interface CommandQueryContextValue {
 	/** Lowercased, trimmed query (empty string = show everything / no self-filter). */
@@ -880,6 +927,7 @@ export function CommandMenuGroup({
 		</div>
 	);
 }
+CommandMenuGroup.displayName = "CommandMenuGroup"
 
 export interface CommandMenuItemProps
 	extends Omit<
@@ -1009,6 +1057,7 @@ export function CommandMenuItem({
 		</div>
 	);
 }
+CommandMenuItem.displayName = "CommandMenuItem"
 
 /** Flatten a children tree into plain text for substring filtering. */
 function textOf(node: ReactNode): string {

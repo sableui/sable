@@ -82,7 +82,7 @@ export const COMMANDS: Command[] = [
 	{
 		name: "init",
 		run: "pnpm exec sable init",
-		does: "Wires Sable into the app: packages, CSS order, fonts, IconProvider, the agent skill and its AGENTS.md / CLAUDE.md block. Then runs doctor.",
+		does: "Wires Sable into the app: packages, CSS order, the Tailwind build, the agent skill and its AGENTS.md / CLAUDE.md block, plus fonts and IconProvider on Vite (printed for you on Next.js). Then runs doctor.",
 		when: "Once, right after installing. --dry-run shows every change first.",
 		keywords: ["install", "setup", "wire", "start"],
 	},
@@ -166,8 +166,8 @@ export const COMMANDS: Command[] = [
 	{
 		name: "setup",
 		run: "pnpm exec sable setup --agent",
-		does: "Installs the skill entries and the AGENTS.md / CLAUDE.md block. --update refreshes them after an upgrade; --hook adds the Stop hook.",
-		when: "In an app wired by hand, and after every upgrade.",
+		does: "Installs the skill entries and the AGENTS.md / CLAUDE.md block. --hook adds the Stop hook; --update refreshes entries after a package update that skipped init.",
+		when: "In an app wired by hand. init and upgrade run it for you.",
 		keywords: ["agent", "skill", "claude", "codex", "cursor", "hook"],
 	},
 ]
@@ -180,7 +180,7 @@ export const ANCHORS: WorkflowAnchor[] = [
 	{ id: SECTIONS.inspire.id, label: "Develop a preset", detail: "Turn references into a reusable preset with inspire.", keywords: ["inspire", "preset", "references", "theme"] },
 	{ id: SECTIONS.cli.id, label: "Sable CLI commands", detail: "init, doctor, check, lint, grade, search and the rest.", keywords: ["cli", "commands", "terminal"] },
 	{ id: SECTIONS.hook.id, label: "Stop hook", detail: "Make Claude Code run sable check before it can end a task.", keywords: ["hook", "claude code", "settings.json", "check"] },
-	{ id: SECTIONS.upgrade.id, label: "Upgrade Sable and its skill", detail: "One command: sable upgrade updates the package and refreshes the skill.", keywords: ["upgrade", "update", "version", "latest"] },
+	{ id: SECTIONS.upgrade.id, label: "Keep the skill and library together", detail: "Upgrading the package updates the skill; the command is under Get started.", keywords: ["skill", "upgrade", "workflow"] },
 	{ id: SECTIONS.mcp.id, label: "Sable MCP server", detail: "Look components up from any agent, before installing.", keywords: ["mcp", "server", "cursor", "vs code"] },
 	...COMMANDS.map((c) => ({ id: `cli-${c.name}`, label: `sable ${c.name}`, detail: c.does, keywords: [c.name, ...c.keywords] })),
 ]

@@ -9,61 +9,6 @@ Build the user's idea with the installed Sable library. The product brief determ
 content, structure, and behavior; a preset supplies theme values and design guidance.
 References inform an original direction. A reference or preset is optional.
 
-## Fix: the short path
-
-A `fix` is a scoped change to UI that already uses Sable: a wrong prop or variant,
-a lint or doctor finding, a broken state, one control swapped for the right one.
-It needs this section and the CLI from "Resolve and set up the installed library";
-skip the manifest, the design guides, and the finish checklist below.
-
-1. Read only what the change touches: `sable component <Name> --props`, the
-   example you need (`sable search "<need>"` finds it), `sable token <group>` or
-   `sable utility <name>` for a styling question, and `sable docs <foundation>`
-   only when the fix is about type, spacing, motion, or accessibility.
-2. Change the smallest amount of code that fixes it. A defect inside a Sable
-   component is patched, not restyled (see the end of this file).
-3. Run `sable check <changed paths>` and the project's own build and type checks,
-   then look at the affected state rendered, in every colour mode the app ships.
-
-Escalate to `polish` and its finish checklist when the change moves layout or
-hierarchy, touches a signature surface, spans more than one screen or flow, or
-the check turns up more than the fix. Say that you escalated, and why.
-
-## Finish checklist — before you call any build or polish done
-
-1. Run `sable check <source paths>` (default `src`). It runs `sable doctor`,
-   `sable lint`, and `sable grade` and exits 1 if any fails. Repair the findings
-   instead of suppressing them, then run it again until it passes. Act on its
-   notes too: they don't fail the check but name real work, such as trimming the
-   CSS to the components the app imports (`sable sources`), an Adoption block
-   listing app-built components Sable already ships, which you put to the user
-   (see "Adoption" under Verify and deliver), a Rebuilt parts block (elements
-   and app CSS standing in for a part, or reaching into one), and a colour-modes
-   warning, which you fix rather than explain. Also run the
-   project's own build and type checks.
-2. Review the rendered design: `sable docs reviewing-a-design`. Capture desktop and
-   mobile in every promised colour mode, and judge brief fit, composition,
-   hierarchy, rhythm, and imagery.
-3. Walk the journey: `sable docs reviewing-a-journey`. Operate the primary task and
-   its recovery path with keyboard and touch through loading, empty, error, and
-   success states.
-4. Review the motion: `sable docs reviewing-motion`. Observe playback and
-   interruption for anything that moves.
-5. Check reduced motion: with `prefers-reduced-motion` (or MotionProvider
-   `"reduced"`), state still changes and nothing keeps moving.
-6. Write the reuse inventory: the Sable components, parts, utilities, and token
-   groups used, and every app-owned UI or CSS addition with the catalog search
-   that justified it. Start from the app-owned surfaces and rebuilt parts
-   `sable check` lists, which are notes, not failures: for each, write one line saying you used the
-   Sable part named beside it or kept your own, and why ("composed our own
-   product tile from AspectBox + Badge: the brief wants the price over the
-   photo"). Keeping your own layout is fine. Behaviour still comes from Sable.
-7. Record what you learned: `sable docs learning-from-builds`. Keep conditional
-   lessons with evidence; never fabricate human approval or preference records.
-
-Steps 2–7 are what no tool can verify; `sable check` prints them after its
-results, plus any step its notes call for. A passing check is a contract result, not design approval.
-
 ## Route the request
 
 These are agent skill modes, not shell commands. Use `$sable` in Codex and
@@ -78,7 +23,7 @@ route it by the rules below and build it from the library.
 | `inspire <references or description>` | Study the inspiration, develop a direction, and save a previewable, editable preset. Stop before a full product build. |
 | `audit <existing interface>` | Inspect existing work and report prioritized design, behavior, accessibility, and Sable-contract findings. Apply repairs only when requested. |
 | `polish <target or instruction>` | Improve the current product or preset while preserving its selected direction, then verify affected states. |
-| `fix <target or finding>` | Repair one scoped defect in existing Sable UI on the short path at the top of this file, escalating to `polish` when it grows. |
+| `fix <target or finding>` | Repair one scoped defect in existing Sable UI on the short path ("Fix: the short path" below), escalating to `polish` when it grows. |
 
 `create` is an alias for `build`. A bare new-product brief means `build`; an editing
 follow-up means `polish`, unless it names one defect, which is a `fix`. A request for direction only stops before implementation.
@@ -183,8 +128,10 @@ before a task can end; it writes that hook to `.claude/settings.json` only with
 under Git Bash and PowerShell alike; `sable check --stop-hook` finds the project
 through Claude Code's `CLAUDE_PROJECT_DIR`, plus `--root` for a workspace package.
 The entry files read this installed package's instructions on each task;
-upgrading the package updates the workflow. After an upgrade, use
-`sable setup --agent --update` to refresh managed entry metadata when needed.
+upgrading the package updates the workflow. Upgrade with `sable upgrade`: it
+updates the package and runs the new version's `init`, which refreshes the entry
+files and the instructions block. Only when the package was updated some other
+way without `init`, run `sable setup --agent --update`.
 Keep project-specific preferences in project instructions rather than editing
 package files. Agents without skill discovery can read this file directly.
 
@@ -253,20 +200,27 @@ The installed catalog and guides are authoritative for API and token names.
 
 ## Develop or use a preset
 
-Save a short brief in the project's existing design location: audience, primary
-task, content, constraints, selected identity, and meaningful states, plus each
-route's width (a Region `max`, or fluid) and why, chosen by what the person does
-there (`sable docs building-a-page`), and its column structure: which content
-spans which of the 12 columns at which breakpoint, or "one measure, no columns".
-A grid is a choice per route, not a requirement; stating it is. Name the product's signature surfaces: the
-one to three places its identity lives (a shop's product card and search, a music
-app's player and album tile). Design those from the brief's direction first,
-composing Sable's parts and behaviour; take a Sable reference for one only when
-it already matches that direction. Everything else (forms, settings, menus,
-tables) takes Sable's defaults. Label invented sample content. A supplied preset is an explicit input: read its exact record and
-revision, validate it through `sable preset --check <path> --json`, and read
-`sable docs using-presets`. Preserve its tokens and guidance unless the user requests
-a change or the new task requires a documented adaptation.
+Save a short brief in the project's existing design location. It covers:
+
+- **Audience, primary task, content and constraints.**
+- **Selected identity**, and the meaningful states to design.
+- **Each route's width**: a Region `max`, or fluid, and why, chosen by what the
+  person does there (`sable docs building-a-page`).
+- **Each route's column structure**: which content spans which of the 12 columns
+  at which breakpoint, or "one measure, no columns". A grid is a choice per
+  route, not a requirement; stating it is.
+- **Signature surfaces**: the one to three places the product's identity lives
+  (a shop's product card and search, a music app's player and album tile).
+  Design those from the brief's direction first, composing Sable's parts and
+  behaviour; take a Sable reference for one only when it already matches that
+  direction. Everything else (forms, settings, menus, tables) takes Sable's
+  defaults.
+
+Label invented sample content. A supplied preset is an explicit input: read its
+exact record and revision, validate it through `sable preset --check <path>
+--json`, and read `sable docs using-presets`. Preserve its tokens and guidance
+unless the user requests a change or the new task requires a documented
+adaptation.
 
 A preset pasted or supplied for a project that already has an app (for example
 from Canvas's “Copy for agent”) is a request to restyle that app, so it is
@@ -318,6 +272,61 @@ Produce or obtain actual assets within authorization, verify loading and respons
 crops, and retain source/readiness notes. Atlas images are reference evidence, not
 product assets. A palette alone does not establish a finished design.
 
+## Fix: the short path
+
+A `fix` is a scoped change to UI that already uses Sable: a wrong prop or variant,
+a lint or doctor finding, a broken state, one control swapped for the right one.
+It needs this section and the CLI from "Resolve and set up the installed library";
+skip the manifest, the design guides, the preset work, and the finish checklist.
+
+1. Read only what the change touches: `sable component <Name> --props`, the
+   example you need (`sable search "<need>"` finds it), `sable token <group>` or
+   `sable utility <name>` for a styling question, and `sable docs <foundation>`
+   only when the fix is about type, spacing, motion, or accessibility.
+2. Change the smallest amount of code that fixes it. A defect inside a Sable
+   component is patched, not restyled (see the end of this file).
+3. Run `sable check <changed paths>` and the project's own build and type checks,
+   then look at the affected state rendered, in every colour mode the app ships.
+
+Escalate to `polish` and its finish checklist when the change moves layout or
+hierarchy, touches a signature surface, spans more than one screen or flow, or
+the check turns up more than the fix. Say that you escalated, and why.
+
+## Finish checklist — before you call any build or polish done
+
+1. Run `sable check <source paths>` (default `src`). It runs `sable doctor`,
+   `sable lint`, and `sable grade` and exits 1 if any fails. Repair the findings
+   instead of suppressing them, then run it again until it passes. Act on its
+   notes too: they don't fail the check but name real work, such as trimming the
+   CSS to the components the app imports (`sable sources`), an Adoption block
+   listing app-built components Sable already ships, which you put to the user
+   (see "Adoption" under Verify and deliver), a Rebuilt parts block (elements
+   and app CSS standing in for a part, or reaching into one), and a colour-modes
+   warning, which you fix rather than explain. Also run the
+   project's own build and type checks.
+2. Review the rendered design: `sable docs reviewing-a-design`. Capture desktop and
+   mobile in every promised colour mode, and judge brief fit, composition,
+   hierarchy, rhythm, and imagery.
+3. Walk the journey: `sable docs reviewing-a-journey`. Operate the primary task and
+   its recovery path with keyboard and touch through loading, empty, error, and
+   success states.
+4. Review the motion: `sable docs reviewing-motion`. Observe playback and
+   interruption for anything that moves.
+5. Check reduced motion: with `prefers-reduced-motion` (or MotionProvider
+   `"reduced"`), state still changes and nothing keeps moving.
+6. Write the reuse inventory: the Sable components, parts, utilities, and token
+   groups used, and every app-owned UI or CSS addition with the catalog search
+   that justified it. Start from the app-owned surfaces and rebuilt parts
+   `sable check` lists, which are notes, not failures: for each, write one line saying you used the
+   Sable part named beside it or kept your own, and why ("composed our own
+   product tile from AspectBox + Badge: the brief wants the price over the
+   photo"). Keeping your own layout is fine. Behaviour still comes from Sable.
+7. Record what you learned: `sable docs learning-from-builds`. Keep conditional
+   lessons with evidence; never fabricate human approval or preference records.
+
+Steps 2–7 are what no tool can verify; `sable check` prints them after its
+results, plus any step its notes call for. A passing check is a contract result, not design approval.
+
 ## Verify and deliver
 
 For animation decisions, retrieve `sable docs choosing-motion`; for rendering
@@ -345,7 +354,7 @@ new work. Record the answer in the project's instructions, outside the Sable
 block, so the next task doesn't ask again. `sable docs auditing-an-app` has the
 full guide.
 
-Every build and polish ends with the finish checklist near the top of this skill. Notes on it:
+Every build and polish ends with the finish checklist above. Notes on it:
 
 - `sable check` gives one combined result; while iterating, `sable lint <paths> --json`,
   `sable doctor`, and `sable grade <paths>` run the parts separately.

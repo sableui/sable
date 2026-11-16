@@ -100,9 +100,9 @@ export const accordionMeta: ComponentMeta = {
 		},
 		{
 			name: "AccordionTrigger",
-			type: "Base UI Accordion.Trigger props + className + indicator?: ReactNode",
+			type: "Base UI Accordion.Trigger props + className + indicator?: ReactNode + headingLevel?: 2 | 3 | 4 | 5 | 6 (default 3)",
 			description:
-				"The header button (Header + Trigger composed). Renders children plus a chevron that rotates via data-[panel-open] by default; pass `indicator` to replace the icon and its open-state behavior entirely (e.g. a plus that becomes an × for a FAQ-style toggle).",
+				"The header button (Header + Trigger composed). Renders children plus a chevron that rotates via data-[panel-open] by default; pass `indicator` to replace the icon and its open-state behavior entirely (e.g. a plus that becomes an × for a FAQ-style toggle). `headingLevel` sets the heading that wraps the button so the accordion fits the page outline: h2 for an FAQ directly under the page title, h4 under an h3 section. Defaults to h3.",
 		},
 		{
 			name: "AccordionPanel",
@@ -159,6 +159,10 @@ export const accordionMeta: ComponentMeta = {
 		{
 			label: "Multiple open",
 			code: '<Accordion multiple defaultValue={["a", "b"]}><AccordionItem value="a"><AccordionTrigger>First</AccordionTrigger><AccordionPanel>One.</AccordionPanel></AccordionItem><AccordionItem value="b"><AccordionTrigger>Second</AccordionTrigger><AccordionPanel>Two.</AccordionPanel></AccordionItem></Accordion>',
+		},
+		{
+			label: "Heading level",
+			code: '<Accordion><AccordionItem value="a"><AccordionTrigger headingLevel={2}>Can I cancel anytime?</AccordionTrigger><AccordionPanel>Yes — from billing settings.</AccordionPanel></AccordionItem></Accordion>',
 		},
 		{
 			label: "Custom indicator (plus-becomes-×)",

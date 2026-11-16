@@ -1,3 +1,5 @@
+"use client"
+
 import { Children, type ComponentProps, isValidElement, type ReactElement, type ReactNode } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"

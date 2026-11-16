@@ -6,8 +6,10 @@ import {
 	CardFooter,
 	DataTable,
 	dataTableMeta,
+	type DataTableSort,
 	EmptyState,
 	Icon,
+	Pagination,
 	StatusDot,
 	Toolbar,
 } from "@sableui/react"
@@ -115,6 +117,53 @@ function GroupedIssues() {
 	)
 }
 
+/* Stands in for a server: sorts the whole set, then returns one page. */
+const MEMBERS = ["Zoe Park", "adam Ruiz", "Émile Laurent", "Bea Okafor", "carl Diaz", "Dana Ito", "eli Novak", "Farah Haddad", "Gus Lind"].map(
+	(name, i) => ({ id: `u${i + 1}`, name, seats: (i * 7) % 12 + 1 }),
+)
+const PAGE_SIZE = 4
+type MemberSort = DataTableSort | null
+function fetchMembers(sort: MemberSort, page: number) {
+	const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" })
+	const sorted = [...MEMBERS]
+	if (sort) {
+		sorted.sort((a, b) => {
+			const c = sort.key === "seats" ? a.seats - b.seats : collator.compare(a.name, b.name)
+			return sort.direction === "asc" ? c : -c
+		})
+	}
+	return { rows: sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), pageCount: Math.ceil(MEMBERS.length / PAGE_SIZE) }
+}
+
+function ServerSortedMembers() {
+	const [sort, setSort] = useState<MemberSort>({ key: "name", direction: "asc" })
+	const [page, setPage] = useState(1)
+	const { rows, pageCount } = fetchMembers(sort, page)
+	return (
+		<Card>
+			<CardContent flush>
+				<DataTable
+					data={rows}
+					rowKey={(m) => m.id}
+					sort={sort}
+					onSortChange={(next) => {
+						setSort(next)
+						setPage(1)
+					}}
+					manualSorting
+					columns={[
+						{ key: "name", header: "Member", sortable: true },
+						{ key: "seats", header: "Seats", sortable: true, align: "end" },
+					]}
+				/>
+			</CardContent>
+			<CardFooter className="justify-end">
+				<Pagination page={page} total={pageCount} onPageChange={setPage} />
+			</CardFooter>
+		</Card>
+	)
+}
+
 function formatDeployed(date: Date): string {
 	return date.toLocaleString(undefined, {
 		month: "short",
@@ -171,6 +220,15 @@ export function DataTablePage() {
 							/>
 						</CardContent>
 					</Card>
+				</Example>
+			</Section>
+
+			<Section
+				title="Server-sorted and paged"
+				description="Control the sort with sort and onSortChange, and set manualSorting when the server orders and pages the rows: the header reports the click, the table leaves the page as it came. Without manualSorting a header click would reorder only the four rows on screen. Names compare as a reader expects, ignoring case and accents."
+			>
+				<Example className="block">
+					<ServerSortedMembers />
 				</Example>
 			</Section>
 

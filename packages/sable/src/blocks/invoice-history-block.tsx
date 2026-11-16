@@ -1,3 +1,5 @@
+"use client"
+
 import { Badge } from "../components/badge"
 import { Button } from "../components/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/card"

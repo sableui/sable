@@ -13,7 +13,7 @@ The checks are the specification. Every rule below names the gate that enforces 
 3. **Base UI is behavior; `components/` is the public API.** Each component wraps `@base-ui/react` directly inside its own folder (use the **`render` prop** for composition; read state from `data-[state=…]` attributes) and owns 100% of the styling. There is no separate primitives tier. Consumers import only from the package root barrel.
 4. **Semantic icons in components.** Use `<Icon name="…">`. Concrete icon-package imports belong only in `src/icon-sets/`, which nothing in the core graph imports. Apps supply the set through `<IconProvider>` (Reicon from `@sableui/react/icons/reicon`, or their own).
 5. **Every scroll container declares a scrollbar policy.** An `overflow-*-auto|scroll` utility must be paired with `scrollbar-quiet` (a 4px thumb, invisible at rest, fading in while the region scrolls) or `scrollbar-hidden` (no bar — only when something else carries the affordance, and you should be able to name it). Left bare, the platform draws its own: on Windows that means stepper arrows hard against the padding edge, poking out of any rounded corner. Vertical scrolling takes a bar; **horizontal takes none** — an edge fade says "there is more this way" better than a rail does, which is why `Scroller` splits by axis. New scroll container? Reach for `useScrollActivity` so the bar appears on touch drags and programmatic scrolls, which hover cannot see. Enforced by `design-lint`'s `unmanaged-overflow` **and** by `build-registry` over every registry example. Full rationale: `DESIGN.md → Scrolling`.
-6. **Tailwind v4 packaging discipline.** `src/styles.css` must **not** `@import "tailwindcss"` (the consumer owns that). It carries only token blocks, `@theme inline` mappings, `@utility` typography, layout vars, and `@source`. `@source` points at `src` (never the gitignored `dist`).
+6. **Tailwind v4 packaging discipline.** `src/styles.css` must **not** `@import "tailwindcss"` (the consumer owns that). It carries only token blocks, `@theme inline` mappings, `@utility` typography and layout vars — and **no `@source`**. A glob in the published file resolves against the installed `dist`, so every app would generate every component's, block's and `*.meta.js` example's classes whatever it scanned, and `sable sources` could trim nothing. The consumer's stylesheet owns the scan (the README's glob, or `sable sources`); the workspace apps get theirs from `scripts/sable-consumer.mjs`. `themes.test.ts`, `copy-assets` and `check-package` all refuse one.
 
 **Variants, not overrides — and spacing on the scale.** A component's look comes from its variants, never from override classes a caller (or another component) passes in, and its own padding moves with density. Gated by:
 
@@ -28,13 +28,13 @@ The checks are the specification. Every rule below names the gate that enforces 
 ```
 src/
   index.ts                 # public barrel — the only consumer entry
-  styles.css               # CSS entry: theme import + @theme map + @utility typography + layout vars + @source
+  styles.css               # CSS entry: theme import + @theme map + @utility typography + layout vars (no @source)
   lib/cn.ts                # cn() = clsx + tailwind-merge (with ds-typography paired-utility group)
   themes/
     _contract.ts           # SemanticTokens — the token names every theme MUST define
     registry.ts            # public theme manifests, ids, and attribute helpers
     theme-provider.tsx     # SableThemeProvider + useSableTheme for app theme switching
-    <id>/                  # one folder per theme: <id>.css (:root/.dark vars) + index.ts (TS manifest) + art-direction.md
+    <id>/                  # one folder per theme: <id>.css (:root/.dark vars) + index.ts (TS manifest), + art-direction.md when the theme was built from a reference
   foundations/             # the typed rules (typography, motion, spacing, shape, surfaces, a11y) → docs pages + llms/foundations/*.md
   layout/                  # fluid grid/layout primitives: Region, Grid, Columns, Stack, Row, Spacer, Center, AspectBox, Bleed, SplitPane, Page, SafeArea, GridOverlay
   icon/                    # Icon, IconProvider, IconRegistry — the semantic adapter and provider overrides
@@ -55,7 +55,7 @@ the installer. User-defined presets belong to apps, not the bundled theme regist
 
 1. If it needs non-trivial behavior (overlay, focus trap, keyboard nav), wrap the Base UI part inside the component folder — never re-implement focus management Base UI already owns.
 2. Create `components/<name>/<name>.variants.ts` — a `cva()` over **semantic tokens**.
-3. Create `components/<name>/<name>.tsx` — the themed component composing the primitive + variants + `cn()`.
+3. Create `components/<name>/<name>.tsx` — the themed component composing the primitive + variants + `cn()`. If it calls a hook, creates a context, sets an event handler or passes a function to a Base UI part, its first statement is `"use client"`: the build keeps each module's own directive and adds none, so a module without it breaks in a Next.js Server Component (`use-client.test.ts`). A small control that stands alone takes `hitTargetTouch` (`lib/hit-target`) so it reaches 44px under a coarse pointer; one packed beside its siblings keeps `hitTargetMin`.
 4. Create `components/<name>/<name>.meta.ts` — machine-readable metadata (see "Component meta").
 5. `components/<name>/index.ts` re-exports; add to the root `src/index.ts` barrel.
 6. File it in `src/lib/taxonomy.ts` and add a docs page at `apps/docs/src/pages/components/<Name>Page.tsx` with live examples (the build fails without both).
@@ -109,7 +109,7 @@ deliberately reverses: `DESIGN.md → Registers`. What a contributor needs to kn
    naming a component that no longer exists, or a component with no
    `apps/docs/src/pages/components/<Name>Page.tsx`. The grouping used to live only in the
    docs nav array, which is exactly how `PanelGroup`, `PanelSection`, `ScrubField` and
-   `StatusBar` shipped in 0.31.0 unfiled and undocumented and stayed that way for four
+   `StatusBar` once shipped unfiled and undocumented and stayed that way for several
    releases. The docs nav is now generated from the contract, so the two cannot drift.
    **Group by KIND, not by co-occurrence** — see the note in `taxonomy.ts`: the
    `related.components` graph tracks composition as much as kinship, and grouping by it
@@ -119,9 +119,14 @@ deliberately reverses: `DESIGN.md → Registers`. What a contributor needs to kn
 
 A theme is a CSS file that defines every token in `themes/_contract.ts` for `:root` (light) and `.dark` (dark), plus an optional TS manifest. Components depend on the **semantic** layer; each theme supplies its own palette underneath. Alternate themes activate through the root `data-sable-theme` attribute; consuming apps should usually let `<SableThemeProvider>` own that wiring and read/update it through `useSableTheme()`. To make a new theme: copy `themes/sable/`, swap the palette + semantic values, keep the token names identical, add the manifest to `themes/registry.ts`, import its CSS from `src/themes.css`, add `./theme/<id>` + `./theme/<id>.css` to both `exports` and `publishConfig.exports`, and cover it in `themes.test.ts` — which holds every label on a brand or status fill (`primary`, `sidebar-primary`, `highlight`, `destructive`, `success`, `tone-warning`, `tone-info`) to 4.5:1 **and** APCA Lc 60 with no exceptions; apps and presets may record exceptions, Sable's own themes may not. Each status colour also has a `-text` token (the colour on a surface, read by `text-`/`border-`/`ring-<status>` through Tailwind's per-property namespaces in styles.css), gated as text on `background`, `card`, `popover` and `muted`. `build-registry` fails on a theme missing from any of those, and generates `registry.json → themes.available` from the manifests — never hand-edit that list. Re-skinning never touches component code.
 
-**Themes are presets, not the unit of customization.** Every token a theme sets can also be set by an app (or by the docs customizer) on `:root` after the theme loads. A theme is the starting point a consumer picks; the customizer exports the deltas on top of it. Keep that working: a theme must not set a token with `!important` or under a selector more specific than `[data-sable-theme="<id>"]`, or a consumer override cannot win.
+**Themes are presets, not the unit of customization.** Every token a theme sets can also be set by an app (or by the docs customizer) on `:root` after the theme loads. A theme is the starting point a consumer picks; the customizer exports the deltas on top of it. Keep that working: a theme sets its light tokens on `[data-sable-theme="<id>"]` and its dark tokens only on the standard dark arms (`.dark[data-sable-theme="<id>"]`, `[data-sable-theme="<id>"].dark`, `[data-sable-theme="<id>"] .dark`, `.dark [data-sable-theme="<id>"]:not(.light)` — what `sable preset --css` emits), never with `!important` and never under anything more specific than those arms. The dark arms are (0,2,0)–(0,3,0), so an app overriding a token must match them: a bare `:root { --primary: … }` wins in light and **loses in dark** under any alternate theme. Override light on `:root, [data-sable-theme]` and dark on `.dark, .dark[data-sable-theme], [data-sable-theme] .dark, .dark [data-sable-theme]:not(.light)`, loaded after the theme CSS:
 
-`_contract.ts` exports five token groups: `SEMANTIC_TOKENS` (colors — **light + dark**, e.g. `--background`, `--primary`, `--tone-1`), `MOTION_TOKENS` (duration/easing ladder), `RADIUS_TOKENS` (the 7 `--theme-radius-*` steps bridged to Tailwind's `radius-*` scale), `TYPE_SCALE_TOKENS` (display/heading/title size, weight, leading, and tracking vars consumed by the paired `text-*` typography utilities in styles.css), and `TYPE_OVERLINE_TOKENS` (the small, uppercase, letter-spaced eyebrow/overline/kicker tier — size/weight/leading/tracking/transform — consumed by the `text-overline` utility). `MOTION_TOKENS`, `RADIUS_TOKENS`, `TYPE_SCALE_TOKENS`, and `TYPE_OVERLINE_TOKENS` are **mode-independent** — declared once per theme (not duplicated under `.dark`), unlike `SEMANTIC_TOKENS`.
+```css
+:root, [data-sable-theme] { --primary: oklch(55% 0.2 250); }
+.dark, .dark[data-sable-theme], [data-sable-theme] .dark, .dark [data-sable-theme]:not(.light) { --primary: oklch(75% 0.15 250); }
+```
+
+`_contract.ts` exports five required token groups (plus optional and derived ones — `CHART_TOKENS`, the categorical chart palette the Sable theme declares on `:root` and every theme inherits, is optional per theme and gated per bundled theme in `themes.test.ts`): `SEMANTIC_TOKENS` (colors — **light + dark**, e.g. `--background`, `--primary`, `--tone-1`), `MOTION_TOKENS` (duration/easing ladder), `RADIUS_TOKENS` (the 7 `--theme-radius-*` steps bridged to Tailwind's `radius-*` scale), `TYPE_SCALE_TOKENS` (display/heading/title size, weight, leading, and tracking vars consumed by the paired `text-*` typography utilities in styles.css), and `TYPE_OVERLINE_TOKENS` (the small, uppercase, letter-spaced eyebrow/overline/kicker tier — size/weight/leading/tracking/transform — consumed by the `text-overline` utility). `MOTION_TOKENS`, `RADIUS_TOKENS`, `TYPE_SCALE_TOKENS`, and `TYPE_OVERLINE_TOKENS` are **mode-independent** — declared once per theme (not duplicated under `.dark`), unlike `SEMANTIC_TOKENS`.
 
 `TYPE_REFINEMENT_TOKENS` additionally exposes optional typography hooks for body,
 label, caption, mono, title sizes, and the largest display size. Retrieve
@@ -132,15 +137,18 @@ do not need to declare every optional hook.
 
 `SEMANTIC_TOKENS` includes `border-strong` alongside `border` — a visually-stronger structural divider (grid lines, table rules, section separators) distinct from `border`, which stays tuned for subtle chrome (badge/input outlines). Both need light + dark values, derived from the same neutral ramp as `border` but pulled from a higher-contrast step (e.g. the Sable theme: `border` = `--zinc-200` light / low-alpha `--zinc-700` dark → `border-strong` = `--zinc-300` light / higher-alpha `--zinc-500` dark). `styles.css`'s `@theme inline` block maps it to `--color-border-strong`, so components/consumers use it via the `border-strong` Tailwind color utility, same pattern as `border`.
 
-`TYPE_OVERLINE_TOKENS` (`type-overline-size/weight/leading/tracking/transform`) back the `text-overline` utility — the eyebrow/badge-label/stat-caption text role with no home in `TYPE_SCALE_TOKENS`'s display/heading/title ramp. `type-overline-transform` is themeable rather than a hardcoded `uppercase`, so a quieter reference (e.g. Cove) can opt into sentence case. Like the other type tiers, every built-in theme declares explicit values rather than relying on styles.css's fallback defaults (`0.75rem` / weight `600` / leading `1.2` / tracking `0.08em` / `uppercase`).
+`TYPE_OVERLINE_TOKENS` (`type-overline-size/weight/leading/tracking/transform`) back the `text-overline` utility — the eyebrow/badge-label/stat-caption text role with no home in `TYPE_SCALE_TOKENS`'s display/heading/title ramp. `type-overline-transform` is themeable rather than a hardcoded `uppercase`, so a quieter theme can opt into sentence case. Like the other type tiers, every built-in theme declares explicit values rather than relying on styles.css's fallback defaults (`0.75rem` / weight `600` / leading `1.2` / tracking `0.08em` / `uppercase`).
 
 The manifest's `fonts` field is `{ sans: string; mono: string; display?: string }` — `display` is **optional**, for a theme whose reference uses a distinct display/headline typeface separate from its body sans (e.g. a Chalet-style display face over an Instrument Sans body). When a theme sets `display`, its CSS also defines `--font-display` (alongside `--font-sans`/`--font-mono`) in the same `:root, [data-sable-theme="…"]` block. styles.css's `text-display-*` and `text-heading-*` utilities read `font-family: var(--font-display, var(--font-sans))` — a theme that omits `display`/`--font-display` falls through to `--font-sans` and renders identically to before this field existed. `text-title-*`/body-register utilities are unaffected and keep inheriting `--font-sans` only.
 
 ## Icon contract
 
 Components reference semantic names through `<Icon name="…" />`. Reicon (MIT)
-is the bundled set, installed as a runtime dependency and kept external to the
-build. It is opt-in: `<Icon>` has no fallback, so an app that brings its own set
+is the bundled set, vendored rather than installed: `pnpm icons:reicon`
+(scripts/build-reicon-icons.mjs) reads the pinned `reicon-react` dev dependency
+and writes `src/icon-sets/reicon.generated.ts` and `reicon-solid.generated.ts`,
+coordinates rounded to 2 decimals; `pnpm icons:reicon:check` fails when they are
+stale. Add a glyph there, never by importing `reicon-react`. It is opt-in: `<Icon>` has no fallback, so an app that brings its own set
 ships none of Reicon's artwork. Concrete icon imports belong only in
 `src/icon-sets/`; components never import an icon package or duplicate its SVG
 artwork, and nothing in the core graph imports `src/icon-sets/`.
@@ -155,6 +163,13 @@ artwork, and nothing in the core graph imports `src/icon-sets/`.
   `@sableui/react/icons/reicon`, then use
   `<IconProvider set={composeIconSets(appExtras, reiconIconSet)}>`.
   The first set returning a non-null node wins.
+- **Solid weight:** `reiconIconSet` carries the outline weight, plus the solid
+  weight only for the glyphs Sable's own components draw solid
+  (`SOLID_IN_DEFAULT` in the generator; a test fails when a component draws
+  another glyph solid). Any other `variant="solid"` falls back to the outline.
+  The full solid weight is `reiconSolidIconSet` from
+  `@sableui/react/icons/reicon-solid`, composed in front:
+  `composeIconSets(reiconSolidIconSet, reiconIconSet)`.
 - `@sableui/react/icons/reicon` is the only import path for the adapter; the root
   barrel does not re-export it. `fallbackIconSet` is a deprecated alias of Reicon
   on the same subpath, with no separate artwork.
@@ -181,13 +196,13 @@ Motion is a first-class layer — **crafted by default, calm on request, zero ru
 | `transition` | how does it move between its own states? | `motion-disclosure`, or ease the transform |
 | `activity` | how do you tell "working" from "frozen"? | `motion-spin` · `motion-pulse` · `motion-shimmer` |
 
-This paragraph said "don't leave it static" for many releases while **nothing checked it**. The four motion rules below are all prohibitive — they fire on motion that is present and wrong, and none can fire on motion that is absent — so a component that snapped between every state passed the whole contract, and motion stayed a thing a human had to request by name. Two gates now close that: `static-interactive` (lint, fires on an element styled for pointer states with no recipe on it) and `meta.motion` — `build-registry` **fails** when a component that reacts to the pointer or carries state declares no `motion` array (`pnpm build:registry -- --motion-report` prints the slot-by-slot coverage).
+Static is checked, not just discouraged. The four motion rules below are all prohibitive — they fire on motion that is present and wrong, and none can fire on motion that is absent — so two gates catch a component that snaps between every state: `static-interactive` (lint, fires on an element styled for pointer states with no recipe on it) and `meta.motion` — `build-registry` **fails** when a component that reacts to the pointer or carries state declares no `motion` array (`pnpm build:registry -- --motion-report` prints the slot-by-slot coverage).
 
 1. **Reach for a recipe first** — apply one named class instead of a bespoke transition string: `motion-interactive` (default hover/focus/press chrome — **replaces** `transition-colors`), `motion-press` (tactile press; always pair with `motion-interactive`), `motion-fade`/`motion-pop`/`motion-slide-{up,down,left,right}` (overlay enter/exit, on Base UI `data-[starting-style]`/`data-[ending-style]`), `motion-disclosure` (height), `motion-icon-swap` (a glyph that changes with state), the expressive `motion-{glide,shake,tick,appear,arrive,size}`, and loaders `motion-{spin,shimmer,pulse,dot-bounce,ping}`.
 2. **Drop to tokens only when a recipe doesn't fit.** Durations via `duration-(--motion-duration-{instant|fast|base|slow|slower})` — **never** a raw `duration-150` (it bypasses the kill-switch). Easings via `ease-{standard|decelerate|emphasized|spring|bounce}`. Spring/bounce overshoot is **enter-only**; exits stay clean.
 3. **Never** use Tailwind's built-in `animate-spin`/`animate-pulse`/`animate-ping`/`animate-bounce` — they ignore `--motion-scale`, so the on/off policy can't freeze them. Use the scale-aware `motion-*` loader recipes.
 4. **Compositor-first & subtle:** animate opacity + transform (scale/translate) only; short durations; no exit overshoot; no gaudy motion.
-5. **Policy:** all token-driven motion collapses to static under `prefers-reduced-motion` or `<MotionProvider>` off (one `--motion-scale: 0`); `subtle` zeroes `--motion-expressive` only. JS primitives read `useMotion().enabled` and must no-op when motion is off; JS flourishes read `expressive`.
+5. **Policy:** all token-driven motion collapses to static under `prefers-reduced-motion` or `<MotionProvider>` off (one `--motion-scale: 0`); `subtle` zeroes `--motion-expressive` only. A theme declares its durations already multiplied by `--motion-scale` (`calc(150ms * var(--motion-scale))`, gated in `themes.test.ts`), and the `data-motion="off"`/`"reduced"` rule in styles.css zeroes that ladder too, so a `<MotionScope>` or a component's `motion="off"` — a plain element, where a scale change alone would not re-resolve the inherited durations — stills the plain-token recipes as well. A new duration token must join that rule. JS primitives read `useMotion().enabled` and must no-op when motion is off; JS flourishes read `expressive`.
 6. **JS motion lives in `src/motion/`** (zero-dep, browser-native: WAAPI / IntersectionObserver / View Transitions). Do **not** add the `motion` library to core — drag/gesture, FLIP layout, and velocity springs are the future optional `@sableui/motion` adapter (peer-dep `motion`).
 
 Full token table + rationale: `DESIGN.md → Motion`. Live demo: docs → Foundations → Motion (also the on/off toggle).
@@ -201,25 +216,52 @@ Inspect them before choosing composition. Reuse and diverge when the information
 architecture fits; compose an original route from layout primitives when it does
 not. The brief determines the result, not resemblance to an existing shell.
 
-The **source is the contract**: each pattern is real TSX (typechecked, design-linted, rendered live by the docs app), split as `<name>.meta.ts` (a `PatternMeta`: name/summary/intent/notes/a11y) + `<name>.tsx` whose code after the `// ---pattern-code---` marker is emitted verbatim into the registry by `build-registry.mjs` — so the shipped recipe can never drift from code that compiles. Keep patterns hook-free and self-contained (inline sample data, `<a href>` for links); the generator auto-derives the consumer import block. To add one: write the pair, export both from `src/patterns/index.ts`, regenerate the registry, and add it to the docs `PatternPreview` map.
+The **source is the contract**: each pattern is real TSX (typechecked, design-linted, rendered live by the docs app), split as `<name>.meta.ts` (a `PatternMeta`: name/summary/intent/notes/a11y) + `<name>.tsx` whose code after the `// ---pattern-code---` marker is emitted verbatim into the registry by `build-registry.mjs` — so the shipped recipe can never drift from code that compiles. Keep patterns self-contained: inline sample data, `<a href>` for links, and no app-specific hooks (no router, data or auth hooks — React's own state for a demo interaction is fine, as ListDetailPage's selection and TrackerPage's filters use it). The generator auto-derives the consumer import block. To add one: write the pair, export both from `src/patterns/index.ts`, and regenerate the registry; the Patterns page and the docs `/preview/<slug>` route both read the catalog, so a new pattern opens with no docs edit.
 
 ## Blocks (section-sized compositions)
 
-`src/blocks/` holds compositions smaller than a page — a sign-in card, a pricing card, an order tracker — built from components with sample content and no behaviour of their own. They ship exactly like patterns (`@sableui/react/blocks` previews + `registry.json → blocks` source, `sable block <Name>`), from the same `<name>.meta.ts` (a `BlockMeta`) + `<name>.tsx` pair split by a `// ---block-code---` marker. The docs canvas and the Blocks page render them, so the scenes a theme is judged on are the source a consumer copies.
+`src/blocks/` holds compositions smaller than a page — a sign-in card, a pricing card, an order tracker — built from components with sample content and only enough local state to demonstrate themselves. They ship exactly like patterns (`@sableui/react/blocks` previews + `registry.json → blocks` source, `sable block <Name>`), from the same `<name>.meta.ts` (a `BlockMeta`) + `<name>.tsx` pair split by a `// ---block-code---` marker. The docs canvas and the Blocks page render them, so the scenes a theme is judged on are the source a consumer copies.
 
-**Component or block?** If it owns behaviour, state or an a11y contract that should arrive on upgrade, it is a component. If it is an arrangement of components plus copy, it is a block. A block that needs something the library lacks is a library gap: add the component first (`DateTile` and `SegmentedBar` arrived this way), then compose it.
+**Component or block?** If it owns behaviour, state or an a11y contract that should arrive on upgrade, it is a component. If it is an arrangement of components plus copy, it is a block. A block that needs something the library lacks is a library gap: add the component first (`DateTile`, `SegmentedBar` and `IconTile` arrived this way), then compose it. The same goes for a look: a block never restyles a component with override classes (`rounded-none`, `ring-*`, `shadow-*`, borders and padding on a Toggle); it uses or adds the variant (`ToggleGroup appearance="tiles"`, Card `variant="featured"`, Avatar `cutout`, CardHeader `divided`).
 
-**The block contract** (checked by `build-registry`): the name ends in `Block`; the meta declares a `family`, a `kind` (`card` | `section`) and, for cards, the designed `width` ({ min, max }); the root takes `className` and renders `w-full` capped at the designed max; a card block built on Card takes `framed` (Card `default` / `flat`); the only other props are the primary action's callbacks. Content is never a prop — it is the constant at the top of the file, edited after copying. Variants are separate blocks, not a `variant` prop. To add one: write the pair, export both from `src/blocks/index.ts`, and regenerate the registry; the Blocks docs page picks it up from the catalog.
+**The block contract** (checked by `build-registry` and `blocks.test.tsx`):
+
+- The name ends in `Block`; the meta declares a `family`, a `kind` (`card` | `section`) and, for cards, the designed `width` ({ min, max }).
+- The root takes `className` and renders `w-full` capped at the designed max; a card block built on Card takes `framed` (Card `default` / `flat`).
+- The only other props are **callbacks for the outcomes the block produces**, one per action an app must handle (see the naming rule below). Content is never a prop — it is the constant at the top of the file, edited after copying. The one exception is media a block exists to work on: PhotoAdjustBlock takes the photo it edits as `image`, with seeded art when it is omitted, because the photo is its input, not its copy. Never point a constant at a docs-site path (`/media/…`): a consumer importing the preview would request a URL that only sableui.com serves. Leave it empty for seeded art, and let the docs pass the real image.
+- Variants are separate blocks, not a `variant` prop.
+- **Card titles are headings.** A card block's `CardTitle` renders as `h2` (`render={<h2 />}`), so a dashboard built from blocks can be navigated by heading. Cards a block groups under a heading of its own step down to `h3` (PricingTableBlock's tiers under its `h2`); a section block's headline is `h2` (`h1` only for HeroBlock and NotFoundBlock, which are a page's opening). A figure in the title slot (a balance, a stat's number) is a value, not a name, and stays a `div`. `blocks.test.tsx` checks every `<CardTitle>` in the folder.
+- **Live regions exist before they speak.** A status line is mounted empty and only its text changes; a region inserted with its words already in it is announced unreliably. Moving focus to the outcome (ApprovalBlock, ReserveTableBlock) is better still.
+- **Sample dates are relative.** Derive them from the page load (`Date.now()`, today plus two days), never a fixed day that will have passed by the time someone reads the block.
+
+**Callback naming.** One rule, so an app wiring three blocks learns it once:
+
+- Name the verb the person performed, present tense: `onSend`, `onSave`, `onReserve`, `onInvite`, `onClear`. The payload is what the block knows at that moment, typed: nothing, one value, or **one object** when it carries several (`onReserve({ date, guests })`, `onChoose({ tier, period })`).
+- **One callback per verb.** Two answers that are different verbs get two callbacks (`onApprove` / `onDeny`, `onJoin` / `onDecline`, `onSkip` / `onSend`), never one callback with a flag or an enum saying which happened.
+- A two-state control reports `on<State>Change(next: boolean)`: `onFollowChange`, `onPlayingChange`, `onLikeChange`.
+- A row in a list reports with its id first: `on<Item>Action(id, action)` for a menu of actions (`onMemberAction`, `onKeyAction`), `on<Item>Change(id, value)` for a control on the row (`onSettingChange`, `onReactionChange`). A single item's menu is `on<Item>Action(action)` (`onPostAction`).
+- When the app's answer decides what the block says next (an invite that can fail), the callback may return a promise and the block reports the outcome after it settles (ShareBlock's `onInvite`).
+
+To add one: write the pair, export both from `src/blocks/index.ts` (A–Z, each block beside its meta), and regenerate the registry; the Blocks docs page picks it up from the catalog.
 
 ## Promoting from an app (and the drift back down)
 
-The system grows **out of the apps**, not ahead of them. A component earns its way in by being built in a consuming app first, measured in place, and only then lifted here — which is how the workspace register (v0.31.1, out of Glitch's tool chrome) and `Tree` (v0.32.0, out of Glitch's layers list) landed. Both deleted more app code than they added: Glitch's `globals.css` went 229 → 49 lines and its local `components/workspace/` disappeared. That deletion is the signal you're promoting something real rather than relocating it.
+The system grows **out of the apps**, not ahead of them. A component earns its way in by being built in a consuming app first, measured in place, and only then lifted here — which is how the workspace register (out of a design tool's chrome) and `Tree` (out of the same tool's layers list) landed. Both deleted more app code than they added: the tool's `globals.css` went 229 → 49 lines and its local `components/workspace/` disappeared. That deletion is the signal you're promoting something real rather than relocating it.
 
 **The route up.** Build it in the app. Measure the actual numbers in the running product — control heights, radii, type sizes at their real weights (`DESIGN.md → Registers` is what measured numbers look like written down). Then promote with three things, none optional: **tokens** (so the geometry is retunable, never hardcoded), **a contract test** (so the invariant you discovered can't silently break — `Tree`'s is `--tree-indent` must equal `--tree-column`, because a smaller step renders nesting *inverted*), and **a docs page that reproduces the bug you hit**, so the next agent meets the failure before they meet the fix.
 
 **The over-fit check.** One consumer proves a thing works; it does not prove the shape is general. Before promoting, write down which parts you expect a *second* consumer to need — those predictions are the point, and whichever fail are the over-fits to the first app. When only one consumer exists, say so and prefer the narrower API; widening later is cheap, and unwinding an abstraction shaped around one app's accident is not.
 
-**The drift down is not automatic, and nothing detects it.** Components live in the package, so an upgrade delivers them. **Patterns are copy-in** — the moment an app adapts one it stops tracking, and no tooling notices. `sable-lint` is a lexical token linter (see "Consuming this package"); it has no idea a given file was ever meant to follow a pattern. So when a pattern changes here, the consuming app needs a deliberate read-and-diff: `CHANGELOG.md`, the pattern's `llms/patterns/<name>.md`, and the current implementation, side by side. Most of the work is usually small, because patterns are mostly *composition* over components the app already got on upgrade — what the app misses is the **wiring**, which component to reach for and how to connect it (0.56.1's ChatPanel is the example: the streaming behavior shipped in `StreamingText`; the pattern only showed how to drive it from one `pending` flag).
+**The drift down is not automatic, and nothing detects it.** Components live in the package, so an upgrade delivers them. **Patterns are copy-in** — the moment an app adapts one it stops tracking, and no tooling notices. `sable-lint` is a lexical token linter (see "Consuming this package"); it has no idea a given file was ever meant to follow a pattern. So when a pattern changes here, the consuming app needs a deliberate read-and-diff: `CHANGELOG.md`, the pattern's `llms/patterns/<name>.md`, and the current implementation, side by side. Most of the work is usually small, because patterns are mostly *composition* over components the app already got on upgrade — what the app misses is the **wiring**, which component to reach for and how to connect it (ChatPanel is the example: the streaming behavior shipped in `StreamingText`; the pattern only showed how to drive it from one `pending` flag).
+
+## Words a component supplies (labels and copy)
+
+A component that writes its own words — an icon button's accessible name, a screen-reader-only status, a default empty message — writes them in English **and lets the caller replace every one**. One convention, the one most components already used:
+
+- **One flat prop per string, named `<role>Label`**: `closeLabel`, `dismissLabel`, `previousLabel`, `nextLabel`, `copyLabel`, `clearLabel`. The default is the English string, set in the destructuring (`closeLabel = "Close"`), and the prop is documented in the meta with that default.
+- **A string that carries a value takes a function** returning the string: `pageLabel?: (page: number) => string`, `slideLabel?: (index: number, count: number) => string` — never a template with placeholders to parse. `selectAllLabel`, `rowSelectionLabel` and `countLabel` are the model.
+- **Not a `labels` object, not a strings provider.** `labels` already means visible data labels on the charts, and a flat prop is what `sable component` prints, what autocompletes and what a reader of the JSX sees.
+- **Never a literal on the element.** `aria-label={closeLabel}`, not `aria-label="Close"`: the literal is exactly what cannot be overridden, and spreading `{...props}` over it only reaches the root. `aria-label-literals.test.ts` fails on a string or template literal in a component's `aria-label`.
 
 ## Component meta (the AI-readable surface)
 
@@ -235,3 +277,10 @@ Two rules that keep the contract unambiguous for consumers reading the registry:
 - **Examples are complete, copy-pasteable code.** The generator **fails** on an example that elides its content (`>…<`) or references a component the package doesn't export (a phantom like `<NetworkBanner>`); components consumers genuinely supply (a router `<Link>`) live in the generator's `EXTERNAL_COMPONENTS` allowlist. Every emitted example carries an auto-derived `imports` block — don't hand-author imports in meta code.
 
 `registry.json`'s `components[]` (with each component's full props/variants/examples) is **generated from the metas** by `scripts/build-registry.mjs` — do **not** hand-edit it. `pnpm build` regenerates it; CI runs `pnpm registry:check` (`build:registry:check`) and **fails** if the committed file is out of sync, so the catalog can't silently drift. Adding a component is therefore: write its `*.meta.ts`, run the build (or `pnpm build:registry`), commit the regenerated `registry.json`. (The static blocks — `consume`, `tokens`, `enforcement`, `iconContract`, `layoutPrimitives` — are hand-authored and preserved by the generator.)
+
+## Public release
+
+The public repository is exported from this one. `pnpm public:check` lists open
+release blockers; `pnpm public:export` dry-runs the export (what would be
+published, and its identity, path and credential scans). Neither is a gate on an
+npm release.

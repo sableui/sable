@@ -188,13 +188,13 @@ describe("Sheet", () => {
 				<SheetTrigger render={<Button>Open</Button>} />
 				<SheetContent>
 					<SheetTitle>T</SheetTitle>
-					<SheetClose render={<Button>Close</Button>} />
+					<SheetClose render={<Button>Done</Button>} />
 				</SheetContent>
 			</Sheet>,
 		)
 		await userEvent.click(screen.getByRole("button", { name: "Open" }))
 		await screen.findByRole("dialog")
-		await userEvent.click(screen.getByRole("button", { name: "Close" }))
+		await userEvent.click(screen.getByRole("button", { name: "Done" }))
 		await waitFor(() =>
 			expect(screen.getByRole("button", { name: "Open" })).toHaveFocus(),
 		)
@@ -422,5 +422,68 @@ describe("Sheet focus return", () => {
 		await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
 		await act(async () => {})
 		expect(document.activeElement).toBe(screen.getByRole("button", { name: "Filters" }))
+	})
+})
+
+describe("SheetContent close button", () => {
+	it("shows a labelled close button on a side sheet by default, and leaves the header room for it", async () => {
+		render(
+			<Sheet open>
+				<SheetContent>
+					<SheetHeader>
+						<SheetTitle>Filters</SheetTitle>
+					</SheetHeader>
+				</SheetContent>
+			</Sheet>,
+		)
+		const dialog = await screen.findByRole("dialog")
+		const close = screen.getByRole("button", { name: "Close" })
+		expect(dialog).toContainElement(close)
+		// Stands alone in the corner, so its touch target grows to 44px.
+		expect(close.className).toContain("pointer-coarse:before:size-[44px]")
+		expect(close).toHaveClass("absolute", "end-4", "top-4")
+		expect(dialog.className).toContain("[&_[data-slot=sheet-header]]:pe-8")
+	})
+
+	it("takes a label, and closes the sheet", async () => {
+		const onOpenChange = vi.fn()
+		render(
+			<Sheet open onOpenChange={onOpenChange}>
+				<SheetContent side="left" closeLabel="Fermer">
+					<SheetTitle>Menu</SheetTitle>
+				</SheetContent>
+			</Sheet>,
+		)
+		await screen.findByRole("dialog")
+		await userEvent.click(screen.getByRole("button", { name: "Fermer" }))
+		expect(onOpenChange).toHaveBeenCalledWith(false, expect.anything())
+	})
+
+	it("shows none on a bottom sheet unless asked, and none on a side sheet turned off", async () => {
+		const { rerender } = render(
+			<Sheet open>
+				<SheetContent side="bottom">
+					<SheetTitle>Order</SheetTitle>
+				</SheetContent>
+			</Sheet>,
+		)
+		await screen.findByRole("dialog")
+		expect(screen.queryByRole("button", { name: "Close" })).toBeNull()
+		rerender(
+			<Sheet open>
+				<SheetContent side="bottom" showCloseButton>
+					<SheetTitle>Order</SheetTitle>
+				</SheetContent>
+			</Sheet>,
+		)
+		expect(await screen.findByRole("button", { name: "Close" })).toBeInTheDocument()
+		rerender(
+			<Sheet open>
+				<SheetContent side="right" showCloseButton={false}>
+					<SheetTitle>Order</SheetTitle>
+				</SheetContent>
+			</Sheet>,
+		)
+		await waitFor(() => expect(screen.queryByRole("button", { name: "Close" })).toBeNull())
 	})
 })

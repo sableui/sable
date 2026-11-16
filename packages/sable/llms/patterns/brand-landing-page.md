@@ -274,7 +274,7 @@ export function BrandLandingPage() {
 												<Button variant="secondary" size="sm">Review</Button>
 											</Row>
 											<div className="mt-5 grid gap-4 sm:mt-6 sm:gap-5">
-												<div className="grid grid-cols-9 items-end gap-1.5 rounded-concentric-xl/10 bg-card p-4 sm:gap-2">
+												<Grid cols={9} gap={0.75} className="items-end rounded-concentric-xl/10 bg-card p-4 sm:gap-2">
 													{bars.map((bar) => (
 														<div key={bar.week} className="flex h-36 items-end sm:h-56">
 															<div
@@ -283,8 +283,8 @@ export function BrandLandingPage() {
 															/>
 														</div>
 													))}
-												</div>
-												<div className="grid grid-cols-3 gap-2">
+												</Grid>
+												<Grid cols={3} gap={1}>
 													{sceneMetrics.map((metric) => (
 														<div key={metric.label} className="rounded-concentric-xl/10 border border-border bg-card p-3">
 															<p className="truncate text-label-sm text-muted-foreground">{metric.label}</p>
@@ -292,7 +292,7 @@ export function BrandLandingPage() {
 															<p className="mt-1 text-body-xs text-muted-foreground max-sm:hidden">{metric.detail}</p>
 														</div>
 													))}
-												</div>
+												</Grid>
 											</div>
 										</div>
 									</div>

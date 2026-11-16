@@ -155,7 +155,7 @@ The full reference is `llms/reference/token-intent.md` → Generated palette.
 ## Verify
 
 ```bash
-npx sable-lint            # lints ./src; pass dirs to change (npx sable-lint app components)
+pnpm exec sable lint            # lints ./src; pass dirs to change (pnpm exec sable lint app components)
 ```
 
 `sable-lint` ships with the package and reads the token vocabulary from the

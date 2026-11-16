@@ -96,6 +96,72 @@ export function TabsPage() {
 				</Example>
 			</Section>
 
+			<Section
+				title="Vertical"
+				description="orientation=&quot;vertical&quot; sets the list beside its panels, ruled on its end edge, and Up/Down move between tabs. Reach for it in a settings surface with more sections than fit in a row."
+			>
+				<Example>
+					<Tabs defaultValue="general" orientation="vertical" className="w-full max-w-md">
+						<TabsList>
+							<TabsTrigger value="general">General</TabsTrigger>
+							<TabsTrigger value="billing">Billing</TabsTrigger>
+							<TabsTrigger value="members">Members</TabsTrigger>
+						</TabsList>
+						<TabsPanel value="general">
+							<p className="text-body-md text-muted-foreground">
+								Workspace name, URL and default language.
+							</p>
+						</TabsPanel>
+						<TabsPanel value="billing">
+							<p className="text-body-md text-muted-foreground">
+								Plan, invoices and the card on file.
+							</p>
+						</TabsPanel>
+						<TabsPanel value="members">
+							<p className="text-body-md text-muted-foreground">
+								Who can view and edit this workspace.
+							</p>
+						</TabsPanel>
+					</Tabs>
+				</Example>
+			</Section>
+
+			<Section
+				title="More tabs than fit"
+				description="A row wider than its container scrolls sideways with an edge fade and no bar, and the chosen tab scrolls into view."
+			>
+				<Example>
+					<Tabs defaultValue="overview" className="w-full max-w-xs">
+						<TabsList>
+							<TabsTrigger value="overview">Overview</TabsTrigger>
+							<TabsTrigger value="activity">Activity</TabsTrigger>
+							<TabsTrigger value="members">Members</TabsTrigger>
+							<TabsTrigger value="files">Files</TabsTrigger>
+							<TabsTrigger value="settings">Settings</TabsTrigger>
+							<TabsTrigger value="audit">Audit log</TabsTrigger>
+						</TabsList>
+						<TabsPanel value="overview">
+							<p className="text-body-md text-muted-foreground">Status, owner and due date.</p>
+						</TabsPanel>
+						<TabsPanel value="activity">
+							<p className="text-body-md text-muted-foreground">Recent edits and comments.</p>
+						</TabsPanel>
+						<TabsPanel value="members">
+							<p className="text-body-md text-muted-foreground">Everyone on the project.</p>
+						</TabsPanel>
+						<TabsPanel value="files">
+							<p className="text-body-md text-muted-foreground">Uploads and exports.</p>
+						</TabsPanel>
+						<TabsPanel value="settings">
+							<p className="text-body-md text-muted-foreground">Visibility and notifications.</p>
+						</TabsPanel>
+						<TabsPanel value="audit">
+							<p className="text-body-md text-muted-foreground">Who changed what, and when.</p>
+						</TabsPanel>
+					</Tabs>
+				</Example>
+			</Section>
+
 			<Section title="With a disabled tab">
 				<Example>
 					<Tabs defaultValue="overview" className="w-full max-w-md">

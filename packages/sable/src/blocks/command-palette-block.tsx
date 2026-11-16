@@ -24,5 +24,5 @@ export function CommandPaletteBlock({ className, onCommand }: CommandPaletteBloc
 		hint: <Kbd>{c.key}</Kbd>,
 		onSelect: () => onCommand?.(c.id),
 	}))
-	return <CommandMenuPanel className={cn("w-full max-w-xs shadow-sm", className)} placeholder="Type a command…" items={items} />
+	return <CommandMenuPanel elevation="raised" className={cn("w-full max-w-xs", className)} placeholder="Type a command…" items={items} />
 }

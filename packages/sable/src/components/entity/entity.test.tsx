@@ -1,3 +1,4 @@
+import type { ComponentProps } from "react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 import { renderWithProviders, screen } from "../../test/render"
@@ -9,6 +10,13 @@ describe("Entity subtitle", () => {
 		expect(screen.getByText("A long description")).toHaveClass("truncate")
 		rerender(<Entity title="Ada" subtitle="A long description" subtitleWrap />)
 		expect(screen.getByText("A long description")).not.toHaveClass("truncate")
+	})
+})
+
+describe("Entity name", () => {
+	it("announces the title and subtitle as separate words", () => {
+		renderWithProviders(<Entity interactive onSelect={() => {}} title="Refund policy" subtitle="help.atlas.example" />)
+		expect(screen.getByRole("button", { name: "Refund policy help.atlas.example" })).toBeInTheDocument()
 	})
 })
 
@@ -96,5 +104,41 @@ describe("Entity", () => {
 		rerender(<Entity interactive onSelect={() => {}} title="Alex" />)
 		expect(container.firstChild).not.toHaveAttribute("data-selected")
 		expect(screen.getByRole("button")).not.toHaveAttribute("aria-current")
+	})
+})
+
+describe("Entity as a link", () => {
+	it("renders the row's target through render, with the action outside it", () => {
+		renderWithProviders(
+			<Entity
+				interactive
+				render={<a href="/people/ada" />}
+				title="Ada"
+				action={<button type="button">More</button>}
+			/>,
+		)
+		const link = screen.getByRole("link", { name: "Ada" })
+		expect(link).toHaveAttribute("href", "/people/ada")
+		expect(link).not.toHaveAttribute("type")
+		expect(link.className).toContain("after:absolute")
+		expect(link).not.toContainElement(screen.getByRole("button", { name: "More" }))
+		expect(screen.queryByRole("button", { name: "Ada" })).toBeNull()
+	})
+
+	it("marks the selected link as the current page, and a selected button as the current item", () => {
+		const { rerender } = renderWithProviders(
+			<Entity interactive selected render={<a href="/people/ada" />} title="Ada" />,
+		)
+		expect(screen.getByRole("link", { name: "Ada" })).toHaveAttribute("aria-current", "page")
+		rerender(<Entity interactive selected onSelect={() => {}} title="Ada" />)
+		expect(screen.getByRole("button", { name: "Ada" })).toHaveAttribute("aria-current", "true")
+	})
+
+	it("treats a router link (a `to` prop) as a link", () => {
+		function Link({ to, ...props }: { to: string } & ComponentProps<"a">) {
+			return <a href={to} {...props} />
+		}
+		renderWithProviders(<Entity interactive selected render={<Link to="/people/ada" />} title="Ada" />)
+		expect(screen.getByRole("link", { name: "Ada" })).toHaveAttribute("aria-current", "page")
 	})
 })

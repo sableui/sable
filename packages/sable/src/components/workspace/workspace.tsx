@@ -1,6 +1,6 @@
 "use client";
 
-import type { ComponentProps, ReactNode } from "react"
+import { type ComponentProps, createContext, type ReactNode, useContext } from "react"
 import { cn } from "../../lib/cn"
 import { DensityProvider } from "../../lib/density"
 
@@ -22,6 +22,14 @@ type WorkspaceProps = Omit<ComponentProps<"div">, "children"> & {
 	density?: "compact" | "comfortable"
 	/** Text for the skip link. @default "Skip to canvas" */
 	skipLinkLabel?: string
+	/**
+	 * The id of the canvas (the `main` landmark) the skip link targets. The
+	 * WorkspaceCanvas inside takes it unless it is given an `id` of its own.
+	 * Change it when the page already has a `main-content` (an AppShell around
+	 * the tool), so the two ids do not collide.
+	 * @default "main-content"
+	 */
+	mainId?: string
 	/** The body — normally a PanelGroup. */
 	children: ReactNode
 }
@@ -64,6 +72,7 @@ export function Workspace({
 	bottomNav,
 	density = "compact",
 	skipLinkLabel = "Skip to canvas",
+	mainId = "main-content",
 	className,
 	children,
 	...props
@@ -75,6 +84,7 @@ export function Workspace({
 		// never — measured, its --control-md resolved to the comfortable 40px while
 		// the workspace around it was 32px, and --button-radius reverted to pills.
 		<DensityProvider value={density}>
+		<WorkspaceMainId.Provider value={mainId}>
 		<div
 			data-density={density}
 			className={cn(
@@ -86,7 +96,7 @@ export function Workspace({
 			{/* Kept by hand, since we're not inheriting AppShell's. A tool still owes
 			    keyboard users a way past the chrome. */}
 			<a
-				href="#main-content"
+				href={`#${mainId}`}
 				className="sr-only focus:not-sr-only focus:absolute focus:start-2 focus:top-2 focus:z-(--z-skip-link) focus:rounded-sm focus:bg-popover focus:px-3 focus:py-2 focus:text-ui-md focus:text-popover-foreground focus:ring-2 focus:ring-ring"
 			>
 				{skipLinkLabel}
@@ -109,10 +119,14 @@ export function Workspace({
 				</div>
 			) : null}
 		</div>
+		</WorkspaceMainId.Provider>
 		</DensityProvider>
 	)
 }
 Workspace.displayName = "Workspace"
+
+/** The skip link's target id, handed from Workspace to its canvas. */
+const WorkspaceMainId = createContext("main-content")
 
 /**
  * WorkspaceCanvas — the work surface, and the `main` landmark.
@@ -121,12 +135,19 @@ Workspace.displayName = "Workspace"
  * landmark and the `#main-content` target the skip link points at. It clips
  * rather than scrolls: panning and zooming a canvas is the viewport's job, and a
  * scrollbar on the artboard means the transform isn't in charge.
+ *
+ * `tabIndex={-1}`: the skip link moves focus here, and an element that cannot
+ * take focus ignores `.focus()` — focus stayed on the link that was just
+ * activated (AppShell's main carries the same fix). -1 keeps it out of the tab
+ * order. An `id` passed here wins over Workspace's `mainId`.
  */
 export function WorkspaceCanvas({ className, children, ...props }: ComponentProps<"main">) {
+	const mainId = useContext(WorkspaceMainId)
 	return (
 		<main
-			id="main-content"
-			className={cn("relative min-h-0 min-w-0 flex-1 overflow-hidden bg-canvas", className)}
+			id={mainId}
+			tabIndex={-1}
+			className={cn("relative min-h-0 min-w-0 flex-1 overflow-hidden bg-canvas outline-none", className)}
 			{...props}
 		>
 			{children}

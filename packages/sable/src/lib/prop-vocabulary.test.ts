@@ -92,7 +92,46 @@ const VALUE_IS_NOT_CONTROLLED = new Set([
 	"Meter", // a reading
 	"Progress",
 	"NumberTicker", // a reading it rolls to, never edited
+	// The value its hidden input submits. The list inside it reports picks
+	// through its own onValueChange; the list unmounts while the row is closed,
+	// so the root has to carry what the form reads.
+	"DisclosurePicker",
 ])
+
+/*
+ * One field ladder. A toolbar filter row is a Select, an Input, a Combobox, a
+ * DatePicker and a NumberField side by side, and it is only one height if all
+ * of them stand on the same rungs: `md` the form field, `sm` the toolbar field
+ * (`--control-sm`, beside `sm` buttons), `xs` the inset tool-panel field. Select
+ * and SearchInput had `sm`; Input, ComboboxInput, DatePicker and NumberField
+ * did not, so the row could not be built. Read from the source — the declared
+ * union of each field's `size` — because the registry is regenerated later and
+ * the metas do not all list their rungs as a variant.
+ *
+ * Not here, on purpose: Textarea (its height is its rows, not a rung) and
+ * CommandMenuTrigger (a header button standing in for search, not a field in a
+ * form row).
+ */
+const FIELD_LADDER = ["md", "sm", "xs"]
+const FIELDS: Record<string, string> = {
+	Input: "components/input/input.tsx",
+	SelectTrigger: "components/select/select.tsx",
+	ComboboxInput: "components/combobox/combobox.tsx",
+	SearchInput: "components/search-input/search-input.tsx",
+	NumberField: "components/number-field/number-field.tsx",
+	DatePicker: "components/date-picker/date-picker.tsx",
+	DisclosurePicker: "components/disclosure-picker/disclosure-picker.tsx",
+}
+
+/** The rungs a field's `size` prop declares, following one type alias if it names one. */
+function declaredRungs(file: string): string[] {
+	const src = readFileSync(join(__dirname, "..", file), "utf8")
+	const declared = src.match(/^\s*size\?:\s*([^\n/]+)/m)?.[1].trim() ?? ""
+	const union = /^[A-Z]\w*$/.test(declared)
+		? (src.match(new RegExp(`type ${declared} = ([^\\n]+)`))?.[1] ?? "")
+		: declared
+	return [...union.matchAll(/"(\w+)"/g)].map((m) => m[1]).sort()
+}
 
 describe("prop vocabulary", () => {
 	it("names every variant axis from the shared list", () => {
@@ -138,6 +177,14 @@ describe("prop vocabulary", () => {
 				.filter(([, callback]) => !names.has(callback))
 				.map(([prop, callback]) => `${c.name}: documents \`${prop}\` but not \`${callback}\``)
 		})
+		expect(offenders).toEqual([])
+	})
+
+	it("stands every field on the same ladder", () => {
+		const offenders = Object.entries(FIELDS)
+			.map(([name, file]) => [name, declaredRungs(file)] as const)
+			.filter(([, rungs]) => rungs.join() !== [...FIELD_LADDER].sort().join())
+			.map(([name, rungs]) => `${name}: size is ${rungs.join(" | ") || "(none found)"}, the field ladder is ${FIELD_LADDER.join(" | ")}`)
 		expect(offenders).toEqual([])
 	})
 

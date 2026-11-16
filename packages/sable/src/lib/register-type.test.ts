@@ -91,6 +91,16 @@ describe("the compact register retunes type, not just heights", () => {
 		).toEqual([])
 	})
 
+	it("compresses from the tier's own size, refinement token included", () => {
+		// A hard-coded default on the page side (`calc(0.9375rem * …)`) ignored a
+		// theme's `--type-body-md-size`, so a preset that set a tier BELOW the ui
+		// tier got text that grew inside compact. Each min() must read the token
+		// the page utility reads.
+		const sizes = [...compactBlock.matchAll(/font-size:\s*min\(([^;]+)\);/g)].map((m) => m[1])
+		const literal = sizes.filter((v) => !/^calc\(var\(--type-[\w-]+-size,/.test(v.trim()))
+		expect(literal, `compact sizes that ignore the tier token: ${literal.join(" | ")}`).toEqual([])
+	})
+
 	it("moves weight onto the workspace scale, so raw utilities and useTypeTier agree", () => {
 		// Without this, a compact panel carries 600 labels from raw utilities
 		// beside 500 labels from components wired to useTypeTier — the same

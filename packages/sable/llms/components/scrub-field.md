@@ -35,8 +35,14 @@ Use ScrubField for numeric properties in tool chrome — an inspector, a propert
 | suffix | ReactNode | — | Unit rendered after the value inside the field (e.g. "%", "px"). |
 | onGestureStart | () => void | — | Fires once when a scrub drag begins — open an undo transaction here, and drop expensive downstream work (e.g. a GPU renderer) to a cheap preview quality; without it a pipeline re-renders at full quality on every pointer move and the drag stutters. |
 | onGestureEnd | () => void | — | Fires when a scrub drag ends — close the undo transaction here and restore full render quality. |
-| disabled | boolean | — | Disables typing and scrubbing. |
+| disabled | boolean | — | Disables typing and scrubbing; a disabled field submits nothing, like a native control. |
+| readOnly | boolean | — | Blocks typing, arrow keys and scrubbing. The value still submits. |
+| name | string | — | Submits the value with a form under this name, through a hidden input: a plain number at the precision of step ("60", "0.25") — no unit, no separators. It is always the last committed value, never the draft being typed. |
+| form | string | — | Id of a form elsewhere on the page that the hidden input belongs to. |
 | id | string | — | Input id, for a PropertyRow's htmlFor. |
+| className | string | — | Sizes the field shell (w-16, flex-1). Defaults to w-full. |
+| dragLabel | (label: string) => string | (label) => `Drag to change ${label}` | The scrub handle's tooltip, given `label`. Translate it with the rest of the panel. |
+| ...props | ComponentPropsWithRef<"input"> | — | ref, aria-describedby, aria-invalid, required, data-* and handlers land on the input, so a Field's description and error reach it and a ref can focus it. |
 
 ## Tokens used
 
@@ -55,12 +61,23 @@ Use ScrubField for numeric properties in tool chrome — an inspector, a propert
 - The input carries the accessible name via `label`; the glyph is aria-hidden because it is decorative.
 - Every scrub gesture is reachable from the keyboard: ArrowUp/ArrowDown step by `step`, Shift+Arrow by ten steps.
 - Enter commits, Escape reverts to the last committed value, and blur commits — so a partial edit is never silently kept.
+- Inside a Field the id, aria-describedby, aria-invalid and required it clones reach the input, so the description and error are announced with it.
 
 ## Related
 
 - Components: NumberField, Slider, PanelSection, Workspace, Input
 
 ## Examples
+
+### In a form (submits the committed number)
+
+```tsx
+import { ScrubField } from "@sableui/react"
+
+<form action={save}>
+  <ScrubField label="Opacity" name="opacity" icon="grid" suffix="%" value={opacity} min={0} max={100} onValueChange={setOpacity} />
+</form>
+```
 
 ### Opacity with a glyph handle
 

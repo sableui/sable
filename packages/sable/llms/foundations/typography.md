@@ -2,7 +2,7 @@
 
 Type is a closed vocabulary of paired utilities. Each one bundles size, weight, line-height and tracking, and is picked by role rather than by size.
 
-**6 families · 8 everyday tiers · 2 text colors · 1 utility per text node**
+**7 families · 8 everyday tiers · 2 text colors · 1 utility per text node**
 
 ## The everyday set
 
@@ -19,7 +19,7 @@ Product UI is built almost entirely from these eight. Reach outside them on purp
 | `text-label-lg` | 14px · 600 | Buttons, field labels, tabs. |
 | `text-caption` | 12px · 400 | Timestamps, footnotes, meta rows. |
 
-## The six families
+## The seven families
 
 Every tier belongs to one family, and the family is the decision. Size follows from it.
 
@@ -29,7 +29,8 @@ Every tier belongs to one family, and the family is the decision. Size follows f
 | `Heading  heading-1…4` | 36 / 28 / 22 / 18px · 600 | The document outline (h1–h4). Keep the order; never skip a level to get a size. |
 | `Title  title-lg · title-sm` | 16 / 14px · 600 | Names a UI part without claiming a document heading. |
 | `Body  body-lg/md/sm/xs` | 17 / 15 / 13 / 12px · 400 | Reading text. -lg is the lede (carries text-wrap: pretty); -xs is a dense-UI floor, not a prose size. |
-| `Label  label-lg/md/sm · caption` | 14 / 12 / 11px · 600; caption 12 · 400 | Functional, scannable text of one to three words. Caption is also the group-label tier: nav sections, menu groups. |
+| `Label  label-lg/md/sm/xs · caption` | 14 / 12 / 11 / 11px · 600; caption 12 · 400 | Functional, scannable text of one to three words, sentence case. Caption is also the group-label tier: nav sections, menu groups. |
+| `Overline  overline` | 12px · 600 · uppercase, tracked | The eyebrow: an editorial kicker above a marketing heading, at most one per view. Label `eyebrow` renders it. Never product chrome. |
 | `Mono  mono-xl/lg/md/caption/sm` | 28 / 20 / 13 / 12 / 11px · tabular | Numbers that are the content, IDs, hashes, code, aligned figures. |
 
 ## Text color
@@ -57,7 +58,7 @@ Every tier belongs to one family, and the family is the decision. Size follows f
 
 - **Never:** Opacity on text (text-foreground/60, opacity-70 on a paragraph). **Instead:** text-muted-foreground. An alpha step over an unknown surface has unknown contrast, and it shifts per theme. *Enforced by sable-lint: text-opacity.*
 - **Never:** A hand-picked size, weight or tracking (text-[15px], font-medium, tracking-wide). **Instead:** The paired utility for the role. Off-vocabulary type cannot be retuned by a theme or the customizer, so it drifts the moment either changes. *Enforced by sable-lint: decomposed-type.*
-- **Never:** Uppercase in product chrome: nav and menu group labels, page eyebrows, table headers, section titles. **Instead:** Sentence-case text-caption or text-label-md in muted-foreground; hierarchy from size, weight and space. Tracked capitals spread across a UI read as shouting and slow word recognition. The eyebrow tier (label-xs / overline) is an editorial accent: at most one per marketing view.
+- **Never:** Uppercase in product chrome: nav and menu group labels, page eyebrows, table headers, section titles. **Instead:** Sentence-case text-caption or text-label-md in muted-foreground; hierarchy from size, weight and space. Tracked capitals spread across a UI read as shouting and slow word recognition. The eyebrow tier (text-overline, or Label `eyebrow`) is an editorial accent: at most one per marketing view. text-label-xs is a sentence-case label, not an eyebrow.
 - **Never:** Display tiers inside product UI, or two display sizes in one view. **Instead:** heading-1 for a page title; mono-xl for a metric. Display is type as image. In chrome it competes with the content it is supposed to frame.
 - **Never:** Justified text, or reading copy below body-sm. **Instead:** Ragged-right at body-md; body-xs only for dense data. Justification opens rivers on the web, which has no hyphenation control; 12px prose fails people with low vision.
 - **Never:** Changing the root font-size (html { font-size: 14px }) to make a product denser. **Instead:** --type-base: 14, with Workspace or <Density value="compact"> for denser controls. The root also sizes every rem the app wrote: widths, insets, media queries. --type-base moves only the type and the rhythm built on it, and density moves the controls, so each can be chosen on its own.

@@ -25,6 +25,10 @@ function CalendarChevron({ orientation }: ChevronProps) {
 	)
 }
 
+/** A `{ from, to }` selection, as `mode="range"` reports it. Re-exported so an
+ * app types its range state without depending on react-day-picker directly. */
+export type { DateRange } from "react-day-picker"
+
 export type CalendarProps = DayPickerProps & {
 	/**
 	 * Drop the card frame (border, fill, padding) so the grid sits flush inside
@@ -85,8 +89,20 @@ export function Calendar({
 				className,
 			)}
 			classNames={{
-				months: "relative flex flex-col gap-4 sm:flex-row",
-				month: "relative flex flex-col gap-4",
+				// Months wrap rather than switch at a viewport breakpoint: `sm:flex-row`
+				// put two months side by side in a narrow popover on a wide screen. A
+				// container query cannot do it either, because the root shrinks to fit
+				// its content. Each month keeps its own width as its basis
+				// (`basis-auto`), so two sit side by side wherever both fit and the
+				// second drops below where they do not.
+				months: "relative flex flex-wrap gap-4",
+				// flex-1 and the justify-between rows below: a calendar given a width
+				// (`className="w-full"` in a card) spreads its seven columns across it,
+				// so the first and last days sit on the container's edges. At its own
+				// width the columns already touch, and nothing moves. In a container
+				// narrower than seven cells (a 20rem card at an airy density) the
+				// cells give up width (min-w-0, max-w-full) instead of running out.
+				month: "relative flex min-w-0 flex-1 basis-auto flex-col gap-4",
 				nav: "absolute inset-x-0 top-0 z-10 flex items-center justify-between px-1",
 				// The month arrows are Sable's ghost icon button — same height ladder,
 				// radius (--button-radius), hover and focus ring — not a lookalike.
@@ -95,17 +111,20 @@ export function Calendar({
 				month_caption:
 					"relative flex h-(--control-sm) items-center justify-center px-(--control-sm)",
 				caption_label: "text-title-sm",
-				month_grid: "w-full border-collapse",
-				weekdays: "flex",
+				// A flex column, not table layout: the rows are flex already, and a
+				// table refuses to be narrower than its cells, which is what pushed a
+				// month out of a narrow card. Its grid role is set by the library.
+				month_grid: "flex w-full min-w-0 flex-col",
+				weekdays: "flex w-full justify-between",
 				weekday:
-					"flex size-9 items-center justify-center text-caption text-muted-foreground",
-				week: "mt-1 flex w-full",
+					"flex size-9 min-w-0 items-center justify-center text-caption text-muted-foreground",
+				week: "mt-1 flex w-full justify-between",
 				// motion-interactive on the cell too: a range's fill is painted on the
 				// cells (see range_* below), so without it the band between the
 				// endpoints snapped while the endpoint buttons eased.
-				day: "p-0 text-center motion-interactive",
+				day: "min-w-0 p-0 text-center motion-interactive",
 				day_button:
-					"inline-flex size-9 items-center justify-center rounded-md text-body-sm motion-interactive outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring",
+					"inline-flex size-9 max-w-full items-center justify-center rounded-md text-body-sm motion-interactive outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring",
 				// Range fill lives on the CELL so it forms one continuous bar; only the
 				// outer ends are rounded. The selected (primary) endpoint buttons sit on
 				// top — their rounded corners reveal the accent fill, connecting them to

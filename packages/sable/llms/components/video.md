@@ -21,7 +21,8 @@ Use Video to embed playable or previewable video media inside a page.
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| onRequestPlay | () => void | — | Placeholder only (no src): renders the play mark as a real button labelled "Play video" that calls this — e.g. to load the source. Without it the mark is decorative. |
+| onRequestPlay | () => void | — | Placeholder only (no src): renders the play mark as a real button labelled by playLabel that calls this — e.g. to load the source. Without it the mark is decorative. |
+| playLabel | string | "Play video" | Accessible name of the placeholder play button (with onRequestPlay). |
 | src | string | — | Video source URL. When omitted, a poster/placeholder with a play overlay renders. |
 | poster | string | — | Poster image shown before playback (and as the placeholder backdrop). |
 | controls | boolean | true | Show native playback controls. |

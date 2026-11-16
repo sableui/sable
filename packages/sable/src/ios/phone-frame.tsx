@@ -1,3 +1,5 @@
+"use client"
+
 import { type ReactEventHandler, type Ref, useEffect, useRef, useState } from "react"
 import { Phone } from "../components/phone"
 import { cn } from "../lib/cn"

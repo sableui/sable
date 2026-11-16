@@ -1,3 +1,5 @@
+"use client"
+
 import { Button, Glass, Sheet } from 'konsta/react'
 import { useEffect, useId, useRef, useState, type ReactNode, type PointerEvent } from 'react'
 import { PresentationProvider } from '../lib/presentation'

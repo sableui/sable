@@ -1,3 +1,5 @@
+"use client"
+
 import { Avatar, AvatarGroup } from "../components/avatar"
 import { Badge } from "../components/badge"
 import { Button } from "../components/button"
@@ -8,8 +10,9 @@ import { cn } from "../lib/cn"
 // ---block-code---
 const event = {
 	title: "Design review",
-	date: new Date(2026, 9, 14),
-	when: "Tuesday, 2:00 – 2:45 PM",
+	// Today, so the "starts in" badge is never on a day that has passed.
+	date: new Date(),
+	when: "Today, 2:00 – 2:45 PM",
 	starts: "In 10 min",
 	attendees: ["MO", "SR", "JL"],
 	total: 7,
@@ -19,11 +22,13 @@ export interface EventCardBlockProps {
 	className?: string
 	/** false drops the card's surface and border — for a muted section that already frames it. */
 	framed?: boolean
-	/** Called with the person's answer. */
-	onRespond?: (answer: "join" | "decline") => void
+	/** Called when the person joins the event. */
+	onJoin?: () => void
+	/** Called when the person declines it. */
+	onDecline?: () => void
 }
 
-export function EventCardBlock({ className, framed = true, onRespond }: EventCardBlockProps) {
+export function EventCardBlock({ className, framed = true, onJoin, onDecline }: EventCardBlockProps) {
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs", className)}>
 			<CardContent className="flex gap-4">
@@ -35,7 +40,7 @@ export function EventCardBlock({ className, framed = true, onRespond }: EventCar
 					    roomier look leaves no space beside the title, the badge wraps
 					    to its own line instead of squeezing the title onto two. */}
 					<div className="flex flex-wrap items-start justify-between gap-x-2 text-title-lg">
-						<CardTitle>{event.title}</CardTitle>
+						<CardTitle render={<h2 />}>{event.title}</CardTitle>
 						<span className="flex h-[1lh] shrink-0 items-center">
 							<Badge tone="info" size="sm">
 								{event.starts}
@@ -54,10 +59,10 @@ export function EventCardBlock({ className, framed = true, onRespond }: EventCar
 					))}
 				</AvatarGroup>
 				<div className="flex gap-2">
-					<Button variant="outline" size="sm" onClick={() => onRespond?.("decline")}>
+					<Button variant="outline" size="sm" onClick={onDecline}>
 						Decline
 					</Button>
-					<Button size="sm" onClick={() => onRespond?.("join")}>
+					<Button size="sm" onClick={onJoin}>
 						Join
 					</Button>
 				</div>

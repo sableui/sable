@@ -100,9 +100,9 @@ export const inputMeta: ComponentMeta = {
 	props: [
 		{
 			name: "size",
-			type: '"md" | "xs"',
+			type: '"md" | "sm" | "xs"',
 			default: '"md"',
-			description: "md is the form field. xs is the dense inset field of a tool panel (an inset panel-field fill, no outline, tight padding) — the same ladder as Select and Combobox. Use it instead of overriding the height with className.",
+			description: "md is the form field. sm is the toolbar field, one rung down (--control-sm), so a filter row with an sm Select, sm buttons and an Input is one height. xs is the dense inset field of a tool panel (an inset panel-field fill, no outline, tight padding) — the same ladder as Select and Combobox. Use it instead of overriding the height with className.",
 		},
 		{
 			name: "type",
@@ -146,7 +146,7 @@ export const inputMeta: ComponentMeta = {
 		"Set aria-invalid='true' on error so the destructive treatment is conveyed, not color-only.",
 	],
 	variants: {
-		size: ["md", "xs"],
+		size: ["md", "sm", "xs"],
 	},
 	examples: [
 		{ label: "Default", code: '<Input placeholder="Search posts" />' },

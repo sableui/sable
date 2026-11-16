@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const pillMeta: ComponentMeta = {
 	name: "Pill",
 	summary:
-		"A chip someone clicks: a filter, a tag choice, an option in a row. Always a button; pass selected to make it a toggle with aria-pressed, and leave it unset on a chip that fires an action. appearance=\"solid\" (filters; selected lifts onto the primary surface) or \"outline\" (quiet chips that annotate content, like reactions); size lg, md or sm. A static label is a Badge.",
+		"A chip someone clicks: a filter, a tag choice, an option in a row. Always a button; pass selected to make it a toggle with aria-pressed, and leave it unset on a chip that fires an action. appearance=\"solid\" (filters; selected lifts onto the primary surface) , \"outline\" (quiet chips that annotate content, like a tag on a card) or \"ghost\" (nothing drawn at rest, for small toggles under content, like reactions); size lg, md or sm. A static label is a Badge.",
 	status: "stable",
 	keywords: [
 		"pill",
@@ -39,7 +39,7 @@ export const pillMeta: ComponentMeta = {
 			},
 			{
 				guidance: "dont",
-				description: "Do not restyle a Pill with border or background classes to get a quieter chip. That is appearance=\"outline\" (and size=\"sm\" for a small one); an override is a look that exists nowhere else in the system. Likewise never set h-* on a Pill to match a neighbour: pick the size that shares its rung.",
+				description: "Do not restyle a Pill with border or background classes to get a quieter chip. That is appearance=\"outline\", or \"ghost\" for no chip at all (and size=\"sm\" for a small one); an override is a look that exists nowhere else in the system. Likewise never set h-* on a Pill to match a neighbour: pick the size that shares its rung.",
 			},
 		],
 	},
@@ -56,14 +56,14 @@ export const pillMeta: ComponentMeta = {
 			type: "boolean",
 			default: "false",
 			description:
-				"Marks the pill as chosen. Solid lifts onto the primary surface; outline takes a primary tint and soft primary edge. Passing it, true or false, sets aria-pressed; left unset the chip is a plain action button.",
+				"Marks the pill as chosen. Solid lifts onto the primary surface; outline takes a primary tint and soft primary edge; ghost takes the tint with no edge. Passing it, true or false, sets aria-pressed; left unset the chip is a plain action button.",
 		},
 		{
 			name: "appearance",
-			type: '"solid" | "outline"',
+			type: '"solid" | "outline" | "ghost"',
 			default: '"solid"',
 			description:
-				"solid for a filter row; outline for quiet chips that annotate other content (a reaction under a message, a tag on a card), where a filled chip would compete with what it annotates.",
+				"solid for a filter row; outline for quiet chips that annotate other content (a tag on a card), where a filled chip would compete with what it annotates; ghost for a run of small toggles under other content (the reactions under a message): nothing drawn at rest, a hover fill, and a primary tint when selected.",
 		},
 		{
 			name: "size",
@@ -86,7 +86,7 @@ export const pillMeta: ComponentMeta = {
 		},
 	],
 	variants: {
-		appearance: ["solid", "outline"],
+		appearance: ["solid", "outline", "ghost"],
 		size: ["lg", "md", "sm"],
 		selected: ["true", "false"],
 		tone: ["neutral", "red", "orange", "yellow", "green", "teal", "blue", "purple", "pink"],
@@ -159,8 +159,12 @@ export const pillMeta: ComponentMeta = {
 			code: "const [filter, setFilter] = useState(\"all\")\nconst [q, setQ] = useState(\"\")\n\n<Row gap={2} align=\"center\" justify=\"between\" wrap>\n\t<Row gap={1}>\n\t\t<Pill size=\"lg\" selected={filter === \"all\"} onClick={() => setFilter(\"all\")}>All 8</Pill>\n\t\t<Pill size=\"lg\" selected={filter === \"products\"} onClick={() => setFilter(\"products\")}>Products 5</Pill>\n\t\t<Pill size=\"lg\" selected={filter === \"oss\"} onClick={() => setFilter(\"oss\")}>Open source 2</Pill>\n\t</Row>\n\t<SearchInput size=\"sm\" value={q} onValueChange={setQ} placeholder=\"Find a project…\" aria-label=\"Find a project\" className=\"max-w-64\" />\n</Row>",
 		},
 		{
-			label: "Outline, small (reactions)",
-			code: '<Row gap={1}><Pill appearance="outline" size="sm" selected onClick={() => {}}>🎉 3</Pill><Pill appearance="outline" size="sm" onClick={() => {}}>👀</Pill></Row>',
+			label: "Ghost, small (reactions)",
+			code: '<Row gap={1}><Pill appearance="ghost" size="sm" selected onClick={() => {}}>🎉 3</Pill><Pill appearance="ghost" size="sm" onClick={() => {}}>👀</Pill></Row>',
+		},
+		{
+			label: "Outline, small (tags)",
+			code: '<Row gap={1}><Pill appearance="outline" size="sm" selected onClick={() => {}}>Design</Pill><Pill appearance="outline" size="sm" onClick={() => {}}>Research</Pill></Row>',
 		},
 		{
 			label: "With icon",

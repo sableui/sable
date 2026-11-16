@@ -1,3 +1,5 @@
+"use client"
+
 import { Menu as Base } from "@base-ui/react/menu"
 import type { ComponentProps, ReactNode } from "react"
 import { Icon } from "../../icon"
@@ -186,21 +188,36 @@ export function MenuItem({ className, variant = "default", icon, description, sh
 type LinkItemProps = Omit<ComponentProps<typeof Base.LinkItem>, "className"> &
 	ItemContent & {
 		className?: string
+		/**
+		 * Read by screen readers after the label when `target="_blank"`: the ↗ is
+		 * decorative, so without words a new tab opens unannounced.
+		 * @default "(opens in new tab)"
+		 */
+		newTabLabel?: string
 	}
 
 /**
  * A row that navigates: a real `<a>`, so it opens in a new tab, middle-clicks
  * and copies as a link, which a MenuItem with an onClick cannot. Pass `href`,
  * and `target="_blank"` for a page outside the app; the row then marks itself
- * as leaving with a trailing ↗.
+ * as leaving with a trailing ↗ and tells a screen reader it opens a new tab.
  */
-export function MenuLinkItem({ className, icon, description, children, target, ...props }: LinkItemProps) {
+export function MenuLinkItem({
+	className,
+	icon,
+	description,
+	children,
+	target,
+	newTabLabel = "(opens in new tab)",
+	...props
+}: LinkItemProps) {
 	const tier = useTypeTier()
 	const external = target === "_blank"
 	const label = external ? (
 		<span className="inline-flex items-center gap-1">
 			{children as ReactNode}
 			<Icon name="arrow-up-right" className="text-[0.875em] text-muted-foreground" />
+			<span className="sr-only">{` ${newTabLabel}`}</span>
 		</span>
 	) : (
 		(children as ReactNode)
@@ -406,3 +423,14 @@ export function MenuCheckboxItem({
 		</Base.CheckboxItem>
 	)
 }
+
+MenuContent.displayName = "MenuContent"
+MenuItemShortcut.displayName = "MenuItemShortcut"
+MenuItem.displayName = "MenuItem"
+MenuLinkItem.displayName = "MenuLinkItem"
+MenuSeparator.displayName = "MenuSeparator"
+MenuGroup.displayName = "MenuGroup"
+MenuGroupLabel.displayName = "MenuGroupLabel"
+MenuSubmenuTrigger.displayName = "MenuSubmenuTrigger"
+MenuRadioItem.displayName = "MenuRadioItem"
+MenuCheckboxItem.displayName = "MenuCheckboxItem"

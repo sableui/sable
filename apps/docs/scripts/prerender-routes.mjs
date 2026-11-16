@@ -80,12 +80,15 @@ for (const m of pagesBlock.matchAll(/["']?([a-z0-9-]+)["']?:\s*page\(\s*\(\)\s*=
 if (appPages.size < 50) fail(`parsed only ${appPages.size} routes from src/App.tsx — has the pages map changed shape?`)
 
 const previewSource = readFileSync(join(SRC, "pages", "PatternPreview.tsx"), "utf8")
-const previewSlugs = [...previewSource.matchAll(/^\t"([a-z0-9-]+)":\s*lazy(?:Route)?\(/gm)].map((m) => m[1])
+// PatternPreview.tsx builds its map from the pattern catalog, so every catalog
+// pattern has a preview by construction. The previews that are not patterns are
+// still written out by hand there, and are read from its source.
+if (!previewSource.includes("catalog-patterns.json")) fail("PatternPreview.tsx no longer builds its previews from catalog-patterns.json; update prerender-routes.mjs to match.")
 const catalogPatterns = JSON.parse(readFileSync(join(SRC, "generated", "catalog-patterns.json"), "utf8"))
-for (const p of catalogPatterns) {
-	const slug = p.path.replace(/^patterns\//, "").replace(/\.tsx$/, "")
-	if (!previewSlugs.includes(slug)) fail(`the Patterns page links /preview/${slug}, but PatternPreview.tsx has no preview for it.`)
-}
+const previewSlugs = [
+	...catalogPatterns.map((p) => p.path.replace(/^patterns\//, "").replace(/\.tsx$/, "")),
+	...[...previewSource.matchAll(/^\t"([a-z0-9-]+)":\s*lazy(?:Route)?\(/gm)].map((m) => m[1]),
+]
 
 /** The page's own <PageHeader title="…" lede="…">, so the shell's title matches the h1 the app titles the tab with. */
 function pageHeader(file, exportName) {

@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const tableMeta: ComponentMeta = {
 	name: "Table",
 	summary:
-		"Styled native table subcomponents (Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption). Horizontally scrollable frame, hairline row borders, hover-lift, and selectable rows via data-selected.",
+		"Styled native table subcomponents (Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption). Horizontally scrollable frame, hairline row borders, hover-lift, selectable rows via data-selected, and sortable column headers (TableHead sortable).",
 	keywords: [
 		"table",
 		"data table",
@@ -115,8 +115,9 @@ export const tableMeta: ComponentMeta = {
 		},
 		{
 			name: "TableHead",
-			type: 'ComponentPropsWithRef<"th"> & { numeric?: boolean }',
-			description: "A column header cell (th) in muted label styling. `numeric` marks a number column: end-aligned, tabular figures — set it on the column's cells too.",
+			type: 'ComponentPropsWithRef<"th"> & { numeric?: boolean; sortable?: boolean; sortDirection?: "asc" | "desc" | null; onSort?: () => void }',
+			description:
+				"A column header cell (th) in muted label styling. `numeric` marks a number column: end-aligned, tabular figures — set it on the column's cells too. `sortable` turns the header's content into the sort control: a ghost button on the column's text edge that calls `onSort`, with one chevron that rotates for `sortDirection` (resting at 60% when unsorted; leading in a numeric column) and `aria-sort` on the cell. The table does not sort — order the rows in `onSort`, or use DataTable, which renders this part.",
 		},
 		{
 			name: "TableCell",
@@ -150,6 +151,12 @@ export const tableMeta: ComponentMeta = {
 			why: "A `data-selected` row's fill eases in on every cell together, so the selected row reads as one band being set rather than a stamp.",
 		},
 		{
+			slot: "transition",
+			recipe: "motion-interactive",
+			part: "TableHead sort chevron",
+			why: "A sortable header's one chevron turns between ascending and descending, so the reader sees the same column reverse rather than a different glyph land in its place.",
+		},
+		{
 			slot: "activity",
 			recipe: "none",
 			part: "Root",
@@ -160,6 +167,7 @@ export const tableMeta: ComponentMeta = {
 		"Renders semantic native table elements (thead/tbody/tfoot/th/td/caption) preserving built-in table semantics.",
 		"Use TableHead (th) for column headers and TableCaption for an accessible description.",
 		"Mark the active row with the data-selected attribute for a visible selected state.",
+		"A sortable TableHead is a real <button> inside the th, and the th carries aria-sort=ascending/descending while it is the sort.",
 	],
 	examples: [
 		{
@@ -169,6 +177,10 @@ export const tableMeta: ComponentMeta = {
 		{
 			label: "Rich status cells",
 			code: '<Table><TableCaption>Deployments</TableCaption><TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Status</TableHead><TableHead>Owner</TableHead><TableHead className="text-end">Actions</TableHead></TableRow></TableHeader><TableBody><TableRow data-selected><TableCell>Catalog API</TableCell><TableCell><Badge appearance="plain" tone="warning" dot pulse>Building</Badge></TableCell><TableCell><Row gap={1}><Avatar fallback="NR" alt="Nova Reed" size="sm" /><span>Nova</span></Row></TableCell><TableCell className="text-end"><Button size="sm" variant="ghost">View</Button></TableCell></TableRow></TableBody></Table>',
+		},
+		{
+			label: "Sortable headers",
+			code: 'const [sort, setSort] = useState<{ key: string; direction: "asc" | "desc" } | null>(null)\nconst next = (key: string) =>\n\tsetSort((s) => (s?.key !== key ? { key, direction: "asc" } : s.direction === "asc" ? { key, direction: "desc" } : null))\nconst dir = (key: string) => (sort?.key === key ? sort.direction : null)\n\n<Table>\n\t<TableHeader>\n\t\t<TableRow>\n\t\t\t<TableHead sortable sortDirection={dir("customer")} onSort={() => next("customer")}>Customer</TableHead>\n\t\t\t<TableHead numeric sortable sortDirection={dir("paid")} onSort={() => next("paid")}>Paid</TableHead>\n\t\t</TableRow>\n\t</TableHeader>\n\t<TableBody>\n\t\t{sortOrders(orders, sort).map((o) => (\n\t\t\t<TableRow key={o.id}>\n\t\t\t\t<TableCell>{o.customer}</TableCell>\n\t\t\t\t<TableCell numeric>{o.paid}</TableCell>\n\t\t\t</TableRow>\n\t\t))}\n\t</TableBody>\n</Table>',
 		},
 		{
 			label: "Flush in a card",

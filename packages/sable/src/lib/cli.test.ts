@@ -290,6 +290,16 @@ describe("search", () => {
 		expect(run(["search", "MediaTile"]).out).toContain("◇ a reference layout")
 	})
 
+	it("finds a doc by its title and through punctuation", () => {
+		// The Next.js guide's slug is `nextjs`; "next.js" used to match nothing.
+		const dotted = json(["search", "next.js", "--type", "doc"]).data.results
+		expect(dotted[0]).toMatchObject({ kind: "doc", name: "nextjs", retrieve: "sable docs nextjs" })
+		expect(json(["search", "next.js"]).data.results.map((r: { name: string }) => r.name)).toContain("nextjs")
+		// A word only the title carries ("Diagnose motion performance").
+		const titled = json(["search", "diagnose", "--type", "doc"]).data.results
+		expect(titled.map((r: { name: string }) => r.name)).toContain("motion-performance")
+	})
+
 	it("fails with a code rather than an empty list", () => {
 		const err = JSON.parse(run(["search", "zzzznotathing", "--json"]).out)
 		expect(err.code).toBe("ERR_NO_RESULTS")

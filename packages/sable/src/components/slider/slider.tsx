@@ -45,6 +45,7 @@ export function SliderControl({ className, ...props }: ControlProps) {
 		/>
 	)
 }
+SliderControl.displayName = "SliderControl"
 
 type TrackProps = Omit<ComponentProps<typeof Base.Track>, "className"> & {
 	className?: string
@@ -59,6 +60,7 @@ export function SliderTrack({ className, ...props }: TrackProps) {
 		/>
 	)
 }
+SliderTrack.displayName = "SliderTrack"
 
 type IndicatorProps = Omit<
 	ComponentProps<typeof Base.Indicator>,
@@ -74,6 +76,7 @@ export function SliderIndicator({ className, ...props }: IndicatorProps) {
 		/>
 	)
 }
+SliderIndicator.displayName = "SliderIndicator"
 
 type ThumbProps = Omit<ComponentProps<typeof Base.Thumb>, "className"> & {
 	className?: string
@@ -125,6 +128,7 @@ export function SliderThumb({ className, children, ...props }: ThumbProps) {
 		</Base.Thumb>
 	)
 }
+SliderThumb.displayName = "SliderThumb"
 
 type SliderValueType = number | readonly number[]
 

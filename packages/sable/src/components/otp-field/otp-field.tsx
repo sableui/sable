@@ -1,3 +1,5 @@
+"use client"
+
 import * as OtpParts from "@base-ui/react/otp-field"
 
 /*

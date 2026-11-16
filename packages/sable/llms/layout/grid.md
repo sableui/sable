@@ -26,7 +26,7 @@ Use Grid for uniform grid layouts inside a Region, especially card grids that ca
 | cols | number \| { base?, sm?, md?, lg?, xl?, "2xl"? } | 12 | Fixed column count or a mobile-first breakpoint map ({ base: 2, md: 4 }). Ignored when minItemWidth is set. |
 | minItemWidth | string | — | Breathing mode: repeat(auto-fill, minmax(minItemWidth, 1fr)) — as many columns of at least minItemWidth as fit, wrapping without breakpoints. e.g. "16rem". |
 | track | "fill" \| "fit" | "fill" | What a minItemWidth grid does with columns it has no items for (only visible when fewer items than fit one row). "fill" (auto-fill) keeps them, so items keep their size whatever their count — one search result is one cover wide, not a banner. Use it for collections whose count is data: results, shelves, galleries. "fit" (auto-fit) collapses them and stretches the items to share the row — only for a fixed set designed to span it (three KPI cards, plan tiers). |
-| gap | number \| [row, column] \| string | var(--grid-gutter) | Gap between cells. Number = rhythm units (×8px); [row, column] = two rhythm counts, for a gallery whose rows want more air than its columns; string = raw CSS. |
+| gap | number \| [row, column] \| string | var(--grid-gutter) | Gap between cells. Number = rhythm units (one baseline step each — 8px at Sable's default type, two Tailwind spacing steps, so gap={2} is gap-4); [row, column] = two rhythm counts, for a gallery whose rows want more air than its columns; string = raw CSS. |
 
 ## Related
 

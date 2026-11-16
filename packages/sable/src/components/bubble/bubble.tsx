@@ -15,12 +15,14 @@ import { cn } from "../../lib/cn"
 import { useTypeTier } from "../../lib/density"
 import { Burst } from "../../motion/Burst"
 import { type MotionLevel, motionAttribute } from "../../motion/MotionProvider"
+import { AvatarGroup } from "../avatar/avatar"
 import { NumberTicker } from "../number-ticker/number-ticker"
 import { Pill } from "../pill/pill"
 import { Popover, PopoverContent, PopoverTrigger } from "../popover/popover"
 import { DEFAULT_REACTIONS, type Reaction, ReactionPicker } from "../reaction-picker/reaction-picker"
 import {
 	bubbleTailVariants,
+	bubbleReactionVariants,
 	bubbleReactionsVariants,
 	bubbleVariants,
 } from "./bubble.variants"
@@ -28,11 +30,12 @@ import {
 export interface BubbleProps extends ComponentPropsWithRef<"div"> {
 	/**
 	 * Surface treatment. `muted` for the other party, `primary` for the reader's
-	 * own messages, `outline` for a quieter own-side, `plain` for long-form
+	 * own messages, `tint` for the reader's own in a light thread (a wash of the
+	 * brand colour), `outline` for a quieter own-side, `plain` for long-form
 	 * assistant output that should not sit in a box.
 	 * @default "muted"
 	 */
-	variant?: "muted" | "primary" | "outline" | "plain"
+	variant?: "muted" | "primary" | "tint" | "outline" | "plain"
 	/**
 	 * Which side of the conversation the bubble is on — puts the tail on
 	 * the speaker's side. Match it to the enclosing `<Message align>`.
@@ -66,11 +69,29 @@ export interface BubbleProps extends ComponentPropsWithRef<"div"> {
  *     </BubbleReactions>
  *   </Message>
  *
+ * Or inside the bubble, as a chat app carries them: put the row after the
+ * text, as the bubble's last child. The reactions become soft chips, and
+ * `avatars` shows who reacted until there are too many to show:
+ *
+ *   <Bubble>
+ *     Shipping it now.
+ *     <BubbleReactions>
+ *       <BubbleReaction emoji="🎉" label="Party" count={2} avatars={faces} onClick={…} />
+ *     </BubbleReactions>
+ *   </Bubble>
+ *
  * Two judgment calls worth inheriting: the bubble is capped at a readable
  * measure (~42rem) so a wide window does not produce 140-character lines, and
  * the tail is a small ear off a squared top corner, the same 5px in every
  * theme's radius language, so the speaker's side always reads.
  */
+/*
+ * The surface of the bubble a reaction row sits inside, or null when the row
+ * hangs under the bubble instead. Inside, the reactions are soft chips off
+ * that surface; under, they stay quiet.
+ */
+const BubbleSurface = createContext<NonNullable<BubbleProps["variant"]> | null>(null)
+
 export function Bubble({
 	variant = "muted",
 	align = "start",
@@ -90,7 +111,7 @@ export function Bubble({
 			className={cn(bubbleVariants({ variant, align, tail }), tier.prose, className)}
 			{...props}
 		>
-			{children}
+			<BubbleSurface.Provider value={variant ?? "muted"}>{children}</BubbleSurface.Provider>
 			{tail && variant !== "plain" ? <BubbleTail variant={variant ?? "muted"} align={align ?? "start"} /> : null}
 		</div>
 	)
@@ -115,9 +136,9 @@ const TAIL = {
 }
 const ROUND = "[opacity:sign(var(--radius-sm))]"
 const SHARP = "[opacity:calc(1-sign(var(--radius-sm)))]"
-const TAIL_FILL = { muted: "fill-muted", primary: "fill-primary", outline: "fill-card" } as const
+const TAIL_FILL = { muted: "fill-muted", primary: "fill-primary", tint: "fill-(--bubble-tint)", outline: "fill-card" } as const
 
-function BubbleTail({ variant, align }: { variant: "muted" | "primary" | "outline"; align: "start" | "end" }) {
+function BubbleTail({ variant, align }: { variant: "muted" | "primary" | "tint" | "outline"; align: "start" | "end" }) {
 	const outline = variant === "outline"
 	return (
 		<svg
@@ -165,11 +186,13 @@ export function BubbleReactions({
 }: BubbleReactionsProps) {
 	const [live, setLive] = useState(false)
 	useEffect(() => setLive(true), [])
+	const inside = useContext(BubbleSurface) !== null
 	return (
 		<ReactionRowLive.Provider value={live}>
 			<div
 				hidden={Children.toArray(children).length === 0 || undefined}
-				className={cn(bubbleReactionsVariants({ align }), className)}
+				// Inside a bubble the row follows the text, on the text's own edge.
+				className={cn(bubbleReactionsVariants({ align: inside ? "start" : align }), inside && "mt-2", className)}
 				{...props}
 			>
 				{children}
@@ -178,6 +201,9 @@ export function BubbleReactions({
 	)
 }
 BubbleReactions.displayName = "BubbleReactions"
+
+/** Past this many people a reaction shows its count, not their faces. */
+const MAX_FACES = 3
 
 export interface BubbleReactionProps
 	extends Omit<ComponentPropsWithRef<"button">, "children"> {
@@ -193,6 +219,13 @@ export interface BubbleReactionProps
 	count?: number
 	/** The reader reacted this way. Drives `aria-pressed`, not just the styling. */
 	active?: boolean
+	/**
+	 * The people who reacted this way, as Avatars. With up to three of them the
+	 * pill shows their faces in place of the count: in a small group, who
+	 * reacted is the news. Past three it goes back to the count. `count`
+	 * defaults to the number of avatars.
+	 */
+	avatars?: ReactNode
 	/**
 	 * How much motion this component uses: `full` (default) inherits the app's
 	 * policy, `subtle` keeps the tint and the count changing and drops the
@@ -214,12 +247,17 @@ export interface BubbleReactionProps
 export function BubbleReaction({
 	emoji,
 	label,
-	count,
+	count: countProp,
 	active = false,
+	avatars,
 	motion,
 	className,
 	...props
 }: BubbleReactionProps) {
+	const surface = useContext(BubbleSurface)
+	const faceCount = Children.toArray(avatars).length
+	const count = countProp ?? (faceCount || undefined)
+	const faces = faceCount > 0 && (count ?? 0) <= MAX_FACES
 	// The pill's own height already reads the density ladder; its label has to
 	// follow, or a 24px pill in a compact scope carries page-register type.
 	const tier = useTypeTier()
@@ -234,19 +272,27 @@ export function BubbleReaction({
 		setWasActive(active)
 		if (active) setShots((n) => n + 1)
 	}
-	const shown = count !== undefined && count > 1 ? count : undefined
-	const named = label === undefined ? undefined : shown === undefined ? label : `${label}, ${shown}`
+	const total = count !== undefined && count > 1 ? count : undefined
+	const named = label === undefined ? undefined : total === undefined ? label : `${label}, ${total}`
+	// Faces stand in for the count, so only one of the two is drawn.
+	const shown = faces ? undefined : total
 	return (
-		// Pill's own quiet chip: outline (a hairline at rest, a primary tint when
-		// it is the reader's) at the xs control height. No overrides — a reaction
-		// is a Pill, not a private look built on top of one.
+		// Ghost, not outline: a row of hairline capsules under a bubble outweighed
+		// the two emoji in it. Like a LikeButton, the glyph and its count are the
+		// control, and only the reader's own reaction is drawn as a chip.
 		<Pill
-			appearance="outline"
-			size="sm"
+			// Inside a bubble there is a surface to stand on, so the reaction is a
+			// soft chip there (bubbleReactionVariants), tall enough for a face.
+			appearance={surface ? "solid" : "ghost"}
+			size={surface ? "md" : "sm"}
 			selected={active}
 			aria-label={named}
 			data-motion={motionAttribute(motion)}
-			className={cn(tier.secondary, className)}
+			className={cn(
+				tier.secondary,
+				surface && bubbleReactionVariants({ surface, active, faces }),
+				className,
+			)}
 			{...props}
 		>
 			<span className="relative inline-flex">
@@ -268,6 +314,12 @@ export function BubbleReaction({
 					className="[--burst-size:4em]"
 				/>
 			</span>
+			{faces ? (
+				// Named by the pill's own label; the faces add nothing a count has not said.
+				<AvatarGroup size="2xs" aria-hidden="true">
+					{avatars}
+				</AvatarGroup>
+			) : null}
 			{shown === undefined ? null : (
 				<NumberTicker value={shown} motion={motion} className="text-mono-caption tabular-nums" />
 			)}
@@ -316,7 +368,7 @@ export function BubbleReactionAdd({
 			<PopoverTrigger
 				render={
 					<Pill
-						appearance="outline"
+						appearance="ghost"
 						size="sm"
 						aria-label={label}
 						className={cn("text-muted-foreground", className)}

@@ -2,7 +2,7 @@
 
 An invite card: who is already on the team as an AvatarGroup, and an email field with Send.
 
-**Intent:** Reach for this for team or project invites in onboarding, an empty workspace, or a settings section. For managing an existing member list with roles, use a CardList of Entity rows instead.
+**Intent:** Reach for this for team or project invites in onboarding, an empty workspace, or a settings section. For managing an existing member list with roles, use TeamMembersBlock; for sharing one document with people already in the workspace, ShareBlock.
 
 **Block:** Settings & team · card · designed for 18rem–20rem wide (fills its container up to the max)
 
@@ -19,6 +19,8 @@ An invite card: who is already on the team as an AvatarGroup, and an email field
 ## Source
 
 ```tsx
+"use client"
+
 import { Avatar, AvatarGroup, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Input } from "@sableui/react"
 
 const collaborators = ["MO", "SR", "JL", "AK"]
@@ -35,7 +37,7 @@ export function InviteTeamBlock({ className, framed = true, onSend }: InviteTeam
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs", className)}>
 			<CardHeader>
-				<CardTitle>Invite your team</CardTitle>
+				<CardTitle render={<h2 />}>Invite your team</CardTitle>
 				<CardDescription>Collaborators can edit every project.</CardDescription>
 			</CardHeader>
 			<CardContent className="flex flex-col gap-4">

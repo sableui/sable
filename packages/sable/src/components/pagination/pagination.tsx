@@ -32,7 +32,15 @@ export interface PaginationProps
 	siblingCount?: number
 	/** Accessible label for the surrounding nav. @default "Pagination" */
 	label?: string
+	/** The previous-page button's accessible name. @default "Previous page" */
+	previousLabel?: string
+	/** The next-page button's accessible name. @default "Next page" */
+	nextLabel?: string
+	/** Each page button's accessible name. @default (page) => `Page ${page}` */
+	pageLabel?: (page: number) => string
 }
+
+const defaultPageLabel = (page: number) => `Page ${page}`
 
 const ELLIPSIS = "ellipsis" as const
 type PageItem = number | typeof ELLIPSIS
@@ -97,6 +105,9 @@ export function Pagination({
 	pageLink,
 	siblingCount = 1,
 	label = "Pagination",
+	previousLabel = "Previous page",
+	nextLabel = "Next page",
+	pageLabel = defaultPageLabel,
 	className,
 	ref,
 	...props
@@ -126,7 +137,7 @@ export function Pagination({
 			<Button
 				variant="ghost"
 				size="icon-sm"
-				aria-label="Previous page"
+				aria-label={previousLabel}
 				disabled={current <= 1}
 				render={linkTo(current - 1)}
 				onClick={(event) => goTo(current - 1, event)}
@@ -155,7 +166,7 @@ export function Pagination({
 								// Square for one or two digits; grows for "1000" instead of
 								// spilling the numeral past the button's edge.
 								className="w-auto min-w-(--control-sm) px-1 tabular-nums"
-								aria-label={`Page ${item}`}
+								aria-label={pageLabel(item)}
 								aria-current={item === current ? "page" : undefined}
 								render={linkTo(item)}
 								onClick={(event) => goTo(item, event)}
@@ -170,7 +181,7 @@ export function Pagination({
 			<Button
 				variant="ghost"
 				size="icon-sm"
-				aria-label="Next page"
+				aria-label={nextLabel}
 				disabled={current >= safeTotal}
 				render={linkTo(current + 1)}
 				onClick={(event) => goTo(current + 1, event)}

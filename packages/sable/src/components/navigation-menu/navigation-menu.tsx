@@ -1,3 +1,5 @@
+"use client"
+
 import { NavigationMenu as Base } from "@base-ui/react/navigation-menu"
 import { type ComponentProps, type ReactNode, createContext, useContext } from "react"
 import { Icon } from "../../icon"
@@ -52,6 +54,7 @@ export function NavigationMenu({ className, children, align = "start", sideOffse
 		</Base.Root>
 	)
 }
+NavigationMenu.displayName = "NavigationMenu"
 
 /**
  * The shared panel. The positioner glides between triggers (its inset
@@ -100,6 +103,7 @@ type ListProps = Omit<ComponentProps<typeof Base.List>, "className"> & { classNa
 export function NavigationMenuList({ className, ...props }: ListProps) {
 	return <Base.List className={cn("flex items-center gap-1", className)} {...props} />
 }
+NavigationMenuList.displayName = "NavigationMenuList"
 
 type ItemProps = Omit<ComponentProps<typeof Base.Item>, "className"> & { className?: string }
 
@@ -107,6 +111,7 @@ type ItemProps = Omit<ComponentProps<typeof Base.Item>, "className"> & { classNa
 export function NavigationMenuItem({ className, ...props }: ItemProps) {
 	return <Base.Item className={className} {...props} />
 }
+NavigationMenuItem.displayName = "NavigationMenuItem"
 
 /*
  * A bar entry, trigger or link, reads like the bar's other entries: muted at
@@ -132,6 +137,7 @@ export function NavigationMenuTrigger({ className, children, ...props }: Trigger
 		</Base.Trigger>
 	)
 }
+NavigationMenuTrigger.displayName = "NavigationMenuTrigger"
 
 /** Inside a Content, links render as panel rows; in the bar, as bar entries. */
 const InPanelContext = createContext(false)
@@ -160,6 +166,7 @@ export function NavigationMenuContent({ className, ...props }: ContentProps) {
 		</InPanelContext.Provider>
 	)
 }
+NavigationMenuContent.displayName = "NavigationMenuContent"
 
 type LinkProps = Omit<ComponentProps<typeof Base.Link>, "className"> & {
 	className?: string
@@ -198,3 +205,4 @@ export function NavigationMenuLink({ className, description, children, ...props 
 		</Base.Link>
 	)
 }
+NavigationMenuLink.displayName = "NavigationMenuLink"

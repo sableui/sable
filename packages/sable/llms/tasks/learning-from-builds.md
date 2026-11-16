@@ -8,8 +8,8 @@ measure, and surrounding spacing restored emphasis" is a testable lesson.
 ## Retrieve before inventing
 
 ```bash
-npx sable learn --search "motion workspace" --json
-npx sable learn --show motion-needs-a-reason --json
+pnpm exec sable learn --search "motion workspace" --json
+pnpm exec sable learn --show motion-needs-a-reason --json
 ```
 
 The command reads packaged precedents and the current project's
@@ -26,7 +26,7 @@ lesson unless several independent discoveries warrant records. Search first to
 avoid duplicates. Record the failed hypothesis too when it explains a boundary.
 
 ```bash
-npx sable learn --template > design/lesson.json
+pnpm exec sable learn --template > design/lesson.json
 ```
 
 Fill the template with a specific id, searchable tags, mode/register, principle,
@@ -37,8 +37,8 @@ Link distinct, existing before and after artifacts and describe what was observe
 Reference the associated design review in the source description.
 
 ```bash
-npx sable learn --record design/lesson.json
-npx sable learn --check
+pnpm exec sable learn --record design/lesson.json
+pnpm exec sable learn --check
 ```
 
 Run from the project root. Recording writes a new `.sable/lessons/<id>.json` with

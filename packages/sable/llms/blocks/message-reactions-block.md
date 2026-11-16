@@ -22,12 +22,16 @@ A short thread you can react to: right-click or long-press a bubble for a menu w
 ## Source
 
 ```tsx
-import { Bubble, BubbleReaction, BubbleReactionAdd, BubbleReactions, Card, CardContent, CardFooter, cn, ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger, DEFAULT_REACTIONS, MenuReactions, Message } from "@sableui/react"
+"use client"
 
-const messages: { id: string; text: string; mine: boolean; reactions: Record<string, number> }[] = [
-	{ id: "m1", text: "The new onboarding flow is live on staging 🚀", mine: false, reactions: { "🎉": 2, "👀": 1 } },
-	{ id: "m2", text: "Clicked through it twice. The progress bar is so smooth.", mine: true, reactions: {} },
-	{ id: "m3", text: "Ship it Friday?", mine: false, reactions: { "👍": 1 } },
+import { Avatar, Bubble, BubbleReaction, BubbleReactions, Card, CardContent, CardFooter, cn, ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger, DEFAULT_REACTIONS, MenuReactions, Message } from "@sableui/react"
+
+// Each reaction lists who gave it. The reader's own are kept apart, in state.
+const me = "You"
+const messages: { id: string; text: string; mine: boolean; reactions: Record<string, string[]> }[] = [
+	{ id: "m1", text: "The new onboarding flow is live on staging 🚀", mine: false, reactions: { "🎉": ["Ana", "Kofi"], "👀": ["Jun"] } },
+	{ id: "m2", text: "Clicked through it twice. The progress bar is so smooth.", mine: true, reactions: { "🙏": ["Mara"] } },
+	{ id: "m3", text: "Ship it Friday?", mine: false, reactions: { "👍": ["Ana", "Kofi", "Mara", "Jun"] } },
 ]
 const hint = "Right-click or long-press a message to react."
 // Every emoji that can appear needs a name: it is the pill's accessible label.
@@ -38,24 +42,24 @@ const labels: Record<string, string> = {
 
 export interface MessageReactionsBlockProps {
 	className?: string
-	/** false drops the card's surface and border. Keep it framed on a muted page: incoming bubbles are the muted surface too. */
+	/** false drops the card's surface and border. Unframed, its bubbles stand on the page: the reader's own are a wash over it. */
 	framed?: boolean
-	/** Called when the reader adds or removes a reaction, with the message, the emoji and whether it is now on. */
-	onReact?: (messageId: string, emoji: string, on: boolean) => void
+	/** Called when the reader adds or removes a reaction: the message's id, then the emoji and whether it is now on. */
+	onReactionChange?: (messageId: string, reaction: { emoji: string; reacted: boolean }) => void
 }
 
-export function MessageReactionsBlock({ className, framed = true, onReact }: MessageReactionsBlockProps) {
+export function MessageReactionsBlock({ className, framed = true, onReactionChange }: MessageReactionsBlockProps) {
 	// The reader's own reactions, per message. Everyone else's are the counts above.
 	const [mine, setMine] = useState<Record<string, string[]>>({ m1: ["🎉"] })
 	const toggle = (messageId: string, emoji: string) => {
-		const on = !(mine[messageId] ?? []).includes(emoji)
+		const reacted = !(mine[messageId] ?? []).includes(emoji)
 		// Decided again from `prev`, so two toggles in one batch cannot add an emoji twice.
 		setMine((prev) => {
 			const current = prev[messageId] ?? []
 			const next = current.includes(emoji) ? current.filter((e) => e !== emoji) : [...current, emoji]
 			return { ...prev, [messageId]: next }
 		})
-		onReact?.(messageId, emoji, on)
+		onReactionChange?.(messageId, { emoji, reacted })
 	}
 
 	return (
@@ -64,23 +68,43 @@ export function MessageReactionsBlock({ className, framed = true, onReact }: Mes
 				{messages.map((m) => {
 					const align = m.mine ? "end" : "start"
 					const chosen = mine[m.id] ?? []
-					// Others' counts, plus the reader's own: a reaction only the reader gave
-					// is a pill of its own, ordered after the ones already there.
-					const counts: Record<string, number> = { ...m.reactions }
-					for (const emoji of chosen) counts[emoji] = (counts[emoji] ?? 0)
-					const pills = Object.entries(counts).map(([emoji, others]) => ({
+					// Everyone else, then the reader: a reaction only the reader gave is
+					// a pill of its own, ordered after the ones already there.
+					const emojis = [...Object.keys(m.reactions), ...chosen.filter((emoji) => !(emoji in m.reactions))]
+					const pills = emojis.map((emoji) => ({
 						emoji,
 						active: chosen.includes(emoji),
-						count: others + (chosen.includes(emoji) ? 1 : 0),
+						people: [...(m.reactions[emoji] ?? []), ...(chosen.includes(emoji) ? [me] : [])],
 					}))
 					return (
 						<Message key={m.id} messageId={m.id} align={m.mine ? "end" : undefined}>
 							<ContextMenu>
 								<ContextMenuTrigger
 									// Focusable, so Shift+F10 or the Menu key opens the same menu.
-									render={<Bubble tabIndex={0} variant={m.mine ? "primary" : undefined} align={align} />}
+									// A light thread: the other party on the card's own surface with
+									// an edge, the reader's on a wash of the brand colour. The one solid chip
+									// left is the reader's own reaction.
+									render={<Bubble tabIndex={0} variant={m.mine ? "tint" : "outline"} align={align} />}
 								>
 									{m.text}
+									{/* Inside the bubble, as part of the message. Rendered even while
+									    empty (it hides itself), so the first reaction still celebrates.
+									    Up to three people show as faces; past that, the count. */}
+									<BubbleReactions>
+										{pills.map((p) => (
+											<BubbleReaction
+												key={p.emoji}
+												emoji={p.emoji}
+												label={labels[p.emoji]}
+												active={p.active}
+												avatars={p.people.map((person) => (
+													// One letter: at this size two would run under the next face.
+													<Avatar key={person} variant="art" fallback={person[0]} alt="" />
+												))}
+												onClick={() => toggle(m.id, p.emoji)}
+											/>
+										))}
+									</BubbleReactions>
 								</ContextMenuTrigger>
 								<ContextMenuContent>
 									<MenuReactions selected={chosen} onSelect={(emoji) => toggle(m.id, emoji)} />
@@ -89,22 +113,6 @@ export function MessageReactionsBlock({ className, framed = true, onReact }: Mes
 									<ContextMenuItem>Copy text</ContextMenuItem>
 								</ContextMenuContent>
 							</ContextMenu>
-							{/* Rendered even while empty (it hides itself), so the first reaction still celebrates. */}
-							<BubbleReactions align={align}>
-								{pills.map((p) => (
-									<BubbleReaction
-										key={p.emoji}
-										emoji={p.emoji}
-										label={labels[p.emoji]}
-										count={p.count}
-										active={p.active}
-										onClick={() => toggle(m.id, p.emoji)}
-									/>
-								))}
-								{pills.length > 0 ? (
-									<BubbleReactionAdd selected={chosen} onSelect={(emoji) => toggle(m.id, emoji)} />
-								) : null}
-							</BubbleReactions>
 						</Message>
 					)
 				})}

@@ -69,3 +69,22 @@ describe("Pill size ladder", () => {
 		expect(screen.getByRole("button", { name: "All" })).toHaveClass("h-(--control-sm)", "text-label-lg")
 	})
 })
+
+describe("Pill ghost", () => {
+	it("draws no edge at rest and takes the primary tint when selected", () => {
+		const { container } = render(
+			<>
+				<Pill appearance="ghost">Rest</Pill>
+				<Pill appearance="ghost" selected>
+					Chosen
+				</Pill>
+			</>,
+		)
+		const [rest, chosen] = Array.from(container.querySelectorAll("button"))
+		expect(rest.className).not.toContain("border")
+		expect(rest.className).toContain("sable-surface-interactive")
+		expect(chosen.className).toContain("bg-primary/10")
+		expect(chosen.className).not.toContain("border")
+		expect(chosen).toHaveAttribute("aria-pressed", "true")
+	})
+})

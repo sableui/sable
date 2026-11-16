@@ -1,6 +1,6 @@
 import { Grid, Region, Skeleton, cn } from "@sableui/react"
 import { type ReactNode, useEffect } from "react"
-import { useCustomizer } from "../customizer/CustomizerProvider"
+import { useCustomizerActions } from "../customizer/CustomizerProvider"
 import { WIDE } from "../lib/use-media-query"
 
 /*
@@ -96,7 +96,7 @@ export function CanvasSkeleton() {
 	// The canvas opens the Customize panel on arrival (CustomizeCanvasPage);
 	// opening it here too makes the room for it now, so the grid doesn't
 	// narrow under the skeleton the moment the page lands.
-	const { setOpen } = useCustomizer()
+	const { setOpen } = useCustomizerActions()
 	useEffect(() => { if (window.matchMedia(WIDE).matches) setOpen(true) }, [setOpen])
 	return (
 		<Loading>

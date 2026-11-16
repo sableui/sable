@@ -22,6 +22,10 @@ export interface ShowMoreProps extends ComponentPropsWithRef<"div"> {
 	 * the type scale or density changes, where a px height would show fewer.
 	 */
 	collapsedLines?: number
+	/** The toggle's text while collapsed. @default "Show more" */
+	moreLabel?: string
+	/** The toggle's text while expanded. @default "Show less" */
+	lessLabel?: string
 }
 
 /** The first text-bearing element's line height, in px. */
@@ -53,6 +57,8 @@ export function ShowMore({
 	children,
 	collapsedHeight = 96,
 	collapsedLines,
+	moreLabel = "Show more",
+	lessLabel = "Show less",
 	className,
 	...props
 }: ShowMoreProps) {
@@ -123,7 +129,7 @@ export function ShowMore({
 					/>
 				}
 			>
-				{expanded ? "Show less" : "Show more"}
+				{expanded ? lessLabel : moreLabel}
 			</Button>
 			)}
 		</div>

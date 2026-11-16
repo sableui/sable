@@ -150,6 +150,12 @@ export const attachmentMeta: ComponentMeta = {
 			description: "Accessible label for that stretched trigger.",
 		},
 		{
+			name: "uploadingLabel",
+			type: "string",
+			default: "`Uploading ${name}`",
+			description: "Accessible name of the progress bar while status is \"uploading\".",
+		},
+		{
 			name: "...div props",
 			type: 'Omit<ComponentPropsWithRef<"div">, "onClick">',
 			description:

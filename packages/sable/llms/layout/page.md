@@ -20,7 +20,7 @@ Use Page as a route content shell that combines Region sizing with vertical rhyt
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| gap | number \| string | 4 | Vertical gap between stacked page sections. Number = rhythm units (×8px, so 4 = 32px); string = raw CSS. |
+| gap | number \| string | 4 | Vertical gap between stacked page sections. Number = rhythm units (one baseline step each — 8px at Sable's default type, two Tailwind spacing steps, so gap={2} is gap-4; 4 is 32px at the default type); string = raw CSS. |
 | align | "start" \| "center" \| "end" \| "stretch" | "stretch" | Cross-axis alignment of the stacked sections. |
 | …RegionProps | as, inset, max, bleed, safeArea | — | All Region props pass through (Page IS a Region). |
 

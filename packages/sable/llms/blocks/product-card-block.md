@@ -20,6 +20,8 @@ A product card: edge-to-edge product image, title and maker, a status Badge, and
 ## Source
 
 ```tsx
+"use client"
+
 import { AspectBox, Badge, Button, Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle, cn, MediaImage } from "@sableui/react"
 
 // `image` is the product shot URL; left empty, it paints art seeded by the title.
@@ -41,7 +43,7 @@ export function ProductCardBlock({ className, framed = true, onCollect }: Produc
 				<MediaImage src={product.image} seed={product.title} />
 			</AspectBox>
 			<CardHeader>
-				<CardTitle>{product.title}</CardTitle>
+				<CardTitle render={<h2 />}>{product.title}</CardTitle>
 				<CardDescription>{product.maker}</CardDescription>
 				<CardAction>
 					<Badge tone="1">{product.badge}</Badge>

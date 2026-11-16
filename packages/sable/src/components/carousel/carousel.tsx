@@ -2,12 +2,12 @@
 
 import {
 	Children,
+	type RefObject,
 	useCallback,
 	useEffect,
 	useId,
 	useRef,
 	useState,
-	useSyncExternalStore,
 } from "react"
 import type {
 	CSSProperties,
@@ -17,11 +17,17 @@ import type {
 import { Icon } from "../../icon/Icon"
 import { cn } from "../../lib/cn"
 import { PlayPauseGlyph } from "../../lib/glyphs"
+import { hitTargetTouch } from "../../lib/hit-target"
 import { useResizeObserver } from "../../lib/use-resize-observer"
 import { type MotionLevel, useMotionLevel } from "../../motion/MotionProvider"
 import { Button } from "../button/button"
 
-/** Tailwind's default min-width breakpoints, smallest first. */
+/**
+ * Width thresholds for a `slidesToShow` set, smallest first. The numbers are
+ * Tailwind's sm/md/lg/xl, but they are measured against the CAROUSEL's own
+ * width, not the viewport: a carousel in a 400px column of a wide screen is not
+ * at `lg`, and three slides there were 120px each.
+ */
 const CAROUSEL_BREAKPOINTS = [
 	["sm", 640],
 	["md", 768],
@@ -30,53 +36,49 @@ const CAROUSEL_BREAKPOINTS = [
 ] as const
 
 /**
- * Slides per view — a number, or a mobile-first breakpoint set
- * (`{ base: 1, sm: 2, lg: 3 }`). A missing key inherits from the next smaller
- * defined one; `base` defaults to 1.
+ * Slides per view — a number, or a smallest-first width set
+ * (`{ base: 1, sm: 2, lg: 3 }`) read against the carousel's own width. A
+ * missing key inherits from the next smaller defined one; `base` defaults to 1.
  */
 export type CarouselSlidesToShow =
 	| number
 	| { base?: number; sm?: number; md?: number; lg?: number; xl?: number }
 
-/** Resolve a breakpoint set against the viewport; server snapshot is `base`. */
-function useSlidesToShow(value: CarouselSlidesToShow): number {
+/**
+ * Resolve a width set against the carousel's own width (a component cannot
+ * learn its container's width from a media query). Measured before paint and on
+ * every resize; the server render, and the first client render before the
+ * measurement, use `base`.
+ */
+function useSlidesToShow(value: CarouselSlidesToShow, ref: RefObject<HTMLElement | null>, mounted: boolean): number {
 	const set = typeof value === "number" ? null : value
 	const base = typeof value === "number" ? value : (value.base ?? 1)
-	// Primitive key so an inline object literal doesn't resubscribe every render.
-	const key = set ? CAROUSEL_BREAKPOINTS.map(([bp]) => set[bp] ?? "").join() : ""
-	const subscribe = useCallback(
-		(onChange: () => void) => {
-			if (!key || typeof window === "undefined" || !window.matchMedia)
-				return () => {}
-			const mqls = CAROUSEL_BREAKPOINTS.map(([, px]) =>
-				window.matchMedia(`(min-width: ${px}px)`),
-			)
-			for (const mql of mqls) mql.addEventListener?.("change", onChange)
-			return () => {
-				for (const mql of mqls) mql.removeEventListener?.("change", onChange)
-			}
-		},
-		[key],
-	)
-	const getSnapshot = () => {
-		if (!set || typeof window === "undefined" || !window.matchMedia) return base
-		let n = base
-		for (const [bp, px] of CAROUSEL_BREAKPOINTS) {
-			const v = set[bp]
-			if (v != null && window.matchMedia(`(min-width: ${px}px)`).matches) n = v
-		}
-		return n
+	const [width, setWidth] = useState<number | null>(null)
+	const measure = useCallback(() => {
+		const el = ref.current
+		if (el) setWidth(el.clientWidth)
+		// `mounted`: a carousel with no slides renders nothing, so there is no
+		// element to observe until the first slide arrives. Subscribe again then.
+		// biome-ignore lint/correctness/useExhaustiveDependencies: mounted re-subscribes the observer
+	}, [ref, mounted])
+	useResizeObserver(measure, [ref])
+	if (!set || width == null) return base
+	let n = base
+	for (const [bp, px] of CAROUSEL_BREAKPOINTS) {
+		const v = set[bp]
+		if (v != null && width >= px) n = v
 	}
-	return useSyncExternalStore(subscribe, getSnapshot, () => base)
+	return n
 }
 
 export interface CarouselProps {
 	/** Each top-level child becomes one slide. */
 	children: ReactNode
 	/**
-	 * Slides visible per view — a number, or a breakpoint set like
-	 * `{ base: 1, sm: 2, lg: 3 }` (Tailwind's 640/768/1024/1280px min-widths;
-	 * missing keys inherit from the next smaller one). @default 1
+	 * Slides visible per view — a number, or a width set like
+	 * `{ base: 1, sm: 2, lg: 3 }`: 640/768/1024/1280px, measured on the
+	 * carousel's own width (not the viewport); missing keys inherit from the next
+	 * smaller one. @default 1
 	 */
 	slidesToShow?: CarouselSlidesToShow
 	/** Gap between slides (any CSS length). @default "0px" */
@@ -99,8 +101,33 @@ export interface CarouselProps {
 	defaultIndex?: number
 	/** Notified when the active index changes. */
 	onIndexChange?: (index: number) => void
-	/** Accessible label for the carousel region. */
+	/** Accessible label for the carousel region. @default "Slides" */
 	label?: string
+	/** The previous arrow's accessible name. @default "Previous slide" */
+	previousLabel?: string
+	/** The next arrow's accessible name. @default "Next slide" */
+	nextLabel?: string
+	/**
+	 * Each slide's accessible name, from its 1-based position.
+	 * @default (index, count) => `${index} of ${count}`
+	 */
+	slideLabel?: (index: number, count: number) => string
+	/**
+	 * What the polite live region announces after a move, from the 1-based position.
+	 * @default (index, count) => `Slide ${index} of ${count}`
+	 */
+	positionLabel?: (index: number, count: number) => string
+	/** The dots group's accessible name. @default "Choose slide" */
+	dotsLabel?: string
+	/**
+	 * Each dot's accessible name, from its 1-based slide number.
+	 * @default (index) => `Go to slide ${index}`
+	 */
+	dotLabel?: (index: number) => string
+	/** The autoplay toggle's name while playing. @default "Pause autoplay" */
+	pauseLabel?: string
+	/** The autoplay toggle's name while paused. @default "Start autoplay" */
+	playLabel?: string
 	className?: string
 	/** Class for the slide wrapper (e.g. aspect ratio). */
 	slideClassName?: string
@@ -128,11 +155,13 @@ export interface CarouselProps {
 /** Prev/next overlay arrow — shared shell so the two arrows can't drift. */
 function CarouselArrowButton({
 	side,
+	label,
 	onClick,
 	disabled,
 	className,
 }: {
 	side: "prev" | "next"
+	label: string
 	onClick: () => void
 	disabled: boolean
 	className?: string
@@ -143,11 +172,15 @@ function CarouselArrowButton({
 			size="icon-sm"
 			onClick={onClick}
 			disabled={disabled}
-			aria-label={side === "prev" ? "Previous slide" : "Next slide"}
+			aria-label={label}
 			// Button's `floating` tier owns the surface that reads over imagery
 			// (edge, lift, translucent popover fill); this only positions it and
-			// fades it out (rather than dims it) at a non-looping end.
+			// fades it out (rather than dims it) at a non-looping end. Each arrow
+			// stands alone at a slide edge, clear of the dots below, so it takes
+			// the 44px touch target (hitTargetTouch; `absolute` after it wins over
+			// its `relative`).
 			className={cn(
+				hitTargetTouch,
 				"absolute top-1/2 z-10 -translate-y-1/2 disabled:opacity-0",
 				side === "prev" ? "left-3" : "right-3",
 				className,
@@ -185,7 +218,15 @@ export function Carousel({
 	index: controlledIndex,
 	defaultIndex = 0,
 	onIndexChange,
-	label,
+	label = "Slides",
+	previousLabel = "Previous slide",
+	nextLabel = "Next slide",
+	slideLabel = (index, total) => `${index} of ${total}`,
+	positionLabel = (index, total) => `Slide ${index} of ${total}`,
+	dotsLabel = "Choose slide",
+	dotLabel = (index) => `Go to slide ${index}`,
+	pauseLabel = "Pause autoplay",
+	playLabel = "Start autoplay",
 	className,
 	slideClassName,
 	arrowClassName,
@@ -194,8 +235,9 @@ export function Carousel({
 	const { enabled, attribute: motionAttr } = useMotionLevel(motion)
 	const slides = Children.toArray(children)
 	const count = slides.length
+	const sectionRef = useRef<HTMLElement | null>(null)
 	const perView = Math.min(
-		Math.max(useSlidesToShow(slidesToShow), 1),
+		Math.max(useSlidesToShow(slidesToShow, sectionRef, count > 0), 1),
 		Math.max(count, 1),
 	)
 	const canLoop = loop && count > perView
@@ -447,8 +489,9 @@ export function Carousel({
 
 	return (
 		<section
+			ref={sectionRef}
 			aria-roledescription="carousel"
-			aria-label={label ?? "Slides"}
+			aria-label={label}
 			data-motion={motionAttr}
 			// Flex column so the viewport's negative bleed margin can't collapse
 			// through the section into the consumer's own margin.
@@ -470,7 +513,7 @@ export function Carousel({
 				<div
 					ref={viewportRef}
 					role="group"
-					aria-label={label ?? "Slides"}
+					aria-label={label}
 					aria-keyshortcuts="ArrowLeft ArrowRight Home End"
 					tabIndex={0}
 					onKeyDown={onKeyDown}
@@ -507,7 +550,7 @@ export function Carousel({
 									ref={i === clones ? slideRef : undefined}
 									role="group"
 									aria-roledescription="slide"
-									aria-label={`${realIndex + 1} of ${count}`}
+									aria-label={slideLabel(realIndex + 1, count)}
 									aria-hidden={offscreen || undefined}
 									inert={offscreen || undefined}
 									className={cn("shrink-0 select-none", slideClassName)}
@@ -524,12 +567,14 @@ export function Carousel({
 					<>
 						<CarouselArrowButton
 							side="prev"
+							label={previousLabel}
 							onClick={prev}
 							disabled={atStart}
 							className={arrowClassName}
 						/>
 						<CarouselArrowButton
 							side="next"
+							label={nextLabel}
 							onClick={next}
 							disabled={atEnd}
 							className={arrowClassName}
@@ -545,7 +590,7 @@ export function Carousel({
 				aria-atomic
 				className="sr-only"
 			>
-				{`Slide ${logical + 1} of ${count}`}
+				{positionLabel(logical + 1, count)}
 			</div>
 
 			{(showDots || counter || autoplay > 0) && (
@@ -555,7 +600,7 @@ export function Carousel({
 							variant="ghost"
 							size="icon-xs"
 							onClick={() => setPlaying((p) => !p)}
-							aria-label={playing ? "Pause autoplay" : "Start autoplay"}
+							aria-label={playing ? pauseLabel : playLabel}
 						>
 							<PlayPauseGlyph playing={playing} />
 						</Button>
@@ -563,7 +608,7 @@ export function Carousel({
 					{showDots && (
 						<div
 							role="group"
-							aria-label="Choose slide"
+							aria-label={dotsLabel}
 							className="flex items-center"
 						>
 							{slides.map((_, i) => (
@@ -575,7 +620,7 @@ export function Carousel({
 									onClick={() => {
 										if (i !== logical) goTo(i)
 									}}
-									aria-label={`Go to slide ${i + 1}`}
+									aria-label={dotLabel(i + 1)}
 									aria-current={i === logical ? "true" : undefined}
 									// 24px hit area (WCAG 2.2 target size) around the small visual dot.
 									className="group/dot flex size-6 items-center justify-center rounded-full motion-interactive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -592,7 +637,10 @@ export function Carousel({
 											"h-1.5 rounded-full motion-glide",
 											i === logical
 												? "w-4 bg-foreground"
-												: "w-1.5 bg-muted-foreground/40 group-hover/dot:bg-muted-foreground/70",
+												: // 70%: the inactive dot is a control's only mark, so it
+													// clears the 3:1 non-text floor (sable: 3.3:1 on white,
+													// 3.6:1 on the dark card). 40% measured 1.9:1 / 2.0:1.
+													"w-1.5 bg-muted-foreground/70 group-hover/dot:bg-muted-foreground",
 										)}
 									/>
 								</button>

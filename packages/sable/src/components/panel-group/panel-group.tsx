@@ -206,8 +206,9 @@ export function Panel({
 				{/* Flush: panel content brings its own insets (PanelSection, a header
 				    strip), so the sheet's page padding would double them. A Sidebar
 				    moved in here fills the sheet: its docked width is a column's,
-				    and kept at 204px it left a strip of empty sheet beside it. */}
-				<SheetContent side={side} className="gap-0 p-0 [--sidebar-width:100%]">
+				    and kept at 204px it left a strip of empty sheet beside it. No
+			    built-in close: it would sit over the panel's own header strip. */}
+				<SheetContent side={side} showCloseButton={false} className="gap-0 p-0 [--sidebar-width:100%]">
 					<SheetTitle className="sr-only">{label}</SheetTitle>
 					{children}
 				</SheetContent>

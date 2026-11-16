@@ -1,3 +1,5 @@
+"use client"
+
 import type { ComponentPropsWithRef, ReactNode } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
@@ -49,6 +51,8 @@ export interface AttachmentProps
 	onOpen?: () => void
 	/** Label for that stretched trigger. @default `Open ${name}` */
 	openLabel?: string
+	/** Accessible name of the upload progress bar. @default `Uploading ${name}` */
+	uploadingLabel?: string
 }
 
 /**
@@ -84,6 +88,7 @@ export function Attachment({
 	actions,
 	onOpen,
 	openLabel,
+	uploadingLabel,
 	className,
 	children,
 	...props
@@ -202,7 +207,7 @@ export function Attachment({
 						// whatever the card sits on, made the card look cut off.
 						<Progress
 							value={progress ?? null}
-							aria-label={`Uploading ${name}`}
+							aria-label={uploadingLabel ?? `Uploading ${name}`}
 							className="mt-1.5 w-full"
 						>
 							<ProgressTrack className="h-1" />
@@ -228,7 +233,7 @@ export function Attachment({
 			{isMedia && status === "uploading" ? (
 				<Progress
 					value={progress ?? null}
-					aria-label={`Uploading ${name}`}
+					aria-label={uploadingLabel ?? `Uploading ${name}`}
 					className="pointer-events-none absolute inset-x-0 bottom-0 z-10 w-full"
 				>
 					<ProgressTrack className="h-1 rounded-none bg-muted" />

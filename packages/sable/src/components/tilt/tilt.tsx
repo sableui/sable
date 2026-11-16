@@ -118,3 +118,4 @@ export function Tilt({ maxAngle = 6, motion, className, ref, onPointerMove, onPo
 		/>
 	)
 }
+Tilt.displayName = "Tilt"

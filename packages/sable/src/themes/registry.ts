@@ -7,6 +7,10 @@ import { sableTheme } from "./sable"
 import { poppyTheme } from "./poppy"
 
 export const SABLE_THEME_ATTRIBUTE = "data-sable-theme" as const
+/** localStorage key SableThemeProvider and sableThemeScript use for the colour preference. */
+export const SABLE_COLOR_STORAGE_KEY = "sable-color-preference" as const
+/** localStorage key SableThemeProvider and sableThemeScript use for the design theme id. */
+export const SABLE_THEME_STORAGE_KEY = "sable-theme-id" as const
 export const DEFAULT_THEME_ID = sableTheme.id
 export const defaultThemeId = DEFAULT_THEME_ID
 

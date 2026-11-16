@@ -12,12 +12,14 @@ import {
 	useState,
 } from "react"
 import { useTheme } from "../theme"
+import { LOOK_STYLE_ID, writeLook } from "./apply"
 import { resolveTheme } from "./color"
 import { loadFont } from "./fonts"
 import { resolveShadows } from "./shadow"
 import {
 	CONTROL_STEPS,
 	DEFAULT_LOOK,
+	DEFAULT_RHYTHM,
 	type Look,
 	RADIUS_STEPS,
 	TYPE_SIZE_TIERS,
@@ -27,15 +29,23 @@ import {
 	encodeLook,
 	fontsInUse,
 	hasLookParams,
+	lookDecls,
 	lookFromParams,
 	lookToParams,
 	toCss,
 } from "./look"
 
-const STYLE_ID = "sable-docs-look"
+const ISOLATION_ID = "sable-docs-isolation"
 const STORAGE_KEY = "sable-docs-look"
+/**
+ * What a share link replaced (the reader's own look, preset and mode), kept
+ * until they choose to restore it or keep the shared one.
+ */
+export const PREVIOUS_KEY = "sable-docs-look-previous"
 /** The retired base64 param; old share links still decode. */
 const LEGACY_PARAM = "look"
+/** Where app.css changes the docs' --type-base (16 → 14). */
+const TYPE_BASE_QUERY = "(min-width: 768px)"
 
 /**
  * Two kinds of element must not take on the reader's look, or the active
@@ -52,9 +62,14 @@ const LEGACY_PARAM = "look"
  * everything else is INHERITED from :root, where the look and the active
  * preset live. So both are reset to Sable's own defaults (what an app gets
  * with no preset and no look) for every token any preset or the look sets.
+ * Tokens that Sable re-declares on every `[data-sable-theme]` element (the
+ * palette, the derived surfaces, the rhythm) are left alone: they never
+ * inherit, and both kinds of isolated element carry the attribute.
  * `:where()` keeps that reset at zero specificity: a preset's own
  * declarations still win, and only the inherited leak is replaced.
- * Preview-only: none of this is part of the export.
+ * Preview-only: none of this is part of the export. It lives in its own
+ * <style>, rewritten when a preset arrives or the look first sets a new kind
+ * of token, never per drag step.
  */
 const ISOLATED = ":where([data-canvas-chrome], [data-preset-preview])"
 const ISOLATED_DARK =
@@ -62,24 +77,33 @@ const ISOLATED_DARK =
 
 type Defaults = { light: Record<string, string>; dark: Record<string, string> }
 
-/** Every custom property declared by a preset-scoped rule. */
-function presetTokenNames(): Set<string> {
-	const names = new Set<string>()
+/**
+ * Custom properties by where they are declared: `specific` in a rule for one
+ * preset (`[data-sable-theme="…"]`), `generic` in a rule for every themed
+ * element (`[data-sable-theme]`, which an isolated element carries itself).
+ */
+function themeTokenNames(): { specific: Set<string>; generic: Set<string> } {
+	const specific = new Set<string>()
+	const generic = new Set<string>()
 	const walk = (rules: CSSRuleList) => {
 		for (const rule of Array.from(rules)) {
-			if (rule instanceof CSSStyleRule && rule.selectorText.includes("[data-sable-theme")) {
-				for (const name of Array.from(rule.style)) if (name.startsWith("--")) names.add(name)
+			if (rule instanceof CSSStyleRule) {
+				const selector = rule.selectorText
+				const target = selector.includes("[data-sable-theme]") ? generic : selector.includes("[data-sable-theme") ? specific : null
+				if (target) for (const name of Array.from(rule.style)) if (name.startsWith("--")) target.add(name)
 			} else if ("cssRules" in rule) walk((rule as CSSGroupingRule).cssRules)
 		}
 	}
 	for (const sheet of Array.from(document.styleSheets)) {
+		const owner = sheet.ownerNode as Element | null
+		if (owner?.id === LOOK_STYLE_ID || owner?.id === ISOLATION_ID) continue
 		try {
 			walk(sheet.cssRules)
 		} catch {
 			// Cross-origin sheets (Google Fonts) cannot be read; they declare no tokens.
 		}
 	}
-	return names
+	return { specific, generic }
 }
 
 /**
@@ -89,7 +113,7 @@ function presetTokenNames(): Set<string> {
  */
 function readDefaults(names: string[]): Defaults {
 	const html = document.documentElement
-	const sheet = (document.getElementById(STYLE_ID) as HTMLStyleElement | null)?.sheet
+	const sheet = (document.getElementById(LOOK_STYLE_ID) as HTMLStyleElement | null)?.sheet
 	const theme = html.getAttribute("data-sable-theme")
 	const wasDark = html.classList.contains("dark")
 	if (sheet) sheet.disabled = true
@@ -108,13 +132,16 @@ function readDefaults(names: string[]): Defaults {
 	return { light, dark }
 }
 
-function isolationCss(defaults: Defaults): string {
+function isolationCss(names: Iterable<string>, defaults: Defaults): string {
 	const light: string[] = []
 	const dark: string[] = []
-	for (const [name, value] of Object.entries(defaults.light)) {
-		if (value) light.push(`${name}: ${value};`)
-		const darkValue = defaults.dark[name]
-		if (darkValue && darkValue !== value) dark.push(`${name}: ${darkValue};`)
+	for (const name of names) {
+		// No default: the token is unset in Sable, so the reset unsets it too
+		// (`initial` makes var() fall back, as it would with no preset).
+		const value = defaults.light[name] || "initial"
+		light.push(`${name}: ${value};`)
+		const darkValue = defaults.dark[name] || "initial"
+		if (darkValue !== value) dark.push(`${name}: ${darkValue};`)
 	}
 	return [`${ISOLATED} {\n\t${light.join("\n\t")}\n}`, dark.length ? `${ISOLATED_DARK} {\n\t${dark.join("\n\t")}\n}` : ""].join("\n")
 }
@@ -141,51 +168,127 @@ const CHROME_RESET = `
 	font-family: var(--font-sans);
 }`
 
-interface CustomizerValue {
+/** What the shared link replaced, restorable. */
+interface PreviousLook {
+	look: string
+	themeId: string | null
+	mode: string | null
+}
+
+/**
+ * The fast-changing half: the look itself and what derives from it. Read it
+ * only where the look is shown (the inspector, a live readout); every consumer
+ * re-renders on each drag step.
+ */
+interface CustomizerLook {
 	look: Look
-	setLook: (patch: Partial<Look>) => void
-	reset: () => void
 	css: string
+	base: ThemeBase
 	/** A link to the current page with this preset and look. */
 	getShareUrl: () => string
+}
+
+/**
+ * The stable half: actions and panel state. Changes only when the panel opens
+ * or closes, a confirm comes up, or the look goes from untouched to touched —
+ * so the shell and the canvas can read it without re-rendering per drag step.
+ */
+interface CustomizerActions {
+	setLook: (patch: Partial<Look>) => void
+	/** Clear the look, keeping what it was for restoreCleared. */
+	reset: () => void
+	/** Bring back the look the last reset (or "start fresh") cleared; false when there is none. */
+	restoreCleared: () => boolean
 	open: boolean
 	setOpen: (open: boolean) => void
 	isCustomized: boolean
-	base: ThemeBase
 	/**
-	 * Choose a preset from anywhere (the inspector, the Themes page). A preset
-	 * is a starting point, so choosing one clears the look; with changes to
-	 * lose, the choice waits in `pendingPreset` for the inspector's confirm.
+	 * Choose a preset from anywhere (the inspector, the Themes page). With
+	 * changes in play, the choice waits in `pendingPreset` for the inspector's
+	 * confirm, which can keep them or start fresh.
 	 */
 	requestPreset: (id: string) => void
 	pendingPreset: string | null
-	confirmPreset: () => void
+	/** Switch to the pending preset; `keep` carries the look over (it is relative to the preset by construction). */
+	confirmPreset: (options?: { keep?: boolean }) => void
 	cancelPreset: () => void
+	/** Set when a share link replaced the reader's own look; restore it or keep the shared one. */
+	sharedLook: { restore: () => void; keep: () => void } | null
 }
 
-const CustomizerContext = createContext<CustomizerValue | null>(null)
+type CustomizerValue = CustomizerLook & CustomizerActions
 
+const LookContext = createContext<CustomizerLook | null>(null)
+const ActionsContext = createContext<CustomizerActions | null>(null)
+
+/** The look and its actions. Re-renders on every look change; prefer useCustomizerActions where the look itself is not shown. */
 export function useCustomizer(): CustomizerValue {
-	const value = useContext(CustomizerContext)
-	if (!value) throw new Error("useCustomizer must be used inside <CustomizerProvider>")
-	return value
+	const look = useContext(LookContext)
+	const actions = useContext(ActionsContext)
+	if (!look || !actions) throw new Error("useCustomizer must be used inside <CustomizerProvider>")
+	return { ...look, ...actions }
+}
+
+/** Panel state and actions only: does not re-render while a control is dragged. */
+export function useCustomizerActions(): CustomizerActions {
+	const actions = useContext(ActionsContext)
+	if (!actions) throw new Error("useCustomizerActions must be used inside <CustomizerProvider>")
+	return actions
+}
+
+function storage(key: string): string | null {
+	try {
+		return window.localStorage.getItem(key)
+	} catch {
+		return null
+	}
+}
+
+interface InitialLook {
+	look: Look
+	/** What a share link replaced, when it differs from the link. */
+	previous: PreviousLook | null
 }
 
 /**
  * A share link (`?theme=` or any look field) defines the whole design, so its
  * look wins over the reader's saved one — even when it carries no changes.
+ * What it replaced is kept (see PREVIOUS_KEY), so opening a colleague's link
+ * never silently costs the reader their own work. Runs during the first
+ * render, before the theme provider writes the link's preset to storage.
  */
-function readInitialLook(): Look {
-	if (typeof window === "undefined") return DEFAULT_LOOK
+function readInitialLook(): InitialLook {
+	if (typeof window === "undefined") return { look: DEFAULT_LOOK, previous: null }
 	const params = new URLSearchParams(window.location.search)
 	const legacy = params.get(LEGACY_PARAM)
-	if (legacy) return decodeLook(legacy)
-	if (params.has("theme") || hasLookParams(params)) return lookFromParams(params)
-	try {
-		return decodeLook(window.localStorage.getItem(STORAGE_KEY))
-	} catch {
-		return DEFAULT_LOOK
+	const shared = legacy ? decodeLook(legacy) : params.has("theme") || hasLookParams(params) ? lookFromParams(params) : null
+	if (!shared) {
+		const pending = storage(PREVIOUS_KEY)
+		return { look: decodeLook(storage(STORAGE_KEY)), previous: pending ? parsePrevious(pending) : null }
 	}
+	const ownLook = storage(STORAGE_KEY) ?? ""
+	const ownTheme = storage("sable-docs-theme-id")
+	const ownMode = storage("sable-docs-theme")
+	const sharedTheme = params.get("theme")
+	const lookDiffers = ownLook !== "" && encodeLook(decodeLook(ownLook)) !== encodeLook(shared)
+	const themeDiffers = ownTheme != null && sharedTheme != null && ownTheme !== sharedTheme
+	const previous = lookDiffers || themeDiffers ? { look: ownLook, themeId: ownTheme, mode: ownMode } : null
+	return { look: shared, previous }
+}
+
+function parsePrevious(raw: string): PreviousLook | null {
+	try {
+		const value = JSON.parse(raw) as Partial<PreviousLook>
+		return typeof value.look === "string" ? { look: value.look, themeId: value.themeId ?? null, mode: value.mode ?? null } : null
+	} catch {
+		return null
+	}
+}
+
+/** A number token, or `fallback` when the preset leaves it unset. */
+function numberToken(computed: CSSStyleDeclaration, name: string, fallback: number): number {
+	const n = Number.parseFloat(computed.getPropertyValue(name))
+	return Number.isFinite(n) && n > 0 ? n : fallback
 }
 
 /**
@@ -194,7 +297,7 @@ function readInitialLook(): Look {
  * preset — never compounded on top of a previous scale.
  */
 function readThemeBase(themeId: string): ThemeBase {
-	const style = document.getElementById(STYLE_ID) as HTMLStyleElement | null
+	const style = document.getElementById(LOOK_STYLE_ID) as HTMLStyleElement | null
 	const sheet = style?.sheet
 	if (sheet) sheet.disabled = true
 	const computed = getComputedStyle(document.documentElement)
@@ -205,6 +308,11 @@ function readThemeBase(themeId: string): ThemeBase {
 	for (const step of CONTROL_STEPS) control[step] = read(`--control-${step}`)
 	const typeSize: Record<string, string> = {}
 	for (const tier of TYPE_SIZE_TIERS) typeSize[tier] = read(`--type-${tier}-size`)
+	const rhythm = {
+		leadingScale: numberToken(computed, "--theme-leading-scale", DEFAULT_RHYTHM.leadingScale),
+		typeBase: numberToken(computed, "--type-base", DEFAULT_RHYTHM.typeBase),
+		bodyLeading: numberToken(computed, "--type-body-md-leading", DEFAULT_RHYTHM.bodyLeading),
+	}
 	const colors = resolveTheme(themeId)
 	const shadows = resolveShadows(themeId)
 	const rootPx = Number.parseFloat(computed.fontSize) || 16
@@ -216,19 +324,31 @@ function readThemeBase(themeId: string): ThemeBase {
 	const motionBaseMs = (Number.parseFloat(getComputedStyle(probe).transitionDuration) || 0.2) * 1000
 	probe.remove()
 	if (sheet) sheet.disabled = false
-	return { radius, control, typeSize, colors, rootPx, motionBaseMs, shadows }
+	return { radius, control, typeSize, colors, rootPx, motionBaseMs, shadows, rhythm }
 }
 
-const EMPTY_BASE: ThemeBase = { radius: {}, typeSize: {}, control: {}, colors: null, rootPx: 16, motionBaseMs: 200, shadows: null }
+const EMPTY_BASE: ThemeBase = { radius: {}, typeSize: {}, control: {}, colors: null, rootPx: 16, motionBaseMs: 200, shadows: null, rhythm: DEFAULT_RHYTHM }
 
 export function CustomizerProvider({ children }: { children: ReactNode }) {
-	const { themeId, setThemeId, presets } = useTheme()
-	const [look, setLookState] = useState<Look>(readInitialLook)
+	const { themeId, setThemeId, setPreference, presets } = useTheme()
+	const [initial] = useState(readInitialLook)
+	const [look, setLookState] = useState<Look>(initial.look)
 	const [base, setBase] = useState<ThemeBase>(EMPTY_BASE)
 	const [open, setOpen] = useState(false)
 	const [pendingPreset, setPendingPreset] = useState<string | null>(null)
-	const presetNames = useRef<Set<string> | null>(null)
-	const defaults = useRef<Defaults>({ light: {}, dark: {} })
+	const [previous, setPrevious] = useState<PreviousLook | null>(initial.previous)
+
+	// The look as of the last change, for setLook calls in the same frame.
+	const current = useRef(look)
+	// One step back from a clear: Reset all and "Start fresh" are the only
+	// actions that throw work away, so the look they cleared is kept.
+	const cleared = useRef<Look | null>(null)
+
+	const commit = useCallback((next: Look) => {
+		if (encodeLook(current.current) === encodeLook(next)) return
+		current.current = next
+		setLookState(next)
+	}, [])
 
 	// Re-read the preset whenever it changes. Layout effect, so the first paint
 	// after a preset switch already carries the rebased look.
@@ -236,33 +356,64 @@ export function CustomizerProvider({ children }: { children: ReactNode }) {
 	// runs AFTER this layout effect — so without applying it here first, the
 	// read measured the previous preset and every scale (corners, density)
 	// compounded on the wrong base. Applying is idempotent.
+	//
+	// The docs' --type-base steps from 16 to 14 at 768px (app.css), and the
+	// type anchors are relative to it, so crossing that width re-reads too.
+	const [typeBaseQuery, setTypeBaseQuery] = useState(() => typeof window !== "undefined" && window.matchMedia(TYPE_BASE_QUERY).matches)
+	useEffect(() => {
+		const query = window.matchMedia(TYPE_BASE_QUERY)
+		const change = () => setTypeBaseQuery(query.matches)
+		query.addEventListener("change", change)
+		return () => query.removeEventListener("change", change)
+	}, [])
 	useLayoutEffect(() => {
 		applySableTheme(themeId)
 		setBase(readThemeBase(themeId))
-	}, [themeId, presets])
+	}, [themeId, presets, typeBaseQuery])
 
-	const css = useMemo(() => toCss(look, base, themeId), [look, base, themeId])
+	const decls = useMemo(() => lookDecls(look, base), [look, base])
+	const css = useMemo(() => toCss(look, base, themeId, decls), [look, base, themeId, decls])
 
+	// The look, applied: changed declarations only, one CSSOM write per frame (see apply.ts).
 	useLayoutEffect(() => {
-		let style = document.getElementById(STYLE_ID) as HTMLStyleElement | null
-		if (!style) {
-			style = document.createElement("style")
-			style.id = STYLE_ID
-			document.head.appendChild(style)
+		writeLook(decls)
+	}, [decls])
+
+	// The isolation (see ISOLATED). Its token set changes only when a preset
+	// arrives or the look sets a kind of token it has not set before, so this
+	// rewrites its <style> a handful of times a session — never per drag step.
+	const isolation = useRef<{ names: Set<string>; generic: Set<string>; defaults: Defaults; presets: unknown } | null>(null)
+	useLayoutEffect(() => {
+		let state = isolation.current
+		if (!state || state.presets !== presets) {
+			const { specific, generic } = themeTokenNames()
+			state = { names: new Set([...specific].filter((name) => !generic.has(name))), generic, defaults: { light: {}, dark: {} }, presets }
+			isolation.current = state
 		}
-		// Isolate every preset's tokens plus whatever the look sets now; each
-		// name's default is read once and cached.
-		presetNames.current = presetTokenNames()
-		const names = new Set(presetNames.current)
-		for (const match of css.matchAll(/(--[\w-]+)\s*:/g)) names.add(match[1])
-		const missing = [...names].filter((name) => !(name in defaults.current.light))
+		// A fresh state (first run, or a preset arrived) has read no defaults yet.
+		let grew = Object.keys(state.defaults.light).length === 0
+		for (const decl of [...decls.root, ...decls.dark]) {
+			const name = decl.slice(0, decl.indexOf(":")).trim()
+			if (!state.names.has(name) && !state.generic.has(name)) {
+				state.names.add(name)
+				grew = true
+			}
+		}
+		if (!grew) return
+		const missing = [...state.names].filter((name) => !(name in state.defaults.light))
 		if (missing.length) {
 			const read = readDefaults(missing)
-			Object.assign(defaults.current.light, read.light)
-			Object.assign(defaults.current.dark, read.dark)
+			Object.assign(state.defaults.light, read.light)
+			Object.assign(state.defaults.dark, read.dark)
 		}
-		style.textContent = `${css}\n${isolationCss(defaults.current)}\n${CHROME_RESET}`
-	}, [css, presets])
+		let style = document.getElementById(ISOLATION_ID) as HTMLStyleElement | null
+		if (!style) {
+			style = document.createElement("style")
+			style.id = ISOLATION_ID
+			document.head.appendChild(style)
+		}
+		style.textContent = `${isolationCss(state.names, state.defaults)}\n${CHROME_RESET}`
+	}, [decls, presets])
 
 	// A restored or shared look names fonts the page has not loaded yet.
 	useEffect(() => {
@@ -271,13 +422,20 @@ export function CustomizerProvider({ children }: { children: ReactNode }) {
 
 	// A share link has been read (theme, mode and look, during the first
 	// render); clear it from the address bar so it does not ride along on every
-	// page. The look is now the reader's own, saved to storage below.
+	// page. What it replaced waits under PREVIOUS_KEY until the reader decides.
 	useEffect(() => {
 		const url = new URL(window.location.href)
 		const before = url.search
 		for (const name of SHARE_PARAMS) url.searchParams.delete(name)
 		if (url.search !== before) window.history.replaceState(window.history.state, "", url)
-	}, [])
+		if (initial.previous) {
+			try {
+				window.localStorage.setItem(PREVIOUS_KEY, JSON.stringify(initial.previous))
+			} catch {
+				/* storage unavailable: the offer lasts for this page view */
+			}
+		}
+	}, [initial])
 
 	const encoded = encodeLook(look)
 	// Persisting is debounced: a drag produces an update per frame, and a
@@ -295,11 +453,18 @@ export function CustomizerProvider({ children }: { children: ReactNode }) {
 		return () => window.clearTimeout(timer)
 	}, [encoded])
 
-	const setLook = useCallback((patch: Partial<Look>) => setLookState((prev) => ({ ...prev, ...patch })), [])
+	const setLook = useCallback((patch: Partial<Look>) => commit({ ...current.current, ...patch }), [commit])
 	const reset = useCallback(() => {
-		setLookState(DEFAULT_LOOK)
-		try { window.localStorage.removeItem(STORAGE_KEY) } catch { /* storage disabled */ }
-	}, [])
+		if (encodeLook(current.current)) cleared.current = current.current
+		commit(DEFAULT_LOOK)
+	}, [commit])
+	const restoreCleared = useCallback(() => {
+		const look = cleared.current
+		if (!look) return false
+		cleared.current = null
+		commit(look)
+		return true
+	}, [commit])
 
 	const isCustomized = Boolean(encoded)
 	const requestPreset = useCallback(
@@ -313,13 +478,40 @@ export function CustomizerProvider({ children }: { children: ReactNode }) {
 		},
 		[isCustomized, themeId, setThemeId],
 	)
-	const confirmPreset = useCallback(() => {
-		if (!pendingPreset) return
-		reset()
-		setThemeId(pendingPreset)
-		setPendingPreset(null)
-	}, [pendingPreset, setThemeId, reset])
+	const confirmPreset = useCallback(
+		({ keep = false }: { keep?: boolean } = {}) => {
+			if (!pendingPreset) return
+			if (!keep) reset()
+			setThemeId(pendingPreset)
+			setPendingPreset(null)
+		},
+		[pendingPreset, setThemeId, reset],
+	)
 	const cancelPreset = useCallback(() => setPendingPreset(null), [])
+
+	const forgetPrevious = useCallback(() => {
+		setPrevious(null)
+		try {
+			window.localStorage.removeItem(PREVIOUS_KEY)
+		} catch {
+			/* storage unavailable */
+		}
+	}, [])
+	const sharedLook = useMemo(
+		() =>
+			previous
+				? {
+						restore: () => {
+							if (previous.themeId) setThemeId(previous.themeId)
+							if (previous.mode === "light" || previous.mode === "dark" || previous.mode === "system") setPreference(previous.mode)
+							commit(decodeLook(previous.look))
+							forgetPrevious()
+						},
+						keep: forgetPrevious,
+					}
+				: null,
+		[previous, setThemeId, setPreference, commit, forgetPrevious],
+	)
 
 	// Built only when shared: the current page, the preset and each changed
 	// setting. A function, because the page changes without this provider
@@ -333,17 +525,20 @@ export function CustomizerProvider({ children }: { children: ReactNode }) {
 		return url.toString()
 	}, [look, themeId])
 
-	const value = useMemo<CustomizerValue>(
-		() => ({
-			look, setLook, reset, css, getShareUrl, open, setOpen, isCustomized, base,
-			requestPreset, pendingPreset, confirmPreset, cancelPreset,
-		}),
-		[look, setLook, reset, css, getShareUrl, open, isCustomized, base, requestPreset, pendingPreset, confirmPreset, cancelPreset],
+	const lookValue = useMemo<CustomizerLook>(
+		() => ({ look, css, base, getShareUrl }),
+		[look, css, base, getShareUrl],
+	)
+	const actions = useMemo<CustomizerActions>(
+		() => ({ setLook, reset, restoreCleared, open, setOpen, isCustomized, requestPreset, pendingPreset, confirmPreset, cancelPreset, sharedLook }),
+		[setLook, reset, restoreCleared, open, isCustomized, requestPreset, pendingPreset, confirmPreset, cancelPreset, sharedLook],
 	)
 
 	return (
-		<CustomizerContext.Provider value={value}>
-			<IconProvider set={reiconIconSet}>{children}</IconProvider>
-		</CustomizerContext.Provider>
+		<ActionsContext.Provider value={actions}>
+			<LookContext.Provider value={lookValue}>
+				<IconProvider set={reiconIconSet}>{children}</IconProvider>
+			</LookContext.Provider>
+		</ActionsContext.Provider>
 	)
 }

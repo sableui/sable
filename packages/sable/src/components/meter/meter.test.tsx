@@ -34,7 +34,10 @@ describe("Meter", () => {
 		)
 		const fill = container.querySelector(".bg-tone-warning-mark") as HTMLElement
 		expect(fill).not.toBeNull()
-		expect(fill.style.width).toBe("25%")
+		// A full-width fill slid back by the empty share: it animates translate,
+		// not width (see lib/slide-fill).
+		expect(fill.style.width).toBe("100%")
+		expect(fill.style.getPropertyValue("--sable-fill-offset")).toBe("75%")
 	})
 
 	it("lets an indicator override the inherited tone", () => {

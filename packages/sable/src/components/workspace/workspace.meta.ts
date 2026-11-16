@@ -144,6 +144,13 @@ export const workspaceMeta: ComponentMeta = {
 			default: '"Skip to canvas"',
 			description: "Text for the skip link that targets the canvas landmark.",
 		},
+		{
+			name: "mainId",
+			type: "string",
+			default: '"main-content"',
+			description:
+				"The id the skip link targets, which the WorkspaceCanvas inside takes unless it has an id of its own. Change it when the page already has a main-content (an AppShell around the tool), so the ids do not collide.",
+		},
 	],
 	subcomponents: [
 		{
@@ -155,7 +162,7 @@ export const workspaceMeta: ComponentMeta = {
 			name: "WorkspaceCanvas",
 			type: "ComponentProps<'main'>",
 			description:
-				"The work surface: renders main#main-content, fills the body, clips its overflow.",
+				"The work surface: renders the main landmark with Workspace's mainId (main-content by default; an id passed here wins) and tabIndex={-1} so the skip link can move focus into it, fills the body, clips its overflow.",
 		},
 		{
 			name: "useMediaQuery",
@@ -171,8 +178,8 @@ export const workspaceMeta: ComponentMeta = {
 		},
 	],
 	a11y: [
-		"Renders a skip link to #main-content as the first focusable element, even though there is no scrolling document.",
-		"WorkspaceCanvas is the <main id=\"main-content\"> landmark; Panels are <aside> chrome with their own names.",
+		"Renders a skip link to the canvas (#main-content unless mainId says otherwise) as the first focusable element, even though there is no scrolling document.",
+		"WorkspaceCanvas is the <main> landmark and takes focus from the skip link (tabIndex -1, out of the tab order); Panels are <aside> chrome with their own names.",
 		"Density only changes control sizes, never hit-target rules — an icon button at the 24px floor still needs a padded 44px hit area.",
 	],
 	tokensUsed: ["canvas", "canvas-foreground", "panel", "hairline", "popover", "popover-foreground", "ring"],

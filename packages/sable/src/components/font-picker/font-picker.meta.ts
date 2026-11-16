@@ -62,6 +62,18 @@ export const fontPickerMeta: ComponentMeta = {
 		},
 		{ name: "searchLabel", type: "string", default: '"Search fonts"', description: "Accessible name of the search field." },
 		{
+			name: "searchPlaceholder",
+			type: "(count: number) => string",
+			default: "(count) => `Search ${count} fonts`",
+			description: "The search field's placeholder, given how many fonts are listed.",
+		},
+		{
+			name: "emptyLabel",
+			type: "(query: string) => string",
+			default: "(query) => `No fonts match “${query}”.`",
+			description: "What the list says when a search matches nothing.",
+		},
+		{
 			name: "loadFont",
 			type: '(font, purpose: "preview" | "use") => void',
 			description: "Loads a face on demand: \"preview\" for every family when the list opens, \"use\" for the chosen one once it is picked (never while the list is only being walked). Receives your own font objects. Idempotent.",
@@ -69,7 +81,13 @@ export const fontPickerMeta: ComponentMeta = {
 		{ name: "open", type: "boolean", description: "Controlled open state, as DisclosurePicker. Control it to keep one of several rows open at a time." },
 		{ name: "defaultOpen", type: "boolean", default: "false", description: "Uncontrolled initial open state." },
 		{ name: "onOpenChange", type: "(open: boolean) => void", description: "Called with the next open state." },
-		{ name: "size", type: '"md" | "xs"', default: '"md"', description: "md for a settings column; xs for the property-grid rung (see DisclosurePicker)." },
+		{ name: "size", type: '"md" | "sm" | "xs"', default: '"md"', description: "md for a settings column; sm one rung down for a toolbar; xs for the property-grid rung (see DisclosurePicker)." },
+		{
+			name: "name / form / required",
+			type: "string / string / boolean",
+			description:
+				"Submit the chosen family (or option value) with a form under `name`, exactly as `value` holds it, through DisclosurePicker's hidden input — present while the row is closed. `required` blocks submission while `value` is empty.",
+		},
 	],
 	tokensUsed: ["foreground", "muted-foreground", "popover", "hairline", "panel-field", "ring"],
 	a11y: [

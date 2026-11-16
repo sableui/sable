@@ -1,3 +1,5 @@
+"use client"
+
 import { useState } from "react"
 import { AreaChart } from "../components/area-chart"
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/card"
@@ -27,7 +29,11 @@ const ranges = [
 	{ id: "7d", label: "7 days", days: 7 },
 ]
 
-const shortDate = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+// One formatter, built once: toLocaleDateString builds a new one per call,
+// and a chart formats every tick on every render.
+const SHORT_DATE = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" })
+const shortDate = (iso: string) => SHORT_DATE.format(new Date(`${iso}T00:00:00`))
+const LONG_DATE = new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric" })
 
 export interface TrafficTrendBlockProps {
 	className?: string
@@ -62,7 +68,7 @@ export function TrafficTrendBlock({ className, framed = true }: TrafficTrendBloc
 					index="date"
 					series={series}
 					indexFormatter={shortDate}
-					tooltip={{ labelFormatter: (d) => new Date(`${d}T00:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) }}
+					tooltip={{ labelFormatter: (d) => LONG_DATE.format(new Date(`${d}T00:00:00`)) }}
 					stacked
 					gradient
 					className="h-64"

@@ -8,7 +8,7 @@ import { cva } from "class-variance-authority"
  * scanning back up a long thread.
  */
 export const toolCallVariants = cva(
-	"w-full overflow-hidden rounded-md border bg-card text-start",
+	"@container/tool-call w-full overflow-hidden rounded-md border bg-card text-start",
 	{
 		variants: {
 			status: {

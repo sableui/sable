@@ -34,3 +34,18 @@
  */
 export const hitTargetMin =
 	"relative before:absolute before:left-1/2 before:top-1/2 before:size-(--control-xs) before:-translate-x-1/2 before:-translate-y-1/2 before:content-['']"
+
+/**
+ * `hitTargetMin`, grown to 44x44 under a coarse pointer — the touch floor the
+ * accessibility foundation promises ("Hit area 44×44px"). A literal 44px, like
+ * the `hit-target` utility and for the same reason: the WCAG touch floor is not
+ * a control-ladder height, and a density scope must never shrink it.
+ *
+ * Only for a control that stands ALONE: a dialog's close, a banner's dismiss, a
+ * code block's copy, a carousel's prev/next arrows. Two of these side by side would overlap by up to 20px, and
+ * the later one in source order would take taps aimed at the visible box of the
+ * earlier one — worse than a small target. Controls packed in a row (a Tree's
+ * disclosures one row apart, chips, pagination numbers, calendar days, carousel
+ * dots) keep `hitTargetMin`; their pitch, not their slop, sets their target.
+ */
+export const hitTargetTouch = `${hitTargetMin} pointer-coarse:before:size-[44px]`

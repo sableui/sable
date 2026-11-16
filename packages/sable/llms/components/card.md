@@ -33,25 +33,26 @@ Use Card for a discrete thing with its own boundary, such as one product, one no
 
 | Name | Type | Description |
 | --- | --- | --- |
-| CardHeader | ComponentPropsWithRef<"div"> | Top section holding CardTitle/CardDescription (and optionally CardAction). Padding follows the density knob. |
-| CardTitle | ComponentPropsWithRef<"div"> & { render?: useRender.RenderProp } | The card's name (text-title-lg). A div by default; pass `render={<h2 />}` (or h3…) to make it a heading in the page outline, at the level the card's position calls for. |
+| CardHeader | ComponentPropsWithRef<"div"> & { divided?: boolean } | Top section holding CardTitle/CardDescription (and optionally CardAction). Padding follows the density knob. `divided` closes it with a hairline and full bottom padding, for a header that stays put over a part that scrolls or runs to the edges (a chat transcript) — never a hand-written inset shadow or border-b. |
+| CardTitle | ComponentPropsWithRef<"div"> & { render?: useRender.RenderProp } | The card's name (text-title-lg). A div by default; pass `render={<h2 />}` (or h3…) to make it a heading in the page outline, at the level the card's position calls for. Blocks render it as h2 (h3 under a heading of their own); a figure in the title slot (a balance, a stat) stays a div. |
 | CardDescription | ComponentPropsWithRef<"div"> | Muted supporting line under the title. |
 | CardAction | ComponentPropsWithRef<"div"> | Header-aligned top-right action slot (e.g. an overflow menu, switch, or close button). Place inside CardHeader, which becomes a 2-column grid when present and collapses to a single column otherwise. A ghost or link Button that ends the slot bleeds by its own padding at the end, so a "View all" label or a "⋯" glyph sits on the card's content edge; filled buttons keep their edge there. |
 | CardContent | ComponentPropsWithRef<"div"> & { flush?: boolean } | The body region. Padding follows the density knob on all sides — does not assume a preceding CardHeader, so it is safe to use standalone (e.g. no CardHeader in the card). When paired with CardHeader, the seam stays tight because CardHeader zeroes its own bottom padding. `flush` runs it edge to edge for a table: the Table insets its first and last columns by exactly the card padding, so it lines up with the header — never hand-set pl-6/pr-6 on columns. |
-| CardList | ComponentPropsWithRef<"div"> | Rows that run edge to edge in the card (Entity rows, most often), divided by hairlines. Insets each row to the card's own padding, so a list card lines up with every other card at any density — no hand-tuned px-* on the rows. Under a CardHeader it opens with a hairline and a gap; alone it fills the card. |
+| CardList | ComponentPropsWithRef<"div"> & { divided?: boolean } | Rows that run edge to edge in the card (Entity rows, most often), divided by hairlines. Insets each row to the card's own padding, so a list card lines up with every other card at any density, with no hand-tuned px-* on the rows. Under a CardHeader it opens with a hairline and a gap; alone it fills the card. `divided={false}` drops the hairlines for a quiet list of a few rows: the rows are spaced by padding alone, and the only rule is the one a CardListLabel draws between groups. |
+| CardListLabel | ComponentPropsWithRef<"div"> & { render?: useRender.RenderProp } | The name of a group of rows in a CardList ("Signed-in devices", "Sources"), on the rows' text edge and close above them. Pass `render={<h3 />}` to make it a heading. In a `divided={false}` list, a label after the first row draws the one rule that separates its group. Never a hand-padded heading between rows. |
 | CardFooter | ComponentPropsWithRef<"div"> & { actions?: boolean } | Bottom row for actions/meta. Padding follows the density knob. `actions` marks it as the card's action row (buttons only): in a sheet (IosSheet, a bottom SheetContent) it becomes a full-width stack pinned to the bottom, primary on top; on a page nothing changes. |
 
 ## Props
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| variant | "default" \| "flat" | "default" | "default" raises with bg-card + border + soft shadow; "flat" is transparent, for a card inside a section that already frames it. A flat card made a link or button shows its shape only on hover (the muted fill), so over a photo with square bottom corners it reads as a cropped image at rest: give a linked media card the default variant. |
+| variant | "default" \| "flat" \| "featured" | "default" | "default" raises with bg-card + border + soft shadow; "flat" is transparent, for a card inside a section that already frames it. A flat card made a link or button shows its shape only on hover (the muted fill), so over a photo with square bottom corners it reads as a cropped image at rest: give a linked media card the default variant. "featured" is the raised surface with a primary edge, for the one option a set recommends (the featured plan among tiers) — never ring-* or outline-* classes on a default card. |
 | density | "comfortable" \| "compact" | "comfortable" | Padding of the Header/Content/Footer parts: comfortable = p-6 (default), compact = p-4 for denser section panels (pair compact with the flat variant for a settings / form section panel). Threaded to the parts via the inherited --card-p custom property. Card sets --card-p via inline style, which beats a plain (non-!important) stylesheet override of the same property on the same element — use this prop rather than a className override; if an external override is unavoidable, it needs !important. |
 | render | useRender.RenderProp | — | Replace the rendered element through the Base UI render prop — most often `render={<a href="/x" />}` (or a router Link) to make the whole card one link. When the rendered element is a link (a[href]) or a button, the card gains a hover state (stronger border and shadow; a muted fill when flat), a full-card focus-visible ring and motion-interactive easing. Any other element (article, li) stays a static surface. Children can answer the hover with `group-hover/card:`. |
 
 ## Variants
 
-- **variant**: default, flat
+- **variant**: default, flat, featured
 - **density**: comfortable, compact
 
 ## Tokens used
@@ -124,6 +125,22 @@ import { Card, CardContent, CardDescription, CardTitle, Icon } from "@sableui/re
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@sableui/react"
 
 <Card density="compact"><CardHeader><CardTitle>Revenue</CardTitle><CardDescription>Last 30 days</CardDescription></CardHeader><CardContent><p className="text-heading-3">$12,840</p><p className="text-body-sm text-success">+12.8% from previous period</p></CardContent></Card>
+```
+
+### Featured option
+
+```tsx
+import { Badge, Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@sableui/react"
+
+<Card variant="featured"><CardHeader><CardTitle render={<h3 />}>Studio</CardTitle><CardDescription>For growing teams.</CardDescription><CardAction><Badge tone="1" size="sm">Most popular</Badge></CardAction></CardHeader><CardContent><p className="text-heading-2">$16</p></CardContent></Card>
+```
+
+### Divided header over a scrolling body
+
+```tsx
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@sableui/react"
+
+<Card className="flex h-96 flex-col overflow-hidden"><CardHeader divided><CardTitle render={<h2 />}>Assistant</CardTitle><CardDescription>Answers from your docs</CardDescription></CardHeader><CardContent className="min-h-0 flex-1 overflow-y-auto scrollbar-quiet"><p className="text-body-md">The transcript scrolls under a header that stays put.</p></CardContent></Card>
 ```
 
 ### List card

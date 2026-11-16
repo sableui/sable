@@ -1,5 +1,8 @@
 /* poppy: an original Sable playful preset. No third-party assets. */
 [data-sable-theme="poppy"] {
+	/* Which theme's CSS is painting. SableThemeProvider reads it in development to
+	   warn when data-sable-theme names a theme whose CSS was never imported. */
+	--sable-theme-id: poppy;
 	--font-sans: "Albert Sans", ui-sans-serif, system-ui, sans-serif;
 	--font-mono: "Red Hat Mono", ui-monospace, monospace;
 	--font-display: "Unbounded", ui-sans-serif, system-ui, sans-serif;

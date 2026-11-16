@@ -61,6 +61,7 @@ export function CollapsibleIndicator({ direction = "down", className }: Collapsi
 		/>
 	)
 }
+CollapsibleIndicator.displayName = "CollapsibleIndicator"
 
 type PanelProps = Omit<ComponentProps<typeof Base.Panel>, "className"> & {
 	className?: string
@@ -82,3 +83,4 @@ export function CollapsiblePanel({ className, ...props }: PanelProps) {
 		/>
 	)
 }
+CollapsiblePanel.displayName = "CollapsiblePanel"

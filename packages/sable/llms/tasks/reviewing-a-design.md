@@ -31,8 +31,8 @@ media and fonts, verify the actual assets, responsive crops, and fallbacks using
 [creating-design-assets.md](./creating-design-assets.md).
 
 ```bash
-npx sable grade src --json
-npx sable grade --template > design/review.json
+pnpm exec sable grade src --json
+pnpm exec sable grade --template > design/review.json
 ```
 
 The first command reports `sourceHash`. Copy it into `build.sourceHash` in the
@@ -131,7 +131,7 @@ Then record the repair and before/after artifact IDs in `iterations`. Avoid vagu
 scores such as "feels 9/10 premium." Mark unsupported or uninspected claims untested.
 
 ```bash
-npx sable grade src --review design/review.json --json --strict
+pnpm exec sable grade src --review design/review.json --json --strict
 ```
 
 The evidence validator checks the record's completeness, artifact existence, and

@@ -95,7 +95,7 @@ export const toastMeta: ComponentMeta = {
 	props: [
 		{
 			name: "ToastProvider",
-			type: "{ children, timeout?, limit?, closeIcon?, position?, stacked?, viewportClassName? }",
+			type: "{ children, timeout?, limit?, closeIcon?, dismissLabel?, position?, stacked?, viewportClassName? }",
 			default: "—",
 			description:
 				"Wraps Base UI Toast.Provider and renders the themed Viewport + toast list. Mount once near the app root, above any caller of useToast().",
@@ -141,18 +141,24 @@ export const toastMeta: ComponentMeta = {
 				"Override the dismiss-button glyph. The default already follows the injected icon set.",
 		},
 		{
+			name: "dismissLabel",
+			type: "string",
+			default: "\"Dismiss\"",
+			description: "Accessible name of every toast's dismiss button. Translate it here; ToastClose takes the same prop when composing by hand.",
+		},
+		{
 			name: "useToast / useToastManager",
 			type: "() => { toasts, add, close, update, promise }",
 			default: "—",
 			description:
-				"Manager hook for use inside components. add({ title, description, timeout?, type?, priority?, actionProps? }) returns the new toast id and applies the same persistence default as toast.* — an error, loading, or actionProps toast stays until dismissed unless you pass a timeout. close(id), update(id, opts), and promise(p, opts) round out the API.",
+				"Manager hook for use inside components. add({ title, description, timeout?, type?, priority?, actionProps? }) returns the new toast id and applies the same persistence default as toast.* — an error, loading, or actionProps toast stays until dismissed unless you pass a timeout. close(id), update(id, opts), and promise(p, opts) round out the API, with the same default: an update that turns a toast into an error or gives it actionProps, and a promise that settles into an error (or a success with actionProps), persist unless that update or outcome names a timeout.",
 		},
 		{
 			name: "toast",
 			type: "(message, options?) => string  &  { success, error, warning, info, message, loading, promise, dismiss, update, add, custom }",
 			default: "—",
 			description:
-				"Imperative singleton callable OUTSIDE React (event handlers, utilities, non-React code) — the Sonner-shaped surface that makes migrating a lib/toast wrapper a near drop-in. Requires a mounted <ToastProvider> (it binds the shared manager). Each call returns the toast id; toast.dismiss(id?) closes one or all; toast.promise(p, { loading, success, error }) and toast.update(id, opts) handle async + in-place updates.",
+				"Imperative singleton callable OUTSIDE React (event handlers, utilities, non-React code) — the Sonner-shaped surface that makes migrating a lib/toast wrapper a near drop-in. Requires a mounted <ToastProvider> (it binds the shared manager). Each call returns the toast id; toast.dismiss(id?) closes one or all; toast.promise(p, { loading, success, error }) and toast.update(id, opts) handle async + in-place updates; a settled error, and an update into an error, persist like toast.error unless they name a timeout.",
 		},
 		{
 			name: "type (toast option)",
@@ -191,7 +197,7 @@ export const toastMeta: ComponentMeta = {
 			name: "ToastClose",
 			type: "Base UI Toast.Close props + className",
 			description:
-				"Dismiss button. Base UI handles the close and leave animation; labelled \"Dismiss\" by default.",
+				"Dismiss button. Base UI handles the close and leave animation; labelled \"Dismiss\" by default (dismissLabel). Its 24px glyph box keeps a 44px target under a coarse pointer.",
 		},
 		{
 			name: "ToastAction",
@@ -268,7 +274,7 @@ export const toastMeta: ComponentMeta = {
 		},
 		{
 			label: "Promise (loading → success / error)",
-			code: 'toast.promise(publish(), { loading: "Publishing…", success: "Published", error: "Failed to publish" })',
+			code: 'toast.promise(publish(), { loading: "Publishing…", success: "Published", error: "Could not publish. Check your connection and try again." })',
 		},
 		{
 			label: "Persistent loading, updated in place",

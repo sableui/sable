@@ -42,3 +42,4 @@ export function AppShellDock({ aboveBottomNav, children }: { aboveBottomNav: boo
 		</div>
 	)
 }
+AppShellDock.displayName = "AppShellDock"

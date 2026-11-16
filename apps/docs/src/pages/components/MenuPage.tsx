@@ -8,6 +8,7 @@ import {
 	MenuGroup,
 	MenuGroupLabel,
 	MenuItem,
+	MenuLinkItem,
 	menuMeta,
 	MenuSeparator,
 	MenuTrigger,
@@ -131,6 +132,23 @@ export function MenuPage() {
 							>
 								Duplicate
 							</MenuItem>
+						</MenuContent>
+					</Menu>
+				</Example>
+			</Section>
+
+			<Section
+				title="Links"
+				description="MenuLinkItem is a real link, so it middle-clicks and copies. An external one marks itself with a ↗ and tells a screen reader it opens a new tab; newTabLabel translates those words."
+			>
+				<Example>
+					<Menu>
+						<MenuTrigger render={<Button variant="secondary">Resources</Button>} />
+						<MenuContent>
+							<MenuLinkItem href="#llms">llms.txt</MenuLinkItem>
+							<MenuLinkItem href="https://github.com" target="_blank">
+								Source on GitHub
+							</MenuLinkItem>
 						</MenuContent>
 					</Menu>
 				</Example>

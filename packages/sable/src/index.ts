@@ -46,6 +46,8 @@ export {
 	FIELD_TOKENS,
 	APP_SHELL_TOKENS,
 	MARK_TOKENS,
+	CHART_TOKENS,
+	DERIVED_EDGE_TOKENS,
 	ART_TOKENS,
 	PALETTE_TOKENS,
 	TYPE_UI_TOKENS,
@@ -72,11 +74,13 @@ export {
 	SABLE_THEME_ATTRIBUTE,
 	SABLE_THEME_STORAGE_KEY,
 	SableThemeProvider,
+	SableThemeScript,
 	applySableColorMode,
 	applySableTheme,
 	defaultThemeId,
 	getThemeManifest,
 	isThemeId,
+	sableThemeScript,
 	themeIds,
 	themeManifestById,
 	themeManifests,
@@ -87,6 +91,8 @@ export type {
 	SableThemeContextValue,
 	SableThemePreference,
 	SableThemeProviderProps,
+	SableThemeScriptOptions,
+	SableThemeScriptProps,
 	ThemeId,
 } from "./themes/index"
 export * from "./layout"
@@ -115,6 +121,7 @@ export * from "./components/checkbox"
 export * from "./components/tabs"
 export * from "./components/tooltip"
 export * from "./components/avatar"
+export * from "./components/icon-tile"
 export * from "./components/agent-avatar"
 export * from "./components/skeleton"
 export * from "./components/spinner"

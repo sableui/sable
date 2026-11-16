@@ -1,3 +1,5 @@
+"use client"
+
 import { useRender } from "@base-ui/react/use-render"
 import type { ComponentPropsWithRef, ReactNode } from "react"
 import { cn } from "../../lib/cn"

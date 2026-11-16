@@ -38,7 +38,7 @@ export const thinkingOrbMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description:
-					"Do not put one on every row of a list or in a repeated skeleton. Each orb runs its own animation frame loop painting hundreds of arcs; use Skeleton for content-shaped waits and Spinner inside buttons.",
+					"Do not put one on every row of a list or in a repeated skeleton. Every orb shares one animation loop, but each still paints hundreds of arcs per frame; use Skeleton for content-shaped waits and Spinner inside buttons.",
 				instead: ["Skeleton", "Spinner"],
 			},
 			{
@@ -127,7 +127,7 @@ export const thinkingOrbMeta: ComponentMeta = {
 			slot: "activity",
 			recipe: "custom",
 			part: "Root",
-			why: "The cloud is drawn per frame on a canvas by a single requestAnimationFrame loop — no CSS animation exists to name here. The loop reads the motion policy itself, which is the part worth checking when auditing: `custom` means the kill-switch is honoured in JS rather than by --motion-scale.",
+			why: "The cloud is drawn per frame on a canvas by one requestAnimationFrame loop shared by every orb on the page — no CSS animation exists to name here. The loop reads the motion policy itself, which is the part worth checking when auditing: `custom` means the kill-switch is honoured in JS rather than by --motion-scale.",
 		},
 	],
 	a11y: [

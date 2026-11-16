@@ -5,7 +5,7 @@ const typography: Foundation = {
 	title: "Typography",
 	summary:
 		"Type is a closed vocabulary of paired utilities. Each one bundles size, weight, line-height and tracking, and is picked by role rather than by size.",
-	headline: "6 families · 8 everyday tiers · 2 text colors · 1 utility per text node",
+	headline: "7 families · 8 everyday tiers · 2 text colors · 1 utility per text node",
 	vocabularies: [
 		{
 			title: "The everyday set",
@@ -22,14 +22,15 @@ const typography: Foundation = {
 			],
 		},
 		{
-			title: "The six families",
+			title: "The seven families",
 			note: "Every tier belongs to one family, and the family is the decision. Size follows from it.",
 			terms: [
 				{ name: "Display  display-lg…4xl", value: "48–120px · 700–800", use: "Type as image: landing heroes, campaign numbers. Never in product chrome; never two per view." },
 				{ name: "Heading  heading-1…4", value: "36 / 28 / 22 / 18px · 600", use: "The document outline (h1–h4). Keep the order; never skip a level to get a size." },
 				{ name: "Title  title-lg · title-sm", value: "16 / 14px · 600", use: "Names a UI part without claiming a document heading." },
 				{ name: "Body  body-lg/md/sm/xs", value: "17 / 15 / 13 / 12px · 400", use: "Reading text. -lg is the lede (carries text-wrap: pretty); -xs is a dense-UI floor, not a prose size." },
-				{ name: "Label  label-lg/md/sm · caption", value: "14 / 12 / 11px · 600; caption 12 · 400", use: "Functional, scannable text of one to three words. Caption is also the group-label tier: nav sections, menu groups." },
+				{ name: "Label  label-lg/md/sm/xs · caption", value: "14 / 12 / 11 / 11px · 600; caption 12 · 400", use: "Functional, scannable text of one to three words, sentence case. Caption is also the group-label tier: nav sections, menu groups." },
+				{ name: "Overline  overline", value: "12px · 600 · uppercase, tracked", use: "The eyebrow: an editorial kicker above a marketing heading, at most one per view. Label `eyebrow` renders it. Never product chrome." },
 				{ name: "Mono  mono-xl/lg/md/caption/sm", value: "28 / 20 / 13 / 12 / 11px · tabular", use: "Numbers that are the content, IDs, hashes, code, aligned figures." },
 			],
 		},
@@ -104,7 +105,7 @@ const typography: Foundation = {
 		{
 			never: "Uppercase in product chrome: nav and menu group labels, page eyebrows, table headers, section titles.",
 			instead: "Sentence-case text-caption or text-label-md in muted-foreground; hierarchy from size, weight and space.",
-			why: "Tracked capitals spread across a UI read as shouting and slow word recognition. The eyebrow tier (label-xs / overline) is an editorial accent: at most one per marketing view.",
+			why: "Tracked capitals spread across a UI read as shouting and slow word recognition. The eyebrow tier (text-overline, or Label `eyebrow`) is an editorial accent: at most one per marketing view. text-label-xs is a sentence-case label, not an eyebrow.",
 		},
 		{
 			never: "Display tiers inside product UI, or two display sizes in one view.",

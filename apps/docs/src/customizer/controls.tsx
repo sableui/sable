@@ -26,10 +26,10 @@ import {
 	TooltipTrigger,
 	cn,
 } from "@sableui/react"
-import { type KeyboardEvent, type PointerEvent, type ReactElement, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { type KeyboardEvent, type PointerEvent, type ReactElement, type ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import { useTheme } from "../theme"
 import { formatOklch } from "./color"
-import { useCustomizer } from "./CustomizerProvider"
+import { useLiveColors } from "./apply"
 import { HUE_STOPS, brandColor } from "./look"
 
 /*
@@ -160,10 +160,13 @@ export function CharacterPad({
 			ref={ref}
 			tabIndex={0}
 			aria-label="Character"
+			// Two axes in one control: the role description says so, and the value
+			// text carries both numbers, since aria-valuenow can hold only one.
+			aria-roledescription="two-axis pad"
 			aria-valuemin={0}
 			aria-valuemax={100}
 			aria-valuenow={x}
-			aria-valuetext={untouched ? "Preset" : `${x < 34 ? "Quiet" : x > 66 ? "Bold" : "Balanced"}, ${y < 34 ? "compact" : y > 66 ? "airy" : "medium density"}`}
+			aria-valuetext={untouched ? "Preset: bold and airy as the preset ships" : `Bold ${x}, airy ${y}: ${x < 34 ? "quiet" : x > 66 ? "bold" : "balanced"}, ${y < 34 ? "compact" : y > 66 ? "airy" : "medium density"}`}
 			aria-describedby="character-help"
 			{...drag}
 			onDoubleClick={() => onChange({ bold: null, airy: null })}
@@ -200,7 +203,7 @@ export function CharacterPad({
 			{pad}
 			{/* The section's reset says the same thing visibly; this is for the keyboard. */}
 			<p id="character-help" className="sr-only">
-				Drag to explore. Double-click or Delete returns to the preset.
+				Left and right arrows set bold, up and down set airy; Shift moves further. Drag to explore. Double-click or Delete returns to the preset.
 			</p>
 		</>
 	)
@@ -410,45 +413,25 @@ const PALETTE_TOKENS = PALETTE_GROUPS.flatMap((group) => group.tokens)
 
 /** The generated families, at the step a tag's dot or a solid swatch uses. */
 const FAMILY_TOKENS = ["neutral", ...PALETTE_COLORS].map((name) => `${name}-500`)
+const PREVIEW_TOKENS = [...PALETTE_TOKENS, ...FAMILY_TOKENS]
 
 /**
  * The palette the look paints right now, read back from the page — not
  * recomputed — so Harmonize or Triadic shows exactly what the canvas got.
- * The roles compute with var() substituted, so one read per token is enough.
- * The families do not: they are relative colours computed from --primary, and
- * would re-resolve against the panel's own house theme if painted here, so
- * they are resolved by a probe on the page instead. It runs a frame after the
- * look's stylesheet is rewritten.
+ * Every colour resolves on the panel's shared probe, on the page (see
+ * useLiveColors): the families are relative colours computed from --primary,
+ * and would re-resolve against the panel's own house theme if painted here.
  */
 export function PalettePreview() {
-	const { css } = useCustomizer()
 	const { mode } = useTheme()
-	const [colors, setColors] = useState<Record<string, string>>({})
-	useLayoutEffect(() => {
-		const frame = requestAnimationFrame(() => {
-			const computed = getComputedStyle(document.documentElement)
-			const probe = document.createElement("span")
-			probe.style.cssText = "position:absolute;visibility:hidden;pointer-events:none"
-			document.body.appendChild(probe)
-			const family = (token: string) => {
-				probe.style.color = `var(--${token})`
-				return getComputedStyle(probe).color
-			}
-			setColors({
-				...Object.fromEntries(PALETTE_TOKENS.map((token) => [token, computed.getPropertyValue(`--${token}`).trim()])),
-				...Object.fromEntries(FAMILY_TOKENS.map((token) => [token, family(token)])),
-			})
-			probe.remove()
-		})
-		return () => cancelAnimationFrame(frame)
-	}, [css, mode])
+	const colors = useLiveColors(PREVIEW_TOKENS, mode)
 	// An outline, not an inset ring: it paints over the swatches, so a white ground still has an edge.
 	const strip = "flex h-full overflow-hidden rounded-xs outline-1 -outline-offset-1 outline-hairline-strong"
 	return (
 		<div
 			className="grid gap-1"
 			role="img"
-			aria-label="Current palette: ground, brand, tones and status, then the generated colour families. Status leans toward the brand only as far as it keeps its meaning."
+			aria-label="Current palette: ground, brand, tones and status, then the generated color families. Status leans toward the brand only as far as it keeps its meaning."
 		>
 			<div className="flex h-5 items-center gap-1">
 				{PALETTE_GROUPS.map((group) => (
@@ -492,8 +475,8 @@ export function PalettePreview() {
 
 /**
  * Sable's Select at the property-grid rung. The popup portals to <body>,
- * outside the panel, so it carries `data-canvas-chrome` itself and keeps the
- * house look (see ChromeTip).
+ * outside the panel, so it carries `data-canvas-chrome` and the house theme
+ * itself and keeps the house look (see ChromeTip).
  */
 export function ChromeSelect<T extends string>({
 	label,
@@ -515,7 +498,7 @@ export function ChromeSelect<T extends string>({
 	return (
 		<Select value={value} disabled={disabled} onValueChange={(next) => next != null && next !== value && onChange(next as T)}>
 			<SelectTrigger id={id} size="xs" aria-label={label} className={className} />
-			<SelectContent data-canvas-chrome="">
+			<SelectContent data-canvas-chrome="" data-sable-theme="sable">
 				{options.map((option) => (
 					<SelectItem key={option.value} value={option.value}>
 						{option.label}
@@ -531,13 +514,15 @@ export function ChromeSelect<T extends string>({
 /**
  * A tooltip for the inspector's icon buttons. The popup portals to <body>,
  * outside the panel, so it carries `data-canvas-chrome` itself: it keeps the
- * house look instead of wearing the look being tuned.
+ * house look instead of wearing the look being tuned. It also carries
+ * `data-sable-theme="sable"`, as the panel does, so Sable re-derives its
+ * palette and surfaces on the popup itself (the isolation leaves those alone).
  */
 export function ChromeTip({ label, children }: { label: string; children: ReactElement }) {
 	return (
 		<Tooltip>
 			<TooltipTrigger render={children} />
-			<TooltipContent data-canvas-chrome="">{label}</TooltipContent>
+			<TooltipContent data-canvas-chrome="" data-sable-theme="sable">{label}</TooltipContent>
 		</Tooltip>
 	)
 }
@@ -697,7 +682,7 @@ export function PresetPicker({
 	)
 }
 
-/* ── Brand colour: picker + hex ──────────────────────────────────────────── */
+/* ── Brand color: picker + hex ──────────────────────────────────────────── */
 
 const HEX = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i
 const HEX6 = /^#[0-9a-f]{6}$/i
@@ -734,7 +719,7 @@ export function BrandColorInput({
 	return (
 		<div className={cn("flex items-center", size === "xs" ? "gap-1" : "gap-2")}>
 			<ColorField
-				label="Brand colour"
+				label="Brand color"
 				value={swatch}
 				onValueChange={(hex) => HEX.test(hex) && onChange(hex.toLowerCase())}
 				className={size === "xs" ? "size-6 rounded-xs" : "size-8 rounded-sm"}
@@ -748,7 +733,7 @@ export function BrandColorInput({
 				}}
 				onBlur={() => setDraft(value)}
 				spellCheck={false}
-				aria-label="Brand colour hex"
+				aria-label="Brand color hex"
 				aria-invalid={!valid}
 				placeholder={fallback ? `${fallback} · preset` : "Preset"}
 				className={cn("min-w-0 flex-1 text-mono-caption", size === "md" && "h-8 px-2.5")}

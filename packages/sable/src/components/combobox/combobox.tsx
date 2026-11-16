@@ -1,3 +1,5 @@
+"use client"
+
 import {
 	Combobox as Base,
 	type ComboboxRootProps,
@@ -209,6 +211,7 @@ export function Combobox<Value, Multiple extends boolean | undefined = false>({
 		</ComboboxVirtualContext.Provider>
 	)
 }
+Combobox.displayName = "Combobox"
 
 export const ComboboxValue = Base.Value
 export const ComboboxClear = Base.Clear
@@ -224,17 +227,24 @@ export const ComboboxGroup = Base.Group
 type InputProps = Omit<ComponentProps<typeof Base.Input>, "className" | "size"> & {
 	className?: string
 	/**
-	 * Which rung of the control ladder the field sits on. `xs` is the
-	 * property-grid rung, and it mirrors `SelectTrigger`'s `size` exactly — same
-	 * height, radius and inset surface — so a combobox and a select in the same
-	 * panel are the same shape holding different content. A font-family picker
-	 * sitting directly above a font-weight select is the case that forced it:
-	 * one raised card, one inset field, stacked.
+	 * Which rung of the field ladder the field sits on, mirroring
+	 * `SelectTrigger`'s `size` exactly. `md` is the form field; `sm` is `md` one
+	 * rung down (`--control-sm`), the same raised field for a toolbar filter
+	 * row beside an `sm` Select and `sm` buttons. `xs` is the property-grid
+	 * rung — same height, radius and inset surface as the select — so a
+	 * combobox and a select in the same panel are the same shape holding
+	 * different content. A font-family picker sitting directly above a
+	 * font-weight select is the case that forced it: one raised card, one inset
+	 * field, stacked.
 	 *
 	 * @default "md"
 	 */
-	size?: "md" | "xs"
+	size?: ComboboxFieldSize
+	/** Accessible name of the chevron that opens the suggestions. @default "Toggle suggestions" */
+	toggleLabel?: string
 }
+
+type ComboboxFieldSize = "md" | "sm" | "xs"
 
 /**
  * The field shell both ComboboxInput and ComboboxChips draw, per rung. One copy,
@@ -243,23 +253,24 @@ type InputProps = Omit<ComponentProps<typeof Base.Input>, "className" | "size"> 
  */
 const FIELD_SHELL = {
 	xs: cn(FIELD_SHELL_XS, "pe-7 text-ui-md"),
+	sm: "rounded-sm border border-field-border bg-field pe-8",
 	md: "rounded-sm border border-field-border bg-field pe-9",
 }
 
 /**
- * The md field's type: the density tier like Input, plus the 16px iOS floor
- * (lib/field-shell → MOBILE_FIELD_TIER) — this is a real <input>, so Safari
- * zooms on it below 16px. The xs rung carries its own `text-ui-md`.
+ * The md and sm field's type: the density tier like Input, plus the 16px iOS
+ * floor (lib/field-shell → MOBILE_FIELD_TIER) — this is a real <input>, so
+ * Safari zooms on it below 16px. The xs rung carries its own `text-ui-md`.
  */
-function useFieldType(xs: boolean) {
+function useFieldType(size: ComboboxFieldSize) {
 	const tier = useTypeTier()
 	const density = useDensity()
-	if (xs) return undefined
+	if (size === "xs") return undefined
 	return cn(tier.body, density === "comfortable" && MOBILE_FIELD_TIER)
 }
 
 /** The chevron that opens the popup, at the field's trailing edge. */
-function FieldToggle({ xs }: { xs: boolean }) {
+function FieldToggle({ size, label }: { size: ComboboxFieldSize; label: string }) {
 	return (
 		<Base.Trigger
 			className={cn(
@@ -267,11 +278,11 @@ function FieldToggle({ xs }: { xs: boolean }) {
 				// Inset by the same step on every side and rounded by the field's
 				// radius less that step, so the toggle's corners run parallel to the
 				// field's at every rung, density and corner setting.
-				xs
-					? "end-0.5 size-[calc(var(--control-xs)-var(--spacing))] rounded-concentric-xs/0.5"
-					: "end-1.5 size-[calc(var(--control-md)-var(--spacing)*3)] rounded-concentric-sm/1.5",
+				size === "xs" && "end-0.5 size-[calc(var(--control-xs)-var(--spacing))] rounded-concentric-xs/0.5",
+				size === "sm" && "end-1 size-[calc(var(--control-sm)-var(--spacing)*2)] rounded-concentric-sm/1",
+				size === "md" && "end-1.5 size-[calc(var(--control-md)-var(--spacing)*3)] rounded-concentric-sm/1.5",
 			)}
-			aria-label="Toggle suggestions"
+			aria-label={label}
 		>
 			<Base.Icon className="flex items-center justify-center motion-interactive group-data-[popup-open]:rotate-180">
 				<Icon name="chevron-down" className="text-sm" />
@@ -285,17 +296,21 @@ function FieldToggle({ xs }: { xs: boolean }) {
  * ring) with a trailing chevron Trigger that opens the popup. Wrapped in
  * ComboboxInputGroup so the input and chevron share one bordered shell.
  */
-export function ComboboxInput({ className, size = "md", ...props }: InputProps) {
-	const xs = size === "xs"
-	const type = useFieldType(xs)
+export function ComboboxInput({
+	className,
+	size = "md",
+	toggleLabel = "Toggle suggestions",
+	...props
+}: InputProps) {
+	const type = useFieldType(size)
 	return (
 		<Base.InputGroup className="relative inline-flex w-full items-center">
 			<Base.Input
 				className={cn(
 					"flex w-full text-foreground motion-interactive",
-					xs
-						? cn("h-(--control-xs) ps-1.5", FIELD_SHELL.xs)
-						: cn("h-(--control-md) ps-3", FIELD_SHELL.md),
+					size === "xs" && cn("h-(--control-xs) ps-1.5", FIELD_SHELL.xs),
+					size === "sm" && cn("h-(--control-sm) ps-2.5", FIELD_SHELL.sm),
+					size === "md" && cn("h-(--control-md) ps-3", FIELD_SHELL.md),
 					type,
 					"placeholder:text-muted-foreground",
 					"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -305,10 +320,11 @@ export function ComboboxInput({ className, size = "md", ...props }: InputProps) 
 				)}
 				{...props}
 			/>
-			<FieldToggle xs={xs} />
+			<FieldToggle size={size} label={toggleLabel} />
 		</Base.InputGroup>
 	)
 }
+ComboboxInput.displayName = "ComboboxInput"
 
 type ChipsProps<Item> = InputProps & {
 	/**
@@ -317,7 +333,14 @@ type ChipsProps<Item> = InputProps & {
 	 * and to its `label` field for objects — the same shape Base UI reads.
 	 */
 	chipLabel?: (item: Item) => string
+	/**
+	 * Accessible name of a chip's remove button, given the chip's label.
+	 * @default (label) => `Remove ${label}`
+	 */
+	removeLabel?: (label: string) => string
 }
+
+const defaultRemoveLabel = (label: string) => `Remove ${label}`
 
 function defaultChipLabel(item: unknown): string {
 	if (typeof item === "object" && item !== null) {
@@ -349,17 +372,19 @@ export function ComboboxChips<Item = unknown>({
 	className,
 	size = "md",
 	chipLabel = defaultChipLabel as (item: Item) => string,
+	removeLabel = defaultRemoveLabel,
+	toggleLabel = "Toggle suggestions",
 	...props
 }: ChipsProps<Item>) {
 	const xs = size === "xs"
-	const type = useFieldType(xs)
+	const type = useFieldType(size)
 	return (
 		<Base.InputGroup
 			className={cn(
 				"relative flex w-full flex-wrap items-center text-foreground motion-interactive",
-				xs
-					? cn("min-h-(--control-xs) gap-0.5 py-0.5 ps-0.5", FIELD_SHELL.xs)
-					: cn("min-h-(--control-md) gap-1 py-1 ps-1.5", FIELD_SHELL.md),
+				size === "xs" && cn("min-h-(--control-xs) gap-0.5 py-0.5 ps-0.5", FIELD_SHELL.xs),
+				size === "sm" && cn("min-h-(--control-sm) gap-1 py-0.5 ps-1", FIELD_SHELL.sm),
+				size === "md" && cn("min-h-(--control-md) gap-1 py-1 ps-1.5", FIELD_SHELL.md),
 				type,
 				"has-[input:focus-visible]:ring-2 has-[input:focus-visible]:ring-ring",
 				"has-[input[aria-invalid=true]]:border-destructive has-[input[aria-invalid=true]]:ring-destructive/30",
@@ -393,7 +418,7 @@ export function ComboboxChips<Item = unknown>({
 													className={cn("-my-1 size-5 [--button-icon:0.875rem]", hitTargetMin)}
 												/>
 											}
-											aria-label={`Remove ${label}`}
+											aria-label={removeLabel(label)}
 										>
 											<Icon name="xmark" />
 										</Base.ChipRemove>
@@ -406,17 +431,18 @@ export function ComboboxChips<Item = unknown>({
 				<Base.Input
 					className={cn(
 						"min-w-24 flex-1 bg-transparent text-foreground outline-none",
-						xs ? "h-5 px-1 text-ui-md" : "h-7 px-1.5 text-body-md",
+						xs ? "h-5 px-1 text-ui-md" : size === "sm" ? "h-6 px-1.5 text-body-md" : "h-7 px-1.5 text-body-md",
 						"placeholder:text-muted-foreground",
 						"disabled:cursor-not-allowed",
 					)}
 					{...props}
 				/>
 			</Base.Chips>
-			<FieldToggle xs={xs} />
+			<FieldToggle size={size} label={toggleLabel} />
 		</Base.InputGroup>
 	)
 }
+ComboboxChips.displayName = "ComboboxChips"
 
 type PositionerProps = ComponentProps<typeof Base.Positioner>
 type ContentProps = Omit<ComponentProps<typeof Base.Popup>, "className"> & {
@@ -488,6 +514,7 @@ export function ComboboxContent({
 		</ComboboxPortal>
 	)
 }
+ComboboxContent.displayName = "ComboboxContent"
 
 type ItemProps = Omit<ComponentProps<typeof Base.Item>, "className"> & {
 	className?: string
@@ -514,6 +541,7 @@ export function ComboboxItem({ className, children, ...props }: ItemProps) {
 		</Base.Item>
 	)
 }
+ComboboxItem.displayName = "ComboboxItem"
 
 type EmptyProps = Omit<ComponentProps<typeof Base.Empty>, "className"> & {
 	className?: string
@@ -531,6 +559,7 @@ export function ComboboxEmpty({ className, ...props }: EmptyProps) {
 		/>
 	)
 }
+ComboboxEmpty.displayName = "ComboboxEmpty"
 
 type GroupLabelProps = Omit<
 	ComponentProps<typeof Base.GroupLabel>,
@@ -550,6 +579,7 @@ export function ComboboxGroupLabel({ className, ...props }: GroupLabelProps) {
 		/>
 	)
 }
+ComboboxGroupLabel.displayName = "ComboboxGroupLabel"
 
 /** Rows rendered past each end of the viewport, so an arrow key never lands on nothing. */
 const DEFAULT_OVERSCAN = 6
@@ -891,3 +921,4 @@ export function ComboboxVirtualList<Item = unknown>({
 		</Base.List>
 	)
 }
+ComboboxVirtualList.displayName = "ComboboxVirtualList"

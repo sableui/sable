@@ -41,13 +41,18 @@
 }
 
 @layer base {
-	/* Responsive type root: 16px mobile / 14px desktop (1.2 minor-third scale). */
-	html {
-		font-size: 16px;
+	/* Responsive type base: 16 on phones, 14 from 768px. Through --type-base, as
+	   foundations/typography tells every app to, never by setting the root
+	   font-size: that also resized every rem this app wrote, overrode the
+	   reader's browser text-size preference, and skewed every px figure the
+	   foundation pages print. In the base layer, so a preset or the customizer
+	   that sets --type-base still wins. */
+	:root {
+		--type-base: 16;
 	}
 	@media (min-width: 768px) {
-		html {
-			font-size: 14px;
+		:root {
+			--type-base: 14;
 		}
 	}
 

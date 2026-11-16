@@ -21,6 +21,8 @@ An agent asking permission for one tool call: the question, what is at stake, th
 ## Source
 
 ```tsx
+"use client"
+
 import { useState, useEffect, useRef } from "react"
 import { Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, cn, InlineStatus, ToolCall } from "@sableui/react"
 
@@ -60,9 +62,9 @@ export function ApprovalBlock({ className, framed = true, onApprove, onDeny }: A
 	}
 
 	return (
-		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-md", className)}>
+		<Card variant={framed ? "default" : "flat"} className={cn("@container/approval w-full max-w-md", className)}>
 			<CardHeader>
-				<CardTitle>{request.title}</CardTitle>
+				<CardTitle render={<h2 />}>{request.title}</CardTitle>
 				<CardDescription>{request.description}</CardDescription>
 			</CardHeader>
 			<CardContent>
@@ -77,7 +79,9 @@ export function ApprovalBlock({ className, framed = true, onApprove, onDeny }: A
 					defaultOpen
 				/>
 			</CardContent>
-			<CardFooter actions>
+			{/* Three answers fit one row at the designed width. Narrower, they stack
+			    full width with the primary on top, rather than run out of the card. */}
+			<CardFooter actions className="@max-md/approval:flex-col-reverse @max-md/approval:items-stretch">
 				{decision ? (
 					<InlineStatus
 						ref={outcome}
@@ -92,7 +96,7 @@ export function ApprovalBlock({ className, framed = true, onApprove, onDeny }: A
 					<>
 						<Button
 							variant="ghost"
-							className="me-auto"
+							className="me-auto @max-md/approval:me-0"
 							onClick={() => {
 								setDecision("denied")
 								onDeny?.()

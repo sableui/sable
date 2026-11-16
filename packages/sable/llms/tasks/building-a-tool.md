@@ -206,7 +206,7 @@ a modal is its own surface rather than part of the control that opened it.
 ## Verify
 
 ```bash
-npx sable-lint            # lints ./src; pass dirs to change (npx sable-lint app components)
+pnpm exec sable lint            # lints ./src; pass dirs to change (pnpm exec sable lint app components)
 ```
 
 `sable-lint` ships with the package and reads the token vocabulary from the

@@ -15,6 +15,9 @@
 
 :root,
 [data-sable-theme="sable"] {
+	/* Which theme's CSS is painting. SableThemeProvider reads it in development to
+	   warn when data-sable-theme names a theme whose CSS was never imported. */
+	--sable-theme-id: sable;
 	/* Chart series colours — a categorical palette validated for colour-blind
 	   separation (adjacent pairs), a normal-vision floor, a lightness band and a
 	   chroma floor against this theme's surfaces. Charts take them in order
@@ -102,9 +105,11 @@
 	--type-overline-transform: uppercase;
 
 	/* ----------------------------------------------------------------------
-	   Palette ramps (OKLCH). 50 → 950. Theme-internal — never used directly
-	   by components. Each 600 clears WCAG AA on white except flush-orange-600
-	   (AA-Large only; use 700 for body text on white).
+	   Palette steps (OKLCH). Theme-internal — never used directly by
+	   components. Only the steps the semantic layer below reads are declared:
+	   zinc in full, one or two steps of each hue. The rest of each 50 → 950
+	   ramp sat on every page's :root unread and was removed; the
+	   generated palette (palette.css) is where an app gets a full family.
 	   ---------------------------------------------------------------------- */
 
 	/* Absolute white — deliberately OUTSIDE every ramp. Zinc tops out at zinc-50
@@ -136,83 +141,24 @@
 	--zinc-950: oklch(15% 0.003 264);
 
 	/* Torch Red — Hue 22° (destructive). 600 darkened to 53% L for AA on white. */
-	--torch-red-50: oklch(97.2% 0.013 22);
-	--torch-red-100: oklch(94% 0.028 22);
-	--torch-red-200: oklch(88% 0.06 22);
-	--torch-red-300: oklch(79% 0.118 22);
-	--torch-red-400: oklch(68% 0.19 22);
-	--torch-red-500: oklch(60% 0.235 22);
 	--torch-red-600: oklch(53% 0.225 22);
-	--torch-red-700: oklch(45% 0.19 22);
-	--torch-red-800: oklch(36% 0.15 22);
-	--torch-red-900: oklch(28% 0.11 22);
-	--torch-red-950: oklch(18% 0.075 22);
 
 	/* Blue Gem — Hue 285° (collectible, violet-blue) */
-	--blue-gem-50: oklch(97.2% 0.014 285);
-	--blue-gem-100: oklch(94% 0.03 285);
-	--blue-gem-200: oklch(88% 0.065 285);
-	--blue-gem-300: oklch(79% 0.13 285);
-	--blue-gem-400: oklch(68% 0.205 285);
-	--blue-gem-500: oklch(58% 0.265 285);
 	--blue-gem-600: oklch(48% 0.265 285);
-	--blue-gem-700: oklch(40% 0.225 285);
-	--blue-gem-800: oklch(31% 0.18 285);
-	--blue-gem-900: oklch(23% 0.135 285);
-	--blue-gem-950: oklch(15% 0.09 285);
 
 	/* Purple Heart — Hue 309° (edition / brand accent, magenta-purple) */
-	--purple-heart-50: oklch(97.2% 0.014 309);
-	--purple-heart-100: oklch(94% 0.03 309);
-	--purple-heart-200: oklch(88% 0.065 309);
-	--purple-heart-300: oklch(79% 0.135 309);
-	--purple-heart-400: oklch(68% 0.215 309);
-	--purple-heart-500: oklch(60% 0.275 309);
-	--purple-heart-600: oklch(52% 0.275 309);
 	--purple-heart-700: oklch(43% 0.23 309);
-	--purple-heart-800: oklch(33% 0.18 309);
-	--purple-heart-900: oklch(24% 0.135 309);
-	--purple-heart-950: oklch(15% 0.09 309);
 
 	/* Caribbean Green — Hue 173° (standard / success, teal-green).
 	   600 darkened to 45% L for AA on white. */
-	--caribbean-green-50: oklch(97.2% 0.018 173);
-	--caribbean-green-100: oklch(94% 0.035 173);
-	--caribbean-green-200: oklch(88% 0.07 173);
-	--caribbean-green-300: oklch(79% 0.115 173);
-	--caribbean-green-400: oklch(68% 0.14 173);
-	--caribbean-green-500: oklch(58% 0.135 173);
 	--caribbean-green-600: oklch(45% 0.118 173);
-	--caribbean-green-700: oklch(38% 0.1 173);
-	--caribbean-green-800: oklch(30% 0.08 173);
-	--caribbean-green-900: oklch(23% 0.06 173);
-	--caribbean-green-950: oklch(15% 0.04 173);
 
 	/* Flush Orange — Hue 52° (warning, amber-orange). Use 700 for body on white. */
-	--flush-orange-50: oklch(97.2% 0.018 52);
-	--flush-orange-100: oklch(94% 0.038 52);
-	--flush-orange-200: oklch(88% 0.075 52);
-	--flush-orange-300: oklch(79% 0.13 52);
-	--flush-orange-400: oklch(72% 0.17 52);
-	--flush-orange-500: oklch(68% 0.18 52);
-	--flush-orange-600: oklch(54% 0.155 52);
 	--flush-orange-700: oklch(45% 0.13 52);
-	--flush-orange-800: oklch(36% 0.105 52);
-	--flush-orange-900: oklch(28% 0.08 52);
-	--flush-orange-950: oklch(18% 0.055 52);
 
 	/* Azure Radiance — Hue 250° (info, sky-blue) */
-	--azure-radiance-50: oklch(97.2% 0.014 250);
-	--azure-radiance-100: oklch(94% 0.03 250);
-	--azure-radiance-200: oklch(88% 0.06 250);
-	--azure-radiance-300: oklch(79% 0.115 250);
-	--azure-radiance-400: oklch(68% 0.175 250);
-	--azure-radiance-500: oklch(60% 0.215 250);
 	--azure-radiance-600: oklch(52% 0.225 250);
 	--azure-radiance-700: oklch(43% 0.195 250);
-	--azure-radiance-800: oklch(34% 0.155 250);
-	--azure-radiance-900: oklch(25% 0.115 250);
-	--azure-radiance-950: oklch(16% 0.075 250);
 
 	/* Dark-tuned tone values (boosted chroma; activated via .dark below) */
 	--tone-1-dark: oklch(62% 0.295 318);

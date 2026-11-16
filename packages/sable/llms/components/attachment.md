@@ -43,6 +43,7 @@ The card a file takes in a conversation — in the composer while it uploads, an
 | actions | ReactNode | — | Remove / retry / download controls. Stay clickable when `onOpen` makes the card a trigger. On a `media` tile they float on the top-end corner over the picture, so pass `variant="floating"` buttons there. |
 | onOpen | () => void | — | Makes the whole card activate, via a stretched button rendered beneath the actions rather than by wrapping the card. |
 | openLabel | string | `Open ${name}` | Accessible label for that stretched trigger. |
+| uploadingLabel | string | `Uploading ${name}` | Accessible name of the progress bar while status is "uploading". |
 | ...div props | Omit<ComponentPropsWithRef<"div">, "onClick"> | — | Spread onto the card. Use `onOpen` rather than `onClick` — a click handler on a div is not a control. |
 
 ## Variants

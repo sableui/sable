@@ -1,6 +1,6 @@
-import { Button, Icon, ScrubField } from "@sableui/react"
-import { useLayoutEffect, useState } from "react"
-import { useCustomizer } from "./CustomizerProvider"
+import { Button, Icon, ScrubField, cn } from "@sableui/react"
+import { useTheme } from "../theme"
+import { useLookProbe } from "./apply"
 import { ChromeTip } from "./controls"
 
 /**
@@ -27,27 +27,23 @@ interface Row {
 	kind?: Kind
 }
 
-const PROPERTY: Record<Kind, string> = { length: "width", time: "transitionDuration" }
-
-/** Each row resolved to a number: rendered px for lengths, ms for times. */
-function measure(rows: readonly Row[]): (number | null)[] {
-	const probe = document.createElement("div")
-	probe.setAttribute("aria-hidden", "true")
-	probe.style.cssText = "position:absolute;visibility:hidden;pointer-events:none;inset:0 auto auto 0;height:0"
-	document.body.appendChild(probe)
-	const out = rows.map(({ token, type, kind = "length" }) => {
+/**
+ * Each row resolved to a number on the shared probe: rendered px for lengths,
+ * ms for times. Lengths resolve through `min-width`, whose computed value is
+ * the absolute length without a layout (a resolved `width` is the used value,
+ * which forced a layout of the whole page per read).
+ */
+function measure(probe: HTMLElement, rows: readonly Row[]): (number | null)[] {
+	return rows.map(({ token, type, kind = "length" }) => {
 		probe.className = type ?? ""
-		probe.style.removeProperty("width")
+		probe.style.removeProperty("min-width")
 		probe.style.removeProperty("transition-duration")
-		const property = PROPERTY[kind]
-		if (token) probe.style.setProperty(property === "width" ? "width" : "transition-duration", `var(${token})`)
+		if (token) probe.style.setProperty(kind === "time" ? "transition-duration" : "min-width", `var(${token})`)
 		const computed = getComputedStyle(probe)
-		const n = Number.parseFloat(type ? computed.fontSize : computed[property as "width" | "transitionDuration"])
+		const n = Number.parseFloat(type ? computed.fontSize : kind === "time" ? computed.transitionDuration : computed.minWidth)
 		if (!Number.isFinite(n)) return null
 		return kind === "time" ? Math.round(n * 1000) : Math.round(n * 10) / 10
 	})
-	probe.remove()
-	return out
 }
 
 function format(value: number | null | undefined, kind: Kind = "length"): string {
@@ -56,19 +52,14 @@ function format(value: number | null | undefined, kind: Kind = "length"): string
 	return value >= 999 ? "Pill" : `${value}px`
 }
 
-/** Live measurements of `rows`, re-read whenever the look's stylesheet changes. */
+/**
+ * Live measurements of `rows`, re-read after the look is applied — in the
+ * panel's shared probe pass, and once a drag settles (see apply.ts). Only
+ * while the numbers are on screen (`enabled`).
+ */
 export function useMeasured(rows: readonly Row[], enabled = true): (number | null)[] {
-	const { css } = useCustomizer()
-	const [values, setValues] = useState<(number | null)[]>([])
-	// One frame later, so the rewritten <style> has applied before the probe
-	// reads. Measuring forces a full style + layout, so it only runs when the
-	// numbers are on screen (Advanced).
-	useLayoutEffect(() => {
-		if (!enabled) return
-		const frame = requestAnimationFrame(() => setValues(measure(rows)))
-		return () => cancelAnimationFrame(frame)
-	}, [css, rows, enabled])
-	return values
+	const { mode } = useTheme()
+	return useLookProbe((probe) => measure(probe, rows), [rows, mode], enabled) ?? []
 }
 
 /**
@@ -157,6 +148,30 @@ export function AnchorCaption({ label, set, onReset }: { label: string; set: boo
 				</ChromeTip>
 			) : null}
 		</span>
+	)
+}
+
+/**
+ * A section's own reset, for a PanelSection header. Always mounted, so the
+ * header keeps one size whether or not there is something to reset: hidden and
+ * out of the tab order until the section changes. It is as tall as the header;
+ * PanelSection's own gap under the header keeps its hover pill off the first
+ * control.
+ */
+export function SectionReset({ label, changed, onReset }: { label: string; changed: boolean; onReset: () => void }) {
+	return (
+		<Button
+			variant="ghost"
+			size="xs"
+			aria-label={`Reset ${label.toLowerCase()}`}
+			aria-hidden={!changed || undefined}
+			tabIndex={changed ? undefined : -1}
+			disabled={!changed}
+			onClick={onReset}
+			className={cn("shrink-0 text-muted-foreground", !changed && "invisible")}
+		>
+			Reset
+		</Button>
 	)
 }
 

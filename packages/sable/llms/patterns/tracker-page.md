@@ -24,6 +24,8 @@ Records workspace in the tool register: a Sidebar rail of grouped views ending i
 ## Source
 
 ```tsx
+"use client"
+
 import { useState } from "react"
 import { Avatar, Badge, BottomNav, BottomNavItem, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, Breadcrumbs, BreadcrumbSeparator, Button, DataTable, DatePicker, Density, EmptyState, Form, Icon, Kbd, Menu, MenuContent, MenuItem, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuSubmenu, MenuSubmenuTrigger, MenuTrigger, Panel, PanelGroup, PanelSection, PropertyRow, RelativeTime, SearchInput, Select, SelectContent, SelectItem, SelectTrigger, Sidebar, SidebarAccount, SidebarBrand, SidebarFooter, SidebarGroup, SidebarHeader, SidebarItem, SidebarNav, SimpleTooltip, StatusBar, StatusBarGroup, StatusDot, Tabs, TabsList, TabsPanel, TabsTrigger, Textarea, Toggle, ToggleGroup, useBelowBreakpoint, useSableTheme, Workspace, WorkspaceBar, WorkspaceCanvas, type DataTableColumn } from "@sableui/react"
 

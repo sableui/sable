@@ -25,6 +25,7 @@ Use Feedback to collect lightweight sentiment, usefulness, or quality signals fr
 | heading | string | "Send feedback" | Heading shown above the rating row. |
 | placeholder | string | "What can we improve?" | Placeholder for the message field. |
 | submitLabel | string | "Send" | Submit button text. |
+| ratingLabel | string | "Rating" | Accessible name of the row of rating toggles. Each toggle is named by its rating's value. |
 | ratings | FeedbackRating[] | 🙁 / 😐 / 🙂 | The rating options shown as a row of toggles. Each is { value, label }. |
 | onSubmit | (data: { rating?: string; message: string }) => void | — | Called with the selected rating + message when the form is submitted. The thanks shows right away; send the report in the background. |
 | successMessage | string | "Thanks for the feedback." | The line shown, and read out, for about 1.2s after sending, before the popover closes on its own. |

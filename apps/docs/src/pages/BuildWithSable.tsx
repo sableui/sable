@@ -18,20 +18,10 @@ import {
 import { PageHeader, Section } from "../components/docs-ui"
 import { COMMANDS, MODES, SECTIONS } from "../content/build-with-sable"
 import { hrefFor } from "../lib/router"
-
-/**
- * What setup writes into AGENTS.md and CLAUDE.md, as a pnpm app gets it: a
- * copy of instructionsBlock() in packages/sable/scripts/agent-setup.mjs.
- */
-const INSTRUCTIONS_BLOCK = `<!-- sable:begin — managed by \`sable setup --agent\`; edit outside these markers -->
-## Sable
-
-This app's UI is built with Sable (\`@sableui/react\`). For any UI work (a page, a component, styling, layout, theming, a fix), load the \`sable\` skill first: \`/sable\` in Claude Code and Cursor, \`$sable\` in Codex. Do this even when the request does not mention Sable.
-
-- Build from the installed components, utilities and tokens: \`pnpm exec sable search "<need>"\` before writing a component. Never rebuild a control Sable ships.
-- Before calling UI work done, run \`pnpm exec sable check\` and fix what fails.
-- When \`check\` lists app-built components that Sable already ships (Adoption), show the user that list and ask before moving working screens onto Sable.
-<!-- sable:end -->`
+// What setup writes into AGENTS.md and CLAUDE.md, as a pnpm app gets it.
+// scripts/sync-guides.mjs generates it with instructionsBlock() from
+// packages/sable/scripts/agent-setup.mjs, so it cannot drift from the installer.
+import INSTRUCTIONS_BLOCK from "../generated/instructions-block.md?raw"
 
 /** sable check on an app an agent built without the skill. */
 const ADOPTION_OUTPUT = `Adoption — low. 1 of 5 UI files compose Sable (1 distinct export); 4 app-built component(s) named for something Sable ships.
@@ -75,7 +65,7 @@ export function BuildWithSablePage() {
 
 		<Section id={SECTIONS.unprompted.id} title={SECTIONS.unprompted.title} description="A skill loads only when a request names it, or when the agent decides it fits. Ask for “a pricing page” and an agent can skip it: it sees Tailwind and a stylesheet, writes its own Button and Modal, and puts Sable's tokens on them. The result looks nearly right and behaves like nothing in particular.">
 			<p className="text-body-md text-muted-foreground max-w-(--measure-prose)">So setup also writes a short block into AGENTS.md (Codex, Cursor) and CLAUDE.md (Claude Code), the files an agent reads on every task. Every UI request then goes through the skill, whether or not it says Sable.</p>
-			<CodeBlock wrap highlight={false} filename="AGENTS.md" code={INSTRUCTIONS_BLOCK} />
+			<CodeBlock wrap highlight={false} filename="AGENTS.md" code={INSTRUCTIONS_BLOCK.trimEnd()} />
 			<p className="text-body-md text-muted-foreground max-w-(--measure-prose)">sable init writes it, and sable upgrade adds it to an app set up before 0.18. Only the text between the markers is Sable's; your own instructions around it are never touched.</p>
 		</Section>
 
@@ -156,18 +146,15 @@ export function BuildWithSablePage() {
 			<CodeBlock code="pnpm exec sable setup --agent --hook" />
 		</Section>
 
-		<Section id={SECTIONS.upgrade.id} title={SECTIONS.upgrade.title} description="The entry files and the instructions block read the workflow from your installed package. Updating Sable brings new components, contracts, guides and skill instructions together. Your project keeps its own presets and preferences.">
-			<CodeBlock code="pnpm exec sable upgrade" />
-			<p className="text-body-md text-muted-foreground max-w-(--measure-prose)">It updates the package and runs the new version's init: skill and instructions refreshed, wiring checked. Coming from 0.17 or earlier, which has no upgrade command, do it once by hand: pnpm update @sableui/react --latest, then pnpm exec sable init.</p>
+		<Section id={SECTIONS.upgrade.id} title={SECTIONS.upgrade.title} description="The entry files and the instructions block read the workflow from your installed package, so updating Sable brings new components, contracts, guides and skill instructions together. Your project keeps its own presets and preferences.">
+			<p className="text-body-md text-muted-foreground max-w-(--measure-prose)">sable upgrade updates the package and refreshes the skill in one step; <a className="underline" href={`${hrefFor("getting-started")}#update`}>Update Sable</a> has the command and the fallback for older versions.</p>
 			<p className="text-body-md text-muted-foreground max-w-(--measure-prose)">Every build retrieves Sable's component contracts, uses its supported variants and tokens, runs sable check, and looks at the working result. Your agent reports a library gap instead of recreating an available control, and is free to design its own layouts from Sable's parts.</p>
-			<div>
-				<Button variant="secondary" render={<a href={hrefFor("getting-started")} />}>Install and set up</Button>
-			</div>
 		</Section>
 
 		<Section id={SECTIONS.mcp.id} title={SECTIONS.mcp.title} description="Sable's MCP server answers the same component, block, pattern and guide lookups as the CLI, with nothing installed first. Your agent can pass the version your project uses, so the answers match it.">
 			<CodeBlock code="claude mcp add --transport http sable https://www.sableui.com/api/mcp" />
 			<p className="text-body-md text-muted-foreground max-w-(--measure-prose)">Cursor, VS Code and Codex take the same URL in their MCP settings. Once Sable is installed, the CLI in the package is quicker: it works offline and always matches your version.</p>
+			<p className="text-body-md text-muted-foreground max-w-(--measure-prose)">An agent reading the web instead starts at <a className="underline" href="/llms.txt">/llms.txt</a>, the index of every guide and component; <a className="underline" href="/llms-full.txt">/llms-full.txt</a> is everything in one file. Every page here also has a markdown twin at its own address plus .md. With the package installed, sable docs serves the same guides offline.</p>
 		</Section>
 	</>
 }

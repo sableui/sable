@@ -75,10 +75,10 @@ export const PROVIDER_METAS: ProviderMeta[] = [
 			{ name: "onThemeIdChange", type: "(themeId) => void", description: "Called whenever the design theme is set." },
 			{ name: "colorStorageKey", type: "string | null", default: "SABLE_COLOR_STORAGE_KEY", description: "localStorage key for the colour preference. null disables persistence. An app that sets `defaultThemeId` stores under `sable-color-preference:<id>`, so another Sable app on the origin can't change its mode. `themeId` alone doesn't: give that app its own key, or set `defaultThemeId` instead." },
 			{ name: "themeStorageKey", type: "string | null", default: "SABLE_THEME_STORAGE_KEY", description: "localStorage key for the design theme. null disables persistence. An app that sets `defaultThemeId` stores under `sable-theme-id:<id>`, so another Sable app on the origin can't replace its theme. Apps on the default theme share `sable-theme-id`, so one that lets users switch themes passes its own key. Pass a key too if `defaultThemeId` may change, or saved settings stay behind with the old id." },
-			{ name: "target", type: '"root" | (() => HTMLElement | null)', default: '"root"', description: "Where to write `.dark` and `data-sable-theme`. A getter scopes theming to a subtree." },
+			{ name: "target", type: '"root" | (() => HTMLElement | null)', default: '"root"', description: "Where to write `.dark` and `data-sable-theme`. A getter scopes theming to a subtree; an inline arrow is fine (it is read when the mode or theme changes, not on every render)." },
 			{ name: "customThemes", type: "ThemeManifest[]", description: "Extra theme manifests, for example `presetManifest(preset)` for an app-owned preset. Their ids become valid themeId values. Sable does not load their CSS: import it yourself." },
 		],
-		companions: ["useSableTheme", "ThemeSwitcher", "ThemeSelector", "applySableTheme", "applySableColorMode"],
+		companions: ["useSableTheme", "SableThemeScript", "sableThemeScript", "ThemeSwitcher", "ThemeSelector", "applySableTheme", "applySableColorMode"],
 		examples: [
 			{
 				label: "At the app root, following the visitor's OS",
@@ -104,10 +104,27 @@ export function Root({ children }: { children: ReactNode }) {
 					'import presetJson from "../.sable/presets/my-preset.json"',
 				],
 			},
+			{
+				label: "Server-rendered (Next.js app/layout.tsx), with no first-paint flash",
+				code: `export default function RootLayout({ children }: { children: ReactNode }) {
+	return (
+		<html lang="en" suppressHydrationWarning>
+			<head>
+				<SableThemeScript defaultPreference="dark" />
+			</head>
+			<body>
+				<SableThemeProvider defaultPreference="dark">{children}</SableThemeProvider>
+			</body>
+		</html>
+	)
+}`,
+				extraImports: ['import type { ReactNode } from "react"'],
+			},
 		],
 		notes: [
 			"Only the alternate design themes need theme CSS: import `@sableui/react/themes.css`, one `@sableui/react/theme/<id>.css`, or the scoped CSS from `sable preset --css`. Light/dark of the default theme needs nothing extra.",
 			"A colour-mode toggle is the ThemeSwitcher component; it reads this provider.",
+			"Server rendering: the provider never reads storage during render, so the server and the hydrating client agree, and the stored choice arrives in the re-render after hydration. The provider writes the DOM only after hydration. To have the FIRST paint right, inline the boot script in <head> — `<SableThemeScript …/>` in a server layout, or `<script>${sableThemeScript(options)}</script>` in a static index.html — with the same options as the provider, and put `suppressHydrationWarning` on <html>. Without it a light-preference visitor briefly sees the default mode.",
 		],
 		related: ["ThemeSwitcher", "ThemeSelector"],
 	},

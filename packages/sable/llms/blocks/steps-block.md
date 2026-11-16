@@ -20,6 +20,8 @@ A how-it-works section: the heading, lede and a guide link on the left; three nu
 ## Source
 
 ```tsx
+"use client"
+
 import { useId } from "react"
 import { Button, cn, Icon, Region, Stack } from "@sableui/react"
 

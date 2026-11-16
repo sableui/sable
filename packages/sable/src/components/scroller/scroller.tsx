@@ -31,11 +31,14 @@ export interface ScrollerProps extends ComponentPropsWithRef<"div"> {
 	wheelScroll?: boolean
 	/**
 	 * Ease mouse-wheel steps toward their target, the inertia a smooth-scroll
-	 * library adds, on either axis. Only a mouse wheel: trackpads and touch keep
-	 * their own momentum, keys and scrollbar drags stay native, and reduced
-	 * motion (the OS preference or MotionProvider) turns it off. Anything else
-	 * that moves the region, such as `scrollIntoView`, stops the easing.
-	 * @default true
+	 * library adds, on either axis. Off by default: the browser's own scroll is
+	 * native and runs off the main thread, while easing needs a non-passive
+	 * wheel listener. Opt in for a showcase region that wants the glide. Only a
+	 * mouse wheel: trackpads and touch keep their own momentum, keys and
+	 * scrollbar drags stay native, and reduced motion (the OS preference or
+	 * MotionProvider) turns it off. Anything else that moves the region, such
+	 * as `scrollIntoView`, stops the easing.
+	 * @default false
 	 */
 	smoothWheel?: boolean
 	/**
@@ -113,7 +116,7 @@ export interface ScrollerProps extends ComponentPropsWithRef<"div"> {
 export function Scroller({
 	orientation = "vertical",
 	wheelScroll = true,
-	smoothWheel = true,
+	smoothWheel = false,
 	label,
 	className,
 	viewportClassName,

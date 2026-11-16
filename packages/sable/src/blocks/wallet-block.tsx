@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "../components/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/card"
 import { Entity } from "../components/entity"

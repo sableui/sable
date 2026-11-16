@@ -9,6 +9,9 @@
    package default; a second theme claiming it leaks its tokens into every other
    theme, and `themes.test.ts` fails the build on it. */
 [data-sable-theme="ember"] {
+	/* Which theme's CSS is painting. SableThemeProvider reads it in development to
+	   warn when data-sable-theme names a theme whose CSS was never imported. */
+	--sable-theme-id: ember;
 	/* Font stacks (theme-internal; host app provides the actual font files).
 
 	   The reference's observed face is Helvetica Neue — a Linotype commercial
@@ -105,42 +108,8 @@
 	--type-overline-tracking: 0.1em;
 	--type-overline-transform: uppercase;
 
-	/* ----------------------------------------------------------------------
-	   Palette ramps. Theme-internal — never used directly by components.
-	   ---------------------------------------------------------------------- */
-	/* ember */
-	--ember-50: oklch(97% 0.02 32.9);
-	--ember-100: oklch(94% 0.045 32.9);
-	--ember-200: oklch(88% 0.08 32.9);
-	--ember-300: oklch(80% 0.13 32.9);
-	--ember-400: oklch(72% 0.19 32.9);
-	--ember-500: oklch(65.2% 0.235 32.9);
-	--ember-600: oklch(58% 0.245 32.9);
-	--ember-700: oklch(50% 0.21 32.9);
-	--ember-800: oklch(42% 0.17 32.9);
-	--ember-900: oklch(34% 0.13 32.9);
-	--ember-950: oklch(24% 0.09 32.9);
-
-	/* soot — one continuous warm neutral. Steps 50-500 were chroma 0 while
-	   600-950 were warm, so the ramp changed temperature halfway and light mode
-	   read as a different theme from dark mode. */
-	--soot-50: oklch(97% 0.005 80);
-	--soot-100: oklch(93.1% 0.007 78);
-	--soot-200: oklch(85.8% 0.008 76);
-	--soot-300: oklch(79.2% 0.010 74);
-	--soot-400: oklch(61% 0.010 72);
-	--soot-500: oklch(46.8% 0.010 70);
-	--soot-600: oklch(32.9% 0.010 61.1);
-	--soot-700: oklch(25.2% 0.012 67.2);
-	--soot-800: oklch(18.8% 0.013 55.5);
-	/* Warm, like every step around it. This was `oklch(15.9% 0 90)` — chroma 0,
-	   a neutral grey punched into an otherwise warm ramp — and because it feeds
-	   `--sidebar` and `--secondary` in dark mode, the docs rail read as a cold
-	   panel floating on a warm ground. The chroma/hue here are interpolated
-	   between its neighbours (950 at 0.018/70.5, 800 at 0.013/55.5); the
-	   lightness is untouched, so only the temperature changed. */
-	--soot-900: oklch(15.9% 0.016 65);
-	--soot-950: oklch(14.1% 0.018 70.5);
+	/* No palette ramps: the semantic tokens below are authored as literal OKLCH,
+	   and the ember / soot ramps that sat here were read by nothing. */
 
 	/* ----------------------------------------------------------------------
 	   Semantic tokens — light mode
@@ -196,6 +165,10 @@
 	--highlight-foreground: oklch(100% 0 0);
 	--overlay: oklch(14.1% 0.018 70.5);
 	--overlay-foreground: oklch(100% 0 0);
+	/* Chart series 4 (amber) one step deeper than the Sable theme's: on this
+	   tinted page the inherited oklch(76.44% …) measured 1.85:1, under the 2:1
+	   graphic floor. The rest of the palette is inherited (themes.test gates it). */
+	--chart-4: oklch(72% 0.15 75.12);
 	--sidebar: oklch(96.5% 0.008 78);
 	--sidebar-foreground: oklch(23.1% 0.014 70);
 	--sidebar-primary: oklch(58% 0.245 32.9);
@@ -293,6 +266,9 @@
 	--highlight-foreground: oklch(100% 0 0);
 	--overlay: oklch(14.1% 0.018 70.5);
 	--overlay-foreground: oklch(100% 0 0);
+	/* Chart series 4, restated for dark because the light override above would
+	   otherwise win over the Sable theme's .dark value (same specificity, later). */
+	--chart-4: oklch(66.99% 0.1425 73.23);
 	--sidebar: oklch(15.9% 0.016 65);
 	--sidebar-foreground: oklch(100% 0 0);
 	--sidebar-primary: oklch(58% 0.245 32.9);

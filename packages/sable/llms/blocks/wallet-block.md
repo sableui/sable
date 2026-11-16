@@ -20,6 +20,8 @@ A balance card: the balance in the metric mono tier, Send and Receive as an equa
 ## Source
 
 ```tsx
+"use client"
+
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Entity, Icon } from "@sableui/react"
 
 const balance = "$2,418.50"

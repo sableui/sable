@@ -25,7 +25,7 @@ Social reading feed with a side rail: a feed-width main column (composer, For yo
 ## Source
 
 ```tsx
-import { AspectBox, Avatar, Badge, Button, Card, CardContent, CardHeader, CardList, CardTitle, Entity, Icon, MenuItem, MenuSeparator, Meter, MeterLabel, MeterTrack, MeterValue, OverflowMenu, Page, PageHeader, Row, Skeleton, Stack, Tabs, TabsList, TabsPanel, TabsTrigger, Textarea } from "@sableui/react"
+import { AspectBox, Avatar, Badge, Button, Card, CardContent, CardHeader, CardList, CardTitle, Entity, Icon, MediaImage, MenuItem, MenuSeparator, Meter, MeterLabel, MeterTrack, MeterValue, OverflowMenu, Page, PageHeader, Row, Skeleton, Stack, Tabs, TabsList, TabsPanel, TabsTrigger, Textarea } from "@sableui/react"
 
 type Post = {
 	id: string
@@ -112,7 +112,9 @@ const renderPost = (post: Post) => (
 				<p className="text-body-md text-foreground">{post.body}</p>
 				{post.media ? (
 					<AspectBox ratio={16 / 9} className="overflow-hidden rounded-concentric-lg/6 bg-muted">
-						<img src={post.media.src} alt={post.media.alt} className="size-full object-cover" />
+						{/* MediaImage, not a bare img: an image that fails to load paints
+						    art seeded by its alt instead of a broken-image glyph. */}
+						<MediaImage src={post.media.src} alt={post.media.alt} />
 						{post.event ? (
 							<div className="absolute start-3 top-3">
 								<Badge appearance="overlay" size="sm" dot>

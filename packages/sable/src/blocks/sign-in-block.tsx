@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "../components/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/card"
 import { Input } from "../components/input"
@@ -18,7 +20,7 @@ export function SignInBlock({ className, framed = true, onSignIn }: SignInBlockP
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs", className)}>
 			<CardHeader>
-				<CardTitle>Welcome back</CardTitle>
+				<CardTitle render={<h2 />}>Welcome back</CardTitle>
 				<CardDescription>Sign in to pick up where you left off.</CardDescription>
 			</CardHeader>
 			<CardContent>

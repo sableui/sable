@@ -1,3 +1,5 @@
+"use client"
+
 import type { ComponentPropsWithRef } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"

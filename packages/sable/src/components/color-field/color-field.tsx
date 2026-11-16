@@ -80,11 +80,40 @@ export type ColorFieldProps = Omit<
 	allowTransparent?: boolean
 	/** Enable the alpha channel, and therefore 8-digit hex output. */
 	allowAlpha?: boolean
-	/** Optional preset row. */
-	swatches?: string[]
-	/** Accessible name for the trigger. */
+	/**
+	 * Optional preset row. A bare hex is named by its hex; give a preset a
+	 * `label` ("Brand red") when the hex says nothing to a listener.
+	 */
+	swatches?: Array<string | ColorFieldSwatch>
+	/** Accessible name for the trigger. @default "Colour" */
 	label?: string
+	/**
+	 * Submits the colour with a form under this name, through a hidden input:
+	 * `"#rrggbb"` (lowercase), `"#rrggbbaa"` when `allowAlpha` and translucent,
+	 * or `"transparent"`.
+	 */
+	name?: string
+	/** The id of a form elsewhere on the page that the hidden input belongs to. */
+	form?: string
+	/** Shows the colour without opening the picker. The value still submits. */
+	readOnly?: boolean
+	/**
+	 * Accepted so a `<Field required>` does not leak it onto the button. A
+	 * ColorField always holds a value, so there is nothing for it to block.
+	 */
+	required?: boolean
+	/** The transparent value's name, in the trigger's label and on its toggle. @default "Transparent" */
+	transparentLabel?: string
+	/** Accessible name of the hex input, given `label`. @default (label) => `${label} hex` */
+	hexLabel?: (label: string) => string
+	/** Accessible name of the eyedropper button. @default "Pick colour from screen" */
+	eyedropperLabel?: string
 }
+
+/** A preset with a name for assistive tech. */
+export type ColorFieldSwatch = { value: string; label: string }
+
+const defaultHexLabel = (label: string) => `${label} hex`
 
 /**
  * ColorField — a swatch that opens a picker.
@@ -104,10 +133,18 @@ export function ColorField({
 	allowAlpha = false,
 	swatches,
 	label = "Colour",
+	name,
+	form,
+	readOnly = false,
+	required: _required,
+	transparentLabel = "Transparent",
+	hexLabel = defaultHexLabel,
+	eyedropperLabel = "Pick colour from screen",
 	className,
 	...props
 }: ColorFieldProps) {
 	const [picker, setPicker] = useState<Picker>(() => seed(value))
+	const [open, setOpen] = useState(false)
 	const [hexDraft, setHexDraft] = useState<string | null>(null)
 
 	const transparent = isTransparent(value)
@@ -150,12 +187,16 @@ export function ColorField({
 	const alpha = useAreaDrag((x) => commit({ ...picker, a: x }, formatHex(rgb, x)))
 
 	return (
-		<Popover>
+		<Popover open={open && !readOnly} onOpenChange={(next) => setOpen(readOnly ? false : next)}>
+			{name ? (
+				<input type="hidden" name={name} form={form} disabled={props.disabled} value={transparent ? TRANSPARENT : withAlpha} />
+			) : null}
 			<PopoverTrigger
 				render={
 					<button
 						type="button"
-						aria-label={`${label}: ${transparent ? "transparent" : withAlpha}`}
+						aria-label={`${label}: ${transparent ? transparentLabel : withAlpha}`}
+						aria-readonly={readOnly || undefined}
 						// Matches ScrubField's metrics so it lines up in a PropertyRow,
 						// and the ring rather than a border keeps it off the layout.
 						className={cn(
@@ -268,7 +309,7 @@ export function ColorField({
 
 					<div className="flex items-center gap-1">
 						<Input
-							aria-label={`${label} hex`}
+							aria-label={hexLabel(label)}
 							value={hexDraft ?? (transparent ? "" : withAlpha)}
 							placeholder={transparent ? TRANSPARENT : undefined}
 							spellCheck={false}
@@ -291,7 +332,7 @@ export function ColorField({
 							<Button
 								size="icon-xs"
 								variant="ghost"
-								aria-label="Pick colour from screen"
+								aria-label={eyedropperLabel}
 								onClick={async () => {
 									try {
 										// @ts-expect-error — EyeDropper is Chromium-only and not in lib.dom yet.
@@ -312,11 +353,14 @@ export function ColorField({
 
 					{swatches?.length ? (
 						<div className="flex flex-wrap gap-1">
-							{swatches.map((swatch) => (
+							{swatches.map((preset) => {
+								const swatch = typeof preset === "string" ? preset : preset.value
+								return (
 								<button
 									key={swatch}
 									type="button"
-									aria-label={swatch}
+									aria-label={typeof preset === "string" ? swatch : preset.label}
+									title={typeof preset === "string" ? undefined : preset.label}
 									onClick={() => {
 										const parsed = parseHex(swatch)
 										if (!parsed) return
@@ -324,11 +368,14 @@ export function ColorField({
 										commit({ hsv: rgbToHsv(parsed.rgb), a: parsed.a, key: emitted }, emitted)
 									}}
 									// 20px swatches on a 24px pitch: the hit area is the full 24px
-										// pitch, so neighbouring targets meet without overlapping.
-										className="hit-target size-5 rounded-xs ring-1 ring-hairline-strong motion-interactive hover:scale-110 [--hit-target-size:24px]"
+									// pitch, so neighbouring targets meet without overlapping. Focus
+									// is an outline past the hairline, the trigger's treatment, so
+									// the swatch keeps its edge while the keyboard is on it.
+									className="hit-target size-5 rounded-xs ring-1 ring-hairline-strong motion-interactive hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring [--hit-target-size:24px]"
 									style={{ backgroundColor: swatch }}
 								/>
-							))}
+								)
+							})}
 						</div>
 					) : null}
 
@@ -349,7 +396,7 @@ export function ColorField({
 								aria-hidden
 								className="checkerboard [--checkerboard-size:6px] size-3 shrink-0 rounded-xs ring-1 ring-hairline-strong"
 							/>
-							Transparent
+							{transparentLabel}
 						</Button>
 					) : null}
 				</div>

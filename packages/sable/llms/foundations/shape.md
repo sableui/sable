@@ -68,6 +68,6 @@ A 1px high-contrast border on a rounded corner snaps unevenly at fractional devi
 <div className="rounded-md popup-inset"><div className="rounded-popup-item">Item</div></div>
 ```
 
-12px outer − 4px inset = 8px inner at the default ladder, and the utilities keep the subtraction right when a preset or the customizer rescales the radius or the density.
+12px outer − 4px inset − the popup's 1px border = 7px rows at the default ladder (the border is part of the distance from the outer curve), and the utilities keep the subtraction right when a preset or the customizer rescales the radius or the density.
 
 **Related:** `sable docs surfaces` · `sable docs spacing` · `sable token radii`

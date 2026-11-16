@@ -3,7 +3,7 @@ import type { ComponentMeta } from "../../lib/meta"
 export const dataTableMeta: ComponentMeta = {
 	name: "DataTable",
 	summary:
-		"A data-driven table over the Table primitives — a columns def + data array with built-in client-side sorting (click a sortable header to cycle asc → desc → none), optional row click / selection, rows grouped under collapsible header rows (groupBy), and an empty state. For server data or paging, sort/page the data and pair with Pagination.",
+		"A data-driven table over the Table primitives — a columns def + data array with built-in sorting (click a sortable header to cycle asc → desc → none; locale-aware string order; controlled with sort + onSortChange), optional row click / selection, rows grouped under collapsible header rows (groupBy), and an empty state. For server data or paging, control the sort, set manualSorting, and pair with Pagination.",
 	keywords: [
 		"data table",
 		"table",
@@ -43,7 +43,7 @@ export const dataTableMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
-					"Pair server-side datasets with Pagination and pass already-sorted/paged rows.",
+					"For server-side sorting and paging, control the sort (sort + onSortChange), set manualSorting, and pass the page the server returned with Pagination beside it. Without manualSorting a sortable header reorders only the rows on the current page.",
 			},
 			{
 				guidance: "do",
@@ -119,8 +119,9 @@ export const dataTableMeta: ComponentMeta = {
 		{
 			name: "rowKey",
 			type: "(row, index) => string | number",
-			default: "index",
-			description: "Stable React key per row.",
+			default: "index in data",
+			description:
+				"Stable key per row, used for the React key and for selection. index is always the row's place in data, never its sorted or grouped position.",
 		},
 		{
 			name: "onRowClick",
@@ -158,8 +159,34 @@ export const dataTableMeta: ComponentMeta = {
 		},
 		{
 			name: "defaultSort",
-			type: '{ key: string; direction: "asc" | "desc" }',
-			description: "Initial sort column + direction.",
+			type: 'DataTableSort ({ key: string; direction: "asc" | "desc" })',
+			description: "Initial sort column + direction, uncontrolled.",
+		},
+		{
+			name: "sort",
+			type: "DataTableSort | null",
+			description:
+				"The sort, controlled; null for unsorted. A header click calls onSortChange with the next step of asc → desc → none and changes nothing by itself.",
+		},
+		{
+			name: "onSortChange",
+			type: "(sort: DataTableSort | null) => void",
+			description:
+				"Called with the next sort when a sortable header is clicked, controlled or not. Fetch the next page from here for server-sorted data.",
+		},
+		{
+			name: "manualSorting",
+			type: "boolean",
+			default: "false",
+			description:
+				"Skip the local sort: data already arrives in sort order (a server sorts and pages). Headers still show aria-sort and report clicks.",
+		},
+		{
+			name: "locale",
+			type: "string",
+			default: "the reader's locale",
+			description:
+				'BCP 47 locale strings are compared in. Comparison is case-insensitive, ignores accents, and orders digits by value ("file2" before "file10"); dates and numbers compare by value; ties keep the order of data.',
 		},
 		{
 			name: "empty",
@@ -203,6 +230,11 @@ export const dataTableMeta: ComponentMeta = {
 			type: "(keys: Set<string>) => void",
 			description: "Called with the new set of open group keys when a group header is toggled.",
 		},
+		{
+			name: "ref / ...props",
+			type: 'ComponentPropsWithRef<"table">',
+			description: "Remaining DOM props (aria-label, id, data-*) and the ref land on the <table>.",
+		},
 	],
 	tokensUsed: ["muted-foreground", "foreground", "ring"],
 	motion: [
@@ -216,7 +248,7 @@ export const dataTableMeta: ComponentMeta = {
 			slot: "response",
 			recipe: "motion-interactive",
 			part: "Row",
-			why: "Body rows ease to a muted wash under the pointer (TableRow's recipe), which keeps the eye on the right line across a wide row of numbers. Sortable headers are ghost Buttons and answer on Button's recipe.",
+			why: "Body rows ease to a muted wash under the pointer (TableRow's recipe), which keeps the eye on the right line across a wide row of numbers. Sortable headers are TableHead's sortable part (a ghost Button) and answer on Button's recipe.",
 		},
 		{
 			slot: "transition",
@@ -263,6 +295,10 @@ export const dataTableMeta: ComponentMeta = {
 		{
 			label: "Sortable columns",
 			code: '<DataTable data={users} columns={[{ key: "name", header: "Name", sortable: true }, { key: "role", header: "Role" }, { key: "joined", header: "Joined", sortable: true, sortValue: (u) => u.joinedAt, cell: (u) => formatDate(u.joinedAt) }]} />',
+		},
+		{
+			label: "Server-sorted and paged",
+			code: 'const [sort, setSort] = useState<DataTableSort | null>({ key: "joined", direction: "desc" })\nconst [page, setPage] = useState(1)\n// The server returns this page already in `sort` order; the table does not reorder it.\nconst { rows, pageCount } = useUsers({ sort, page })\n\n<Stack gap={3}>\n\t<DataTable\n\t\tdata={rows}\n\t\trowKey={(u) => u.id}\n\t\tsort={sort}\n\t\tonSortChange={(next) => {\n\t\t\tsetSort(next)\n\t\t\tsetPage(1)\n\t\t}}\n\t\tmanualSorting\n\t\tcolumns={[{ key: "name", header: "Name", sortable: true }, { key: "joined", header: "Joined", sortable: true, cell: (u) => formatDate(u.joined) }]}\n\t/>\n\t<Pagination page={page} total={pageCount} onPageChange={setPage} />\n</Stack>',
 		},
 		{
 			label: "Clickable rows",

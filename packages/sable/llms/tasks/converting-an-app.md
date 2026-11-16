@@ -105,10 +105,10 @@ drifted copy.
 ## 5. Verify by measuring, not by looking
 
 ```bash
-npx sable-lint            # lints ./src; pass dirs to change (npx sable-lint app components)
+pnpm exec sable lint      # lints ./src; pass dirs to change it (pnpm exec sable lint app components)
 ```
 
-`sable-lint` ships with the package and reads the token vocabulary from the
+The linter (also shipped as the `sable-lint` binary) comes with the package and reads the token vocabulary from the
 `registry.json` of the version you installed, so it checks your app against your
 exact tokens. It exits 1 on any violation. `--rules` explains each one; `--ignore
 '<glob>'` skips a data/fixture layer, where a hex value is content rather than a
@@ -123,24 +123,22 @@ Then in the browser, check the things a screenshot cannot show:
 - every left edge in a hierarchy panel resolves to the rail or an exact multiple
 - control heights match the ladder for the register you chose
 - `--panel`, `--canvas` etc. resolve to real values, not empty
-- **the fonts actually loaded.** `--font-*` resolving is not evidence: the token
-  names a family, and if the host never fetched it the browser silently falls back
-  to `system-ui` while every token check passes. One app rendered in the wrong
-  typeface for its entire life this way, and the documented checks all passed on
-  it. The theme names the family; **the host loads it.** Ask the font system, not
-  the cascade:
-
-  ```js
-  // In the browser console. Both must be true.
-  document.fonts.check("1em Figtree")     // the theme's sans
-  document.fonts.check("1em DM Mono")     // the theme's mono
-  ```
-
-  If either is false, add the `@font-face`/link the theme expects — see the theme's
-  entry in `registry.json → themes` for the families it assumes.
 - a converted colour renders the same bytes as before — compare notations through
   one canvas readback, never against a constant, because the readback itself has
   an offset
+- **the fonts actually loaded.** `--font-*` resolving is not evidence: the token
+  names a family, and if the host never fetched it the browser silently falls back
+  to `system-ui` while every token check passes. The theme names the family;
+  **the host loads it.** Ask the font system, not the cascade (below).
+
+```js
+// In the browser console. Both must be true.
+document.fonts.check("1em Figtree")     // the theme's sans
+document.fonts.check("1em DM Mono")     // the theme's mono
+```
+
+If either is false, add the `@font-face`/link the theme expects — see the theme's
+entry in `registry.json → themes` for the families it assumes.
 
 ## Known-good example
 

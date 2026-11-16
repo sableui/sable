@@ -130,6 +130,7 @@ export function Select<Value, Multiple extends boolean | undefined = false>({
 		</SelectIdContext.Provider>
 	)
 }
+Select.displayName = "Select"
 export const SelectPortal = withPortalThemeScope(Base.Portal)
 export const SelectGroup = Base.Group
 /**
@@ -229,6 +230,7 @@ export function SelectTrigger({
 		</Base.Trigger>
 	)
 }
+SelectTrigger.displayName = "SelectTrigger"
 
 type PositionerProps = ComponentProps<typeof Base.Positioner>
 type ContentProps = Omit<ComponentProps<typeof Base.Popup>, "className"> & {
@@ -281,6 +283,7 @@ export function SelectContent({
 		</SelectPortal>
 	)
 }
+SelectContent.displayName = "SelectContent"
 
 type ItemProps = Omit<ComponentProps<typeof Base.Item>, "className"> & {
 	className?: string
@@ -315,6 +318,7 @@ export function SelectItem({ className, children, label, ...props }: ItemProps) 
 		</Base.Item>
 	)
 }
+SelectItem.displayName = "SelectItem"
 
 type GroupLabelProps = Omit<
 	ComponentProps<typeof Base.GroupLabel>,
@@ -338,6 +342,7 @@ export function SelectGroupLabel({ className, ...props }: GroupLabelProps) {
 		/>
 	)
 }
+SelectGroupLabel.displayName = "SelectGroupLabel"
 
 type SeparatorProps = Omit<ComponentProps<typeof Base.Separator>, "className"> & {
 	className?: string
@@ -352,3 +357,4 @@ export function SelectSeparator({ className, ...props }: SeparatorProps) {
 		/>
 	)
 }
+SelectSeparator.displayName = "SelectSeparator"

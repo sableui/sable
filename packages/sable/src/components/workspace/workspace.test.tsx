@@ -66,3 +66,34 @@ describe("Workspace slots", () => {
 		expect(row.querySelector("[data-testid=nav]")).not.toBeNull()
 	})
 })
+
+describe("Workspace skip link", () => {
+	it("lands focus on the canvas, which takes it without joining the tab order", () => {
+		const { getByRole } = renderWithProviders(
+			<Workspace>
+				<WorkspaceCanvas>Canvas</WorkspaceCanvas>
+			</Workspace>,
+		)
+		const main = getByRole("main")
+		expect(main).toHaveAttribute("id", "main-content")
+		expect(main).toHaveAttribute("tabindex", "-1")
+		expect(getByRole("link", { name: "Skip to canvas" })).toHaveAttribute("href", "#main-content")
+		main.focus()
+		expect(main).toHaveFocus()
+	})
+
+	it("moves the target with mainId so a nested shell's ids do not collide", () => {
+		const { getByRole } = renderWithProviders(
+			<Workspace mainId="tool-canvas">
+				<WorkspaceCanvas>Canvas</WorkspaceCanvas>
+			</Workspace>,
+		)
+		expect(getByRole("main")).toHaveAttribute("id", "tool-canvas")
+		expect(getByRole("link", { name: "Skip to canvas" })).toHaveAttribute("href", "#tool-canvas")
+	})
+
+	it("lets an id on the canvas win", () => {
+		const { getByRole } = renderWithProviders(<WorkspaceCanvas id="artboard">Canvas</WorkspaceCanvas>)
+		expect(getByRole("main")).toHaveAttribute("id", "artboard")
+	})
+})

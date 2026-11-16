@@ -1,5 +1,8 @@
 /* prism: an original Sable technical preset. No third-party assets. */
 [data-sable-theme="prism"] {
+	/* Which theme's CSS is painting. SableThemeProvider reads it in development to
+	   warn when data-sable-theme names a theme whose CSS was never imported. */
+	--sable-theme-id: prism;
 	--font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
 	--font-mono: "Roboto Mono", ui-monospace, monospace;
 	--font-display: "Playfair Display", ui-serif, Georgia, serif;
@@ -109,6 +112,10 @@
 	--highlight-foreground: oklch(26.55994% 0.047330 255.4106);
 	--overlay: oklch(21.14912% 0.029163 257.5277);
 	--overlay-foreground: oklch(100.00000% 0.000000 89.8756);
+	/* Chart series 4 (amber) one step deeper than the Sable theme's: on this
+	   tinted page the inherited oklch(76.44% …) measured 1.85:1, under the 2:1
+	   graphic floor. The rest of the palette is inherited (themes.test gates it). */
+	--chart-4: oklch(72% 0.15 75.12);
 	--sidebar: oklch(96.82603% 0.006854 247.8956);
 	--sidebar-foreground: oklch(26.55994% 0.047330 255.4106);
 	--sidebar-primary: oklch(50.45463% 0.203215 263.5596);
@@ -141,13 +148,11 @@
 	--type-body-lg-size: 1.125rem;
 	--type-label-lg-size: 0.9375rem;
 	--type-mono-sm-size: 0.875rem;
-	--theme-shadow-2xs: 0 0 #0000;
-	--theme-shadow-xs: 0 0 #0000;
 	--theme-shadow-sm: 0 0 #0000;
+	--theme-shadow: 0 0 #0000;
 	--theme-shadow-md: 0 0 #0000;
 	--theme-shadow-lg: 0 0 #0000;
 	--theme-shadow-xl: 0 0 #0000;
-	--theme-shadow-2xl: 0 0 #0000;
 }
 
 .dark[data-sable-theme="prism"],
@@ -190,6 +195,9 @@
 	--highlight-foreground: oklch(25.20350% 0.047984 259.9119);
 	--overlay: oklch(14.80476% 0.014876 256.6891);
 	--overlay-foreground: oklch(100.00000% 0.000000 89.8756);
+	/* Chart series 4, restated for dark because the light override above would
+	   otherwise win over the Sable theme's .dark value (same specificity, later). */
+	--chart-4: oklch(66.99% 0.1425 73.23);
 	--sidebar: oklch(21.51885% 0.027284 255.8198);
 	--sidebar-foreground: oklch(96.50786% 0.016545 259.4182);
 	--sidebar-primary: oklch(82.28684% 0.088371 261.1846);

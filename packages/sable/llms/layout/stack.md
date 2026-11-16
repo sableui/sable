@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-Vertical flow on the 8px rhythm — the default container for stacked content. Gap by role: tight within a group (1.5–2), looser between groups (3–4), generous between sections (6+). Layout lives in classes (flex flex-col items-* justify-*) and the gap in a CSS variable, never inline style, so className utilities override any prop at a breakpoint (max-lg:hidden, md:flex-row, md:gap-8).
+Vertical flow on the baseline rhythm — the default container for stacked content. Gap by role: tight within a group (1.5–2), looser between groups (3–4), generous between sections (6+). Layout lives in classes (flex flex-col items-* justify-*) and the gap in a CSS variable, never inline style, so className utilities override any prop at a breakpoint (max-lg:hidden, md:flex-row, md:gap-8).
 
 **Keywords:** stack, vertical rhythm, layout, spacing
 
@@ -20,7 +20,7 @@ Use Stack for vertical flow where child spacing should follow the Sable rhythm s
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| gap | number \| string | 2 | Vertical gap. Number = rhythm units (×8px, fractions ok — 2 = 16px); string = raw CSS. |
+| gap | number \| string | 2 | Vertical gap. Number = rhythm units (one baseline step each — 8px at Sable's default type, two Tailwind spacing steps, so gap={2} is gap-4; fractions ok); string = raw CSS. |
 | align | "start" \| "center" \| "end" \| "stretch" | "stretch" | Cross-axis alignment. |
 | justify | "start" \| "center" \| "end" \| "between" | "start" | Main-axis distribution. |
 

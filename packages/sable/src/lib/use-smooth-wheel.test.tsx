@@ -209,7 +209,7 @@ describe("smooth wheel", () => {
 			for (const cb of run) cb(now)
 		}
 	}
-	function list({ scrollTop = 0, scrollHeight = 2000, clientHeight = 400, smoothWheel }: { scrollTop?: number; scrollHeight?: number; clientHeight?: number; smoothWheel?: boolean } = {}) {
+	function list({ scrollTop = 0, scrollHeight = 2000, clientHeight = 400, smoothWheel = true }: { scrollTop?: number; scrollHeight?: number; clientHeight?: number; smoothWheel?: boolean } = {}) {
 		const { container } = renderWithProviders(
 			<Scroller label="Rows" className="h-96" smoothWheel={smoothWheel}>
 				content
@@ -275,7 +275,7 @@ describe("smooth wheel", () => {
 
 	it("lets a nested scroll area that can still move take the wheel", () => {
 		const { container } = renderWithProviders(
-			<Scroller label="Rows">
+			<Scroller label="Rows" smoothWheel>
 				<pre data-testid="code" style={{ overflowY: "auto" }}>
 					code
 				</pre>
@@ -303,7 +303,7 @@ describe("smooth wheel", () => {
 	it("adds no easing, and takes no wheel, under reduced motion", () => {
 		const { container } = renderWithProviders(
 			<MotionProvider policy="reduced">
-				<Scroller label="Rows">content</Scroller>
+				<Scroller label="Rows" smoothWheel>content</Scroller>
 			</MotionProvider>,
 		)
 		const el = container.querySelector('[role="group"]') as HTMLElement
@@ -311,6 +311,21 @@ describe("smooth wheel", () => {
 		Object.defineProperty(el, "clientHeight", { configurable: true, value: 400 })
 		expect(notch(el, 3).defaultPrevented).toBe(false)
 		expect(queue).toHaveLength(0)
+	})
+
+	it("is off by default: a vertical Scroller attaches no wheel listener and the browser scrolls", () => {
+		const { container } = renderWithProviders(
+			<Scroller label="Rows" className="h-96">
+				content
+			</Scroller>,
+		)
+		const el = container.firstElementChild?.firstElementChild as HTMLElement
+		Object.defineProperty(el, "scrollHeight", { configurable: true, value: 2000 })
+		Object.defineProperty(el, "clientHeight", { configurable: true, value: 400 })
+		const event = notch(el, 3)
+		expect(event.defaultPrevented).toBe(false)
+		frame(5)
+		expect(el.scrollTop).toBe(0)
 	})
 
 	it("is off with smoothWheel={false}: the browser's own wheel scroll stands", () => {

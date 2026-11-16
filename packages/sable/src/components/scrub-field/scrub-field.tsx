@@ -1,12 +1,17 @@
 "use client";
 
-import { type ReactNode, useRef, useState } from "react"
+import { type ComponentPropsWithRef, type ReactNode, useMemo, useRef, useState } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
 import { FIELD_SHELL_XS } from "../../lib/field-shell"
+import { mergeRefs } from "../../lib/refs"
 import { beginScrub } from "../../lib/scrub-gesture"
 
-export interface ScrubFieldProps {
+export interface ScrubFieldProps
+	extends Omit<
+		ComponentPropsWithRef<"input">,
+		"value" | "defaultValue" | "onChange" | "prefix" | "min" | "max" | "step" | "type" | "size" | "children"
+	> {
 	value: number
 	onValueChange?: (next: number) => void
 	min?: number
@@ -26,9 +31,25 @@ export interface ScrubFieldProps {
 	/** Fires when a scrub gesture ends. */
 	onGestureEnd?: () => void
 	disabled?: boolean
+	/** Blocks typing, arrow keys and scrubbing; the value still submits. */
+	readOnly?: boolean
+	/**
+	 * Submits the value with a form under this name, as a plain number in the
+	 * step's precision ("0.25", "1234" — no unit, no separators), through a
+	 * hidden input. The visible input carries the draft while typing, so it is
+	 * never what a form reads.
+	 */
+	name?: string
+	/** The id of a form elsewhere on the page that the hidden input belongs to. */
+	form?: string
 	id?: string
+	/** Sizes the field shell (width, flex); every other prop lands on the input. */
 	className?: string
+	/** The scrub handle's tooltip, given `label`. @default (label) => `Drag to change ${label}` */
+	dragLabel?: (label: string) => string
 }
+
+const defaultDragLabel = (label: string) => `Drag to change ${label}`
 
 /**
  * ScrubField — the compact numeric field a property grid is built from.
@@ -63,11 +84,31 @@ export function ScrubField({
 	onGestureStart,
 	onGestureEnd,
 	disabled,
+	readOnly,
+	name,
+	form,
 	id,
 	className,
+	dragLabel = defaultDragLabel,
+	ref,
+	onKeyDown: onKeyDownProp,
+	onBlur: onBlurProp,
+	onFocus: onFocusProp,
+	style,
+	...inputProps
 }: ScrubFieldProps) {
-	const [draft, setDraft] = useState<string | null>(null)
+	const [draft, setDraftState] = useState<string | null>(null)
+	// Mirrored in a ref because Enter and Escape blur the input in the same tick
+	// they settle the draft, and blur commits: read from the render's closure,
+	// the stale draft committed again — Escape "reverted" by committing what it
+	// was meant to throw away.
+	const draftRef = useRef<string | null>(null)
+	function setDraft(next: string | null) {
+		draftRef.current = next
+		setDraftState(next)
+	}
 	const inputRef = useRef<HTMLInputElement>(null)
+	const setInputRef = useMemo(() => mergeRefs(inputRef, ref), [ref])
 
 	// Precision follows the step, so a 0.01-step threshold shows "0.25" while an
 	// integer seed shows "1234" — never a thousands separator, never 0.2500000001.
@@ -83,13 +124,16 @@ export function ScrubField({
 	const display = draft ?? value.toFixed(decimals)
 
 	function commitDraft() {
-		if (draft === null) return
-		const parsed = Number.parseFloat(draft)
+		const current = draftRef.current
+		if (current === null) return
+		const parsed = Number.parseFloat(current)
 		if (Number.isFinite(parsed)) onValueChange?.(clamp(parsed))
 		setDraft(null)
 	}
 
 	function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+		onKeyDownProp?.(e)
+		if (e.defaultPrevented) return
 		if (e.key === "Enter") {
 			e.preventDefault()
 			commitDraft()
@@ -102,10 +146,11 @@ export function ScrubField({
 			inputRef.current?.blur()
 			return
 		}
-		if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+		if ((e.key === "ArrowUp" || e.key === "ArrowDown") && !readOnly) {
 			e.preventDefault()
 			const magnitude = step * (e.shiftKey ? 10 : 1)
-			const base = draft !== null ? Number.parseFloat(draft) : value
+			const current = draftRef.current
+			const base = current !== null ? Number.parseFloat(current) : value
 			if (!Number.isFinite(base)) return
 			onValueChange?.(clamp(base + (e.key === "ArrowUp" ? magnitude : -magnitude)))
 			setDraft(null)
@@ -122,7 +167,7 @@ export function ScrubField({
 			onValueChange,
 			onGestureStart,
 			onGestureEnd,
-			disabled,
+			disabled: disabled || readOnly,
 		})
 	}
 
@@ -143,7 +188,7 @@ export function ScrubField({
 					// Decorative: the input owns the accessible name, and the gesture is
 					// duplicated by the arrow keys, so this stays out of the a11y tree.
 					aria-hidden
-					title={`Drag to change ${label}`}
+					title={readOnly ? undefined : dragLabel(label)}
 					onPointerDown={onScrubDown}
 					className="flex shrink-0 cursor-ew-resize select-none items-center text-muted-foreground motion-interactive group-hover:text-foreground"
 				>
@@ -155,20 +200,32 @@ export function ScrubField({
 			    ("100%", not "100      %"). The UI num tier is tabular, so one ch is
 			    exactly one digit and the measurement is honest. */}
 			<input
-				ref={inputRef}
+				// The rest first: a Field's id / aria-describedby / aria-invalid /
+				// required land here, and the value wiring below cannot be undone.
+				{...inputProps}
+				ref={setInputRef}
 				id={id}
 				type="text"
 				inputMode="decimal"
 				aria-label={label}
 				disabled={disabled}
+				readOnly={readOnly}
 				value={display}
 				onChange={(e) => setDraft(e.target.value)}
-				onBlur={commitDraft}
+				onBlur={(e) => {
+					commitDraft()
+					onBlurProp?.(e)
+				}}
 				onKeyDown={onKeyDown}
-				onFocus={(e) => e.currentTarget.select()}
-				style={{ width: `${Math.max(display.length, 2) + 0.5}ch` }}
+				onFocus={(e) => {
+					e.currentTarget.select()
+					onFocusProp?.(e)
+				}}
+				style={{ ...style, width: `${Math.max(display.length, 2) + 0.5}ch` }}
 				className="min-w-0 shrink-0 bg-transparent text-ui-num text-foreground outline-none"
 			/>
+
+			{name ? <input type="hidden" name={name} form={form} disabled={disabled} value={value.toFixed(decimals)} /> : null}
 
 			{suffix ? <span className="shrink-0 text-ui-num text-muted-foreground">{suffix}</span> : null}
 

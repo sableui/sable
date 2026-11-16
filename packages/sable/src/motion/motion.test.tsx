@@ -96,6 +96,26 @@ describe("Presence lifecycle", () => {
 		expect(animate.mock.calls[1][1]).toMatchObject({ duration: 600, easing: "cubic-bezier(0, 0, 0.2, 1)" })
 	})
 
+	it("takes the theme's enter/exit duration and decelerate easing when given none", () => {
+		// The tokens arrive the way a theme writes them: already multiplied by the
+		// scale, calc() unevaluated. Ember's slower enter must reach Presence.
+		const tokens = {
+			"--motion-duration-enter": "calc(300ms * 1)",
+			"--motion-duration-exit": "calc(calc(200ms * 1) * 0.5)",
+			"--motion-ease-decelerate": "cubic-bezier(0.1, 0.9, 0.2, 1)",
+		} as CSSProperties
+		const content = (show: boolean) => (
+			<div style={tokens}>
+				<Presence show={show}><div>Panel</div></Presence>
+			</div>
+		)
+		const view = render(content(false))
+		view.rerender(content(true))
+		expect(animate.mock.calls[0][1]).toMatchObject({ duration: 300, easing: "cubic-bezier(0.1, 0.9, 0.2, 1)" })
+		view.rerender(content(false))
+		expect(animate.mock.calls[1][1]).toMatchObject({ duration: 100, easing: "cubic-bezier(0.4, 0, 1, 1)" })
+	})
+
 	it("leaves initially visible content at rest and forwards its React 19 ref", () => {
 		const ref = createRef<HTMLDivElement>()
 		render(<Presence show><div ref={ref}>Panel</div></Presence>)
@@ -268,6 +288,23 @@ describe("motion levels", () => {
 		view.rerender(<MotionProvider policy="full"><MotionScope level="off"><Probe level="full" /></MotionScope></MotionProvider>)
 		expect(probe()).toHaveAttribute("data-enabled", "false")
 		expect(probe()).toHaveAttribute("data-level", "off")
+	})
+
+	it("writes a getter target once per policy, not on every parent render", () => {
+		// An inline `target={() => el}` is a new function every render. With it in
+		// the effect deps, each parent render removed and re-set data-motion — a
+		// full restyle of the subtree for nothing.
+		const el = document.createElement("div")
+		const set = vi.spyOn(el, "setAttribute")
+		const remove = vi.spyOn(el, "removeAttribute")
+		const view = render(<MotionProvider policy="off" target={() => el}><Probe /></MotionProvider>)
+		for (let i = 0; i < 3; i++) view.rerender(<MotionProvider policy="off" target={() => el}><Probe /></MotionProvider>)
+		expect(set).toHaveBeenCalledTimes(1)
+		expect(remove).not.toHaveBeenCalled()
+		expect(el).toHaveAttribute("data-motion", "off")
+		view.rerender(<MotionProvider policy="subtle" target={() => el}><Probe /></MotionProvider>)
+		expect(el).toHaveAttribute("data-motion", "subtle")
+		expect(set).toHaveBeenCalledTimes(2)
 	})
 
 	it("renders a box-less scope wrapper that carries data-motion", () => {

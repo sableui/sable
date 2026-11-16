@@ -29,7 +29,7 @@ export interface GridProps extends ComponentPropsWithRef<"div"> {
 	 */
 	track?: "fill" | "fit"
 	/**
-	 * Gap between cells. Number = rhythm units (×8px); `[row, column]` = two
+	 * Gap between cells. Number = rhythm units (one baseline step each — 8px at Sable's default type, two Tailwind spacing steps, so gap={2} is gap-4); `[row, column]` = two
 	 * rhythm counts, for a gallery whose rows want more air than its columns;
 	 * string = raw CSS. Default `--grid-gutter`.
 	 */

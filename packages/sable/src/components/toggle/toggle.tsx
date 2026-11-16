@@ -1,3 +1,5 @@
+"use client"
+
 import { Toggle as BaseToggle } from "@base-ui/react/toggle"
 import { ToggleGroup as BaseToggleGroup } from "@base-ui/react/toggle-group"
 import { type ComponentProps, createContext, useContext } from "react"
@@ -7,7 +9,17 @@ import { SEGMENTED_INNER_RADIUS, SEGMENTED_ITEM, SEGMENTED_TRACK } from "../../l
 import { type MotionLevel, motionAttribute } from "../../motion/MotionProvider"
 
 /** How a ToggleGroup draws its toggles. */
-export type ToggleGroupAppearance = "default" | "segmented"
+export type ToggleGroupAppearance = "default" | "segmented" | "tiles"
+
+/**
+ * A tile: a figure and its caption stacked, the whole tile the toggle. Square,
+ * edge to edge, divided from its neighbour by a hairline, and padded from the
+ * card's own `--card-p` so it lines up with the card's content at any density.
+ * The pressed tile takes the accent fill; the focus ring is drawn inside, since
+ * the tiles run to the card's clipped edges.
+ */
+const TILE =
+	"flex h-auto min-w-0 flex-1 cursor-pointer flex-col items-start justify-center px-(--card-p,--spacing(6)) py-4 text-start text-foreground motion-interactive sable-surface-interactive not-first:border-s not-first:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
 
 const ToggleAppearanceContext = createContext<ToggleGroupAppearance>("default")
 
@@ -38,7 +50,9 @@ export function Toggle({ className, ...props }: ToggleProps) {
 			className={cn(
 				appearance === "segmented"
 					? cn(SEGMENTED_ITEM, "cursor-pointer whitespace-nowrap px-2 text-label-md data-[pressed]:hover:text-accent-foreground")
-					: cn(
+					: appearance === "tiles"
+						? TILE
+						: cn(
 							"inline-flex h-(--control-sm) min-w-(--control-sm) cursor-pointer items-center justify-center rounded-sm px-2.5 text-label-md text-muted-foreground motion-interactive motion-press",
 							// Hover is the surface's quiet step, NOT the pressed fill: with
 							// both on bg-accent an unpressed toggle looked pressed under the
@@ -50,6 +64,8 @@ export function Toggle({ className, ...props }: ToggleProps) {
 				"disabled:pointer-events-none disabled:opacity-50",
 				// An icon beside a label is spaced like Button's; without it they touched.
 				"gap-(--control-gap) [&_svg]:shrink-0",
+				// A tile's caption and figure are one unit, set closer than an icon and label.
+				appearance === "tiles" && "gap-1",
 				className,
 			)}
 			{...props}
@@ -73,6 +89,10 @@ type ToggleGroupProps = Omit<
 	 * `default` — a loose row of toggles. `segmented` — the capsule segmented
 	 * control (lib/segmented, the same look as ThemeSwitcher): one track, the
 	 * pressed option filled. Use segmented for a single-select view switch.
+	 * `tiles` — stat tiles that are the switch: each toggle a caption over a
+	 * figure, square and edge to edge, padded from the card's `--card-p` and
+	 * divided by hairlines. For totals that pick what a chart plots
+	 * (DeviceComparisonBlock); place the group, its edges are the tiles' own.
 	 * @default "default"
 	 */
 	appearance?: ToggleGroupAppearance
@@ -116,10 +136,12 @@ export function ToggleGroup({
 	...props
 }: ToggleGroupProps) {
 	const glide = appearance === "segmented" && !props.multiple
-	// A view switch always shows a view: pressing the chosen option is not a way
-	// to choose nothing, so that press is declined rather than left to every caller.
+	// A view switch always shows a view, and a tile set always plots one: pressing
+	// the chosen option is not a way to choose nothing, so that press is declined
+	// rather than left to every caller.
+	const keepOne = (glide || appearance === "tiles") && !props.multiple
 	const handleValueChange: ToggleGroupProps["onValueChange"] = (value, details) => {
-		if (glide && value.length === 0) {
+		if (keepOne && value.length === 0) {
 			details.cancel()
 			return
 		}
@@ -131,7 +153,11 @@ export function ToggleGroup({
 				data-appearance={appearance}
 				data-motion={motionAttribute(motion)}
 				className={cn(
-					appearance === "segmented" ? SEGMENTED_TRACK : "inline-flex items-center gap-1",
+					appearance === "segmented"
+						? SEGMENTED_TRACK
+						: appearance === "tiles"
+							? "flex items-stretch"
+							: "inline-flex items-center gap-1",
 					glide && SEGMENTED_GLIDE_HANDOFF,
 					stretch && "flex w-full *:flex-1",
 					className,

@@ -1,3 +1,5 @@
+"use client"
+
 import { Fieldset as Base } from "@base-ui/react/fieldset"
 import { type ComponentPropsWithRef, createContext, useContext } from "react"
 import { cn } from "../../lib/cn"

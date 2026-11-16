@@ -2,7 +2,7 @@ import { cva } from "class-variance-authority"
 import { PALETTE_COLORS } from "../../lib/palette"
 
 /**
- * A chip someone clicks. Two appearances, three sizes, one `selected` state each:
+ * A chip someone clicks. Three appearances, three sizes, one `selected` state each:
  *
  * - `solid` (default): the filter-row chip. Rests on the secondary surface;
  *   `selected` lifts it onto the primary surface so the active filter reads at
@@ -12,6 +12,13 @@ import { PALETTE_COLORS } from "../../lib/palette"
  *   compete with what it annotates. Rests as a hairline on its surface;
  *   `selected` (the reader's own choice) takes a primary tint and a soft
  *   primary edge — distinct from rest without a heavy dark outline.
+ *
+ * - `ghost`: no chip at rest, as a ghost Button has none: the content alone,
+ *   with a hover fill off the surface it sits on. For a run of small toggles
+ *   that hang off other content (the reactions under a message), where a row
+ *   of hairline capsules outweighs the two emoji it holds. `selected` takes
+ *   the primary tint with no edge, so the reader's own choice is the one chip
+ *   in the row.
  *
  * All sizes are fixed heights. md sits on the density ladder's xs control
  * height (28px), sm is 24px — the touch-target floor, deliberately NOT a
@@ -51,6 +58,7 @@ export const pillVariants = cva(
 			appearance: {
 				solid: "",
 				outline: "border",
+				ghost: "",
 			},
 			size: {
 				lg: "h-(--control-sm) px-4 py-0 text-label-lg [--sable-optical-pad:0px]",
@@ -95,11 +103,15 @@ export const pillVariants = cva(
 				// surface (sable-surface-interactive), not a fixed accent fill.
 				class: "border-border text-muted-foreground sable-surface-interactive",
 			},
+			{ appearance: "ghost", selected: true, class: "bg-primary/10 text-foreground hover:bg-primary/15" },
+			{ appearance: "ghost", selected: false, class: "text-muted-foreground sable-surface-interactive" },
 			// After the neutral looks, so cn's merge lets these win.
 			{ appearance: "solid", selected: false, tone: [...PALETTE_COLORS], class: "bg-palette-wash text-palette-text hover:bg-palette-wash-strong hover:text-palette-text" },
 			{ appearance: "solid", selected: true, tone: [...PALETTE_COLORS], class: "bg-palette-solid text-palette-solid-ink hover:bg-palette-solid" },
 			{ appearance: "outline", selected: false, tone: [...PALETTE_COLORS], class: "border-palette-edge text-palette-text" },
 			{ appearance: "outline", selected: true, tone: [...PALETTE_COLORS], class: "border-palette-edge bg-palette-wash text-palette-text hover:bg-palette-wash-strong" },
+			{ appearance: "ghost", selected: false, tone: [...PALETTE_COLORS], class: "text-palette-text" },
+			{ appearance: "ghost", selected: true, tone: [...PALETTE_COLORS], class: "bg-palette-wash text-palette-text hover:bg-palette-wash-strong" },
 		],
 		defaultVariants: {
 			appearance: "solid",

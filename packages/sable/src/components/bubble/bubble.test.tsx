@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest"
 import { fireEvent, renderWithProviders, screen } from "../../test/render"
+import { Avatar } from "../avatar"
 import { Bubble, BubbleReaction, BubbleReactions } from "./index"
 
 describe("Bubble", () => {
@@ -104,5 +105,36 @@ describe("BubbleReaction", () => {
 	it("defaults to type=button, so a reaction never submits a composer", () => {
 		renderWithProviders(<BubbleReaction emoji="🎉" />)
 		expect(screen.getByRole("button")).toHaveAttribute("type", "button")
+	})
+})
+
+describe("BubbleReaction faces", () => {
+	const faces = (n: number) => Array.from({ length: n }, (_, i) => <Avatar key={i} fallback={String(i)} alt="" />)
+
+	it("shows who reacted for up to three people, and the count past that", () => {
+		const { rerender } = renderWithProviders(<BubbleReaction emoji="🎉" label="Party" avatars={faces(3)} />)
+		const pill = screen.getByRole("button", { name: "Party, 3" })
+		expect(pill.querySelectorAll("[aria-hidden=true] > *").length).toBeGreaterThanOrEqual(3)
+		expect(pill.textContent).not.toContain("3")
+		rerender(<BubbleReaction emoji="🎉" label="Party" avatars={faces(4)} />)
+		expect(screen.getByRole("button", { name: "Party, 4" }).textContent).toContain("4")
+	})
+
+	it("is a soft chip inside a bubble and quiet under one", () => {
+		renderWithProviders(
+			<>
+				<Bubble>
+					hi
+					<BubbleReactions>
+						<BubbleReaction emoji="🎉" label="Inside" />
+					</BubbleReactions>
+				</Bubble>
+				<BubbleReactions>
+					<BubbleReaction emoji="🎉" label="Under" />
+				</BubbleReactions>
+			</>,
+		)
+		expect(screen.getByRole("button", { name: "Inside" }).className).toContain("bg-(--reaction-fill)")
+		expect(screen.getByRole("button", { name: "Under" }).className).not.toContain("--reaction-fill")
 	})
 })

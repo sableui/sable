@@ -49,7 +49,7 @@ import { SearchInput } from "../search-input/search-input"
  * become two hand copies of the same disclosure.
  */
 
-type Size = "md" | "xs"
+type Size = "md" | "sm" | "xs"
 type FocusIntent = "keyboard" | "pointer" | null
 
 interface PickerContext {
@@ -61,6 +61,8 @@ interface PickerContext {
 	intentRef: RefObject<FocusIntent>
 	/** Moves focus into the open list: the search field when there is one, else the chosen option. */
 	focusList: (preferSearch: boolean) => void
+	/** What a wrapping Field cloned onto the root, for the trigger — the labelable control. */
+	field: { id?: string; describedBy?: string; invalid?: ComponentProps<"button">["aria-invalid"] }
 }
 
 const Context = createContext<PickerContext | null>(null)
@@ -100,13 +102,30 @@ export interface DisclosurePickerProps
 	/** Called with the next open state — on the trigger, on a pick, on Escape. */
 	onOpenChange?: (open: boolean) => void
 	/**
-	 * Which rung the row sits on. `md` is a 40px row in a settings panel; `xs` is
+	 * Which rung of the field ladder the row sits on. `md` is a 40px row in a
+	 * settings panel; `sm` the same row one rung down (`--control-sm`); `xs` is
 	 * the property-grid rung — a `--control-xs` row on the inset `panel-field`
 	 * fill, the same shape as a ScrubField or an xs SelectTrigger beside it.
 	 * Height, padding, radius, type and surface move together, which is why it is
 	 * a prop and not a className. @default "md"
 	 */
 	size?: Size
+	/**
+	 * Submits `value` with a form under this name. The list that holds the value
+	 * unmounts while the row is closed, so the root carries the submitted value.
+	 */
+	name?: string
+	/** The value submitted under `name` — the chosen option's value. */
+	value?: string
+	/** The id of a form elsewhere on the page that the value belongs to. */
+	form?: string
+	/** Blocks form submission while `value` is empty; the browser's message points at the row. */
+	required?: boolean
+	/**
+	 * Goes to the trigger, not the root: it is the labelable control, so a
+	 * `<Field>` label (which sets `id`) names it and clicking the label focuses it.
+	 */
+	id?: string
 	className?: string
 }
 
@@ -123,6 +142,13 @@ export function DisclosurePicker({
 	defaultOpen = false,
 	onOpenChange,
 	size = "md",
+	name,
+	value: submitted,
+	form,
+	required,
+	id,
+	"aria-describedby": describedBy,
+	"aria-invalid": invalid,
 	className,
 	ref,
 	children,
@@ -198,9 +224,10 @@ export function DisclosurePicker({
 		}
 	}, [open, focusList])
 
+	const field = useMemo(() => ({ id, describedBy, invalid }), [id, describedBy, invalid])
 	const value = useMemo<PickerContext>(
-		() => ({ open, setOpen, size, triggerRef, panelRef, intentRef, focusList }),
-		[open, setOpen, size, focusList],
+		() => ({ open, setOpen, size, triggerRef, panelRef, intentRef, focusList, field }),
+		[open, setOpen, size, focusList, field],
 	)
 
 	return (
@@ -234,6 +261,24 @@ export function DisclosurePicker({
 				{...props}
 			>
 				{children}
+				{name ? (
+					// Not type="hidden": a hidden input is never validated, so `required`
+					// would do nothing. Visually hidden instead, out of the tab order and
+					// the a11y tree; when the browser reports it invalid it hands focus
+					// to the row, so its message points at something real.
+					<input
+						name={name}
+						form={form}
+						value={submitted ?? ""}
+						required={required}
+						disabled={props.disabled}
+						tabIndex={-1}
+						aria-hidden
+						onChange={() => {}}
+						onFocus={() => triggerRef.current?.focus()}
+						className="sr-only"
+					/>
+				) : null}
 			</Collapsible>
 		</Context.Provider>
 	)
@@ -265,11 +310,19 @@ export function DisclosurePickerTrigger({
 	ref,
 	onKeyDown,
 	onPointerDown,
+	id,
+	render,
 	...props
 }: DisclosurePickerTriggerProps) {
-	const { open, setOpen, size, triggerRef, intentRef, focusList } = usePicker("DisclosurePickerTrigger")
+	const { open, setOpen, size, triggerRef, intentRef, focusList, field } = usePicker("DisclosurePickerTrigger")
 	return (
 		<CollapsibleTrigger
+			// Base UI's Collapsible.Trigger takes `id` off its props and never puts
+			// it back, so the id rides on the rendered element instead.
+			// design-lint-disable-next-line raw-button -- the same <button> Collapsible.Trigger renders by default, restated only to carry the id; the row's anatomy is its own, not a Button's
+			render={render ?? <button type="button" id={id ?? field.id} />}
+			aria-describedby={field.describedBy}
+			aria-invalid={field.invalid}
 			ref={(node: HTMLButtonElement | null) => {
 				triggerRef.current = node
 				if (typeof ref === "function") ref(node)
@@ -307,7 +360,8 @@ export function DisclosurePickerTrigger({
 					: cn(
 							// Hover is a step off whatever surface the row sits on, never a
 							// fixed fill: a popover-coloured hover read as a hole in the panel.
-							"h-(--control-md) rounded-[inherit] px-3 sable-surface-interactive",
+							"rounded-[inherit] sable-surface-interactive",
+							size === "sm" ? "h-(--control-sm) px-2.5" : "h-(--control-md) px-3",
 							// Closed, the row is its own well; open, the root's well holds both.
 							!open && "sable-well",
 						),

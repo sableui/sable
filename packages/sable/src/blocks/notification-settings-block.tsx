@@ -1,3 +1,5 @@
+"use client"
+
 import { Card, CardList } from "../components/card"
 import { Entity } from "../components/entity"
 import { Switch } from "../components/switch"
@@ -15,10 +17,10 @@ export interface NotificationSettingsBlockProps {
 	/** false drops the card's surface and border — for a Sheet, Dialog or muted section that already frames it. */
 	framed?: boolean
 	/** Called the moment a switch changes. Toggles apply instantly; there is no Save. */
-	onChange?: (id: string, on: boolean) => void
+	onSettingChange?: (id: string, enabled: boolean) => void
 }
 
-export function NotificationSettingsBlock({ className, framed = true, onChange }: NotificationSettingsBlockProps) {
+export function NotificationSettingsBlock({ className, framed = true, onSettingChange }: NotificationSettingsBlockProps) {
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs overflow-hidden", className)}>
 			<CardList>
@@ -27,7 +29,7 @@ export function NotificationSettingsBlock({ className, framed = true, onChange }
 						key={p.id}
 						title={p.title}
 						subtitle={p.detail}
-						action={<Switch defaultChecked={p.on} aria-label={p.title} onCheckedChange={(on: boolean) => onChange?.(p.id, on)} />}
+						action={<Switch defaultChecked={p.on} aria-label={p.title} onCheckedChange={(enabled: boolean) => onSettingChange?.(p.id, enabled)} />}
 					/>
 				))}
 			</CardList>

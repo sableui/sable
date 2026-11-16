@@ -2,22 +2,15 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import { renderWithProviders, screen } from "../../test/render"
 import { Carousel, type CarouselSlidesToShow } from "./carousel"
 
-const realMatchMedia = window.matchMedia
-/** Fake a viewport width: `(min-width: Npx)` matches when N <= width. */
-function mockViewport(width: number) {
-	window.matchMedia = vi.fn((query: string) => {
-		const min = /min-width:\s*(\d+)px/.exec(query)
-		return {
-			matches: min ? Number(min[1]) <= width : false,
-			media: query,
-			onchange: null,
-			addListener: vi.fn(),
-			removeListener: vi.fn(),
-			addEventListener: vi.fn(),
-			removeEventListener: vi.fn(),
-			dispatchEvent: vi.fn(),
-		} as MediaQueryList
-	}) as typeof window.matchMedia
+const realClientWidth = Object.getOwnPropertyDescriptor(Element.prototype, "clientWidth")
+/** Fake the carousel's own width: jsdom lays nothing out, so every clientWidth is 0. */
+function mockCarouselWidth(width: number) {
+	Object.defineProperty(Element.prototype, "clientWidth", {
+		configurable: true,
+		get(this: Element) {
+			return this.tagName === "SECTION" ? width : 0
+		},
+	})
 }
 
 /** Number of slides on screen (off-screen slides are aria-hidden). */
@@ -36,33 +29,41 @@ function visibleSlides(slidesToShow: CarouselSlidesToShow) {
 
 describe("Carousel slidesToShow", () => {
 	afterEach(() => {
-		window.matchMedia = realMatchMedia
+		if (realClientWidth) Object.defineProperty(Element.prototype, "clientWidth", realClientWidth)
+		vi.unstubAllGlobals()
 	})
 
 	it("still accepts a plain number", () => {
-		mockViewport(1400)
+		mockCarouselWidth(1400)
 		expect(visibleSlides(2)).toBe(2)
 	})
 
 	it("uses base below the first breakpoint", () => {
-		mockViewport(500)
+		mockCarouselWidth(500)
 		expect(visibleSlides({ base: 1, sm: 2, lg: 3 })).toBe(1)
 	})
 
 	it("picks the largest matching breakpoint", () => {
-		mockViewport(1100)
+		mockCarouselWidth(1100)
 		expect(visibleSlides({ base: 1, sm: 2, lg: 3 })).toBe(3)
 	})
 
 	it("inherits a missing key from the next smaller defined one", () => {
 		// md (768) is undefined, so 800px falls back to sm's value.
-		mockViewport(800)
+		mockCarouselWidth(800)
 		expect(visibleSlides({ base: 1, sm: 2, lg: 3 })).toBe(2)
 	})
 
 	it("defaults base to 1 when only larger keys are given", () => {
-		mockViewport(500)
+		mockCarouselWidth(500)
 		expect(visibleSlides({ md: 4 })).toBe(1)
+	})
+
+	it("reads its own width, not the viewport's: a narrow column on a wide screen stays at base", () => {
+		// A viewport query would say lg here; the carousel is 500px wide.
+		vi.stubGlobal("matchMedia", (query: string) => ({ matches: /min-width/.test(query), media: query, addEventListener() {}, removeEventListener() {} }))
+		mockCarouselWidth(500)
+		expect(visibleSlides({ base: 1, sm: 2, lg: 3 })).toBe(1)
 	})
 })
 
@@ -135,5 +136,61 @@ describe("Carousel motion", () => {
 			</Carousel>,
 		)
 		expect(root()).toHaveAttribute("data-motion", "subtle")
+	})
+})
+
+describe("Carousel arrows", () => {
+	it("grow to the 44px touch target while staying positioned at the slide edge", () => {
+		const slides = ["A", "B"].map((s) => <div key={s}>{s}</div>)
+		renderWithProviders(<Carousel loop>{slides}</Carousel>)
+		for (const name of ["Previous slide", "Next slide"]) {
+			const arrow = screen.getByRole("button", { name })
+			expect(arrow.className).toContain("pointer-coarse:before:size-[44px]")
+			expect(arrow.className).toContain("absolute")
+			expect(arrow.className.split(/\s+/)).not.toContain("relative")
+		}
+	})
+})
+
+describe("Carousel labels", () => {
+	it("speaks English by default and takes every word as a prop", () => {
+		const slides = ["A", "B"].map((s) => <div key={s}>{s}</div>)
+		const { container, rerender } = renderWithProviders(<Carousel autoplay={3000}>{slides}</Carousel>)
+		expect(screen.getByRole("region", { name: "Slides" })).toBeInTheDocument()
+		expect(screen.getByRole("button", { name: "Previous slide" })).toBeInTheDocument()
+		expect(screen.getByRole("button", { name: "Pause autoplay" })).toBeInTheDocument()
+		expect(screen.getByRole("group", { name: "1 of 2" })).toBeInTheDocument()
+		expect(container.querySelector("[aria-live]")).toHaveTextContent("Slide 1 of 2")
+		rerender(
+			<Carousel
+				autoplay={3000}
+				label="Galerie"
+				previousLabel="Précédente"
+				nextLabel="Suivante"
+				slideLabel={(i, n) => `${i} sur ${n}`}
+				positionLabel={(i, n) => `Diapositive ${i} sur ${n}`}
+				dotsLabel="Choisir une diapositive"
+				dotLabel={(i) => `Aller à la diapositive ${i}`}
+				pauseLabel="Mettre en pause"
+				playLabel="Lancer"
+			>
+				{slides}
+			</Carousel>,
+		)
+		expect(screen.getByRole("region", { name: "Galerie" })).toBeInTheDocument()
+		expect(screen.getByRole("button", { name: "Précédente" })).toBeInTheDocument()
+		expect(screen.getByRole("button", { name: "Suivante" })).toBeInTheDocument()
+		expect(screen.getByRole("group", { name: "1 sur 2" })).toBeInTheDocument()
+		expect(screen.getByRole("group", { name: "Choisir une diapositive" })).toBeInTheDocument()
+		expect(screen.getByRole("button", { name: "Aller à la diapositive 2" })).toBeInTheDocument()
+		expect(screen.getByRole("button", { name: "Mettre en pause" })).toBeInTheDocument()
+		expect(container.querySelector("[aria-live]")).toHaveTextContent("Diapositive 1 sur 2")
+	})
+
+	it("draws inactive dots dark enough to clear 3:1", () => {
+		renderWithProviders(<ThreeSlides />)
+		const inactive = screen.getByRole("button", { name: "Go to slide 2" }).querySelector("span")
+		expect(inactive).toHaveClass("bg-muted-foreground/70")
+		expect(inactive?.className).not.toContain("/40")
 	})
 })

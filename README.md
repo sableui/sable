@@ -7,16 +7,31 @@ Install it from npm as `@sableui/react`. Docs and the live catalog are at
 [sableui.com](https://www.sableui.com); third-party credits are in
 [THIRD_PARTY_NOTICES.md](packages/sable/THIRD_PARTY_NOTICES.md).
 
-> **AI agents / quick start:** the install recipe is in [`AGENTS.md`](./AGENTS.md), and machine-readable in the `consume` block of [`packages/sable/registry.json`](./packages/sable/registry.json). To install: `pnpm add @sableui/react`.
-
 This repo is a small pnpm workspace:
 
 - **`packages/sable`** → the published library (`@sableui/react`). Tailwind v4 + semantic CSS-variable tokens, behaviour from Base UI, a pluggable icon adapter, and a token-driven motion layer. Default theme: **Sable**.
 - **`apps/docs`** → the living catalog (`@sableui/docs`), a Vite SPA that renders every component, token, and pattern. Not published.
 
-## Local development
+## Use Sable in your project
 
-Use the [package-owned Sable skill](./packages/sable/skills/sable/SKILL.md):
+From your app's root:
+
+```bash
+pnpm add @sableui/react
+pnpm exec sable init --dry-run   # every change it would make
+pnpm exec sable init
+```
+
+`sable init` installs what is missing, wires the stylesheet and Tailwind, sets up
+the agent skill, and runs `sable doctor`; whatever it cannot change safely it
+prints with the file it belongs in. The package README has
+[the full setup, and the manual route](packages/sable/README.md#install--setup);
+agents read [`packages/sable/AGENTS.md`](packages/sable/AGENTS.md) and the
+`consume` block of [`packages/sable/registry.json`](packages/sable/registry.json).
+
+Then ask your coding agent for what you want. The
+[package-owned Sable skill](packages/sable/skills/sable/SKILL.md) handles plain
+requests, or name a mode:
 
 ```text
 $sable build a portfolio for a furniture designer
@@ -24,19 +39,17 @@ $sable inspire these references into a ceramics shop preset
 $sable build a ceramics shop using .sable/presets/clay.json
 $sable audit our checkout and report prioritized findings
 $sable polish our checkout and fix the reported issues
+$sable fix the settings dialog's footer buttons
 ```
 
-An idea can go straight to a build. A preset supplies theme values and design
-guidance; the product brief determines content and behavior. Canvas imports and
-downloads the same portable preset format.
-[The workflow guide](./packages/sable/llms/tasks/building-with-sable.md) connects
-inspiration, presets, the component library, and rendered review.
+Codex uses `$sable`; Claude Code and Cursor use `/sable`. A preset supplies theme
+values and design guidance; the product brief determines content and behavior.
+Canvas imports and downloads the same portable preset format.
+[The workflow guide](packages/sable/llms/tasks/building-with-sable.md) connects
+inspiration, presets, the component library, and rendered review. Upgrade with
+`pnpm exec sable upgrade`, which updates the package and refreshes the skill.
 
-In another project, install Sable and run `pnpm exec sable setup --agent`.
-Codex and Cursor share a small `.agents` entry; Claude Code uses a `.claude` entry
-and `/sable`. All entries load the installed package's skill. Package upgrades
-update the workflow; `setup --agent --update` refreshes unchanged managed entries.
-Keep personal presets and preferences in the consuming project.
+## Develop this repo
 
 ```bash
 pnpm install
@@ -46,65 +59,17 @@ pnpm typecheck       # type-check every workspace
 pnpm package:check   # validate the built tarball in a fresh external consumer
 ```
 
-## Publishing a new version
+Building with Sable: [`packages/sable/AGENTS.md`](packages/sable/AGENTS.md).
+Contributing: [`packages/sable/CONTRIBUTING.md`](packages/sable/CONTRIBUTING.md).
+
+## Release
 
 The package publishes to **npm** as `@sableui/react`, with provenance.
 
-1. Bump `packages/sable/package.json` and `SABLE_UI_VERSION` in `packages/sable/src/index.ts`, update the changelog, and run `pnpm build` to regenerate the catalog.
+1. Bump `packages/sable/package.json` and `SABLE_UI_VERSION` in `packages/sable/src/index.ts`, rename the changelog's `## Unreleased` heading to the new version, and run `pnpm build` to regenerate the catalog.
 2. Run the checks and merge the release PR into `main`.
 3. From a clean checkout at `origin/main`, run `pnpm release`. It validates the checkout, creates the version tag, and pushes it.
 4. The **Release** GitHub Action checks the tag matches the version, builds, tests the packed consumer, and publishes to npm with provenance. Confirm the action succeeds before asking apps to upgrade.
 
-## Consuming it in another project
-
-1. Install:
-
-   ```bash
-   pnpm add @sableui/react
-   ```
-
-2. **Bundler:** dedupe React or Base UI resolves a second copy → "invalid hook call". For Vite:
-
-   ```ts
-   // vite.config.ts
-   export default defineConfig({ resolve: { dedupe: ["react", "react-dom"] } })
-   ```
-
-3. **CSS** (order matters):
-
-   ```css
-   @import "tailwindcss";
-   @import "@sableui/react/styles.css";
-   /* let Tailwind scan the package for the classes its components use */
-   @source "../node_modules/@sableui/react/dist/**/*.{js,mjs}";
-   ```
-
-4. **Fonts:** the default theme expects **Figtree** (sans) + **DM Mono** (mono) — load them via `<link>` or `@font-face` (the theme declares the stacks, it doesn't ship the files).
-
-5. **Providers + dark mode:**
-
-   ```tsx
-   import { IconProvider, MotionProvider } from "@sableui/react"
-
-   // <html class="dark"> for dark-by-default; toggle the class to switch.
-   <IconProvider set={myIconAdapter}>   {/* you supply the concrete icon set */}
-     <MotionProvider>                    {/* optional — motion on/off toggle  */}
-       <App />
-     </MotionProvider>
-   </IconProvider>
-   ```
-
-6. Use it:
-
-   ```tsx
-   import { Button, Card, Carousel } from "@sableui/react"
-   ```
-
-## Public release preparation
-
-`pnpm public:check` lists open release blockers; `pnpm public:export` dry-runs the
-public repository export (what would be published, and its identity, path and
-credential scans).
-
-Building with Sable: [`packages/sable/AGENTS.md`](packages/sable/AGENTS.md).
-Contributing: [`packages/sable/CONTRIBUTING.md`](packages/sable/CONTRIBUTING.md).
+Maintainers preparing the public repository export: see "Public release" in
+[CONTRIBUTING.md](packages/sable/CONTRIBUTING.md).

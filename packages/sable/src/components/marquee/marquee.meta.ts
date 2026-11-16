@@ -72,6 +72,18 @@ export const marqueeMeta: ComponentMeta = {
 				"Render a visible pause/play control — recommended for WCAG 2.2.2 when content auto-scrolls.",
 		},
 		{
+			name: "pauseLabel",
+			type: "string",
+			default: '"Pause"',
+			description: "Accessible name of the control while the strip moves.",
+		},
+		{
+			name: "playLabel",
+			type: "string",
+			default: '"Play"',
+			description: "Accessible name of the control while the strip is paused.",
+		},
+		{
 			name: "fade",
 			type: "boolean",
 			default: "false",

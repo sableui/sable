@@ -20,6 +20,8 @@ A sign-in card: email and password, a primary Sign in, and a passkey alternative
 ## Source
 
 ```tsx
+"use client"
+
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Icon, Input, Separator } from "@sableui/react"
 
 export interface SignInBlockProps {
@@ -34,7 +36,7 @@ export function SignInBlock({ className, framed = true, onSignIn }: SignInBlockP
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs", className)}>
 			<CardHeader>
-				<CardTitle>Welcome back</CardTitle>
+				<CardTitle render={<h2 />}>Welcome back</CardTitle>
 				<CardDescription>Sign in to pick up where you left off.</CardDescription>
 			</CardHeader>
 			<CardContent>

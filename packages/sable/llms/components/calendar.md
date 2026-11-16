@@ -26,7 +26,7 @@ Use Calendar to browse or choose dates in a month grid, especially when relative
 | onSelect | (value, triggerDate, modifiers, event) => void | — | Fires when a day is chosen. The first argument's type follows mode. |
 | defaultMonth | Date | — | The month shown on first render (uncontrolled navigation). |
 | month | Date | — | Controlled displayed month; pair with onMonthChange. |
-| numberOfMonths | number | 1 | How many month grids to render side by side. |
+| numberOfMonths | number | 1 | How many month grids to render. They sit side by side where the space holds them and wrap below one another where it does not, judged on the calendar's own room (a narrow popover on a wide screen stacks them), not the viewport. |
 | disabled | Matcher \| Matcher[] | — | Days matching this are dimmed and non-selectable (e.g. { before: new Date() }). |
 | showOutsideDays | boolean | true | Render leading/trailing days from adjacent months, dimmed. |
 | bare | boolean | false | Drop the card frame (border, fill, padding) so the grid sits flush inside a surface that already has one, such as a Popover. DatePicker renders its Calendar this way. |
@@ -76,8 +76,7 @@ const [date, setDate] = useState<Date>()
 ### Range
 
 ```tsx
-import { Calendar } from "@sableui/react"
-import type { DateRange } from "react-day-picker"
+import { Calendar, type DateRange } from "@sableui/react"
 
 const [range, setRange] = useState<DateRange>()
 <Calendar mode="range" selected={range} onSelect={setRange} numberOfMonths={2} />

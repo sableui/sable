@@ -58,3 +58,33 @@ describe("TooltipGroup", () => {
 		expect(await screen.findByText("Alone")).toBeInTheDocument()
 	})
 })
+
+describe("Tooltip measure", () => {
+	it("caps a long tooltip's width and wraps it evenly, alone or in a group", async () => {
+		render(
+			<>
+				<SimpleTooltip content="Alone">
+					<button type="button">A</button>
+				</SimpleTooltip>
+				<TooltipGroup>
+					<SimpleTooltip content="Grouped">
+						<button type="button">G</button>
+					</SimpleTooltip>
+				</TooltipGroup>
+			</>,
+		)
+		await act(async () => {
+			fireEvent.focus(screen.getByRole("button", { name: "A" }))
+		})
+		const popup = (await screen.findByText("Alone")).closest("[class*=max-w-]") as HTMLElement
+		expect(popup.className).toContain("max-w-[min(20rem,calc(100vw-var(--spacing)*8))]")
+		// text-pretty survives the merge with the label tier and the ink colour.
+		expect(popup).toHaveClass("text-pretty", "text-label-md", "text-popover-foreground")
+		await act(async () => {
+			fireEvent.blur(screen.getByRole("button", { name: "A" }))
+			fireEvent.focus(screen.getByRole("button", { name: "G" }))
+		})
+		const grouped = (await screen.findByText("Grouped")).closest("[class*=max-w-]") as HTMLElement
+		expect(grouped).toHaveClass("text-pretty")
+	})
+})

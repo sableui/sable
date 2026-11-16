@@ -37,6 +37,17 @@ for (const [from, to] of assets) {
 
 console.log(`[copy-assets] copied ${assets.length} CSS files into dist/`)
 
+// The published CSS must not scan anything itself. An `@source` here resolves
+// against the installed dist, so every app would generate every component's
+// classes (and every *.meta.js example string) whatever it scans, and
+// `sable sources` could trim nothing. The consumer's stylesheet owns the scan.
+// (The opt-in iOS adapter's styles.css scans only its own folder, and only an
+// app that imports it pays for that.)
+for (const [, to] of assets.filter(([, to]) => !to.startsWith("dist/ios/"))) {
+	const css = readFileSync(join(packageRoot, to), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")
+	if (/@source\b/.test(css)) throw new Error(`[copy-assets] ${to} carries an @source; the consumer's stylesheet owns the scan (see src/styles.css header).`)
+}
+
 // The hash of every published file, as shipped. `sable doctor` compares an app's
 // installed copy against it to tell whether a recorded patch (`sable patch`) is
 // applied, and whether a later Sable changed the file it patched.

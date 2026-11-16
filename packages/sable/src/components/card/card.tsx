@@ -1,3 +1,5 @@
+"use client"
+
 import type { ComponentPropsWithRef, CSSProperties } from "react"
 import { useContext } from "react"
 import { useRender } from "@base-ui/react/use-render"
@@ -6,8 +8,13 @@ import { cn } from "../../lib/cn"
 import { CardDepthContext, StackedActionsContext, usePresentation } from "../../lib/presentation"
 
 export interface CardProps extends ComponentPropsWithRef<"div"> {
-	/** "default" = raised surface (bg-card + edge + soft shadow). "flat" = transparent. */
-	variant?: "default" | "flat"
+	/**
+	 * "default" = raised surface (bg-card + edge + soft shadow). "flat" = transparent.
+	 * "featured" = the raised surface with a primary edge, for the one option a
+	 * set recommends (the featured plan in a row of tiers). One per set; the
+	 * edge says "this one", so pair it with a label that says why ("Most popular").
+	 */
+	variant?: "default" | "flat" | "featured"
 	/**
 	 * Padding scale for the Header/Content/Footer parts. "comfortable" = p-6 (the
 	 * default); "compact" = p-4 — a denser section panel for settings/form blocks.
@@ -62,6 +69,8 @@ const INTERACTIVE_BASE =
 const INTERACTIVE_HOVER: Record<NonNullable<CardProps["variant"]>, string> = {
 	default: "[&:is(a[href],button)]:hover:outline-border-strong [&:is(a[href],button)]:hover:shadow-md",
 	flat: "[&:is(a[href],button)]:hover:bg-muted",
+	// The primary edge IS the state, so hover lifts it without dimming the edge.
+	featured: "[&:is(a[href],button)]:hover:shadow-md",
 }
 
 export function Card({
@@ -105,6 +114,10 @@ export function Card({
 				// a positioned child with a fill of its own would cover it, which no
 				// card part has. DESIGN.md → Vertical rhythm.
 				variant === "default" && "outline-1 -outline-offset-1 outline-border bg-card shadow-sm [--sable-surface-bg:var(--card)]",
+				// Featured: the same surface, its edge drawn in primary and doubled
+				// outward by a ring (2px in all), so it reads at a glance in a row of
+				// default cards without a heavier shadow.
+				variant === "featured" && "outline-1 -outline-offset-1 outline-primary ring-1 ring-primary bg-card shadow-sm [--sable-surface-bg:var(--card)]",
 				// A CardList or a flush CardContent (an edge-to-edge Table) runs its
 				// rows to the card's edges, and a row's hover fill or a TableFooter's
 				// tint would otherwise poke square corners out past the card's
@@ -128,13 +141,25 @@ export function Card({
 }
 Card.displayName = "Card"
 
+export interface CardHeaderProps extends ComponentPropsWithRef<"div"> {
+	/**
+	 * Close the header with a hairline across the card, padded below like
+	 * above — for a header that stays put over a part that scrolls or runs to
+	 * the edges (a chat transcript, a panel body). The hairline is an inset
+	 * shadow, like CardList's rows, so it takes no space off the rhythm.
+	 */
+	divided?: boolean
+}
+
 export function CardHeader({
 	className,
+	divided = false,
 	...props
-}: ComponentPropsWithRef<"div">) {
+}: CardHeaderProps) {
 	return (
 		<div
 			data-slot="card-header"
+			data-divided={divided ? "" : undefined}
 			className={cn(
 				// Grid so an optional CardAction can pin to the top-right. Without
 				// one it collapses to a single stacked column (same as before).
@@ -145,12 +170,14 @@ export function CardHeader({
 				// follows to pad the bottom, so it keeps its own; zeroed, the number
 				// sat on the card's bottom edge.
 				"grid auto-rows-min grid-cols-1 items-start gap-1.5 p-[var(--card-p,--spacing(6))] pb-0 last:pb-[var(--card-p,--spacing(6))] has-data-[slot=card-action]:grid-cols-[1fr_auto]",
+				divided && "pb-[var(--card-p,--spacing(6))] shadow-[inset_0_-1px_0_var(--border)]",
 				className,
 			)}
 			{...props}
 		/>
 	)
 }
+CardHeader.displayName = "CardHeader"
 
 /**
  * Header-aligned action slot — pins to the top-right of CardHeader (e.g. an
@@ -177,6 +204,7 @@ export function CardAction({
 		/>
 	)
 }
+CardAction.displayName = "CardAction"
 
 /** Title tier — a UI primitive title, not a document heading. */
 export interface CardTitleProps extends ComponentPropsWithRef<"div"> {
@@ -199,6 +227,7 @@ export function CardTitle({ className, render, ref, ...props }: CardTitleProps) 
 		defaultTagName: "div",
 	})
 }
+CardTitle.displayName = "CardTitle"
 
 export function CardDescription({
 	className,
@@ -211,6 +240,7 @@ export function CardDescription({
 		/>
 	)
 }
+CardDescription.displayName = "CardDescription"
 
 /**
  * The body region. Full padding on all sides — CardContent does NOT assume a
@@ -243,7 +273,12 @@ export function CardContent({
 			data-flush={flush ? "" : undefined}
 			className={cn(
 				flush
-					? "p-0 [--table-edge-px:var(--card-p,--spacing(6))]"
+					? // Under a CardHeader a flush part has no padding of its own to set
+					  // it off, so a table's column labels sat right under the
+					  // description. Half the card padding, plus the head row's own
+					  // inset, puts the labels a card padding below the header. A
+					  // divided header has already closed itself.
+					  "p-0 [--table-edge-px:var(--card-p,--spacing(6))] [[data-slot=card-header]:not([data-divided])+&]:mt-[calc(var(--card-p,--spacing(6))/2)]"
 					: "p-[var(--card-p,--spacing(6))]",
 				className,
 			)}
@@ -251,6 +286,7 @@ export function CardContent({
 		/>
 	)
 }
+CardContent.displayName = "CardContent"
 
 /**
  * Rows that run edge to edge in the card — Entity rows, most often —
@@ -270,25 +306,81 @@ export function CardContent({
  *     <CardList>{people.map((p) => <Entity key={p.id} title={p.name} … />)}</CardList>
  *   </Card>
  */
+export interface CardListProps extends ComponentPropsWithRef<"div"> {
+	/**
+	 * Draw a hairline between rows. Turn it off for a quiet list, where rows are
+	 * set apart by their own spacing and the only rules are the ones between
+	 * groups (a CardListLabel after the first opens its group with one). A list
+	 * of a few short rows under a title reads cleaner that way; keep the
+	 * hairlines for long or dense lists, where the eye needs the tracks.
+	 * @default true
+	 */
+	divided?: boolean
+}
+
 export function CardList({
 	className,
+	divided = true,
 	...props
-}: ComponentPropsWithRef<"div">) {
+}: CardListProps) {
 	return (
 		<div
 			data-slot="card-list"
+			data-divided={divided ? "" : undefined}
 			className={cn(
 				"flex flex-col [--entity-radius:0px] [--entity-px:var(--card-p,--spacing(6))] [--entity-py:calc(var(--card-p,--spacing(6))/2)]",
-				// Hairlines between rows are inset shadows, not borders: a 1px border
-				// per row pushed every row below it a pixel further off the rhythm.
-				"[&>*+*]:shadow-[inset_0_1px_0_var(--border)]",
-				"[[data-slot=card-header]+&]:mt-[var(--card-p,--spacing(6))] [[data-slot=card-header]+&>*:first-child]:shadow-[inset_0_1px_0_var(--border)]",
+				divided
+					? // Hairlines between rows are inset shadows, not borders: a 1px border
+					  // per row pushed every row below it a pixel further off the rhythm.
+					  "[&>*+*]:shadow-[inset_0_1px_0_var(--border)] [[data-slot=card-header]+&]:mt-[var(--card-p,--spacing(6))] [[data-slot=card-header]+&>*:first-child]:shadow-[inset_0_1px_0_var(--border)]"
+					: // No rules, so the list's own padding does the spacing: half the
+					  // card padding above and below, which with a row's own half makes
+					  // one card padding from the header to the first row's text and
+					  // from the last row's text to the card's edge or the footer's rule.
+					  // A label after the first row opens a new group: one rule, a card
+					  // padding clear on each side.
+					  "pb-[calc(var(--card-p,--spacing(6))/2)] [[data-slot=card-header]+&]:mt-[calc(var(--card-p,--spacing(6))/2)] [&>[data-slot=card-list-label]:not(:first-child)]:mt-[calc(var(--card-p,--spacing(6))/2)] [&>[data-slot=card-list-label]:not(:first-child)]:pt-[var(--card-p,--spacing(6))] [&>[data-slot=card-list-label]:not(:first-child)]:shadow-[inset_0_1px_0_var(--border)]",
 				className,
 			)}
 			{...props}
 		/>
 	)
 }
+CardList.displayName = "CardList"
+
+export interface CardListLabelProps extends ComponentPropsWithRef<"div"> {
+	/** Render the label as another element, most often a heading: `render={<h3 />}`. */
+	render?: useRender.RenderProp
+}
+
+/**
+ * The name of a group of rows in a CardList ("Signed-in devices", "Sources",
+ * "Recent"). It sits on the rows' text edge, close above the rows it names. In
+ * a list without hairlines, a label after the first row also draws the one
+ * rule that separates its group from the rows above.
+ *
+ *   <CardList divided={false}>
+ *     <Entity title="Passkeys" … />
+ *     <CardListLabel render={<h3 />}>Signed-in devices</CardListLabel>
+ *     <Entity title="MacBook Pro" … />
+ *   </CardList>
+ */
+export function CardListLabel({ className, render, ref, ...props }: CardListLabelProps) {
+	return useRender({
+		render: render ?? <div />,
+		ref,
+		props: {
+			"data-slot": "card-list-label",
+			...props,
+			className: cn(
+				"flex items-center gap-2 px-[var(--card-p,--spacing(6))] pt-[calc(var(--card-p,--spacing(6))/2)] pb-1 text-label-md text-muted-foreground",
+				className,
+			),
+		},
+		defaultTagName: "div",
+	})
+}
+CardListLabel.displayName = "CardListLabel"
 
 export interface CardFooterProps extends ComponentPropsWithRef<"div"> {
 	/**
@@ -311,7 +403,10 @@ export interface CardFooterProps extends ComponentPropsWithRef<"div"> {
  * - after an edge-to-edge part (a flush CardContent, a CardList), whose last
  *   row runs to the card's edges, it takes the padding AND a hairline — the
  *   mirror of the hairline CardList draws under a CardHeader. Without it the
- *   footer read as one more row of the table or list above it.
+ *   footer read as one more row of the table or list above it. A visually
+ *   hidden node between the two (an `sr-only` live region announcing what a
+ *   row's removal did) takes no space, so the seam looks through it: without
+ *   that the footer's first line sat on the last row.
  */
 export function CardFooter({
 	actions = false,
@@ -333,6 +428,7 @@ export function CardFooter({
 				"flex items-center gap-2 p-[var(--card-p,--spacing(6))] pt-0",
 				"[[data-slot=card-header]+&]:pt-[var(--card-p,--spacing(6))]",
 				"[:is([data-slot=card-list],[data-slot=card-content][data-flush])+&]:shadow-[inset_0_1px_0_var(--border)] [:is([data-slot=card-list],[data-slot=card-content][data-flush])+&]:pt-[var(--card-p,--spacing(6))]",
+				"[:is([data-slot=card-list],[data-slot=card-content][data-flush])+.sr-only+&]:shadow-[inset_0_1px_0_var(--border)] [:is([data-slot=card-list],[data-slot=card-content][data-flush])+.sr-only+&]:pt-[var(--card-p,--spacing(6))]",
 				className,
 				stacked && "mt-auto flex-col-reverse items-stretch justify-start",
 			)}
@@ -342,3 +438,4 @@ export function CardFooter({
 		</div>
 	)
 }
+CardFooter.displayName = "CardFooter"

@@ -32,7 +32,7 @@ Use Tabs to switch between related panels within the same page context.
 
 | Name | Type | Description |
 | --- | --- | --- |
-| TabsList | Base UI Tabs.List props (activateOnFocus, loopFocus) + variant?: "underline" \| "pill" + className | The tablist row. variant="underline" (default) draws a divider rule beneath the triggers; variant="pill" drops the rule and fills the active trigger, which takes the theme's button shape (--button-radius). Triggers inherit the variant. It renders the gliding indicator (Base UI Tabs.Indicator) itself, so do not add one. |
+| TabsList | Base UI Tabs.List props (activateOnFocus, loopFocus) + variant?: "underline" \| "pill" + className | The tablist row. variant="underline" (default) draws a divider rule beneath the triggers; variant="pill" drops the rule and fills the active trigger, which takes the theme's button shape (--button-radius). Triggers inherit the variant. It renders the gliding indicator (Base UI Tabs.Indicator) itself, so do not add one. A horizontal list that is wider than its container scrolls sideways with no bar and an edge fade, and scrolls the newly active tab into view (the list only, never the page). Inside a WorkspaceBar, or when vertical, it does not scroll. |
 | TabsTrigger | Base UI Tabs.Tab props (value, disabled) + className | A single tab button. value pairs it with the panel of the same value. |
 | TabsPanel | Base UI Tabs.Panel props (value, keepMounted) + className | The content shown when the matching trigger is active. |
 | TabsContent | Alias of TabsPanel | Re-export of TabsPanel for consumers that prefer this name. |
@@ -41,7 +41,8 @@ Use Tabs to switch between related panels within the same page context.
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| Tabs (Root) | Base UI Tabs.Root props (value, defaultValue, onValueChange, orientation) | defaultValue: 0 | Controls the active tab. Uncontrolled via defaultValue; controlled via value + onValueChange. |
+| Tabs (Root) | Base UI Tabs.Root props (value, defaultValue, onValueChange, orientation) | defaultValue: 0 | Controls the active tab. Uncontrolled via defaultValue; controlled via value + onValueChange. orientation="vertical" sets the list beside its panels: a column of tabs ruled on its end edge, the mark travelling on y, and Up/Down arrows moving between tabs. |
+| orientation | "horizontal" \| "vertical" | "horizontal" | On Tabs. vertical sets the list beside its panels: a column of tabs ruled on its end edge, the mark travelling on y, and Up/Down arrows moving between tabs. A horizontal list that overflows scrolls with an edge fade instead. |
 | motion | "full" \| "subtle" \| "off" | "full" | On Tabs: how much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the glide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. |
 
 ## Tokens used
@@ -61,7 +62,7 @@ Use Tabs to switch between related panels within the same page context.
 - Base UI provides the tablist/tab/tabpanel roles, aria-selected, and roving tabindex.
 - Arrow keys move between tabs; Home/End jump to first/last; panels are linked via aria-controls.
 - Active tab styling reads from the data-active attribute; disabled tabs from data-disabled. Disabled tabs are skipped by arrow-key navigation.
-- Keyboard focus shows a ring on the focused trigger in both variants; the panel remains focusable.
+- Keyboard focus shows a ring on the focused trigger in both variants (inset, because the list scrolls and clips at its edge), and on the panel, which Base UI keeps in the tab order.
 - The gliding indicator is role="presentation" decoration; aria-selected on the tab carries the state.
 
 ## Related
@@ -92,6 +93,14 @@ import { Tabs, TabsList, TabsPanel, TabsTrigger } from "@sableui/react"
 import { Tabs, TabsList, TabsPanel, TabsTrigger } from "@sableui/react"
 
 <Tabs defaultValue="overview"><TabsList><TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="billing" disabled>Billing</TabsTrigger></TabsList><TabsPanel value="overview">Overview content</TabsPanel></Tabs>
+```
+
+### Vertical
+
+```tsx
+import { Tabs, TabsList, TabsPanel, TabsTrigger } from "@sableui/react"
+
+<Tabs defaultValue="general" orientation="vertical"><TabsList><TabsTrigger value="general">General</TabsTrigger><TabsTrigger value="billing">Billing</TabsTrigger><TabsTrigger value="members">Members</TabsTrigger></TabsList><TabsPanel value="general">General settings</TabsPanel><TabsPanel value="billing">Billing settings</TabsPanel><TabsPanel value="members">Member settings</TabsPanel></Tabs>
 ```
 
 ### Subtle motion

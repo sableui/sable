@@ -58,7 +58,7 @@ export function CarouselPage() {
 
 			<Section
 				title="Multiple per view"
-				description="Several slides share the view, with a gap between them. One on a phone, two on a tablet, three on a desktop."
+				description="Several slides share the view, with a gap between them. The width keys are measured on the carousel itself, not the window: one slide below 640px of carousel, two from 640px, three from 1024px. The same carousel in a narrow column shows fewer."
 			>
 				<Example className="block">
 					<Carousel

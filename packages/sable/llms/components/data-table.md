@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-A data-driven table over the Table primitives — a columns def + data array with built-in client-side sorting (click a sortable header to cycle asc → desc → none), optional row click / selection, rows grouped under collapsible header rows (groupBy), and an empty state. For server data or paging, sort/page the data and pair with Pagination.
+A data-driven table over the Table primitives — a columns def + data array with built-in sorting (click a sortable header to cycle asc → desc → none; locale-aware string order; controlled with sort + onSortChange), optional row click / selection, rows grouped under collapsible header rows (groupBy), and an empty state. For server data or paging, control the sort, set manualSorting, and pair with Pagination.
 
 **Keywords:** data table, table, sortable, columns, rows, empty state, pagination, list, grouped, group by, sections, issue list, issue tracker, status groups, collapsible groups
 
@@ -15,7 +15,7 @@ Use DataTable when a data array and column definition should render a sortable, 
 - Do: Put a table that fills a card in <CardContent flush>. The table runs edge to edge and its first and last columns inset to the card padding on their own; do not hand-set pl-6 / pr-6 on columns.
 - Do: Provide stable rowKey values for dynamic data so selection and sorting do not jump.
 - Do: Use sortable only on columns where ordering is obvious and useful.
-- Do: Pair server-side datasets with Pagination and pass already-sorted/paged rows.
+- Do: For server-side sorting and paging, control the sort (sort + onSortChange), set manualSorting, and pass the page the server returned with Pagination beside it. Without manualSorting a sortable header reorders only the rows on the current page.
 - Do: Group rows by status for an issue tracker (or by owner, by day) with groupBy + groups on ONE DataTable: every group shares the header and the column widths, each header row carries the group's count and an add action, and sorting applies within each group. Do not stack one DataTable per group inside Collapsibles; the header repeats and the columns stop lining up.
 - Do: Move to TanStack Table, rendered with Sable's Table parts, once the table needs server-side sorting or filtering, column visibility or resizing, nested or aggregated grouping, or virtualised rows. DataTable stays dependency-free and does not grow into a data grid; `sable docs tables-with-tanstack` maps one onto the other.
 - Don't: Make every row clickable and also fill it with competing buttons. Choose a clear row interaction model.
@@ -37,14 +37,18 @@ Use DataTable when a data array and column definition should render a sortable, 
 | --- | --- | --- | --- |
 | columns | DataTableColumn<Row>[] | — | Column defs: { key, header, cell?, sortValue?, sortable?, align?, className? }. cell defaults to row[key]; sortValue defaults to row[key]. When cell renders a formatted string (e.g. a date), pass sortValue returning the underlying value (e.g. date.getTime()) so the column sorts by the real value, not the rendered text. |
 | data | Row[] | — | The rows to render. |
-| rowKey | (row, index) => string \| number | index | Stable React key per row. |
+| rowKey | (row, index) => string \| number | index in data | Stable key per row, used for the React key and for selection. index is always the row's place in data, never its sorted or grouped position. |
 | onRowClick | (row) => void | — | Row click handler — makes rows pointer-interactive. |
 | isRowSelected | (row) => boolean | — | Mark a row visually selected (data-selected), e.g. the one open in a detail pane. Derive it from a stable id (row.id === selectedId), not the row index, so selection survives re-sorts. For checking several rows, use selectedKeys. |
 | selectedKeys | ReadonlySet<string \| number> | — | The checked rows, by rowKey, for bulk actions. With onSelectedKeysChange it adds a checkbox column (each box named by rowSelectionLabel) and a select-all box in the header that acts on the rows shown and goes mixed when some are checked. Checked rows get the selected fill. Controlled: when the rows shown change (a filter, another view), set the keys to keep, usually none. Needs rowKey. |
 | onSelectedKeysChange | (keys: Set<string \| number>) => void | — | Called with the new set of checked keys. Its presence turns selection on. A click on a box never fires onRowClick. |
 | rowSelectionLabel | (row) => string | () => "Select row" | A row checkbox's accessible name. Name the row, e.g. (t) => `Select ${t.subject}`, so a screen reader can tell the boxes apart. |
 | selectAllLabel | (count: number) => string | (count) => `Select all ${count} shown` | The select-all checkbox's accessible name; say what it acts on ("Select all 7 tickets shown"). |
-| defaultSort | { key: string; direction: "asc" \| "desc" } | — | Initial sort column + direction. |
+| defaultSort | DataTableSort ({ key: string; direction: "asc" \| "desc" }) | — | Initial sort column + direction, uncontrolled. |
+| sort | DataTableSort \| null | — | The sort, controlled; null for unsorted. A header click calls onSortChange with the next step of asc → desc → none and changes nothing by itself. |
+| onSortChange | (sort: DataTableSort \| null) => void | — | Called with the next sort when a sortable header is clicked, controlled or not. Fetch the next page from here for server-sorted data. |
+| manualSorting | boolean | false | Skip the local sort: data already arrives in sort order (a server sorts and pages). Headers still show aria-sort and report clicks. |
+| locale | string | the reader's locale | BCP 47 locale strings are compared in. Comparison is case-insensitive, ignores accents, and orders digits by value ("file2" before "file10"); dates and numbers compare by value; ties keep the order of data. |
 | empty | ReactNode | "No results." | Rendered spanning all columns when data is empty. Pass an EmptyState for the full treatment (icon, title, next step). |
 | caption | ReactNode | — | Bottom table caption. |
 | groupBy | (row) => string | — | Group the rows under header rows by the key this returns (a status, an owner, a day). One header serves every group, so the columns line up across them; sorting applies within each group. |
@@ -52,6 +56,7 @@ Use DataTable when a data array and column definition should render a sortable, 
 | collapsible | boolean | true | Whether each group's header row is a toggle that opens and closes the group. A closed group keeps its header row and count; its rows are hidden and select-all skips them. |
 | expandedGroups | ReadonlySet<string> | — | The open groups, by key (controlled). Without it each group starts at its defaultExpanded and the table holds the state. |
 | onExpandedGroupsChange | (keys: Set<string>) => void | — | Called with the new set of open group keys when a group header is toggled. |
+| ref / ...props | ComponentPropsWithRef<"table"> | — | Remaining DOM props (aria-label, id, data-*) and the ref land on the <table>. |
 
 ## Tokens used
 
@@ -61,7 +66,7 @@ Use DataTable when a data array and column definition should render a sortable, 
 
 - **arrival** · Root · _no motion_ — Rows render with the page or the query that produced them. Staggering rows in delays reading a table someone opened to scan.
 - **arrival** · Group rows · _no motion_ — Opening a group shows its rows at once: table rows cannot animate their height without leaving the table layout, and the rows are the content the reader asked for.
-- **response** · Row · `motion-interactive` — Body rows ease to a muted wash under the pointer (TableRow's recipe), which keeps the eye on the right line across a wide row of numbers. Sortable headers are ghost Buttons and answer on Button's recipe.
+- **response** · Row · `motion-interactive` — Body rows ease to a muted wash under the pointer (TableRow's recipe), which keeps the eye on the right line across a wide row of numbers. Sortable headers are TableHead's sortable part (a ghost Button) and answer on Button's recipe.
 - **transition** · Sort chevron · `motion-interactive` — One chevron turns to show direction instead of two glyphs swapping, so ascending to descending reads as the same column reversing. Its opacity rises from the resting 60% as the column becomes the sort.
 - **transition** · Row · `motion-interactive` — A checked row's fill eases in across its cells, so selecting by checkbox reads as the row being picked rather than a band stamped over it.
 - **transition** · Group chevron · `motion-interactive` — A group's chevron turns from pointing along the reading direction (closed) to down (open), so the group reads as folding rather than a glyph being swapped.
@@ -115,6 +120,32 @@ const [selected, setSelected] = useState<Set<string | number>>(new Set())
 import { DataTable } from "@sableui/react"
 
 <DataTable data={users} columns={[{ key: "name", header: "Name", sortable: true }, { key: "role", header: "Role" }, { key: "joined", header: "Joined", sortable: true, sortValue: (u) => u.joinedAt, cell: (u) => formatDate(u.joinedAt) }]} />
+```
+
+### Server-sorted and paged
+
+```tsx
+import { DataTable, Pagination, Stack, type DataTableSort } from "@sableui/react"
+
+const [sort, setSort] = useState<DataTableSort | null>({ key: "joined", direction: "desc" })
+const [page, setPage] = useState(1)
+// The server returns this page already in `sort` order; the table does not reorder it.
+const { rows, pageCount } = useUsers({ sort, page })
+
+<Stack gap={3}>
+	<DataTable
+		data={rows}
+		rowKey={(u) => u.id}
+		sort={sort}
+		onSortChange={(next) => {
+			setSort(next)
+			setPage(1)
+		}}
+		manualSorting
+		columns={[{ key: "name", header: "Name", sortable: true }, { key: "joined", header: "Joined", sortable: true, cell: (u) => formatDate(u.joined) }]}
+	/>
+	<Pagination page={page} total={pageCount} onPageChange={setPage} />
+</Stack>
 ```
 
 ### Clickable rows

@@ -95,6 +95,12 @@ export const searchInputMeta: ComponentMeta = {
 				"Called when the clear button is pressed. The component also fires onValueChange('') so a controlled value resets.",
 		},
 		{
+			name: "clearLabel",
+			type: "string",
+			default: '"Clear search"',
+			description: "Accessible name of the clear button.",
+		},
+		{
 			name: "placeholder",
 			type: "string",
 			default: '"Search"',

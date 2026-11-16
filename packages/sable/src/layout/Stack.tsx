@@ -21,7 +21,7 @@ const JUSTIFY: Record<Justify, string> = {
 }
 
 export interface StackProps extends ComponentPropsWithRef<"div"> {
-	/** Vertical gap. Number = rhythm units (×8px; fractions ok); string = raw CSS. Default 2 (16px). */
+	/** Vertical gap. Number = rhythm units (one baseline step each — 8px at Sable's default type, two Tailwind spacing steps, so gap={2} is gap-4; fractions ok); string = raw CSS. Default 2. */
 	gap?: number | string
 	align?: Align
 	justify?: Justify
@@ -32,7 +32,7 @@ function resolveGap(gap: number | string): string {
 }
 
 /**
- * Vertical flow on the 8px rhythm. The default container for stacked content.
+ * Vertical flow on the baseline rhythm. The default container for stacked content.
  *
  * Layout is carried by classes (`flex flex-col items-* justify-*`) and the gap
  * by a CSS variable, so any utility in `className` overrides a prop, at any

@@ -1,3 +1,5 @@
+"use client"
+
 import { createContext, useContext, useRef, useState, useEffect, type ReactNode, type PointerEvent } from 'react'
 
 type Entry = { id: string; content: ReactNode; returnFocus: HTMLElement | null }

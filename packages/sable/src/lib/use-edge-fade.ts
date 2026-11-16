@@ -2,7 +2,6 @@
 
 import { type CSSProperties, type RefObject, useCallback, useState } from "react"
 import { useIsomorphicLayoutEffect } from "./use-isomorphic-layout-effect"
-import { useResizeObserver } from "./use-resize-observer"
 
 /**
  * Edge fades for a scroll region — the "there is more this way" affordance
@@ -19,8 +18,16 @@ import { useResizeObserver } from "./use-resize-observer"
  * content moves under it — and that element should carry no border of its own,
  * or the border fades with the content (see Scroller).
  *
- * Measures before paint, on every render (content may have changed), whenever
- * the region resizes, and on each `sync()` — call it from `onScroll`.
+ * Measures once before paint, then only when something can have changed the
+ * answer: the region or one of its direct children resizes (content growing
+ * changes a child's size, not the region's), a direct child is added or
+ * removed, and on each `sync()` — call it from `onScroll`.
+ *
+ * It used to measure in a layout effect after EVERY render. Reading
+ * scrollTop/scrollHeight right after React's DOM writes forces a synchronous
+ * layout, so any parent re-render (a streaming chat, a list that updates, a
+ * theme drag) paid one forced layout per Scroller, CodeBlock and TabsList on
+ * the page. A ResizeObserver callback runs after layout, when the read is free.
  */
 export function useEdgeFade(
 	ref: RefObject<HTMLElement | null>,
@@ -44,10 +51,44 @@ export function useEdgeFade(
 		}
 	}, [ref, orientation])
 
-	// Every commit: new content changes the scroll size without resizing the
-	// region. Unchanged booleans bail out, so this never loops.
-	useIsomorphicLayoutEffect(sync)
-	useResizeObserver(sync, [ref])
+	useIsomorphicLayoutEffect(() => {
+		const el = ref.current
+		if (!el) return
+		sync()
+		if (typeof ResizeObserver === "undefined") return
+		// Called after layout, so its reads are free. Unchanged booleans bail out
+		// of the state update, so this never loops.
+		const ro = new ResizeObserver(sync)
+		const observe = () => {
+			ro.disconnect()
+			ro.observe(el)
+			for (const child of el.children) ro.observe(child)
+		}
+		observe()
+		// A child added or removed: observe the new set. A newly observed element
+		// reports once after the next layout, which re-syncs; a removal changes no
+		// remaining size, so it syncs on the next frame instead.
+		let frame = 0
+		const mo =
+			typeof MutationObserver === "undefined"
+				? null
+				: new MutationObserver((records) => {
+						if (records.some((record) => record.type === "childList" && record.target === el)) observe()
+						if (!frame)
+							frame = requestAnimationFrame(() => {
+								frame = 0
+								sync()
+							})
+					})
+		// Text that grows in place (a streamed answer in one node) resizes no
+		// child element, so character data is watched too.
+		mo?.observe(el, { childList: true, characterData: true, subtree: true })
+		return () => {
+			cancelAnimationFrame(frame)
+			mo?.disconnect()
+			ro.disconnect()
+		}
+	}, [ref, sync])
 
 	// On the spacing scale (7 steps, 28px at the default ladder) so a denser or
 	// roomier Character moves the fade with the content it fades.

@@ -9,7 +9,14 @@
    Do NOT add `@import "tailwindcss"` here — the consumer owns Tailwind, and
    importing it twice loads the whole framework twice. This file ships only:
    the default theme tokens, the @theme color map, the paired typography
-   @utility set, and an @source directive so Tailwind scans the package.
+   @utility set and the layout vars.
+
+   It deliberately carries NO @source. The consumer's stylesheet owns the scan:
+   either the README's whole-package glob over dist, or the per-module list
+   `sable sources --write` generates. A glob here would be resolved against the
+   installed dist and pull in every component, block, pattern and *.meta.js
+   example string whatever the app scans — which is exactly why
+   `sable sources` trimmed nothing while it was here.
    ========================================================================== */
 
 /* The Sable theme ONLY. It is the default theme, and it is also the layout floor:
@@ -39,11 +46,6 @@
    from whatever theme is painting (bg-blue-500, text-tone-1-700,
    border-neutral-200). Generated; see src/lib/palette.ts. */
 @import "./palette.css";
-
-/* Scan the package for utility classes (path is relative to THIS file). Covers
-   both workspace source (.ts/.tsx next to this file in src/) and the compiled
-   dist (.js next to the copied styles.css), so the same file works in both. */
-@source "./**/*.{ts,tsx,js,mjs,jsx}";
 
 @theme inline {
 	/* Radii — theme-provided so alternate themes can tighten or soften the shell. */
@@ -98,6 +100,17 @@
 	--color-tone-3-mark: var(--tone-3-mark);
 	--color-control-border: var(--control-border);
 	--color-ring: var(--ring);
+
+	/* The categorical chart palette (CHART_TOKENS), so a legend swatch or a
+	   custom mark can say bg-chart-3 / fill-chart-3 and follow the theme. */
+	--color-chart-1: var(--chart-1);
+	--color-chart-2: var(--chart-2);
+	--color-chart-3: var(--chart-3);
+	--color-chart-4: var(--chart-4);
+	--color-chart-5: var(--chart-5);
+	--color-chart-6: var(--chart-6);
+	--color-chart-7: var(--chart-7);
+	--color-chart-8: var(--chart-8);
 
 	/* Sidebar set */
 	--color-sidebar: var(--sidebar);
@@ -259,6 +272,35 @@
 	}
 	html.dark {
 		color-scheme: dark;
+	}
+	/* Islands too: a `.dark` panel in a light page (or a provider scoped with
+	   `target`) otherwise kept light native scrollbars and form controls. */
+	.dark {
+		color-scheme: dark;
+	}
+	.light {
+		color-scheme: light;
+	}
+}
+
+/* ==========================================================================
+   Focus under forced colors (Windows High Contrast).
+
+   Components draw focus as `focus-visible:ring-2 ring-ring` — a box-shadow —
+   and pair it with `focus-visible:outline-none` so the browser's default ring
+   does not double it. Forced-colors mode sets every box-shadow to none, so
+   that pairing left NO focus indicator at all for the readers most likely to
+   need one. This puts a real outline back, in the system's highlight colour,
+   for every focus-visible element at once rather than in each component.
+
+   Unlayered on purpose: it must beat the `outline-none` utility, which lives
+   in Tailwind's utilities layer. An app that wants a different forced-colors
+   treatment can override it with an equally specific unlayered rule.
+   ========================================================================== */
+@media (forced-colors: active) {
+	:focus-visible {
+		outline: 2px solid Highlight;
+		outline-offset: 2px;
 	}
 }
 
@@ -1728,54 +1770,64 @@ html[dir="rtl"]:has([data-sable-sheet="left"]) {
 	 * and the workspace tiers are absolute px, so at a 14px root
 	 * `text-label-md` is 10.5px on the page and would jump to 12px inside a
 	 * tool panel — a "denser" register rendering larger text than the page it
-	 * sits beside. `min()` makes that impossible at any root size.
+	 * sits beside. `min()` makes that impossible at any root size. The page side
+	 * of each min() is the SAME expression the page utility uses, refinement
+	 * token included (`--type-body-md-size` …), so a theme or preset that sets a
+	 * tier below the ui tier is not grown back up inside compact.
 	 */
 	& .text-body-lg:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
-		font-size: min(calc(1.0625rem * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
+		font-size: min(calc(var(--type-body-lg-size, 1.0625rem) * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
 		line-height: var(--type-ui-leading, 16px);
 	}
 	& .text-body-md:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
-		font-size: min(calc(0.9375rem * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
+		font-size: min(calc(var(--type-body-md-size, 0.9375rem) * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
 		line-height: var(--type-ui-leading, 16px);
 	}
 	& .text-body-sm:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
-		font-size: min(calc(0.8125rem * var(--type-base, 16) / 16), var(--type-ui-sm-size, 11px));
+		font-size: min(calc(var(--type-body-sm-size, 0.8125rem) * var(--type-base, 16) / 16), var(--type-ui-sm-size, 11px));
 		line-height: var(--type-ui-leading, 16px);
 	}
-	& .text-body-xs:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *),
+	& .text-body-xs:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
+		font-size: min(calc(var(--type-body-xs-size, 0.75rem) * var(--type-base, 16) / 16), var(--type-ui-sm-size, 11px));
+		line-height: var(--type-ui-leading, 16px);
+	}
 	& .text-caption:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
-		font-size: min(calc(0.75rem * var(--type-base, 16) / 16), var(--type-ui-sm-size, 11px));
+		font-size: min(calc(var(--type-caption-size, 0.75rem) * var(--type-base, 16) / 16), var(--type-ui-sm-size, 11px));
 		line-height: var(--type-ui-leading, 16px);
 	}
 	& .text-label-lg:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
-		font-size: min(calc(0.875rem * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
+		font-size: min(calc(var(--type-label-lg-size, 0.875rem) * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
 		font-weight: var(--type-ui-md-weight, 500);
 		line-height: var(--type-ui-leading, 16px);
 	}
 	& .text-label-md:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
-		font-size: min(calc(0.75rem * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
+		font-size: min(calc(var(--type-label-md-size, 0.75rem) * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
 		font-weight: var(--type-ui-md-weight, 500);
 		line-height: var(--type-ui-leading, 16px);
 	}
 	/* The list utilities carry their own type, so they follow the same tiers:
 	   items and values as body-md, terms as label-md. */
 	& :is(.sable-list, .sable-list-numbered, .sable-list-dl):not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
-		font-size: min(calc(0.9375rem * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
+		font-size: min(calc(var(--type-body-md-size, 0.9375rem) * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
 		line-height: var(--type-ui-leading, 16px);
 	}
 	& .sable-list-dl > :where(dt):not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
-		font-size: min(calc(0.75rem * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
+		font-size: min(calc(var(--type-label-md-size, 0.75rem) * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
 		font-weight: var(--type-ui-md-weight, 500);
 		line-height: var(--type-ui-leading, 16px);
 	}
-	& .text-label-sm:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *),
+	& .text-label-sm:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
+		font-size: min(calc(var(--type-label-sm-size, 0.6875rem) * var(--type-base, 16) / 16), var(--type-ui-micro-size, 10px));
+		font-weight: var(--type-ui-micro-weight, 450);
+		line-height: 14px;
+	}
 	& .text-label-xs:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
-		font-size: min(calc(0.6875rem * var(--type-base, 16) / 16), var(--type-ui-micro-size, 10px));
+		font-size: min(calc(var(--type-label-xs-size, 0.6875rem) * var(--type-base, 16) / 16), var(--type-ui-micro-size, 10px));
 		font-weight: var(--type-ui-micro-weight, 450);
 		line-height: 14px;
 	}
 	& .text-title-sm:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
-		font-size: min(calc(0.875rem * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
+		font-size: min(calc(var(--type-title-sm-size, 0.875rem) * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
 		font-weight: var(--type-ui-section-weight, 550);
 		line-height: var(--type-ui-leading, 16px);
 	}
@@ -1784,7 +1836,7 @@ html[dir="rtl"]:has([data-sable-sheet="left"]) {
 	   ui-md it measured 12px/550 against a 12px description beneath it — the
 	   title and its own body the same size, hierarchy carried by weight alone. */
 	& .text-title-lg:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
-		font-size: min(calc(1rem * var(--type-base, 16) / 16), var(--type-ui-title-size, 14px));
+		font-size: min(calc(var(--type-title-lg-size, 1rem) * var(--type-base, 16) / 16), var(--type-ui-title-size, 14px));
 		font-weight: var(--type-ui-title-weight, 600);
 		line-height: var(--type-ui-title-leading, 20px);
 	}
@@ -1793,11 +1845,11 @@ html[dir="rtl"]:has([data-sable-sheet="left"]) {
 	   the same face (Glitch, 2026-10-23). Sizes only: code keeps its own 400
 	   weight, never the chrome's 500, and mono-lg/-xl stay metric display. */
 	& .text-mono-md:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
-		font-size: min(calc(0.8125rem * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
+		font-size: min(calc(var(--type-mono-md-size, 0.8125rem) * var(--type-base, 16) / 16), var(--type-ui-md-size, 12px));
 		line-height: var(--type-ui-leading, 16px);
 	}
 	& .text-mono-caption:not([data-density="compact"] [data-density="comfortable"], [data-density="compact"] [data-density="comfortable"] *) {
-		font-size: min(calc(0.75rem * var(--type-base, 16) / 16), var(--type-ui-sm-size, 11px));
+		font-size: min(calc(var(--type-mono-caption-size, 0.75rem) * var(--type-base, 16) / 16), var(--type-ui-sm-size, 11px));
 		line-height: var(--type-ui-leading, 16px);
 	}
 }
@@ -3047,14 +3099,21 @@ html[dir="rtl"]:has([data-sable-sheet="left"]) {
 
 /* Scroll/enter reveal — <Reveal>/<TextReveal> flip data-reveal to "in" when the
    element intersects the viewport. Out-of-view rests hidden + nudged down;
-   reduced/off policy keeps content visible (the JS forces "in"). */
+   reduced/off policy keeps content visible (the JS forces "in").
+
+   The hidden pose needs scripting (with JS off nothing would ever flip it, and
+   server-rendered content stayed invisible) and an OS that allows motion (a
+   reader who asked for less should not wait for hydration to see the page).
+   Keep Reveal below the fold either way: until hydration the pose is "out". */
 @utility motion-reveal {
 	transition-property: opacity, translate;
 	transition-duration: var(--motion-duration-slow);
 	transition-timing-function: var(--motion-ease-decelerate);
-	&[data-reveal="out"] {
-		opacity: 0;
-		translate: 0 0.75rem;
+	@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+		&[data-reveal="out"] {
+			opacity: 0;
+			translate: 0 0.75rem;
+		}
 	}
 }
 
@@ -3171,6 +3230,26 @@ html[dir="rtl"]:has([data-sable-sheet="left"]) {
 [data-motion="off"],
 [data-motion="off"] [data-sable-theme] {
 	--motion-scale: 0 !important;
+}
+
+/* The duration ladder is declared by the theme block, already multiplied by
+   --motion-scale, and a custom property inherits as a finished value. So on a
+   PLAIN element — a <MotionScope> wrapper, a component root carrying
+   `motion="off"` — setting the scale alone changes nothing: the durations it
+   inherits were resolved at :root, at scale 1. Re-declare the scaled ladder
+   wherever the policy is written, so a scope stills the recipes built on plain
+   tokens (motion-interactive, -pop, -fade, -slide-*, -disclosure, …) as well
+   as the loaders that multiply by the scale where they are used. A themed
+   element inside the scope re-resolves its own ladder at scale 0 (above). */
+[data-motion="reduced"],
+[data-motion="off"] {
+	--motion-duration-instant: 0ms !important;
+	--motion-duration-fast: 0ms !important;
+	--motion-duration-base: 0ms !important;
+	--motion-duration-slow: 0ms !important;
+	--motion-duration-slower: 0ms !important;
+	--motion-duration-enter: 0ms !important;
+	--motion-duration-exit: 0ms !important;
 }
 
 /* "subtle": essential motion plays, expressive motion resolves instantly and

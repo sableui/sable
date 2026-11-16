@@ -100,12 +100,54 @@ export const colorFieldMeta: ComponentMeta = {
 			description:
 				"Enables the alpha slider, and therefore 8-digit hex output. Off by default because it widens the value format.",
 		},
-		{ name: "swatches", type: "string[]", description: "Optional preset row." },
+		{
+			name: "swatches",
+			type: "Array<string | { value: string; label: string }>",
+			description:
+				"Optional preset row. A bare hex is named by its hex; give a preset a label (\"Brand red\") when the hex says nothing to a listener.",
+		},
 		{
 			name: "label",
 			type: "string",
 			default: '"Colour"',
 			description: "Accessible name for the trigger; the current value is appended to it.",
+		},
+		{
+			name: "name",
+			type: "string",
+			description:
+				'Submits the colour with a form under this name, through a hidden input: "#rrggbb" (lowercase), "#rrggbbaa" when allowAlpha and translucent, or "transparent" — the same shapes onValueChange emits.',
+		},
+		{ name: "form", type: "string", description: "Id of a form elsewhere on the page that the hidden input belongs to." },
+		{
+			name: "readOnly",
+			type: "boolean",
+			default: "false",
+			description: "Shows the colour and keeps it focusable, but the picker does not open. The value still submits.",
+		},
+		{
+			name: "required",
+			type: "boolean",
+			description:
+				"Accepted so a Field marked required does not leak the attribute onto the button. A ColorField always holds a value, so there is nothing for it to block.",
+		},
+		{
+			name: "transparentLabel",
+			type: "string",
+			default: '"Transparent"',
+			description: "The transparent value's name, in the trigger's accessible name and on its toggle.",
+		},
+		{
+			name: "hexLabel",
+			type: "(label: string) => string",
+			default: "(label) => `${label} hex`",
+			description: "Accessible name of the hex input, given label.",
+		},
+		{
+			name: "eyedropperLabel",
+			type: "string",
+			default: '"Pick colour from screen"',
+			description: "Accessible name of the eyedropper button.",
 		},
 	],
 	motion: [
@@ -138,10 +180,23 @@ export const colorFieldMeta: ComponentMeta = {
 		"The trigger's accessible name includes the current value, so a screen reader announces the colour rather than just \"button\" — the swatch itself conveys nothing without sight.",
 		"The Transparent entry is a toggle with aria-pressed, because it is a state of the value and not a navigation action.",
 		"The hex field is the keyboard path to any colour. The saturation/value area and the sliders are pointer-driven and are NOT keyboard operable — a known gap, and the reason the hex field is never hidden.",
+		"Preset swatches show a focus outline past their hairline, and are named by their label when given one, by their hex when not.",
+		"Inside a Field, the id, aria-describedby and aria-invalid it clones land on the trigger, so the label, description and error belong to it.",
 		"The eyedropper is only rendered where the EyeDropper API exists (Chromium), rather than shown and broken elsewhere.",
 	],
 	tokensUsed: ["panel", "panel-raised", "hairline", "hairline-strong", "ring", "popover"],
 	examples: [
+		{
+			label: "In a form, with named presets",
+			code: `<Field label="Brand colour">
+  <ColorField
+    name="brand"
+    value={brand}
+    onValueChange={setBrand}
+    swatches={[{ value: "#e11d48", label: "Brand red" }, { value: "#0f172a", label: "Ink" }]}
+  />
+</Field>`,
+		},
 		{
 			label: "Canvas background",
 			code: `<PropertyRow label="Background">

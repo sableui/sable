@@ -2,7 +2,8 @@
 /**
  * sync-llms — copy the generated agent-docs artifacts from packages/sable into
  * apps/docs/public so Vite's public/ passthrough serves them as real static
- * files (/llms.txt, /llms-full.txt, /llms/components/accordion.md, …) once the
+ * files (/llms.txt, /llms-full.txt, /llms/components/accordion.md, and the
+ * AGENTS.md, CONTRIBUTING.md, DESIGN.md and registry.json llms.txt links) once the
  * docs site is built/served — not just inside the published npm tarball.
  *
  * Source of truth is packages/sable/scripts/build-registry.mjs; this script
@@ -25,6 +26,12 @@ const copies = [
 	[join(SABLE_ROOT, "llms-full.txt"), join(PUBLIC_DIR, "llms-full.txt")],
 	[join(SABLE_ROOT, "llms"), join(PUBLIC_DIR, "llms")],
 	[join(SABLE_ROOT, "THIRD_PARTY_NOTICES.md"), join(PUBLIC_DIR, "THIRD_PARTY_NOTICES.md")],
+	// llms.txt links these by relative path; served beside it, the links resolve
+	// on sableui.com as they do in node_modules.
+	[join(SABLE_ROOT, "AGENTS.md"), join(PUBLIC_DIR, "AGENTS.md")],
+	[join(SABLE_ROOT, "CONTRIBUTING.md"), join(PUBLIC_DIR, "CONTRIBUTING.md")],
+	[join(SABLE_ROOT, "DESIGN.md"), join(PUBLIC_DIR, "DESIGN.md")],
+	[join(SABLE_ROOT, "registry.json"), join(PUBLIC_DIR, "registry.json")],
 ]
 
 for (const [src, dest] of copies) {

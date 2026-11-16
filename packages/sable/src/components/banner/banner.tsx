@@ -7,6 +7,7 @@ import { Icon } from "../../icon"
 import { Badge } from "../badge"
 import { Button } from "../button/button"
 import { cn } from "../../lib/cn"
+import { hitTargetTouch } from "../../lib/hit-target"
 import { bannerVariants } from "./banner.variants"
 
 export interface BannerProps
@@ -27,6 +28,8 @@ export interface BannerProps
 	dismissible?: boolean
 	/** Called after the banner is dismissed. */
 	onDismiss?: () => void
+	/** The dismiss button's accessible name. @default "Dismiss" */
+	dismissLabel?: string
 	/** Stick the banner to the top of its scroll container (`sticky top-0`). */
 	sticky?: boolean
 	/**
@@ -46,6 +49,7 @@ export function Banner({
 	action,
 	dismissible,
 	onDismiss,
+	dismissLabel = "Dismiss",
 	sticky,
 	live = "off",
 	className,
@@ -77,10 +81,12 @@ export function Banner({
 
 	// `text-current` so the control inherits the bar's ink — legible on a soft
 	// tint (foreground) and a solid fill (tone-foreground) alike.
+	// It stands alone at the bar's end (an action sits a gap-2 away, exactly the
+	// slop the 44px touch target needs), so it takes the touch floor.
 	// Button's on-color ghost takes the banner's own ink, so it reads on every
 	// tone and on solid fills without a second colour decision.
 	const dismissButton = dismissible ? (
-		<Button variant="on-color-ghost" size="icon-xs" aria-label="Dismiss" onClick={handleDismiss} className="shrink-0">
+		<Button variant="on-color-ghost" size="icon-xs" aria-label={dismissLabel} onClick={handleDismiss} className={cn(hitTargetTouch, "shrink-0")}>
 			<Icon name="xmark" />
 		</Button>
 	) : null

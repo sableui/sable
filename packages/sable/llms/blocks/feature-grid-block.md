@@ -21,8 +21,10 @@ A feature section: an overline, an h2 and a lede over a grid of article cards, e
 ## Source
 
 ```tsx
+"use client"
+
 import { useId } from "react"
-import { Card, CardContent, cn, Grid, Icon, Region, Stack } from "@sableui/react"
+import { Card, CardContent, cn, Grid, IconTile, Region, Stack } from "@sableui/react"
 
 const intro = {
 	eyebrow: "Why Sable",
@@ -59,9 +61,7 @@ export function FeatureGridBlock({ className }: FeatureGridBlockProps) {
 					{features.map((feature) => (
 						<Card key={feature.title} render={<article />} className="h-full">
 							<CardContent className="flex flex-col gap-3">
-								<span className="grid size-10 place-items-center rounded-md sable-well">
-									<Icon name={feature.icon} className="text-xl" />
-								</span>
+								<IconTile icon={feature.icon} />
 								<h3 className="pt-2 text-title-lg">{feature.title}</h3>
 								<p className="text-body-sm text-muted-foreground">{feature.body}</p>
 							</CardContent>

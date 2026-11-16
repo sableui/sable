@@ -1,37 +1,10 @@
-import { Badge, Grid, Tabs, TabsList, TabsPanel, TabsTrigger, cn } from "@sableui/react"
-import {
-	ChatThreadBlock,
-	CommandPaletteBlock,
-	EventCardBlock,
-	FeedbackFormBlock,
-	InviteTeamBlock,
-	InvoicePreviewBlock,
-	MediaPlayerBlock,
-	NotificationListBlock,
-	NotificationSettingsBlock,
-	OrderTrackingBlock,
-	PricingCardBlock,
-	ProductCardBlock,
-	ProfileCardBlock,
-	ProjectCollectionBlock,
-	RevenueBreakdownBlock,
-	ScheduleBlock,
-	SignInBlock,
-	TrafficSourcesBlock,
-	TrafficTrendBlock,
-	TaskListBlock,
-	UploadListBlock,
-	WalletBlock,
-} from "@sableui/react/blocks"
-import { type ReactNode, createContext, useContext, useEffect, useState } from "react"
-import { useCustomizer } from "../customizer/CustomizerProvider"
+import { Badge, Grid, Tabs, TabsList, TabsPanel, TabsTrigger, ToastProvider, cn } from "@sableui/react"
+import { memo, useEffect, useState } from "react"
+import { BlockScene } from "../canvas/scenes"
+import { BLOCKS, CANVAS_TILES, type CanvasTile } from "../canvas/tiles"
+import { useCustomizerActions } from "../customizer/CustomizerProvider"
 import { PHONE, WIDE, useMediaQuery } from "../lib/use-media-query"
 import { IosCanvasPreview } from "./IosCanvasPreview"
-
-const CompactSceneFraming = createContext(false)
-export function CanvasContent({ children }: { children: ReactNode }) {
-	return <CompactSceneFraming.Provider value={true}>{children}</CompactSceneFraming.Provider>
-}
 
 /*
  * The customize canvas: the whole system as a SET, so a change to character,
@@ -39,153 +12,31 @@ export function CanvasContent({ children }: { children: ReactNode }) {
  * card, an app nav, a settings form — rather than on one component in
  * isolation.
  *
- * Every scene is one of Sable's own blocks (`@sableui/react/blocks`), the same
- * source a consumer copies, set on a stage. That is what makes the canvas
- * accurate: what moves here is what moves in an app. The only thing composed
- * here is the type specimen, which is not a block anyone would ship.
+ * The tiles are data (canvas/tiles.ts) drawn by one wrapper; the stage and the
+ * scenes other pages borrow live in canvas/scenes.tsx. To add a block to the
+ * canvas, add it to CANVAS_TILES.
  */
 
 /**
- * A stage: a quiet backdrop holding ONE real-world object. It is the canvas's
- * own layout, not part of the object, so it stays plain.
+ * One tile: the block on its stage, nothing above it — the canvas is the set,
+ * not a catalogue. Named for assistive technology only: a section labelled
+ * with the block, so a screen reader hears where each tile starts.
  */
-function Stage({ children, className }: { children: ReactNode; className?: string }) {
-	// On a phone the screen is the stage: a muted plate around each card would
-	// read as a second, nested surface.
-	if (useContext(CompactSceneFraming)) return <div className="flex w-full min-w-0 justify-center [--scene-max:none]">{children}</div>
+function Tile({ tile }: { tile: CanvasTile }) {
+	const Block = tile.block ? BLOCKS[tile.block] : null
 	return (
-		// No content-visibility here, though it looks like a fit: measured, it made
-		// a Customize drag SLOWER (12.4 vs 8.9ms per restyle), because every size
-		// change re-checks each skipped scene's intrinsic size.
-		<section className={cn("flex min-h-72 items-center justify-center rounded-xl bg-muted p-8", className)}>
-			{children}
+		<section aria-label={tile.block ? `${tile.name} (${tile.block})` : tile.name} className="grid min-w-0">
+			{tile.scene ? <tile.scene /> : Block ? <BlockScene<Record<never, never>> block={Block} /> : null}
 		</section>
 	)
 }
 
 /**
- * Every block fills its container up to its designed width (20rem); on the
- * iPhone canvas the screen is the limit instead (--scene-max: none).
+ * The grid of tiles. Memoized and prop-less: a look change restyles the tiles
+ * through CSS and never re-renders them (the page reads only the customizer's
+ * stable actions).
  */
-const SCENE = "max-w-[var(--scene-max,20rem)]"
-
-/** A total that rolls and a button that reports its own progress. */
-export function InvoiceScene() {
-	return <Stage><InvoicePreviewBlock className={SCENE} /></Stage>
-}
-
-/** A label that swaps in place and a card that eases to each day's height. */
-export function ScheduleScene() {
-	return <Stage><ScheduleBlock className={SCENE} /></Stage>
-}
-
-/** A stack that opens into a list, with pointer depth on a mouse. */
-export function CollectionScene() {
-	return <Stage><ProjectCollectionBlock className={SCENE} /></Stage>
-}
-
-export function ProductScene() {
-	return <Stage><ProductCardBlock className={SCENE} /></Stage>
-}
-
-export function BillingScene() {
-	return <Stage><PricingCardBlock className={SCENE} /></Stage>
-}
-
-export function NotificationsScene() {
-	return <Stage><NotificationListBlock className={SCENE} /></Stage>
-}
-
-/** Revenue split by type — the palette's decorative tones doing real work. */
-export function StatScene() {
-	return <Stage><RevenueBreakdownBlock className={SCENE} /></Stage>
-}
-
-export function SettingsScene() {
-	return <Stage><NotificationSettingsBlock className={SCENE} /></Stage>
-}
-
-/** `onSend` lets the iPhone canvas answer Send; on the web it stays a specimen. */
-export function InviteScene({ onSend }: { onSend?: () => void } = {}) {
-	return <Stage><InviteTeamBlock className={SCENE} onSend={onSend} /></Stage>
-}
-
-export function ChatScene() {
-	// On a card, not the stage: incoming bubbles are the muted surface, the
-	// same tone as the stage itself — the block is framed by default.
-	return <Stage><ChatThreadBlock className={SCENE} /></Stage>
-}
-
-// Selecting a command is a no-op here: the scene is a specimen, not a menu that navigates.
-function CommandScene() {
-	return <Stage><CommandPaletteBlock className={SCENE} /></Stage>
-}
-
-/** A type specimen: the scale itself is the subject, so it is bare type. */
-export function TypeScene() {
-	return (
-		<Stage>
-			<div className={cn("w-full", SCENE, "flex flex-col gap-3 text-center")}>
-				<span className="text-display-lg leading-none">Aa</span>
-				<span className="text-heading-4">The quick brown fox</span>
-				<span className="text-body-sm text-muted-foreground">Headings, body and mono follow the preset and the type you pick.</span>
-				<span className="text-mono-md text-muted-foreground">0123456789</span>
-			</div>
-		</Stage>
-	)
-}
-
-export function NowPlayingScene() {
-	return <Stage><MediaPlayerBlock className={SCENE} /></Stage>
-}
-
-export function EventScene() {
-	return <Stage><EventCardBlock className={SCENE} /></Stage>
-}
-
-export function ProfileScene() {
-	return <Stage><ProfileCardBlock className={SCENE} /></Stage>
-}
-
-export function TasksScene() {
-	return <Stage><TaskListBlock className={SCENE} /></Stage>
-}
-
-/** `framed={false}` when a sheet holds it: the sheet is already the surface. */
-export function SignInScene({ framed, onSignIn }: { framed?: boolean; onSignIn?: () => void } = {}) {
-	return <Stage><SignInBlock className={SCENE} framed={framed} onSignIn={onSignIn} /></Stage>
-}
-
-export function UploadScene() {
-	return <Stage><UploadListBlock className={SCENE} /></Stage>
-}
-
-export function WalletScene() {
-	return <Stage><WalletBlock className={SCENE} /></Stage>
-}
-
-/**
- * `onDone` closes the iPhone canvas's sheet from Skip or Send; `framed={false}`
- * there, since the sheet is already the surface and a card in it reads as nested.
- */
-export function FeedbackScene({ framed, onDone }: { framed?: boolean; onDone?: (sent: boolean) => void } = {}) {
-	return <Stage><FeedbackFormBlock className={SCENE} framed={framed} onDone={onDone} /></Stage>
-}
-
-/** Charts on the canvas: the palette's tones as data colours, judged as a set. */
-export function SourcesScene() {
-	return <Stage><TrafficSourcesBlock className={SCENE} /></Stage>
-}
-
-export function TrendScene() {
-	return <Stage><TrafficTrendBlock className={SCENE} /></Stage>
-}
-
-export function ShippingScene() {
-	return <Stage><OrderTrackingBlock className={SCENE} /></Stage>
-}
-
-function ThemeCanvas() {
+const ThemeCanvas = memo(function ThemeCanvas() {
 	return (
 		// As many columns as fit, not a column count per window width: the space
 		// left beside the Customize panel, and the size of everything at the
@@ -193,40 +44,24 @@ function ThemeCanvas() {
 		// is one card at its widest (max-w-xs, 20rem) plus the stage's padding
 		// (16 spacing units, which density scales), so a card is never squeezed
 		// below the width it is built for.
-		<Grid minItemWidth="calc(20rem + var(--spacing) * 16)" gap="calc(var(--spacing) * 4)">
-			<ProductScene />
-			<BillingScene />
-			<NowPlayingScene />
-			<StatScene />
-			<InvoiceScene />
-			<ScheduleScene />
-			<CollectionScene />
-			<SourcesScene />
-			<TypeScene />
-			<ProfileScene />
-			<NotificationsScene />
-			<EventScene />
-			<SignInScene />
-			<TasksScene />
-			<TrendScene />
-			<WalletScene />
-			<InviteScene />
-			<ChatScene />
-			<ShippingScene />
-			<SettingsScene />
-			<FeedbackScene />
-			<UploadScene />
-			<CommandScene />
-		</Grid>
+		// Blocks that end in a toast (Storage, Share) need a provider. Bottom
+		// centre keeps the toasts clear of the Customize panel on the right.
+		<ToastProvider position="bottom-center">
+			<Grid minItemWidth="calc(20rem + var(--spacing) * 16)" gap="calc(var(--spacing) * 4)">
+				{CANVAS_TILES.map((tile) => (
+					<Tile key={tile.id} tile={tile} />
+				))}
+			</Grid>
+		</ToastProvider>
 	)
-}
+})
 
 export function CustomizeCanvasPage() {
 	// The canvas is where you tune the look, so arriving opens the same
 	// Customize panel every page uses (the shell makes room for it). Not on a
-	// small screen, where the panel is a whole settings view: arriving there
-	// would hide the canvas you came to see.
-	const { setOpen } = useCustomizer()
+	// small screen, where the panel covers part of the canvas: there the
+	// header's Customize button opens it.
+	const { setOpen } = useCustomizerActions()
 	const [target, setTarget] = useState(() => new URLSearchParams(location.search).get('target') === 'ios' ? 'ios' : 'web')
 	const [showIos, setShowIos] = useState(target === 'ios')
 	// On a phone the web canvas IS the phone view, and an iPhone prototype
@@ -252,7 +87,9 @@ export function CustomizeCanvasPage() {
 				<div className={cn("flex items-center justify-between gap-4 mb-6", "[@media(max-width:47.99rem)_and_(pointer:coarse)]:hidden", phone && "hidden")}>
 					<TabsList variant="pill" aria-label="Canvas platform"><TabsTrigger value="web">Web</TabsTrigger><TabsTrigger value="ios">iOS<Badge size="sm">Beta</Badge></TabsTrigger></TabsList>
 				</div>
-				<TabsPanel value="web" keepMounted><ThemeCanvas /></TabsPanel>
+				{/* The web canvas unmounts behind the iOS tab: 38 live blocks restyling
+				    under an iframe was work no one could see. */}
+				<TabsPanel value="web"><ThemeCanvas /></TabsPanel>
 				<TabsPanel value="ios" keepMounted>{showIos && !phone && <IosCanvasPreview />}</TabsPanel>
 			</Tabs>
 		</div>

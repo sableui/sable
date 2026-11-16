@@ -1,13 +1,17 @@
 import { act, fireEvent, render, screen } from "@testing-library/react"
 import type { ComponentProps } from "react"
+import { hydrateRoot } from "react-dom/client"
+import { renderToString } from "react-dom/server"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import {
 	SABLE_COLOR_STORAGE_KEY,
 	SABLE_THEME_ATTRIBUTE,
 	SABLE_THEME_STORAGE_KEY,
 	SableThemeProvider,
+	SableThemeScript,
 	applySableColorMode,
 	applySableTheme,
+	sableThemeScript,
 	useSableTheme,
 } from "./index"
 
@@ -303,5 +307,109 @@ describe("theme-switch transition suppression", () => {
 				})
 			})
 		})
+	})
+})
+
+describe("server rendering and the pre-paint script", () => {
+	function StateText() {
+		const { themeId, preference, mode } = useSableTheme()
+		return <p data-testid="ssr-state">{`${themeId}:${preference}:${mode}`}</p>
+	}
+	const app = (props: Partial<ComponentProps<typeof SableThemeProvider>> = {}) => (
+		<SableThemeProvider {...props}>
+			<StateText />
+		</SableThemeProvider>
+	)
+
+	it("renders the defaults on the server without touching storage", () => {
+		window.localStorage.setItem(SABLE_COLOR_STORAGE_KEY, "light")
+		const getItem = vi.spyOn(Storage.prototype, "getItem")
+		const html = renderToString(app({ defaultPreference: "dark" }))
+		expect(html).toContain("sable:dark:dark")
+		expect(getItem).not.toHaveBeenCalled()
+		getItem.mockRestore()
+	})
+
+	it("hydrates without a mismatch, then takes the stored choice, never undoing the script", async () => {
+		window.localStorage.setItem(SABLE_COLOR_STORAGE_KEY, "light")
+		window.localStorage.setItem(SABLE_THEME_STORAGE_KEY, "meridian")
+		const container = document.createElement("div")
+		container.innerHTML = renderToString(app({ defaultPreference: "dark" }))
+		document.body.appendChild(container)
+		// What the inline script does before paint.
+		new Function(sableThemeScript({ defaultPreference: "dark" }))()
+		expect(document.documentElement).not.toHaveClass("dark")
+		expect(document.documentElement).toHaveAttribute(SABLE_THEME_ATTRIBUTE, "meridian")
+
+		const errors = vi.spyOn(console, "error").mockImplementation(() => {})
+		const classWrites = vi.spyOn(document.documentElement.classList, "toggle")
+		await act(async () => {
+			hydrateRoot(container, app({ defaultPreference: "dark" }))
+		})
+		expect(errors).not.toHaveBeenCalled()
+		expect(container.textContent).toBe("meridian:light:light")
+		// The provider found <html> already right and wrote nothing.
+		expect(classWrites).not.toHaveBeenCalled()
+		expect(document.documentElement).not.toHaveClass("dark")
+		expect(document.documentElement).toHaveAttribute(SABLE_THEME_ATTRIBUTE, "meridian")
+		errors.mockRestore()
+		classWrites.mockRestore()
+		container.remove()
+	})
+
+	it.each([
+		["nothing stored, dark default", {}, {}, true, null],
+		["stored light + prism", { [SABLE_COLOR_STORAGE_KEY]: "light", [SABLE_THEME_STORAGE_KEY]: "prism" }, {}, false, "prism"],
+		["garbage stored", { [SABLE_COLOR_STORAGE_KEY]: "purple", [SABLE_THEME_STORAGE_KEY]: "nope" }, {}, true, null],
+		["app-owned keys ignore the shared ones", { [SABLE_THEME_STORAGE_KEY]: "prism" }, { defaultThemeId: "ember" }, true, "ember"],
+		["app-owned keys", { [`${SABLE_THEME_STORAGE_KEY}:ember`]: "verdant", [`${SABLE_COLOR_STORAGE_KEY}:ember`]: "light" }, { defaultThemeId: "ember" }, false, "verdant"],
+	] as const)("the script applies %s", (_label, stored, options, dark, theme) => {
+		for (const [key, value] of Object.entries(stored)) window.localStorage.setItem(key, value)
+		new Function(sableThemeScript({ defaultPreference: "dark", ...options }))()
+		expect(document.documentElement.classList.contains("dark")).toBe(dark)
+		expect(document.documentElement.getAttribute(SABLE_THEME_ATTRIBUTE)).toBe(theme)
+	})
+
+	it("resolves system through prefers-color-scheme, and survives storage that throws", () => {
+		vi.stubGlobal("matchMedia", (query: string) => ({ matches: false, media: query }))
+		const getItem = vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+			throw new Error("denied")
+		})
+		new Function(sableThemeScript())()
+		expect(document.documentElement).not.toHaveClass("dark")
+		getItem.mockRestore()
+	})
+
+	it("moves a deprecated custom id to its replacement and escapes the inline payload", () => {
+		window.localStorage.setItem(SABLE_THEME_STORAGE_KEY, "old</script>")
+		const customThemes = [
+			{ id: "old</script>", label: "Old", deprecated: { replacement: "ember" }, modes: ["light"], defaultMode: "light" },
+		] as ComponentProps<typeof SableThemeProvider>["customThemes"]
+		const script = sableThemeScript({ customThemes })
+		expect(script).not.toContain("</script>")
+		new Function(script)()
+		expect(document.documentElement).toHaveAttribute(SABLE_THEME_ATTRIBUTE, "ember")
+		const html = renderToString(<SableThemeScript nonce="abc" />)
+		expect(html).toMatch(/^<script nonce="abc">\(function/)
+	})
+
+	it("reads <html> when there is no provider, instead of guessing dark", () => {
+		document.documentElement.setAttribute(SABLE_THEME_ATTRIBUTE, "verdant")
+		render(<StateText />)
+		expect(screen.getByTestId("ssr-state")).toHaveTextContent("verdant:light:light")
+		act(() => document.documentElement.classList.add("dark"))
+		return Promise.resolve().then(() => {
+			expect(screen.getByTestId("ssr-state")).toHaveTextContent("verdant:dark:dark")
+		})
+	})
+
+	it("writes a getter target once per change, not on every parent render", () => {
+		const el = document.createElement("div")
+		const toggle = vi.spyOn(el.classList, "toggle")
+		const view = render(app({ defaultPreference: "dark", target: () => el, colorStorageKey: null, themeStorageKey: null }))
+		for (let i = 0; i < 3; i++) view.rerender(app({ defaultPreference: "dark", target: () => el, colorStorageKey: null, themeStorageKey: null }))
+		expect(toggle).toHaveBeenCalledTimes(1)
+		expect(el).toHaveClass("dark")
+		expect(suppressorSheets().length).toBeLessThanOrEqual(1)
 	})
 })

@@ -32,6 +32,10 @@ export const toggleMeta: ComponentMeta = {
 				description: "Use ToggleGroup appearance=\"segmented\" for a single-select view switch (List / Grid). It is the same capsule ThemeSwitcher wears — do not hand-build a track around a row of toggles.",
 			},
 			{
+				guidance: "do",
+				description: "Use ToggleGroup appearance=\"tiles\" when totals are the switch for what a chart plots: each Toggle a caption over a figure, square, edge to edge in the card and padded from its --card-p. Do not restyle Toggles with rounded-none, borders and padding to get there.",
+			},
+			{
 				guidance: "dont",
 				description: "Do not use Toggle for persistent application settings; use Switch.",
 				instead: ["Switch"],
@@ -69,10 +73,10 @@ export const toggleMeta: ComponentMeta = {
 	props: [
 		{
 			name: "appearance",
-			type: '"default" | "segmented"',
+			type: '"default" | "segmented" | "tiles"',
 			default: '"default"',
 			description:
-				"On ToggleGroup: `default` is a loose row of toggles; `segmented` draws the capsule segmented control (one track, the pressed option filled) shared with ThemeSwitcher. Single-select segmented draws ONE fill that glides to the pressed option and resizes to its label, and always keeps an option chosen: pressing the chosen one does nothing. Multi-select keeps a fill per pressed option. Toggles inside inherit it.",
+				"On ToggleGroup: `default` is a loose row of toggles; `segmented` draws the capsule segmented control (one track, the pressed option filled) shared with ThemeSwitcher. Single-select segmented draws ONE fill that glides to the pressed option and resizes to its label, and always keeps an option chosen: pressing the chosen one does nothing. Multi-select keeps a fill per pressed option. `tiles` makes each toggle a stat tile (caption over figure), square and edge to edge, padded from the card's --card-p and divided by hairlines, with the pressed tile filled; single-select tiles also keep one chosen. Toggles inside inherit it.",
 		},
 		{
 			name: "stretch",
@@ -105,7 +109,7 @@ export const toggleMeta: ComponentMeta = {
 	subcomponents: [
 		{
 			name: "ToggleGroup",
-			type: "Base UI ToggleGroup props (value, defaultValue, onValueChange, multiple, disabled, orientation, loopFocus) + appearance?: \"default\" | \"segmented\" + motion?: \"full\" | \"subtle\" | \"off\" + className",
+			type: "Base UI ToggleGroup props (value, defaultValue, onValueChange, multiple, disabled, orientation, loopFocus) + appearance?: \"default\" | \"segmented\" | \"tiles\" + motion?: \"full\" | \"subtle\" | \"off\" + className",
 			description:
 				"Groups child Toggles and shares pressed state across them — each Toggle inside carries a value. Defaults to multiple: false (single-select) — the fit for view-mode switches and segmented controls; pass multiple to allow several pressed at once, e.g. a row of formatting toggles.",
 		},
@@ -117,7 +121,7 @@ export const toggleMeta: ComponentMeta = {
 		},
 	],
 	variants: {
-		appearance: ["default", "segmented"],
+		appearance: ["default", "segmented", "tiles"],
 	},
 	tokensUsed: ["muted-foreground", "foreground", "accent", "accent-foreground", "card", "border", "ring"],
 	motion: [
@@ -174,6 +178,10 @@ export const toggleMeta: ComponentMeta = {
 		{
 			label: "Segmented with labels, subtle motion",
 			code: '<ToggleGroup appearance="segmented" motion="subtle" defaultValue={["week"]} aria-label="Range"><Toggle value="day">Day</Toggle><Toggle value="week">Week</Toggle><Toggle value="month">Month</Toggle></ToggleGroup>',
+		},
+		{
+			label: "Stat tiles that switch a chart",
+			code: '<Card className="overflow-hidden"><ToggleGroup appearance="tiles" defaultValue={["desktop"]} aria-label="Device"><Toggle value="desktop"><span className="text-caption text-muted-foreground">Desktop</span><span className="text-mono-lg">12,480</span></Toggle><Toggle value="mobile"><span className="text-caption text-muted-foreground">Mobile</span><span className="text-mono-lg">9,215</span></Toggle></ToggleGroup></Card>',
 		},
 		{
 			label: "Multi-select group",

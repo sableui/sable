@@ -109,9 +109,9 @@ export const menuMeta: ComponentMeta = {
 		},
 		{
 			name: "MenuLinkItem",
-			type: "Base UI Menu.LinkItem props (href, target, closeOnClick) + className + icon?: ReactNode + description?: ReactNode",
+			type: "Base UI Menu.LinkItem props (href, target, closeOnClick) + className + icon?: ReactNode + description?: ReactNode + newTabLabel?: string",
 			description:
-				"A row that navigates: a real <a>, so it opens in a new tab, middle-clicks and copies as a link. With target=\"_blank\" it adds rel=\"noopener noreferrer\" and a trailing ↗. Takes icon and description like MenuItem.",
+				"A row that navigates: a real <a>, so it opens in a new tab, middle-clicks and copies as a link. With target=\"_blank\" it adds rel=\"noopener noreferrer\", a trailing ↗ (decorative), and a visually hidden newTabLabel after the label (default \"(opens in new tab)\") so a screen reader announces the new tab; pass newTabLabel to translate it. Takes icon and description like MenuItem.",
 		},
 		{
 			name: "MenuSeparator",
@@ -174,6 +174,7 @@ export const menuMeta: ComponentMeta = {
 		"Esc and outside-press dismiss; focus returns to the trigger on close.",
 		"Animate open/close via data-[starting-style]/data-[ending-style] attributes.",
 		"MenuGroupLabel is auto-associated with its MenuGroup for screen readers.",
+		"An external MenuLinkItem (target=\"_blank\") reads its newTabLabel, \"(opens in new tab)\" by default, after its label; the ↗ is aria-hidden.",
 		"A disabled MenuItem stays in the arrow-key order — Base UI keeps it focusable with aria-disabled so screen-reader users learn the command exists — but it cannot be activated, and it ignores the pointer.",
 	],
 	examples: [

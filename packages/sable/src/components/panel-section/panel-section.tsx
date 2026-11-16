@@ -44,7 +44,11 @@ export function PanelSection({
 			)}
 			{...props}
 		>
-			<header className="flex h-7 items-center justify-between gap-2 px-[var(--panel-inset,--spacing(2))]">
+			{/* 4px under the header: its action is a control as tall as the header
+			    (the xs button), so with no gap its hover fill touched the first
+			    control beneath. The same 4px a stacked row keeps between its label
+			    and its control, so a title reads as belonging to its section. */}
+			<header className="mb-1 flex h-7 items-center justify-between gap-2 px-[var(--panel-inset,--spacing(2))]">
 				<h3 className="text-ui-section text-foreground">{title}</h3>
 				{action}
 			</header>

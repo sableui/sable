@@ -56,6 +56,7 @@ Pairs with MessageScroller to make a working chat. A single surface rather than 
 | label | string | "Message" | Accessible label for the field. |
 | sendLabel | string | "Send message" | Accessible label for the send button. |
 | stopLabel | string | "Stop generating" | Accessible label for the stop button. |
+| attachLabel | string | "Add attachment" | Accessible label for the built-in attach button (rendered when onAttach is set). |
 | footer | ReactNode \| ((state: { sendOn: "enter" \| "mod-enter" }) => ReactNode) | — | Helper text or counter below the controls. For a keyboard hint pass a function: it receives the send key in effect (touch turns `enter` into `mod-enter`), and returning null removes the row, e.g. `footer={({ sendOn }) => sendOn === "enter" ? "Enter to send" : null}`. |
 | fieldRef | Ref<HTMLTextAreaElement> | — | Ref to the underlying textarea — for focusing after a send, or on mount, and the extension point for anything that listens to the field. Pass `useCaretTrigger`'s `fieldRef` here for mentions and slash commands (CaretMenu). An Enter another listener already handled (`preventDefault()`) does not send. |
 | motion | "full" \| "subtle" \| "off" | "full" | How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the flourish, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Under `subtle` the field snaps to its new height and the send/stop glyphs swap without the morph. |

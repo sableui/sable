@@ -46,6 +46,13 @@ export const browserMeta: ComponentMeta = {
 				"Address shown in the centered address pill. Omit for a blank pill.",
 		},
 		{
+			name: "elevation",
+			type: '"raised" | "hero"',
+			default: '"raised"',
+			description:
+				"raised: the soft resting shadow, for a window among other content. hero: lifted well off the page, for a product shot staged as a landing page's centrepiece (one per page). Use this instead of a shadow-* className.",
+		},
+		{
 			name: "children",
 			type: "ReactNode",
 			description: "Page content rendered inside the content region.",

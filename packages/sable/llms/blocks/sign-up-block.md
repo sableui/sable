@@ -20,6 +20,8 @@ A sign-up card: name, work email and password as labelled Fields, one full-width
 ## Source
 
 ```tsx
+"use client"
+
 import { Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, cn, Field, Form, Input } from "@sableui/react"
 
 export interface SignUpBlockProps {
@@ -34,7 +36,7 @@ export function SignUpBlock({ className, framed = true, onSignUp }: SignUpBlockP
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-sm", className)}>
 			<CardHeader>
-				<CardTitle>Create your account</CardTitle>
+				<CardTitle render={<h2 />}>Create your account</CardTitle>
 				<CardDescription>Free for 14 days. No card needed.</CardDescription>
 			</CardHeader>
 			<Form

@@ -76,6 +76,24 @@ const IMAGE_FADE: Partial<Record<AvatarSize, string>> = {
 	"2xl": "motion-fade",
 }
 
+/**
+ * The cut-out ring, by size: the 2px a group's overlap wears at row sizes,
+ * thickening with the portrait so it still reads as a gap and not a hairline.
+ * Its colour is the surface the avatar sits on: `--avatar-group-ring` when an
+ * ancestor sets it, else the declared surface (a Card sets `--sable-surface-bg`),
+ * else the page.
+ */
+const CUTOUT_RING: Record<AvatarSize, string> = {
+	"2xs": "ring-2",
+	xs: "ring-2",
+	sm: "ring-2",
+	md: "ring-2",
+	lg: "ring-4",
+	xl: "ring-4",
+	"2xl": "ring-6",
+}
+const CUTOUT_COLOR = "ring-[color:var(--avatar-group-ring,var(--sable-surface-bg,var(--background)))]"
+
 /** The frame. Clips the image; holds the `size`, `shape` and `tone` axes. */
 export function AvatarRoot({ size, shape, tone, className, ...props }: RootProps) {
 	const group = useContext(AvatarGroupContext)
@@ -156,6 +174,13 @@ export interface AvatarProps extends RootProps {
 	seed?: string | number
 	/** How the image fills the frame: `cover` crops it, for a photo; `contain` fits all of it inside, for a logo. @default "cover" */
 	fit?: "cover" | "contain"
+	/**
+	 * Ring the avatar in the colour of the surface it sits on, so where it
+	 * overlaps something (a profile banner it rises into, a cover photo) it
+	 * reads as cut out of it rather than stuck on top. The ring thickens with
+	 * the size. @default false
+	 */
+	cutout?: boolean
 }
 
 /**
@@ -174,6 +199,7 @@ export function Avatar({
 	variant = "neutral",
 	seed,
 	fit,
+	cutout = false,
 	className,
 	...props
 }: AvatarProps) {
@@ -182,7 +208,14 @@ export function Avatar({
 	// being dropped with the <img> that never rendered.
 	const named = !src && alt ? { role: "img" as const, "aria-label": alt } : null
 	const avatar = (
-		<AvatarRoot size={size} shape={shape} tone={variant === "art" ? undefined : tone} className={status == null ? className : undefined} {...named} {...props}>
+		<AvatarRoot
+			size={size}
+			shape={shape}
+			tone={variant === "art" ? undefined : tone}
+			className={cn(cutout && [CUTOUT_RING[size ?? "md"], CUTOUT_COLOR], status == null ? className : undefined)}
+			{...named}
+			{...props}
+		>
 			{src ? <AvatarImage src={src} alt={alt ?? ""} fit={fit} className={size ? IMAGE_FADE[size] : undefined} /> : null}
 			{variant === "art" ? (
 				<AvatarFallback delay={fallbackDelay} aria-hidden={named ? true : undefined} className="size-full">

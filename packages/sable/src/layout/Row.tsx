@@ -23,7 +23,7 @@ const JUSTIFY: Record<Justify, string> = {
 }
 
 export interface RowProps extends ComponentPropsWithRef<"div"> {
-	/** Horizontal gap. Number = rhythm units (×8px; fractions ok); string = raw CSS. Default 2 (16px). */
+	/** Horizontal gap. Number = rhythm units (one baseline step each — 8px at Sable's default type, two Tailwind spacing steps, so gap={2} is gap-4; fractions ok); string = raw CSS. Default 2. */
 	gap?: number | string
 	align?: Align
 	justify?: Justify

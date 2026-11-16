@@ -39,6 +39,7 @@ export function AccordionItem({ className, ...props }: ItemProps) {
 		/>
 	)
 }
+AccordionItem.displayName = "AccordionItem"
 
 type TriggerProps = Omit<ComponentProps<typeof Base.Trigger>, "className"> & {
 	className?: string
@@ -56,6 +57,13 @@ type TriggerProps = Omit<ComponentProps<typeof Base.Trigger>, "className"> & {
 	 * When omitted, the default chevron (rotating 180° on open) is used.
 	 */
 	indicator?: ReactNode
+	/**
+	 * The heading level that wraps the trigger. An accordion sits inside a
+	 * document outline: an FAQ directly under the page h1 wants h2, one under an
+	 * h3 section wants h4. Base UI renders h3 by default.
+	 * @default 3
+	 */
+	headingLevel?: 2 | 3 | 4 | 5 | 6
 }
 
 /**
@@ -68,10 +76,12 @@ export function AccordionTrigger({
 	className,
 	children,
 	indicator,
+	headingLevel = 3,
 	...props
 }: TriggerProps) {
+	const Heading = `h${headingLevel}` as const
 	return (
-		<Base.Header>
+		<Base.Header render={<Heading />}>
 			<Base.Trigger
 				className={cn(
 					"flex w-full items-start justify-between gap-3 py-4 text-start text-title-sm text-foreground motion-interactive hover:text-muted-foreground rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50",
@@ -98,6 +108,7 @@ export function AccordionTrigger({
 		</Base.Header>
 	)
 }
+AccordionTrigger.displayName = "AccordionTrigger"
 
 type PanelProps = Omit<ComponentProps<typeof Base.Panel>, "className"> & {
 	className?: string
@@ -121,3 +132,4 @@ export function AccordionPanel({ className, children, ...props }: PanelProps) {
 		</Base.Panel>
 	)
 }
+AccordionPanel.displayName = "AccordionPanel"

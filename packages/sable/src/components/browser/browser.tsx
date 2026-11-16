@@ -5,6 +5,14 @@ import { Icon } from "../../icon/Icon"
 export interface BrowserProps extends ComponentPropsWithRef<"div"> {
 	/** Address shown in the centered address field. Omit for an empty field. */
 	url?: string
+	/**
+	 * `raised` (default): the soft resting shadow, for a window among other
+	 * content. `hero`: lifted well off the page (the top shadow step), for a
+	 * product shot staged as a landing page's centrepiece. One hero per page;
+	 * never a shadow-* className.
+	 * @default "raised"
+	 */
+	elevation?: "raised" | "hero"
 }
 
 /**
@@ -16,10 +24,11 @@ export interface BrowserProps extends ComponentPropsWithRef<"div"> {
  * colours — so it sits in any preset. Presentational: the controls are drawn,
  * not interactive.
  */
-export function Browser({ url, className, children, ...props }: BrowserProps) {
+export function Browser({ url, elevation = "raised", className, children, ...props }: BrowserProps) {
 	return (
 		<div
-			className={cn("overflow-hidden rounded-xl border border-border bg-card shadow-sm", className)}
+			data-elevation={elevation}
+			className={cn("overflow-hidden rounded-xl border border-border bg-card", elevation === "hero" ? "shadow-xl" : "shadow-sm", className)}
 			{...props}
 		>
 			<div aria-hidden className="grid h-11 grid-cols-[1fr_minmax(0,28rem)_1fr] items-center gap-3 border-b border-border px-3">

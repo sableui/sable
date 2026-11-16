@@ -163,6 +163,19 @@ export const appShellMeta: ComponentMeta = {
 			description:
 				"How the desktop frame (lg and up) holds the content; below lg both are the same mobile layout with page scroll. \"flush\": main sits on the page beside the rail and the document scrolls. \"inset\": the shell fills the viewport and paints the shell-ground token (one step off the rail's surface, tunable with --theme-shell-ground) behind the rail and around the panel; main becomes a rounded-lg panel with a hairline border and shadow-sm, inset by a spacing step from the window edges, that scrolls inside itself (scrollbar-quiet) while the rail stays put. The Sidebar in the sidebar slot drops its right border and fills the row. main stays the #main-content focus target (tabIndex -1 in both frames, so the skip link lands focus in the scroller) and the inline-size query container; sticky children stick to the panel's top; banners and the dock stay in flow, so the panel's bottom gap sits above a dock. With Sidebar surface=\"page\" the ground is the page colour and the panel's border alone lifts it.",
 		},
+		{
+			name: "mainId",
+			type: "string",
+			default: '"main-content"',
+			description:
+				"The id of the main landmark, which the built-in skip link targets. Change it when another shell on the page already uses main-content (a Workspace nested inside), so the ids do not collide.",
+		},
+		{
+			name: "skipLinkLabel",
+			type: "string",
+			default: '"Skip to content"',
+			description: "Text for the built-in skip link.",
+		},
 	],
 	subcomponents: [
 		{

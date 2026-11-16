@@ -26,6 +26,8 @@ Use Marquee for decorative or ambient continuous content where motion supports t
 | gap | string | "calc(var(--spacing) * 8)" | Gap between items (any CSS length). Use a spacing-scale value (calc(var(--spacing) * n)) so it moves with density. |
 | pauseOnHover | boolean | true | Pause while hovered or keyboard-focused (WCAG 2.2.2). |
 | controls | boolean | false | Render a visible pause/play control — recommended for WCAG 2.2.2 when content auto-scrolls. |
+| pauseLabel | string | "Pause" | Accessible name of the control while the strip moves. |
+| playLabel | string | "Play" | Accessible name of the control while the strip is paused. |
 | fade | boolean | false | Fade the leading/trailing edges with a mask. |
 | label | string | — | Accessible label for the scrolling region. |
 

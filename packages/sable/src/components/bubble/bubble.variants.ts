@@ -61,6 +61,14 @@ export const bubbleVariants = cva(
 				muted: "bg-muted text-foreground",
 				/** The reader's own messages. */
 				primary: "bg-primary text-primary-foreground",
+				/**
+				 * The reader's own messages in a light thread: a wash of the brand
+				 * colour over the surface the thread sits on, where a solid primary
+				 * bubble would make a short conversation read dark and heavy. Opaque
+				 * (mixed, not translucent), so the tail meets it without a seam and
+				 * a reaction chip can step off it.
+				 */
+				tint: "bg-(--bubble-tint) text-foreground [--bubble-tint:color-mix(in_srgb,var(--primary)_6%,var(--sable-surface-bg,var(--background)))]",
 				/** A quieter own-side or a secondary channel. */
 				outline: "border border-border bg-card text-card-foreground",
 				/**
@@ -80,12 +88,12 @@ export const bubbleVariants = cva(
 			},
 		},
 		compoundVariants: [
-			{ variant: ["muted", "primary", "outline"], className: EAR_SPACE },
-			{ align: "start", variant: ["muted", "primary", "outline"], className: "ms-(--bubble-ear)" },
-			{ align: "end", variant: ["muted", "primary", "outline"], className: "me-(--bubble-ear)" },
+			{ variant: ["muted", "primary", "tint", "outline"], className: EAR_SPACE },
+			{ align: "start", variant: ["muted", "primary", "tint", "outline"], className: "ms-(--bubble-ear)" },
+			{ align: "end", variant: ["muted", "primary", "tint", "outline"], className: "me-(--bubble-ear)" },
 			// The speaker-side top corner goes square to meet the tail.
-			{ tail: true, align: "start", variant: ["muted", "primary", "outline"], className: "rounded-ss-none" },
-			{ tail: true, align: "end", variant: ["muted", "primary", "outline"], className: "rounded-se-none" },
+			{ tail: true, align: "start", variant: ["muted", "primary", "tint", "outline"], className: "rounded-ss-none" },
+			{ tail: true, align: "end", variant: ["muted", "primary", "tint", "outline"], className: "rounded-se-none" },
 			// A surfaceless bubble has no surface to hang a tail from.
 			{ variant: "plain", className: "rounded-none" },
 		],
@@ -115,5 +123,59 @@ export const bubbleReactionsVariants = cva(
 			},
 		},
 		defaultVariants: { align: "start" },
+	},
+)
+
+/**
+ * A reaction that sits INSIDE its bubble, under the text. There it is a chip
+ * a faint step off the bubble's own surface: the emoji and the faces are the
+ * content, so the chip only groups them. The reader's own reaction is the same
+ * chip tinted with primary, a step stronger, never a solid block that outweighs
+ * the message above it. The fill is one custom property, mixed from the
+ * bubble's surface, and the avatars of the people who reacted take it as their
+ * separating ring, so they overlap as cut-outs of the chip in every state.
+ */
+export const bubbleReactionVariants = cva(
+	"bg-(--reaction-fill) hover:bg-(--reaction-fill) [--avatar-group-ring:var(--reaction-fill)]",
+	{
+		variants: {
+			/** The bubble the chip stands on. */
+			surface: {
+				muted: "text-foreground hover:text-foreground [--reaction-base:var(--muted)]",
+				tint: "text-foreground hover:text-foreground [--reaction-base:var(--bubble-tint)]",
+				outline: "text-foreground hover:text-foreground [--reaction-base:var(--card)]",
+				plain: "text-foreground hover:text-foreground [--reaction-base:var(--background)]",
+				primary: "text-primary-foreground hover:text-primary-foreground [--reaction-base:var(--primary)]",
+			},
+			active: { true: "", false: "" },
+			/** Avatars end the chip, so it closes tighter around them than around a count. */
+			faces: { true: "gap-1.5 ps-2 pe-1", false: "gap-1.5 px-2.5" },
+		},
+		compoundVariants: [
+			{
+				surface: ["muted", "tint", "outline", "plain"],
+				active: false,
+				className:
+					"[--reaction-fill:color-mix(in_srgb,var(--foreground)_4%,var(--reaction-base))] hover:[--reaction-fill:color-mix(in_srgb,var(--foreground)_8%,var(--reaction-base))]",
+			},
+			{
+				surface: ["muted", "tint", "outline", "plain"],
+				active: true,
+				className:
+					"[--reaction-fill:color-mix(in_srgb,var(--primary)_10%,var(--reaction-base))] hover:[--reaction-fill:color-mix(in_srgb,var(--primary)_14%,var(--reaction-base))]",
+			},
+			{
+				surface: "primary",
+				active: false,
+				className:
+					"[--reaction-fill:color-mix(in_oklab,var(--primary-foreground)_12%,var(--reaction-base))] hover:[--reaction-fill:color-mix(in_oklab,var(--primary-foreground)_18%,var(--reaction-base))]",
+			},
+			{
+				surface: "primary",
+				active: true,
+				className:
+					"[--reaction-fill:color-mix(in_oklab,var(--primary-foreground)_28%,var(--reaction-base))] hover:[--reaction-fill:color-mix(in_oklab,var(--primary-foreground)_34%,var(--reaction-base))]",
+			},
+		],
 	},
 )

@@ -20,6 +20,8 @@ A delete-account card: what deleting removes and what survives, one destructive 
 ## Source
 
 ```tsx
+"use client"
+
 import { useState } from "react"
 import { Button, Card, CardDescription, CardFooter, CardHeader, CardTitle, cn, DestructiveActionModal } from "@sableui/react"
 

@@ -133,3 +133,4 @@ export function CardStack({ children, label, expanded, defaultExpanded = false, 
 		</div>
 	)
 }
+CardStack.displayName = "CardStack"

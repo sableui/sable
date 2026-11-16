@@ -14,6 +14,7 @@ export const authPageMeta: PatternMeta = {
 		"Forgot password sits under the password field, right-aligned, before the submit button — so it comes right after the field in tab order. Field has no label-row action slot yet.",
 		"One primary action. Passkey and email link are outline buttons under an `or` Separator; switching to sign-up is a quiet `link-underline` link.",
 		"Validation uses Field `validate` for product copy instead of the browser's generic required message. A rejected sign-in comes back through Form `errors` on the password field; the submit Button shows `loading` while the request is in flight.",
+		// design-lint-disable-next-line inline-color -- prose naming the relative-colour syntax the artwork uses; no colour is painted from this string
 		"The brand panel artwork is a mesh of the theme's decorative tones over `--primary`, so it re-paints for every theme and mode. The relative-colour `oklch(from var(--tone-*) …)` lift needs an `inline-color` disable with a reason.",
 		"The panel is `hidden lg:flex`: on a phone the form is the whole screen, with no decorative scroll above it.",
 	],

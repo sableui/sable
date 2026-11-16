@@ -3,7 +3,7 @@ import { createRef } from "react"
 import { describe, expect, it } from "vitest"
 import { PresentationProvider } from "../../lib/presentation"
 import { Button } from "../button"
-import { Card, CardAction, CardContent, CardFooter, CardHeader, CardList, CardTitle } from "./card"
+import { Card, CardAction, CardContent, CardFooter, CardHeader, CardList, CardListLabel, CardTitle } from "./card"
 
 describe("Card density", () => {
 	it("defaults to comfortable padding (p-6, on the spacing scale so density moves it)", () => {
@@ -175,6 +175,34 @@ describe("CardHeader", () => {
 		expect(header?.className).toContain("pb-0")
 		expect(header?.className).toContain("last:pb-[var(--card-p,--spacing(6))]")
 	})
+
+	it("divided closes the header with a hairline and its full padding", () => {
+		const { container } = render(
+			<Card>
+				<CardHeader divided>
+					<CardTitle>Assistant</CardTitle>
+				</CardHeader>
+				<CardContent>Transcript</CardContent>
+			</Card>,
+		)
+		const header = container.querySelector("[data-slot=card-header]") as HTMLElement
+		expect(header).toHaveAttribute("data-divided")
+		expect(header.className).toContain("shadow-[inset_0_-1px_0_var(--border)]")
+		// tailwind-merge keeps the later padding, so the header is not left at pb-0.
+		expect(header.className).toContain("pb-[var(--card-p,--spacing(6))]")
+		expect(header.className).not.toMatch(/(^| )pb-0( |$)/)
+	})
+})
+
+describe("Card featured", () => {
+	it("is the raised surface with a primary edge", () => {
+		const { container } = render(<Card variant="featured">Studio</Card>)
+		const card = container.firstElementChild as HTMLElement
+		expect(card.className).toContain("bg-card")
+		expect(card.className).toContain("outline-primary")
+		expect(card.className).toContain("ring-primary")
+		expect(card.className).not.toContain("outline-border")
+	})
 })
 
 describe("Card in a sheet (lib/presentation)", () => {
@@ -271,5 +299,51 @@ describe("CardAction optical alignment", () => {
 		const button = screen.getByRole("button", { name: "View all" })
 		expect(button).toHaveAttribute("data-bleed", "auto")
 		expect(button.parentElement).toHaveClass("*:last:data-[bleed=auto]:-me-(--button-pe,var(--button-px))")
+	})
+})
+
+describe("Card seams", () => {
+	it("draws the footer's hairline and padding after a list, through a visually hidden node", () => {
+		const { container } = render(
+			<Card>
+				<CardList>
+					<div>Row</div>
+				</CardList>
+				<p role="status" className="sr-only" />
+				<CardFooter>Footer</CardFooter>
+			</Card>,
+		)
+		const footer = container.querySelector("[data-slot=card-footer]") as HTMLElement
+		expect(footer.className).toContain("+.sr-only+&]:pt-[var(--card-p,--spacing(6))]")
+		expect(footer.className).toContain("+.sr-only+&]:shadow-[inset_0_1px_0_var(--border)]")
+	})
+
+	it("sets a flush part off from an undivided header", () => {
+		const { container } = render(
+			<Card>
+				<CardHeader>
+					<CardTitle>Orders</CardTitle>
+				</CardHeader>
+				<CardContent flush>Table</CardContent>
+			</Card>,
+		)
+		const content = container.querySelector("[data-slot=card-content]") as HTMLElement
+		expect(content.className).toContain("[[data-slot=card-header]:not([data-divided])+&]:mt-")
+	})
+
+	it("drops the row hairlines for a quiet list, and rules off a labelled group", () => {
+		const { container } = render(
+			<Card>
+				<CardList divided={false}>
+					<div>Row</div>
+					<CardListLabel render={<h3 />}>Devices</CardListLabel>
+					<div>Row</div>
+				</CardList>
+			</Card>,
+		)
+		const list = container.querySelector("[data-slot=card-list]") as HTMLElement
+		expect(list.className).not.toContain("[&>*+*]:shadow-")
+		expect(list.className).toContain("[&>[data-slot=card-list-label]:not(:first-child)]:shadow-[inset_0_1px_0_var(--border)]")
+		expect(container.querySelector("h3[data-slot=card-list-label]")?.textContent).toBe("Devices")
 	})
 })

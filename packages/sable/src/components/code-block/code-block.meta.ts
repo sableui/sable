@@ -78,6 +78,18 @@ export const codeBlockMeta: ComponentMeta = {
 			default: "false",
 			description: "Wrap long lines instead of scrolling them. For prose in a code face (a prompt to paste into an agent, a log line); code keeps scrolling, since wrapping breaks its indentation.",
 		},
+		{
+			name: "copyLabel",
+			type: "string",
+			default: '"Copy code" ("Copy command" with prompt)',
+			description: "Accessible name of the copy button. Its 32px box keeps a 44px touch target under a coarse pointer.",
+		},
+		{
+			name: "copiedLabel",
+			type: "string",
+			default: '"Copied"',
+			description: "Announced through a polite live region once the code is copied.",
+		},
 	],
 	subcomponents: [
 		{

@@ -1,11 +1,16 @@
+"use client"
+
 import { Progress as Base } from "@base-ui/react/progress"
 import { type ComponentProps, createContext, useContext } from "react"
 import { cn } from "../../lib/cn"
+import { SLIDE_FILL, slideFillStyle } from "../../lib/slide-fill"
 import { progressTrackVariants } from "./progress.variants"
 
 export type ProgressSize = "sm" | "md" | "lg"
 
 const SizeContext = createContext<ProgressSize | undefined>(undefined)
+/** The reading, so the indicator can slide its fill rather than resize it. */
+const RangeContext = createContext<{ value: number | null; min?: number; max?: number } | null>(null)
 
 /**
  * Progress — themed wrapper over Base UI's Progress (Root + Track + Indicator,
@@ -56,9 +61,11 @@ export function Progress({
 }: RootProps) {
 	return (
 		<SizeContext.Provider value={size}>
-			<Base.Root value={value} className={cn("w-full", className)} {...props}>
-				{children ?? <ProgressTrack />}
-			</Base.Root>
+			<RangeContext.Provider value={{ value, min: props.min, max: props.max }}>
+				<Base.Root value={value} className={cn("w-full", className)} {...props}>
+					{children ?? <ProgressTrack />}
+				</Base.Root>
+			</RangeContext.Provider>
 		</SizeContext.Provider>
 	)
 }
@@ -92,17 +99,23 @@ type IndicatorProps = Omit<ComponentProps<typeof Base.Indicator>, "className"> &
 }
 
 /**
- * The filled portion. Base UI sets its width from the value; for the
- * indeterminate state (no width) we span the full track and pulse it.
+ * The filled portion: a full-width fill slid in from the start edge to the
+ * value, so a change animates `translate` rather than re-running layout per
+ * frame on `width` (see lib/slide-fill). For the indeterminate state we span
+ * the full track and pulse it.
  */
-export function ProgressIndicator({ className, ...props }: IndicatorProps) {
+export function ProgressIndicator({ className, style, ...props }: IndicatorProps) {
+	const range = useContext(RangeContext)
+	const slide = range ? slideFillStyle(range.value, range.min, range.max) : undefined
 	return (
 		<Base.Indicator
 			className={cn(
-				"h-full rounded-full bg-primary transition-[width] duration-(--motion-duration-slower) ease-decelerate",
+				"h-full rounded-full bg-primary transition-[translate] duration-(--motion-duration-slower) ease-decelerate",
+				slide && SLIDE_FILL,
 				"data-[indeterminate]:w-full data-[indeterminate]:motion-pulse",
 				className,
 			)}
+			style={slide && typeof style !== "function" ? { ...slide, ...style } : style}
 			{...props}
 		/>
 	)

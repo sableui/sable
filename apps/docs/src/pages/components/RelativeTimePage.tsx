@@ -53,6 +53,17 @@ export function RelativeTimePage() {
 				</Example>
 			</Section>
 
+			<Section
+				title="Measured from a fixed instant"
+				description="Pass now to measure from a known instant rather than the reader's clock. On a server-rendered page, use the request time on both server and client, and the words match, so the page hydrates without a mismatch."
+			>
+				<Example code="<TooltipProvider><RelativeTime date={post.createdAt} now={requestTime} /></TooltipProvider>">
+					<TooltipProvider>
+						<RelativeTime date={hoursAgo} now={BASE} />
+					</TooltipProvider>
+				</Example>
+			</Section>
+
 			<MetaFooter meta={relativeTimeMeta} />
 		</>
 	)

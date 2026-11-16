@@ -60,6 +60,18 @@ export const showMoreMeta: ComponentMeta = {
 			type: "ReactNode",
 			description: "The content to collapse and reveal.",
 		},
+		{
+			name: "moreLabel",
+			type: "string",
+			default: '"Show more"',
+			description: "The toggle's text while collapsed.",
+		},
+		{
+			name: "lessLabel",
+			type: "string",
+			default: '"Show less"',
+			description: "The toggle's text while expanded.",
+		},
 	],
 	tokensUsed: ["background", "foreground", "ring"],
 	motion: [

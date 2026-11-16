@@ -39,7 +39,7 @@ Use Breadcrumbs to show the user's location inside a hierarchy and provide light
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| Breadcrumbs | ComponentPropsWithRef<'nav'> | — | The trail root. Renders <nav aria-label="Breadcrumb"> around a flex <ol>. Pass the crumb parts as children. |
+| Breadcrumbs | ComponentPropsWithRef<'nav'> | — | The trail root. Renders <nav aria-label="Breadcrumb"> around a flex <ol>; pass aria-label to translate the landmark name. Pass the crumb parts as children. |
 
 ## Tokens used
 

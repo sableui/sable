@@ -15,13 +15,15 @@ Use RelativeTime to show recent activity or timestamps in conversational relativ
 - Do: Use it for feeds, audit summaries, comments, and activity streams.
 - Do: Expose the exact timestamp when precision matters.
 - Don't: Do not use RelativeTime as the only date format for legal, billing, or audit-critical records.
-- Don't: Do not render it during SSR without a stable absolute fallback. "2 minutes ago" computed on the server differs from the client's value, which is a hydration mismatch — and it silently drifts as the page sits open.
+- Don't: Do not server-render it without passing now. "2 minutes ago" computed on the server differs from the client's value; pass the same now (a request timestamp from your loader) to both renders so they agree. Without now the <time> suppresses the hydration warning and the words drift as the page sits open.
 
 ## Props
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| date | Date \| string \| number | — | The instant to render. Accepts a Date, an ISO/parseable string, or an epoch number (ms). Coerced to a Date for date-fns. |
+| date | Date \| string \| number | — | The instant to render. Accepts a Date, an ISO/parseable string, or an epoch number (ms). Coerced to a Date for date-fns. A value that does not parse renders as its own text, with no tooltip and no dateTime, instead of throwing. |
+| now | Date \| number | Date.now() | The instant "ago" is measured from. Pass the same value on the server and the client so both render the same words and the page hydrates cleanly; leave it out to measure from the reader's clock. |
+| locale | Locale (date-fns) | en-US | A date-fns locale for the relative words and the absolute time in the tooltip (import { fr } from "date-fns/locale"). |
 | className | string | — | Merged onto the <time> trigger element (the visible relative label). |
 | ...time props | Omit<ComponentPropsWithRef<"time">, "dateTime" \| "children"> | — | Remaining native <time> attributes pass through to the trigger. dateTime is set automatically from the parsed ISO value. |
 
@@ -65,4 +67,12 @@ import { RelativeTime, TooltipProvider } from "@sableui/react"
 import { RelativeTime, TooltipProvider } from "@sableui/react"
 
 <TooltipProvider><RelativeTime date="2025-04-29T16:05:12Z" /></TooltipProvider>
+```
+
+### Server-rendered, measured from the request
+
+```tsx
+import { RelativeTime, TooltipProvider } from "@sableui/react"
+
+<TooltipProvider><RelativeTime date={post.createdAt} now={requestTime} /></TooltipProvider>
 ```

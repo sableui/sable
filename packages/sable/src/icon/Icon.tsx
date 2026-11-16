@@ -1,3 +1,5 @@
+"use client"
+
 import { useIconSet } from "./IconProvider"
 import { nearestIconNames, resolveIconAlias } from "./names"
 import type { IconVariant } from "./registry"

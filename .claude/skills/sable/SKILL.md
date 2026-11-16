@@ -20,10 +20,11 @@ follow it for the user's request. Use that package's `bin/sable.mjs` for retriev
 In the Sable monorepo, read `packages/sable/skills/sable/SKILL.md` directly.
 
 If the package is missing, install `@sableui/react` from npm with the project's
-package manager.
-Read the installed registry's `consume` block and `AGENTS.md` to wire React,
-Tailwind, CSS source scanning, and fonts. Do not fetch an unrelated public package
-named `sable` or `sable-ui`. Explain missing access and continue
+package manager, then run `<package manager> exec sable init` from the app root
+(for example `pnpm exec sable init`). It wires the CSS, Tailwind and React, the
+fonts and the required `IconProvider` (or prints those steps with the file they
+belong in), installs this skill, and runs `sable doctor`. Do not fetch an
+unrelated public package named `sable` or `sable-ui`. Explain missing access and continue
 independent brief work when installation is blocked.
 
 Primary modes are `build <idea> [using <preset>]`, `inspire <references or brief>`,

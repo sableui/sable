@@ -27,7 +27,7 @@ The tinted (or untinted) surface a turn's content sits on. Kept separate from Me
 | Part | Required | Description |
 | --- | --- | --- |
 | Bubble | yes | The surface itself. Holds the variant, the side, and the tail. |
-| BubbleReactions | no | The row of reaction pills, just under the bubble at the message column's small gap, so it reads as belonging to that message rather than the next row. |
+| BubbleReactions | no | The row of reaction pills. Under the bubble it sits at the message column's small gap, so it reads as belonging to that message; as the bubble's last child it sits inside, under the text, and the pills become soft chips. |
 | BubbleReaction | no | One reaction pill — emoji, count (hidden at 1), and pressed state. Celebrates when it becomes the reader's own. |
 | BubbleReactionAdd | no | The add-reaction pill at the end of the row: opens a ReactionPicker above it. |
 
@@ -36,21 +36,21 @@ The tinted (or untinted) surface a turn's content sits on. Kept separate from Me
 | Name | Type | Description |
 | --- | --- | --- |
 | BubbleReactions | { align?: "start" \| "end" } & ComponentPropsWithRef<"div"> | Row container for reaction pills. Match `align` to the Bubble so the row hangs off the same edge. |
-| BubbleReaction | { emoji: ReactNode; label?: string; count?: number; active?: boolean; motion?: MotionLevel } & ComponentPropsWithRef<"button"> | One reaction pill. A toggle, not a label: `active` drives `aria-pressed` as well as the styling, `label` names it ("Party, 3"), and `count` is hidden at 1 because the pill already says "one". When it turns on — pressed, or newly added already on — the emoji blooms, copies of it burst out and the count rolls; pills the page loads with stay still. |
+| BubbleReaction | { emoji: ReactNode; label?: string; count?: number; active?: boolean; avatars?: ReactNode; motion?: MotionLevel } & ComponentPropsWithRef<"button"> | One reaction pill. A toggle, not a label: `active` drives `aria-pressed` as well as the styling, `label` names it ("Party, 3"), and `count` is hidden at 1 because the pill already says "one". When it turns on — pressed, or newly added already on — the emoji blooms, copies of it burst out and the count rolls; pills the page loads with stay still. `avatars` takes the Avatars of the people who reacted: with up to three the pill shows their faces in place of the count, past three the count (`count` defaults to their number). Inside a Bubble the pill is a soft chip a faint step off the bubble, tinted with primary when it is the reader's own. |
 | BubbleReactionAdd | { reactions?: Reaction[]; selected?: string[]; onSelect?: (emoji: string) => void; label?: string; motion?: MotionLevel } & ComponentPropsWithRef<"button"> | The add-reaction pill: a smiley that opens a ReactionPicker above it. Choosing an emoji closes the picker and calls `onSelect`; add the emoji to the row and its new pill celebrates on arrival. |
 
 ## Props
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| variant | "muted" \| "primary" \| "outline" \| "plain" | "muted" | Surface treatment. `muted` for the other party, `primary` for the reader's own messages, `outline` for a quieter own-side, `plain` for long-form output that should not sit in a box (also drops the measure cap and padding). |
+| variant | "muted" \| "primary" \| "tint" \| "outline" \| "plain" | "muted" | Surface treatment. `muted` for the other party, `primary` for the reader's own messages, `tint` for the reader's own in a light thread (a wash of the brand colour over the thread's surface), `outline` for a quieter own-side, `plain` for long-form output that should not sit in a box (also drops the measure cap and padding). |
 | align | "start" \| "end" | "start" | Which side of the conversation the bubble is on — puts the tail on the speaker's side. Match it to the enclosing Message. |
 | tail | boolean | true | Draw the tail: a small ear off the speaker-side top corner, which goes square to meet it. The same 5px in every theme's radius language, flat through fully pilled. The bubble keeps the ear's space either way, so turning it off for the continuation bubbles in a grouped run keeps the run aligned. |
 | ...div props | ComponentPropsWithRef<"div"> | — | Spread onto the surface element. |
 
 ## Variants
 
-- **variant**: muted, primary, outline, plain
+- **variant**: muted, primary, tint, outline, plain
 - **align**: start, end
 - **tail**: true, false
 

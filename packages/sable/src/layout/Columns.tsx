@@ -12,7 +12,7 @@ export interface ColumnsProps extends ComponentPropsWithRef<"div"> {
 	 */
 	count?: Responsive<number>
 	/**
-	 * Gap between columns and rows. Number = rhythm units (×8px); string = raw
+	 * Gap between columns and rows. Number = rhythm units (one baseline step each — 8px at Sable's default type, two Tailwind spacing steps, so gap={2} is gap-4); string = raw
 	 * CSS. Default `--grid-gutter`. The column gap is capped so the `count - 1`
 	 * gaps together never exceed 75% of the track's width (see `columnGap`).
 	 */

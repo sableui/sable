@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-Styled native table subcomponents (Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption). Horizontally scrollable frame, hairline row borders, hover-lift, and selectable rows via data-selected.
+Styled native table subcomponents (Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption). Horizontally scrollable frame, hairline row borders, hover-lift, selectable rows via data-selected, and sortable column headers (TableHead sortable).
 
 **Keywords:** table, data table, rows, columns, grid, caption, header, cell, tabular
 
@@ -36,7 +36,7 @@ Use Table for structured data with consistent columns and rows. Use DataTable wh
 | TableBody | ComponentPropsWithRef<"tbody"> | The data row group (tbody). |
 | TableFooter | ComponentPropsWithRef<"tfoot"> | Summary row group (tfoot) with a muted fill. |
 | TableRow | ComponentPropsWithRef<"tr"> | A row (tr) — hairline bottom border, hover lift, and a selected state via the data-selected attribute. |
-| TableHead | ComponentPropsWithRef<"th"> & { numeric?: boolean } | A column header cell (th) in muted label styling. `numeric` marks a number column: end-aligned, tabular figures — set it on the column's cells too. |
+| TableHead | ComponentPropsWithRef<"th"> & { numeric?: boolean; sortable?: boolean; sortDirection?: "asc" \| "desc" \| null; onSort?: () => void } | A column header cell (th) in muted label styling. `numeric` marks a number column: end-aligned, tabular figures — set it on the column's cells too. `sortable` turns the header's content into the sort control: a ghost button on the column's text edge that calls `onSort`, with one chevron that rotates for `sortDirection` (resting at 60% when unsorted; leading in a numeric column) and `aria-sort` on the cell. The table does not sort — order the rows in `onSort`, or use DataTable, which renders this part. |
 | TableCell | ComponentPropsWithRef<"td"> & { numeric?: boolean } | A data cell (td). `numeric` end-aligns it with tabular figures, matching its column's header. |
 | TableCaption | ComponentPropsWithRef<"caption"> | Accessible description of the table (caption), muted. |
 
@@ -55,6 +55,7 @@ Use Table for structured data with consistent columns and rows. Use DataTable wh
 - **arrival** · Root · _no motion_ — A table renders with the page it sits in. Staggering rows in delays reading data someone opened to scan.
 - **response** · TableRow · `motion-interactive` — Body rows ease to a muted wash under the pointer. Across a wide row, the wash is what keeps the eye on the right line, and eased it follows the cursor down the table rather than strobing.
 - **transition** · TableCell · `motion-interactive` — A `data-selected` row's fill eases in on every cell together, so the selected row reads as one band being set rather than a stamp.
+- **transition** · TableHead sort chevron · `motion-interactive` — A sortable header's one chevron turns between ascending and descending, so the reader sees the same column reverse rather than a different glyph land in its place.
 - **activity** · Root · _no motion_ — Table is markup. Loading rows are Skeletons, which carry the shimmer.
 
 ## Accessibility
@@ -62,6 +63,7 @@ Use Table for structured data with consistent columns and rows. Use DataTable wh
 - Renders semantic native table elements (thead/tbody/tfoot/th/td/caption) preserving built-in table semantics.
 - Use TableHead (th) for column headers and TableCaption for an accessible description.
 - Mark the active row with the data-selected attribute for a visible selected state.
+- A sortable TableHead is a real <button> inside the th, and the th carries aria-sort=ascending/descending while it is the sort.
 
 ## Related
 
@@ -100,6 +102,34 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { Avatar, Badge, Button, Row, Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@sableui/react"
 
 <Table><TableCaption>Deployments</TableCaption><TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Status</TableHead><TableHead>Owner</TableHead><TableHead className="text-end">Actions</TableHead></TableRow></TableHeader><TableBody><TableRow data-selected><TableCell>Catalog API</TableCell><TableCell><Badge appearance="plain" tone="warning" dot pulse>Building</Badge></TableCell><TableCell><Row gap={1}><Avatar fallback="NR" alt="Nova Reed" size="sm" /><span>Nova</span></Row></TableCell><TableCell className="text-end"><Button size="sm" variant="ghost">View</Button></TableCell></TableRow></TableBody></Table>
+```
+
+### Sortable headers
+
+```tsx
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@sableui/react"
+
+const [sort, setSort] = useState<{ key: string; direction: "asc" | "desc" } | null>(null)
+const next = (key: string) =>
+	setSort((s) => (s?.key !== key ? { key, direction: "asc" } : s.direction === "asc" ? { key, direction: "desc" } : null))
+const dir = (key: string) => (sort?.key === key ? sort.direction : null)
+
+<Table>
+	<TableHeader>
+		<TableRow>
+			<TableHead sortable sortDirection={dir("customer")} onSort={() => next("customer")}>Customer</TableHead>
+			<TableHead numeric sortable sortDirection={dir("paid")} onSort={() => next("paid")}>Paid</TableHead>
+		</TableRow>
+	</TableHeader>
+	<TableBody>
+		{sortOrders(orders, sort).map((o) => (
+			<TableRow key={o.id}>
+				<TableCell>{o.customer}</TableCell>
+				<TableCell numeric>{o.paid}</TableCell>
+			</TableRow>
+		))}
+	</TableBody>
+</Table>
 ```
 
 ### Flush in a card

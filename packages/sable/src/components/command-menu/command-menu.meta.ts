@@ -206,6 +206,24 @@ export const commandMenuMeta: ComponentMeta = {
 			description: "Copy shown when the query matches nothing.",
 		},
 		{
+			name: "searchLabel",
+			type: "string",
+			default: '"Command search"',
+			description: "Accessible name of the search field. inputProps[\"aria-label\"] still wins when both are set.",
+		},
+		{
+			name: "clearLabel",
+			type: "string",
+			default: '"Clear search"',
+			description: "Accessible name of the clear button shown while there is a query.",
+		},
+		{
+			name: "resultCountLabel",
+			type: "(count: number) => string",
+			default: '(count) => count === 0 ? "No results" : `${count} result${count === 1 ? "" : "s"}`',
+			description: "What the polite live region announces after the list changes. Translate the whole phrase, plural included.",
+		},
+		{
 			name: "title",
 			type: "string",
 			default: '"Command menu"',
@@ -247,9 +265,9 @@ export const commandMenuMeta: ComponentMeta = {
 		},
 		{
 			name: "CommandMenuPanel",
-			type: "{ items?: CommandItem[]; query?: string; onQueryChange?: (query: string) => void; filter?: CommandFilter; listClassName?: string; placeholder?: string; emptyMessage?: string; title?: string; scope?: ReactNode; inputProps?: ComponentProps<'input'>; className?: string; children?: ReactNode }",
+			type: "{ items?: CommandItem[]; query?: string; onQueryChange?: (query: string) => void; filter?: CommandFilter; listClassName?: string; placeholder?: string; emptyMessage?: string; title?: string; scope?: ReactNode; inputProps?: ComponentProps<'input'>; elevation?: 'resting' | 'raised'; className?: string; children?: ReactNode }",
 			description:
-				"The palette rendered in place: the same search header, filtered and grouped listbox, keyboard model and result-count live region, on a static card (border-border, bg-card, no shadow) instead of in a Dialog. Takes every CommandMenu prop except open, onOpenChange, finalFocus and description; className lands on the card, title names the listbox. Focus is not trapped and the input does not take focus on mount (inputProps.autoFocus opts in). Esc clears the query, and passes through once it is empty, so a Popover around the panel still closes. A chosen row runs its onSelect and the panel stays as it was. The page-wide shortcut does not fire from its input.",
+				"The palette rendered in place: the same search header, filtered and grouped listbox, keyboard model and result-count live region, on a static card (border-border, bg-card, no shadow) instead of in a Dialog. `elevation=\"raised\"` adds the card's soft resting shadow, for a palette shown as a card among cards; never a shadow-* className, and a palette that should float goes in a Popover. Takes every CommandMenu prop except open, onOpenChange, finalFocus and description; className lands on the card, title names the listbox. Focus is not trapped and the input does not take focus on mount (inputProps.autoFocus opts in). Esc clears the query, and passes through once it is empty, so a Popover around the panel still closes. A chosen row runs its onSelect and the panel stays as it was. The page-wide shortcut does not fire from its input.",
 		},
 		{
 			name: "CommandMenuGroup",

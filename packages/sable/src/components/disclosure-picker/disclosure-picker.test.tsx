@@ -411,3 +411,68 @@ describe("DisclosurePicker", () => {
 		expect(getByRole("button", { name: "Value" })).toHaveAttribute("aria-expanded", "false")
 	})
 })
+
+describe("DisclosurePicker in a form", () => {
+	function Named({ required, initial = "Medium" }: { required?: boolean; initial?: string }) {
+		const [value, setValue] = useState(initial)
+		return (
+			<form data-testid="form">
+				<DisclosurePicker name="size" value={value} required={required}>
+					<DisclosurePickerTrigger label="Size">{value || "Choose"}</DisclosurePickerTrigger>
+					<DisclosurePickerPanel>
+						<DisclosurePickerList aria-label="Size" value={value} onValueChange={setValue}>
+							{SIZES.map((name) => (
+								<DisclosurePickerOption key={name} value={name}>
+									{name}
+								</DisclosurePickerOption>
+							))}
+						</DisclosurePickerList>
+					</DisclosurePickerPanel>
+				</DisclosurePicker>
+			</form>
+		)
+	}
+
+	it("submits the chosen value under its name, open or closed", () => {
+		const { getByTestId, getByRole } = render(<Named />)
+		const form = getByTestId("form") as HTMLFormElement
+		// Closed: the list (which holds the value) is not mounted, the value still submits.
+		expect(new FormData(form).get("size")).toBe("Medium")
+		fireEvent.click(trigger(getByRole))
+		fireEvent.click(getByRole("option", { name: "Large" }))
+		expect(new FormData(form).get("size")).toBe("Large")
+	})
+
+	it("blocks submission while required and empty, without entering the tab order", () => {
+		const { getByTestId } = render(<Named required initial="" />)
+		const form = getByTestId("form") as HTMLFormElement
+		expect(form.checkValidity()).toBe(false)
+		const input = form.querySelector("input[name=size]") as HTMLInputElement
+		expect(input).toHaveAttribute("tabindex", "-1")
+		expect(input).toHaveAttribute("aria-hidden", "true")
+	})
+
+	it("gives a Field's id and description to the trigger, the labelable control", () => {
+		const { getByRole, container } = render(
+			<DisclosurePicker id="size-row" aria-describedby="size-help" aria-invalid>
+				<DisclosurePickerTrigger label="Size">Medium</DisclosurePickerTrigger>
+			</DisclosurePicker>,
+		)
+		const button = trigger(getByRole)
+		expect(button).toHaveAttribute("id", "size-row")
+		expect(button).toHaveAttribute("aria-describedby", "size-help")
+		expect(button).toHaveAttribute("aria-invalid", "true")
+		expect(container.querySelectorAll("#size-row")).toHaveLength(1)
+	})
+
+	it("stands on the sm rung, one step below md", () => {
+		const { getByRole } = render(
+			<DisclosurePicker size="sm">
+				<DisclosurePickerTrigger label="Size">Medium</DisclosurePickerTrigger>
+			</DisclosurePicker>,
+		)
+		const button = trigger(getByRole)
+		expect(button.className).toContain("h-(--control-sm)")
+		expect(button.className).not.toContain("h-(--control-md)")
+	})
+})

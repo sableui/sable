@@ -14,6 +14,10 @@ apps/docs/public/credits.md
 apps/docs/public/whats-new.md
 apps/docs/public/licenses/
 apps/docs/public/THIRD_PARTY_NOTICES.md
+apps/docs/public/AGENTS.md
+apps/docs/public/CONTRIBUTING.md
+apps/docs/public/DESIGN.md
+apps/docs/public/registry.json
 apps/docs/public/third-party/
 
 # apps/docs/scripts/sync-guides.mjs copies these from packages/sable on every predev/prebuild

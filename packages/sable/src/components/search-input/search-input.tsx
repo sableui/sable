@@ -1,3 +1,5 @@
+"use client"
+
 import { type ComponentPropsWithRef, useState } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
@@ -86,6 +88,8 @@ export interface SearchInputProps
 	 * fires `onValueChange("")` so a controlled value resets to empty.
 	 */
 	onClear?: () => void
+	/** The clear button's accessible name. @default "Clear search" */
+	clearLabel?: string
 }
 
 /**
@@ -104,6 +108,7 @@ export function SearchInput({
 	defaultValue,
 	onValueChange,
 	onClear,
+	clearLabel = "Clear search",
 	placeholder = "Search",
 	className,
 	inputClassName,
@@ -178,7 +183,7 @@ export function SearchInput({
 						variant="ghost"
 						size="icon-xs"
 						onClick={handleClear}
-						aria-label="Clear search"
+						aria-label={clearLabel}
 						className={cn("text-muted-foreground hover:text-foreground", rung.button)}
 					>
 						<Icon name="xmark" />

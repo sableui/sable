@@ -3,6 +3,7 @@
 import type { ComponentPropsWithRef } from "react"
 import { useEffect, useRef } from "react"
 import { cn } from "../../lib/cn"
+import { onThemeChange } from "../../lib/on-theme-change"
 import { useMotion } from "../../motion/MotionProvider"
 import {
 	ORB_PX,
@@ -54,16 +55,48 @@ const ORB_BOX: Record<OrbSize, string> = {
 const STILL_T = 0.6
 /** Retina is worth it; beyond 2× is paying for pixels nobody can resolve. */
 const MAX_DPR = 2
+/**
+ * Frames between re-reads of the inherited ink while animating. A theme or
+ * mode change re-reads it at once (onThemeChange); this catches an ancestor's
+ * own `text-*` changing, which no observer reports, within half a second.
+ */
+const INK_REFRESH_FRAMES = 30
+
+/*
+ * One animation loop for every orb on the page. Each orb used to run its own
+ * requestAnimationFrame chain; a chat with an orb per pending row paid one
+ * callback and one style read per orb per frame. Orbs join while visible and
+ * leave when they scroll away, pause, or unmount; the loop stops when none
+ * are left.
+ */
+const ticking = new Set<(now: number) => void>()
+let tickFrame = 0
+function loop(now: number) {
+	for (const tick of ticking) tick(now)
+	tickFrame = ticking.size ? requestAnimationFrame(loop) : 0
+}
+function joinTicker(tick: (now: number) => void) {
+	ticking.add(tick)
+	if (!tickFrame) tickFrame = requestAnimationFrame(loop)
+}
+function leaveTicker(tick: (now: number) => void) {
+	ticking.delete(tick)
+	if (!ticking.size && tickFrame) {
+		cancelAnimationFrame(tickFrame)
+		tickFrame = 0
+	}
+}
 
 /**
  * ThinkingOrb — a canvas dot-cloud "agent is thinking" indicator.
  *
  * Three modes (`orbit` / `globe` / `mesh`), each a point cloud generated per
  * frame from pure math and painted back-to-front as arcs. No Base UI, no icon
- * dependency, no animation library: one `requestAnimationFrame` loop and a 2D
- * context. Ink comes from the canvas's own computed `color`, so the orb inherits
- * the surrounding text color — set it with a semantic `text-*` utility on
- * `className`, exactly like `Spinner`.
+ * dependency, no animation library: one `requestAnimationFrame` loop shared by
+ * every orb on the page, and a 2D context. Ink comes from the canvas's own
+ * computed `color`, so the orb inherits the surrounding text color — set it
+ * with a semantic `text-*` utility on `className`, exactly like `Spinner`. It
+ * is read on mount, on resize and on a theme or mode change, not per frame.
  *
  * It is a `role="status"` live region wrapping an `aria-hidden` canvas, so the
  * wait is announced rather than being invisible to a screen reader.
@@ -109,13 +142,16 @@ export function ThinkingOrb({
 		const tuning = orbTuning(mode, size)
 		const rate = tuning.speed * speed
 
+		// Canvas accepts any CSS color string, so a token resolving to a
+		// wide-gamut color needs no parsing here. Cached: a computed-style read
+		// per frame forces a style pass whenever anything on the page is dirty.
+		let ink = ""
+		const readInk = () => {
+			ink = globalThis.getComputedStyle(canvas).color
+		}
+		readInk()
+
 		const draw = (t: number) => {
-			// Resolved every frame rather than cached: `color` is a token the theme
-			// can change under us (mode flip, theme switch, or just a different
-			// text-* on an ancestor), and re-reading it is far cheaper than the arc
-			// fills that follow. Canvas accepts any CSS color string, so a token
-			// resolving to a wide-gamut color needs no parsing here.
-			const ink = globalThis.getComputedStyle(canvas).color
 			ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
 			ctx.clearRect(0, 0, px, px)
 			ctx.fillStyle = ink
@@ -128,30 +164,30 @@ export function ThinkingOrb({
 				? null
 				: new ResizeObserver(() => {
 						fit()
+						readInk()
 						if (!enabled || paused) draw(STILL_T)
 					})
 		resizer?.observe(canvas)
+		const offTheme = onThemeChange(() => {
+			readInk()
+			if (!enabled || paused) draw(STILL_T)
+		})
 
 		if (!enabled || paused) {
 			draw(STILL_T)
-			return () => resizer?.disconnect()
+			return () => {
+				offTheme()
+				resizer?.disconnect()
+			}
 		}
 
-		let frame = 0
-		let running = false
-		const tick = () => {
-			draw((performance.now() / 1000) * rate)
-			if (running) frame = requestAnimationFrame(tick)
+		let frames = 0
+		const tick = (now: number) => {
+			if (++frames % INK_REFRESH_FRAMES === 0) readInk()
+			draw((now / 1000) * rate)
 		}
-		const start = () => {
-			if (running) return
-			running = true
-			frame = requestAnimationFrame(tick)
-		}
-		const stop = () => {
-			running = false
-			cancelAnimationFrame(frame)
-		}
+		const start = () => joinTicker(tick)
+		const stop = () => leaveTicker(tick)
 
 		draw((performance.now() / 1000) * rate)
 
@@ -177,11 +213,13 @@ export function ThinkingOrb({
 
 		return () => {
 			stop()
+			offTheme()
 			observer?.disconnect()
 			resizer?.disconnect()
 			document.removeEventListener("visibilitychange", onVisibility)
 		}
-	}, [mode, size, speed, paused, enabled])
+		// className: a new text-* changes the ink, so it is read again.
+	}, [mode, size, speed, paused, enabled, className])
 
 	return (
 		<span

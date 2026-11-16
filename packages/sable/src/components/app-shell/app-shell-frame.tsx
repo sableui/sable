@@ -22,6 +22,7 @@ const AppShellFrameContext = createContext<AppShellFrame | null>(null)
 export function AppShellFrameProvider({ frame, children }: { frame: AppShellFrame; children?: ReactNode }) {
 	return <AppShellFrameContext.Provider value={frame}>{children}</AppShellFrameContext.Provider>
 }
+AppShellFrameProvider.displayName = "AppShellFrameProvider"
 
 /** The frame of the AppShell whose `sidebar` slot this renders in, or `null` outside one. */
 export function useAppShellFrame(): AppShellFrame | null {

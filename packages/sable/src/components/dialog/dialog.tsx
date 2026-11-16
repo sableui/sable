@@ -1,8 +1,11 @@
+"use client"
+
 import { AlertDialog as AlertBase } from "@base-ui/react/alert-dialog"
 import { Dialog as Base } from "@base-ui/react/dialog"
 import { type ComponentProps, useMemo } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
+import { hitTargetTouch } from "../../lib/hit-target"
 import { FocusReturnProvider, useFocusReturn, useFocusReturnDefault } from "../../lib/focus-return"
 import { withPortalThemeScope } from "../../lib/portal-theme-scope"
 import { PresentationProvider } from "../../lib/presentation"
@@ -46,6 +49,7 @@ export function Dialog<Payload = unknown>({ open, onOpenChange, ...props }: Base
 		</FocusReturnProvider>
 	)
 }
+Dialog.displayName = "Dialog"
 export const DialogTrigger = Base.Trigger
 export const DialogClose = Base.Close
 export const DialogPortal = withPortalThemeScope(Base.Portal)
@@ -84,6 +88,7 @@ export function DialogOverlay({ className, size = "default", ...props }: Overlay
 		/>
 	)
 }
+DialogOverlay.displayName = "DialogOverlay"
 
 type PopupProps = Omit<ComponentProps<typeof Base.Popup>, "className"> & {
 	className?: string
@@ -102,6 +107,8 @@ type PopupProps = Omit<ComponentProps<typeof Base.Popup>, "className"> & {
 	 * footer chrome and the button is the only visible way out besides Esc.
 	 */
 	showCloseButton?: boolean
+	/** The built-in close button's accessible name. @default "Close" */
+	closeLabel?: string
 	/**
 	 * Wrap the children in a scrolling region so content taller than the viewport
 	 * cap scrolls instead of being clipped. Turn it off only when the dialog owns
@@ -154,11 +161,13 @@ export function DialogContent({
 		/>
 	)
 }
+DialogContent.displayName = "DialogContent"
 
 function FullscreenContent({
 	className,
 	children,
 	showCloseButton,
+	closeLabel = "Close",
 	keepMounted,
 	...props
 }: Omit<PopupProps, "size" | "scroll">) {
@@ -188,8 +197,8 @@ function FullscreenContent({
 							<Button
 								variant="floating"
 								size="icon"
-								aria-label="Close"
-								className="absolute right-[max(--spacing(4),env(safe-area-inset-right))] top-[max(--spacing(4),env(safe-area-inset-top))] z-10"
+								aria-label={closeLabel}
+								className={`${hitTargetTouch} absolute right-[max(--spacing(4),env(safe-area-inset-right))] top-[max(--spacing(4),env(safe-area-inset-top))] z-10`}
 							/>
 						}
 					>
@@ -205,6 +214,7 @@ function CardContent({
 	className,
 	children,
 	showCloseButton,
+	closeLabel = "Close",
 	scroll,
 	keepMounted,
 	size,
@@ -263,8 +273,10 @@ function CardContent({
 							<Button
 								variant="ghost"
 								size="icon-sm"
-								aria-label="Close"
-								className="absolute end-4 top-4 text-muted-foreground"
+								aria-label={closeLabel}
+								// The touch target grows past the 32px box (it stands alone in
+								// the corner); `absolute` comes after it so it wins the merge.
+								className={`${hitTargetTouch} absolute end-4 top-4 text-muted-foreground`}
 							/>
 						}
 					>
@@ -287,6 +299,7 @@ export function DialogTitle({ className, ...props }: TitleProps) {
 		/>
 	)
 }
+DialogTitle.displayName = "DialogTitle"
 
 type DescriptionProps = Omit<
 	ComponentProps<typeof Base.Description>,
@@ -300,6 +313,7 @@ export function DialogDescription({ className, ...props }: DescriptionProps) {
 		/>
 	)
 }
+DialogDescription.displayName = "DialogDescription"
 
 export function DialogHeader({
 	className,
@@ -310,6 +324,7 @@ export function DialogHeader({
 	// anything else in the dialog.
 	return <div data-slot="dialog-header" className={cn("mb-4 flex flex-col gap-1.5 [[data-slot=stack]>&]:mb-0", className)} {...props} />
 }
+DialogHeader.displayName = "DialogHeader"
 
 export function DialogFooter({
 	className,
@@ -322,6 +337,7 @@ export function DialogFooter({
 		/>
 	)
 }
+DialogFooter.displayName = "DialogFooter"
 
 /**
  * AlertDialog — the same surface as Dialog, over Base UI's AlertDialog root: the
@@ -354,6 +370,7 @@ export function AlertDialog<Payload = unknown>({ open, onOpenChange, ...props }:
 		</FocusReturnProvider>
 	)
 }
+AlertDialog.displayName = "AlertDialog"
 export const AlertDialogTrigger = AlertBase.Trigger
 export const AlertDialogClose = DialogClose
 export const AlertDialogContent = DialogContent

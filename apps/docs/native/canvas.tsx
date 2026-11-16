@@ -25,7 +25,7 @@ import {
 	TypeScene,
 	UploadScene,
 	WalletScene,
-} from "../src/pages/CustomizeCanvas"
+} from "../src/canvas/scenes"
 import "./canvas.css"
 
 /*
@@ -35,8 +35,14 @@ import "./canvas.css"
  * same preset. Every screen is Sable, the Settings tab included; the adapter
  * supplies only the iOS chrome (navigation bars, tab bar, sheet).
  *
- * Every web scene is here except the command menu, which the iOS map marks
- * "redesign": a desktop palette has no honest phone form.
+ * A phone app's worth of the web canvas, not all of it: the scenes that read
+ * as screens of one consumer app (shop, money, activity, account). The web
+ * canvas's other tiles (src/canvas/tiles.ts) — the dashboards' charts and
+ * order table, the agent and tool UI, the desktop command palette, which the
+ * iOS map marks "redesign", and the cart, subscription, security and comment
+ * cards — stay web-only, with no iOS screen; add one here from
+ * src/canvas/scenes.tsx (export a scene for it there) when it earns a place in
+ * the app.
  */
 type Destination = "explore" | "activity" | "settings"
 const destinations: { id: Destination; label: string; icon: string }[] = [

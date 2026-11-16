@@ -130,6 +130,12 @@ export const bannerMeta: ComponentMeta = {
 			type: "() => void",
 			description: "Called after the banner is dismissed.",
 		},
+		{
+			name: "dismissLabel",
+			type: "string",
+			default: "\"Dismiss\"",
+			description: "Accessible name of the dismiss button. A static banner's region is named \"Announcement\"; pass aria-label to rename it.",
+		},
 	],
 	variants: {
 		tone: ["neutral", "info", "success", "warning", "1", "destructive"],
@@ -158,7 +164,7 @@ export const bannerMeta: ComponentMeta = {
 	],
 	a11y: [
 		"Static banners render as a labelled region (role=region); set `live` to announce dynamic status bars (role=status / role=alert) when they appear or change.",
-		"The dismiss control is Button (on-color-ghost, icon-xs) with an aria-label; it takes the bar's own ink, so its glyph and focus ring stay legible on soft and solid fills alike.",
+		"The dismiss control is Button (on-color-ghost, icon-xs) named by dismissLabel, with a 44px touch target under a coarse pointer; it takes the bar's own ink, so its glyph and focus ring stay legible on soft and solid fills alike.",
 		"Solid fills pair each tone with its theme-adaptive ink token, so text stays legible in light and dark.",
 	],
 	examples: [

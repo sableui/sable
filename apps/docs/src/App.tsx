@@ -53,8 +53,8 @@ const GuidelinesRoute = page(
  * Component sections are GENERATED from Sable's taxonomy contract
  * (`COMPONENT_GROUPS` + `COMPONENT_TAXONOMY`), not hand-listed here. They used to
  * be hand-listed, and that is precisely how PanelGroup, PanelSection, ScrubField
- * and StatusBar shipped in 0.31.0 with no nav entry and no docs page: nothing
- * connected the roster to the catalog, so nobody noticed for four releases.
+ * and StatusBar once shipped with no nav entry and no docs page: nothing
+ * connected the roster to the catalog, so nobody noticed for several releases.
  * `build-registry` now fails if a component is missing from the taxonomy or has
  * no page, so this list cannot drift from what actually ships.
  *
@@ -85,56 +85,47 @@ const areas: NavArea[] = [
 				title: "Getting started",
 				items: [
 					{
-						slug: "introduction",
-						label: "Home",
-						keywords: ["install", "setup", "getting started", "npm", "pnpm"],
-					},
-					{
 						slug: "getting-started",
 						label: "Get started",
-						keywords: ["install", "setup", "agent", "quickstart"],
+						keywords: ["install", "setup", "agent", "quickstart", "npm", "pnpm", "vite", "wire", "by hand"],
 						anchors: [
 							{ id: "update", label: "Update Sable", detail: "One command: pnpm exec sable upgrade updates the package and your agent's setup.", keywords: ["update", "upgrade", "latest", "version", "existing app"] },
+							{ id: "by-hand", label: "Wire Sable by hand", detail: "The stylesheet, Vite config, IconProvider and fonts that sable init writes.", keywords: ["manual", "by hand", "vite config", "main.tsx", "@source", "dedupe"] },
 						],
 					},
 					{
 						slug: "build-with-sable",
 						label: "Build with Sable",
-						keywords: ["agent", "build", "inspire", "audit", "polish", "fix", "preset", "workflow", "skill", "cli", "commands"],
+						keywords: ["agent", "build", "inspire", "audit", "polish", "fix", "preset", "workflow", "skill", "cli", "commands", "llms.txt", "mcp"],
 						anchors: BUILD_WITH_SABLE_ANCHORS,
+					},
+					{
+						slug: "whats-new",
+						label: "What's new",
+						keywords: ["changelog", "releases", "versions", "history", "recent"],
 					},
 					{
 						slug: "credits",
 						label: "Credits and license",
 						keywords: ["attribution", "license", "sources"],
 					},
+				],
+			},
+			{
+				// Short consumer how-tos. Each page renders a task guide from
+				// packages/sable/llms/tasks, which is also its markdown twin.
+				title: "Guides",
+				items: [
+					{ slug: "nextjs", label: "Next.js", keywords: ["next", "next.js", "nextjs", "app router", "ssr", "server components", "use client", "layout"] },
+					{ slug: "color-mode", label: "Colour mode and themes", keywords: ["dark mode", "light mode", "color mode", "colour mode", "dark default", "theme switcher", "themes.css", "data-sable-theme", "flash"] },
+					{ slug: "converting-an-app", label: "Migrate an app", keywords: ["migrate", "migration", "convert", "existing app", "adopt"] },
+					{ slug: "migrating-from-shadcn", label: "Migrate from shadcn/ui", keywords: ["shadcn", "radix", "asChild", "migrate", "migration"] },
+					{ slug: "troubleshooting", label: "Troubleshooting", keywords: ["unstyled", "no icons", "icons missing", "blank page", "invalid hook call", "wrong theme", "fonts", "doctor", "broken"] },
 					{ slug: "ios-prototype", label: "iOS prototypes", keywords: ["native", "iphone", "ios", "prototype", "replacement"] },
-					{
-						slug: "whats-new",
-						label: "What's new",
-						keywords: [
-							"changelog",
-							"releases",
-							"versions",
-							"history",
-							"recent",
-						],
-					},
-					{
-						slug: "guidelines",
-						label: "Guidelines",
-						keywords: [
-							"rules",
-							"lint",
-							"enforced",
-							"do",
-							"dont",
-							"best practices",
-							"checklist",
-							"standards",
-							"conventions",
-						],
-					},
+					// Every component's do's and don'ts, generated from the metas. The
+					// enforced lint rules are not here: `sable lint --rules` lists them, and
+					// search sends "lint" to the CLI section of Build with Sable.
+					{ slug: "guidelines", label: "Guidelines", keywords: ["do", "dont", "best practices", "checklist", "usage", "guidance"] },
 				],
 			},
 			{
@@ -272,6 +263,11 @@ const areas: NavArea[] = [
 
 const pages: Record<string, ComponentType> = {
 	"ios-prototype": page(() => import("./pages/IosPrototype"), "IosPrototypePage"),
+	nextjs: page(() => import("./pages/Guides"), "NextjsPage"),
+	"color-mode": page(() => import("./pages/Guides"), "ColorModePage"),
+	troubleshooting: page(() => import("./pages/Guides"), "TroubleshootingPage"),
+	"converting-an-app": page(() => import("./pages/Guides"), "ConvertingAnAppPage"),
+	"migrating-from-shadcn": page(() => import("./pages/Guides"), "MigratingFromShadcnPage"),
 	introduction: page(() => import("./pages/Introduction"), "IntroductionPage"),
 	"getting-started": page(() => import("./pages/GettingStarted"), "GettingStartedPage"),
 	"build-with-sable": page(() => import("./pages/BuildWithSable"), "BuildWithSablePage"),
@@ -396,6 +392,7 @@ const pages: Record<string, ComponentType> = {
 	"text-swap": page(() => import("./pages/components/TextSwapPage"), "TextSwapPage"),
 	"card-stack": page(() => import("./pages/components/CardStackPage"), "CardStackPage"),
 	tilt: page(() => import("./pages/components/TiltPage"), "TiltPage"),
+	"icon-tile": page(() => import("./pages/components/IconTilePage"), "IconTilePage"),
 	"status-dot": page(
 		() => import("./pages/components/StatusDotPage"),
 		"StatusDotPage",
@@ -691,9 +688,6 @@ export function App() {
 	if (slug === "references" || slug.startsWith("reference/")) {
 		return <Redirect to="patterns" />
 	}
-	// `/playground/<component>` picks which playground is showing. It stays
-	// inside the shell (unlike the bare preview routes above) — it is a docs page
-	// with a parameter, not a full-page build.
 	// The guide shelf moved to the package (agents read it there). Guidelines
 	// is the one page that stayed; every other old guide link lands home.
 	if (slug.startsWith("guide/")) {
@@ -708,6 +702,7 @@ export function App() {
 			</DocsShell>
 		)
 	}
+	// `/playground/<component>` once picked which playground was showing.
 	// Playground is no longer its own area: every component page embeds its
 	// playground, and system-wide play lives in Customize. Old links land on
 	// the component page (or the catalog) instead of a dead end.

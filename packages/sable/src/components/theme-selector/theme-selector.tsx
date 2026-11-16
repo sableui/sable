@@ -1,3 +1,5 @@
+"use client"
+
 import { Radio as RadioBase } from "@base-ui/react/radio"
 import type { ComponentPropsWithRef } from "react"
 import { Icon } from "../../icon"
@@ -150,6 +152,7 @@ export function ThemePreview({ theme, mode = theme.defaultMode, size = "md" }: T
 		</span>
 	)
 }
+ThemePreview.displayName = "ThemePreview"
 
 /**
  * The option's own ink, focus colour and spacing unit, resolved in the app's

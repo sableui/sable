@@ -74,9 +74,9 @@ export const scrollerMeta: ComponentMeta = {
 		{
 			name: "smoothWheel",
 			type: "boolean",
-			default: "true",
+			default: "false",
 			description:
-				"Ease mouse-wheel steps toward their target, on either axis: the inertia a smooth-scroll library such as Lenis adds, scoped to this region. Only a mouse wheel is eased; trackpads and touch keep their own momentum, keys and scrollbar drags stay native, and reduced motion (the OS preference or MotionProvider) turns it off. Anything else that moves the region (scrollIntoView, a stick-to-bottom chat) stops the easing at once. For a scroll container of your own, `useSmoothWheel()` returns the same behaviour as a ref callback.",
+				"Ease mouse-wheel steps toward their target, on either axis: the inertia a smooth-scroll library such as Lenis adds, scoped to this region. Off by default, so the region scrolls natively, off the main thread; easing needs a non-passive wheel listener that runs before every scroll. Only a mouse wheel is eased; trackpads and touch keep their own momentum, keys and scrollbar drags stay native, and reduced motion (the OS preference or MotionProvider) turns it off. Anything else that moves the region (scrollIntoView, a stick-to-bottom chat) stops the easing at once. For a scroll container of your own, `useSmoothWheel()` returns the same behaviour as a ref callback.",
 		},
 		{
 			name: "label",

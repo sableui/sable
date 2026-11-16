@@ -15,6 +15,7 @@ Use Toggle for button-like controls that can be pressed on or off within a toolb
 - Do: Use it for transient UI modes such as bold, preview, pin, or favorite.
 - Do: Make the pressed state visually and programmatically clear.
 - Do: Use ToggleGroup appearance="segmented" for a single-select view switch (List / Grid). It is the same capsule ThemeSwitcher wears — do not hand-build a track around a row of toggles.
+- Do: Use ToggleGroup appearance="tiles" when totals are the switch for what a chart plots: each Toggle a caption over a figure, square, edge to edge in the card and padded from its --card-p. Do not restyle Toggles with rounded-none, borders and padding to get there.
 - Don't: Do not use Toggle for persistent application settings; use Switch. → use **Switch**
 - Don't: Do not leave an icon-only Toggle without an accessible name. It announces as "button, pressed", which tells a screen-reader user the state but never what the state applies to.
 
@@ -30,14 +31,14 @@ Use Toggle for button-like controls that can be pressed on or off within a toolb
 
 | Name | Type | Description |
 | --- | --- | --- |
-| ToggleGroup | Base UI ToggleGroup props (value, defaultValue, onValueChange, multiple, disabled, orientation, loopFocus) + appearance?: "default" \| "segmented" + motion?: "full" \| "subtle" \| "off" + className | Groups child Toggles and shares pressed state across them — each Toggle inside carries a value. Defaults to multiple: false (single-select) — the fit for view-mode switches and segmented controls; pass multiple to allow several pressed at once, e.g. a row of formatting toggles. |
+| ToggleGroup | Base UI ToggleGroup props (value, defaultValue, onValueChange, multiple, disabled, orientation, loopFocus) + appearance?: "default" \| "segmented" \| "tiles" + motion?: "full" \| "subtle" \| "off" + className | Groups child Toggles and shares pressed state across them — each Toggle inside carries a value. Defaults to multiple: false (single-select) — the fit for view-mode switches and segmented controls; pass multiple to allow several pressed at once, e.g. a row of formatting toggles. |
 | ToggleGroupItem | Alias of Toggle | Re-export of Toggle for group composition — a Toggle carrying a value is the group item. |
 
 ## Props
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| appearance | "default" \| "segmented" | "default" | On ToggleGroup: `default` is a loose row of toggles; `segmented` draws the capsule segmented control (one track, the pressed option filled) shared with ThemeSwitcher. Single-select segmented draws ONE fill that glides to the pressed option and resizes to its label, and always keeps an option chosen: pressing the chosen one does nothing. Multi-select keeps a fill per pressed option. Toggles inside inherit it. |
+| appearance | "default" \| "segmented" \| "tiles" | "default" | On ToggleGroup: `default` is a loose row of toggles; `segmented` draws the capsule segmented control (one track, the pressed option filled) shared with ThemeSwitcher. Single-select segmented draws ONE fill that glides to the pressed option and resizes to its label, and always keeps an option chosen: pressing the chosen one does nothing. Multi-select keeps a fill per pressed option. `tiles` makes each toggle a stat tile (caption over figure), square and edge to edge, padded from the card's --card-p and divided by hairlines, with the pressed tile filled; single-select tiles also keep one chosen. Toggles inside inherit it. |
 | stretch | boolean | false | On ToggleGroup: run the whole width, sharing it equally between the toggles. |
 | multiple | boolean | false | On ToggleGroup: allow several toggles pressed at once. The default is single-select, which behaves like a radio group. |
 | motion | "full" \| "subtle" \| "off" | "full" | On ToggleGroup: how much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the glide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. |
@@ -45,7 +46,7 @@ Use Toggle for button-like controls that can be pressed on or off within a toolb
 
 ## Variants
 
-- **appearance**: default, segmented
+- **appearance**: default, segmented, tiles
 
 ## Tokens used
 
@@ -102,6 +103,14 @@ import { Icon, Toggle, ToggleGroup } from "@sableui/react"
 import { Toggle, ToggleGroup } from "@sableui/react"
 
 <ToggleGroup appearance="segmented" motion="subtle" defaultValue={["week"]} aria-label="Range"><Toggle value="day">Day</Toggle><Toggle value="week">Week</Toggle><Toggle value="month">Month</Toggle></ToggleGroup>
+```
+
+### Stat tiles that switch a chart
+
+```tsx
+import { Card, Toggle, ToggleGroup } from "@sableui/react"
+
+<Card className="overflow-hidden"><ToggleGroup appearance="tiles" defaultValue={["desktop"]} aria-label="Device"><Toggle value="desktop"><span className="text-caption text-muted-foreground">Desktop</span><span className="text-mono-lg">12,480</span></Toggle><Toggle value="mobile"><span className="text-caption text-muted-foreground">Mobile</span><span className="text-mono-lg">9,215</span></Toggle></ToggleGroup></Card>
 ```
 
 ### Multi-select group

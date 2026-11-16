@@ -8,8 +8,12 @@
  * point is exploration: you move through the space and watch the whole system
  * respond, instead of choosing among four labels someone else picked.
  *
- * `toCss` is the single source of truth: the live preview injects exactly the
- * string the Export panel shows. If the preview looks right, the export is.
+ * `lookDecls` is the single source of truth: the live preview applies exactly
+ * these declarations (CustomizerProvider writes them into one CSSOM rule per
+ * block), `toCss` prints them for a stylesheet, and the preset export snapshots
+ * the page they produce. Everything the look sets is a preset token, so the
+ * snapshot carries all of it (verify-presets.mjs compares the rendered page
+ * before export and after import).
  */
 
 import { GAMUT_SAFETY, NEUTRAL_TOKENS, type Oklch, type ResolvedTheme, formatOklch as formatRaw, hexToOklch, hueDelta, isNeutral, maxChroma, mix, toGamut } from "./color"
@@ -191,7 +195,17 @@ export interface ThemeBase {
 	motionBaseMs: number
 	/** The preset's shadow ladder per mode, as the browser resolves it. */
 	shadows: { light: ShadowLadder; dark: ShadowLadder } | null
+	/**
+	 * The preset's rhythm inputs (styles.css → Vertical rhythm): its
+	 * --theme-leading-scale, the --type-base the page scale is built on, and
+	 * body's own leading. Compact ↔ Airy and the step anchor are written
+	 * through the preset's own hooks, computed from these, so the export
+	 * carries them (see rhythmDecls).
+	 */
+	rhythm: { leadingScale: number; typeBase: number; bodyLeading: number }
 }
+
+export const DEFAULT_RHYTHM: ThemeBase["rhythm"] = { leadingScale: 1, typeBase: 16, bodyLeading: 1.55 }
 
 /** A length token in rendered px. */
 export function toPx(value: string | undefined, rootPx: number): number | null {
@@ -791,6 +805,43 @@ export function cornerRadius(step: (typeof RADIUS_STEPS)[number], presetPx: numb
 /** Sable's own radius ladder, for sizing a preset that ships square. */
 const SQUARE_LADDER: Record<(typeof RADIUS_STEPS)[number], number> = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20 }
 
+/**
+ * Compact ↔ Airy's leading and the baseline-step anchor, written through the
+ * preset's own rhythm hooks (`--theme-leading-scale`, `--theme-baseline-split`)
+ * rather than the derived `--leading-scale` / `--baseline-step`. The derived
+ * names are not preset tokens, so an export never carried them and every line
+ * height in the consuming app fell back to the preset's. The hooks are, and
+ * styles.css derives the same two values from them:
+ *
+ *   --leading-scale = --theme-leading-scale
+ *   --baseline-step = round(body size × type-base/16 × body leading × leading-scale / split, 1px)
+ *
+ * Airy multiplies the preset's own leading scale (a number, not a var(): the
+ * hook cannot refer to itself). The step anchor keeps the preset's leading and
+ * picks the split that lands the step on the anchor exactly, so line heights
+ * are what they were when the step itself was pinned. `decls` is the type
+ * sizes written so far: the step is measured against the body size the look
+ * paints, not the preset's.
+ */
+function rhythmDecls(look: Look, base: ThemeBase, decls: readonly string[]): string[] {
+	const rhythm = base.rhythm ?? DEFAULT_RHYTHM
+	if (look.spacingBase != null) {
+		const step = Math.max(2, Math.round(look.spacingBase))
+		const written = decls.find((decl) => decl.startsWith("--type-body-md-size:"))
+		const bodyPx =
+			toPx(written?.slice(written.indexOf(":") + 1).replace(";", ""), base.rootPx) ??
+			toPx(base.typeSize["body-md"] || TYPE_SIZE_FALLBACK["body-md"], base.rootPx) ??
+			15
+		const line = ((bodyPx * rhythm.typeBase) / 16) * rhythm.bodyLeading * rhythm.leadingScale
+		return [`--theme-baseline-split: ${Number((line / step).toFixed(6))};`]
+	}
+	if (look.airy != null) {
+		const factor = Number(around1(look.airy / 100, 0.9, 1.1).toFixed(2))
+		return [`--theme-leading-scale: ${Number((rhythm.leadingScale * factor).toFixed(4))};`]
+	}
+	return []
+}
+
 /** Mode-independent declarations: shape, scale, weight, type, motion. */
 function shapeDecls(look: Look, base: ThemeBase): string[] {
 	const out: string[] = []
@@ -866,10 +917,6 @@ function shapeDecls(look: Look, base: ThemeBase): string[] {
 			if (value) out.push(`--control-${step}: ${scaleLength(value, controls)};`)
 		}
 	}
-	// The step anchor pins the step itself, in whole px; line heights and the
-	// spacing scale follow it, and the line is the step times the split.
-	if (look.spacingBase != null) out.push(`--baseline-step: ${Math.max(2, Math.round(look.spacingBase))}px;`)
-	else if (airy) out.push(`--leading-scale: calc(var(--theme-leading-scale, 1) * ${around1(t, 0.9, 1.1).toFixed(2)});`)
 	if (look.spacingBase != null || airy) {
 		// One step each, wherever the step lands.
 		out.push("--control-gap: calc(var(--spacing) * 2);", "--item-px: calc(var(--spacing) * 2);", "--item-gap: calc(var(--spacing) * 2);")
@@ -878,15 +925,22 @@ function shapeDecls(look: Look, base: ThemeBase): string[] {
 		// Each tier keeps its position on the preset's scale (its log-distance
 		// from body, in steps of the preset ratio) and is re-spaced on the chosen
 		// ratio from the chosen body size. Nothing drops under 10px.
+		//
+		// The anchor is the body size as RENDERED. Sable draws every tier at
+		// `size × --type-base / 16` (the docs set --type-base 14 from 768px, as an
+		// app may), so the size written is the anchor divided back by that
+		// factor: the readout, the anchor and the page then agree, and the export
+		// carries the same --type-base, so a consuming app renders the same px.
+		const k = (base.rhythm ?? DEFAULT_RHYTHM).typeBase / 16
 		const bodyPx = toPx(base.typeSize["body-md"] || TYPE_SIZE_FALLBACK["body-md"], base.rootPx) ?? 15
 		const r0 = presetTypeRatio(base)
 		const r = look.typeRatio ?? r0
-		const body = look.typeBase ?? bodyPx
+		const body = look.typeBase ?? bodyPx * k
 		for (const tier of TYPE_SIZE_TIERS) {
 			const px = toPx(base.typeSize[tier] || TYPE_SIZE_FALLBACK[tier], base.rootPx)
 			if (!px) continue
 			const steps = Math.log(px / bodyPx) / Math.log(r0)
-			out.push(`--type-${tier}-size: ${round(Math.max(10, body * r ** steps), 0.1)}px;`)
+			out.push(`--type-${tier}-size: ${Number((Math.max(10, body * r ** steps) / k).toFixed(2))}px;`)
 		}
 	} else if (airy) {
 		const type = around1(t, 0.92, 1.1)
@@ -895,6 +949,7 @@ function shapeDecls(look: Look, base: ThemeBase): string[] {
 			if (value) out.push(`--type-${tier}-size: ${scaleLength(value, type)};`)
 		}
 	}
+	out.push(...rhythmDecls(look, base, out))
 
 	// Quiet ↔ Bold, type half: three real weights (the families ship 500/600/700
 	// as static instances), stepped rather than interpolated to a weight that
@@ -916,8 +971,8 @@ function shapeDecls(look: Look, base: ThemeBase): string[] {
 	if (look.display === "sans") out.push("--font-display: var(--font-sans);")
 	else if (look.display !== "theme") out.push(`--font-display: ${stackFor(findFont(look.display), look.display, "serif")};`)
 
-	if (look.motionBase != null && base.motionBaseMs > 0) out.push(`--motion-scale: ${round(look.motionBase / base.motionBaseMs, 0.01)};`)
-	else if (look.motion !== "default") out.push(`--motion-scale: ${MOTION_SCALE[look.motion]};`)
+	const motionScale = lookMotionScale(look, base)
+	if (motionScale != null) out.push(`--motion-scale: ${motionScale};`)
 	return out
 }
 
@@ -951,13 +1006,37 @@ function darkCovering(light: string[], dark: string[], base: ThemeBase): string[
  * `[data-sable-theme="x"].dark` block without `!important`, which would also
  * beat a consumer's own later override.
  */
-export function toCss(look: Look, base: ThemeBase, themeId: string): string {
+export interface LookDecls {
+	/** `:root:root:root` — both modes. */
+	root: string[]
+	/** `:root:root:root.dark` — dark mode's colours and shadows. */
+	dark: string[]
+}
+
+/** The look's declarations (`--name: value;`), per block — what toCss prints and the preview applies. */
+export function lookDecls(look: Look, base: ThemeBase): LookDecls {
 	const light = colorDecls(look, base, "light")
 	// Shadows differ per mode, like colours, and are always written for both.
 	// The palette's lean is one number for both modes; palette.css reads it on every scope.
 	const harmony = look.harmony != null ? [`--theme-palette-harmony: ${round(look.harmony / 100, 0.01)};`] : []
 	const root = [...shapeDecls(look, base), ...harmony, ...light, ...shadowDecls(look, base, "light")]
 	const dark = [...darkCovering(light, colorDecls(look, base, "dark"), base), ...shadowDecls(look, base, "dark")]
+	return { root, dark }
+}
+
+/**
+ * The motion scale the look paints, as authored (never the OS's reduced-motion
+ * zero): the Advanced base duration, else the Motion speed, else null for the
+ * preset's own.
+ */
+export function lookMotionScale(look: Look, base: ThemeBase): number | null {
+	if (look.motionBase != null && base.motionBaseMs > 0) return Number((look.motionBase / base.motionBaseMs).toFixed(2))
+	if (look.motion !== "default") return MOTION_SCALE[look.motion]
+	return null
+}
+
+export function toCss(look: Look, base: ThemeBase, themeId: string, decls: LookDecls = lookDecls(look, base)): string {
+	const { root, dark } = decls
 
 	const header = [
 		"/* Sable look — paste AFTER your Sable imports:",
@@ -997,25 +1076,93 @@ export function encodeLook(look: Look): string {
 export function decodeLook(value: string | null | undefined): Look {
 	if (!value) return DEFAULT_LOOK
 	try {
-		return sanitizeLook(JSON.parse(atob(value.replace(/-/g, "+").replace(/_/g, "/"))) as Record<string, unknown>)
+		return sanitizeLook(JSON.parse(atob(value.replace(/-/g, "+").replace(/_/g, "/"))))
 	} catch {
 		return DEFAULT_LOOK
 	}
 }
 
-const isNumeric = (key: keyof Look) =>
-	key === "bold" || key === "airy" || key === "corners" || key === "depth" || key === "hue" || key === "statusLean" || key === "harmony" || (ANCHOR_KEYS as readonly string[]).includes(key)
+type NumericKey = { [K in keyof Look]: Look[K] extends number | null ? K : never }[keyof Look]
+type EnumKey = "shadows" | "palette" | "primary" | "neutrals" | "buttons" | "fields" | "motion"
 
-function sanitizeLook(parsed: Record<string, unknown>): Look {
+/**
+ * The range each number may take — the controls' own (see Inspector). A share
+ * link or a stored look is outside input: `?corners=9999` must not reach the
+ * CSS, and a hue is a position on a wheel.
+ */
+export const NUMERIC_RANGES: Record<NumericKey, readonly [number, number]> = {
+	bold: [0, 100],
+	airy: [0, 100],
+	corners: [0, 100],
+	depth: [0, 100],
+	statusLean: [0, 100],
+	harmony: [0, 200],
+	hue: [0, 360],
+	typeBase: [11, 22],
+	typeRatio: [1.05, 1.6],
+	controlBase: [28, 60],
+	spacingBase: [4, 16],
+	radiusBase: [0, 18],
+	motionBase: [0, 600],
+	shadowAngle: [0, 360],
+	shadowDistance: [0, 48],
+	shadowBlur: [0, 96],
+	shadowOpacity: [0, 60],
+}
+
+/**
+ * Every value an enumerated field may hold. Anything else — a typo, a value
+ * since renamed, a hand-edited link — falls back to the default: an unknown
+ * shadow style used to reach `RECIPES[style][mode]` and blank the whole site.
+ */
+export const ENUM_VALUES: { [K in EnumKey]: readonly Look[K][] } = {
+	shadows: ["theme", "soft", "crisp", "offset"],
+	palette: ["preset", "harmonize", "analogous", "triadic"],
+	primary: ["brand", "neutral"],
+	neutrals: ["theme", "mono", "warm", "cool", "brand"],
+	buttons: ["theme", "pill", "match"],
+	fields: ["theme", "outline", "filled"],
+	motion: ["off", "snappy", "default", "relaxed"],
+}
+
+const isNumeric = (key: keyof Look): key is NumericKey => key in NUMERIC_RANGES
+
+/** A font field holds "theme", "sans" (display only) or a catalog family — never free text, which lands in CSS. */
+function sanitizeFont(key: "sans" | "mono" | "display", v: unknown): string {
+	if (typeof v !== "string") return DEFAULT_LOOK[key]
+	if (v === "theme" || (key === "display" && v === "sans")) return v
+	return findFont(v) ? v : DEFAULT_LOOK[key]
+}
+
+/**
+ * Coerce outside input (a decoded share link or stored look) into a valid
+ * look: every enum checked against its allow-list, every number finite and
+ * clamped to its control's range, every font a catalog family, the brand a
+ * parseable hex. Anything else takes the field's default. Never throws.
+ */
+export function sanitizeLook(parsed: unknown): Look {
 	const look: Record<string, unknown> = { ...DEFAULT_LOOK }
+	if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return look as unknown as Look
+	const input = parsed as Record<string, unknown>
 	for (const key of Object.keys(DEFAULT_LOOK) as (keyof Look)[]) {
 		if (key === "icons") continue // Migrate the retired fallback selection to Reicon.
-		const v = parsed[key]
-		const d = DEFAULT_LOOK[key]
-		const numeric = isNumeric(key)
-		if (numeric && ((typeof v === "number" && Number.isFinite(v)) || v === null)) look[key] = v
-		else if (key === "brand" && (typeof v === "string" || v === null)) look[key] = v
-		else if (!numeric && typeof v === typeof d) look[key] = v
+		if (!Object.prototype.hasOwnProperty.call(input, key)) continue
+		const v = input[key]
+		if (isNumeric(key)) {
+			if (v === null) look[key] = null
+			else if (typeof v === "number" && Number.isFinite(v)) {
+				const [lo, hi] = NUMERIC_RANGES[key]
+				// A hue wraps (370° is 10°); everything else stops at its end.
+				look[key] = key === "hue" ? ((v % 360) + 360) % 360 : Math.min(hi, Math.max(lo, v))
+			}
+		} else if (key === "brand") {
+			look.brand = typeof v === "string" && hexToOklch(v) ? `#${v.trim().replace(/^#/, "").toLowerCase()}` : null
+		} else if (key === "sans" || key === "mono" || key === "display") {
+			look[key] = sanitizeFont(key, v)
+		} else if (key in ENUM_VALUES) {
+			const allowed = ENUM_VALUES[key as EnumKey] as readonly unknown[]
+			if (allowed.includes(v)) look[key] = v
+		}
 	}
 	return look as unknown as Look
 }
@@ -1050,7 +1197,6 @@ export function lookFromParams(params: URLSearchParams): Look {
 		const raw = params.get(key)
 		if (!raw) continue
 		if (isNumeric(key)) parsed[key] = Number(raw)
-		else if (key === "brand") parsed[key] = /^#?[0-9a-f]{3,8}$/i.test(raw) ? `#${raw.replace(/^#/, "")}` : null
 		else parsed[key] = raw
 	}
 	return sanitizeLook(parsed)

@@ -5,7 +5,7 @@ export const commandPaletteBlockMeta: BlockMeta = {
 	family: "Navigation",
 	kind: "card",
 	width: { min: "18rem", max: "20rem" },
-	summary: "An inline command palette: CommandMenuPanel with a filter field and grouped actions, each with an icon and its keyboard shortcut.",
+	summary: "An inline command palette: CommandMenuPanel with a filter field and a group of actions, each with an icon and its keyboard shortcut.",
 	intent:
 		"Reach for this to show a command list in place — an empty state that teaches shortcuts, an onboarding step, a quick-actions card. The ⌘K palette that opens over the app is CommandMenu; this is its panel without the dialog.",
 	notes: [

@@ -20,7 +20,7 @@ Use Row for horizontal clusters such as action groups, toolbars, metadata, and i
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| gap | number \| string | 2 | Horizontal gap. Number = rhythm units (×8px); string = raw CSS. |
+| gap | number \| string | 2 | Horizontal gap. Number = rhythm units (one baseline step each — 8px at Sable's default type, two Tailwind spacing steps, so gap={2} is gap-4); string = raw CSS. |
 | align | "start" \| "center" \| "end" \| "stretch" | "center" | Cross-axis alignment. |
 | justify | "start" \| "center" \| "end" \| "between" | "start" | Main-axis distribution. |
 | wrap | boolean | false | Allow items to wrap. |

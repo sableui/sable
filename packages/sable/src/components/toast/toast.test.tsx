@@ -281,6 +281,119 @@ describe("useToast().add persistence", () => {
 	})
 })
 
+/**
+ * toast.promise and toast.update used to pass straight through to Base UI, which
+ * settles a promise with `timeout: outcome.timeout` — undefined — so a failed
+ * save took the provider's default and left after five seconds.
+ */
+describe("promise and update persistence", () => {
+	async function probe(): Promise<string | null | undefined> {
+		return (await screen.findByTestId("probe")).getAttribute("data-timeout")
+	}
+	function mountProbe() {
+		renderWithProviders(
+			<ToastProvider>
+				<TimeoutProbe />
+			</ToastProvider>,
+		)
+	}
+
+	it("keeps the error a failed promise settles into", async () => {
+		mountProbe()
+		await toast.promise(Promise.reject(new Error("offline")), { loading: "Saving…", success: "Saved", error: "Couldn't save" }).catch(() => {})
+		await waitFor(async () => expect(await probe()).toBe("0"))
+		expect(await screen.findByText("Couldn't save")).toBeVisible()
+	})
+
+	it("keeps an error outcome given as a function", async () => {
+		mountProbe()
+		await toast
+			.promise(Promise.reject(new Error("offline")), { loading: "Saving…", success: "Saved", error: (e: Error) => ({ title: e.message }) })
+			.catch(() => {})
+		expect(await screen.findByText("offline")).toBeVisible()
+		await waitFor(async () => expect(await probe()).toBe("0"))
+	})
+
+	it("lets a success leave on the provider's default, and an explicit error timeout win", async () => {
+		mountProbe()
+		await toast.promise(Promise.resolve(1), { loading: "Saving…", success: "Saved", error: "Couldn't save" })
+		expect(await screen.findByText("Saved")).toBeVisible()
+		await waitFor(async () => expect(await probe()).toBe("undefined"))
+		toast.dismiss()
+		await toast
+			.promise(Promise.reject(new Error("x")), { loading: "Saving…", success: "Saved", error: { title: "Couldn't save", timeout: 7000 } })
+			.catch(() => {})
+		await waitFor(async () => expect((await screen.findAllByTestId("probe")).at(-1)?.getAttribute("data-timeout")).toBe("7000"))
+	})
+
+	it("keeps a success that carries an action", async () => {
+		mountProbe()
+		await toast.promise(Promise.resolve(1), {
+			loading: "Exporting…",
+			success: { title: "Exported", actionProps: { children: "Show file" } },
+			error: "Couldn't export",
+		})
+		expect(await screen.findByText("Exported")).toBeVisible()
+		await waitFor(async () => expect(await probe()).toBe("0"))
+	})
+
+	it("keeps a toast updated into an error", async () => {
+		mountProbe()
+		const id = toast("Uploading", { timeout: 5000 })
+		await waitFor(async () => expect(await probe()).toBe("5000"))
+		toast.update(id, { title: "Upload failed", type: "error", timeout: undefined })
+		await waitFor(async () => expect(await probe()).toBe("0"))
+	})
+
+	it("lets an update name its own timeout", async () => {
+		mountProbe()
+		const id = toast.loading("Uploading")
+		toast.update(id, { title: "Uploaded", type: "success", timeout: 4000 })
+		await waitFor(async () => expect(await probe()).toBe("4000"))
+	})
+
+	it("applies the same default through useToast()", async () => {
+		function Updater() {
+			const manager = useToast()
+			return (
+				<button
+					type="button"
+					onClick={() => {
+						const id = manager.add({ title: "Uploading", timeout: 5000 })
+						manager.update(id, { type: "error", timeout: undefined })
+					}}
+				>
+					run
+				</button>
+			)
+		}
+		renderWithProviders(
+			<ToastProvider>
+				<Updater />
+				<TimeoutProbe />
+			</ToastProvider>,
+		)
+		await userEvent.click(screen.getByRole("button", { name: "run" }))
+		await waitFor(async () => expect(await probe()).toBe("0"))
+	})
+})
+
+describe("dismiss label", () => {
+	it("defaults to Dismiss and takes the provider's dismissLabel", async () => {
+		renderWithProviders(<ToastProvider timeout={0} dismissLabel="Fermer" />)
+		toast("Enregistré")
+		const row = (await screen.findByText("Enregistré")).closest("[role=dialog]") as HTMLElement
+		expect(within(row).getByLabelText("Fermer", { exact: true })).toBeInTheDocument()
+	})
+
+	it("grows the standalone dismiss to the touch floor under a coarse pointer", async () => {
+		mount()
+		toast("Saved")
+		const row = (await screen.findByText("Saved")).closest("[role=dialog]") as HTMLElement
+		expect(within(row).getByLabelText("Dismiss", { exact: true }).className).toContain("pointer-coarse:before:size-[44px]")
+	})
+})
+
 describe("stacked, beside an open Sheet", () => {
 	it("marks stacked toasts so styles.css can re-anchor them when the stack moves edge", async () => {
 		renderWithProviders(<ToastProvider timeout={0} stacked position="bottom-right" />)
@@ -327,6 +440,6 @@ describe("toasts and an open side sheet on a narrow screen", () => {
 		expect(narrow).toContain(':root:has(:is([data-sable-sheet="right"], [data-sable-sheet="left"])[data-open]) [data-sable-toast-viewport] {')
 		expect(narrow).toContain("top: var(--sable-sheet-top-inset, calc(var(--spacing) * 8 + var(--control-md)));")
 		// Not the bare top edge, where the close button is.
-		expect(narrow).not.toMatch(/top: calc\(var\(--spacing\) \* 4\);/)
+		expect(narrow).not.toMatch(/\btop: calc\(var\(--spacing\) \* 4\);/)
 	})
 })

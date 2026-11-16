@@ -35,9 +35,6 @@ importers:
       react-dom:
         specifier: ^19.2.4
         version: 19.2.7(react@19.2.7)
-      reicon-react:
-        specifier: ^1.1.301
-        version: 1.2.0(react@19.2.7)
       sugar-high:
         specifier: ^2.5.2
         version: 2.5.2
@@ -93,9 +90,6 @@ importers:
       react-dom:
         specifier: ^19
         version: 19.2.7(react@19.2.7)
-      reicon-react:
-        specifier: ^1.2.0
-        version: 1.2.0(react@19.2.7)
       tailwind-merge:
         specifier: ^3.4.0
         version: 3.6.0
@@ -136,6 +130,9 @@ importers:
       reicon-brands:
         specifier: ^1.0.2
         version: 1.0.2
+      reicon-react:
+        specifier: ^1.2.0
+        version: 1.2.0(react@19.2.7)
       tsup:
         specifier: ^8.5.0
         version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(typescript@5.9.3)

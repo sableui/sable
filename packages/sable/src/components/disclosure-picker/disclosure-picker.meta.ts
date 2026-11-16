@@ -90,12 +90,31 @@ export const disclosurePickerMeta: ComponentMeta = {
 		{ name: "onOpenChange", type: "(open: boolean) => void", description: "Called with the next open state — from the trigger, a pick, or Escape." },
 		{
 			name: "size",
-			type: '"md" | "xs"',
+			type: '"md" | "sm" | "xs"',
 			default: '"md"',
 			description:
-				"md is a --control-md row (40px comfortable) in a settings column, its own well when closed. xs is the property-grid rung: a --control-xs row on the inset panel-field fill with ui-tier type. Height, padding, radius, type and surface move together.",
+				"md is a --control-md row (40px comfortable) in a settings column, its own well when closed. sm is the same row one rung down (--control-sm), for a toolbar beside sm Selects and buttons. xs is the property-grid rung: a --control-xs row on the inset panel-field fill with ui-tier type. Height, padding, radius, type and surface move together.",
 		},
 		{ name: "className", type: "string", description: "Merged onto the root (layout only — the look comes from size)." },
+		{
+			name: "name",
+			type: "string",
+			description:
+				"Submits `value` with a form under this name, through a visually hidden input that stays mounted while the row is closed (the list that holds the value does not). The submitted string is the chosen option's value, exactly as given.",
+		},
+		{ name: "value", type: "string", description: "The value submitted under `name` — pass the same value the list holds." },
+		{ name: "form", type: "string", description: "Id of a form elsewhere on the page that the value belongs to." },
+		{
+			name: "required",
+			type: "boolean",
+			description: "Blocks native form submission while `value` is empty; the browser's message focuses the row.",
+		},
+		{
+			name: "id / aria-describedby / aria-invalid",
+			type: "string / string / boolean",
+			description:
+				"Land on the trigger, the labelable control, not the root — so a wrapping Field's label names the row and its description and error are announced with it.",
+		},
 	],
 	subcomponents: [
 		{
@@ -125,7 +144,7 @@ export const disclosurePickerMeta: ComponentMeta = {
 		{ name: "DisclosurePickerEmpty", type: "{ children?: ReactNode }", description: "The no-match line, rendered in place of the list." },
 		{
 			name: "useDisclosurePicker",
-			type: "() => { open: boolean; close(): void; size: \"md\" | \"xs\" }",
+			type: "() => { open: boolean; close(): void; size: \"md\" | \"sm\" | \"xs\" }",
 			description: "For a list the picker does not own (a Tree) that should close the row when something is picked.",
 		},
 	],
@@ -137,6 +156,7 @@ export const disclosurePickerMeta: ComponentMeta = {
 		"Opening from the keyboard (Enter, Space, ArrowDown) moves focus into the panel: the search field when there is one, otherwise the chosen option (or the first). A pointer open focuses the search field on a fine pointer only, so touch does not raise the on-screen keyboard.",
 		"Escape closes the row without changing the value (clearing a query first) and returns focus to the trigger; a pick does the same. Focus is not pulled back when it has already moved on, e.g. to a confirm dialog the pick opened.",
 		"A removable option (onRemove) announces aria-keyshortcuts=\"Delete\"; Delete or Backspace removes it and focus moves to the next option (or the previous). The trash glyph is a pointer target only (aria-hidden, not focusable): an option's children are presentational, so a nested button would be unreachable by assistive tech anyway.",
+		"Inside a Field, the id, aria-describedby and aria-invalid it clones go to the trigger, so the label names the row. With `name`, the submitted value lives in a visually hidden input that is out of the tab order and aria-hidden; when `required` fails, the browser hands focus to the trigger.",
 		"The panel animates with motion-disclosure, which is static under prefers-reduced-motion or MotionProvider off; the scroll that keeps the row in view is instant, never smooth.",
 	],
 	motion: [
@@ -156,6 +176,21 @@ export const disclosurePickerMeta: ComponentMeta = {
 		{ slot: "activity", recipe: "none", part: "root", why: "Nothing is indeterminate: the options are resident. A list that loads should show its own loader inside the panel." },
 	],
 	examples: [
+		{
+			label: "In a form",
+			code: `<Field label="Text size" required>
+  <DisclosurePicker name="text-size" value={textSize}>
+    <DisclosurePickerTrigger>{textSize}</DisclosurePickerTrigger>
+    <DisclosurePickerPanel>
+      <DisclosurePickerList aria-label="Text size" value={textSize} onValueChange={setTextSize}>
+        <DisclosurePickerOption value="Small">Small</DisclosurePickerOption>
+        <DisclosurePickerOption value="Medium">Medium</DisclosurePickerOption>
+        <DisclosurePickerOption value="Large">Large</DisclosurePickerOption>
+      </DisclosurePickerList>
+    </DisclosurePickerPanel>
+  </DisclosurePicker>
+</Field>`,
+		},
 		{
 			label: "A short list — no search",
 			code: `const [preset, setPreset] = useState("comfortable")

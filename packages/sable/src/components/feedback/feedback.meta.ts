@@ -66,6 +66,12 @@ export const feedbackMeta: ComponentMeta = {
 			description: "Submit button text.",
 		},
 		{
+			name: "ratingLabel",
+			type: "string",
+			default: '"Rating"',
+			description: "Accessible name of the row of rating toggles. Each toggle is named by its rating's value.",
+		},
+		{
 			name: "ratings",
 			type: "FeedbackRating[]",
 			default: "🙁 / 😐 / 🙂",

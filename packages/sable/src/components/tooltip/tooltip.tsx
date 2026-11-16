@@ -1,3 +1,5 @@
+"use client"
+
 import { Tooltip as Base } from "@base-ui/react/tooltip"
 import type { ComponentProps, CSSProperties, ReactElement, ReactNode } from "react"
 import { createContext, useContext, useMemo, useState } from "react"
@@ -23,6 +25,14 @@ export const TooltipProvider = Base.Provider
 export const Tooltip = Base.Root
 export const TooltipTrigger = Base.Trigger
 export const TooltipPortal = withPortalThemeScope(Base.Portal)
+
+/**
+ * A tooltip is a sentence, not a paragraph: past ~20rem a line is too long to
+ * take in at a glance, and an unbounded popup stretched long content across the
+ * viewport. The cap also stays a step inside a phone screen. text-pretty keeps a
+ * wrapped second line from ending on one orphaned word.
+ */
+const TOOLTIP_MEASURE = "max-w-[min(20rem,calc(100vw-var(--spacing)*8))] text-pretty"
 
 type PositionerProps = ComponentProps<typeof Base.Positioner>
 type PopupProps = Omit<ComponentProps<typeof Base.Popup>, "className"> & {
@@ -55,6 +65,7 @@ export function TooltipContent({
 					{...anchoredDensity}
 					className={cn(
 						"select-none rounded-sm border border-border-floating bg-popover px-2.5 py-1.5 text-label-md text-popover-foreground shadow-md outline-none",
+						TOOLTIP_MEASURE,
 						"motion-pop duration-(--motion-duration-fast)",
 						className,
 					)}
@@ -66,6 +77,7 @@ export function TooltipContent({
 		</TooltipPortal>
 	)
 }
+TooltipContent.displayName = "TooltipContent"
 
 type ArrowProps = Omit<ComponentProps<typeof Base.Arrow>, "className"> & {
 	className?: string
@@ -91,6 +103,7 @@ export function TooltipArrow({ className, ...props }: ArrowProps) {
 		</Base.Arrow>
 	)
 }
+TooltipArrow.displayName = "TooltipArrow"
 
 type SimpleTooltipProps = Omit<ComponentProps<typeof Base.Root>, "children"> & {
 	/** The tooltip body. */
@@ -145,6 +158,7 @@ export function SimpleTooltip({
 		</Base.Root>
 	)
 }
+SimpleTooltip.displayName = "SimpleTooltip"
 
 /* --- TooltipGroup -----------------------------------------------------------
    One tooltip shared by a row of triggers — a toolbar, a segmented set of icon
@@ -309,6 +323,7 @@ function TooltipGroupContent({
 					style={groupPopupStyle}
 					className={cn(
 						"select-none rounded-sm border border-border-floating bg-popover px-2.5 py-1.5 text-label-md text-popover-foreground shadow-md outline-none",
+						TOOLTIP_MEASURE,
 						"h-[var(--popup-height,auto)] w-[var(--popup-width,auto)] overflow-clip",
 						// The enter/exit targets and transform origin; the transition
 						// list itself is groupPopupStyle's.

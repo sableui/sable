@@ -248,7 +248,7 @@ export function MessageScroller({
 			const id = node.dataset.messageId
 			if (id && visible.current.has(id)) ids.push(id)
 		}
-		const key = ids.join(" ")
+		const key = ids.join("\u0000")
 		if (key === reported.current) return
 		reported.current = key
 		notify(ids)

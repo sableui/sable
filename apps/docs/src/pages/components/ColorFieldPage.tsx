@@ -18,7 +18,15 @@ import { MetaFooter, PageHeader, Section, ledeFor } from "../../components/docs-
  * what the component does — a picker that can only pick theme colours.
  */
 // design-lint-disable inline-color -- ColorField's own value is user-chosen colour, not themed surface; a picker demo must hold literal colours
-const PALETTE = ["#f43f5e", "#facc15", "#22c55e", "#3b82f6", "#a855f7", "#0f172a"]
+// Named presets: a listener hears "Rose", not "#f43f5e".
+const PALETTE = [
+	{ value: "#f43f5e", label: "Rose" },
+	{ value: "#facc15", label: "Sun" },
+	{ value: "#22c55e", label: "Leaf" },
+	{ value: "#3b82f6", label: "Sky" },
+	{ value: "#a855f7", label: "Iris" },
+	{ value: "#0f172a", label: "Ink" },
+]
 
 function ColorFieldDemo() {
 	const [background, setBackground] = useState("transparent")
@@ -71,7 +79,7 @@ export function ColorFieldPage() {
 
 			<Section
 				title="Live preview"
-				description="Transparent, with alpha, and with a palette. The row underneath shows the chosen values."
+				description="Transparent, with alpha, and with a palette of named presets. The row underneath shows the chosen values — the same strings a form submits when the field has a name."
 			>
 				<ColorFieldDemo />
 			</Section>

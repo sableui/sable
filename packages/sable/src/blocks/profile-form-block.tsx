@@ -1,3 +1,5 @@
+"use client"
+
 import { Avatar } from "../components/avatar"
 import { Button } from "../components/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/card"
@@ -30,7 +32,7 @@ export interface ProfileFormBlockProps {
 	/** false drops the card's surface and border — for a muted section that already frames it. */
 	framed?: boolean
 	/** Called with the form's fields on Save profile. */
-	onSave?: (fields: FormData) => void
+	onSave?: (profile: { displayName: string; handle: string; bio: string; timezone: string }) => void
 }
 
 export function ProfileFormBlock({ className, framed = true, onSave }: ProfileFormBlockProps) {
@@ -45,7 +47,9 @@ export function ProfileFormBlock({ className, framed = true, onSave }: ProfileFo
 				className="gap-0"
 				onSubmit={(event) => {
 					event.preventDefault()
-					onSave?.(new FormData(event.currentTarget))
+					const fields = new FormData(event.currentTarget)
+					const read = (name: string) => String(fields.get(name) ?? "")
+					onSave?.({ displayName: read("displayName"), handle: read("handle"), bio: read("bio"), timezone: read("timezone") })
 				}}
 			>
 				<CardContent>

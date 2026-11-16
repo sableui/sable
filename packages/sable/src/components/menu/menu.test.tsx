@@ -52,6 +52,30 @@ describe("MenuLinkItem", () => {
 		expect(internal).toHaveAttribute("href", "/llms.txt")
 		expect(internal).not.toHaveAttribute("rel")
 	})
+
+	it("tells a screen reader that an external link opens a new tab, in words it can replace", async () => {
+		renderWithProviders(<PageActions />)
+		await userEvent.click(screen.getByRole("button", { name: "Actions" }))
+		// The ↗ is decorative; the words are what is announced. (`\s*`: jsdom's
+		// name computation trims the leading space a browser keeps.)
+		expect(await screen.findByRole("menuitem", { name: /Open in Claude\s*\(opens in new tab\)/ })).toBeInTheDocument()
+		expect(screen.getByRole("menuitem", { name: "llms.txt" })).not.toHaveTextContent("new tab")
+	})
+
+	it("takes newTabLabel", async () => {
+		renderWithProviders(
+			<Menu>
+				<MenuTrigger render={<Button>Links</Button>} />
+				<MenuContent>
+					<MenuLinkItem href="https://example.com" target="_blank" newTabLabel="(nouvel onglet)">
+						Aide
+					</MenuLinkItem>
+				</MenuContent>
+			</Menu>,
+		)
+		await userEvent.click(screen.getByRole("button", { name: "Links" }))
+		expect(await screen.findByRole("menuitem", { name: /Aide\s*\(nouvel onglet\)/})).toBeInTheDocument()
+	})
 })
 
 describe("MenuSubmenuTrigger icon", () => {

@@ -28,7 +28,14 @@ Use NumberField for numeric values that benefit from validation, min/max bounds,
 | step / smallStep / largeStep | number | — | Increment amount; smallStep applies with the meta key, largeStep with shift. |
 | format | Intl.NumberFormatOptions | — | Locale formatting (currency, percent, units, …). |
 | steppers | boolean | true | Show the decrement / increment buttons. Turn off in a dense property grid — the two 32px stepper buttons (36px with their inset) put a ~110px floor on the control; without them the value left-aligns. |
+| size | "md" \| "sm" \| "xs" | "md" | The field ladder shared with Input, SelectTrigger, ComboboxInput, SearchInput and DatePicker: md is the form field, sm the toolbar field one rung down (--control-sm) beside sm buttons and an sm Select, xs the inset tool-panel field. The steppers step down with it. |
+| decrementLabel | string | "Decrease" | Accessible name of the decrement stepper. Translate it with the rest of the form. |
+| incrementLabel | string | "Increase" | Accessible name of the increment stepper. |
 | disabled / readOnly / required / name / id | — | — | Standard form-control props. Base UI applies id + required to the input, so it labels and validates correctly. |
+
+## Variants
+
+- **size**: md, sm, xs
 
 ## Tokens used
 
@@ -36,7 +43,7 @@ Use NumberField for numeric values that benefit from validation, min/max bounds,
 
 ## Accessibility
 
-- Decrement / Increment are labelled buttons (Decrease / Increase); the input is a spinbutton with aria-valuenow/min/max from Base UI.
+- Decrement / Increment are labelled buttons (`decrementLabel` / `incrementLabel`, default Decrease / Increase); the input is a spinbutton with aria-valuenow/min/max from Base UI.
 - Routes aria-describedby / aria-invalid onto the input, so a Field's helper + error are announced for it.
 
 ## Related

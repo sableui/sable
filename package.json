@@ -1,7 +1,6 @@
 {
 	"name": "sable-workspace",
 	"private": true,
-	"version": "0.18.0",
 	"description": "Sable — an owned, themeable React component system. Monorepo root (the publishable package is packages/sable → @sableui/react).",
 	"type": "module",
 	"scripts": {

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 import { ToastProvider, toast } from "../components/toast/toast"
 import { TreeRow } from "../components/tree/tree"
 import { renderWithProviders, screen, within } from "../test/render"
-import { hitTargetMin } from "./hit-target"
+import { hitTargetMin, hitTargetTouch } from "./hit-target"
 
 /**
  * WCAG 2.5.8 asks for 24x24 and measures it AT REST, so the assertions are
@@ -38,6 +38,15 @@ describe("hitTargetMin", () => {
 		expect(hitTargetMin).toContain("relative")
 		expect(hitTargetMin).toContain("before:absolute")
 		expect(hitTargetMin).toContain("before:content-['']")
+	})
+})
+
+describe("hitTargetTouch", () => {
+	it("is the floor target, grown to the 44px touch floor only under a coarse pointer", () => {
+		expect(hitTargetTouch.startsWith(hitTargetMin)).toBe(true)
+		// A literal: a density scope retunes the ladder and must not shrink this.
+		expect(hitTargetTouch).toContain("pointer-coarse:before:size-[44px]")
+		expect(hitTargetTouch).not.toMatch(/(?<!pointer-coarse:)before:size-\[44px\]/)
 	})
 })
 

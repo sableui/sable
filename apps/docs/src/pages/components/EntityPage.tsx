@@ -72,6 +72,41 @@ export function EntityPage() {
 			</Section>
 
 			<Section
+				title="Rows that navigate"
+				description="In a list–detail view each row is a link. Pass interactive with render set to your router's link (an <a> here): the whole row is the target, the open record announces as the current page, and the trailing action stays its own control."
+			>
+				<Example>
+					<div className="flex w-full max-w-md flex-col">
+						<Entity
+							interactive
+							selected
+							render={<a href="#people-ada-lovelace" />}
+							leading={<Avatar fallback="AL" alt="" />}
+							title="Ada Lovelace"
+							subtitle="Engineering"
+							action={
+								<Button variant="ghost" size="icon" aria-label="More actions for Ada Lovelace">
+									<Icon name="ellipsis" className="text-base" />
+								</Button>
+							}
+						/>
+						<Entity
+							interactive
+							render={<a href="#grace" />}
+							leading={<Avatar fallback="GH" alt="" />}
+							title="Grace Hopper"
+							subtitle="Research"
+							action={
+								<Button variant="ghost" size="icon" aria-label="More actions for Grace Hopper">
+									<Icon name="ellipsis" className="text-base" />
+								</Button>
+							}
+						/>
+					</div>
+				</Example>
+			</Section>
+
+			<Section
 				title="Truncation"
 				description="Long text truncates so the action stays in place."
 			>

@@ -85,9 +85,6 @@ function OwnButtonDemo() {
 					</SheetHeader>
 					{/* biome-ignore lint/a11y/noAutofocus: the demo shows focus return past an autofocused field */}
 					<SearchInput autoFocus placeholder="Search nearby" aria-label="Search nearby" />
-					<SheetFooter>
-						<SheetClose render={<Button variant="secondary">Close</Button>} />
-					</SheetFooter>
 				</SheetContent>
 			</Sheet>
 		</>
@@ -129,7 +126,7 @@ export function SheetPage() {
 
 			<Section
 				title="Sides"
-				description="Side sheets run full height. Top and bottom sheets span the width. On touch, each swipes closed toward its own edge."
+				description="Side sheets run full height and carry their own close button in the corner (showCloseButton, on by default for left and right). Top and bottom sheets span the width and end in their actions. On touch, each swipes closed toward its own edge."
 			>
 				<Example
 					code={`<Sheet>
@@ -139,12 +136,10 @@ export function SheetPage() {
       <SheetTitle>Right sheet</SheetTitle>
       <SheetDescription>Slides in from the right.</SheetDescription>
     </SheetHeader>
-    <SheetFooter>
-      <SheetClose render={<Button variant="secondary">Close</Button>} />
-    </SheetFooter>
   </SheetContent>
 </Sheet>
-// side="left" · side="top" · side="bottom" are built the same way`}
+// side="left" is built the same way; side="top" and side="bottom"
+// show no close button, so end them in a SheetFooter with a SheetClose`}
 				>
 					<Sheet>
 						<SheetTrigger render={<Button variant="secondary">Right</Button>} />
@@ -153,9 +148,6 @@ export function SheetPage() {
 								<SheetTitle>Right sheet</SheetTitle>
 								<SheetDescription>Slides in from the right.</SheetDescription>
 							</SheetHeader>
-							<SheetFooter>
-								<SheetClose render={<Button variant="secondary">Close</Button>} />
-							</SheetFooter>
 						</SheetContent>
 					</Sheet>
 
@@ -166,9 +158,6 @@ export function SheetPage() {
 								<SheetTitle>Navigation</SheetTitle>
 								<SheetDescription>Slides in from the left.</SheetDescription>
 							</SheetHeader>
-							<SheetFooter>
-								<SheetClose render={<Button variant="secondary">Close</Button>} />
-							</SheetFooter>
 						</SheetContent>
 					</Sheet>
 

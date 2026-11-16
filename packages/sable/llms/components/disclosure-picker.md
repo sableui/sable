@@ -43,7 +43,7 @@ Use DisclosurePicker for one-of-many choices in a docked panel or inspector wher
 | DisclosurePickerList | { value: string; onValueChange(value: string): void; aria-label?: string } + div props | A listbox. ArrowUp/ArrowDown, Home/End and type-ahead move focus without applying anything (ArrowUp from the first option returns to the search field); Enter, Space or a click picks the focused option — onValueChange fires once, only when it differs from `value` — and closes the row. Escape closes without a pick. |
 | DisclosurePickerOption | { value: string; children?: ReactNode; media?: ReactNode; note?: ReactNode; disabled?: boolean; textValue?: string; onRemove?: () => void; removeLabel?: string } | One option row. `media` is a leading visual (a ThemePreview tile); `note` a muted trailing annotation — options without one show a check when chosen. `disabled` skips it for the keyboard and refuses the pick; `textValue` is what type-ahead matches when the name is not plain text. `onRemove` makes the option removable — for entries the person added (an imported preset, a saved font): a trash glyph at the row's end on hover or focus (always on touch), and Delete or Backspace on the focused row; removing never picks, and focus moves to a neighbour first. `removeLabel` is the glyph's tooltip. |
 | DisclosurePickerEmpty | { children?: ReactNode } | The no-match line, rendered in place of the list. |
-| useDisclosurePicker | () => { open: boolean; close(): void; size: "md" \| "xs" } | For a list the picker does not own (a Tree) that should close the row when something is picked. |
+| useDisclosurePicker | () => { open: boolean; close(): void; size: "md" \| "sm" \| "xs" } | For a list the picker does not own (a Tree) that should close the row when something is picked. |
 
 ## Props
 
@@ -52,8 +52,13 @@ Use DisclosurePicker for one-of-many choices in a docked panel or inspector wher
 | open | boolean | — | Controlled open state. Pair with onOpenChange. |
 | defaultOpen | boolean | false | Uncontrolled initial open state. |
 | onOpenChange | (open: boolean) => void | — | Called with the next open state — from the trigger, a pick, or Escape. |
-| size | "md" \| "xs" | "md" | md is a --control-md row (40px comfortable) in a settings column, its own well when closed. xs is the property-grid rung: a --control-xs row on the inset panel-field fill with ui-tier type. Height, padding, radius, type and surface move together. |
+| size | "md" \| "sm" \| "xs" | "md" | md is a --control-md row (40px comfortable) in a settings column, its own well when closed. sm is the same row one rung down (--control-sm), for a toolbar beside sm Selects and buttons. xs is the property-grid rung: a --control-xs row on the inset panel-field fill with ui-tier type. Height, padding, radius, type and surface move together. |
 | className | string | — | Merged onto the root (layout only — the look comes from size). |
+| name | string | — | Submits `value` with a form under this name, through a visually hidden input that stays mounted while the row is closed (the list that holds the value does not). The submitted string is the chosen option's value, exactly as given. |
+| value | string | — | The value submitted under `name` — pass the same value the list holds. |
+| form | string | — | Id of a form elsewhere on the page that the value belongs to. |
+| required | boolean | — | Blocks native form submission while `value` is empty; the browser's message focuses the row. |
+| id / aria-describedby / aria-invalid | string / string / boolean | — | Land on the trigger, the labelable control, not the root — so a wrapping Field's label names the row and its description and error are announced with it. |
 
 ## Tokens used
 
@@ -74,6 +79,7 @@ Use DisclosurePicker for one-of-many choices in a docked panel or inspector wher
 - Opening from the keyboard (Enter, Space, ArrowDown) moves focus into the panel: the search field when there is one, otherwise the chosen option (or the first). A pointer open focuses the search field on a fine pointer only, so touch does not raise the on-screen keyboard.
 - Escape closes the row without changing the value (clearing a query first) and returns focus to the trigger; a pick does the same. Focus is not pulled back when it has already moved on, e.g. to a confirm dialog the pick opened.
 - A removable option (onRemove) announces aria-keyshortcuts="Delete"; Delete or Backspace removes it and focus moves to the next option (or the previous). The trash glyph is a pointer target only (aria-hidden, not focusable): an option's children are presentational, so a nested button would be unreachable by assistive tech anyway.
+- Inside a Field, the id, aria-describedby and aria-invalid it clones go to the trigger, so the label names the row. With `name`, the submitted value lives in a visually hidden input that is out of the tab order and aria-hidden; when `required` fails, the browser hands focus to the trigger.
 - The panel animates with motion-disclosure, which is static under prefers-reduced-motion or MotionProvider off; the scroll that keeps the row in view is instant, never smooth.
 
 ## Related
@@ -81,6 +87,25 @@ Use DisclosurePicker for one-of-many choices in a docked panel or inspector wher
 - Components: Collapsible, Select, Combobox, SearchInput, RadioGroup, ThemeSelector, FontPicker, PropertyRow
 
 ## Examples
+
+### In a form
+
+```tsx
+import { DisclosurePicker, DisclosurePickerList, DisclosurePickerOption, DisclosurePickerPanel, DisclosurePickerTrigger, Field } from "@sableui/react"
+
+<Field label="Text size" required>
+  <DisclosurePicker name="text-size" value={textSize}>
+    <DisclosurePickerTrigger>{textSize}</DisclosurePickerTrigger>
+    <DisclosurePickerPanel>
+      <DisclosurePickerList aria-label="Text size" value={textSize} onValueChange={setTextSize}>
+        <DisclosurePickerOption value="Small">Small</DisclosurePickerOption>
+        <DisclosurePickerOption value="Medium">Medium</DisclosurePickerOption>
+        <DisclosurePickerOption value="Large">Large</DisclosurePickerOption>
+      </DisclosurePickerList>
+    </DisclosurePickerPanel>
+  </DisclosurePicker>
+</Field>
+```
 
 ### A short list — no search
 

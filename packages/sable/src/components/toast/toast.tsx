@@ -1,9 +1,11 @@
+"use client"
+
 import { Toast as Base } from "@base-ui/react/toast"
 import { type ComponentProps, createContext, type ReactNode, useContext } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
 import { Button } from "../button/button"
-import { hitTargetMin } from "../../lib/hit-target"
+import { hitTargetTouch } from "../../lib/hit-target"
 import { STATUS_TONE_ICON, type StatusTone } from "../../lib/status-tone"
 import { withPortalThemeScope } from "../../lib/portal-theme-scope"
 import { Spinner } from "../spinner/spinner"
@@ -170,11 +172,11 @@ export interface ToastApi {
 	custom: (options: AddOptions) => string
 	/** Base UI-parity alias of `custom` — add(options), with the persistence default. */
 	add: (options: AddOptions) => string
-	/** Drive loading → success/error from a promise. */
+	/** Drive loading → success/error from a promise. The error outcome (and a success carrying `actionProps`) persists unless it names a `timeout`. */
 	promise: typeof toastManager.promise
 	/** Dismiss a toast by id, or all toasts when called with no id. */
 	dismiss: (id?: string) => void
-	/** Update a live toast in place (e.g. swap a loading toast to success). */
+	/** Update a live toast in place (e.g. swap a loading toast to success). Becoming an error, or gaining `actionProps`, with no `timeout` persists. */
 	update: typeof toastManager.update
 }
 
@@ -217,11 +219,51 @@ function withPersistence(options: AddOptions): AddOptions {
 		: options
 }
 
+type UpdateOptions = Parameters<typeof toastManager.update>[1]
+type PromiseOutcome<Value> = string | UpdateOptions | ((value: Value) => string | UpdateOptions)
+
+/**
+ * The persistence default for an in-place update: a toast that BECOMES an error,
+ * or gains an action, with no timeout named, stops its timer. Without this,
+ * `toast.update(id, { type: "error" })` inherited the provider's 5s default.
+ */
+function updateWithPersistence(options: UpdateOptions): UpdateOptions {
+	const persists = options.type === "error" || options.actionProps !== undefined
+	return options.timeout === undefined && persists ? { ...options, timeout: 0 } : options
+}
+
+/**
+ * Applies the default to one outcome of `toast.promise`. Base UI resolves the
+ * outcome (a string, options, or a function of the result) and then updates the
+ * toast with `timeout: outcome.timeout` — undefined, so the provider's default
+ * applied and a failed save vanished after five seconds.
+ */
+function outcomeWithPersistence<Value>(
+	outcome: PromiseOutcome<Value>,
+	type: "success" | "error",
+): (value: Value) => UpdateOptions {
+	return (value: Value) => {
+		const resolved = typeof outcome === "function" ? outcome(value) : outcome
+		const options: UpdateOptions = typeof resolved === "string" ? { description: resolved } : resolved
+		return updateWithPersistence({ type, ...options })
+	}
+}
+
+function promiseWithPersistence(promise: typeof toastManager.promise): typeof toastManager.promise {
+	return (value, options) =>
+		promise(value, {
+			...options,
+			success: outcomeWithPersistence(options.success, "success"),
+			error: outcomeWithPersistence(options.error, "error"),
+		})
+}
+
 /**
  * The manager hook, for use inside components. Returns { toasts, add, close,
- * update, promise } like Base UI's — but `add` applies the same persistence
- * default as `toast.*` (errors, loading, and any toast with `actionProps` wait
- * to be dismissed unless you pass a timeout). Base UI's raw `add` skipped it.
+ * update, promise } like Base UI's — but `add`, `update` and `promise` apply the
+ * same persistence default as `toast.*` (errors, loading, and any toast with
+ * `actionProps` wait to be dismissed unless you pass a timeout). Base UI's raw
+ * methods skipped it.
  */
 // A named, exported return type: the inferred one referenced Base UI's
 // internal manager type, which a consumer cannot name (TS2742 on any exported
@@ -233,7 +275,12 @@ export interface ToastManagerApi extends Omit<ReturnType<typeof Base.useToastMan
 }
 export function useToast(): ToastManagerApi {
 	const manager = Base.useToastManager()
-	return { ...manager, add: (options: AddOptions) => manager.add(withPersistence(options)) }
+	return {
+		...manager,
+		add: (options: AddOptions) => manager.add(withPersistence(options)),
+		update: (id, options) => manager.update(id, updateWithPersistence(options)),
+		promise: promiseWithPersistence(manager.promise),
+	}
 }
 /** Alias matching Base UI's name, for callers who prefer it. Same persistence default. */
 export const useToastManager = useToast
@@ -259,7 +306,7 @@ function show(
  *   toast.error("Upload failed", { description: err.message })
  *   const id = toast.loading("Uploading report…")
  *   toast.update(id, { title: "Uploaded", type: "success", timeout: 4000 })
- *   toast.promise(save(), { loading: "Saving…", success: "Saved", error: "Failed" })
+ *   toast.promise(save(), { loading: "Saving…", success: "Saved", error: "Couldn't save. Check your connection and try again." })
  */
 export const toast: ToastApi = Object.assign(
 	(message: ReactNode, options?: ToastOptions) =>
@@ -273,9 +320,9 @@ export const toast: ToastApi = Object.assign(
 		loading: (m: ReactNode, o?: ToastOptions) => show("loading", m, o),
 		custom: (o: AddOptions) => toastManager.add(withPersistence(o)),
 		add: (o: AddOptions) => toastManager.add(withPersistence(o)),
-		promise: toastManager.promise,
+		promise: promiseWithPersistence(toastManager.promise),
 		dismiss: (id?: string) => toastManager.close(id),
-		update: toastManager.update,
+		update: (id: string, options: UpdateOptions) => toastManager.update(id, updateWithPersistence(options)),
 	},
 )
 
@@ -329,6 +376,7 @@ export function ToastViewport({
 		</ToastViewportContext.Provider>
 	)
 }
+ToastViewport.displayName = "ToastViewport"
 
 type RootProps = Omit<ComponentProps<typeof Base.Root>, "className"> & {
 	className?: string
@@ -355,6 +403,7 @@ export function ToastRoot({ className, ...props }: RootProps) {
 		/>
 	)
 }
+ToastRoot.displayName = "ToastRoot"
 
 type ContentProps = Omit<ComponentProps<typeof Base.Content>, "className"> & {
 	className?: string
@@ -379,6 +428,7 @@ export function ToastContent({ className, ...props }: ContentProps) {
 		/>
 	)
 }
+ToastContent.displayName = "ToastContent"
 
 type TitleProps = Omit<ComponentProps<typeof Base.Title>, "className"> & {
 	className?: string
@@ -393,6 +443,7 @@ export function ToastTitle({ className, ...props }: TitleProps) {
 		/>
 	)
 }
+ToastTitle.displayName = "ToastTitle"
 
 type DescriptionProps = Omit<
 	ComponentProps<typeof Base.Description>,
@@ -408,37 +459,42 @@ export function ToastDescription({ className, ...props }: DescriptionProps) {
 		/>
 	)
 }
+ToastDescription.displayName = "ToastDescription"
 
 type CloseProps = Omit<ComponentProps<typeof Base.Close>, "className"> & {
 	className?: string
+	/** The dismiss button's accessible name. @default "Dismiss" */
+	dismissLabel?: string
 }
 
 /**
  * Dismisses the toast. Base UI handles the close + leave animation.
  *
  * The drawn box stays 24px (21 at the desktop root, which is where this missed
- * WCAG 2.5.8) and `hitTargetMin` grows the target instead. Enlarging the glyph
+ * WCAG 2.5.8) and `hitTargetTouch` grows the target instead (to 44px under a
+ * coarse pointer: the dismiss stands alone in the toast's corner). Enlarging the glyph
  * would make the loudest control in a toast the way to get rid of it, and the
  * dismiss is not the point of the toast — the message is. That is also why it
  * is not a composed Button: no Button size is 24px, and growing the dismiss to
  * the nearest one would make it louder than the message.
  */
-export function ToastClose({ className, children, ...props }: CloseProps) {
+export function ToastClose({ className, children, dismissLabel = "Dismiss", ...props }: CloseProps) {
 	return (
 		<Base.Close
 			className={cn(
 				"-m-1 ms-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-muted-foreground outline-none motion-interactive",
-				hitTargetMin,
+				hitTargetTouch,
 				"hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring",
 				className,
 			)}
-			aria-label="Dismiss"
+			aria-label={dismissLabel}
 			{...props}
 		>
 			{children}
 		</Base.Close>
 	)
 }
+ToastClose.displayName = "ToastClose"
 
 type ActionProps = Omit<ComponentProps<typeof Base.Action>, "className"> & {
 	className?: string
@@ -455,6 +511,7 @@ export function ToastAction({ className, ...props }: ActionProps) {
 	// focus ring and press feedback as every other secondary button.
 	return <Base.Action render={<Button variant="secondary" size="sm" className={className} />} {...props} />
 }
+ToastAction.displayName = "ToastAction"
 
 export interface ToastProviderProps {
 	children?: ReactNode
@@ -470,6 +527,8 @@ export interface ToastProviderProps {
 	limit?: number
 	/** Override the dismiss-button icon (defaults to an X). */
 	closeIcon?: ReactNode
+	/** Every toast's dismiss-button accessible name. @default "Dismiss" */
+	dismissLabel?: string
 	/** Screen anchor for the toast stack. @default "top-right" */
 	position?: ToastPosition
 	/**
@@ -504,6 +563,7 @@ export function ToastProvider({
 	timeout,
 	limit,
 	closeIcon,
+	dismissLabel,
 	position,
 	stacked,
 	viewportClassName,
@@ -513,6 +573,7 @@ export function ToastProvider({
 			{children}
 			<ToastList
 				closeIcon={closeIcon}
+				dismissLabel={dismissLabel}
 				position={position}
 				stacked={stacked}
 				viewportClassName={viewportClassName}
@@ -520,6 +581,7 @@ export function ToastProvider({
 		</Base.Provider>
 	)
 }
+ToastProvider.displayName = "ToastProvider"
 
 /**
  * The status each toast type speaks in — the same glyph and ink as Note,
@@ -537,11 +599,13 @@ const TYPE_TONE: Record<string, StatusTone> = {
 
 function ToastList({
 	closeIcon,
+	dismissLabel,
 	position,
 	stacked,
 	viewportClassName,
 }: {
 	closeIcon?: ReactNode
+	dismissLabel?: string
 	position?: ToastPosition
 	stacked?: boolean
 	viewportClassName?: string
@@ -584,7 +648,7 @@ function ToastList({
 								accepted by the manager and silently dropped.
 							*/}
 							<ToastAction className="self-center" />
-							<ToastClose>{closeIcon ?? <Icon name="xmark" className="text-sm" />}</ToastClose>
+							<ToastClose dismissLabel={dismissLabel}>{closeIcon ?? <Icon name="xmark" className="text-sm" />}</ToastClose>
 						</ToastContent>
 					</ToastRoot>
 				)

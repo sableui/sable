@@ -54,7 +54,8 @@ function LongList() {
 	const shown = COUNTRIES.filter((name) => name.toLowerCase().includes(q))
 	return (
 		<div className="w-full max-w-72">
-			<DisclosurePicker>
+			{/* name + value: the country submits with a form, open or closed. */}
+			<DisclosurePicker name="country" value={country}>
 				<DisclosurePickerTrigger label="Country">{country}</DisclosurePickerTrigger>
 				<DisclosurePickerPanel search={{ value: query, onValueChange: setQuery, placeholder: `Search ${COUNTRIES.length} countries` }}>
 					{shown.length > 0 ? (

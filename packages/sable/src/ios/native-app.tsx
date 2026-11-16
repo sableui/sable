@@ -1,3 +1,5 @@
+"use client"
+
 import { App } from "konsta/react"
 import { type CSSProperties, type ReactNode, useEffect } from "react"
 import { StatusIcons } from "../components/phone/status-icons"

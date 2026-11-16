@@ -1,3 +1,5 @@
+"use client"
+
 import { useState } from "react"
 import { Avatar } from "../components/avatar"
 import { Button } from "../components/button"
@@ -38,7 +40,7 @@ export function ProfileCardBlock({ className, framed = true, onFollowChange, onS
 			    starts at the banner's edge rather than a full pad below it. */}
 			<CardContent className="flex flex-col gap-3 pt-0">
 				<div className="flex items-start justify-between">
-					<Avatar variant="art" size="lg" fallback={profile.initials} alt={profile.name} className="-mt-6 ring-4 ring-card" />
+					<Avatar variant="art" size="lg" fallback={profile.initials} alt={profile.name} cutout className="-mt-6" />
 					<div className="flex gap-1.5 pt-3">
 						<Button variant="ghost" size="icon-sm" aria-label="Share profile" onClick={onShare}>
 							<Icon name="share" />
@@ -56,7 +58,7 @@ export function ProfileCardBlock({ className, framed = true, onFollowChange, onS
 					</div>
 				</div>
 				<div className="flex flex-col gap-0.5">
-					<CardTitle>{profile.name}</CardTitle>
+					<CardTitle render={<h2 />}>{profile.name}</CardTitle>
 					<CardDescription>{profile.handle}</CardDescription>
 				</div>
 				<p className="text-body-sm">{profile.bio}</p>

@@ -108,8 +108,33 @@ export const scrubFieldMeta: ComponentMeta = {
 			type: "() => void",
 			description: "Fires when a scrub drag ends — close the undo transaction here and restore full render quality.",
 		},
-		{ name: "disabled", type: "boolean", description: "Disables typing and scrubbing." },
+		{ name: "disabled", type: "boolean", description: "Disables typing and scrubbing; a disabled field submits nothing, like a native control." },
+		{ name: "readOnly", type: "boolean", description: "Blocks typing, arrow keys and scrubbing. The value still submits." },
+		{
+			name: "name",
+			type: "string",
+			description:
+				'Submits the value with a form under this name, through a hidden input: a plain number at the precision of step ("60", "0.25") — no unit, no separators. It is always the last committed value, never the draft being typed.',
+		},
+		{ name: "form", type: "string", description: "Id of a form elsewhere on the page that the hidden input belongs to." },
 		{ name: "id", type: "string", description: "Input id, for a PropertyRow's htmlFor." },
+		{
+			name: "className",
+			type: "string",
+			description: "Sizes the field shell (w-16, flex-1). Defaults to w-full.",
+		},
+		{
+			name: "dragLabel",
+			type: "(label: string) => string",
+			default: "(label) => `Drag to change ${label}`",
+			description: "The scrub handle's tooltip, given `label`. Translate it with the rest of the panel.",
+		},
+		{
+			name: "...props",
+			type: 'ComponentPropsWithRef<"input">',
+			description:
+				"ref, aria-describedby, aria-invalid, required, data-* and handlers land on the input, so a Field's description and error reach it and a ref can focus it.",
+		},
 	],
 	motion: [
 		{
@@ -147,9 +172,16 @@ export const scrubFieldMeta: ComponentMeta = {
 		"The input carries the accessible name via `label`; the glyph is aria-hidden because it is decorative.",
 		"Every scrub gesture is reachable from the keyboard: ArrowUp/ArrowDown step by `step`, Shift+Arrow by ten steps.",
 		"Enter commits, Escape reverts to the last committed value, and blur commits — so a partial edit is never silently kept.",
+		"Inside a Field the id, aria-describedby, aria-invalid and required it clones reach the input, so the description and error are announced with it.",
 	],
 	tokensUsed: ["foreground", "muted-foreground", "ring", "panel-field", "panel-field-hover"],
 	examples: [
+		{
+			label: "In a form (submits the committed number)",
+			code: `<form action={save}>
+  <ScrubField label="Opacity" name="opacity" icon="grid" suffix="%" value={opacity} min={0} max={100} onValueChange={setOpacity} />
+</form>`,
+		},
 		{
 			label: "Opacity with a glyph handle",
 			code: '<ScrubField label="Opacity" icon="grid" suffix="%" value={60} min={0} max={100} onValueChange={(v) => setOpacity(v)} />',

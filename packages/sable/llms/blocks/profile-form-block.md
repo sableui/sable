@@ -20,6 +20,8 @@ A profile settings card: avatar with upload/remove, name and handle side by side
 ## Source
 
 ```tsx
+"use client"
+
 import { Avatar, Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, cn, Field, Form, Grid, Input, Row, Select, SelectContent, SelectItem, SelectTrigger, Stack, Textarea } from "@sableui/react"
 
 const profile = {
@@ -43,7 +45,7 @@ export interface ProfileFormBlockProps {
 	/** false drops the card's surface and border — for a muted section that already frames it. */
 	framed?: boolean
 	/** Called with the form's fields on Save profile. */
-	onSave?: (fields: FormData) => void
+	onSave?: (profile: { displayName: string; handle: string; bio: string; timezone: string }) => void
 }
 
 export function ProfileFormBlock({ className, framed = true, onSave }: ProfileFormBlockProps) {
@@ -58,7 +60,9 @@ export function ProfileFormBlock({ className, framed = true, onSave }: ProfileFo
 				className="gap-0"
 				onSubmit={(event) => {
 					event.preventDefault()
-					onSave?.(new FormData(event.currentTarget))
+					const fields = new FormData(event.currentTarget)
+					const read = (name: string) => String(fields.get(name) ?? "")
+					onSave?.({ displayName: read("displayName"), handle: read("handle"), bio: read("bio"), timezone: read("timezone") })
 				}}
 			>
 				<CardContent>

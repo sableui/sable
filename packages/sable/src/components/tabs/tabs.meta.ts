@@ -77,7 +77,14 @@ export const tabsMeta: ComponentMeta = {
 			type: "Base UI Tabs.Root props (value, defaultValue, onValueChange, orientation)",
 			default: "defaultValue: 0",
 			description:
-				"Controls the active tab. Uncontrolled via defaultValue; controlled via value + onValueChange.",
+				"Controls the active tab. Uncontrolled via defaultValue; controlled via value + onValueChange. orientation=\"vertical\" sets the list beside its panels: a column of tabs ruled on its end edge, the mark travelling on y, and Up/Down arrows moving between tabs.",
+		},
+		{
+			name: "orientation",
+			type: '"horizontal" | "vertical"',
+			default: '"horizontal"',
+			description:
+				"On Tabs. vertical sets the list beside its panels: a column of tabs ruled on its end edge, the mark travelling on y, and Up/Down arrows moving between tabs. A horizontal list that overflows scrolls with an edge fade instead.",
 		},
 		{
 			name: "motion",
@@ -91,7 +98,7 @@ export const tabsMeta: ComponentMeta = {
 		{
 			name: "TabsList",
 			type: "Base UI Tabs.List props (activateOnFocus, loopFocus) + variant?: \"underline\" | \"pill\" + className",
-			description: "The tablist row. variant=\"underline\" (default) draws a divider rule beneath the triggers; variant=\"pill\" drops the rule and fills the active trigger, which takes the theme's button shape (--button-radius). Triggers inherit the variant. It renders the gliding indicator (Base UI Tabs.Indicator) itself, so do not add one.",
+			description: "The tablist row. variant=\"underline\" (default) draws a divider rule beneath the triggers; variant=\"pill\" drops the rule and fills the active trigger, which takes the theme's button shape (--button-radius). Triggers inherit the variant. It renders the gliding indicator (Base UI Tabs.Indicator) itself, so do not add one. A horizontal list that is wider than its container scrolls sideways with no bar and an edge fade, and scrolls the newly active tab into view (the list only, never the page). Inside a WorkspaceBar, or when vertical, it does not scroll.",
 		},
 		{
 			name: "TabsTrigger",
@@ -147,7 +154,7 @@ export const tabsMeta: ComponentMeta = {
 		"Base UI provides the tablist/tab/tabpanel roles, aria-selected, and roving tabindex.",
 		"Arrow keys move between tabs; Home/End jump to first/last; panels are linked via aria-controls.",
 		"Active tab styling reads from the data-active attribute; disabled tabs from data-disabled. Disabled tabs are skipped by arrow-key navigation.",
-		"Keyboard focus shows a ring on the focused trigger in both variants; the panel remains focusable.",
+		"Keyboard focus shows a ring on the focused trigger in both variants (inset, because the list scrolls and clips at its edge), and on the panel, which Base UI keeps in the tab order.",
 		"The gliding indicator is role=\"presentation\" decoration; aria-selected on the tab carries the state.",
 	],
 	examples: [
@@ -162,6 +169,10 @@ export const tabsMeta: ComponentMeta = {
 		{
 			label: "With a disabled tab",
 			code: '<Tabs defaultValue="overview"><TabsList><TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="billing" disabled>Billing</TabsTrigger></TabsList><TabsPanel value="overview">Overview content</TabsPanel></Tabs>',
+		},
+		{
+			label: "Vertical",
+			code: '<Tabs defaultValue="general" orientation="vertical"><TabsList><TabsTrigger value="general">General</TabsTrigger><TabsTrigger value="billing">Billing</TabsTrigger><TabsTrigger value="members">Members</TabsTrigger></TabsList><TabsPanel value="general">General settings</TabsPanel><TabsPanel value="billing">Billing settings</TabsPanel><TabsPanel value="members">Member settings</TabsPanel></Tabs>',
 		},
 		{
 			label: "Subtle motion",

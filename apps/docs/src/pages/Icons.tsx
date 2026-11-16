@@ -1,5 +1,6 @@
 import { CodeBlock, Grid, Icon } from "@sableui/react"
 import { reiconIconNames } from "@sableui/react/icons/reicon"
+import { reiconSolidIconNames, reiconSolidIconSet } from "@sableui/react/icons/reicon-solid"
 import { brandIconNames, brandIconSet } from "@sableui/react/icons/brands"
 import { PageHeader, Section } from "../components/docs-ui"
 
@@ -25,6 +26,36 @@ export function IconsPage() {
 							className="flex flex-col items-center gap-3 rounded-lg border border-border p-5 text-center"
 						>
 							<Icon name={name} className="text-2xl" title={name} />
+							<code className="text-mono-sm text-muted-foreground">{name}</code>
+						</div>
+					))}
+				</Grid>
+			</Section>
+
+			<Section
+				title="Solid weight"
+				description="reiconIconSet draws the outline weight, and solid only for the glyphs Sable's own components fill: a pressed like, the media controls, the overflow dots. For the solid weight of every other icon, put reiconSolidIconSet in front of it."
+			>
+				<CodeBlock code={`import { composeIconSets, IconProvider } from "@sableui/react"
+import { reiconIconSet } from "@sableui/react/icons/reicon"
+import { reiconSolidIconSet } from "@sableui/react/icons/reicon-solid"
+
+<IconProvider set={composeIconSets(reiconSolidIconSet, reiconIconSet)}>
+  <App />
+</IconProvider>
+
+<Icon name="bell" variant="solid" />`} />
+				<Grid cols={{ base: 3, sm: 4, md: 6, lg: 8 }} gap={1.5} className="mt-4">
+					{reiconSolidIconNames.map((name) => (
+						<div
+							key={name}
+							className="flex flex-col items-center gap-2 rounded-lg border border-border p-3 text-center"
+						>
+							{/* Drawn through the solid set directly, so this catalog does
+							    not depend on the docs app composing it into its provider. */}
+							<span className="text-2xl text-foreground">
+								{reiconSolidIconSet({ name, variant: "solid", title: name })}
+							</span>
 							<code className="text-mono-sm text-muted-foreground">{name}</code>
 						</div>
 					))}

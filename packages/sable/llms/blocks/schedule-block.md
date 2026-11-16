@@ -1,6 +1,6 @@
 # ScheduleBlock
 
-A three-day schedule: the day as the card title, its events below, and a card height that eases between days, driven by Tabs.
+A three-day agenda: the day as the card title, its events down a column of start times, each a block in its calendar's colour with the people in it, and a card height that eases between days, driven by Tabs.
 
 **Intent:** A compact day planner where selecting a day changes the amount of content in place. Edit the sample days after copying.
 
@@ -10,7 +10,8 @@ A three-day schedule: the day as the card title, its events below, and a card he
 
 - Tabs owns selection and keyboard navigation; useAutoSize measures the current panel's actual layout height.
 - TextSwap reflects the selected day. No automatic rotation or timers.
-- The day is the CardTitle, so it sits where every card's title does; the events are Entity rows on the content edge.
+- An event's colour is a palette family on data-palette: the block, its text and the avatars' ring read the slots, so no step is named and it follows the theme in both modes.
+- The days are dated from the page load, today first.
 
 ## Accessibility
 
@@ -20,33 +21,40 @@ A three-day schedule: the day as the card title, its events below, and a card he
 ## Source
 
 ```tsx
+"use client"
+
 import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Entity, Tabs, TabsList, TabsPanel, TabsTrigger, TextSwap, useAutoSize } from "@sableui/react"
+import { Avatar, AvatarGroup, Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Tabs, TabsList, TabsPanel, TabsTrigger, TextSwap, useAutoSize } from "@sableui/react"
 
-const month = "November 2026"
+// `tone` is a palette family: the calendar an event belongs to. `people` are initials.
+const agenda = [
+	[
+		{ name: "Studio standup", start: "9:00", length: "15 min", tone: "teal", people: ["AC", "KM", "AH"] },
+		{ name: "Design review", start: "11:00", length: "1 hr", tone: "purple", people: ["AC", "JP"] },
+		{ name: "Focus time", start: "14:00", length: "2 hr", tone: "neutral", people: [] },
+	],
+	[{ name: "Project planning", start: "10:00", length: "1 hr", tone: "blue", people: ["KM", "AH", "JP", "TB"] }],
+	[
+		{ name: "Client review", start: "9:30", length: "1 hr", tone: "pink", people: ["AC", "SR"] },
+		{ name: "Research", start: "13:00", length: "2 hr", tone: "teal", people: ["AH"] },
+	],
+] as const
 
-const days = [
-	{
-		id: "mon",
-		label: "Mon 9",
-		title: "Monday",
-		events: [
-			{ name: "Studio standup", time: "9:00–9:15" },
-			{ name: "Design review", time: "11:00–12:00" },
-			{ name: "Focus time", time: "14:00–16:00" },
-		],
-	},
-	{ id: "tue", label: "Tue 10", title: "Tuesday", events: [{ name: "Project planning", time: "10:00–11:00" }] },
-	{
-		id: "wed",
-		label: "Wed 11",
-		title: "Wednesday",
-		events: [
-			{ name: "Client review", time: "9:30–10:30" },
-			{ name: "Research", time: "13:00–15:00" },
-		],
-	},
-]
+// Dated from the page load, today first — replace with your own days.
+const DAY = 86_400_000
+const weekday = new Intl.DateTimeFormat("en-US", { weekday: "long" })
+const shortWeekday = new Intl.DateTimeFormat("en-US", { weekday: "short" })
+const monthDay = new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric" })
+const days = agenda.map((events, offset) => {
+	const date = new Date(Date.now() + offset * DAY)
+	return {
+		id: String(offset),
+		label: `${shortWeekday.format(date)} ${date.getDate()}`,
+		title: weekday.format(date),
+		date: monthDay.format(date),
+		events,
+	}
+})
 
 export interface ScheduleBlockProps {
 	className?: string
@@ -62,10 +70,12 @@ export function ScheduleBlock({ className, framed = true }: ScheduleBlockProps) 
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs", className)}>
 			<CardHeader>
-				<CardTitle>
+				<CardTitle render={<h2 />}>
 					<TextSwap text={selected.title} />
 				</CardTitle>
-				<CardDescription>{month}</CardDescription>
+				<CardDescription>
+					{selected.date} · {selected.events.length === 1 ? "1 event" : `${selected.events.length} events`}
+				</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<Tabs value={day} onValueChange={(value) => setDay(String(value))}>
@@ -84,9 +94,38 @@ export function ScheduleBlock({ className, framed = true }: ScheduleBlockProps) 
 						<div ref={size.innerRef}>
 							{days.map((item) => (
 								<TabsPanel key={item.id} value={item.id}>
-									{item.events.map((event) => (
-										<Entity key={event.name} className="px-0" title={event.name} subtitle={event.time} />
-									))}
+									{/* A day reads down its times: the start in a column of its
+									    own, the event beside it as a block in its calendar's
+									    colour. The block paints from the palette slots its
+									    data-palette fills, so no colour step is named here. */}
+									<ol className="flex flex-col gap-2 pt-4">
+										{item.events.map((event) => (
+											<li key={event.name} className="flex items-center gap-3">
+												<time className="w-10 shrink-0 text-end text-mono-caption text-muted-foreground tabular-nums">{event.start}</time>
+												<div
+													data-palette={event.tone}
+													// The avatars' separating ring takes the block's fill, not the card's.
+													className="flex min-w-0 flex-1 items-center gap-2 rounded-(--card-inner-radius) bg-palette-wash px-3 py-2 text-palette-text [--avatar-group-ring:var(--palette-wash)]"
+												>
+													<div className="flex min-w-0 flex-1 flex-col">
+														<span className="truncate text-label-md">{event.name}</span>
+														<span className="text-caption">{event.length}</span>
+													</div>
+													{event.people.length ? (
+														<AvatarGroup
+															size="xs"
+															max={2}
+															aria-label={event.people.length === 1 ? "1 person" : `${event.people.length} people`}
+														>
+															{event.people.map((person) => (
+																<Avatar key={person} variant="art" fallback={person} alt="" />
+															))}
+														</AvatarGroup>
+													) : null}
+												</div>
+											</li>
+										))}
+									</ol>
 								</TabsPanel>
 							))}
 						</div>

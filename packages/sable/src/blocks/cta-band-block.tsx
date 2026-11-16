@@ -1,3 +1,5 @@
+"use client"
+
 import { useId } from "react"
 import { Button } from "../components/button"
 import { Card, CardContent } from "../components/card"

@@ -38,7 +38,7 @@ Use Workspace as the outer frame for a tool — an editor, a console, a canvas a
 | Name | Type | Description |
 | --- | --- | --- |
 | WorkspaceBar | ComponentProps<'header'> | The top chrome strip, sized to --chrome-bar-height with a hairline beneath. |
-| WorkspaceCanvas | ComponentProps<'main'> | The work surface: renders main#main-content, fills the body, clips its overflow. |
+| WorkspaceCanvas | ComponentProps<'main'> | The work surface: renders the main landmark with Workspace's mainId (main-content by default; an id passed here wins) and tabIndex={-1} so the skip link can move focus into it, fills the body, clips its overflow. |
 | useMediaQuery | (query: string, options?: { serverValue?: boolean }) => boolean | True while a media query matches, read through useSyncExternalStore: no resize listener, no setState in an effect, no hydration mismatch (the server reports serverValue, default false). Use it to branch structure a class cannot express; style-only changes stay as lg: classes. |
 | useBelowBreakpoint | (breakpoint?: "sm" \| "md" \| "lg" \| "xl" \| "2xl", options?: { serverValue?: boolean }) => boolean | True below a named breakpoint (default lg), flipping at the width where that breakpoint's classes start to apply (Tailwind's sm 40 / md 48 / lg 64 / xl 80 / 2xl 96rem). Panel's `narrow` uses it; reach for it instead of a hand-rolled window.innerWidth check. |
 
@@ -51,6 +51,7 @@ Use Workspace as the outer frame for a tool — an editor, a console, a canvas a
 | bottomNav | ReactNode | — | Phone navigation, normally a BottomNav. Below lg (BottomNav's own breakpoint) the shell reserves the nav's height as its last row, so the body and the status bar end above the nav instead of under it; above lg the row is gone. Every slot is optional: the body is the shell's one growing row whichever of toolbar, statusBar and bottomNav are present. |
 | density | "compact" \| "comfortable" | "compact" | Density scope for everything inside. Sets the --control-* ladder via data-density; compact is the workspace register. Nothing hardcodes a height, so the same size="md" Button is 40px on a page and 32px inside a compact Workspace. A Dialog opened from inside resets to comfortable, because a modal is a page-register surface even when a tool launched it. |
 | skipLinkLabel | string | "Skip to canvas" | Text for the skip link that targets the canvas landmark. |
+| mainId | string | "main-content" | The id the skip link targets, which the WorkspaceCanvas inside takes unless it has an id of its own. Change it when the page already has a main-content (an AppShell around the tool), so the ids do not collide. |
 
 ## Tokens used
 
@@ -58,8 +59,8 @@ Use Workspace as the outer frame for a tool — an editor, a console, a canvas a
 
 ## Accessibility
 
-- Renders a skip link to #main-content as the first focusable element, even though there is no scrolling document.
-- WorkspaceCanvas is the <main id="main-content"> landmark; Panels are <aside> chrome with their own names.
+- Renders a skip link to the canvas (#main-content unless mainId says otherwise) as the first focusable element, even though there is no scrolling document.
+- WorkspaceCanvas is the <main> landmark and takes focus from the skip link (tabIndex -1, out of the tab order); Panels are <aside> chrome with their own names.
 - Density only changes control sizes, never hit-target rules — an icon button at the 24px floor still needs a padded 44px hit area.
 
 ## Related

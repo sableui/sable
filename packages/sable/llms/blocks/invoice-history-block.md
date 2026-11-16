@@ -20,6 +20,8 @@ A billing history card: a flush Table of date, plan, amount and status per invoi
 ## Source
 
 ```tsx
+"use client"
+
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Icon, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@sableui/react"
 
 const invoices = [

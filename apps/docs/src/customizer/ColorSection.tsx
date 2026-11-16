@@ -1,10 +1,13 @@
-import { Button, PALETTE_COLORS, PanelSection, PropertyGroup, PropertyRow, Toggle, ToggleGroup, cn } from "@sableui/react"
-import { type ReactNode, useLayoutEffect, useMemo, useState } from "react"
+import { PALETTE_COLORS, PanelSection, PropertyGroup, PropertyRow, Toggle, ToggleGroup, cn } from "@sableui/react"
+import { type ReactNode, useMemo } from "react"
 import { useTheme } from "../theme"
 import { formatOklch, oklchToHex } from "./color"
+import { useLiveColors, useSettled } from "./apply"
 import { useCustomizer } from "./CustomizerProvider"
 import { BrandColorInput, HueStrip, LookSlider, Segmented } from "./controls"
-import { DEFAULT_LOOK, type Look, type Neutrals, type Palette, type ThemeBase, brandFor, toCss } from "./look"
+import { DEFAULT_LOOK, type Look, type ThemeBase, brandFor, toCss } from "./look"
+import { NEUTRALS, NEUTRALS_TINTED, PALETTES, SECTION_FIELDS } from "./options"
+import { SectionReset } from "./Readouts"
 
 /*
  * The simple view's Color section. The brand, then one folding group per thing
@@ -13,20 +16,6 @@ import { DEFAULT_LOOK, type Look, type Neutrals, type Palette, type ThemeBase, b
  * open. Every colour here is the one the page paints, read back, never a
  * recomputation that could drift from it.
  */
-
-const TONES: readonly { value: Palette; label: string }[] = [
-	{ value: "preset", label: "Brand only" },
-	{ value: "harmonize", label: "Harmonize" },
-	{ value: "analogous", label: "Analogous" },
-	{ value: "triadic", label: "Triadic" },
-]
-const NEUTRALS: readonly { value: Neutrals; label: string }[] = [
-	{ value: "theme", label: "Preset" },
-	{ value: "mono", label: "Mono" },
-	{ value: "warm", label: "Warm" },
-	{ value: "cool", label: "Cool" },
-]
-const TINTED = { value: "brand", label: "Tinted" } as const
 
 /** The families at the step a tag's dot or a solid swatch uses. */
 const FAMILY_TOKENS = ["neutral", ...PALETTE_COLORS].map((name) => `${name}-500`)
@@ -38,43 +27,7 @@ const NEUTRAL_TOKENS = ["foreground", "muted-foreground", "border", "muted", "ba
 const LIVE_TOKENS = [...FAMILY_TOKENS, ...TONE_TOKENS, ...STATUS_TOKENS, ...NEUTRAL_TOKENS]
 
 /** The look's colour fields, as a fresh look has them. */
-const COLOR_DEFAULTS: Partial<Look> = {
-	hue: DEFAULT_LOOK.hue,
-	brand: DEFAULT_LOOK.brand,
-	primary: DEFAULT_LOOK.primary,
-	palette: DEFAULT_LOOK.palette,
-	neutrals: DEFAULT_LOOK.neutrals,
-	harmony: DEFAULT_LOOK.harmony,
-	statusLean: DEFAULT_LOOK.statusLean,
-}
-
-/**
- * The colours the page paints now, resolved by a probe on the page: the
- * families are relative colours computed from --primary, and would re-resolve
- * against the panel's own house theme if their values were painted in here.
- * Runs a frame after the look's stylesheet is rewritten.
- */
-function useLiveColors(): Record<string, string> {
-	const { css } = useCustomizer()
-	const { mode } = useTheme()
-	const [colors, setColors] = useState<Record<string, string>>({})
-	useLayoutEffect(() => {
-		const frame = requestAnimationFrame(() => {
-			const probe = document.createElement("span")
-			probe.style.cssText = "position:absolute;visibility:hidden;pointer-events:none"
-			document.body.appendChild(probe)
-			const out: Record<string, string> = {}
-			for (const token of LIVE_TOKENS) {
-				probe.style.color = `var(--${token})`
-				out[token] = getComputedStyle(probe).color
-			}
-			probe.remove()
-			setColors(out)
-		})
-		return () => cancelAnimationFrame(frame)
-	}, [css, mode])
-	return colors
-}
+const COLOR_DEFAULTS = Object.fromEntries(SECTION_FIELDS.color.map((key) => [key, DEFAULT_LOOK[key]])) as Partial<Look>
 
 /**
  * What a choice would paint, without applying it: the look's CSS with one
@@ -175,48 +128,46 @@ export function ColorSection() {
 	const { look, setLook, base } = useCustomizer()
 	const { mode, themeId } = useTheme()
 	const paint = mode === "dark" ? "dark" : "light"
-	const colors = useLiveColors()
+	const colors = useLiveColors(LIVE_TOKENS, mode)
+	// The option previews each compute a whole look; a drag pays for them once, when it settles.
+	const settledLook = useSettled(look)
 
 	const hasBrand = brandFor(look, paint) != null
 	const brandLight = brandFor(look, "light")
 	const brandHex = look.brand ?? (brandLight ? oklchToHex(brandLight) : "")
-	const presetPrimary = base.colors?.light?.primary ? oklchToHex(base.colors.light.primary) : undefined
-	const neutralOptions = hasBrand ? [...NEUTRALS, TINTED] : NEUTRALS
+	// The preset's primary in the mode on screen: dark Sable's is white, not its light near-black.
+	const presetPrimaryColor = base.colors?.[paint]?.primary
+	const presetPrimary = presetPrimaryColor ? oklchToHex(presetPrimaryColor) : undefined
+	const neutralOptions = hasBrand ? NEUTRALS_TINTED : NEUTRALS
 	const changed = (Object.keys(COLOR_DEFAULTS) as (keyof Look)[]).some((key) => look[key] !== COLOR_DEFAULTS[key])
 
 	// What each Tones and Neutrals choice would paint, recomputed with the look.
 	const toneOptions = useMemo(
 		() =>
-			TONES.map((option) => ({
+			PALETTES.map((option) => ({
 				...option,
-				swatches: <ToneSwatches colors={preview({ ...look, palette: option.value }, base, themeId, paint, [...TONE_TOKENS, ...STATUS_TOKENS])} className="h-3.5 flex-1" />,
+				swatches: <ToneSwatches colors={preview({ ...settledLook, palette: option.value }, base, themeId, paint, [...TONE_TOKENS, ...STATUS_TOKENS])} className="h-3.5 flex-1" />,
 			})),
-		[look, base, themeId, paint],
+		[settledLook, base, themeId, paint],
 	)
 	const neutralChoices = useMemo(
 		() =>
 			neutralOptions.map((option) => ({
 				...option,
-				swatches: <Swatches colors={preview({ ...look, neutrals: option.value }, base, themeId, paint, NEUTRAL_TOKENS)} tokens={NEUTRAL_TOKENS} className="h-3.5 flex-1" />,
+				swatches: <Swatches colors={preview({ ...settledLook, neutrals: option.value }, base, themeId, paint, NEUTRAL_TOKENS)} tokens={NEUTRAL_TOKENS} className="h-3.5 flex-1" />,
 			})),
-		[look, base, themeId, paint, neutralOptions],
+		[settledLook, base, themeId, paint, neutralOptions],
 	)
 
 	const pull = look.harmony == null ? "Theme" : look.harmony === 0 ? "Own hues" : `${look.harmony}%`
 	// Without a brand the tones are the preset's own; the scheme has nothing to build from.
-	const tones = hasBrand ? (TONES.find((option) => option.value === look.palette)?.label ?? "Brand only") : "Preset"
+	const tones = hasBrand ? (PALETTES.find((option) => option.value === look.palette)?.label ?? "Brand only") : "Preset"
 	const neutrals = neutralOptions.find((option) => option.value === look.neutrals)?.label ?? "Preset"
 
 	return (
 		<PanelSection
 			title="Color"
-			action={
-				changed ? (
-					<Button variant="ghost" size="xs" onClick={() => setLook(COLOR_DEFAULTS)}>
-						Reset
-					</Button>
-				) : null
-			}
+			action={<SectionReset label="Color" changed={changed} onReset={() => setLook(COLOR_DEFAULTS)} />}
 		>
 			<PropertyRow stacked label="Brand color">
 				<div className="flex flex-col gap-2">
@@ -224,8 +175,7 @@ export function ColorSection() {
 					<HueStrip hue={look.brand ? null : look.hue} onChange={(hue) => setLook({ hue, brand: null })} />
 				</div>
 			</PropertyRow>
-			{hasBrand ? null : <p className="text-ui-micro text-muted-foreground">Pick a brand color to set the primary action and generate tones.</p>}
-			<PropertyRow label="Primary action">
+						<PropertyRow label="Primary action">
 				<Segmented
 					size="sm"
 					fill={false}

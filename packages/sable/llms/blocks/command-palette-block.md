@@ -1,6 +1,6 @@
 # CommandPaletteBlock
 
-An inline command palette: CommandMenuPanel with a filter field and grouped actions, each with an icon and its keyboard shortcut.
+An inline command palette: CommandMenuPanel with a filter field and a group of actions, each with an icon and its keyboard shortcut.
 
 **Intent:** Reach for this to show a command list in place — an empty state that teaches shortcuts, an onboarding step, a quick-actions card. The ⌘K palette that opens over the app is CommandMenu; this is its panel without the dialog.
 
@@ -43,6 +43,6 @@ export function CommandPaletteBlock({ className, onCommand }: CommandPaletteBloc
 		hint: <Kbd>{c.key}</Kbd>,
 		onSelect: () => onCommand?.(c.id),
 	}))
-	return <CommandMenuPanel className={cn("w-full max-w-xs shadow-sm", className)} placeholder="Type a command…" items={items} />
+	return <CommandMenuPanel elevation="raised" className={cn("w-full max-w-xs", className)} placeholder="Type a command…" items={items} />
 }
 ```

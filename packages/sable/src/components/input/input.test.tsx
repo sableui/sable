@@ -38,3 +38,22 @@ describe("Input — mobile type floor", () => {
 		expect(input.className).not.toContain("max-sm:")
 	})
 })
+
+describe("Input — the field ladder", () => {
+	it("stands on each rung of the shared field ladder", () => {
+		renderWithProviders(
+			<>
+				<Input placeholder="md" />
+				<Input placeholder="sm" size="sm" />
+				<Input placeholder="xs" size="xs" />
+			</>,
+		)
+		expect(screen.getByPlaceholderText("md").className).toContain("h-(--control-md)")
+		const sm = screen.getByPlaceholderText("sm").className
+		expect(sm).toContain("h-(--control-sm)")
+		// sm is md one rung down — the same raised field, not the inset panel fill.
+		expect(sm).toContain("border-field-border")
+		expect(sm).not.toContain("bg-panel-field")
+		expect(screen.getByPlaceholderText("xs").className).toContain("h-(--control-xs)")
+	})
+})

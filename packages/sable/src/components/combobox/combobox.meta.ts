@@ -174,15 +174,15 @@ export const comboboxMeta: ComponentMeta = {
 	subcomponents: [
 		{
 			name: "ComboboxInput",
-			type: 'Base UI Combobox.Input props (minus the native `size` attribute) + size?: "md" | "xs" + className',
+			type: 'Base UI Combobox.Input props (minus the native `size` attribute) + size?: "md" | "sm" | "xs" + toggleLabel?: string + className',
 			description:
-				'The search field, styled like Input, wrapped with an InputGroup + chevron Trigger that toggles the popup. The chevron flips while the popup is open (data-[popup-open] on the toggle). `size="xs"` is the property-grid rung and mirrors SelectTrigger\'s `xs` exactly — same height, radius and inset surface — so a combobox and a select in one panel are the same shape holding different content (a font-family picker directly above a font-weight select is the case it exists for). Note the type: the native numeric `size` attribute is omitted rather than shadowed, because intersecting a string union onto it resolves to `never` and breaks every call site.',
+				'The search field, styled like Input, wrapped with an InputGroup + chevron Trigger that toggles the popup. The chevron flips while the popup is open (data-[popup-open] on the toggle); `toggleLabel` (default "Toggle suggestions") names it. `size` is the field ladder shared with Input, SelectTrigger, SearchInput, NumberField and DatePicker: `md` the form field, `sm` the toolbar field one rung down beside an `sm` Select. `size="xs"` is the property-grid rung and mirrors SelectTrigger\'s `xs` exactly — same height, radius and inset surface — so a combobox and a select in one panel are the same shape holding different content (a font-family picker directly above a font-weight select is the case it exists for). Note the type: the native numeric `size` attribute is omitted rather than shadowed, because intersecting a string union onto it resolves to `never` and breaks every call site.',
 		},
 		{
 			name: "ComboboxChips",
-			type: 'Base UI Combobox.Input props (minus the native `size` attribute) + size?: "md" | "xs" + chipLabel?: (item) => string + className',
+			type: 'Base UI Combobox.Input props (minus the native `size` attribute) + size?: "md" | "sm" | "xs" + chipLabel?: (item) => string + removeLabel?: (label) => string + toggleLabel?: string + className',
 			description:
-				'The field for a `multiple` combobox, used in place of ComboboxInput. Each selected item renders as a soft `sm` Badge with a ghost `icon-xs` Button that removes it (labelled "Remove {label}"), followed by the text input; the shell wraps and grows as chips are added. `chipLabel` turns an item into its chip text — defaults to the item for strings/numbers and its `label` field for objects. Keyboard is Base UI\'s: Backspace in an empty field removes the last chip, ←/→ move between chips, Backspace/Delete removes the highlighted one. `size="xs"` mirrors ComboboxInput\'s property-grid rung.',
+				'The field for a `multiple` combobox, used in place of ComboboxInput. Each selected item renders as a soft `sm` Badge with a ghost `icon-xs` Button that removes it (named by `removeLabel(label)`, default "Remove {label}"), followed by the text input; the shell wraps and grows as chips are added. `chipLabel` turns an item into its chip text — defaults to the item for strings/numbers and its `label` field for objects. Keyboard is Base UI\'s: Backspace in an empty field removes the last chip, ←/→ move between chips, Backspace/Delete removes the highlighted one. `size` takes the same rungs as ComboboxInput.',
 		},
 		{
 			name: "ComboboxContent",
@@ -225,6 +225,24 @@ export const comboboxMeta: ComponentMeta = {
 			type: "Base UI Combobox.GroupLabel props + className",
 			description:
 				"The label for a ComboboxGroup. Auto-associated with the group it sits in.",
+		},
+		{
+			name: "ComboboxValue",
+			type: "Base UI Combobox.Value props",
+			description:
+				"Base UI's Value, unstyled: renders the selected value (or, with a function child, whatever you derive from it). ComboboxChips uses it internally; reach for it to show the selection somewhere other than the field.",
+		},
+		{
+			name: "ComboboxClear",
+			type: "Base UI Combobox.Clear props",
+			description:
+				"Base UI's Clear, unstyled: a button that empties the selection and the input. Render it through a ghost icon Button (render={<Button variant=\"ghost\" size=\"icon-xs\" />}) with an aria-label, beside the field.",
+		},
+		{
+			name: "ComboboxItemIndicator",
+			type: "Base UI Combobox.ItemIndicator props",
+			description:
+				"Base UI's ItemIndicator, unstyled: shows its children only while the item is selected. ComboboxItem already draws a check with it; use it directly only in a custom item layout.",
 		},
 	],
 	tokensUsed: [
@@ -295,7 +313,7 @@ export const comboboxMeta: ComponentMeta = {
 		"The chevron Trigger carries an aria-label and toggles the suggestions popup.",
 		"ComboboxEmpty announces filter results politely; keep it mounted (do not conditionally render it).",
 		"Animate open/close via data-[starting-style]/data-[ending-style] attributes.",
-		"With `multiple`, the listbox is multi-selectable and each chip's remove button is labelled `Remove {label}`; Backspace in an empty field removes the last chip and ←/→ move between chips, so every chip is reachable without a pointer.",
+		"With `multiple`, the listbox is multi-selectable and each chip's remove button is labelled by `removeLabel` (default `Remove {label}`); Backspace in an empty field removes the last chip and ←/→ move between chips, so every chip is reachable without a pointer.",
 		"ComboboxVirtualList gives every rendered row aria-setsize (the full filtered count) and aria-posinset, so a screen reader is told the size of the list rather than the size of the window.",
 		"A highlight that lands on a row the window has not rendered is scrolled into view by the root, which forwards it to the list; Base UI's own scrollIntoView only reaches rows that exist.",
 	],

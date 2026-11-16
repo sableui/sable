@@ -1,5 +1,449 @@
 # What's new
 
+## Unreleased
+
+- **Quieter lists, and a label for a group of rows.** `CardList divided={false}`
+  drops the hairline between rows: the rows are spaced by padding alone, a card
+  padding clear of the header, the footer and the card's edge. The new
+  `CardListLabel` names a group of rows ("Signed-in devices", "Sources",
+  "Recent"); in a quiet list a label after the first row draws the one rule
+  that separates its group. SecurityBlock, CitedAnswerBlock and SearchBlock use
+  both, in place of a hand-padded heading between ruled rows. SearchBlock's
+  status line ("Recent", "3 results") is now the list's label rather than a
+  line of the header.
+- **A lighter own-side bubble.** `Bubble variant="tint"` is the reader's own
+  message as a wash of the brand colour over the thread's surface, for a short
+  thread where the solid primary bubble reads dark and heavy.
+  MessageReactionsBlock pairs it with `outline` for the other party.
+- **Reactions can live inside the bubble, with faces.** A `BubbleReactions` row
+  placed as a Bubble's last child sits under the text, and its pills become
+  soft chips a faint step off the bubble, tinted with primary for the
+  reader's own, so the emoji and the faces carry the row.
+  `BubbleReaction` takes `avatars`: with up to three people the pill shows who
+  reacted in place of the count, past three the count. MessageReactionsBlock
+  uses both; its `reactions` data now lists who reacted, not a number. A row
+  under the bubble is unchanged.
+- **RecentOrdersBlock lines up at any width.** Customer is now the first
+  column: hiding the order number in a narrow card left the first visible
+  column without the card's inset, 16px left of the title.
+- **A card's seams hold up around lists and tables.** A CardFooter after a
+  CardList or a flush CardContent draws its hairline and padding even when a
+  visually hidden node sits between them (the `sr-only` live region that
+  announces a removed row); before, the footer lost both, and CartBlock's
+  totals and SecurityBlock's button sat on the last row. A flush CardContent
+  under a CardHeader is set off by half the card padding, so a table's column
+  labels no longer touch the description (DashboardPage's own `mt-4` is gone).
+  A trailing control up to 8px taller than an Entity's text no longer makes
+  its row taller, so a list mixing Switch, Badge and small Button rows is even.
+- **New: Pill `appearance="ghost"`, and reactions use it.** Nothing drawn at
+  rest, a hover fill off the surface, and a primary tint with no edge when
+  selected. BubbleReaction and BubbleReactionAdd wear it: a row of hairline
+  capsules under a bubble outweighed the two emoji in it, and now only the
+  reader's own reaction is a chip. Nothing to migrate; a Pill you set to
+  `outline` yourself is unchanged.
+- **Seven blocks polished.** SearchBlock's field, filters and status line are a
+  divided CardHeader, and its floor is four rows by construction, so a full
+  list ends on the card's edge instead of over a blank strip. CartBlock puts
+  the free-shipping note under the button it qualifies. RecentOrdersBlock
+  drops the order number and then the date by its own width, so a narrow card
+  shows customer, status and total without scrolling. CitedAnswerBlock's
+  citations are numbered chips that match the source list, follow the
+  punctuation and never start a line. ScheduleBlock is a day agenda: start
+  times in a column, each event a block in its calendar's palette colour with
+  the people in it, dated from the page load.
+
+- **Five new blocks show components working together.** `AgentRunBlock` is one
+  agent turn: send a follow-up and an AgentAvatar thinks, a ToolCall runs, the
+  answer arrives as StreamingText and the ChatComposer's send becomes stop.
+  `PostBlock` is a feed post with RelativeTime, ShowMore and LikeButton.
+  `ReserveTableBlock` books a day with a bare Calendar and a NumberField, then
+  eases down to a confirmation (a DateTile, the party size and a ConfirmButton
+  to cancel). `DeliveryOptionsBlock` picks a RadioCard and rolls the total.
+  `PhotoAdjustBlock` is a small inspector: PropertyRows that pair a Slider with
+  a ScrubField, a ColorField tint, and Reset and Save at the foot, applied live
+  to the photo. Copy any of them with `sable block <Name>`.
+- **Four more blocks for everyday product moments.** `StorageBlock` shows a
+  Meter against a plan and a two-press Clear cache that becomes a Progress bar,
+  shows a Skeleton for the size being recalculated, and ends in a toast.
+  `StreakBlock` puts a habit's current and longest run over sixteen weeks of
+  ActivityHeatmap, with Pills that switch the measure. `ShareBlock` invites
+  people from a multi-select Combobox with a role Select, and copies the link
+  from a split button in a ButtonGroup. `SearchBlock` is a search panel with
+  its three answers: Skeleton rows while it works, results with the match
+  highlighted, and an EmptyState with a way out. StorageBlock and ShareBlock
+  report through `toast`, so the app needs a `ToastProvider`.
+- **PhotoAdjustBlock takes its photo as `image`.** The photo is the block's
+  input, not its copy, so it is the one piece of media a block takes as a prop:
+  `<PhotoAdjustBlock image={url} />`. Without it the preview paints seeded art,
+  so an app importing the block never requests a path only sableui.com serves.
+  The docs pass their own photo in.
+- **Six more blocks fill gaps in the catalog.** `CartBlock` is a cart and its
+  order summary: lines with a NumberField and a remove button, a total that
+  rolls, and an empty state. `SubscriptionBlock` is the current plan in billing
+  settings, with a seats Meter, the payment method and a cancel that can be
+  taken back. `SecurityBlock` puts two-factor, passkeys and the signed-in
+  devices in one card. `CommentThreadBlock` is a thread with replies one level
+  in and a composer that knows what it replies to. `RecentOrdersBlock` is a
+  DataTable card for a dashboard, with a status filter and clickable rows.
+  `CitedAnswerBlock` is an assistant's answer with numbered citations, each
+  previewing its passage in a ContextCard, over the list of sources.
+- **New: `IconTile`.** One icon on a small square tile, sized and cornered like
+  a square Avatar, filled from the surface's well, the muted surface or a
+  palette family. FeatureGridBlock, SearchBlock and LandingPage hand-built it
+  three different ways; they now use it.
+- **Looks that blocks used to fake with classes are variants now.**
+  `ToggleGroup appearance="tiles"` makes each Toggle a stat tile that switches a
+  chart (DeviceComparisonBlock); Card `variant="featured"` is the raised surface
+  with a primary edge (PricingTableBlock's recommended tier); Avatar `cutout`
+  rings an avatar in the surface it sits on (ProfileCardBlock); CardHeader
+  `divided` closes a header with a hairline (ChatPanel); CommandMenuPanel
+  `elevation="raised"` and Browser `elevation="hero"` replace `shadow-*`
+  classes. All of them read existing tokens.
+- **Breaking: block callbacks follow one naming rule.** A callback names the
+  verb the person performed and takes one typed payload; two different answers
+  get two callbacks; a toggle reports `on<State>Change`; a list row reports its
+  id first. The rule is in CONTRIBUTING.md. To migrate:
+  - `FeedbackFormBlock`: `onDone(sent, feedback?)` → `onSkip()` and `onSend({ score, notes })`.
+  - `EventCardBlock`: `onRespond("join" | "decline")` → `onJoin()` and `onDecline()`.
+  - `PricingTableBlock`: `onChoose(tier, period)` → `onChoose({ tier, period })`.
+  - `MessageReactionsBlock`: `onReact(messageId, emoji, on)` → `onReactionChange(messageId, { emoji, reacted })`.
+  - `NotificationSettingsBlock`: `onChange(id, on)` → `onSettingChange(id, enabled)`.
+  - `ProfileFormBlock`: `onSave(formData)` → `onSave({ displayName, handle, bio, timezone })`.
+- **Every card block's title is a heading.** CardTitle renders as `h2` in a
+  card block (`h3` under a block's own heading, as in PricingTableBlock), so a
+  dashboard built from blocks can be navigated by heading. A figure in the title
+  slot, such as a balance, stays a `div`. A test holds every block to it.
+- **The new blocks speak once, and only when something happened.** SearchBlock
+  announces "Searching" once (its spinner is decorative) and its list has a
+  floor, not a fixed height, so a roomy density no longer spills out of the
+  card. AgentRunBlock keeps one live region mounted and changes its words.
+  PostBlock's comment button is named "24 comments", and its ellipsis opens a
+  real menu (`onPostAction`), with `onLikeChange` and `onSaveChange` beside it.
+  PhotoAdjustBlock names each field "Exposure value" beside the "Exposure"
+  slider. StreakBlock says "Longest 23 days". ShareBlock's link access is
+  controlled and reported (`onAccessChange`), its invite toast waits for
+  `onInvite` (return a promise and a rejection says the invites were not sent),
+  and its copy group is named "Share link".
+- **Sample dates follow the calendar.** ReserveTableBlock, StreakBlock,
+  DeliveryOptionsBlock, DeviceComparisonBlock and EventCardBlock date their
+  samples from the page load, as PostBlock does, so none opens on a day that has
+  passed.
+- **The Blocks page gives feedback, and sample links stay put.** It mounts a
+  ToastProvider, so StorageBlock and ShareBlock show their toasts there. Sample
+  links in blocks and page shells (`/docs/getting-started`, `/pricing`, sites on
+  `.example`) no longer open the docs' 404 when clicked on sableui.com; the
+  source you copy is unchanged. The page-shell previews are built from the
+  catalog, so a new pattern opens without a docs edit.
+- **Page shells tidy up.** BrandLandingPage lays its illustration out with
+  `Grid`, FeedPage's images fall back to seeded art instead of a broken-image
+  glyph, and the block contract in CONTRIBUTING.md now matches the blocks:
+  callbacks for each outcome, no app-specific hooks in patterns, headings,
+  live regions and relative dates.
+- **A Calendar given a width fills it.** `className="w-full"` now spreads the
+  seven columns across the container, so the first and last days sit on its
+  edges. Before, the grid stayed at its own width on the start side while the
+  month arrows spread out. In a container narrower than seven day cells, the
+  cells now give up width instead of running out of it. A calendar at its
+  natural width is unchanged.
+- **ToolCall shows the tool's name by its own width, not the window's.** The
+  mono name after the title appears once the call is 24rem wide. In a narrow
+  card on a wide screen it used to squeeze the title to an ellipsis.
+- **ApprovalBlock and DeviceComparisonBlock hold together when narrow.** Below
+  its designed width ApprovalBlock stacks its three answers with the primary on
+  top, where they used to run out of the card. DeviceComparisonBlock puts its
+  totals under the title by the card's width; it used the window's, so a narrow
+  card on a desktop crushed the title into a sliver.
+- **The Customize canvas has fifteen more scenes:** the nine new blocks, and six
+  that already shipped (Approval, VerifyCode, GoalProgress, DeviceComparison,
+  MessageReactions, DangerZone).
+- **New guides for the first hour.** `sable docs nextjs` covers the App Router:
+  the `"use client"` providers file and root layout `sable init` prints, and a
+  script that applies the stored colour mode before first paint.
+  `sable docs color-mode` covers light, dark and system, a dark default, and the
+  stylesheet every alternate theme needs. `sable docs troubleshooting` maps each
+  `sable doctor` check to the symptom you see. On sableui.com they are pages
+  under Guides, beside the two migration guides, which now have pages too.
+- **The setup docs match what `sable init` does.** It wires the fonts and
+  IconProvider itself only on Vite; on Next.js it prints them, and it never adds
+  antialiasing or theme CSS. The README, AGENTS.md, llms.txt and the registry's
+  `consume` block now say so, and agent setup is described once, in AGENTS.md.
+  llms.txt no longer claims icons fall back to Reicon without an IconProvider
+  (they render nothing), and AGENTS.md's tone example names a real token.
+- **Every component that needs the client says so.** Button, Card, Input,
+  Dialog, Tooltip, Icon and some 45 other modules called hooks without a
+  `"use client"` directive, and the build keeps each module's own directive and
+  adds none, so rendering `<Button>` in a Next.js Server Component threw. They
+  carry it now, and `use-client.test.ts` fails on any module that calls a hook,
+  creates a context, sets a handler or passes a function prop without it.
+- **A failed `toast.promise` stays until it is read.** The promise's error
+  outcome, a success carrying `actionProps`, and a `toast.update` that turns a
+  toast into an error or gives it an action now persist like `toast.error`,
+  unless they name a `timeout`. Before, they took the provider's five seconds.
+  The same applies through `useToast()`.
+- **Every word a component supplies can be translated.** One convention, now in
+  CONTRIBUTING.md: a flat `<role>Label` prop with an English default, or a
+  function when the words carry a value. New: Dialog and Sheet `closeLabel`;
+  Banner and ToastProvider/ToastClose `dismissLabel`; Pagination
+  `previousLabel`, `nextLabel`, `pageLabel(page)`; CodeBlock `copyLabel`,
+  `copiedLabel`; ChatComposer `attachLabel`; SearchInput `clearLabel`;
+  CommandMenu `searchLabel`, `clearLabel`, `resultCountLabel(count)`; Video
+  `playLabel`; Marquee `pauseLabel`, `playLabel`; ShowMore `moreLabel`,
+  `lessLabel`; Feedback `ratingLabel`; Attachment `uploadingLabel`; DatePicker
+  `timeLabel`, `hourLabel`, `minuteLabel`; ColorField `transparentLabel`,
+  `hexLabel`, `eyedropperLabel`; ComboboxInput/ComboboxChips `toggleLabel`,
+  ComboboxChips `removeLabel`; NumberField `decrementLabel`, `incrementLabel`;
+  ScrubField `dragLabel`; FontPicker `searchPlaceholder`, `emptyLabel`; TreeRow
+  `expandLabel`, `collapseLabel`; AppShell `skipLinkLabel`; Carousel `label`,
+  `previousLabel`, `nextLabel`, `slideLabel`, `positionLabel`, `dotsLabel`,
+  `dotLabel`, `pauseLabel`, `playLabel`; MenuLinkItem `newTabLabel`.
+  `aria-label-literals.test.ts` fails on a literal `aria-label` in a component.
+- **Standalone icon buttons reach 44px under touch.** Dialog's and Sheet's close,
+  Banner's and Toast's dismiss, CodeBlock's copy and Carousel's prev/next
+  arrows grow their hit area to 44px
+  on a coarse pointer without moving a pixel (`hitTargetTouch` in
+  `lib/hit-target`). Controls packed in a row (pagination numbers, calendar
+  days, chips, tree disclosures, carousel dots) keep the 24px WCAG floor: their
+  spacing, not their slop, sets the target. The accessibility foundation now
+  says so instead of promising 44px everywhere.
+- **Pickers and fields take part in forms.** DatePicker takes `name`, `form`,
+  `required`, `readOnly` and submits `yyyy-MM-dd`, `yyyy-MM-ddTHH:mm`, `HH:mm`,
+  or `yyyy-MM-dd/yyyy-MM-dd` for a range; a required picker, including inside
+  `<Field required>`, blocks submit and focuses its trigger. ColorField submits
+  `#rrggbb`, `#rrggbbaa` or `transparent`; DisclosurePicker and FontPicker
+  submit the chosen value, even while closed; ScrubField submits its committed
+  number. DatePicker and ScrubField forward `ref` and the props a Field clones.
+- **DatePicker picks ranges and times, in your locale.** `mode="range"` picks
+  `{ from, to }` in two picks and closes (`DateRange` is exported).
+  `granularity="time"` is a time-only field. `locale` (a date-fns locale)
+  localises the calendar and the label together.
+- **ScrubField's Escape reverts.** It committed the draft it meant to discard,
+  and Enter reported the value twice.
+- **One size ladder for fields.** `sm` on Input, ComboboxInput, ComboboxChips,
+  NumberField (also `xs`), DatePicker and DisclosurePicker/FontPicker, so a
+  toolbar row of `sm` fields and `sm` buttons is one height.
+  `prop-vocabulary.test.ts` holds them to the same ladder.
+- **DataTable sorts server data.** `sort` + `onSortChange` control the sort and
+  `manualSorting` skips the local sort, so a sortable header on server-paged
+  rows reports the click instead of reordering one page. Strings compare with
+  `Intl.Collator` (new `locale`): case-blind, accent-aware, "file2" before
+  "file10". DataTable forwards `ref` and DOM props to its `<table>`. The sort
+  header is now TableHead `sortable` / `sortDirection` / `onSort`, for
+  hand-built tables too.
+- **ContextMenu has Menu's parts.** Every part below the trigger is now Menu's
+  own: ContextMenuItem takes `icon` and `description`, and ContextMenuLinkItem,
+  ContextMenuSubmenu, ContextMenuSubmenuTrigger, ContextMenuRadioGroup,
+  ContextMenuRadioItem and ContextMenuCheckboxItem are new. MenuLinkItem with
+  `target="_blank"` tells screen readers it opens a new tab.
+- **Tabs stand vertically and scroll when they overflow.**
+  `orientation="vertical"` is styled; a list wider than its room scrolls with an
+  edge fade and brings the active tab into view; TabsPanel shows a focus ring.
+- **Smaller fixes.** Tooltip caps at 20rem. AccordionTrigger takes
+  `headingLevel` (2–6). SheetContent takes `showCloseButton`. WorkspaceCanvas
+  takes focus from the skip link, and Workspace and AppShell take `mainId`.
+  Entity rows take `render` for router links, with `aria-current="page"` when
+  selected. RelativeTime takes `now` and `locale`, and renders unparseable input
+  as text instead of throwing. ColorField swatches show a focus outline and take
+  `{ value, label }`. The standalone Tree toggle shows a focus ring and points
+  the right way under RTL. Carousel's inactive dots clear 3:1 (70%, from 40%).
+  Calendar's months wrap by the room they have, not the viewport's `sm`
+  breakpoint. Combobox documents ComboboxValue, ComboboxClear and
+  ComboboxItemIndicator. Every exported component sets `displayName`.
+- **AGENTS.md says Sable does not support RTL yet.** Layout mirrors; directional
+  icons and Carousel's arrow keys do not.
+- **Breaking: `styles.css` no longer scans the package.** The published
+  stylesheet carried its own `@source` over all of `dist`, so every app
+  generated the classes of every component, block, pattern and `*.meta.js`
+  example string whatever it scanned itself, and `sable sources` trimmed
+  nothing. Your stylesheet now owns the scan, as the README's recipe and
+  `sable init` already set it up. Measured, minified and gzipped: the
+  whole-package `@source` is about 49 KB, `sable sources` for Card, Button and
+  DataTable about 26 KB (it was 49 KB either way before), and Sable's own CSS
+  with nothing scanned about 20 KB. The README's figures said 32 KB and 12 KB;
+  they now say what ships. The build, `check-package` and `themes.test.ts` all
+  refuse a stylesheet with an `@source` in it.
+- **`motion="off"` and `<MotionScope level="off">` still CSS motion.** A theme
+  declares its durations already multiplied by `--motion-scale`, and a custom
+  property inherits as a finished value, so on a scope's plain wrapper
+  setting the scale changed nothing: hover colours, pops, fades, slides and
+  disclosures kept playing inside an "off" scope (a `motion-interactive`
+  measured 0.15s). The policy rule now zeroes the duration ladder wherever
+  `data-motion="off"` or `"reduced"` is written. The OS preference and
+  `<MotionProvider>` on `<html>` worked before and still do.
+- **Focus is visible under forced colors.** Components draw focus as a
+  box-shadow ring, which Windows High Contrast removes. `styles.css` now puts
+  a 2px `Highlight` outline on `:focus-visible` under `forced-colors: active`,
+  for every component at once. The accessibility foundation's claim and its
+  no-go now match what ships.
+- **Server rendering without a theme flash or a hydration mismatch.**
+  `SableThemeProvider` no longer reads storage or the media query while
+  rendering: the server and the hydrating client render the defaults, the
+  stored choice arrives in the re-render React makes right after hydration,
+  and the provider writes `<html>` only after hydration. New
+  `sableThemeScript(options)` and `<SableThemeScript />` (from
+  `@sableui/react` and `@sableui/react/themes`, safe in a Server Component)
+  apply the stored mode and preset before first paint: inline it in `<head>`
+  with the provider's options and put `suppressHydrationWarning` on `<html>`.
+  A client-only app reads the stored choice on its first render, as before.
+- **Inline `target` getters stop churning.** `SableThemeProvider` and
+  `MotionProvider` keep `target={() => el}` in a ref, so a parent re-render no
+  longer re-runs their DOM writes (the theme provider injected a
+  transition-suppressing sheet and forced a reflow each time; the motion
+  provider removed and re-set `data-motion`). `applySableColorMode` and
+  `applySableTheme` do nothing when the element is already in that state.
+- **`useSableTheme()` without a provider reports what `<html>` shows.** It
+  used to answer "dark" whatever the page said; it now reads `.dark` and
+  `data-sable-theme` and follows them.
+- **A preset whose CSS is missing says so.** Each bundled theme declares
+  `--sable-theme-id`; in development, `SableThemeProvider` warns once when
+  `data-sable-theme` names a bundled theme the page is not painting, and names
+  the import that fixes it.
+- **Verdant's overlay is a surface again.** It was authored at 60% and 70%
+  alpha, so `bg-overlay/85` behind a media pill multiplied it again (3.6:1
+  over a white photo) and its scrim dimmed about half as much as every other
+  theme's. It is opaque, like the contract says, and `themes.test.ts` now
+  holds every theme's overlay to alpha 1 and its ink to 4.5:1 on
+  `overlay/85` over white.
+- **The chart palette is in the contract.** `CHART_TOKENS` (`chart-1` …
+  `chart-8`) is documented in `sable token`, mapped to `bg-chart-n` /
+  `fill-chart-n`, and gated for every bundled theme in light and dark:
+  neighbours apart under normal vision and protanopia/deuteranopia, every
+  series at least 2:1 on the page and a card. The gate found the amber
+  `chart-4` at 1.85:1 on Meridian's, Prism's and Ember's tinted light pages;
+  those three now deepen it.
+- **Compact type only ever compresses, under any theme.** The workspace remap
+  read each tier's default size, not the theme's `--type-<tier>-size`, so a
+  preset that set a tier below the ui tier saw it grow inside a compact panel.
+- **`Presence` follows the theme's tempo.** Without a `duration` it takes
+  `--motion-duration-enter` / `--motion-duration-exit` and enters on
+  `--motion-ease-decelerate`, so Ember's slower enter, Prism's quicker one and
+  the customizer's motion speed reach it. A `duration` you pass still scales by
+  `--motion-scale`.
+- **Theme CSS sheds what nothing read.** The unused steps of the Sable theme's
+  hue ramps (59 of 78), Ember's `ember-*` and `soot-*` ramps, Meridian's
+  `meridian-ember-*` ramp and `--meridian-ember-ink`, `--theme-shadow-2xs`,
+  `-xs` and `-2xl` (never mapped) in Meridian and Prism, and Verdant's unread
+  title trackings. A test now fails on a theme declaration nothing reads.
+  Meridian and Prism also flatten `--theme-shadow`, the one step their
+  "no shadows" ladder missed, so `shadow` no longer draws in them.
+- **Islands get native controls in their own mode.** `.dark` and `.light` set
+  `color-scheme`, so scrollbars and form controls in a dark island are dark.
+- **Icon aliases keep their meaning.** `rotate-ccw` and `refresh-ccw` draw
+  `replay` (counter-clockwise reads as undo), and `more-vertical` and
+  `x-circle`, which drew a different glyph, no longer resolve: they warn with
+  the nearest names instead.
+- **Docs catch up with the code.** The eyebrow is `text-overline` (or `<Label
+  eyebrow>`), not `label-xs`, in DESIGN.md and the typography foundation.
+  DESIGN.md lists the real control ladder (28 / 32 / 40 / 44 / 48) and 7px
+  popup rows. CONTRIBUTING states the real override rule: a theme's dark arms
+  are (0,2,0)–(0,3,0), so an app override must match them (example included).
+  Layout primitives say what a rhythm unit is (one baseline step, so
+  `gap={2}` is `gap-4`) instead of "8px". On sableui.com, Color lists every
+  role from the contract with its intent and pairings, plus the chart palette;
+  Typography measures every tier live and adds the missing ones; Presets
+  explains the import, the provider and the silent failure; Surfaces adds
+  popover and names the `--z-*` layers; Spacing & sizing draws on `--spacing`
+  and measures. The site sets `--type-base: 14` instead of a 14px root, so it
+  no longer overrides the reader's browser text size.
+- **Migration.**
+  - Left and right SheetContent shows a close button by default: drop your own
+    header X or footer Close, or pass `showCloseButton={false}`.
+  - Carousel `slidesToShow` breakpoints measure the carousel's own width, not
+    the window: lower the keys (`lg: 3` to `md: 3`) if you sized them against
+    the viewport.
+  - TabsList draws its divider as an inset shadow and scrolls when it
+    overflows: a className that restyled its `border-b` should set the shadow
+    (or `shadow-none`) instead.
+  - DatePicker `formatOptions` formats in `locale` (en-US by default), not the
+    reader's browser locale: pass `locale` to keep a localised label.
+  - DataTable `rowKey`'s index is always the row's index in `data`: if yours
+    expected the sorted position, key by a stable id.
+  - DisclosurePicker's root `id`, `aria-describedby` and `aria-invalid` now land
+    on its trigger: target the root with `ref` or a `data-*` attribute instead.
+  - ColorField names a transparent value "Transparent" (was "transparent"):
+    update queries, or pass `transparentLabel`.
+  - ContextMenu parts are Menu's parts, so React DevTools shows Menu's names
+    (MenuItem). Props are a superset; nothing to change.
+  - `"use client"` modules export client references to a Server Component: read
+    `MENU_ITEM` and other constants from a client module, not a server one.
+  - An app whose stylesheet imports `@sableui/react/styles.css` with no
+    `@source` of its own now gets unstyled components: add
+    `@source "../node_modules/@sableui/react/dist/**/*.{js,mjs}";` (path from
+    your stylesheet) or run `sable sources --write`. `sable doctor` reports it.
+  - Server-rendered apps: render `<SableThemeScript />` (same options as the
+    provider) in `<head>` and add `suppressHydrationWarning` to `<html>`, or
+    the first paint shows the default mode and preset until hydration.
+  - `useSableTheme()` with no provider returns `<html>`'s actual mode and
+    preset instead of always "dark".
+  - CSS that read a removed theme variable (`--torch-red-500`, `--ember-600`,
+    `--soot-900`, `--meridian-ember-ink`, `--theme-shadow-xs` …) gets nothing:
+    use the generated palette (`--red-500`) or a semantic token.
+  - `<Icon name="more-vertical">` and `name="x-circle"` render nothing: use
+    `ellipsis` and `xmark` (or your own glyph through `composeIconSets`).
+  - Verdant's scrims and media pills are darker; Meridian, Prism and Ember chart
+    their fourth light-mode series in a deeper amber; `Presence` with no
+    `duration` runs on the theme's enter/exit tokens.
+- **Breaking: the Reicon icon set is vendored, outline first, and solid has
+  its own subpath.** `reiconIconSet` no longer imports `reicon-react` at
+  runtime: its glyphs are generated into the package (`pnpm icons:reicon`),
+  coordinates rounded to 2 decimals, with no visible change (pixel-compared at
+  480px). It carries the outline weight for every contract name and the solid
+  weight only for the glyphs Sable's own components fill (LikeButton's pressed
+  heart, play, pause, next, previous, stop, the overflow dots, circle-check and
+  gem). `IconProvider` plus `reiconIconSet` drops from 275 kB to 99 kB minified
+  (87 kB to 28 kB gzip). `reicon-react` is no longer a dependency. To migrate:
+  - `variant="solid"` on any other icon now draws the outline. For the full
+    solid weight, compose the new set in front:
+    `composeIconSets(reiconSolidIconSet, reiconIconSet)`, with
+    `reiconSolidIconSet` from `@sableui/react/icons/reicon-solid`.
+  - Code that imported `reicon-react` directly, relying on Sable to install
+    it, must add it to its own dependencies.
+  - The glyph's `<svg>` no longer carries Reicon's `reicon` class.
+- **Breaking: Scroller scrolls natively by default.** `smoothWheel` now
+  defaults to `false`, so a vertical Scroller attaches no wheel listener and
+  the browser scrolls it off the main thread. To keep the eased mouse wheel,
+  pass `smoothWheel`. A horizontal Scroller still maps a vertical wheel
+  sideways (`wheelScroll`).
+- **Progress and Meter fills slide instead of resizing.** The fill is full
+  width and slides in to the value, so a change animates `translate` on the
+  compositor rather than re-running layout every frame of the ease. It looks
+  the same; the track clips the hidden part. The indicator's inline `width` is
+  now `100%`, with the empty share in `--sable-fill-offset`, so a test that
+  read `style.width` should read that property instead.
+- **Edge fades stop measuring on every render.** Scroller, CodeBlock and
+  TabsList re-measured their scroll position after every render, a forced
+  layout per instance whenever a parent re-rendered. They now measure when the
+  region or its content resizes, when a child is added or removed, and on
+  scroll.
+- **ThinkingOrb: one animation loop for every orb.** Orbs on a page share a
+  single frame loop, and the ink is read on mount, resize and theme change
+  instead of a computed-style read per orb per frame.
+- **TrafficTrendBlock and DeviceComparisonBlock build their date formatters
+  once.** Each tick label made a new `Intl` formatter through
+  `toLocaleDateString`.
+- **Copied blocks and patterns keep `"use client"`.** `sable block <Name>
+  --code`, `sable pattern <Name> --code` and `registry.json` cut the source
+  after its marker, which dropped the directive the package file starts with;
+  pasted into a Next.js app, a block that uses state broke as a Server
+  Component. The emitted import header now opens with the directive whenever
+  the source has it.
+- **`DateRange` is exported from Calendar too.** It was exported beside
+  DatePicker; Calendar's module (and so the root) now re-exports it, so a range
+  calendar types its state with `import { type DateRange } from
+  "@sableui/react"` and never imports `react-day-picker`, which an app does not
+  depend on directly.
+- **An interactive Entity's name has a space in it.** The row's accessible name
+  ran title and subtitle together ("Refund policyhelp.atlas.example"); it is
+  now "Refund policy help.atlas.example". Nothing moves visually.
+- **`sable search` finds docs by title, through punctuation.** Doc search
+  matched slugs only, so `sable search "next.js"` found nothing; it now
+  compares with punctuation dropped and reads each doc's title, and a doc hit's
+  summary is that title. The `--list` footer for patterns and blocks no longer
+  promises a skeleton of "~25 lines".
+
+- **PanelSection leaves 4px under its header.** A header action is as tall as
+  the header, so its hover fill touched the first control beneath. Every
+  section gains the same 4px, whether or not it has an action.
+
 ## 0.24.0
 
 - **Breaking: a saved theme stays in its own app.** localStorage is shared

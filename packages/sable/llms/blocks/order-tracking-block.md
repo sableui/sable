@@ -41,7 +41,7 @@ export function OrderTrackingBlock({ className, framed = true }: OrderTrackingBl
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs", className)}>
 			<CardHeader>
-				<CardTitle>{order.number}</CardTitle>
+				<CardTitle render={<h2 />}>{order.number}</CardTitle>
 				<CardDescription>{order.item}</CardDescription>
 				<CardAction>
 					<Badge tone="warning" size="sm">

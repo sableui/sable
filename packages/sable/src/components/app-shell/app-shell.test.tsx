@@ -248,3 +248,16 @@ describe("PageHeader", () => {
 		expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument()
 	})
 })
+
+describe("AppShell main id", () => {
+	it("moves the skip link's target with mainId, and takes a skip link label", () => {
+		render(
+			<AppShell mainId="page-main" skipLinkLabel="Aller au contenu">
+				<p>main content</p>
+			</AppShell>,
+		)
+		expect(screen.getByRole("link", { name: "Aller au contenu" })).toHaveAttribute("href", "#page-main")
+		expect(screen.getByRole("main")).toHaveAttribute("id", "page-main")
+		expect(document.querySelector("#main-content")).toBeNull()
+	})
+})

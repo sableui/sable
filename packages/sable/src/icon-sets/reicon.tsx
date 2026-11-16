@@ -1,313 +1,76 @@
-import type { IconComponent, IconWeight } from "reicon-react/createIcon"
-import { Pipette } from "reicon-react/icons/Pipette"
-import { AtSign } from "reicon-react/icons/AtSign"
-import { ChartBar } from "reicon-react/icons/ChartBar"
-import { Flag } from "reicon-react/icons/Flag"
-import { Paperclip } from "reicon-react/icons/Paperclip"
-import { Tag } from "reicon-react/icons/Tag"
-import { Key } from "reicon-react/icons/Key"
-import { Stop } from "reicon-react/icons/Stop"
-import { ThumbsDown } from "reicon-react/icons/ThumbsDown"
-import { ThumbsUp } from "reicon-react/icons/ThumbsUp"
-import { Wallet } from "reicon-react/icons/Wallet"
-import { Bell } from "reicon-react/icons/Bell"
-import { Book } from "reicon-react/icons/Book"
-import { Calendar } from "reicon-react/icons/Calendar"
-import { Check } from "reicon-react/icons/Check"
-import { CheckCircle } from "reicon-react/icons/CheckCircle"
-import { ChevronDown } from "reicon-react/icons/ChevronDown"
-import { ChevronLeft } from "reicon-react/icons/ChevronLeft"
-import { ChevronRight } from "reicon-react/icons/ChevronRight"
-import { ArrowUp } from "reicon-react/icons/ArrowUp"
-import { ArrowUpRight } from "reicon-react/icons/ArrowUpRight"
-import { ChevronUp } from "reicon-react/icons/ChevronUp"
-import { ChevronExpandY } from "reicon-react/icons/ChevronExpandY"
-import { Comment } from "reicon-react/icons/Comment"
-import { Component2 } from "reicon-react/icons/Component2"
-import { Copy } from "reicon-react/icons/Copy"
-import { Expand } from "reicon-react/icons/Expand"
-import { Eye } from "reicon-react/icons/Eye"
-import { EyeOff } from "reicon-react/icons/EyeOff"
-import { File } from "reicon-react/icons/File"
-import { Folder } from "reicon-react/icons/Folder"
-import { Gear } from "reicon-react/icons/Gear"
-import { GemSparkle } from "reicon-react/icons/GemSparkle"
-import { Grid } from "reicon-react/icons/Grid"
-import { Heart } from "reicon-react/icons/Heart"
-import { Home } from "reicon-react/icons/Home"
-// `Images`, not `Images2`: reicon-react renamed this glyph in 1.1.301 and the
-// old name is gone. Sable's peer range said `^1.1.2`, which spans both sides of
-// that rename, so the package advertised support for versions its own adapter
-// could not resolve — and the failure lands at BUILD time in the consumer
-// ("Module not found: reicon-react/icons/Images2"), not here. The peer floor is
-// now ^1.1.301 so the claim matches the code. It is the only glyph of the original 43
-// this adapter imported that was renamed; the other 42 resolve on both sides.
-import { Images } from "reicon-react/icons/Images"
-import { InfoCircle } from "reicon-react/icons/InfoCircle"
-import { Layout } from "reicon-react/icons/Layout"
-import { LinkSquare } from "reicon-react/icons/LinkSquare"
-import { List } from "reicon-react/icons/List"
-import { Loader } from "reicon-react/icons/Loader"
-import { Lock } from "reicon-react/icons/Lock"
-import { Menu } from "reicon-react/icons/Menu"
-import { Minus } from "reicon-react/icons/Minus"
-import { Monitor } from "reicon-react/icons/Monitor"
-import { Moon } from "reicon-react/icons/Moon"
-import { MoreH } from "reicon-react/icons/MoreH"
-import { Plus } from "reicon-react/icons/Plus"
-import { Search } from "reicon-react/icons/Search"
-import { Share } from "reicon-react/icons/Share"
-import { Sparkles } from "reicon-react/icons/Sparkles"
-import { Sun } from "reicon-react/icons/Sun"
-import { TriangleWarning } from "reicon-react/icons/TriangleWarning"
-import { User } from "reicon-react/icons/User"
-import { Xmark } from "reicon-react/icons/Xmark"
-import { ArrowDown } from "reicon-react/icons/ArrowDown"
-import { ArrowLeft } from "reicon-react/icons/ArrowLeft"
-import { ArrowRight } from "reicon-react/icons/ArrowRight"
-import { Bold } from "reicon-react/icons/Bold"
-import { Clock } from "reicon-react/icons/Clock"
-import { Download } from "reicon-react/icons/Download"
-import { Edit } from "reicon-react/icons/Edit"
-import { Envelope } from "reicon-react/icons/Envelope"
-import { Filter } from "reicon-react/icons/Filter"
-import { Inbox } from "reicon-react/icons/Inbox"
-import { Italic } from "reicon-react/icons/Italic"
-import { Link } from "reicon-react/icons/Link"
-import { Logout } from "reicon-react/icons/Logout"
-import { Next } from "reicon-react/icons/Next"
-import { Pause } from "reicon-react/icons/Pause"
-import { Play } from "reicon-react/icons/Play"
-import { Previous } from "reicon-react/icons/Previous"
-import { Refresh } from "reicon-react/icons/Refresh"
-import { Restart } from "reicon-react/icons/Restart"
-import { EmojiHappy } from "reicon-react/icons/EmojiHappy"
-import { PlaybackSpeed } from "reicon-react/icons/PlaybackSpeed"
-import { Send } from "reicon-react/icons/Send"
-import { Star } from "reicon-react/icons/Star"
-import { Trash } from "reicon-react/icons/Trash"
-import { Upload } from "reicon-react/icons/Upload"
-import { Shuffle } from "reicon-react/icons/Shuffle"
-import { Repeat } from "reicon-react/icons/Repeat"
-import { RepeatOne } from "reicon-react/icons/RepeatOne"
-import { VolumeHigh } from "reicon-react/icons/VolumeHigh"
-import { VolumeLow2 } from "reicon-react/icons/VolumeLow2"
-import { VolumeCross } from "reicon-react/icons/VolumeCross"
-import { Playlist } from "reicon-react/icons/Playlist"
-import { MusicNote } from "reicon-react/icons/MusicNote"
-import { Briefcase } from "reicon-react/icons/Briefcase"
-import { Layers } from "reicon-react/icons/Layers"
-import { Microphone } from "reicon-react/icons/Microphone"
-import { Video } from "reicon-react/icons/Video"
-import { SignalStream } from "reicon-react/icons/SignalStream"
-import { Doc2 } from "reicon-react/icons/Doc2"
-import { Palette2 } from "reicon-react/icons/Palette2"
-import { Gamepad } from "reicon-react/icons/Gamepad"
-import { Users } from "reicon-react/icons/Users"
-import { Archive } from "reicon-react/icons/Archive"
-import { Kanban } from "reicon-react/icons/Kanban"
-import { Sliders } from "reicon-react/icons/Sliders"
-import { HelpCircle } from "reicon-react/icons/HelpCircle"
-import { SidebarLeft } from "reicon-react/icons/SidebarLeft"
-import { type ComponentProps, memo } from "react"
 import type { IconRenderProps, IconSet } from "../icon/registry"
+import { REICON_OUTLINE, REICON_SOLID_CORE } from "./reicon.generated"
 
 /**
- * Sable's Reicon adapter. Concrete imports stay here; components use semantic
- * names through <Icon>. Reicon is an external runtime dependency, and it is
- * opt-in: an app imports `reiconIconSet` from this subpath only
- * (`@sableui/react/icons/reicon`) and mounts it once at its root,
- * `<IconProvider set={reiconIconSet}>`, so an app that brings its own icons ships none of this artwork. Extend it
- * with composeIconSets(appExtras, reiconIconSet), or pass another set instead.
+ * Sable's Reicon set. Components use semantic names through <Icon>; this maps
+ * them to Reicon's artwork. It is opt-in: an app imports `reiconIconSet` from
+ * this subpath only (`@sableui/react/icons/reicon`) and mounts it once at its
+ * root, `<IconProvider set={reiconIconSet}>`, so an app that brings its own
+ * icons ships none of this artwork. Extend it with
+ * composeIconSets(appExtras, reiconIconSet), or pass another set instead.
+ *
+ * The glyphs are vendored, not imported from reicon-react at runtime:
+ * scripts/build-reicon-icons.mjs reads the pinned package and commits the
+ * Outline weight for every contract name, rounded to 2 decimals. The Filled
+ * weight ships here only for the glyphs Sable's own components draw solid
+ * (LikeButton's pressed heart, the media transport, the overflow dots); the
+ * rest of it is `reiconSolidIconSet` from `@sableui/react/icons/reicon-solid`.
+ * Asked for a solid glyph it does not carry, this set draws the outline
+ * rather than nothing.
  */
-const ICONS: Record<string, IconComponent> = {
-	eyedropper: Pipette,
-	heart: Heart,
-	comment: Comment,
-	share: Share,
-	gem: GemSparkle,
-	"image-stack": Images,
-	home: Home,
-	bell: Bell,
-	gear: Gear,
-	user: User,
-	search: Search,
-	plus: Plus,
-	minus: Minus,
-	check: Check,
-	xmark: Xmark,
-	"chevron-down": ChevronDown,
-	"chevron-up": ChevronUp,
-	"chevron-up-down": ChevronExpandY,
-	"arrow-up": ArrowUp,
-	"arrow-up-right": ArrowUpRight,
-	"chevron-left": ChevronLeft,
-	"chevron-right": ChevronRight,
-	expand: Expand,
-	eye: Eye,
-	"eye-off": EyeOff,
-	external: LinkSquare,
-	spinner: Loader,
-	ellipsis: MoreH,
-	info: InfoCircle,
-	warning: TriangleWarning,
-	"circle-check": CheckCircle,
-	calendar: Calendar,
-	copy: Copy,
-	file: File,
-	folder: Folder,
-	sun: Sun,
-	moon: Moon,
-	desktop: Monitor,
-	lock: Lock,
-	list: List,
-	bars: Menu,
-	grid: Grid,
-	layout: Layout,
-	book: Book,
-	component: Component2,
-	sparkles: Sparkles,
-	// Media, motion, mail and editing: added when an audit found demos using
-	// search/check/xmark as stand-ins and components hand-drawing play/pause.
-	play: Play,
-	pause: Pause,
-	next: Next,
-	previous: Previous,
-	"arrow-down": ArrowDown,
-	"arrow-left": ArrowLeft,
-	"arrow-right": ArrowRight,
-	clock: Clock,
-	send: Send,
-	trash: Trash,
-	edit: Edit,
-	download: Download,
-	upload: Upload,
-	link: Link,
-	inbox: Inbox,
-	mail: Envelope,
-	logout: Logout,
-	star: Star,
-	refresh: Refresh,
-	filter: Filter,
-	bold: Bold,
-	italic: Italic,
-	// Added when the page patterns needed them: a stop control for a streaming
-	// reply (ChatComposer used xmark, which reads as close), passkey and wallet
-	// sign-in, and a per-answer rating.
-	stop: Stop,
-	key: Key,
-	wallet: Wallet,
-	"thumbs-up": ThumbsUp,
-	"thumbs-down": ThumbsDown,
-	// Added when an e2e music player had to extend the set for its transport
-	// and volume controls. Same speaker outline across the volume trio, so a
-	// mute toggle swaps the waves for the cross without the glyph jumping.
-	shuffle: Shuffle,
-	repeat: Repeat,
-	"repeat-one": RepeatOne,
-	volume: VolumeHigh,
-	"volume-low": VolumeLow2,
-	"volume-off": VolumeCross,
-	queue: Playlist,
-	music: MusicNote,
-	// Added when a support inbox had no glyph for labels, attachments, reports,
-	// priority or mentions, and stood in `layout` and `list` for them.
-	tag: Tag,
-	paperclip: Paperclip,
-	chart: ChartBar,
-	flag: Flag,
-	"at-sign": AtSign,
-	// Added when the docs' preview controls borrowed `sparkles` (which reads
-	// as AI) for a motion level and `refresh` (which reads as fetching again)
-	// for watching an animation from its first frame.
-	replay: Restart,
-	motion: PlaybackSpeed,
-	// Added for the add-reaction pill under a chat bubble.
-	emoji: EmojiHappy,
-	// Added when a portfolio imported reicon-react directly for its work,
-	// projects, audio, video, live, press, design and games sections.
-	// `broadcast` is the radiating-waves mark that reads as "live" (Reicon's
-	// `Station` tower is too detailed at text size); `newspaper` is Reicon's
-	// folded paper, its nearest press glyph; `palette` is the painter's palette,
-	// not Reicon's `Palette` (a swatch fan, which reads as colour picking).
-	briefcase: Briefcase,
-	layers: Layers,
-	microphone: Microphone,
-	video: Video,
-	broadcast: SignalStream,
-	newspaper: Doc2,
-	palette: Palette2,
-	gamepad: Gamepad,
-	// Added when an issue tracker had no glyph for its team list, backlog,
-	// board view, display options or help, aliased Backlog to `inbox` (two nav
-	// rows, one glyph) and Clients to `briefcase`. `sidebar` is the left-panel
-	// toggle a collapsible rail needs.
-	users: Users,
-	archive: Archive,
-	kanban: Kanban,
-	sliders: Sliders,
-	help: HelpCircle,
-	sidebar: SidebarLeft,
+
+/**
+ * One `{ __html }` object per glyph, reused across renders. React 19 rewrites
+ * an element's innerHTML whenever that object changes, so a fresh one per
+ * render replaced the glyph's paths every time its parent re-rendered — and
+ * Base UI's Toast.Content, which re-measures on any DOM change inside it,
+ * re-rendered in reply, forever.
+ */
+const HTML = new Map<string, { __html: string }>()
+function htmlOf(markup: string) {
+	let html = HTML.get(markup)
+	if (!html) HTML.set(markup, (html = { __html: markup }))
+	return html
 }
 
-/** Sable's `variant` → Reicon's weight names. */
-const WEIGHTS: Record<string, IconWeight> = {
-	regular: "Outline",
-	solid: "Filled",
-}
-
-export const reiconIconSet: IconSet = ({
-	name,
-	variant,
-	spin,
-	className,
-	title,
-}: IconRenderProps) => {
-	const Glyph = ICONS[name]
-	// null, not an empty element: that's the signal `composeIconSets` falls
-	// through on, and an empty fragment here would win and render nothing.
-	if (!Glyph) return null
-	const a11y = title
-		? { role: "img" as const, "aria-label": title }
-		: { "aria-hidden": true as const }
+/**
+ * Draw one vendored glyph. Shared with the solid subpath, so both sets render
+ * the same element. No inline `color`: a `text-*` utility on the icon governs
+ * its ink, and `currentColor` inherits everywhere a tint was not intended.
+ */
+export function renderReiconGlyph(markup: string, { spin, className, title }: Omit<IconRenderProps, "name" | "variant">) {
+	const a11y = title ? { role: "img" as const, "aria-label": title } : { "aria-hidden": true as const }
 	return (
-		<ReiconGlyph
-			glyph={Glyph}
-			weight={WEIGHTS[variant] ?? "Outline"}
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			viewBox="0 0 24 24"
+			// Sized in em, so the surrounding text size sizes the glyph.
+			width="1em"
+			height="1em"
+			fill="none"
 			className={spin ? `motion-spin ${className ?? ""}` : className}
+			// The markup is generated at build time from the pinned reicon-react
+			// package and committed. It is never user input and never fetched.
+			// biome-ignore lint/security/noDangerouslySetInnerHtml: build-time vendored SVG paths
+			dangerouslySetInnerHTML={htmlOf(markup)}
 			{...a11y}
 		/>
 	)
 }
 
-// Drop Reicon's inline `color`. `createIcon` defaults to
-// `style={{ color: 'currentColor', ...style }}`, and an inline declaration
-// outranks a class — so every `text-*` utility Sable or a consumer puts on an
-// icon was silently dead, and the glyph always took its parent's ink. `Note`'s
-// whole severity-colored-icon contract was off for anyone on the default set.
-// Passing `color: undefined` makes the spread erase the default and React omit
-// the property, so the class governs and `currentColor` still applies by
-// inheritance — identical result everywhere a tint was NOT intended.
-const NO_INLINE_COLOR = { color: undefined }
-
-/**
- * Memoized, so an icon whose props have not changed does not re-render.
- * Reicon draws with `dangerouslySetInnerHTML` and a fresh `{ __html }` per
- * render, which React 19 writes back to the DOM every time: every re-render of
- * a parent replaced the glyph's paths. Inside Base UI's Toast.Content, which
- * re-measures on any DOM change and re-renders in reply, that never settled
- * and froze the page. The props are all primitives or module constants, so the
- * shallow compare holds.
- */
-const ReiconGlyph = memo(function ReiconGlyph({
-	glyph: Glyph,
-	...props
-}: { glyph: IconComponent } & Omit<ComponentProps<IconComponent>, "size" | "style" | "ref">) {
-	return <Glyph size="1em" style={NO_INLINE_COLOR} {...props} />
-})
+export const reiconIconSet: IconSet = ({ name, variant, ...props }: IconRenderProps) => {
+	const markup = (variant === "solid" && REICON_SOLID_CORE[name]) || REICON_OUTLINE[name]
+	// null, not an empty element: that's the signal `composeIconSets` falls
+	// through on, and an empty fragment here would win and render nothing.
+	if (!markup) return null
+	return renderReiconGlyph(markup, props)
+}
 
 /** The semantic names this adapter maps — useful for a coverage assertion. */
-export const reiconIconNames = Object.keys(ICONS)
+export const reiconIconNames = Object.keys(REICON_OUTLINE)
+
+/** The names this set draws in the solid weight without the solid subpath. */
+export const reiconSolidCoreNames = Object.keys(REICON_SOLID_CORE)
 
 /** @deprecated Use reiconIconSet. Retained as an alias for existing consumers. */
 export const fallbackIconSet: IconSet = reiconIconSet

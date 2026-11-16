@@ -386,3 +386,39 @@ describe("Combobox — match highlighting", () => {
 		}),
 	)
 })
+
+describe("Combobox — words and rungs", () => {
+	it("takes translated names for the toggle and each chip's remove button", () => {
+		renderWithProviders(
+			<>
+				<Combobox items={["a"]}>
+					<ComboboxInput placeholder="Single" toggleLabel="Vorschläge" />
+				</Combobox>
+				<Combobox multiple items={["design"]} defaultValue={["design"]}>
+					<ComboboxChips
+						placeholder="Tags"
+						toggleLabel="Tags anzeigen"
+						removeLabel={(label) => `${label} entfernen`}
+					/>
+				</Combobox>
+			</>,
+		)
+		expect(screen.getByRole("button", { name: "Vorschläge", hidden: true })).toBeInTheDocument()
+		expect(screen.getByRole("button", { name: "Tags anzeigen", hidden: true })).toBeInTheDocument()
+		expect(screen.getByRole("button", { name: "design entfernen", hidden: true })).toBeInTheDocument()
+		expect(screen.queryByRole("button", { name: "Toggle suggestions", hidden: true })).toBeNull()
+	})
+
+	it("stands on the sm rung of the field ladder, the raised field one step down", () => {
+		renderWithProviders(
+			<Combobox items={["a"]}>
+				<ComboboxInput placeholder="Filter" size="sm" />
+			</Combobox>,
+		)
+		const input = screen.getByPlaceholderText("Filter")
+		expect(input.className).toContain("h-(--control-sm)")
+		expect(input.className).toContain("border-field-border")
+		const toggle = screen.getByRole("button", { name: "Toggle suggestions", hidden: true })
+		expect(toggle.className).toContain("size-[calc(var(--control-sm)-var(--spacing)*2)]")
+	})
+})

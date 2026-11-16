@@ -30,11 +30,14 @@ Use FontPicker wherever someone chooses a typeface for a role (body, headings, c
 | listLabel | string | "Font" | Accessible name of the list. |
 | searchable | boolean | true | A search field above the list, filtering by family and note. Pass false for a short curated list (under a dozen). |
 | searchLabel | string | "Search fonts" | Accessible name of the search field. |
+| searchPlaceholder | (count: number) => string | (count) => `Search ${count} fonts` | The search field's placeholder, given how many fonts are listed. |
+| emptyLabel | (query: string) => string | (query) => `No fonts match “${query}”.` | What the list says when a search matches nothing. |
 | loadFont | (font, purpose: "preview" \| "use") => void | — | Loads a face on demand: "preview" for every family when the list opens, "use" for the chosen one once it is picked (never while the list is only being walked). Receives your own font objects. Idempotent. |
 | open | boolean | — | Controlled open state, as DisclosurePicker. Control it to keep one of several rows open at a time. |
 | defaultOpen | boolean | false | Uncontrolled initial open state. |
 | onOpenChange | (open: boolean) => void | — | Called with the next open state. |
-| size | "md" \| "xs" | "md" | md for a settings column; xs for the property-grid rung (see DisclosurePicker). |
+| size | "md" \| "sm" \| "xs" | "md" | md for a settings column; sm one rung down for a toolbar; xs for the property-grid rung (see DisclosurePicker). |
+| name / form / required | string / string / boolean | — | Submit the chosen family (or option value) with a form under `name`, exactly as `value` holds it, through DisclosurePicker's hidden input — present while the row is closed. `required` blocks submission while `value` is empty. |
 
 ## Tokens used
 

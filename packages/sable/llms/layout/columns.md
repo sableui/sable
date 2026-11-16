@@ -34,7 +34,7 @@ Use Columns and Col for proportioned layouts that need explicit spans, such as l
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
 | count | number \| breakpoint map | 12 | Columns in the track; a breakpoint map ({ base: 2, md: 6, lg: 12 }) thins the track on small screens. |
-| gap | number \| string | var(--grid-gutter) | Gap between columns and rows. Number = rhythm units (×8px); string = raw CSS. The column gap is capped so all gaps together never take more than 75% of the track's width — a large gap can't push a narrow screen into horizontal scroll, and at normal desktop widths it renders exactly as given. The row gap is never capped. |
+| gap | number \| string | var(--grid-gutter) | Gap between columns and rows. Number = rhythm units (one baseline step each — 8px at Sable's default type, two Tailwind spacing steps, so gap={2} is gap-4); string = raw CSS. The column gap is capped so all gaps together never take more than 75% of the track's width — a large gap can't push a narrow screen into horizontal scroll, and at normal desktop widths it renders exactly as given. The row gap is never capped. |
 
 ## Related
 

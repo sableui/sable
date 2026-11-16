@@ -75,7 +75,7 @@ export const bubbleMeta: ComponentMeta = {
 				name: "BubbleReactions",
 				required: false,
 				description:
-					"The row of reaction pills, just under the bubble at the message column's small gap, so it reads as belonging to that message rather than the next row.",
+					"The row of reaction pills. Under the bubble it sits at the message column's small gap, so it reads as belonging to that message; as the bubble's last child it sits inside, under the text, and the pills become soft chips.",
 			},
 			{
 				name: "BubbleReaction",
@@ -97,10 +97,10 @@ export const bubbleMeta: ComponentMeta = {
 	props: [
 		{
 			name: "variant",
-			type: '"muted" | "primary" | "outline" | "plain"',
+			type: '"muted" | "primary" | "tint" | "outline" | "plain"',
 			default: '"muted"',
 			description:
-				"Surface treatment. `muted` for the other party, `primary` for the reader's own messages, `outline` for a quieter own-side, `plain` for long-form output that should not sit in a box (also drops the measure cap and padding).",
+				"Surface treatment. `muted` for the other party, `primary` for the reader's own messages, `tint` for the reader's own in a light thread (a wash of the brand colour over the thread's surface), `outline` for a quieter own-side, `plain` for long-form output that should not sit in a box (also drops the measure cap and padding).",
 		},
 		{
 			name: "align",
@@ -131,9 +131,9 @@ export const bubbleMeta: ComponentMeta = {
 		},
 		{
 			name: "BubbleReaction",
-			type: '{ emoji: ReactNode; label?: string; count?: number; active?: boolean; motion?: MotionLevel } & ComponentPropsWithRef<"button">',
+			type: '{ emoji: ReactNode; label?: string; count?: number; active?: boolean; avatars?: ReactNode; motion?: MotionLevel } & ComponentPropsWithRef<"button">',
 			description:
-				"One reaction pill. A toggle, not a label: `active` drives `aria-pressed` as well as the styling, `label` names it (\"Party, 3\"), and `count` is hidden at 1 because the pill already says \"one\". When it turns on — pressed, or newly added already on — the emoji blooms, copies of it burst out and the count rolls; pills the page loads with stay still.",
+				"One reaction pill. A toggle, not a label: `active` drives `aria-pressed` as well as the styling, `label` names it (\"Party, 3\"), and `count` is hidden at 1 because the pill already says \"one\". When it turns on — pressed, or newly added already on — the emoji blooms, copies of it burst out and the count rolls; pills the page loads with stay still. `avatars` takes the Avatars of the people who reacted: with up to three the pill shows their faces in place of the count, past three the count (`count` defaults to their number). Inside a Bubble the pill is a soft chip a faint step off the bubble, tinted with primary when it is the reader's own.",
 		},
 		{
 			name: "BubbleReactionAdd",
@@ -143,7 +143,7 @@ export const bubbleMeta: ComponentMeta = {
 		},
 	],
 	variants: {
-		variant: ["muted", "primary", "outline", "plain"],
+		variant: ["muted", "primary", "tint", "outline", "plain"],
 		align: ["start", "end"],
 		tail: ["true", "false"],
 	},

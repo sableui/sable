@@ -1,5 +1,7 @@
 import { cn } from "@sableui/react"
-import { ProductScene } from "../pages/CustomizeCanvas"
+import { useEffect } from "react"
+import { loadPresetFonts } from "../lib/preset-fonts"
+import { ProductScene } from "../canvas/scenes"
 
 /**
  * The same object rendered inside one preset, as shipped. A preset's selectors
@@ -15,6 +17,8 @@ import { ProductScene } from "../pages/CustomizeCanvas"
  * curve at every corner; the Stage covers the frame, so it needs no fill.
  */
 export function PresetPreview({ id, dark, className }: { id: string; dark: boolean; className?: string }) {
+	// Its preset's faces, without waiting for the idle load (lib/preset-fonts).
+	useEffect(loadPresetFonts, [])
 	return (
 		<div data-sable-theme={id} data-preset-preview="" className={cn("grid overflow-hidden rounded-xl font-sans text-foreground", dark && "dark", className)}>
 			<ProductScene />

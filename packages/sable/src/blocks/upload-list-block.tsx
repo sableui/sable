@@ -1,3 +1,5 @@
+"use client"
+
 import { Attachment } from "../components/attachment"
 import { Button } from "../components/button"
 import { Icon } from "../icon"

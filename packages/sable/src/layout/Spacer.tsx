@@ -2,7 +2,7 @@ import type { CSSProperties } from "react"
 import { cn } from "../lib/cn"
 
 export interface SpacerProps {
-	/** Fixed size in rhythm units (×8px; fractions ok). Ignored when `grow`. */
+	/** Fixed size in rhythm units (one baseline step each — 8px at Sable's default type, two Tailwind spacing steps, so gap={2} is gap-4; fractions ok). Ignored when `grow`. */
 	size?: number
 	/** Axis the fixed size applies to. Default "vertical". */
 	axis?: "vertical" | "horizontal"

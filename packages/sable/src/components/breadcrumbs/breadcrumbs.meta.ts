@@ -66,7 +66,7 @@ export const breadcrumbsMeta: ComponentMeta = {
 			type: "ComponentPropsWithRef<'nav'>",
 			default: "—",
 			description:
-				"The trail root. Renders <nav aria-label=\"Breadcrumb\"> around a flex <ol>. Pass the crumb parts as children.",
+				"The trail root. Renders <nav aria-label=\"Breadcrumb\"> around a flex <ol>; pass aria-label to translate the landmark name. Pass the crumb parts as children.",
 		},
 	],
 	subcomponents: [

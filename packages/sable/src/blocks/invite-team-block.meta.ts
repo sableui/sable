@@ -7,7 +7,7 @@ export const inviteTeamBlockMeta: BlockMeta = {
 	width: { min: "18rem", max: "20rem" },
 	summary: "An invite card: who is already on the team as an AvatarGroup, and an email field with Send.",
 	intent:
-		"Reach for this for team or project invites in onboarding, an empty workspace, or a settings section. For managing an existing member list with roles, use a CardList of Entity rows instead.",
+		"Reach for this for team or project invites in onboarding, an empty workspace, or a settings section. For managing an existing member list with roles, use TeamMembersBlock; for sharing one document with people already in the workspace, ShareBlock.",
 	notes: [
 		"The field and Send are a <form>, so Enter sends; `onSend` receives the typed address.",
 		"The AvatarGroup ring matches the card surface when framed and inherits the host surface when not.",

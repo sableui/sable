@@ -57,6 +57,10 @@
 			"types": "./src/icon-sets/reicon.tsx",
 			"default": "./src/icon-sets/reicon.tsx"
 		},
+		"./icons/reicon-solid": {
+			"types": "./src/icon-sets/reicon-solid.tsx",
+			"default": "./src/icon-sets/reicon-solid.tsx"
+		},
 		"./icons/brands": {
 			"types": "./src/icon-sets/brands.tsx",
 			"default": "./src/icon-sets/brands.tsx"
@@ -103,6 +107,8 @@
 		"build:registry:check": "node scripts/build-palette.mjs --check && node scripts/build-registry.mjs --check && node scripts/build-ios-target.mjs --check",
 		"icons:brands": "node scripts/fetch-brand-icons.mjs",
 		"icons:brands:check": "node scripts/fetch-brand-icons.mjs --check",
+		"icons:reicon": "node scripts/build-reicon-icons.mjs",
+		"icons:reicon:check": "node scripts/build-reicon-icons.mjs --check",
 		"test": "vitest",
 		"test:run": "vitest run",
 		"build": "node scripts/build-palette.mjs && node scripts/build-registry.mjs && node scripts/build-ios-target.mjs && tsup && node scripts/copy-assets.mjs",
@@ -198,6 +204,10 @@
 				"types": "./dist/icon-sets/reicon.d.ts",
 				"default": "./dist/icon-sets/reicon.js"
 			},
+			"./icons/reicon-solid": {
+				"types": "./dist/icon-sets/reicon-solid.d.ts",
+				"default": "./dist/icon-sets/reicon-solid.js"
+			},
 			"./icons/brands": {
 				"types": "./dist/icon-sets/brands.d.ts",
 				"default": "./dist/icon-sets/brands.js"
@@ -250,7 +260,6 @@
 		"clsx": "^2.1.1",
 		"date-fns": "^4.4.0",
 		"react-day-picker": "^9.13.2",
-		"reicon-react": "^1.2.0",
 		"tailwind-merge": "^3.4.0"
 	},
 	"devDependencies": {
@@ -265,6 +274,7 @@
 		"jsdom": "^29.1.1",
 		"konsta": "^5.5.0",
 		"reicon-brands": "^1.0.2",
+		"reicon-react": "^1.2.0",
 		"tsup": "^8.5.0",
 		"typescript": "^5.9.3",
 		"vitest": "^3.2.6"

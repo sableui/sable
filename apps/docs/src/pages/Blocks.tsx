@@ -1,8 +1,10 @@
-import { cn } from "@sableui/react"
+import { Grid, ToastProvider, cn } from "@sableui/react"
 import * as blocks from "@sableui/react/blocks"
 import type { ComponentType } from "react"
 import catalogBlocks from "../generated/catalog-blocks.json"
 import { Example, InlineCode, PageHeader, Section } from "../components/docs-ui"
+import { MountWhenVisible } from "../components/MountWhenVisible"
+import { holdSampleLinks } from "./previews/inert-links"
 
 interface BlockItem {
 	name: string
@@ -10,12 +12,32 @@ interface BlockItem {
 	kind: "card" | "section"
 	width?: { min: string; max: string }
 	summary: string
-	imports: string
-	code: string
 }
 
 const items = catalogBlocks as BlockItem[]
-const components = blocks as unknown as Record<string, ComponentType>
+
+/**
+ * Each block's source, fetched from its own JSON file when a Code tab opens or
+ * Copy is pressed (scripts/sync-guides.mjs splits it out): 54 blocks' source
+ * was most of this page's payload. One loader per block, made once, so the
+ * Code tab's effect does not refetch on every render.
+ */
+const codeOf = Object.fromEntries(
+	items.map((block) => [
+		block.name,
+		() => import("../generated/catalog-blocks-code.json").then((mod) => (mod.default as Record<string, string>)[block.name] ?? ""),
+	]),
+)
+const components = blocks as unknown as Record<string, ComponentType<Record<string, unknown>>>
+
+/**
+ * Media the docs serve and a consumer would not. A block's own constants
+ * leave it empty (seeded art), so an app importing the preview never asks for
+ * a sableui.com path; here the docs pass their photo in.
+ */
+const docsProps: Record<string, Record<string, unknown>> = {
+	PhotoAdjustBlock: { image: "/media/photos/ridge-first-light.jpg" },
+}
 
 /**
  * A block takes the full row when it is a section or a card designed wider
@@ -72,7 +94,9 @@ function captionOf(summary: string) {
 
 export function BlocksPage() {
 	return (
-		<>
+		// Blocks that end in a toast (Storage, Share) need a provider, mounted
+		// once here as the canvas does.
+		<ToastProvider position="bottom-center">
 			<PageHeader
 				eyebrow="Components"
 				title="Blocks"
@@ -88,7 +112,7 @@ export function BlocksPage() {
 
 			{families.map(({ family, blocks: list }) => (
 				<Section key={family} title={family}>
-					<div className="grid gap-x-6 gap-y-10 xl:grid-cols-2">
+					<Grid cols={{ base: 1, xl: 2 }} gap={[5, 3]}>
 						{list.map((block) => {
 							const Block = components[block.name]
 							return (
@@ -103,8 +127,16 @@ export function BlocksPage() {
 										isWide(block) && "xl:col-span-2",
 									)}
 								>
-									<Example code={`${block.imports}\n\n${block.code}`} className="md:p-6">
-										<Block />
+									<Example code={codeOf[block.name]} className="md:p-6">
+										{/* Mounted about a screen before it scrolls in, holding roughly
+										    its median height until then (cards ~270px, full-row ~360px
+										    at desktop), so the page does not jump. */}
+										<MountWhenVisible minHeight={isWide(block) ? "24rem" : "18rem"}>
+											{/* Sample links are routes in the copying app, not pages here. */}
+											<div className="contents" onClickCapture={holdSampleLinks}>
+												<Block {...docsProps[block.name]} />
+											</div>
+										</MountWhenVisible>
 									</Example>
 									<figcaption className="grid gap-0.5">
 										<span className="text-title-sm">{titleOf(block.name)}</span>
@@ -113,9 +145,9 @@ export function BlocksPage() {
 								</figure>
 							)
 						})}
-					</div>
+					</Grid>
 				</Section>
 			))}
-		</>
+		</ToastProvider>
 	)
 }

@@ -1,3 +1,5 @@
+"use client"
+
 import { useRender } from "@base-ui/react/use-render"
 import type { ComponentPropsWithRef, ReactNode } from "react"
 import { Icon } from "../../icon"
@@ -23,13 +25,14 @@ export interface BreadcrumbsProps extends ComponentPropsWithRef<"nav"> {}
 
 /** The trail root — a labelled <nav> around an inline <ol> of crumbs. */
 export function Breadcrumbs({
+	"aria-label": ariaLabel = "Breadcrumb",
 	className,
 	children,
 	ref,
 	...props
 }: BreadcrumbsProps) {
 	return (
-		<nav aria-label="Breadcrumb" ref={ref} className={className} {...props}>
+		<nav aria-label={ariaLabel} ref={ref} className={className} {...props}>
 			<ol className="flex flex-wrap items-center gap-1.5 text-body-sm">
 				{children}
 			</ol>

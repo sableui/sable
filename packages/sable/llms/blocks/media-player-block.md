@@ -20,6 +20,8 @@ A now-playing card: cover, title and artist as an Entity with a Like action, a p
 ## Source
 
 ```tsx
+"use client"
+
 import { useState } from "react"
 import { Button, Card, CardContent, cn, Entity, Icon, MediaImage, Slider } from "@sableui/react"
 

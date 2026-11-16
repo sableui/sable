@@ -9,7 +9,7 @@ export const notificationSettingsBlockMeta: BlockMeta = {
 	intent:
 		"Reach for this for any short list of on/off preferences — notifications, privacy, feature flags in a settings section. For a full settings route with a section rail, start from the SettingsPage page shell.",
 	notes: [
-		"Switches apply the moment they change; never pair them with a Save button. `onChange` receives the row id and the new state.",
+		"Switches apply the moment they change; never pair them with a Save button. `onSettingChange` receives the row id and the new state.",
 		"Rows are Card + CardList + Entity, so they inset with the card's padding at any density.",
 	],
 	a11y: [

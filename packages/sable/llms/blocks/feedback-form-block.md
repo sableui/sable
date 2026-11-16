@@ -10,7 +10,7 @@ A feedback card: a one-to-five rating as a full-width ToggleGroup, an optional n
 
 - The rating is preselected, so one tap on Send is a complete answer; the notes are optional and say so.
 - Skip is a ghost Button before the primary, so dismissing is always available and never competes with sending.
-- `onDone` reports whether feedback was sent and, if so, the score and notes.
+- Skip and Send are two callbacks, `onSkip()` and `onSend({ score, notes })`, never one callback with a flag saying which happened.
 
 ## Accessibility
 
@@ -20,6 +20,8 @@ A feedback card: a one-to-five rating as a full-width ToggleGroup, an optional n
 ## Source
 
 ```tsx
+"use client"
+
 import { useState } from "react"
 import { Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, cn, Textarea, Toggle, ToggleGroup } from "@sableui/react"
 
@@ -29,17 +31,19 @@ export interface FeedbackFormBlockProps {
 	className?: string
 	/** false drops the card's surface and border — for a Sheet or Dialog that already frames it. */
 	framed?: boolean
-	/** Skip calls it with `sent: false`; Send with `sent: true` and the answers. */
-	onDone?: (sent: boolean, feedback?: { score: number; notes: string }) => void
+	/** Called when the person skips the question. */
+	onSkip?: () => void
+	/** Called with the answers when the person sends them. */
+	onSend?: (feedback: { score: number; notes: string }) => void
 }
 
-export function FeedbackFormBlock({ className, framed = true, onDone }: FeedbackFormBlockProps) {
+export function FeedbackFormBlock({ className, framed = true, onSkip, onSend }: FeedbackFormBlockProps) {
 	const [score, setScore] = useState("4")
 	const [notes, setNotes] = useState("")
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs", className)}>
 			<CardHeader>
-				<CardTitle>How was the session?</CardTitle>
+				<CardTitle render={<h2 />}>How was the session?</CardTitle>
 				<CardDescription>One tap is enough. Notes help us more.</CardDescription>
 			</CardHeader>
 			<CardContent className="flex flex-col gap-4">
@@ -53,10 +57,10 @@ export function FeedbackFormBlock({ className, framed = true, onDone }: Feedback
 				<Textarea placeholder="What worked, what didn’t…" aria-label="Notes" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
 			</CardContent>
 			<CardFooter actions className="justify-end">
-				<Button variant="ghost" size="sm" onClick={() => onDone?.(false)}>
+				<Button variant="ghost" size="sm" onClick={onSkip}>
 					Skip
 				</Button>
-				<Button size="sm" onClick={() => onDone?.(true, { score: Number(score), notes })}>
+				<Button size="sm" onClick={() => onSend?.({ score: Number(score), notes })}>
 					Send feedback
 				</Button>
 			</CardFooter>

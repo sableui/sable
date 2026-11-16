@@ -14,3 +14,4 @@ export function AppShellMain({ scrolls, ...props }: ComponentProps<"main"> & { s
 	const trackScroll = useScrollActivity()
 	return <main ref={scrolls ? trackScroll : undefined} {...props} />
 }
+AppShellMain.displayName = "AppShellMain"

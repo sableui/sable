@@ -45,7 +45,7 @@ function ScrollingDemo({ side = "left" }: { side?: "left" | "right" }) {
 	const scroller = useRef<HTMLDivElement>(null)
 	return (
 		<div className="relative w-full">
-			<Scroller ref={scroller} label="Case study" smoothWheel={false} className="h-96 w-full">
+			<Scroller ref={scroller} label="Case study" className="h-96 w-full">
 				<div className={side === "left" ? "py-10 ps-24 pe-10" : "py-10 ps-10 pe-24"}>
 					{CHAPTERS.map((chapter) => (
 						<section key={chapter.id} id={`${chapter.id}-${side}`} className="max-w-prose pb-24 last:pb-10">

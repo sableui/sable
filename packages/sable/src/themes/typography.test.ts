@@ -106,7 +106,9 @@ describe("typography art direction", () => {
 			const compact = css.slice(css.indexOf("The type half of the density ladder"))
 			const mins = [...compact.matchAll(/font-size: min\(([^;]+)\);/g)].map((m) => m[1].replace(/, var\(--type-ui-[\w-]+, \d+px\)$/, ""))
 			expect(mins.length).toBeGreaterThan(8)
-			for (const page of mins) expect(page).toMatch(/^calc\([\d.]+rem \* var\(--type-base, 16\) \/ 16\)$/)
+			// The page side is the page utility's own expression, refinement token
+			// included, so a preset that sets a tier small is not grown back up.
+			for (const page of mins) expect(page).toMatch(/^calc\(var\(--type-[\w-]+-size, [\d.]+rem\) \* var\(--type-base, 16\) \/ 16\)$/)
 		})
 
 		it("leaves the ui chrome tiers in absolute px", () => {

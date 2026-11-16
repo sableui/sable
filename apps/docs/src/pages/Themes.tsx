@@ -1,6 +1,6 @@
-import { Badge, Button, Grid } from "@sableui/react"
-import { PageHeader, Section } from "../components/docs-ui"
-import { useCustomizer } from "../customizer/CustomizerProvider"
+import { Badge, Button, CodeBlock, Grid, Note, Stack, isThemeId } from "@sableui/react"
+import { InlineCode, PageHeader, Section } from "../components/docs-ui"
+import { useCustomizerActions } from "../customizer/CustomizerProvider"
 import { useTheme } from "../theme"
 import { PresetPreview } from "../components/PresetPreview"
 
@@ -17,8 +17,10 @@ const CHARACTER: Record<string, string> = {
 
 export function ThemesPage() {
 	const { themeId, themes, mode, presets } = useTheme()
-	const { requestPreset, isCustomized } = useCustomizer()
+	const { requestPreset, isCustomized } = useCustomizerActions()
 	const dark = mode === "dark"
+	// The snippets name the preset in use when it ships with Sable, else Verdant.
+	const example = isThemeId(themeId) && themeId !== "sable" ? themeId : "verdant"
 
 	return (
 		<>
@@ -29,7 +31,7 @@ export function ThemesPage() {
 
 			<Section
 				title={presets.length ? "Starting points and your presets" : "Six starting points"}
-				description={`The same card in each preset, shown in ${dark ? "dark" : "light"} mode.${isCustomized ? " Choosing one clears your Customize changes; you will be asked first." : ""}`}
+				description={`The same card in each preset, shown in ${dark ? "dark" : "light"} mode.${isCustomized ? " You have Customize changes: choosing one asks whether to keep them or start fresh." : ""}`}
 			>
 				<Grid cols={{ base: 1, sm: 2 }} gap={[4, 2]}>
 					{themes.map((theme) => {
@@ -61,6 +63,54 @@ export function ThemesPage() {
 				</Grid>
 			</Section>
 
+			<Section
+				title="Use a preset in your app"
+				description="Choosing a preset here changes this site. In your app it takes two things: the preset's CSS, and the attribute that turns it on."
+			>
+				<Stack gap={4}>
+					<Stack gap={2}>
+						<p className="text-title-sm">1. Import its CSS, after Sable's styles</p>
+						<p className="max-w-(--measure-prose) text-body-sm text-muted-foreground">
+							<InlineCode>styles.css</InlineCode> carries only the Sable preset. Each other preset is opt-in, so an app that never
+							uses it never ships it. A theme switcher over every bundled preset imports <InlineCode>themes.css</InlineCode>{" "}
+							instead.
+						</p>
+						<CodeBlock
+							code={`@import "tailwindcss";
+@import "@sableui/react/styles.css";
+@import "@sableui/react/theme/${example}.css"; /* one preset */
+/* or every bundled preset: @import "@sableui/react/themes.css"; */`}
+						/>
+					</Stack>
+					<Stack gap={2}>
+						<p className="text-title-sm">2. Turn it on with SableThemeProvider</p>
+						<p className="max-w-(--measure-prose) text-body-sm text-muted-foreground">
+							The provider writes <InlineCode>data-sable-theme</InlineCode> and the <InlineCode>dark</InlineCode> class on{" "}
+							<InlineCode>{"<html>"}</InlineCode>, remembers the choice, and lets anything below read or change it with{" "}
+							<InlineCode>useSableTheme()</InlineCode>. Sable, the default, needs no attribute.
+						</p>
+						<CodeBlock
+							code={`import { SableThemeProvider, useSableTheme } from "@sableui/react"
+
+<SableThemeProvider defaultThemeId="${example}" defaultPreference="system">
+  <App />
+</SableThemeProvider>
+
+// anywhere below
+const { themeId, setThemeId, mode, toggle } = useSableTheme()`}
+						/>
+						<p className="max-w-(--measure-prose) text-body-sm text-muted-foreground">
+							Server-rendered app? Inline <InlineCode>{"<SableThemeScript />"}</InlineCode> in <InlineCode>{"<head>"}</InlineCode>{" "}
+							with the provider's options, so the first paint is already in the visitor's preset and mode.
+						</p>
+					</Stack>
+					<Note tone="warning" title="If the preset seems to do nothing">
+						The attribute is set but the preset's CSS was never imported, so nothing matches it and the page renders as Sable,
+						with no error. Check the import in step 1 first. A development build warns in the console when this happens, and{" "}
+						<InlineCode>sable doctor</InlineCode> catches it from the source.
+					</Note>
+				</Stack>
+			</Section>
 		</>
 	)
 }

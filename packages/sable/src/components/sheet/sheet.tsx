@@ -1,3 +1,5 @@
+"use client"
+
 import { Drawer as Base } from "@base-ui/react/drawer"
 import type { VariantProps } from "class-variance-authority"
 import {
@@ -9,12 +11,15 @@ import {
 	useRef,
 	useState,
 } from "react"
+import { Icon } from "../../icon/Icon"
 import { cn } from "../../lib/cn"
+import { hitTargetTouch } from "../../lib/hit-target"
 import { FocusReturnProvider, useFocusReturn, useFocusReturnDefault } from "../../lib/focus-return"
 import { withPortalThemeScope } from "../../lib/portal-theme-scope"
 import { PresentationProvider, StackedActionsContext, usePresentation } from "../../lib/presentation"
 import { mergeRefs } from "../../lib/refs"
 import { useIsomorphicLayoutEffect } from "../../lib/use-isomorphic-layout-effect"
+import { Button } from "../button/button"
 import { sheetVariants } from "./sheet.variants"
 
 declare const process: { env: { NODE_ENV?: string } }
@@ -116,6 +121,7 @@ export function Sheet<Payload = unknown>({
 		</SheetRootContext.Provider>
 	)
 }
+Sheet.displayName = "Sheet"
 
 /**
  * Inside try, not behind `typeof process`, for the reason Icon gives: bundlers
@@ -171,6 +177,17 @@ export const SheetPortal = withPortalThemeScope(Base.Portal)
 type ContentProps = Omit<ComponentProps<typeof Base.Popup>, "className"> &
 	VariantProps<typeof sheetVariants> & {
 		className?: string
+		/**
+		 * Render a built-in close (X) button in the top-end corner. A side sheet
+		 * is a desktop panel with no swipe a mouse can make, so without one it
+		 * closes only by Esc, the scrim, or a footer button the caller remembered.
+		 * A top or bottom sheet is dismissed by its swipe and usually ends in
+		 * actions, so it shows none unless asked.
+		 * @default true for side="left" | "right", false for "top" | "bottom"
+		 */
+		showCloseButton?: boolean
+		/** The built-in close button's accessible name. @default "Close" */
+		closeLabel?: string
 	}
 
 /**
@@ -191,11 +208,14 @@ export function SheetContent({
 	finalFocus,
 	ref,
 	style,
+	showCloseButton,
+	closeLabel = "Close",
 	...props
 }: ContentProps) {
 	const focusReturn = useFocusReturnDefault()
 	const root = useContext(SheetRootContext)
 	const resolvedSide = side ?? "right"
+	const showClose = showCloseButton ?? (resolvedSide === "left" || resolvedSide === "right")
 	const reportSide = root?.reportSide
 	useIsomorphicLayoutEffect(() => {
 		reportSide?.(resolvedSide)
@@ -256,7 +276,13 @@ export function SheetContent({
 					// Toasts read this to keep clear of the sheet's actions (styles.css).
 					data-sable-sheet={resolvedSide}
 					data-snap-points={snaps ? "" : undefined}
-					className={cn(sheetVariants({ side }), className)}
+					className={cn(
+						sheetVariants({ side }),
+						// The close button is pinned over the top-end corner, so the
+						// header leaves it room (Dialog does the same).
+						showClose && "[&_[data-slot=sheet-header]]:pe-8",
+						className,
+					)}
 					{...props}
 					// The keyboard inset is merged under the caller's style, which Base UI
 					// also accepts as a function of the popup's state.
@@ -282,11 +308,28 @@ export function SheetContent({
 						    from inside a bottom sheet. */}
 						<PresentationProvider value={resolvedSide === "bottom" ? "sheet" : "page"}>{children}</PresentationProvider>
 					</Base.Content>
+					{showClose ? (
+						// Dialog's own close: a ghost icon button in the corner. It stands
+						// alone, so its touch target grows to 44px without moving it.
+						<Base.Close
+							render={
+								<Button
+									variant="ghost"
+									size="icon-sm"
+									aria-label={closeLabel}
+									className={`${hitTargetTouch} absolute end-4 top-4 text-muted-foreground`}
+								/>
+							}
+						>
+							<Icon name="xmark" />
+						</Base.Close>
+					) : null}
 				</Base.Popup>
 			</Base.Viewport>
 		</SheetPortal>
 	)
 }
+SheetContent.displayName = "SheetContent"
 
 type TitleProps = Omit<ComponentProps<typeof Base.Title>, "className"> & {
 	className?: string
@@ -299,6 +342,7 @@ export function SheetTitle({ className, ...props }: TitleProps) {
 		/>
 	)
 }
+SheetTitle.displayName = "SheetTitle"
 
 type DescriptionProps = Omit<
 	ComponentProps<typeof Base.Description>,
@@ -312,11 +356,13 @@ export function SheetDescription({ className, ...props }: DescriptionProps) {
 		/>
 	)
 }
+SheetDescription.displayName = "SheetDescription"
 
 /** Stacked title + description block, pinned to the top of the sheet. */
 export function SheetHeader({ className, ...props }: ComponentProps<"div">) {
-	return <div className={cn("flex flex-col gap-1.5", className)} {...props} />
+	return <div data-slot="sheet-header" className={cn("flex flex-col gap-1.5", className)} {...props} />
 }
+SheetHeader.displayName = "SheetHeader"
 
 /**
  * Rows that run edge to edge in the sheet — Entity rows, most often: a queue,
@@ -343,6 +389,7 @@ export function SheetList({ className, ...props }: ComponentProps<"div">) {
 		/>
 	)
 }
+SheetList.displayName = "SheetList"
 
 /**
  * Action row, pushed to the bottom edge of the sheet via mt-auto. In a bottom
@@ -365,3 +412,4 @@ export function SheetFooter({ className, children, ...props }: ComponentProps<"d
 		</div>
 	)
 }
+SheetFooter.displayName = "SheetFooter"

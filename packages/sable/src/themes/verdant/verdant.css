@@ -6,6 +6,9 @@
    ========================================================================== */
 
 [data-sable-theme="verdant"] {
+	/* Which theme's CSS is painting. SableThemeProvider reads it in development to
+	   warn when data-sable-theme names a theme whose CSS was never imported. */
+	--sable-theme-id: verdant;
 	/* Font stacks (theme-internal; host app provides the actual font files) */
 	--font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 	--font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
@@ -74,8 +77,6 @@
 	--type-title-leading: 1.4;
 	--type-title-tracking: -0.01em;
 	--type-title-sm-tracking: 0em;
-	--type-title-lg-tracking: 0em;
-	--type-title-md-tracking: 0em;
 
 	/* Overline/eyebrow foundation vars consumed by styles.css's text-overline utility. */
 	--type-overline-size: 0.8571rem /* 12px at the 14px desktop root */;
@@ -138,7 +139,7 @@
 	--theme-tone-3-mark: oklch(60.0% 0.018 175.0);
 	--highlight: oklch(90% 0.05 100);
 	--highlight-foreground: oklch(24% 0.035 175);
-	--overlay: oklch(16% 0.03 175 / 0.6);
+	--overlay: oklch(16% 0.03 175);
 	--overlay-foreground: oklch(98.6% 0.004 106);
 	--sidebar: oklch(96.1% 0.005 106);
 	--sidebar-foreground: oklch(24% 0.035 175);
@@ -228,7 +229,7 @@
 	--theme-tone-3-mark: oklch(72.0% 0.015 175.0);
 	--highlight: oklch(40% 0.06 90);
 	--highlight-foreground: oklch(98.6% 0.004 106);
-	--overlay: oklch(8% 0.015 175 / 0.7);
+	--overlay: oklch(8% 0.015 175);
 	--overlay-foreground: oklch(98.6% 0.004 106);
 	--sidebar: oklch(13.5% 0.026 175);
 	--sidebar-foreground: oklch(98.6% 0.004 106);

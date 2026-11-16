@@ -49,6 +49,8 @@ export interface FeedbackProps
 	placeholder?: string
 	/** Submit button text. @default "Send" */
 	submitLabel?: string
+	/** Accessible name of the rating row. @default "Rating" */
+	ratingLabel?: string
 	/** The rating options shown as a row of toggles. */
 	ratings?: FeedbackRating[]
 	/** Called with the rating + message when the form is submitted. */
@@ -91,6 +93,7 @@ export function Feedback({
 	heading = "Send feedback",
 	placeholder = "What can we improve?",
 	submitLabel = "Send",
+	ratingLabel = "Rating",
 	ratings = DEFAULT_RATINGS,
 	successMessage = "Thanks for the feedback.",
 	onSubmit,
@@ -183,7 +186,7 @@ export function Feedback({
 					<ToggleGroup
 						value={rating ? [rating] : []}
 						onValueChange={(value) => setRating(value[0])}
-						aria-label="Rating"
+						aria-label={ratingLabel}
 					>
 						{ratings.map((option) => (
 							<Toggle

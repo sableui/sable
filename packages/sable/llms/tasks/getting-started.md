@@ -1,8 +1,9 @@
 # Get started with Sable
 
-Sable is on npm as `@sableui/react`. The installed version's `registry.json`
-consume block has the exact recipe. Requirements: React 19, React DOM 19, and
-Tailwind CSS 4 integrated into your build.
+Sable is on npm as `@sableui/react`. It needs React 19 and Tailwind CSS 4;
+`sable init` installs whichever is missing. The installed version's
+`registry.json` consume block has the same recipe in machine-readable form, and
+`AGENTS.md → Wire it up` has every step in full.
 
 Sable works in any React 19 app and depends on no router, data or form
 library. Starting from a blank slate, its suggested stack is React with
@@ -10,29 +11,85 @@ TypeScript on Vite, TanStack Router, TanStack Query, TanStack Form for forms wit
 validation logic, and TanStack Table once a table outgrows `DataTable`
 (`sable docs tables-with-tanstack`). An existing app keeps its own.
 
-## Install and wire it
+## 1. Install the package
 
 ```bash
 pnpm add @sableui/react
-pnpm exec sable init --dry-run   # every change it would make
+```
+
+Use your project's package manager; no registry setup or token is needed.
+
+## 2. Run sable init
+
+From the app root. `--dry-run` lists every change first; nothing is written
+until you run it without the flag.
+
+```bash
+pnpm exec sable init --dry-run
 pnpm exec sable init
 ```
 
-`sable init` reads the package manager from your lockfile and the framework
-from the project. It installs what is missing (React, Tailwind and its build
-plugin), writes the CSS below into your global stylesheet in order, adds React
-dedupe and the Tailwind plugin to a Vite config (a PostCSS config for Next.js),
-loads Figtree and DM Mono, wraps a Vite starter's `<App />` in `IconProvider`,
-installs the agent skill, and finishes with `sable doctor`. Edits it cannot make
-safely, such as a Next.js root layout, it prints with the file they belong in.
-Vite and Next.js get every step; other setups get the packages and stylesheet.
-Once an app is wired, `sable doctor --fix` applies the same fixes to whatever
-doctor flags. Run `sable init` with the package installed: before that, `npx
-sable` names an unrelated package.
+It reads your package manager from the lockfile and your framework from the
+project. It installs what is missing (React, Tailwind and its build plugin),
+writes the stylesheet imports in order, installs the agent skill with a short
+block in `AGENTS.md` and `CLAUDE.md` that sends every UI request through it, and
+finishes with `sable doctor`.
 
-## Or wire it by hand
+In a Vite app it also adds the Tailwind plugin and React dedupe to the Vite
+config, adds the Figtree and DM Mono links to `index.html`, and wraps the
+starter's `<App />` in `IconProvider`. In a Next.js app it writes a PostCSS
+config and prints the providers file and font tags for you to paste;
+[nextjs.md](./nextjs.md) has the whole layout. It does not add antialiasing,
+alternate theme CSS or the optional providers.
 
-For `src/styles.css` with `node_modules` at the project root:
+Anything it cannot change safely, such as an unfamiliar config, is printed as a
+snippet with the file it belongs in. In an app that is already set up,
+`sable doctor --fix` applies the same fixes to whatever doctor flags. Run
+`sable init` with the package installed: before that, `npx sable` names an
+unrelated package.
+
+## 3. Render a component
+
+```tsx
+import { Button } from "@sableui/react"
+
+export default function App() {
+  return <Button>Save changes</Button>
+}
+```
+
+## Update Sable
+
+```bash
+pnpm exec sable upgrade
+```
+
+It updates `@sableui/react`, then runs the new version's `init`: the skill
+entries and the `AGENTS.md` / `CLAUDE.md` block are refreshed and the wiring is
+checked. It is safe on an app that already works. Coming from 0.17 or earlier,
+which has no `upgrade` command, do it once by hand:
+
+```bash
+pnpm update @sableui/react --latest
+pnpm exec sable init
+```
+
+If an agent built your UI without Sable's components, tell it to "move this app
+onto Sable". It lists what to swap and asks before changing anything
+([auditing-an-app.md](./auditing-an-app.md), Adoption).
+
+## Wire it by hand
+
+What `sable init` does in a Vite app, for setups it does not recognise or for
+checking its work.
+
+```bash
+pnpm add @sableui/react
+pnpm add -D tailwindcss @tailwindcss/vite
+```
+
+The `@source` path is relative to the stylesheet; this one assumes
+`src/styles.css` with `node_modules` at the project root.
 
 ```css
 @import "tailwindcss";
@@ -40,62 +97,81 @@ For `src/styles.css` with `node_modules` at the project root:
 @source "../node_modules/@sableui/react/dist/**/*.{js,mjs}";
 ```
 
-Adjust the relative `@source` path to your stylesheet's location. It makes
-Tailwind generate every Sable component's classes; once the app is built,
-`sable sources --write src/sable-sources.css` lists just the ones it imports, to
-`@import` in its place (`sable check` notes this). Import this stylesheet from
-your app entry. For Vite, preserve your plugins and add
-`resolve: { dedupe: ["react", "react-dom"] }` to its configuration. Load Figtree
-and DM Mono through your font setup, or customize the font tokens.
+That `@source` makes Tailwind generate every Sable component's classes; once
+the app is built, `sable sources --write src/sable-sources.css` lists just the
+ones it imports, to `@import` in its place (`sable check` notes this).
 
-```tsx
-import { Button } from "@sableui/react"
-import "./styles.css"
+Connect Tailwind and add React dedupe in `vite.config.ts`, keeping your existing
+plugins:
 
-export default function App() {
-  return <Button>Save changes</Button>
-}
+```ts
+import react from "@vitejs/plugin-react"
+import tailwindcss from "@tailwindcss/vite"
+import { defineConfig } from "vite"
+
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+  resolve: { dedupe: ["react", "react-dom"] },
+})
 ```
 
-Mount `<IconProvider set={reiconIconSet}>` (from `@sableui/react/icons/reicon`)
-once at the root: without it every icon, including those inside Sable's
-components, renders nothing, and `sable doctor` fails. Optional theme and motion
-providers are explained in the package README.
+Mount `IconProvider` once at the root in `src/main.tsx`: without it every icon,
+including those inside Sable's components, renders nothing, and `sable doctor`
+fails.
 
-## Connect your agent and verify
+```tsx
+import { StrictMode } from "react"
+import { createRoot } from "react-dom/client"
+import { IconProvider } from "@sableui/react"
+import { reiconIconSet } from "@sableui/react/icons/reicon"
+import App from "./App"
+import "./styles.css"
 
-`sable init` already ran these; by hand:
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <IconProvider set={reiconIconSet}>
+      <App />
+    </IconProvider>
+  </StrictMode>,
+)
+```
+
+Load Figtree and DM Mono in `index.html`, or choose your own fonts with the
+theme tokens; the package includes no font files.
+
+```html
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Figtree:wght@300..900&display=swap" rel="stylesheet" />
+```
+
+Then set up your agent and check the wiring:
 
 ```bash
-pnpm exec sable setup --agent --dry-run
 pnpm exec sable setup --agent
 pnpm exec sable doctor
 ```
 
-After installing Sable, run `pnpm exec sable setup --agent` in the target
-project. It installs discoverable entry files in `.agents/skills/sable` for
-Codex/Cursor and `.claude/skills/sable` for Claude Code; `--target` selects a host.
-In a monorepo where Sable belongs to one workspace package, run setup in that
-package with `--root` naming the repository root (for example
-`pnpm --filter web exec sable setup --agent --root ../..`); the entries go
-there and resolve Sable through the package.
-Setup also adds a short managed block to the project's `AGENTS.md` and
-`CLAUDE.md`, the instructions an agent reads on every task, so a UI request
-goes through the skill even when it doesn't mention Sable. Only the text between
-its `<!-- sable:begin -->` and `<!-- sable:end -->` markers is Sable's;
-`--no-instructions` skips it.
-Each entry resolves `skills/sable/SKILL.md` from the installed package, so package
-upgrades also update the workflow. Other agents can read that file directly.
-Use `$sable build <idea>`, `inspire <references>`, `audit <target>`, or
-`polish <target>` in Codex; use `/sable` with the same modes in Claude Code or
-Cursor. `create` is a build alias. These are agent modes, not shell commands.
+## Build with an agent
 
-Upgrade with `pnpm exec sable upgrade`: it updates the package, then runs the
-new version's `init`, which refreshes the skill entries and the instructions
-block and checks the wiring. From 0.17 or earlier, which has no `upgrade`, run
-`pnpm update @sableui/react --latest` and then `pnpm exec sable init` once.
-Setup only replaces managed files that have not been locally edited; `--dry-run` checks without writing. Keep
-project preferences in project instructions. Package installation alone does not
-change agent settings. See [building-with-sable.md](./building-with-sable.md),
-[creating-a-preset.md](./creating-a-preset.md), and
-[using-presets.md](./using-presets.md).
+`sable init` already set your agent up. Ask for what you want in plain words;
+[building-with-sable.md](./building-with-sable.md) covers the modes, presets and
+commands, and `AGENTS.md → The Sable agent skill` covers setup in a monorepo,
+the Stop hook and what setup writes. Starting from an empty project? Give your
+coding agent this prompt:
+
+```text
+Set up Sable in this React project.
+Install @sableui/react from npm with this project's package manager.
+Run pnpm exec sable init --dry-run, read what it will change, then run pnpm exec sable init.
+Apply every step it prints as manual, in the file it names, then run pnpm exec sable doctor until it passes.
+Read the installed package's AGENTS.md before building, then build and inspect the result.
+```
+
+## Where to go next
+
+- [nextjs.md](./nextjs.md): the providers file, fonts and colour mode before first paint.
+- [color-mode.md](./color-mode.md): a dark default, the theme switcher, alternate theme CSS.
+- [troubleshooting.md](./troubleshooting.md): unstyled, iconless, blank or wrong-theme pages.
+- [converting-an-app.md](./converting-an-app.md): migrate an existing app, including one built on shadcn/ui.
+- [building-with-sable.md](./building-with-sable.md): the agent modes, presets and the CLI.

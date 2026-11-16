@@ -25,6 +25,8 @@ Use ShowMore to reveal additional content after an intentionally shortened previ
 | collapsedHeight | number | 96 | Collapsed height of the content region in px. The inner wrapper clips to this height until expanded. The toggle and fade only appear when the measured content is taller than this; content that already fits shows in full with no control. Expanding animates to the measured height. |
 | collapsedLines | number | — | Collapsed height as a count of the content's own lines (measured from its line height). Wins over collapsedHeight, and is the one to prefer: the preview keeps the same number of lines when the type scale or density changes, where a px height shows fewer as type grows. |
 | children | ReactNode | — | The content to collapse and reveal. |
+| moreLabel | string | "Show more" | The toggle's text while collapsed. |
+| lessLabel | string | "Show less" | The toggle's text while expanded. |
 
 ## Tokens used
 

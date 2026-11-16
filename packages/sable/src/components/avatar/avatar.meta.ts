@@ -159,6 +159,12 @@ export const avatarMeta: ComponentMeta = {
 			description: "Square footprint: 20px / 24px for compact workspace rows; 32px / 40px / 48px for rows; 96px / 160px for portraits (a profile header, an artist hero, a roster tile). The initials, a status indicator and its cut-out ring scale with it, and at the portrait sizes the photo fades in over the resting surface.",
 		},
 		{
+			name: "cutout",
+			type: "boolean",
+			default: "false",
+			description: "Ring the avatar in the colour of the surface it sits on (--avatar-group-ring, else the card or section's surface, else the page), so where it overlaps a banner or cover it reads as cut out of it. The ring is 2px at row sizes and thickens with the portrait. Use it instead of ring-* classes on an Avatar.",
+		},
+		{
 			name: "fit",
 			type: '"cover" | "contain"',
 			default: '"cover"',

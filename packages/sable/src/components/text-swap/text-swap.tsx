@@ -27,3 +27,4 @@ export function TextSwap({ text, effect = "blur", motion, className, ...props }:
 		</span>
 	)
 }
+TextSwap.displayName = "TextSwap"

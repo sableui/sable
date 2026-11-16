@@ -24,6 +24,8 @@ Searchable list beside the selected record's detail: interactive Entity rows in 
 ## Source
 
 ```tsx
+"use client"
+
 import { useState, useEffect, useRef } from "react"
 import { Avatar, Badge, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, Col, Columns, DestructiveActionModal, EmptyState, Entity, Field, Icon, Page, PageHeader, Row, SearchInput, Select, SelectContent, SelectItem, SelectTrigger, Stack, StatusDot } from "@sableui/react"
 

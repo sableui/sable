@@ -125,6 +125,20 @@ describe("AvatarGroup", () => {
 	})
 })
 
+describe("Avatar cutout", () => {
+	it("rings the avatar in the surface it sits on, thicker at portrait sizes", () => {
+		render(<Avatar fallback="AL" alt="Ada" size="lg" cutout />)
+		const root = screen.getByRole("img", { name: "Ada" })
+		expect(root.className).toContain("ring-4")
+		expect(root.className).toContain("ring-[color:var(--avatar-group-ring,var(--sable-surface-bg,var(--background)))]")
+	})
+
+	it("has no ring unless asked", () => {
+		render(<Avatar fallback="AL" alt="Ada" />)
+		expect(screen.getByRole("img", { name: "Ada" }).className).not.toContain("ring-")
+	})
+})
+
 describe("Avatar outside a group", () => {
 	it("keeps its own size", () => {
 		const { container } = render(<Avatar fallback="AM" size="lg" />)

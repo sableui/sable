@@ -16,7 +16,7 @@ const meterToneFill = {
  * the call site from thresholds you own; the component does not guess them.
  */
 export const meterIndicatorVariants = cva(
-	"h-full rounded-full transition-[width,background-color] duration-(--motion-duration-slow) ease-decelerate",
+	"h-full rounded-full transition-[translate,background-color] duration-(--motion-duration-slow) ease-decelerate",
 	{
 		variants: {
 			tone: meterToneFill,

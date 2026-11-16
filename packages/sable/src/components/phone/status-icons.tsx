@@ -31,3 +31,4 @@ export function StatusIcons(props: ComponentPropsWithRef<"span">) {
 		</span>
 	)
 }
+StatusIcons.displayName = "StatusIcons"

@@ -3,9 +3,11 @@
  *
  * The install recipe's `@source` covers the whole published `dist`, so Tailwind
  * generates every component's classes whether the app renders it or not:
- * Sable's own stylesheet is about 6 KB gzipped, and the whole-dist scan takes an
- * app to about 32 KB. A support app measured that, a third more CSS than the
- * same app on shadcn.
+ * Sable's own stylesheet is about 20 KB minified and gzipped with nothing scanned
+ * (13 KB of it the generated palette), and the whole-dist scan takes an app to
+ * about 49 KB; Card, Button and DataTable alone come to about 26 KB (measured
+ * with @tailwindcss/node 4.3 + lightningcss). While the published styles.css
+ * carried its own whole-dist @source, this trimmed nothing.
  *
  * This follows the app's imports from `@sableui/react` (and its subpaths)
  * through the published module graph — each name to the module that defines it,
@@ -204,7 +206,7 @@ export function sourcesCheck(pkgRoot, root, cssFiles) {
 	const generated = cssFiles.find((f) => f.text.includes(SOURCES_MARKER))
 	if (!generated) {
 		const whole = cssFiles.some((f) => WHOLE_DIST.test(f.text))
-		return whole ? [{ status: "info", name: "css:size", detail: "@source scans all of Sable's dist, so every component's classes ship (about 32 KB gzipped; an app using half the catalog lands near 20 KB).", fix: "sable sources --write src/sable-sources.css, then import it in place of that @source." }] : []
+		return whole ? [{ status: "info", name: "css:size", detail: "@source scans all of Sable's dist, so every component's classes ship (about 49 KB minified and gzipped; an app using Card, Button and DataTable lands near 26 KB).", fix: "sable sources --write src/sable-sources.css, then import it in place of that @source." }] : []
 	}
 	const rel = relative(root, generated.path)
 	// The generated list only trims anything once the whole-package @source is

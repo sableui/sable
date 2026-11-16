@@ -576,6 +576,32 @@ export const MARK_TOKENS = [
 
 export type MarkToken = (typeof MARK_TOKENS)[number]
 
+/**
+ * The categorical chart palette — the colour of series 1…8 when a series names
+ * none (`chartColor(i)` in lib/chart, and every Sable chart's default).
+ *
+ * OPTIONAL per theme, like MOTION_TOKENS' overrides: the Sable theme declares
+ * the set on `:root` (light) and `.dark`, so every other theme inherits it, and
+ * a theme or preset may override any slot. Whatever a theme ends up with is
+ * gated in themes.test for every bundled theme and mode: neighbouring series
+ * separate under normal vision (OKLab ΔE×100 ≥ 15) and under protanopia and
+ * deuteranopia (≥ 8), and every series clears the graphic floor (2:1) on
+ * `background` and `card`. A theme that overrides the set re-validates it
+ * there. Not a Tailwind colour: read it as `var(--chart-n)` or `chartColor()`.
+ */
+export const CHART_TOKENS = [
+	"chart-1",
+	"chart-2",
+	"chart-3",
+	"chart-4",
+	"chart-5",
+	"chart-6",
+	"chart-7",
+	"chart-8",
+] as const
+
+export type ChartToken = (typeof CHART_TOKENS)[number]
+
 export type AppShellToken = (typeof APP_SHELL_TOKENS)[number]
 
 /**

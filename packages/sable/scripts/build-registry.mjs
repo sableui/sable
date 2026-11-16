@@ -27,7 +27,7 @@ import {
 	statSync,
 	writeFileSync,
 } from "node:fs"
-import { dirname, join } from "node:path"
+import { dirname, join, posix } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 import { motionNamesFromRegistry, readContractArray } from "./read-contract.mjs"
 import { readLessons } from "./design-memory.mjs"
@@ -202,9 +202,10 @@ function renderFoundationMd(f) {
 const EXTERNAL_COMPONENTS = {
 	Link: '// <Link> = your router\'s link (react-router, next/link, @tanstack/router, …)',
 }
-const EXTERNAL_TYPES = {
-	DateRange: 'import type { DateRange } from "react-day-picker"',
-}
+// Types an example may reference that the package does not export. Empty on
+// purpose: a type an example needs is re-exported from the package (DateRange
+// comes from Calendar), so a copied example never imports a transitive dep.
+const EXTERNAL_TYPES = {}
 
 function addExportBlockNames(txt, values, types) {
 	for (const m of txt.matchAll(/export\s+(type\s+)?\{([^}]+)\}/g)) {
@@ -1058,7 +1059,12 @@ async function loadCompositions(kind, dir, extra = () => ({})) {
 		const reactNames = REACT_IMPORTS.filter((h) =>
 			new RegExp(`\\b${h}\\s*(?:<[^>()]*>)?\\s*\\(`).test(code),
 		)
+		// The directive sits above the marker with the imports, so carry it
+		// into the emitted header: copied source must stay a client module in
+		// RSC apps (Next.js) exactly as the package file is.
+		const directive = /^﻿?\s*(?:\/\/[^\n]*\n\s*|\/\*[\s\S]*?\*\/\s*)*["']use client["']/.test(parts[0])
 		const importLines = [
+			...(directive ? [`"use client"`, ""] : []),
 			...(reactNames.length
 				? [`import { ${reactNames.join(", ")} } from "react"`]
 				: []),
@@ -1084,7 +1090,7 @@ const patternItems = await loadCompositions("pattern", PATTERNS_DIR)
 
 /* ── Blocks: section-sized compositions, shipped the same way as patterns. The
  * block contract is checked here because it is what keeps a block a block:
- * its props are layout and the primary action only, never content, so the
+ * its props are layout and the outcomes it reports, never content, so the
  * copied file stays one clean starting point. ──────────────────────────────── */
 const BLOCKS_DIR = join(PKG_ROOT, "src", "blocks")
 const blockItems = await loadCompositions("block", BLOCKS_DIR, (meta) => ({
@@ -1321,6 +1327,8 @@ const REGISTRY_TOKENS = JSON.parse(readFileSync(REGISTRY_PATH, "utf8")).tokens
 		...readContractArray(contractSrc, "FIELD_TOKENS"),
 		...readContractArray(contractSrc, "APP_SHELL_TOKENS"),
 		...readContractArray(contractSrc, "MARK_TOKENS"),
+		// Declared by the Sable theme on :root and inherited, so no theme must.
+		...readContractArray(contractSrc, "CHART_TOKENS"),
 	]
 
 	const contractMotion = new Set(readContractArray(contractSrc, "MOTION_TOKENS"))
@@ -1683,7 +1691,7 @@ const patterns = {
 
 const blocks = {
 	about:
-		"Section-sized compositions — a sign-in card, a pricing card, an order tracker — smaller than a page shell and with no behaviour of their own. Copy the code (imports included) and edit the content constants at the top, or import the same component from `@sableui/react/blocks` to see it in place first. Props are the block contract only: `className` (a card block fills its container up to its designed `width.max`; size it from the parent or with className), `framed` on Card-built blocks (false drops the surface for a Sheet, Dialog or section that already frames it), and the primary action's callback. Content is never a prop.",
+		"Section-sized compositions — a sign-in card, a pricing card, an order tracker — smaller than a page shell, with only enough local state to show themselves. Copy the code (imports included) and edit the content constants at the top, or import the same component from `@sableui/react/blocks` to see it in place first. Props are the block contract only: `className` (a card block fills its container up to its designed `width.max`; size it from the parent or with className), `framed` on Card-built blocks (false drops the surface for a Sheet, Dialog or section that already frames it), and callbacks for the outcomes the block produces (one per action an app must handle: `on<Verb>(payload)`, `on<State>Change(next)` for a toggle, `on<Item>Action(id, action)` for a list row). Content is never a prop; the one exception is media a block exists to work on (PhotoAdjustBlock's `image`).",
 	retrieve: "sable block <Name>",
 	items: blockItems,
 }
@@ -1733,6 +1741,11 @@ for (const { dir } of metaFiles) {
  * internal links are verified. */
 const TASKS_DIR = join(PKG_ROOT, "llms", "tasks")
 const REQUIRED_TASKS = [
+	// The setup guides sableui.com renders as pages (src/markdown-twins.json).
+	"getting-started.md",
+	"nextjs.md",
+	"color-mode.md",
+	"troubleshooting.md",
 	"choosing-motion.md",
 	"motion-performance.md",
 	"motion-interruption.md",
@@ -1777,6 +1790,27 @@ for (const task of REQUIRED_TASKS) {
 		if (!existsSync(target)) {
 			contractErrors.push(`llms/tasks/${task}: link to "${m[1]}" does not resolve.`)
 		}
+	}
+}
+
+/* llms.txt is the first file an agent fetches, and its task index is the only
+ * route to a guide for an agent with no CLI. Every guide must be listed there.
+ * Two claims that once shipped wrong in the hand-authored prose are rejected
+ * outright: icons do not fall back to Reicon without a provider, and there is no
+ * `tone-success` pair. */
+{
+	const llmsHeaderText = readFileSync(join(PKG_ROOT, "llms.txt"), "utf8").split("<!-- generated:catalog:start")[0]
+	for (const file of readdirSync(TASKS_DIR).filter((f) => f.endsWith(".md"))) {
+		if (!llmsHeaderText.includes(`(./llms/tasks/${file})`))
+			contractErrors.push(`llms.txt: the task index does not link llms/tasks/${file}. Add it under "Task entry points".`)
+	}
+	if (/(?:renders|get|falls? back to) Reicon/i.test(llmsHeaderText))
+		contractErrors.push("llms.txt: says icons fall back to Reicon. Without an IconProvider every <Icon> renders nothing.")
+	const toneNames = new Set(JSON.parse(readFileSync(REGISTRY_PATH, "utf8")).tokens.semantic.map((t) => t.name))
+	for (const doc of ["AGENTS.md", "llms.txt", "README.md"]) {
+		const text = readFileSync(join(PKG_ROOT, doc), "utf8")
+		for (const m of text.matchAll(/`(?:bg|text|border|ring)-(tone-[a-z]+(?:-foreground)?)`/g))
+			if (!toneNames.has(m[1])) contractErrors.push(`${doc}: \`${m[0].slice(1, -1)}\` names a token that does not exist (${m[1]}).`)
 	}
 }
 
@@ -1826,8 +1860,8 @@ registry.consume.init = {
 	command: "pnpm exec sable init",
 	preview: "pnpm exec sable init --dry-run",
 	after: "Run it once the package is installed; before that `npx sable` resolves an unrelated package.",
-	does: "Installs missing packages with the lockfile's package manager (React, Tailwind and its build plugin), writes the css imports in order into the global stylesheet, adds bundlerDedupe and the Tailwind plugin to a Vite config (a postcss.config.mjs for Next.js), loads the fonts, wraps a Vite starter's <App /> in IconProvider, runs agentSetup (skill entries plus the AGENTS.md / CLAUDE.md block; in a terminal it offers the Stop hook), then sable doctor.",
-	frameworks: "Vite and Next.js (App Router) get every step. Other setups get the packages and the stylesheet; the bundler and provider steps are printed.",
+	does: "Installs missing packages with the lockfile's package manager (React, React DOM, Tailwind and its build plugin), writes the css imports in order into the global stylesheet with an @source path computed from it, runs agentSetup (skill entries plus the AGENTS.md / CLAUDE.md block; in a terminal it offers the Stop hook), then sable doctor. It does not add antialiasing, alternate theme CSS (cssOptional), MotionProvider or SableThemeProvider.",
+	frameworks: "Vite: also adds the Tailwind plugin and bundlerDedupe to the Vite config, the Figtree + DM Mono links to index.html, and wraps a starter's <App /> (one <App /> in an entry that calls createRoot) in IconProvider. Next.js: also writes postcss.config.mjs when there is none, needs no dedupe, and prints a \"use client\" app/providers.tsx with IconProvider and the font <link> tags for the root layout (sable docs nextjs, which adds SableThemeScript). Other setups: the packages and the stylesheet; the bundler and provider steps are printed.",
 	manual: "Each edit it cannot make safely (an unfamiliar config shape, a Next.js layout, a stylesheet split across files) is printed as the exact snippet and the file it belongs in. Apply them, then run sable doctor.",
 	flags: "--dry-run previews; --no-agent skips the skill; --no-install prints install commands instead of running them.",
 	repair: "In an app that is already wired: pnpm exec sable doctor --fix (or --dry-run) applies the same fixes to whatever doctor flags.",
@@ -1841,6 +1875,14 @@ registry.consume.agentSetup = {
 	instructions: "A short managed block in AGENTS.md (Codex, Cursor) and CLAUDE.md (Claude Code), between <!-- sable:begin --> and <!-- sable:end -->, that sends every UI request through the skill even when it doesn't name Sable. --no-instructions skips it.",
 	upgrade: "pnpm exec sable upgrade (updates the package, then runs the new version's init). From 0.17 or earlier: pnpm update @sableui/react --latest; pnpm exec sable init",
 	preserves: "Local edits, project instructions outside the Sable block, presets and preferences; setup only refreshes unchanged managed entries and blocks, and refuses linked destinations.",
+}
+registry.consume.darkMode = "The theme is designed dark-first, but :root holds the light values: a page renders light until the `dark` class is on <html>. For a dark default, put class=\"dark\" on <html> or pass defaultPreference=\"dark\" to SableThemeProvider (its default is system). In a server-rendered app the provider applies the class after hydration; render <SableThemeScript /> in <head>, with the provider's options, to apply it before first paint (sable docs nextjs). Sable uses no `dark:` utilities, so a Tailwind `@custom-variant dark` is only needed if your own app code uses them."
+registry.consume.guides = {
+	setup: "sable docs getting-started",
+	nextjs: "sable docs nextjs",
+	colorMode: "sable docs color-mode",
+	troubleshooting: "sable docs troubleshooting",
+	migrate: "sable docs converting-an-app; from shadcn/ui: sable docs migrating-from-shadcn",
 }
 registry.consume.designTheme = "Set data-sable-theme for alternate or app-owned themes; omit the attribute or use base for the default. Register portable presets with presetManifest() through SableThemeProvider customThemes, and load their scoped CSS and fonts."
 registry.consume.ios = {
@@ -1902,7 +1944,7 @@ registry.enforcement = { ...registry.enforcement, rules: enforcementRules }
 registry.consume.designWorkflow = {
 	brief: "sable docs designing-a-surface",
 	taste: "sable docs developing-taste",
-	skill: "sable setup --agent; build, inspire, audit, polish; package-owned skills/sable/SKILL.md",
+	skill: "sable init (or sable setup --agent in an app wired by hand); modes build, inspire, audit, polish, fix; package-owned skills/sable/SKILL.md",
 	presets: "sable docs using-presets; sable preset --check <path> --json; sable preset --css <path>",
 	assets: "sable docs creating-design-assets",
 	journey: "sable docs reviewing-a-journey",
@@ -2157,12 +2199,25 @@ const LLMS_FULL_PATH = join(PKG_ROOT, "llms-full.txt")
 const DIVIDER = "\n\n---\n\n"
 
 const llmsHeader = llmsOutput.slice(0, llmsOutput.indexOf(LLMS_START)).trimEnd()
+/**
+ * A doc's relative links are written against its own folder (`./nextjs.md` in
+ * llms/tasks/). Concatenated into llms-full.txt, which sits at the package root,
+ * they would resolve to nothing, so each is rewritten to the same file's path
+ * from the root (`./llms/tasks/nextjs.md`), which works in node_modules and on
+ * sableui.com alike.
+ */
+function rootRelativeLinks(markdown, kind) {
+	return markdown.replace(/\]\((\.\.?\/[^)#\s]+)(#[^)\s]*)?\)/g, (whole, target, hash = "") => {
+		const resolved = posix.normalize(posix.join("llms", kind, target))
+		return resolved.startsWith("..") ? whole : `](./${resolved}${hash})`
+	})
+}
 const authoredDocs = ["tasks", "taste"].flatMap((kind) =>
 	readdirSync(join(LLMS_DIR, kind)).filter((file) => file.endsWith(".md")).sort()
-		.map((file) => readFileSync(join(LLMS_DIR, kind, file), "utf8").trim()),
+		.map((file) => rootRelativeLinks(readFileSync(join(LLMS_DIR, kind, file), "utf8").trim(), kind)),
 )
 const llmsFullOutput =
-	[llmsHeader, ...authoredDocs, ...mirrors.map((m) => m.content.trim())].join(DIVIDER) + "\n"
+	[llmsHeader, ...authoredDocs, ...mirrors.map((m) => rootRelativeLinks(m.content.trim(), m.kind))].join(DIVIDER) + "\n"
 
 function listFilesRecursive(dir) {
 	const out = []

@@ -1,3 +1,5 @@
+"use client"
+
 import { Button, Glass, Navbar, NavbarBackLink, Page, Tabbar, TabbarLink } from "konsta/react"
 import { type ComponentProps, useContext } from "react"
 import { TabLens, TabLensCopy } from "./tab-lens"

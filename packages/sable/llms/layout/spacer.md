@@ -20,7 +20,7 @@ Use Spacer for explicit rhythm space or a flex grow pusher between siblings.
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| size | number | 1 | Fixed size in rhythm units (×8px; fractions ok). Ignored when grow. |
+| size | number | 1 | Fixed size in rhythm units (one baseline step each — 8px at Sable's default type, two Tailwind spacing steps, so gap={2} is gap-4; fractions ok). Ignored when grow. |
 | axis | "vertical" \| "horizontal" | "vertical" | Axis the fixed size applies to. |
 | grow | boolean | — | Flex-grow to push siblings apart (fills available space). |
 

@@ -1,3 +1,5 @@
+"use client"
+
 import { PreviewCard as Base } from "@base-ui/react/preview-card"
 import type { ComponentProps } from "react"
 import { anchoredScroll } from "../../lib/anchored-scroll"
@@ -79,6 +81,7 @@ export function ContextCardContent({
 		</ContextCardPortal>
 	)
 }
+ContextCardContent.displayName = "ContextCardContent"
 
 type ArrowProps = Omit<ComponentProps<typeof Base.Arrow>, "className"> & {
 	className?: string
@@ -104,3 +107,4 @@ export function ContextCardArrow({ className, ...props }: ArrowProps) {
 		</Base.Arrow>
 	)
 }
+ContextCardArrow.displayName = "ContextCardArrow"

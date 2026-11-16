@@ -25,7 +25,8 @@ export interface PillProps
  * identical-looking chips ended up half clickable and half not.
  *
  * `appearance="outline"` is the quiet chip for choices that annotate other
- * content (a reaction, a tag on a card); `size="sm"` is the small chip under
+ * content (a tag on a card), `appearance="ghost"` draws no chip at rest (the
+ * reactions under a message); `size="sm"` is the small chip under
  * content, `size="lg"` the toolbar chip that shares `--control-sm` with a
  * SearchInput `size="sm"` and Button `size="sm"` beside it. Use these rather
  * than restyling a Pill with classes — an override is

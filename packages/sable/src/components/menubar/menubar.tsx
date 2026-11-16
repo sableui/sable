@@ -1,3 +1,5 @@
+"use client"
+
 import { Menubar as Base } from "@base-ui/react/menubar"
 import type { ComponentProps } from "react"
 import { cn } from "../../lib/cn"

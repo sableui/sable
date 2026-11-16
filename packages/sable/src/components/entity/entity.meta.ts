@@ -32,7 +32,7 @@ export const entityMeta: ComponentMeta = {
 			},
 			{
 				guidance: "dont",
-				description: "Do not make the whole row a link when it also carries a trailing action. Nesting an interactive element inside a link is invalid, and the action becomes unreachable by keyboard.",
+				description: "Do not wrap an Entity in your own <a> or router Link to make it navigate. The trailing action would nest inside the link, which is invalid and unreachable by keyboard. Pass interactive with render={<Link to=\"…\" />} instead: the row's target becomes the link and the action stays outside it.",
 			},
 		],
 	},
@@ -71,20 +71,26 @@ export const entityMeta: ComponentMeta = {
 			type: "boolean",
 			default: "false",
 			description:
-				"Make the whole row a target: the leading visual and text become a native <button> whose hit area stretches over the row (focus ring, Enter/Space). The action stays outside it. Requires onSelect.",
+				"Make the whole row a target: the leading visual and text become a native <button> (or the element render gives, such as a router link) whose hit area stretches over the row (focus ring, Enter/Space). The action stays outside it. Pair with onSelect, or with render for a row that navigates.",
 		},
 		{
 			name: "onSelect",
 			type: "() => void",
 			description:
-				"Activation handler for an interactive row (fired on click and Enter/Space). Required when interactive.",
+				"Activation handler for an interactive row (fired on click and Enter/Space). Optional when render makes the row a link.",
+		},
+		{
+			name: "render",
+			type: "useRender.RenderProp",
+			description:
+				"Interactive rows only: render the row's target as another element, typically the router's link (render={<Link to=\"/people/42\" />}) so a list–detail row navigates. Defaults to a <button>. The trailing action stays outside the link.",
 		},
 		{
 			name: "selected",
 			type: "boolean",
 			default: "false",
 			description:
-				"Interactive rows only: the current row of a selectable list (the record open in a list–detail view). Sets aria-current=\"true\" on the row's button and paints the selected fill, a step off the surface the row sits on, which holds on hover.",
+				"Interactive rows only: the current row of a selectable list (the record open in a list–detail view). Sets aria-current on the row's target (\"page\" when render makes it a link, \"true\" for a button) and paints the selected fill, a step off the surface the row sits on, which holds on hover.",
 		},
 		{
 			name: "density",
@@ -128,12 +134,16 @@ export const entityMeta: ComponentMeta = {
 		"Default rows are presentational layout; semantics come from the content you place in title/subtitle/action.",
 		"interactive rows render a real <button> around the leading visual and text, with its ::after stretched over the whole row — native focus, a focus-visible ring, and Enter/Space. The action slot sits outside that button and above the overlay, so a Button there stays valid HTML and keeps its own clicks.",
 		"Give any interactive action an accessible label (e.g. aria-label on a ghost icon Button).",
-		"A selected row announces aria-current=\"true\" on its button, so the current record is spoken, not only shown by its fill.",
+		"A selected row announces aria-current on its target (\"true\" on a button, \"page\" on a link, detected from an <a> or a render element with href or to), so the current record is spoken, not only shown by its fill.",
 	],
 	examples: [
 		{
 			label: "Person row",
 			code: '<Entity leading={<Avatar fallback="AM" />} title="Alex Morgan" subtitle="@alex" action={<Button variant="ghost" size="icon" aria-label="More"><Icon name="ellipsis" /></Button>} />',
+		},
+		{
+			label: "Row that navigates",
+			code: '<Entity interactive selected={active} render={<a href="/people/alex" />} leading={<Avatar fallback="AM" />} title="Alex Morgan" subtitle="@alex" action={<Button variant="ghost" size="icon" aria-label="More"><Icon name="ellipsis" /></Button>} />',
 		},
 		{
 			label: "Interactive (selectable) row",

@@ -1,3 +1,5 @@
+"use client"
+
 import { Toolbar as Base } from "@base-ui/react/toolbar"
 import type { VariantProps } from "class-variance-authority"
 import type { ComponentProps } from "react"

@@ -1,6 +1,6 @@
 # ProjectCollectionBlock
 
-A compact collection of three project summaries that expands into a readable list, with optional pointer depth.
+A compact collection of three project summaries that expands into a readable list, with pointer depth while it is closed.
 
 **Intent:** A browsable small collection of related work. Replace the sample projects after copying; use a grid or table for a large workspace.
 
@@ -19,6 +19,8 @@ A compact collection of three project summaries that expands into a readable lis
 ## Source
 
 ```tsx
+"use client"
+
 import { useState } from "react"
 import { Avatar, AvatarGroup, Badge, Card, CardAction, CardDescription, CardFooter, CardHeader, CardStack, CardTitle, cn, Tilt } from "@sableui/react"
 
@@ -56,7 +58,7 @@ export function ProjectCollectionBlock({ className, framed = true }: ProjectColl
 					{/* Full height, so cards behind a taller front card still show their edge. */}
 					<Card variant={framed ? "default" : "flat"} className="h-full">
 						<CardHeader>
-							<CardTitle>{project.title}</CardTitle>
+							<CardTitle render={<h2 />}>{project.title}</CardTitle>
 							<CardDescription>{project.description}</CardDescription>
 							<CardAction>
 								<Badge size="sm">{project.count}</Badge>

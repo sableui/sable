@@ -27,6 +27,8 @@ Split sign-in page: a form column (brand mark, heading, email + password, primar
 ## Source
 
 ```tsx
+"use client"
+
 import { useState } from "react"
 import { Avatar, Badge, Button, Card, CardContent, Entity, Field, Form, GradientArt, Icon, Input, Region, Separator, Stack } from "@sableui/react"
 

@@ -12,19 +12,62 @@ function motionScale(node: HTMLElement): number {
 	return Number.isFinite(raw) ? Math.max(0, raw) : 1
 }
 
+/**
+ * A duration token as the element sees it, in ms. A custom property's computed
+ * value has its var()s substituted but its calc() unevaluated, so the theme's
+ * `calc(300ms * var(--motion-scale))` arrives as `calc(300ms * 1)`. Handles a
+ * plain time and a product of times and numbers; anything else is null and the
+ * caller falls back.
+ */
+function durationToken(node: HTMLElement, name: string): number | null {
+	const raw = getComputedStyle(node).getPropertyValue(name).trim()
+	if (!raw) return null
+	// Only products are understood, so grouping does not matter: drop it.
+	if (/[+/]|\s-\s/.test(raw)) return null
+	const body = raw.replace(/calc/g, "").replace(/[()]/g, "")
+	let ms: number | null = null
+	let factor = 1
+	for (const term of body.split("*").map((t) => t.trim())) {
+		const time = term.match(/^(-?[\d.]+)(ms|s)$/)
+		if (time) {
+			if (ms !== null) return null
+			ms = Number(time[1]) * (time[2] === "s" ? 1000 : 1)
+			continue
+		}
+		const n = Number(term)
+		if (term === "" || !Number.isFinite(n)) return null
+		factor *= n
+	}
+	return ms === null ? null : Math.max(0, ms * factor)
+}
+
+/** An easing token as the element sees it, or null when unset. */
+function easingToken(node: HTMLElement, name: string): string | null {
+	return getComputedStyle(node).getPropertyValue(name).trim() || null
+}
+
+/** The curve an exit leaves on: accelerate. The contract has no token for it. */
+const EXIT_EASING = "cubic-bezier(0.4, 0, 1, 1)"
+
 export interface PresenceProps {
 	/** When false, the child animates out, then unmounts. */
 	show: boolean
 	/** A single element that accepts a ref (a DOM element or a forwardRef). */
 	children: ReactElement
-	/** Enter / exit durations in ms. @default { enter: 200, exit: 150 } */
+	/**
+	 * Enter / exit durations in ms, multiplied by --motion-scale. Omitted, each
+	 * takes the theme's `--motion-duration-enter` / `--motion-duration-exit`
+	 * (already scaled), else 200 / 150.
+	 */
 	duration?: { enter?: number; exit?: number }
 	/**
 	 * Enter / exit easing curves. The defaults suit a small element: decelerate
 	 * in, accelerate out. A large surface leaving to REVEAL what is under it (a
 	 * splash, a full-bleed overlay) reads better decelerating out, so the reveal
 	 * settles instead of snapping at the end.
-	 * @default { enter: "cubic-bezier(0, 0, 0.2, 1)", exit: "cubic-bezier(0.4, 0, 1, 1)" }
+	 * Omitted, enter takes the theme's `--motion-ease-decelerate`; exit keeps an
+	 * accelerate curve, which the motion contract has no token for.
+	 * @default { enter: "var(--motion-ease-decelerate)", exit: "cubic-bezier(0.4, 0, 1, 1)" }
 	 */
 	easing?: { enter?: string; exit?: string }
 	/** Fade offset (translateY), in px. @default 8 */
@@ -109,9 +152,15 @@ export function Presence({
 		}
 
 		const canAnimate = enabled && node && typeof node.animate === "function"
-		// Durations follow --motion-scale like every token-driven duration, so the
-		// app's motion speed (and the docs' Customize → Motion) reaches Presence too.
-		const scale = node ? motionScale(node) : 1
+		// A duration given as a prop follows --motion-scale like every token-driven
+		// duration. Without one, the theme's enter/exit tokens apply — already
+		// scaled — so a theme's tempo (Ember's slower enter, Prism's quicker one)
+		// and the docs' Customize → Motion reach Presence too.
+		const resolve = (given: number | undefined, token: string, fallback: number) => {
+			if (!node) return given ?? fallback
+			if (given !== undefined) return given * motionScale(node)
+			return durationToken(node, token) ?? fallback * motionScale(node)
+		}
 
 		if (show) {
 			setMounted(true)
@@ -122,8 +171,8 @@ export function Presence({
 					{ opacity: 1, transform: "translateY(0)" },
 				],
 				{
-					duration: (duration?.enter ?? 200) * scale,
-					easing: easing?.enter ?? "cubic-bezier(0, 0, 0.2, 1)",
+					duration: resolve(duration?.enter, "--motion-duration-enter", 200),
+					easing: easing?.enter ?? easingToken(node, "--motion-ease-decelerate") ?? "cubic-bezier(0, 0, 0.2, 1)",
 					fill: "backwards",
 				},
 			)
@@ -151,8 +200,8 @@ export function Presence({
 				{ opacity: 0, transform: `translateY(${offset}px)` },
 			],
 			{
-				duration: (duration?.exit ?? 150) * scale,
-				easing: easing?.exit ?? "cubic-bezier(0.4, 0, 1, 1)",
+				duration: resolve(duration?.exit, "--motion-duration-exit", 150),
+				easing: easing?.exit ?? EXIT_EASING,
 				fill: "forwards",
 			},
 		)

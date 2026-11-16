@@ -20,6 +20,8 @@ An API keys card: each key's name with its masked hint in Code, when it was crea
 ## Source
 
 ```tsx
+"use client"
+
 import { Button, Card, CardAction, CardDescription, CardHeader, CardList, CardTitle, cn, Code, Entity, Icon, MenuItem, MenuSeparator, OverflowMenu } from "@sableui/react"
 
 const keys = [

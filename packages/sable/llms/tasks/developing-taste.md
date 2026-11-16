@@ -8,8 +8,8 @@ type character, density, imagery, spatial rhythm, shape, and motion can vary.
 ## Read a small, contrasting reference set
 
 ```bash
-npx sable atlas --search "editorial image hierarchy" --contrast --limit 3 --json
-npx sable atlas --show <reference-id> --json
+pnpm exec sable atlas --search "editorial image hierarchy" --contrast --limit 3 --json
+pnpm exec sable atlas --show <reference-id> --json
 ```
 
 Open the returned `evidence[].absolutePath` images with the agent's image viewer.
@@ -78,9 +78,9 @@ brief and selected preset. The `explore` tool requires three to six evidence-bou
 directions; smaller comparisons can be delivered directly.
 
 ```bash
-npx sable explore --template > design/exploration.json
-npx sable explore --check design/exploration.json --json
-npx sable explore --compare design/exploration.json --json
+pnpm exec sable explore --template > design/exploration.json
+pnpm exec sable explore --check design/exploration.json --json
+pnpm exec sable explore --compare design/exploration.json --json
 ```
 
 Fill the template after rendering, with project-relative artifact paths and exact
@@ -108,9 +108,9 @@ The comparison page exports a preference JSON; it does not silently write to a
 project or update a model. Record the exported file from the project root:
 
 ```bash
-npx sable prefer --record design/preference.json
-npx sable prefer --search "hierarchy" --scope project:example --json
-npx sable prefer --check --json
+pnpm exec sable prefer --record design/preference.json
+pnpm exec sable prefer --search "hierarchy" --scope project:example --json
+pnpm exec sable prefer --check --json
 ```
 
 Record the chosen option or tie, both accepted and rejected alternatives, the

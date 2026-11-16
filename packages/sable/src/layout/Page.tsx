@@ -4,7 +4,7 @@ import { Stack, type StackProps } from "./Stack"
 export interface PageProps extends RegionProps {
 	/**
 	 * Vertical gap between the stacked page sections. Number = rhythm units
-	 * (×8px); string = raw CSS. @default 4 (32px)
+	 * (one baseline step each — 8px at Sable's default type, two Tailwind spacing steps, so gap={2} is gap-4); string = raw CSS. @default 4
 	 */
 	gap?: StackProps["gap"]
 	/** Cross-axis alignment of the stacked sections. @default "stretch" */

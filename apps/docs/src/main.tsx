@@ -8,7 +8,9 @@ import { App } from "./App"
 import "./app.css"
 import { RouteErrorBoundary } from "./components/RouteErrorBoundary"
 import { CustomizerProvider } from "./customizer/CustomizerProvider"
+import { LookRecovery } from "./customizer/LookRecovery"
 import { ignorePasswordManagers } from "./lib/ignore-password-managers"
+import { deferPresetFonts } from "./lib/preset-fonts"
 import { ThemeProvider } from "./theme"
 import { CustomizerMotion } from "./components/CustomizerMotion"
 
@@ -16,9 +18,12 @@ const rootEl = document.getElementById("root")
 if (!rootEl) throw new Error("Missing #root element")
 
 ignorePasswordManagers()
+deferPresetFonts()
 
 createRoot(rootEl).render(
 	<StrictMode>
+		{/* Outermost: a malformed saved look or share link is cleared and the providers start again. */}
+		<LookRecovery>
 		<ThemeProvider>
 			<CustomizerProvider>
 				<CustomizerMotion>
@@ -39,5 +44,6 @@ createRoot(rootEl).render(
 				</CustomizerMotion>
 			</CustomizerProvider>
 		</ThemeProvider>
+		</LookRecovery>
 	</StrictMode>,
 )

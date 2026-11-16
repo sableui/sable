@@ -6,11 +6,15 @@ import {
 	useContext,
 	useEffect,
 	useMemo,
+	useRef,
 	useState,
+	useSyncExternalStore,
 } from "react"
 import type { ReactNode } from "react"
 import {
+	SABLE_COLOR_STORAGE_KEY,
 	SABLE_THEME_ATTRIBUTE,
+	SABLE_THEME_STORAGE_KEY,
 	buildThemeManifestById,
 	defaultThemeId as sableDefaultThemeId,
 	isKnownThemeId,
@@ -28,8 +32,8 @@ import type { ThemeManifest } from "./_contract"
  */
 export type AnyThemeId = ThemeId | (string & {})
 
-export const SABLE_COLOR_STORAGE_KEY = "sable-color-preference" as const
-export const SABLE_THEME_STORAGE_KEY = "sable-theme-id" as const
+// SABLE_COLOR_STORAGE_KEY / SABLE_THEME_STORAGE_KEY live in registry.ts (no
+// "use client"), so the server-safe boot script can share them.
 
 export type SableColorMode = "light" | "dark"
 export type SableThemePreference = SableColorMode | "system"
@@ -85,7 +89,9 @@ export interface SableThemeProviderProps {
 	themeStorageKey?: string | null
 	/**
 	 * Where to write `.dark` and `data-sable-theme`. Defaults to <html> so
-	 * portaled overlays share the same token layer.
+	 * portaled overlays share the same token layer. A getter is read when the
+	 * mode or theme changes; an inline arrow is fine (it is held in a ref, so a
+	 * new function each render does not re-run the write).
 	 */
 	target?: "root" | (() => HTMLElement | null)
 	/**
@@ -121,11 +127,60 @@ function coerceThemeId(
 	return fallback
 }
 
+const COLOR_SCHEME_QUERY = "(prefers-color-scheme: dark)"
+
 function systemColorMode(): SableColorMode {
 	if (typeof window === "undefined" || !window.matchMedia) return "dark"
-	return window.matchMedia("(prefers-color-scheme: dark)").matches
-		? "dark"
-		: "light"
+	return window.matchMedia(COLOR_SCHEME_QUERY).matches ? "dark" : "light"
+}
+
+function subscribeColorScheme(callback: () => void) {
+	if (typeof window === "undefined" || !window.matchMedia) return () => {}
+	const media = window.matchMedia(COLOR_SCHEME_QUERY)
+	media.addEventListener?.("change", callback)
+	return () => media.removeEventListener?.("change", callback)
+}
+
+/**
+ * Storage as an external store. Read through `useSyncExternalStore`, never in a
+ * `useState` initialiser: the server has no storage, so a value read during the
+ * first client render would differ from the HTML it hydrates, and anything
+ * rendering `mode` (a ThemeSwitcher) would mismatch. The server snapshot is
+ * `null` (the defaults); React re-renders with the stored value right after
+ * hydration, and a client-only app reads it on its first render.
+ */
+const storageListeners = new Set<() => void>()
+
+function notifyStorage() {
+	for (const listener of storageListeners) listener()
+}
+
+function subscribeStorage(callback: () => void) {
+	storageListeners.add(callback)
+	if (typeof window !== "undefined") window.addEventListener("storage", callback)
+	return () => {
+		storageListeners.delete(callback)
+		if (typeof window !== "undefined") window.removeEventListener("storage", callback)
+	}
+}
+
+function useStoredValue(key: string | null): string | null {
+	return useSyncExternalStore(
+		subscribeStorage,
+		() => readStorage(key),
+		() => null,
+	)
+}
+
+const subscribeNothing = () => () => {}
+
+/** False on the server and while hydrating; true from then on (and at once in a client-only render). */
+function useHydrated(): boolean {
+	return useSyncExternalStore(
+		subscribeNothing,
+		() => true,
+		() => false,
+	)
 }
 
 function readStorage(key: string | null): string | null {
@@ -144,6 +199,7 @@ function writeStorage(key: string | null, value: string) {
 	} catch {
 		// Storage may be disabled or quota-limited; theme switching still works.
 	}
+	notifyStorage()
 }
 
 /**
@@ -239,28 +295,69 @@ function withSuppressedTransitions(mutate: () => void) {
 	})
 }
 
+/**
+ * Writes the color mode as `.dark` on the target. A no-op when the target is
+ * already in that mode, so a re-render, the first render after a pre-paint
+ * `sableThemeScript`, or a repeated call costs no reflow.
+ */
 export function applySableColorMode(
 	mode: SableColorMode,
 	target: HTMLElement | null = rootElement(),
 ) {
 	if (!target) return
+	if (target.classList.contains("dark") === (mode === "dark")) return
 	withSuppressedTransitions(() => {
 		target.classList.toggle("dark", mode === "dark")
 	})
 }
 
+/** Writes the design theme as `data-sable-theme` (none for the default). A no-op when unchanged. */
 export function applySableTheme(
 	themeId: AnyThemeId,
 	target: HTMLElement | null = rootElement(),
 ) {
 	if (!target) return
+	const next = themeId === sableDefaultThemeId ? null : themeId
+	if (target.getAttribute(SABLE_THEME_ATTRIBUTE) === next) return
 	withSuppressedTransitions(() => {
-		if (themeId === sableDefaultThemeId) {
+		if (next === null) {
 			target.removeAttribute(SABLE_THEME_ATTRIBUTE)
 			return
 		}
-		target.setAttribute(SABLE_THEME_ATTRIBUTE, themeId)
+		target.setAttribute(SABLE_THEME_ATTRIBUTE, next)
 	})
+}
+
+// The bundler's build-mode flag, as Base UI and React read it.
+declare const process: { env: { NODE_ENV?: string } }
+
+function isDevelopment() {
+	try {
+		return process.env.NODE_ENV !== "production"
+	} catch {
+		return false
+	}
+}
+
+const missingThemeWarned = new Set<string>()
+
+/**
+ * The silent failure the docs keep warning about: `data-sable-theme="meridian"`
+ * set, its CSS never imported, and the page renders as the Sable theme with no
+ * error. Each bundled theme's CSS declares `--sable-theme-id`; in development,
+ * a built-in id that the element does not report gets one warning. Skipped when
+ * no Sable CSS is loaded at all (a test DOM) and for app-owned custom themes.
+ */
+function warnIfThemeCssMissing(themeId: AnyThemeId, element: HTMLElement | null) {
+	if (!element || !isDevelopment() || !isThemeId(themeId) || missingThemeWarned.has(themeId)) return
+	if (typeof getComputedStyle !== "function") return
+	const painting = getComputedStyle(element).getPropertyValue("--sable-theme-id").trim()
+	if (!painting || painting === themeId) return
+	missingThemeWarned.add(themeId)
+	console.warn(
+		// design-lint-disable-next-line self-import -- the warning text names the consumer's import, not an import
+		`Sable: data-sable-theme="${themeId}" is set, but that theme's CSS is not loaded, so the page renders as the "${painting}" theme. Import "@sableui/react/theme/${themeId}.css" (or "@sableui/react/themes.css" for every bundled theme) after "@sableui/react/styles.css".`,
+	)
 }
 
 /**
@@ -268,6 +365,13 @@ export function applySableTheme(
  *
  * - color preference: light / dark / system, written as `.dark`
  * - design theme: any id in `themeIds` (or a custom theme), written as `data-sable-theme`
+ *
+ * SSR-safe: nothing reads storage or the media query during render. The server
+ * and the hydrating client render the defaults, then the stored choice arrives
+ * in the re-render React makes right after hydration. The DOM is written only
+ * after hydration, so the provider never overwrites what a pre-paint
+ * `sableThemeScript` already put on `<html>`. Inline that script in `<head>`
+ * (with `suppressHydrationWarning` on `<html>`) to avoid a first-paint flash.
  */
 export function SableThemeProvider({
 	children,
@@ -287,88 +391,82 @@ export function SableThemeProvider({
 		[customThemes],
 	)
 
-	const [uncontrolledPreference, setUncontrolledPreference] =
-		useState<SableThemePreference>(() =>
-			coercePreference(readStorage(colorStorageKey), defaultPreference),
-		)
-	const [uncontrolledThemeId, setUncontrolledThemeId] = useState<AnyThemeId>(
-		() => coerceThemeId(readStorage(themeStorageKey), defaultThemeId, themeManifestById),
+	const hydrated = useHydrated()
+	const storedPreference = useStoredValue(colorStorageKey)
+	const storedThemeId = useStoredValue(themeStorageKey)
+	// A choice made in this tab, held in memory too, so switching still works
+	// when storage is disabled or persistence is off. Cleared when another tab
+	// changes the stored value, which then wins.
+	const [localPreference, setLocalPreference] =
+		useState<SableThemePreference | null>(null)
+	const [localThemeId, setLocalThemeId] = useState<AnyThemeId | null>(null)
+	const systemMode = useSyncExternalStore<SableColorMode | null>(
+		subscribeColorScheme,
+		systemColorMode,
+		() => null,
 	)
-	const [resolvedSystem, setResolvedSystem] =
-		useState<SableColorMode>(systemColorMode)
 
-	const preference = controlledPreference ?? uncontrolledPreference
-	const themeId = controlledThemeId ?? uncontrolledThemeId
+	const preference =
+		controlledPreference ??
+		localPreference ??
+		coercePreference(storedPreference, defaultPreference)
+	const themeId =
+		controlledThemeId ??
+		localThemeId ??
+		coerceThemeId(storedThemeId, defaultThemeId, themeManifestById)
+	// The server cannot know the OS preference. It renders the design's home
+	// mode, and the client corrects it right after hydration.
 	const mode: SableColorMode =
-		preference === "system" ? resolvedSystem : preference
-
-	useEffect(() => {
-		if (typeof window === "undefined" || !window.matchMedia) return
-		const media = window.matchMedia("(prefers-color-scheme: dark)")
-		const onChange = () => setResolvedSystem(media.matches ? "dark" : "light")
-
-		media.addEventListener?.("change", onChange)
-		return () => media.removeEventListener?.("change", onChange)
-	}, [])
+		preference === "system" ? (systemMode ?? "dark") : preference
 
 	useEffect(() => {
 		if (typeof window === "undefined") return
-
 		function onStorage(event: StorageEvent) {
-			if (controlledPreference === undefined) {
-				if (event.key === colorStorageKey) {
-					setUncontrolledPreference(
-						coercePreference(event.newValue, defaultPreference),
-					)
-				}
-				if (event.key === null) {
-					setUncontrolledPreference(
-						coercePreference(readStorage(colorStorageKey), defaultPreference),
-					)
-				}
-			}
-
-			if (controlledThemeId === undefined) {
-				if (event.key === themeStorageKey) {
-					setUncontrolledThemeId(
-						coerceThemeId(event.newValue, defaultThemeId, themeManifestById),
-					)
-				}
-				if (event.key === null) {
-					setUncontrolledThemeId(
-						coerceThemeId(
-							readStorage(themeStorageKey),
-							defaultThemeId,
-							themeManifestById,
-						),
-					)
-				}
-			}
+			if (event.key === null || event.key === colorStorageKey) setLocalPreference(null)
+			if (event.key === null || event.key === themeStorageKey) setLocalThemeId(null)
 		}
-
 		window.addEventListener("storage", onStorage)
 		return () => window.removeEventListener("storage", onStorage)
-	}, [
-		colorStorageKey,
-		controlledPreference,
-		controlledThemeId,
-		defaultPreference,
-		defaultThemeId,
-		themeManifestById,
-		themeStorageKey,
-	])
+	}, [colorStorageKey, themeStorageKey])
+
+	// The target getter lives in a ref, so an inline `target={() => el}` (a new
+	// function every render) does not re-run the DOM writes on every parent
+	// render. It is read when the mode or theme actually changes.
+	const targetRef = useRef(target)
+	useEffect(() => {
+		targetRef.current = target
+	})
+	const targetKind = target === "root" ? "root" : "getter"
+	// A getter can start returning its element only after a later render
+	// (`target={() => el}` over a callback ref). `written` is the element the
+	// last write went to; when the getter resolves to another, the tick below
+	// runs the writes again. An unchanged element costs one comparison.
+	const written = useRef<HTMLElement | null>(null)
+	const [targetTick, setTargetTick] = useState(0)
 
 	useEffect(() => {
-		applySableColorMode(mode, resolveTarget(target))
-	}, [mode, target])
+		if (!hydrated) return
+		const element = resolveTarget(targetRef.current)
+		written.current = element
+		applySableColorMode(mode, element)
+	}, [hydrated, mode, targetKind, targetTick])
 
 	useEffect(() => {
-		applySableTheme(themeId, resolveTarget(target))
-	}, [themeId, target])
+		if (!hydrated) return
+		const element = resolveTarget(targetRef.current)
+		applySableTheme(themeId, element)
+		warnIfThemeCssMissing(themeId, element)
+	}, [hydrated, themeId, targetKind, targetTick])
+
+	// After the writes above, on every render: has the getter's element changed?
+	useEffect(() => {
+		if (!hydrated || targetKind !== "getter") return
+		if (resolveTarget(targetRef.current) !== written.current) setTargetTick((n) => n + 1)
+	})
 
 	const setPreference = useCallback(
 		(next: SableThemePreference) => {
-			if (controlledPreference === undefined) setUncontrolledPreference(next)
+			if (controlledPreference === undefined) setLocalPreference(next)
 			writeStorage(colorStorageKey, next)
 			onPreferenceChange?.(next)
 		},
@@ -377,7 +475,7 @@ export function SableThemeProvider({
 
 	const setThemeId = useCallback(
 		(next: AnyThemeId) => {
-			if (controlledThemeId === undefined) setUncontrolledThemeId(next)
+			if (controlledThemeId === undefined) setLocalThemeId(next)
 			writeStorage(themeStorageKey, next)
 			onThemeIdChange?.(next)
 		},
@@ -412,20 +510,50 @@ export function SableThemeProvider({
 	)
 }
 
+function subscribeRoot(callback: () => void) {
+	const root = rootElement()
+	if (!root || typeof MutationObserver === "undefined") return () => {}
+	const observer = new MutationObserver(callback)
+	observer.observe(root, { attributes: true, attributeFilter: ["class", SABLE_THEME_ATTRIBUTE] })
+	return () => observer.disconnect()
+}
+
+const SERVER_ROOT_SNAPSHOT = `dark ${sableDefaultThemeId}`
+
+/** What <html> actually carries, as one comparable string: `<mode> <themeId>`. */
+function rootSnapshot(): string {
+	const root = rootElement()
+	if (!root) return SERVER_ROOT_SNAPSHOT
+	const mode = root.classList.contains("dark") ? "dark" : "light"
+	return `${mode} ${root.getAttribute(SABLE_THEME_ATTRIBUTE) ?? sableDefaultThemeId}`
+}
+
+const emptySnapshot = () => ""
+const serverRootSnapshot = () => SERVER_ROOT_SNAPSHOT
+
 /**
  * Reads Sable's active color preference and design theme. Safe without a
- * provider; mutators become no-ops and the default (Sable, dark) is reported.
+ * provider: mutators become no-ops, and the mode and theme are read from what
+ * `<html>` actually carries (`.dark`, `data-sable-theme`) rather than assumed,
+ * so a page themed by hand reports what it shows. The server reports the
+ * default (Sable, dark).
  */
 export function useSableTheme(): SableThemeContextValue {
 	const ctx = useContext(SableThemeContext)
+	const root = useSyncExternalStore(
+		ctx ? subscribeNothing : subscribeRoot,
+		ctx ? emptySnapshot : rootSnapshot,
+		ctx ? emptySnapshot : serverRootSnapshot,
+	)
 	if (ctx) return ctx
 
+	const [rootMode, rootTheme] = root.split(" ") as [SableColorMode, AnyThemeId]
 	return {
-		mode: "dark",
-		colorMode: "dark",
-		preference: "dark",
-		colorPreference: "dark",
-		themeId: sableDefaultThemeId,
+		mode: rootMode,
+		colorMode: rootMode,
+		preference: rootMode,
+		colorPreference: rootMode,
+		themeId: rootTheme,
 		themes: featuredThemeManifests,
 		setPreference: () => {},
 		setColorPreference: () => {},

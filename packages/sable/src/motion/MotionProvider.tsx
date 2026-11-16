@@ -6,6 +6,7 @@ import {
 	useContext,
 	useEffect,
 	useMemo,
+	useRef,
 	useState,
 } from "react"
 import type { ReactNode } from "react"
@@ -81,7 +82,8 @@ export interface MotionProviderProps {
 	/**
 	 * Where to write `data-motion`. Defaults to `<html>` so portaled overlays
 	 * (dialogs, menus, toasts) are covered too. Pass a getter to scope motion to
-	 * a subtree instead.
+	 * a subtree instead; an inline arrow is fine, it is held in a ref and read
+	 * when the policy changes.
 	 */
 	target?: "root" | (() => HTMLElement | null)
 }
@@ -119,13 +121,32 @@ export function MotionProvider({
 		[controlledPolicy, onPolicyChange],
 	)
 
+	// The target getter lives in a ref. An inline `target={() => el}` is a new
+	// function every render, and with it in the deps every parent render ran
+	// the cleanup (removing data-motion) and the write again: attribute churn
+	// and a full restyle of the subtree, for nothing. Now the write runs when the
+	// policy changes (or the target switches between root and a getter).
+	const targetRef = useRef(target)
 	useEffect(() => {
+		targetRef.current = target
+	})
+	const targetKind = target === "root" ? "root" : "getter"
+	// A getter can start returning its element only after a later render
+	// (`target={() => el}` over a callback ref). `written` is the element the
+	// last write went to; when the getter resolves to another, the tick below
+	// runs the write again. An unchanged element costs one comparison.
+	const written = useRef<HTMLElement | null>(null)
+	const [targetTick, setTargetTick] = useState(0)
+
+	useEffect(() => {
+		const current = targetRef.current
 		const el =
-			target === "root"
+			current === "root"
 				? typeof document !== "undefined"
 					? document.documentElement
 					: null
-				: target()
+				: current()
+		written.current = el
 		if (!el) return
 		// "system" defers to the media query — remove the attribute entirely.
 		if (policy === "system") {
@@ -136,7 +157,13 @@ export function MotionProvider({
 		return () => {
 			el.removeAttribute("data-motion")
 		}
-	}, [policy, target])
+	}, [policy, targetKind, targetTick])
+
+	// After the write above, on every render: has the getter's element changed?
+	useEffect(() => {
+		const current = targetRef.current
+		if (current !== "root" && current() !== written.current) setTargetTick((n) => n + 1)
+	})
 
 	const value = useMemo<MotionContextValue>(
 		() => ({

@@ -79,6 +79,25 @@ export const numberFieldMeta: ComponentMeta = {
 				"Show the decrement / increment buttons. Turn off in a dense property grid — the two 32px stepper buttons (36px with their inset) put a ~110px floor on the control; without them the value left-aligns.",
 		},
 		{
+			name: "size",
+			type: '"md" | "sm" | "xs"',
+			default: '"md"',
+			description:
+				"The field ladder shared with Input, SelectTrigger, ComboboxInput, SearchInput and DatePicker: md is the form field, sm the toolbar field one rung down (--control-sm) beside sm buttons and an sm Select, xs the inset tool-panel field. The steppers step down with it.",
+		},
+		{
+			name: "decrementLabel",
+			type: "string",
+			default: '"Decrease"',
+			description: "Accessible name of the decrement stepper. Translate it with the rest of the form.",
+		},
+		{
+			name: "incrementLabel",
+			type: "string",
+			default: '"Increase"',
+			description: "Accessible name of the increment stepper.",
+		},
+		{
 			name: "disabled / readOnly / required / name / id",
 			type: "—",
 			description:
@@ -95,9 +114,12 @@ export const numberFieldMeta: ComponentMeta = {
 		"ring",
 	],
 	a11y: [
-		"Decrement / Increment are labelled buttons (Decrease / Increase); the input is a spinbutton with aria-valuenow/min/max from Base UI.",
+		"Decrement / Increment are labelled buttons (`decrementLabel` / `incrementLabel`, default Decrease / Increase); the input is a spinbutton with aria-valuenow/min/max from Base UI.",
 		"Routes aria-describedby / aria-invalid onto the input, so a Field's helper + error are announced for it.",
 	],
+	variants: {
+		size: ["md", "sm", "xs"],
+	},
 	examples: [
 		{ label: "Bounded", code: "<NumberField defaultValue={1} min={0} max={99} />" },
 		{

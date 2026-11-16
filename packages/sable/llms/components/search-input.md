@@ -32,6 +32,7 @@ Use SearchInput for text queries that filter or search a known content set.
 | inputClassName | string | — | Classes for the <input> element alone, for the rare input-only override. |
 | onValueChange | (value: string) => void | — | Called with the next string on every keystroke. |
 | onClear | () => void | — | Called when the clear button is pressed. The component also fires onValueChange('') so a controlled value resets. |
+| clearLabel | string | "Clear search" | Accessible name of the clear button. |
 | placeholder | string | "Search" | Placeholder text shown when the field is empty. |
 | disabled | boolean | false | Dims the control and blocks pointer interaction. |
 | ...props | ComponentPropsWithRef<"input"> | — | All native input attributes (name, autoFocus, ref, aria-invalid, …) pass through to the <input> except value/onChange, which are owned by value/onValueChange, className, which sizes the whole field, and the native numeric size attribute, which the size prop replaces. |

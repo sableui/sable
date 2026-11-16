@@ -7,6 +7,9 @@
 
 /* Scoped to [data-sable-theme="meridian"]; no bare :root fallback (base owns the default). */
 [data-sable-theme="meridian"] {
+	/* Which theme's CSS is painting. SableThemeProvider reads it in development to
+	   warn when data-sable-theme names a theme whose CSS was never imported. */
+	--sable-theme-id: meridian;
 	/* Font stacks (theme-internal; host app provides the actual font files) */
 	--font-sans: "Instrument Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 	--font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
@@ -31,13 +34,11 @@
 	/* Elevation does not exist in this language: zero box-shadows observed
 	   anywhere on the reference — separation is surface-mode swaps + 1px
 	   hairlines. Flatten the whole shadow ladder. */
-	--theme-shadow-2xs: 0 0 #0000;
-	--theme-shadow-xs: 0 0 #0000;
 	--theme-shadow-sm: 0 0 #0000;
+	--theme-shadow: 0 0 #0000;
 	--theme-shadow-md: 0 0 #0000;
 	--theme-shadow-lg: 0 0 #0000;
 	--theme-shadow-xl: 0 0 #0000;
-	--theme-shadow-2xl: 0 0 #0000;
 
 	/* Theme foundation vars consumed by styles.css. */
 	--theme-radius-none: 0px;
@@ -96,21 +97,8 @@
 	--type-overline-tracking: 0.04em;
 	--type-overline-transform: uppercase;
 
-	/* ----------------------------------------------------------------------
-	   Palette ramps. Theme-internal — never used directly by components.
-	   ---------------------------------------------------------------------- */
-	/* meridian-ember */
-	--meridian-ember-50: oklch(97% 0.02 30);
-	--meridian-ember-100: oklch(93% 0.04 30);
-	--meridian-ember-200: oklch(87% 0.07 30);
-	--meridian-ember-300: oklch(79% 0.11 30);
-	--meridian-ember-400: oklch(70% 0.16 30);
-	--meridian-ember-500: oklch(63% 0.20 30);
-	--meridian-ember-600: oklch(56% 0.21 30);
-	--meridian-ember-700: oklch(48% 0.19 30);
-	--meridian-ember-800: oklch(40% 0.15 30);
-	--meridian-ember-900: oklch(30% 0.10 30);
-	--meridian-ember-950: oklch(22% 0.06 30);
+	/* No palette ramps: the semantic tokens below are authored as literal OKLCH,
+	   and the meridian-ember ramp that sat here was read by nothing. */
 
 	/* ----------------------------------------------------------------------
 	   Semantic tokens — light mode
@@ -156,11 +144,6 @@
 	--tone-warning: oklch(50% 0.12 52);
 	--tone-warning-text: oklch(50% 0.12 52);
 	--highlight: oklch(57.5% 0.2 31.5);
-	/* Ember as TEXT (eyebrow numbers, arrows). The fill ember carries white ink
-	   but is too light to be read as ink itself (4.1:1 on the sand); this is the
-	   same hue, deep enough for 5.2:1. A theme-local token: Meridian's art
-	   direction is the only one that sets its accent as type. */
-	--meridian-ember-ink: oklch(52% 0.19 31.5);
 	--tone-3-foreground: oklch(94.6% 0.0083 91.48);
 	--tone-2-foreground: oklch(94.6% 0.0083 91.48);
 	--tone-1-foreground: oklch(94.6% 0.0083 91.48);
@@ -178,6 +161,10 @@
 	--highlight-foreground: oklch(99% 0.004 91.5);
 	--overlay: oklch(22.46% 0.0094 107.13);
 	--overlay-foreground: oklch(94.3% 0.0042 91.45);
+	/* Chart series 4 (amber) one step deeper than the Sable theme's: on this
+	   tinted page the inherited oklch(76.44% …) measured 1.85:1, under the 2:1
+	   graphic floor. The rest of the palette is inherited (themes.test gates it). */
+	--chart-4: oklch(72% 0.15 75.12);
 	--sidebar: oklch(22.46% 0.0094 107.13);
 	--sidebar-foreground: oklch(94.3% 0.0042 91.45);
 	--sidebar-primary: oklch(94.3% 0.0042 91.45);
@@ -258,7 +245,6 @@
 	--tone-warning: oklch(78% 0.13 60);
 	--tone-warning-text: oklch(78% 0.13 60);
 	--highlight: oklch(57.5% 0.2 31.5);
-	--meridian-ember-ink: oklch(72% 0.17 33); /* 6.4:1 on the dark ground */
 	--tone-3-foreground: oklch(22.46% 0.0094 107.13);
 	--tone-2-foreground: oklch(22.46% 0.0094 107.13);
 	--tone-1-foreground: oklch(22.46% 0.0094 107.13);
@@ -276,6 +262,9 @@
 	--highlight-foreground: oklch(99% 0.004 91.5);
 	--overlay: oklch(22.46% 0.0094 107.13);
 	--overlay-foreground: oklch(94.3% 0.0042 91.45);
+	/* Chart series 4, restated for dark because the light override above would
+	   otherwise win over the Sable theme's .dark value (same specificity, later). */
+	--chart-4: oklch(66.99% 0.1425 73.23);
 	--sidebar: oklch(22.46% 0.0094 107.13);
 	--sidebar-foreground: oklch(94.3% 0.0042 91.45);
 	--sidebar-primary: oklch(94.3% 0.0042 91.45);

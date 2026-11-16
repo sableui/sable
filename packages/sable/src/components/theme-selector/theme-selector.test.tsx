@@ -1,8 +1,39 @@
 import { fireEvent, render, screen } from "@testing-library/react"
+import { useState } from "react"
 import { describe, expect, it, vi } from "vitest"
+import type { ThemeId } from "../../themes/registry"
+import { SableThemeProvider, useSableTheme } from "../../themes/theme-provider"
 import { ThemeSelector } from "./theme-selector"
 
+// Type-level: the two wirings the docs show must both compile. The provider's
+// themeId is AnyThemeId (custom manifests carry their own ids), and a local
+// useState<ThemeId> setter only accepts built-in ids.
+function ProviderWired() {
+	const { themeId, setThemeId, themes, mode } = useSableTheme()
+	return <ThemeSelector value={themeId} onValueChange={setThemeId} themes={themes} mode={mode} />
+}
+function LocalStateWired() {
+	const [themeId, setThemeId] = useState<ThemeId>("sable")
+	return <ThemeSelector value={themeId} onValueChange={setThemeId} />
+}
+
 describe("ThemeSelector", () => {
+	it("takes useSableTheme()'s themeId and setThemeId directly", () => {
+		render(
+			<SableThemeProvider>
+				<ProviderWired />
+			</SableThemeProvider>,
+		)
+		fireEvent.click(screen.getByRole("radio", { name: /Meridian/ }))
+		expect(screen.getByRole("radio", { name: /Meridian/ })).toHaveAttribute("aria-checked", "true")
+	})
+
+	it("takes a local useState<ThemeId> pair", () => {
+		render(<LocalStateWired />)
+		fireEvent.click(screen.getByRole("radio", { name: /Verdant/ }))
+		expect(screen.getByRole("radio", { name: /Verdant/ })).toHaveAttribute("aria-checked", "true")
+	})
+
 	it("renders built-in themes as a radiogroup", () => {
 		render(<ThemeSelector value="sable" onValueChange={() => {}} />)
 
@@ -65,7 +96,7 @@ describe("ThemeSelector", () => {
 		const { container } = render(<ThemeSelector value="sable" onValueChange={() => {}} />)
 		const group = container.querySelector('[role="radiogroup"]')!
 		expect(group.className).toMatch(/repeat\(auto-fi(ll|t),minmax/)
-		expect(group.className).not.toMatch(/sm:grid-cols-/)
+		expect(group.className).not.toMatch(/\bsm:grid-cols-/)
 	})
 
 	it("truncates both label lines so a narrow card cannot grow instead", () => {

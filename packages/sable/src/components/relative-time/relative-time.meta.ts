@@ -28,7 +28,7 @@ export const relativeTimeMeta: ComponentMeta = {
 			},
 			{
 				guidance: "dont",
-				description: "Do not render it during SSR without a stable absolute fallback. \"2 minutes ago\" computed on the server differs from the client's value, which is a hydration mismatch — and it silently drifts as the page sits open.",
+				description: "Do not server-render it without passing now. \"2 minutes ago\" computed on the server differs from the client's value; pass the same now (a request timestamp from your loader) to both renders so they agree. Without now the <time> suppresses the hydration warning and the words drift as the page sits open.",
 			},
 		],
 	},
@@ -43,7 +43,21 @@ export const relativeTimeMeta: ComponentMeta = {
 			name: "date",
 			type: "Date | string | number",
 			description:
-				"The instant to render. Accepts a Date, an ISO/parseable string, or an epoch number (ms). Coerced to a Date for date-fns.",
+				"The instant to render. Accepts a Date, an ISO/parseable string, or an epoch number (ms). Coerced to a Date for date-fns. A value that does not parse renders as its own text, with no tooltip and no dateTime, instead of throwing.",
+		},
+		{
+			name: "now",
+			type: "Date | number",
+			default: "Date.now()",
+			description:
+				"The instant \"ago\" is measured from. Pass the same value on the server and the client so both render the same words and the page hydrates cleanly; leave it out to measure from the reader's clock.",
+		},
+		{
+			name: "locale",
+			type: "Locale (date-fns)",
+			default: "en-US",
+			description:
+				"A date-fns locale for the relative words and the absolute time in the tooltip (import { fr } from \"date-fns/locale\").",
 		},
 		{
 			name: "className",
@@ -106,6 +120,10 @@ export const relativeTimeMeta: ComponentMeta = {
 		{
 			label: "From an ISO string",
 			code: '<TooltipProvider><RelativeTime date="2025-04-29T16:05:12Z" /></TooltipProvider>',
+		},
+		{
+			label: "Server-rendered, measured from the request",
+			code: "<TooltipProvider><RelativeTime date={post.createdAt} now={requestTime} /></TooltipProvider>",
 		},
 	],
 }

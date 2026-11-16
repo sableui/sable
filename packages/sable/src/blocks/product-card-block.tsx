@@ -1,3 +1,5 @@
+"use client"
+
 import { Badge } from "../components/badge"
 import { Button } from "../components/button"
 import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/card"
@@ -25,7 +27,7 @@ export function ProductCardBlock({ className, framed = true, onCollect }: Produc
 				<MediaImage src={product.image} seed={product.title} />
 			</AspectBox>
 			<CardHeader>
-				<CardTitle>{product.title}</CardTitle>
+				<CardTitle render={<h2 />}>{product.title}</CardTitle>
 				<CardDescription>{product.maker}</CardDescription>
 				<CardAction>
 					<Badge tone="1">{product.badge}</Badge>

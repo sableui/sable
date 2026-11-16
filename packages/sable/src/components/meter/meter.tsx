@@ -1,6 +1,9 @@
+"use client"
+
 import { Meter as Base } from "@base-ui/react/meter"
 import { type ComponentProps, createContext, useContext, useState } from "react"
 import { cn } from "../../lib/cn"
+import { SLIDE_FILL, slideFillStyle } from "../../lib/slide-fill"
 import {
 	meterIndicatorVariants,
 	meterRingValueVariants,
@@ -20,6 +23,8 @@ const SizeContext = createContext<MeterSize | undefined>(undefined)
 /** Set by a bar Meter with `segments`: what MeterTrack needs to draw its ticks. */
 type SegmentsState = { count: number; value: number | null; min: number; max: number }
 const SegmentsContext = createContext<SegmentsState | null>(null)
+/** A bar Meter's reading, so the indicator can slide its fill rather than resize it. */
+const RangeContext = createContext<{ value: number | null; min?: number; max?: number } | null>(null)
 
 /**
  * How many of `count` ticks a reading fills. None at (or below) the minimum;
@@ -151,9 +156,11 @@ export function Meter({ className, children, tone = "primary", shape = "bar", si
 		<ToneContext.Provider value={tone}>
 			<SizeContext.Provider value={size}>
 				<SegmentsContext.Provider value={segmented}>
-					<Base.Root className={cn("w-full", className)} {...props}>
-						{children ?? <MeterTrack />}
-					</Base.Root>
+					<RangeContext.Provider value={{ value: props.value ?? null, min: props.min, max: props.max }}>
+						<Base.Root className={cn("w-full", className)} {...props}>
+							{children ?? <MeterTrack />}
+						</Base.Root>
+					</RangeContext.Provider>
 				</SegmentsContext.Provider>
 			</SizeContext.Provider>
 		</ToneContext.Provider>
@@ -247,12 +254,19 @@ type IndicatorProps = Omit<ComponentProps<typeof Base.Indicator>, "className"> &
 	tone?: MeterTone
 }
 
-/** The fill. Base UI sets its width from the value; the tone comes from the Meter. */
-export function MeterIndicator({ className, tone, ...props }: IndicatorProps) {
+/**
+ * The fill: full width, slid in from the start edge to the value, so a change
+ * animates `translate` rather than `width` (see lib/slide-fill). The tone
+ * comes from the Meter.
+ */
+export function MeterIndicator({ className, tone, style, ...props }: IndicatorProps) {
 	const inherited = useContext(ToneContext)
+	const range = useContext(RangeContext)
+	const slide = range ? slideFillStyle(range.value, range.min, range.max) : undefined
 	return (
 		<Base.Indicator
-			className={cn(meterIndicatorVariants({ tone: tone ?? inherited }), className)}
+			className={cn(meterIndicatorVariants({ tone: tone ?? inherited }), slide && SLIDE_FILL, className)}
+			style={slide && typeof style !== "function" ? { ...slide, ...style } : style}
 			{...props}
 		/>
 	)

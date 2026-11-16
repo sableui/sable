@@ -38,6 +38,11 @@ export type IconName = (typeof ICON_NAMES)[number]
  * `settings`, `x`, `more-horizontal`, `cog-6-tooth`); `<Icon>` resolves these
  * to the contract name before it gives up, so a guessed name still draws.
  * Write the contract name in new code — lint says which one.
+ *
+ * An alias must keep the meaning of the glyph: a name whose glyph the contract
+ * cannot draw (a vertical ellipsis, a circled x) is left out, so it misses and
+ * the dev warning offers the nearest names instead of silently drawing a
+ * different mark.
  */
 export const ICON_ALIASES: Readonly<Record<string, IconName>> = {
 	// Lucide
@@ -50,9 +55,7 @@ export const ICON_ALIASES: Readonly<Record<string, IconName>> = {
 	cog: "gear",
 	x: "xmark",
 	close: "xmark",
-	"x-circle": "xmark",
 	"more-horizontal": "ellipsis",
-	"more-vertical": "ellipsis",
 	more: "ellipsis",
 	"dots-horizontal": "ellipsis",
 	"ellipsis-horizontal": "ellipsis",
@@ -84,9 +87,10 @@ export const ICON_ALIASES: Readonly<Record<string, IconName>> = {
 	"file-text": "file",
 	document: "file",
 	"rotate-cw": "refresh",
-	"rotate-ccw": "refresh",
+	// Counter-clockwise reads as undo / replay, not refresh.
+	"rotate-ccw": "replay",
 	"refresh-cw": "refresh",
-	"refresh-ccw": "refresh",
+	"refresh-ccw": "replay",
 	funnel: "filter",
 	"user-circle": "user",
 	"circle-user": "user",

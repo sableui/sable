@@ -228,6 +228,12 @@ export const chatComposerMeta: ComponentMeta = {
 			description: "Accessible label for the stop button.",
 		},
 		{
+			name: "attachLabel",
+			type: "string",
+			default: '"Add attachment"',
+			description: "Accessible label for the built-in attach button (rendered when onAttach is set).",
+		},
+		{
 			name: "footer",
 			type: 'ReactNode | ((state: { sendOn: "enter" | "mod-enter" }) => ReactNode)',
 			description: "Helper text or counter below the controls. For a keyboard hint pass a function: it receives the send key in effect (touch turns `enter` into `mod-enter`), and returning null removes the row, e.g. `footer={({ sendOn }) => sendOn === \"enter\" ? \"Enter to send\" : null}`.",

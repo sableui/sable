@@ -24,7 +24,7 @@ describe("ColorField trigger", () => {
 
 	it("says transparent rather than showing an empty swatch", () => {
 		render(<ColorField value="transparent" onValueChange={vi.fn()} />)
-		expect(screen.getByRole("button", { name: "Colour: transparent" })).toBeInTheDocument()
+		expect(screen.getByRole("button", { name: "Colour: Transparent" })).toBeInTheDocument()
 	})
 
 	it("sits on the control ladder so it lines up in a property grid", () => {
@@ -83,7 +83,7 @@ describe("ColorField transparent", () => {
 
 	it("is a pressed toggle inside the picker, not a switch beside the field", async () => {
 		render(<Host initial="transparent" allowTransparent />)
-		await userEvent.click(screen.getByRole("button", { name: "Colour: transparent" }))
+		await userEvent.click(screen.getByRole("button", { name: "Colour: Transparent" }))
 		const toggle = await screen.findByRole("button", { name: "Transparent" })
 		expect(toggle).toHaveAttribute("aria-pressed", "true")
 	})
@@ -138,5 +138,82 @@ describe("ColorField external changes", () => {
 
 		rerender(<ColorField value="#22c55e" onValueChange={vi.fn()} />)
 		expect(await screen.findByLabelText("Colour hex")).toHaveValue("#22c55e")
+	})
+})
+
+describe("ColorField presets you can see the keyboard on", () => {
+	it("names a preset by its label when it has one, by its hex when not", async () => {
+		render(<Host initial="#000000" swatches={[{ value: "#e11d48", label: "Brand red" }, "#22c55e"]} />)
+		await userEvent.click(screen.getByRole("button", { name: "Colour: #000000" }))
+		const named = await screen.findByRole("button", { name: "Brand red" })
+		expect(screen.getByRole("button", { name: "#22c55e" })).toBeInTheDocument()
+		// Focus is visible: an outline past the hairline ring, like the trigger.
+		expect(named.className).toContain("focus-visible:outline-ring")
+		await userEvent.click(named)
+		expect(screen.getByTestId("value")).toHaveTextContent("#e11d48")
+	})
+})
+
+describe("ColorField in a form", () => {
+	it("submits the colour under its name, in the hex form it emits", () => {
+		const { container } = render(
+			<form>
+				<ColorField name="tint" value="#3B82F6" onValueChange={vi.fn()} />
+				<ColorField name="fill" value="transparent" onValueChange={vi.fn()} />
+				<ColorField name="glass" value="#3b82f680" allowAlpha onValueChange={vi.fn()} />
+			</form>,
+		)
+		const data = new FormData(container.querySelector("form") as HTMLFormElement)
+		expect(data.get("tint")).toBe("#3b82f6")
+		expect(data.get("fill")).toBe("transparent")
+		expect(data.get("glass")).toBe("#3b82f680")
+	})
+
+	it("stays closed when read-only and still submits", async () => {
+		const { container } = render(
+			<form>
+				<ColorField name="tint" value="#3b82f6" onValueChange={vi.fn()} readOnly />
+			</form>,
+		)
+		const trigger = screen.getByRole("button", { name: "Colour: #3b82f6" })
+		expect(trigger).toHaveAttribute("aria-readonly", "true")
+		await userEvent.click(trigger)
+		expect(screen.queryByRole("textbox")).toBeNull()
+		expect(new FormData(container.querySelector("form") as HTMLFormElement).get("tint")).toBe("#3b82f6")
+	})
+
+	it("keeps a Field's wiring on the trigger and never puts required on a button", () => {
+		render(
+			<ColorField
+				value="#000000"
+				onValueChange={vi.fn()}
+				id="tint"
+				aria-describedby="tint-help"
+				aria-invalid
+				required
+			/>,
+		)
+		const trigger = screen.getByRole("button")
+		expect(trigger).toHaveAttribute("id", "tint")
+		expect(trigger).toHaveAttribute("aria-describedby", "tint-help")
+		expect(trigger).toHaveAttribute("aria-invalid", "true")
+		expect(trigger).not.toHaveAttribute("required")
+	})
+})
+
+describe("ColorField words", () => {
+	it("takes translated names for the transparent value and the hex input", async () => {
+		render(
+			<Host
+				initial="transparent"
+				label="Farbe"
+				allowTransparent
+				transparentLabel="Transparent (keine)"
+				hexLabel={(label: string) => `${label}, Hex-Wert`}
+			/>,
+		)
+		await userEvent.click(screen.getByRole("button", { name: "Farbe: Transparent (keine)" }))
+		expect(await screen.findByRole("textbox", { name: "Farbe, Hex-Wert" })).toBeInTheDocument()
+		expect(screen.getByRole("button", { name: "Transparent (keine)" })).toHaveAttribute("aria-pressed", "true")
 	})
 })

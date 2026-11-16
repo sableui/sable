@@ -4,12 +4,12 @@ import { GitHubLink } from "../components/GitHubLink"
 import { IntroCurtain, introPending, markIntroPlayed } from "../components/IntroCurtain"
 import type { SableMarkHandle } from "../components/SableLogo"
 import { hrefFor } from "../lib/router"
-import { useCustomizer } from "../customizer/CustomizerProvider"
+import { useCustomizerActions } from "../customizer/CustomizerProvider"
 import { useTheme } from "../theme"
 import {
 	BillingScene, ChatScene, ProductScene, EventScene, NowPlayingScene,
 	ProfileScene, SettingsScene, StatScene, TasksScene,
-} from "./CustomizeCanvas"
+} from "../canvas/scenes"
 
 /*
  * The homepage: one proposition, two actions, and the system itself — real
@@ -99,7 +99,7 @@ function PresetSwitcher() {
 	// Through the Customize flow, not setThemeId: a preset is a starting point,
 	// so choosing one clears a custom look (with a confirm) instead of stacking
 	// that look onto a different preset.
-	const { requestPreset } = useCustomizer()
+	const { requestPreset } = useCustomizerActions()
 	return (
 		<ToggleGroup
 			aria-labelledby="showcase-heading"

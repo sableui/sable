@@ -4,7 +4,7 @@ Sable has several components that look alike and do different jobs. Choosing
 the wrong one usually still renders, so nothing fails. It shows up later as
 a focus trap where none belonged, a menu that cannot hold a form, or a status
 that a screen reader never announces. Use the tables below before you compose.
-For each component, `npx sable component <Name> --detail full` has the full
+For each component, `pnpm exec sable component <Name> --detail full` has the full
 contract.
 
 The question to ask is always **what the user is doing**, not what it looks like.

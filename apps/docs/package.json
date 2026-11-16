@@ -7,10 +7,10 @@
     "predev": "node scripts/sync-llms.mjs && node scripts/sync-guides.mjs && node scripts/sable-mode.mjs source",
     "dev": "vite --port 4000",
     "prebuild": "node scripts/sync-llms.mjs && node scripts/sync-guides.mjs && node scripts/sable-mode.mjs consumer",
-    "build": "tsc --noEmit -p tsconfig.consumer.json && vite build --mode consumer && node scripts/prerender-routes.mjs",
-    "build:source": "node scripts/sync-llms.mjs && node scripts/sync-guides.mjs && node scripts/sable-mode.mjs source && vite build && node scripts/prerender-routes.mjs",
+    "build": "node scripts/theme-boot.mjs --check && tsc --noEmit -p tsconfig.consumer.json && vite build --mode consumer && node scripts/prerender-routes.mjs",
+    "build:source": "node scripts/sync-llms.mjs && node scripts/sync-guides.mjs && node scripts/sable-mode.mjs source && node scripts/theme-boot.mjs --check && vite build && node scripts/prerender-routes.mjs",
     "preview": "vite preview --port 4000",
-    "typecheck": "node scripts/sync-guides.mjs && node scripts/sable-mode.mjs source && tsc --noEmit",
+    "typecheck": "node scripts/sync-guides.mjs && node scripts/sable-mode.mjs source && node scripts/theme-boot.mjs --check && tsc --noEmit",
     "lint": "node ../../packages/sable/bin/sable-lint.mjs src"
   },
   "dependencies": {
@@ -21,7 +21,6 @@
     "motion": "^13.1.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "reicon-react": "^1.1.301",
     "sugar-high": "^2.5.2"
   },
   "devDependencies": {

@@ -54,6 +54,15 @@ export interface AppShellProps extends Omit<ComponentProps<"div">, "title"> {
 	 * @default "flush"
 	 */
 	frame?: AppShellFrame
+	/**
+	 * The id of the `<main>` landmark, which the built-in skip link targets.
+	 * Change it when the page already uses `main-content` (a Workspace nested
+	 * inside, say), so the two do not collide.
+	 * @default "main-content"
+	 */
+	mainId?: string
+	/** Text for the skip link. @default "Skip to content" */
+	skipLinkLabel?: string
 	/** Main content. */
 	children?: ReactNode
 }
@@ -87,6 +96,8 @@ export function AppShell({
 	dock,
 	overlays,
 	frame = "flush",
+	mainId = "main-content",
+	skipLinkLabel = "Skip to content",
 	className,
 	children,
 	...rest
@@ -111,7 +122,7 @@ export function AppShell({
 			)}
 			{...rest}
 		>
-			<SkipLink />
+			<SkipLink href={`#${mainId}`}>{skipLinkLabel}</SkipLink>
 
 			{banners ? <div className="relative z-(--z-nav)">{banners}</div> : null}
 
@@ -120,7 +131,7 @@ export function AppShell({
 			<div data-app-shell-body={inset ? "" : undefined} className="flex min-h-0 flex-1">
 				{inset ? <AppShellFrameProvider frame="inset">{sidebar}</AppShellFrameProvider> : sidebar}
 				<AppShellMain
-					id="main-content"
+					id={mainId}
 					scrolls={inset}
 					// The focus target for the skip link and for a route change, in both
 					// frames: without it `.focus()` does nothing and focus stays on the

@@ -1,8 +1,8 @@
 import { Button, Density, Icon, PanelSection, PropertyPair, PropertyRow, cn, useCopy } from "@sableui/react"
-import { type ReactNode, useState } from "react"
+import { type KeyboardEvent, type ReactNode, useEffect, useRef, useState } from "react"
 import { useTheme } from "../theme"
 import { ColorSection } from "./ColorSection"
-import { useCustomizer } from "./CustomizerProvider"
+import { useCustomizer, useCustomizerActions } from "./CustomizerProvider"
 import {
 	PresetPicker,
 	BrandColorInput,
@@ -18,8 +18,9 @@ import {
 	depthText,
 } from "./controls"
 import { FontPicker } from "./FontPicker"
-import { ANCHOR_ROWS, AnchorCaption, AnchorField, CONTROL_ROWS, MOTION_ROWS, MeasuredLadder, RADIUS_ROWS, SPACING_ROWS, ShadowSteps, TYPE_ROWS, useMeasured } from "./Readouts"
-import { DEFAULT_STATUS_LEAN, brandFor, cornerRadius, presetTypeRatio, shadowLadder, toPx } from "./look"
+import { ANCHOR_ROWS, AnchorCaption, AnchorField, CONTROL_ROWS, MOTION_ROWS, MeasuredLadder, RADIUS_ROWS, SPACING_ROWS, SectionReset, ShadowSteps, TYPE_ROWS, useMeasured } from "./Readouts"
+import { DEFAULT_LOOK, DEFAULT_STATUS_LEAN, type Look, brandFor, cornerRadius, presetTypeRatio, shadowLadder, toPx } from "./look"
+import { NEUTRALS, NEUTRALS_TINTED, PALETTES, SECTION_FIELDS } from "./options"
 import { definingDrop, describeStep, formatShadow, ladderAngle } from "./shadow"
 import { oklchToHex } from "./color"
 import { PresetExchange, PresetImport } from "./PresetExchange"
@@ -29,28 +30,11 @@ const ADVANCED_KEY = "sable-docs-customize-advanced"
 type Role = "primary" | "secondary" | "mono"
 const FONT_FIELD = { primary: "sans", secondary: "display", mono: "mono" } as const
 
-const PALETTES = [
-	{ value: "preset", label: "Brand only" },
-	{ value: "harmonize", label: "Harmonize" },
-	{ value: "analogous", label: "Analogous" },
-	{ value: "triadic", label: "Triadic" },
-] as const
 const PRIMARY = [
 	{ value: "brand", label: "Brand" },
 	{ value: "neutral", label: "Neutral" },
 ] as const
 
-/** Why Primary action and Tones are not yet in play. */
-function BrandHint() {
-	return <p className="text-ui-micro text-muted-foreground">Pick a brand color to set the primary action and generate tones.</p>
-}
-const NEUTRALS = [
-	{ value: "theme", label: "Preset" },
-	{ value: "mono", label: "Mono" },
-	{ value: "warm", label: "Warm" },
-	{ value: "cool", label: "Cool" },
-] as const
-const TINTED = { value: "brand", label: "Tinted" } as const
 const BUTTONS = [
 	{ value: "theme", label: "Preset" },
 	{ value: "pill", label: "Pill" },
@@ -88,15 +72,31 @@ const MODES = [
 /**
  * A panel section: Sable's PanelSection, the workspace register's grouping —
  * a hairline and a title, never a card. Its header carries the section's
- * reset while there is something to reset, or a standing action.
+ * reset while there is something to reset: every field it lists goes back to
+ * the preset, as one undoable step.
  */
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({ title, fields, children }: { title: string; fields?: readonly (keyof Look)[]; children: ReactNode }) {
+	const { look } = useCustomizer()
+	const { setLook } = useCustomizerActions()
+	const changed = fields?.some((key) => look[key] !== DEFAULT_LOOK[key]) ?? false
 	return (
-		<PanelSection title={title}>
+		<PanelSection
+			title={title}
+			action={
+				fields ? (
+					<SectionReset label={title} changed={changed} onReset={() => setLook(Object.fromEntries(fields.map((key) => [key, DEFAULT_LOOK[key]])) as Partial<Look>)} />
+				) : null
+			}
+		>
 			{children}
 		</PanelSection>
 	)
 }
+
+/** Keys that edit text: undo there is the field's own, not the look's. */
+const isTextEntry = (target: EventTarget | null) =>
+	target instanceof HTMLElement &&
+	(target.isContentEditable || target.tagName === "TEXTAREA" || (target.tagName === "INPUT" && !["checkbox", "radio", "range", "button"].includes((target as HTMLInputElement).type)))
 
 /** Every view's body: flush sections, the first without a rule under the header's. */
 const BODY = "flex flex-col pb-2 [&>section:first-child]:border-t-0"
@@ -124,13 +124,22 @@ export function Inspector({
 	className,
 	onClose,
 	floating = true,
+	autoFocus = false,
 }: {
 	className?: string
 	onClose?: () => void
 	floating?: boolean
+	/** Move focus into the panel when it opens: an explicit open, not the canvas opening it on arrival. */
+	autoFocus?: boolean
 }) {
 	const { themeId, themes, mode, preference, setPreference, presets, removePreset } = useTheme()
-	const { look, setLook, reset, getShareUrl, isCustomized, requestPreset, pendingPreset, confirmPreset, cancelPreset, base } = useCustomizer()
+	const { look, getShareUrl, base } = useCustomizer()
+	const { setLook, reset, restoreCleared, isCustomized, requestPreset, pendingPreset, confirmPreset, cancelPreset } = useCustomizerActions()
+	const panel = useRef<HTMLElement>(null)
+	const [historyStatus, setHistoryStatus] = useState("")
+	useEffect(() => {
+		if (autoFocus) panel.current?.focus({ preventScroll: true })
+	}, [autoFocus])
 	const share = useCopy(getShareUrl())
 	const sharable = !presets.some((preset) => preset.id === themeId)
 	const [view, setView] = useState<"tune" | "export">("tune")
@@ -163,7 +172,9 @@ export function Inspector({
 	const hasBrand = brandFor(look, mode === "dark" ? "dark" : "light") != null
 	const brandLight = brandFor(look, "light")
 	const brandHex = look.brand ?? (brandLight ? oklchToHex(brandLight) : "")
-	const presetPrimary = base.colors?.light?.primary ? oklchToHex(base.colors.light.primary) : undefined
+	// The preset's primary in the mode on screen: dark Sable's is white, not its light near-black.
+	const presetPrimaryColor = base.colors?.[mode === "dark" ? "dark" : "light"]?.primary
+	const presetPrimary = presetPrimaryColor ? oklchToHex(presetPrimaryColor) : undefined
 	// The shadows the look paints in this mode (the preset's when untouched), for the previews.
 	const shadowMode = mode === "dark" ? "dark" : "light"
 	const ladder = shadowLadder(look, base, shadowMode) ?? base.shadows?.[shadowMode]
@@ -192,7 +203,7 @@ export function Inspector({
 				] as const
 			).map(([label, short, step]) => ({ label, short, shadow: formatShadow(step), value: describeStep(step) }))
 		: []
-	const neutrals = hasBrand ? [...NEUTRALS, TINTED] : NEUTRALS
+	const neutrals = hasBrand ? NEUTRALS_TINTED : NEUTRALS
 	const weight = look.bold == null ? "preset" : look.bold < 34 ? "500" : look.bold > 66 ? "700" : "600"
 	const setWeight = (w: string) => setLook({ bold: w === "preset" ? null : w === "500" ? 16 : w === "600" ? 50 : 84 })
 
@@ -243,7 +254,7 @@ export function Inspector({
 			<ColorSection />
 			{/* Color is the identity; Character and Shape are the feel, so they sit
 			    together. */}
-			<Section title="Character">
+			<Section title="Character" fields={SECTION_FIELDS.character}>
 				{/* The pad is a gesture across type, controls and spacing at once; it
 				    hands those domains back from any exact anchors set in Advanced. */}
 				<CharacterPad
@@ -252,7 +263,7 @@ export function Inspector({
 					onChange={(patch) => setLook({ ...patch, typeBase: null, typeRatio: null, controlBase: null, spacingBase: null })}
 				/>
 			</Section>
-			<Section title="Shape">
+			<Section title="Shape" fields={SECTION_FIELDS.shape}>
 				<ShapePreview radius={radius} shadow={shadowPreview} />
 				{/* Each slider is a gesture over its whole domain; it hands that domain
 				    back from any exact numbers set in Advanced. The light angle is not
@@ -274,10 +285,10 @@ export function Inspector({
 					<Segmented label="Shadow style" value={look.shadows} onChange={(shadows) => setLook({ shadows })} options={SHADOWS} />
 				</PropertyRow>
 			</Section>
-			<Section title="Typography">
+			<Section title="Typography" fields={SECTION_FIELDS.typography}>
 				{fonts("md")}
 			</Section>
-			<Section title="Motion">
+			<Section title="Motion" fields={SECTION_FIELDS.motion}>
 				<Segmented label="Motion" value={look.motion} onChange={(motion) => setLook({ motion, motionBase: null })} options={MOTIONS} />
 			</Section>
 		</>
@@ -286,11 +297,10 @@ export function Inspector({
 	const advancedView = (
 		<>
 			{presetSection}
-			<Section title="Color">
+			<Section title="Color" fields={SECTION_FIELDS.color}>
 				<HueStrip size="sm" hue={look.brand ? null : look.hue} onChange={(hue) => setLook({ hue, brand: null })} />
 				<BrandColorInput size="xs" value={brandHex} fallback={presetPrimary} onChange={(hex) => setLook({ brand: hex })} />
-				{hasBrand ? null : <BrandHint />}
-				<PropertyPair labels={["Primary action", "Tones"]}>
+								<PropertyPair labels={["Primary action", "Tones"]}>
 					<Segmented size="sm" label="Primary action" value={look.primary} onChange={(primary) => setLook({ primary })} options={PRIMARY} disabled={!hasBrand} />
 					<ChromeSelect label="Tones" value={look.palette} onChange={(palette) => setLook({ palette })} options={PALETTES} disabled={!hasBrand} />
 				</PropertyPair>
@@ -318,7 +328,7 @@ export function Inspector({
 					<ChromeSelect label="Neutrals" value={look.neutrals} onChange={(next) => setLook({ neutrals: next })} options={neutrals} className="w-36" />
 				</PropertyRow>
 			</Section>
-			<Section title="Typography">
+			<Section title="Typography" fields={SECTION_FIELDS.advancedTypography}>
 				{fonts("xs")}
 				<PropertyPair labels={[<AnchorCaption label="Body size" set={look.typeBase != null} onReset={() => setLook({ typeBase: null })} />, <AnchorCaption label="Scale ratio" set={look.typeRatio != null} onReset={() => setLook({ typeRatio: null })} />]}>
 					<AnchorField label="Body size" prefix="B" min={11} max={22} step={0.5} value={look.typeBase} measured={live[0]} onChange={(typeBase) => setLook({ typeBase })} />
@@ -329,7 +339,7 @@ export function Inspector({
 				</PropertyRow>
 				<MeasuredLadder rows={TYPE_ROWS} />
 			</Section>
-			<Section title="Layout">
+			<Section title="Layout" fields={SECTION_FIELDS.layout}>
 				<PropertyPair labels={[<AnchorCaption label="Control height" set={look.controlBase != null} onReset={() => setLook({ controlBase: null })} />, <AnchorCaption label="Baseline step" set={look.spacingBase != null} onReset={() => setLook({ spacingBase: null })} />]}>
 					<AnchorField label="Medium control height" prefix="H" min={28} max={60} value={look.controlBase} measured={live[1]} onChange={(controlBase) => setLook({ controlBase })} />
 					<AnchorField label="Baseline step" prefix="S" min={4} max={16} value={look.spacingBase} measured={live[2]} onChange={(spacingBase) => setLook({ spacingBase })} />
@@ -337,14 +347,14 @@ export function Inspector({
 				<MeasuredLadder caption="Controls" rows={CONTROL_ROWS} />
 				<MeasuredLadder caption="Spacing" rows={SPACING_ROWS} />
 			</Section>
-			<Section title="Corners">
+			<Section title="Corners" fields={SECTION_FIELDS.corners}>
 				<PropertyPair labels={[<AnchorCaption label="Medium radius" set={look.radiusBase != null} onReset={() => setLook({ radiusBase: null })} />, "Buttons"]}>
 					<AnchorField label="Medium radius" prefix="R" min={0} max={18} value={look.radiusBase} measured={live[3]} onChange={(radiusBase) => setLook({ radiusBase })} />
 					<ChromeSelect label="Button shape" value={look.buttons} onChange={(buttons) => setLook({ buttons })} options={BUTTONS} />
 				</PropertyPair>
 				<MeasuredLadder rows={RADIUS_ROWS} />
 			</Section>
-			<Section title="Shadow">
+			<Section title="Shadow" fields={SECTION_FIELDS.shadow}>
 				<PropertyRow label="Style">
 					<ChromeSelect label="Shadow style" value={look.shadows} onChange={(shadows) => setLook({ shadows })} options={SHADOWS} className="w-36" />
 				</PropertyRow>
@@ -361,7 +371,7 @@ export function Inspector({
 				<ShadowSteps steps={shadowSteps} />
 				<p className="text-ui-body text-muted-foreground">Set on the largest step; the others follow. Opacity is light mode's; dark keeps its own in proportion.</p>
 			</Section>
-			<Section title="Motion">
+			<Section title="Motion" fields={SECTION_FIELDS.motion}>
 				<PropertyPair labels={["Speed", <AnchorCaption label="Base duration" set={look.motionBase != null} onReset={() => setLook({ motionBase: null })} />]}>
 					<ChromeSelect label="Motion speed" value={look.motion} onChange={(motion) => setLook({ motion, motionBase: null })} options={MOTIONS} />
 					<AnchorField label="Base duration" prefix="T" suffix="ms" min={0} max={600} step={10} value={look.motionBase} measured={live[4]} onChange={(motionBase) => setLook({ motionBase })} />
@@ -372,27 +382,60 @@ export function Inspector({
 	)
 
 	const pendingLabel = themes.find((theme) => theme.id === pendingPreset)?.label ?? "this preset"
+	const startOver = pendingPreset === themeId
 	// The confirm is scoped to this panel, not a modal, so nothing restores focus
 	// when it closes: it fell to <body> and a keyboard user lost their place.
-	// Every way out (Cancel, Escape, the scrim, Switch) hands it back to the
+	// Every way out (Cancel, Escape, the scrim, a choice) hands it back to the
 	// preset row that asked. A frame later, once the confirm has unmounted.
 	const closeConfirm = (action: () => void) => {
 		action()
-		requestAnimationFrame(() => document.querySelector<HTMLElement>("[data-preset-trigger]")?.focus())
+		requestAnimationFrame(() => panel.current?.querySelector<HTMLElement>("[data-preset-trigger]")?.focus())
+	}
+
+	const doReset = () => {
+		reset()
+		setHistoryStatus("Reset to the preset. Press Control or Command Z in the panel to bring your changes back.")
+	}
+
+	// The panel's keys: Escape closes it (or the confirm), and Ctrl/Cmd+Z brings
+	// back the look a reset cleared — except in a text field, where undo is the
+	// field's own. A popup that handles Escape itself (a select) stops it first.
+	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+		if (event.defaultPrevented) return
+		if (event.key === "Escape") {
+			if (pendingPreset) closeConfirm(cancelPreset)
+			else if (onClose) onClose()
+			else return
+			event.preventDefault()
+			return
+		}
+		if ((event.metaKey || event.ctrlKey) && !event.shiftKey && event.key.toLowerCase() === "z" && !isTextEntry(event.target) && !pendingPreset) {
+			if (restoreCleared()) {
+				event.preventDefault()
+				setHistoryStatus("Your changes are back.")
+			}
+		}
 	}
 
 	return (
 		<aside
+			ref={panel}
 			aria-label="Customize"
+			// Focusable as a whole, so opening the panel can move focus to it.
+			tabIndex={-1}
+			onKeyDown={onKeyDown}
 			data-canvas-chrome=""
 			data-sable-theme="sable"
 			className={cn(
-				"relative flex flex-col overflow-hidden sable-surface-popover bg-popover text-popover-foreground ring-1 ring-border-floating",
+				"relative flex flex-col overflow-hidden sable-surface-popover bg-popover text-popover-foreground ring-1 ring-border-floating outline-none",
 				mode === "dark" && "dark",
 				floating ? "rounded-md shadow-xl" : "",
 				className,
 			)}
 		>
+			{/* While the preset confirm is up, everything behind it is inert: not
+			    reachable by Tab, not read by a screen reader. */}
+			<div inert={pendingPreset ? true : undefined} className="contents">
 			{view === "tune" ? (
 				<header className="flex shrink-0 items-center justify-between gap-2 border-b border-hairline p-2">
 					{/* The mode switch IS the title: it names what you are looking at and
@@ -461,7 +504,8 @@ export function Inspector({
 				<footer className="flex shrink-0 items-center justify-between gap-2 border-t border-hairline p-2">
 					<Segmented label="Color mode" size="sm" fill={false} value={preference} onChange={setPreference} options={MODES} />
 					<div className="flex items-center gap-1">
-						<Button variant="ghost" size="sm" onClick={reset} disabled={!isCustomized}>
+						{/* Reset all needs no confirm: Ctrl/Cmd+Z brings the cleared look back. */}
+						<Button variant="ghost" size="sm" onClick={doReset} disabled={!isCustomized}>
 							Reset all
 						</Button>
 						<Button size="sm" onClick={() => setView("export")}>
@@ -470,6 +514,10 @@ export function Inspector({
 					</div>
 				</footer>
 			) : null}
+			<p role="status" className="sr-only">
+				{historyStatus}
+			</p>
+			</div>
 
 			{/* Switching presets clears the look, so the confirm takes over the
 			    whole panel: a scrim over every control, not a strip that is easy
@@ -478,31 +526,43 @@ export function Inspector({
 				<div
 					className="absolute inset-0 z-10 grid place-items-center bg-background/70 p-4 backdrop-blur-sm"
 					onPointerDown={(event) => event.target === event.currentTarget && closeConfirm(cancelPreset)}
-					onKeyDown={(event) => event.key === "Escape" && closeConfirm(cancelPreset)}
 				>
 					{/* design-lint-disable-next-line hand-rolled-control -- scoped to this panel on purpose; Sable AlertDialog is page-modal and would hide the preview the choice is about */}
 					<div
 						role="alertdialog"
-						aria-modal="true"
 						aria-labelledby="preset-confirm-title"
 						aria-describedby="preset-confirm-body"
 						className="grid w-full gap-4 rounded-md bg-popover p-4 text-popover-foreground shadow-xl ring-1 ring-border-floating"
 					>
 						<div className="grid gap-1">
 							<h2 id="preset-confirm-title" className="text-title-sm">
-								{pendingPreset === themeId ? "Start over?" : `Switch to ${pendingLabel}?`}
+								{startOver ? "Start over?" : `Switch to ${pendingLabel}?`}
 							</h2>
 							<p id="preset-confirm-body" className="text-body-sm text-muted-foreground">
-								Your changes will be cleared.
+								{startOver
+									? "Your changes will be cleared."
+									: `Your changes are relative to the preset, so they can carry over to ${pendingLabel}. Or start fresh from it as shipped.`}
 							</p>
 						</div>
-						<div className="flex justify-end gap-2">
-							<Button variant="ghost" size="sm" onClick={() => closeConfirm(cancelPreset)}>
+						{/* Focus starts on the choice that loses nothing. */}
+						<div className="flex flex-wrap justify-end gap-2">
+							<Button variant="ghost" size="sm" autoFocus={startOver} onClick={() => closeConfirm(cancelPreset)}>
 								Cancel
 							</Button>
-							<Button size="sm" autoFocus onClick={() => closeConfirm(confirmPreset)}>
-								{pendingPreset === themeId ? "Start over" : "Switch"}
-							</Button>
+							{startOver ? (
+								<Button size="sm" onClick={() => closeConfirm(() => confirmPreset())}>
+									Start over
+								</Button>
+							) : (
+								<>
+									<Button variant="secondary" size="sm" onClick={() => closeConfirm(() => confirmPreset())}>
+										Start fresh
+									</Button>
+									<Button size="sm" autoFocus onClick={() => closeConfirm(() => confirmPreset({ keep: true }))}>
+										Keep my changes
+									</Button>
+								</>
+							)}
 						</div>
 					</div>
 				</div>

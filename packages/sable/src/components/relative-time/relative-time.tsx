@@ -1,4 +1,4 @@
-import { format, formatDistanceToNow } from "date-fns"
+import { format, formatDistance, type Locale } from "date-fns"
 import type { ComponentPropsWithRef } from "react"
 import { cn } from "../../lib/cn"
 import {
@@ -11,6 +11,20 @@ export interface RelativeTimeProps
 	extends Omit<ComponentPropsWithRef<"time">, "dateTime" | "children"> {
 	/** The instant to render. Accepts a Date, an ISO/parseable string, or an epoch number (ms). */
 	date: Date | string | number
+	/**
+	 * The instant "ago" is measured from. Pass the same value on the server and
+	 * the client (a request timestamp, a value from your loader) and both render
+	 * the same words, so the page hydrates without a mismatch; leave it out to
+	 * measure from the reader's clock.
+	 * @default Date.now()
+	 */
+	now?: Date | number
+	/**
+	 * A date-fns locale for the words and the absolute time
+	 * (`import { fr } from "date-fns/locale"`).
+	 * @default English (en-US)
+	 */
+	locale?: Locale
 }
 
 /** Coerce the loose `date` prop into a Date for date-fns. */
@@ -33,11 +47,24 @@ function toDate(date: Date | string | number): Date {
  * delay applies. Extra span/time props (className, id, …) pass through to the
  * trigger element. It takes the type size of the text around it, and is
  * keyboard-focusable so the tooltip is reachable without a pointer.
+ *
+ * A date that does not parse renders its input as plain text, with no tooltip
+ * and no `dateTime`: one malformed record shows what it holds instead of
+ * throwing a RangeError that takes the whole list down. Measured from the
+ * reader's clock the words cannot match the server's, so the `<time>` carries
+ * `suppressHydrationWarning`; pass `now` to make both renders agree.
  */
-export function RelativeTime({ date, className, ...props }: RelativeTimeProps) {
+export function RelativeTime({ date, now, locale, className, ...props }: RelativeTimeProps) {
 	const parsed = toDate(date)
-	const relative = formatDistanceToNow(parsed, { addSuffix: true })
-	const absolute = format(parsed, "PPpp")
+	if (Number.isNaN(parsed.getTime())) {
+		return (
+			<time className={className} {...props}>
+				{String(date)}
+			</time>
+		)
+	}
+	const relative = formatDistance(parsed, now ?? Date.now(), { addSuffix: true, locale })
+	const absolute = format(parsed, "PPpp", { locale })
 
 	return (
 		<Tooltip>
@@ -46,6 +73,7 @@ export function RelativeTime({ date, className, ...props }: RelativeTimeProps) {
 					// design-lint-disable-next-line static-interactive -- the only hover change is text-decoration, which motion-interactive does not list and CSS cannot tween: text-decoration-line is discrete, so the underline lands in one frame either way. Adding the recipe would declare a transition that animates nothing and imply the snap had been handled.
 					<time
 						dateTime={parsed.toISOString()}
+						suppressHydrationWarning
 						// A <time> is not focusable on its own, and the absolute time must
 						// be reachable without a pointer: the tooltip opens on focus.
 						tabIndex={0}

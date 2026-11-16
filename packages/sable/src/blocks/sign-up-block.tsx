@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "../components/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/card"
 import { Field, Form } from "../components/form"
@@ -17,7 +19,7 @@ export function SignUpBlock({ className, framed = true, onSignUp }: SignUpBlockP
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-sm", className)}>
 			<CardHeader>
-				<CardTitle>Create your account</CardTitle>
+				<CardTitle render={<h2 />}>Create your account</CardTitle>
 				<CardDescription>Free for 14 days. No card needed.</CardDescription>
 			</CardHeader>
 			<Form

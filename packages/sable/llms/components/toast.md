@@ -37,22 +37,23 @@ Use Toast for transient feedback caused by a user action: saved, failed, copied,
 | ToastContent | Base UI Toast.Content props + className | The toast's contents as one row. In a stacked viewport it fades on the cards behind the front one and returns when the stack fans out. Wrap a hand-composed toast's parts in it so a stacked viewport can hide them. |
 | ToastTitle | Base UI Toast.Title props + className | The toast headline (text-title-sm). Auto-associated as the toast's accessible name. |
 | ToastDescription | Base UI Toast.Description props + className | Supporting body copy beneath the title (text-body-sm, muted). Auto-associated as the toast's accessible description. |
-| ToastClose | Base UI Toast.Close props + className | Dismiss button. Base UI handles the close and leave animation; labelled "Dismiss" by default. |
+| ToastClose | Base UI Toast.Close props + className | Dismiss button. Base UI handles the close and leave animation; labelled "Dismiss" by default (dismissLabel). Its 24px glyph box keeps a 44px target under a coarse pointer. |
 | ToastAction | Base UI Toast.Action props + className | Inline action button (e.g. Undo). The imperative path renders one on every toast and Base UI sources its label and handler from that toast's `actionProps`, rendering nothing when there are none — so `toast(msg, { actionProps })` is all an action needs. Reach for the component directly only when composing a toast by hand; compose with render={<Button … />}. |
 
 ## Props
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| ToastProvider | { children, timeout?, limit?, closeIcon?, position?, stacked?, viewportClassName? } | — | Wraps Base UI Toast.Provider and renders the themed Viewport + toast list. Mount once near the app root, above any caller of useToast(). |
+| ToastProvider | { children, timeout?, limit?, closeIcon?, dismissLabel?, position?, stacked?, viewportClassName? } | — | Wraps Base UI Toast.Provider and renders the themed Viewport + toast list. Mount once near the app root, above any caller of useToast(). |
 | position | "top-left" \| "top-center" \| "top-right" \| "bottom-left" \| "bottom-center" \| "bottom-right" | "top-right" | Screen anchor for the toast stack. |
 | stacked | boolean | false | Stack the toasts like a deck of cards, the newest in front and the older ones peeking out behind it, a step smaller, instead of listing them one under another. Hovering or focusing the stack fans it out into the list. Use it when an app can raise several toasts in a row, so they don't take over the corner of the page. |
 | viewportClassName | string | — | Extra classes merged LAST onto the fixed viewport region — for safe-area insets or an offset (e.g. clearing a sidebar). |
 | timeout | number | 5000 | Default auto-dismiss time in ms for toasts. 0 keeps a toast until it is dismissed. Error toasts, loading toasts, and any toast carrying actionProps default to 0 regardless of this value; a per-toast timeout overrides both. |
 | limit | number | 3 | Maximum toasts shown at once; older toasts are pushed out when the limit is exceeded. |
 | closeIcon | ReactNode | <Icon name="xmark" /> | Override the dismiss-button glyph. The default already follows the injected icon set. |
-| useToast / useToastManager | () => { toasts, add, close, update, promise } | — | Manager hook for use inside components. add({ title, description, timeout?, type?, priority?, actionProps? }) returns the new toast id and applies the same persistence default as toast.* — an error, loading, or actionProps toast stays until dismissed unless you pass a timeout. close(id), update(id, opts), and promise(p, opts) round out the API. |
-| toast | (message, options?) => string  &  { success, error, warning, info, message, loading, promise, dismiss, update, add, custom } | — | Imperative singleton callable OUTSIDE React (event handlers, utilities, non-React code) — the Sonner-shaped surface that makes migrating a lib/toast wrapper a near drop-in. Requires a mounted <ToastProvider> (it binds the shared manager). Each call returns the toast id; toast.dismiss(id?) closes one or all; toast.promise(p, { loading, success, error }) and toast.update(id, opts) handle async + in-place updates. |
+| dismissLabel | string | "Dismiss" | Accessible name of every toast's dismiss button. Translate it here; ToastClose takes the same prop when composing by hand. |
+| useToast / useToastManager | () => { toasts, add, close, update, promise } | — | Manager hook for use inside components. add({ title, description, timeout?, type?, priority?, actionProps? }) returns the new toast id and applies the same persistence default as toast.* — an error, loading, or actionProps toast stays until dismissed unless you pass a timeout. close(id), update(id, opts), and promise(p, opts) round out the API, with the same default: an update that turns a toast into an error or gives it actionProps, and a promise that settles into an error (or a success with actionProps), persist unless that update or outcome names a timeout. |
+| toast | (message, options?) => string  &  { success, error, warning, info, message, loading, promise, dismiss, update, add, custom } | — | Imperative singleton callable OUTSIDE React (event handlers, utilities, non-React code) — the Sonner-shaped surface that makes migrating a lib/toast wrapper a near drop-in. Requires a mounted <ToastProvider> (it binds the shared manager). Each call returns the toast id; toast.dismiss(id?) closes one or all; toast.promise(p, { loading, success, error }) and toast.update(id, opts) handle async + in-place updates; a settled error, and an update into an error, persist like toast.error unless they name a timeout. |
 | type (toast option) | "success" \| "error" \| "warning" \| "info" \| "loading" | — | Set by the toast.* helpers. Drives a leading status glyph from the shared tone list, the same one Note and InlineStatus use (success→success, error→destructive, warning→warning, info→info), which blooms in as the toast lands; loading shows a spinner, and the glyph blooms in its place when the toast settles. Both loading and error persist until updated or dismissed unless the call supplies a timeout. |
 
 ## Tokens used
@@ -97,7 +98,7 @@ toast.success("Saved", { description: "Your post is live." })
 ```tsx
 import { toast } from "@sableui/react"
 
-toast.promise(publish(), { loading: "Publishing…", success: "Published", error: "Failed to publish" })
+toast.promise(publish(), { loading: "Publishing…", success: "Published", error: "Could not publish. Check your connection and try again." })
 ```
 
 ### Persistent loading, updated in place

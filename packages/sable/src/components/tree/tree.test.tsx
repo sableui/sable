@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react"
+import { act, fireEvent, render, screen } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
 import { axe } from "jest-axe"
 import { useState } from "react"
@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from "vitest"
 import { IconProvider } from "../../icon"
 import { reiconIconSet } from "../../icon-sets/reicon"
 import { Tree, TreeAddRow, TreeEmpty, TreeRow, TreeSection, treeIndent } from "./tree"
+import { renderWithProviders } from "../../test/render"
 
 describe("treeIndent", () => {
 	it("puts depth 0 on the rail and adds one indent step per level", () => {
@@ -703,5 +704,38 @@ describe("Tree arrival cleanup", () => {
 		end(row)
 		expect(row).not.toHaveClass("motion-arrive")
 		expect(row.style.getPropertyValue("--motion-arrive-delay")).toBe("")
+	})
+})
+
+describe("TreeRow standalone toggle", () => {
+	it("shows a focus ring, turns toward the reading direction, and takes translated labels", () => {
+		renderWithProviders(
+			<TreeRow
+				depth={0}
+				expandable
+				defaultExpanded={false}
+				toggleLabel="Backdrop"
+				expandLabel={(name) => `Développer ${name}`}
+				collapseLabel={(name) => `Réduire ${name}`}
+			>
+				Backdrop
+			</TreeRow>,
+		)
+		const toggle = screen.getByRole("button", { name: "Développer Backdrop" })
+		// Outside a Tree the toggle is a tab stop of its own.
+		expect(toggle).not.toHaveAttribute("tabindex")
+		expect(toggle).toHaveClass("focus-visible:ring-2", "focus-visible:ring-ring")
+		expect(toggle).toHaveClass("-rotate-90", "rtl:rotate-90")
+		fireEvent.click(toggle)
+		expect(screen.getByRole("button", { name: "Réduire Backdrop" })).toBeInTheDocument()
+	})
+
+	it("falls back to a generic English name", () => {
+		renderWithProviders(
+			<TreeRow depth={0} expandable>
+				Group 1
+			</TreeRow>,
+		)
+		expect(screen.getByRole("button", { name: "Collapse group" })).toBeInTheDocument()
 	})
 })

@@ -1,3 +1,5 @@
+"use client"
+
 import { useId } from "react"
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from "../components/accordion"
 import { cn } from "../lib/cn"

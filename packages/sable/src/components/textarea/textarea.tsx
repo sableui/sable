@@ -1,3 +1,5 @@
+"use client"
+
 import { Field as BaseField } from "@base-ui/react/field"
 import type { ComponentPropsWithRef, Ref } from "react"
 import { cn } from "../../lib/cn"

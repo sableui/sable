@@ -1,3 +1,5 @@
+"use client"
+
 import type { ComponentPropsWithRef } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
@@ -16,6 +18,8 @@ export interface VideoProps
 	 * nothing on the frame pretends to be pressable.
 	 */
 	onRequestPlay?: () => void
+	/** The placeholder play button's accessible name. @default "Play video" */
+	playLabel?: string
 }
 
 /**
@@ -39,6 +43,7 @@ export function Video({
 	poster,
 	controls = true,
 	onRequestPlay,
+	playLabel = "Play video",
 	className,
 	...props
 }: VideoProps) {
@@ -71,7 +76,7 @@ export function Video({
 							// design-lint-disable-next-line raw-button -- an on-media play disc: it needs the overlay token pair and a 56px circle, and no Button variant or size offers either (Button has no overlay variant yet)
 							<button
 								type="button"
-								aria-label="Play video"
+								aria-label={playLabel}
 								onClick={onRequestPlay}
 								className={cn(PLAY_MARK, "cursor-pointer motion-interactive motion-press hover:bg-overlay focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring")}
 							>

@@ -1,10 +1,11 @@
 import { Button, cn, EmptyState, Grid, Icon } from "@sableui/react"
-import { PageHeader, Section } from "../components/docs-ui"
+import { InlineCode, PageHeader, Section } from "../components/docs-ui"
 
 const SURFACES: [string, string, string][] = [
-	["Background", "bg-background", "The page canvas."],
-	["Card", "bg-card", "One step up: cards, panels, menus."],
-	["Muted", "bg-muted", "A quiet fill for secondary areas."],
+	["Background", "bg-background", "The page canvas, the bottom of the stack."],
+	["Card", "bg-card", "One step up: cards, dialogs, sheets, panels on the page."],
+	["Popover", "bg-popover", "The top step: menus, selects, popovers, tooltips. Lifted above card in dark mode, so a menu opened in a dialog never melts into it."],
+	["Muted", "bg-muted", "A quiet fill inside a surface: wells, chips, secondary areas."],
 ]
 
 const LEVELS: [string, string, string][] = [
@@ -15,13 +16,13 @@ const LEVELS: [string, string, string][] = [
 	["Top", "shadow-xl", "The rare top-most layer: toasts."],
 ]
 
-const LAYERS: [string, string][] = [
-	["Skip link", "Above everything"],
-	["Toasts", "Above modals, so a confirmation is never hidden"],
-	["Overlays", "Dialogs, sheets, popovers, menus, tooltips"],
-	["App chrome", "Header, sidebar, bottom nav"],
-	["Sticky", "Table headers, sticky banners"],
-	["Content", "The page itself"],
+const LAYERS: [string, string, string][] = [
+	["Skip link", "--z-skip-link", "Above everything"],
+	["Toasts", "--z-toast", "Above modals, so a confirmation is never hidden"],
+	["Overlays", "--z-overlay", "Dialogs, sheets, popovers, menus, tooltips"],
+	["App chrome", "--z-nav", "Header, sidebar, bottom nav"],
+	["Sticky", "--z-sticky", "Table headers, sticky banners"],
+	["Content", "", "The page itself"],
 ]
 
 /** Rows for the relative-surface demo. */
@@ -32,12 +33,12 @@ export function ElevationPage() {
 		<>
 			<PageHeader
 				eyebrow="Foundations"
-				title="Elevation"
+				title="Surfaces"
 				lede="Sable is flat by default. Depth comes from a lighter surface and a hairline edge; shadows are kept for things that float."
 			/>
 
 			<Section title="Surfaces" description="A raised surface is one step lighter.">
-				<Grid cols={{ base: 1, sm: 3 }} gap={2}>
+				<Grid cols={{ base: 1, sm: 2, lg: 4 }} gap={2}>
 					{SURFACES.map(([name, surface, note]) => (
 						<div
 							key={name}
@@ -150,15 +151,19 @@ export function ElevationPage() {
 				</div>
 			</Section>
 
-			<Section title="Layers" description="What sits on top of what, from top to bottom.">
+			<Section
+				title="Layers"
+				description="What sits on top of what, from top to bottom. One ordered scale, declared in styles.css so every theme inherits it; name the layer, never a raw number."
+			>
 				<div className="grid gap-1.5">
-					{LAYERS.map(([name, note], i) => (
+					{LAYERS.map(([name, token, note], i) => (
 						<div
 							key={name}
-							className="flex items-baseline gap-4 rounded-lg border border-border bg-card px-4 py-3"
-							style={{ marginInlineStart: `${(LAYERS.length - 1 - i) * 0.5}rem` }}
+							className="flex flex-wrap items-baseline gap-x-4 gap-y-1 rounded-lg border border-border bg-card px-4 py-3"
+							style={{ marginInlineStart: `calc(var(--spacing) * ${(LAYERS.length - 1 - i) * 2})` }}
 						>
 							<p className="text-title-sm w-28 shrink-0">{name}</p>
+							{token ? <InlineCode>{`z-(${token})`}</InlineCode> : null}
 							<p className="text-body-sm text-muted-foreground">{note}</p>
 						</div>
 					))}

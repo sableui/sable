@@ -30,7 +30,7 @@ Use Accordion to reveal a vertical set of related sections while keeping the sur
 | Name | Type | Description |
 | --- | --- | --- |
 | AccordionItem | Base UI Accordion.Item props + className (value, disabled, onOpenChange) | Pairs a header with its panel. Give each a stable `value` to control or set initial open state. |
-| AccordionTrigger | Base UI Accordion.Trigger props + className + indicator?: ReactNode | The header button (Header + Trigger composed). Renders children plus a chevron that rotates via data-[panel-open] by default; pass `indicator` to replace the icon and its open-state behavior entirely (e.g. a plus that becomes an × for a FAQ-style toggle). |
+| AccordionTrigger | Base UI Accordion.Trigger props + className + indicator?: ReactNode + headingLevel?: 2 \| 3 \| 4 \| 5 \| 6 (default 3) | The header button (Header + Trigger composed). Renders children plus a chevron that rotates via data-[panel-open] by default; pass `indicator` to replace the icon and its open-state behavior entirely (e.g. a plus that becomes an × for a FAQ-style toggle). `headingLevel` sets the heading that wraps the button so the accordion fits the page outline: h2 for an FAQ directly under the page title, h4 under an h3 section. Defaults to h3. |
 | AccordionPanel | Base UI Accordion.Panel props + className (keepMounted, hiddenUntilFound) | The collapsible body. Animates height using the --accordion-panel-height CSS var; fades on data-[starting-style]/data-[ending-style]. |
 
 ## Props
@@ -83,6 +83,14 @@ import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from "@sab
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from "@sableui/react"
 
 <Accordion multiple defaultValue={["a", "b"]}><AccordionItem value="a"><AccordionTrigger>First</AccordionTrigger><AccordionPanel>One.</AccordionPanel></AccordionItem><AccordionItem value="b"><AccordionTrigger>Second</AccordionTrigger><AccordionPanel>Two.</AccordionPanel></AccordionItem></Accordion>
+```
+
+### Heading level
+
+```tsx
+import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from "@sableui/react"
+
+<Accordion><AccordionItem value="a"><AccordionTrigger headingLevel={2}>Can I cancel anytime?</AccordionTrigger><AccordionPanel>Yes — from billing settings.</AccordionPanel></AccordionItem></Accordion>
 ```
 
 ### Custom indicator (plus-becomes-×)

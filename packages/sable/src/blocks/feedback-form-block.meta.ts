@@ -11,7 +11,7 @@ export const feedbackFormBlockMeta: BlockMeta = {
 	notes: [
 		"The rating is preselected, so one tap on Send is a complete answer; the notes are optional and say so.",
 		"Skip is a ghost Button before the primary, so dismissing is always available and never competes with sending.",
-		"`onDone` reports whether feedback was sent and, if so, the score and notes.",
+		"Skip and Send are two callbacks, `onSkip()` and `onSend({ score, notes })`, never one callback with a flag saying which happened.",
 	],
 	a11y: [
 		"The ToggleGroup carries aria-label=\"Rating\"; each Toggle's number is its name.",

@@ -283,6 +283,7 @@ export function CaretMenu({ trigger, label, status, children, className }: Caret
 		</CaretMenuContext.Provider>
 	)
 }
+CaretMenu.displayName = "CaretMenu"
 
 function optionsIn(list: HTMLElement | null): HTMLElement[] {
 	if (!list) return []
@@ -341,3 +342,4 @@ export function CaretMenuItem({
 		</div>
 	)
 }
+CaretMenuItem.displayName = "CaretMenuItem"

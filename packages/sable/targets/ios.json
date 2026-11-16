@@ -534,6 +534,15 @@
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
+    "IconTile": {
+      "source": "IconTile",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "IconTile"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
     "InlineStatus": {
       "source": "InlineStatus",
       "strategy": "preserve",

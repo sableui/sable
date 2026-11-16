@@ -93,10 +93,10 @@ export const cardMeta: ComponentMeta = {
 	props: [
 		{
 			name: "variant",
-			type: '"default" | "flat"',
+			type: '"default" | "flat" | "featured"',
 			default: '"default"',
 			description:
-				'"default" raises with bg-card + border + soft shadow; "flat" is transparent, for a card inside a section that already frames it. A flat card made a link or button shows its shape only on hover (the muted fill), so over a photo with square bottom corners it reads as a cropped image at rest: give a linked media card the default variant.',
+				'"default" raises with bg-card + border + soft shadow; "flat" is transparent, for a card inside a section that already frames it. A flat card made a link or button shows its shape only on hover (the muted fill), so over a photo with square bottom corners it reads as a cropped image at rest: give a linked media card the default variant. "featured" is the raised surface with a primary edge, for the one option a set recommends (the featured plan among tiers) — never ring-* or outline-* classes on a default card.',
 		},
 		{
 			name: "density",
@@ -115,14 +115,14 @@ export const cardMeta: ComponentMeta = {
 	subcomponents: [
 		{
 			name: "CardHeader",
-			type: 'ComponentPropsWithRef<"div">',
+			type: 'ComponentPropsWithRef<"div"> & { divided?: boolean }',
 			description:
-				"Top section holding CardTitle/CardDescription (and optionally CardAction). Padding follows the density knob.",
+				"Top section holding CardTitle/CardDescription (and optionally CardAction). Padding follows the density knob. `divided` closes it with a hairline and full bottom padding, for a header that stays put over a part that scrolls or runs to the edges (a chat transcript) — never a hand-written inset shadow or border-b.",
 		},
 		{
 			name: "CardTitle",
 			type: 'ComponentPropsWithRef<"div"> & { render?: useRender.RenderProp }',
-			description: "The card's name (text-title-lg). A div by default; pass `render={<h2 />}` (or h3…) to make it a heading in the page outline, at the level the card's position calls for.",
+			description: "The card's name (text-title-lg). A div by default; pass `render={<h2 />}` (or h3…) to make it a heading in the page outline, at the level the card's position calls for. Blocks render it as h2 (h3 under a heading of their own); a figure in the title slot (a balance, a stat) stays a div.",
 		},
 		{
 			name: "CardDescription",
@@ -143,9 +143,15 @@ export const cardMeta: ComponentMeta = {
 		},
 		{
 			name: "CardList",
-			type: 'ComponentPropsWithRef<"div">',
+			type: 'ComponentPropsWithRef<"div"> & { divided?: boolean }',
 			description:
-				"Rows that run edge to edge in the card (Entity rows, most often), divided by hairlines. Insets each row to the card's own padding, so a list card lines up with every other card at any density — no hand-tuned px-* on the rows. Under a CardHeader it opens with a hairline and a gap; alone it fills the card.",
+				"Rows that run edge to edge in the card (Entity rows, most often), divided by hairlines. Insets each row to the card's own padding, so a list card lines up with every other card at any density, with no hand-tuned px-* on the rows. Under a CardHeader it opens with a hairline and a gap; alone it fills the card. `divided={false}` drops the hairlines for a quiet list of a few rows: the rows are spaced by padding alone, and the only rule is the one a CardListLabel draws between groups.",
+		},
+		{
+			name: "CardListLabel",
+			type: 'ComponentPropsWithRef<"div"> & { render?: useRender.RenderProp }',
+			description:
+				"The name of a group of rows in a CardList (\"Signed-in devices\", \"Sources\"), on the rows' text edge and close above them. Pass `render={<h3 />}` to make it a heading. In a `divided={false}` list, a label after the first row draws the one rule that separates its group. Never a hand-padded heading between rows.",
 		},
 		{
 			name: "CardFooter",
@@ -155,7 +161,7 @@ export const cardMeta: ComponentMeta = {
 		},
 	],
 	variants: {
-		variant: ["default", "flat"],
+		variant: ["default", "flat", "featured"],
 		density: ["comfortable", "compact"],
 	},
 	tokensUsed: [
@@ -222,6 +228,14 @@ export const cardMeta: ComponentMeta = {
 		{
 			label: "Metric card",
 			code: '<Card density="compact"><CardHeader><CardTitle>Revenue</CardTitle><CardDescription>Last 30 days</CardDescription></CardHeader><CardContent><p className="text-heading-3">$12,840</p><p className="text-body-sm text-success">+12.8% from previous period</p></CardContent></Card>',
+		},
+		{
+			label: "Featured option",
+			code: '<Card variant="featured"><CardHeader><CardTitle render={<h3 />}>Studio</CardTitle><CardDescription>For growing teams.</CardDescription><CardAction><Badge tone="1" size="sm">Most popular</Badge></CardAction></CardHeader><CardContent><p className="text-heading-2">$16</p></CardContent></Card>',
+		},
+		{
+			label: "Divided header over a scrolling body",
+			code: '<Card className="flex h-96 flex-col overflow-hidden"><CardHeader divided><CardTitle render={<h2 />}>Assistant</CardTitle><CardDescription>Answers from your docs</CardDescription></CardHeader><CardContent className="min-h-0 flex-1 overflow-y-auto scrollbar-quiet"><p className="text-body-md">The transcript scrolls under a header that stays put.</p></CardContent></Card>',
 		},
 		{
 			label: "List card",

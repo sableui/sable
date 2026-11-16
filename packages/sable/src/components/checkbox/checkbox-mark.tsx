@@ -1,3 +1,5 @@
+"use client"
+
 import { Checkbox as Base } from "@base-ui/react/checkbox"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"

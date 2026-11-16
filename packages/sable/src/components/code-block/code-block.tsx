@@ -1,9 +1,12 @@
+"use client"
+
 import { type ComponentPropsWithRef, type ReactNode, createContext, useContext, useRef } from "react"
 import { Icon } from "../../icon"
 import { useCopy } from "../../lib/use-copy"
 import { useEdgeFade } from "../../lib/use-edge-fade"
 import { Button } from "../button/button"
 import { cn } from "../../lib/cn"
+import { hitTargetTouch } from "../../lib/hit-target"
 
 /**
  * Turns source text into highlighted output. Sable ships no highlighter — the
@@ -44,10 +47,10 @@ function CopyGlyph({ copied }: { copied: boolean }) {
  * by some screen readers and not others, and the label is also the button's
  * description of what it does, which "Copied" is not.
  */
-function CopiedStatus({ copied }: { copied: boolean }) {
+function CopiedStatus({ copied, label }: { copied: boolean; label: string }) {
 	return (
 		<span role="status" className="sr-only">
-			{copied ? "Copied" : ""}
+			{copied ? label : ""}
 		</span>
 	)
 }
@@ -56,6 +59,7 @@ function CopiedStatus({ copied }: { copied: boolean }) {
 export function CodeHighlightProvider({ highlight, children }: { highlight: CodeHighlighter; children: ReactNode }) {
 	return <CodeHighlightContext.Provider value={highlight}>{children}</CodeHighlightContext.Provider>
 }
+CodeHighlightProvider.displayName = "CodeHighlightProvider"
 
 export interface CodeBlockProps extends ComponentPropsWithRef<"div"> {
 	/** The code to display. */
@@ -82,6 +86,10 @@ export interface CodeBlockProps extends ComponentPropsWithRef<"div"> {
 	 * breaks the indentation it is read by.
 	 */
 	wrap?: boolean
+	/** The copy button's accessible name. @default "Copy code" ("Copy command" with `prompt`) */
+	copyLabel?: string
+	/** What a screen reader hears once the code is copied. @default "Copied" */
+	copiedLabel?: string
 }
 
 /**
@@ -100,6 +108,8 @@ export function CodeBlock({
 	highlight,
 	prompt,
 	wrap = false,
+	copyLabel,
+	copiedLabel = "Copied",
 	className,
 	...props
 }: CodeBlockProps) {
@@ -124,11 +134,11 @@ export function CodeBlock({
 					{code}
 				</code>
 				{showCopy ? (
-					<Button variant="ghost" size="icon-sm" aria-label="Copy command" onClick={copy} className="shrink-0 text-muted-foreground">
+					<Button variant="ghost" size="icon-sm" aria-label={copyLabel ?? "Copy command"} onClick={copy} className={cn(hitTargetTouch, "shrink-0 text-muted-foreground")}>
 						<CopyGlyph copied={copied} />
 					</Button>
 				) : null}
-				{showCopy ? <CopiedStatus copied={copied} /> : null}
+				{showCopy ? <CopiedStatus copied={copied} label={copiedLabel} /> : null}
 			</div>
 		)
 	}
@@ -147,7 +157,7 @@ export function CodeBlock({
 				<div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2">
 					<span className="text-mono-caption text-muted-foreground">{filename}</span>
 					{showCopy ? (
-						<Button variant="ghost" size="icon-sm" aria-label="Copy code" onClick={copy} className="text-muted-foreground">
+						<Button variant="ghost" size="icon-sm" aria-label={copyLabel ?? "Copy code"} onClick={copy} className={cn(hitTargetTouch, "text-muted-foreground")}>
 							<CopyGlyph copied={copied} />
 						</Button>
 					) : null}
@@ -172,11 +182,11 @@ export function CodeBlock({
 				<code>{highlighter ? highlighter(code) : code}</code>
 			</pre>
 			{copyColumn ? (
-				<Button variant="ghost" size="icon-sm" aria-label="Copy code" onClick={copy} className="m-2 ms-0 shrink-0 text-muted-foreground">
+				<Button variant="ghost" size="icon-sm" aria-label={copyLabel ?? "Copy code"} onClick={copy} className={cn(hitTargetTouch, "m-2 ms-0 shrink-0 text-muted-foreground")}>
 					<CopyGlyph copied={copied} />
 				</Button>
 			) : null}
-			{showCopy ? <CopiedStatus copied={copied} /> : null}
+			{showCopy ? <CopiedStatus copied={copied} label={copiedLabel} /> : null}
 		</div>
 	)
 }

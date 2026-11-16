@@ -22,7 +22,7 @@ Use Carousel for a curated, finite sequence of media or cards that benefits from
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
 | children | ReactNode | — | Each top-level child becomes one slide. |
-| slidesToShow | number \| { base?: number; sm?: number; md?: number; lg?: number; xl?: number } | 1 | Slides visible per view. A number, or a mobile-first breakpoint set keyed to Tailwind's default min-widths (sm 640, md 768, lg 1024, xl 1280px); a missing key inherits from the next smaller defined one, and base (default 1) is also the server-render value. Resolved with matchMedia, so no hand-rolled resize hook is needed. |
+| slidesToShow | number \| { base?: number; sm?: number; md?: number; lg?: number; xl?: number } | 1 | Slides visible per view. A number, or a smallest-first width set (sm 640, md 768, lg 1024, xl 1280px) measured on the carousel's OWN width, not the viewport, so a carousel in a narrow column shows fewer slides than one across the page; a missing key inherits from the next smaller defined one, and base (default 1) is also the server-render value. |
 | gap | string | "0px" | Gap between slides (any CSS length). Use the spacing scale — e.g. "calc(var(--spacing) * 4)" — so density moves it. |
 | loop | boolean | false | Infinite loop via cloned ends (needs count > slidesToShow). |
 | autoplay | number | 0 | Auto-advance interval in ms (0 = off). Pauses on hover/focus/reduced-motion and exposes a play/pause control. |
@@ -33,7 +33,15 @@ Use Carousel for a curated, finite sequence of media or cards that benefits from
 | index | number | — | Controlled active index. |
 | defaultIndex | number | 0 | Initial index (uncontrolled). |
 | onIndexChange | (index: number) => void | — | Notified when the active index changes. |
-| label | string | — | Accessible label for the carousel region. |
+| label | string | "Slides" | Accessible label for the carousel region. |
+| previousLabel | string | "Previous slide" | The previous arrow's accessible name. |
+| nextLabel | string | "Next slide" | The next arrow's accessible name. |
+| slideLabel | (index: number, count: number) => string | (index, count) => `${index} of ${count}` | Each slide's accessible name, from its 1-based position. |
+| positionLabel | (index: number, count: number) => string | (index, count) => `Slide ${index} of ${count}` | What the polite live region announces after a move, from the 1-based position. |
+| dotsLabel | string | "Choose slide" | The dots group's accessible name. |
+| dotLabel | (index: number) => string | (index) => `Go to slide ${index}` | Each dot's accessible name, from its 1-based slide number. |
+| pauseLabel | string | "Pause autoplay" | The autoplay toggle's name while playing. |
+| playLabel | string | "Start autoplay" | The autoplay toggle's name while paused. |
 | slideClassName | string | — | Class for each slide wrapper (e.g. an aspect ratio). |
 | arrowClassName | string | — | Class for both prev/next arrow buttons. Merged through cn(), so a radius or shadow utility replaces the default rounded-full shadow-md rather than stacking with it. |
 | motion | "full" \| "subtle" \| "off" | "full" | How much motion this component uses: `full` (default) inherits the app's policy, `subtle` keeps feedback and drops the glide, `off` stills it. It can only turn motion down — it never overrides a reader's reduce-motion setting. Under subtle the slides still travel and the active dot snaps; off also cuts between slides and pauses autoplay. |
@@ -53,7 +61,8 @@ Use Carousel for a curated, finite sequence of media or cards that benefits from
 ## Accessibility
 
 - Region carries aria-roledescription='carousel'; each slide is a group with aria-roledescription='slide' and an 'N of M' label; clones are aria-hidden.
-- Arrows and dots are real buttons (dots set aria-current); Left/Right arrow keys navigate when the viewport is focused.
+- Arrows and dots are real buttons (dots set aria-current); Left/Right arrow keys navigate when the viewport is focused. Every word it supplies (region, arrows, slide names, the announcement, dots, autoplay toggle) has a *Label prop.
+- Inactive dots draw at 70% muted-foreground, which clears the 3:1 non-text floor on light and dark surfaces.
 - A polite live region announces the active slide; it goes silent while auto-rotating (APG).
 - Autoplay exposes a pause/play control and pauses on hover, focus, and under prefers-reduced-motion (which also makes transitions instant).
 

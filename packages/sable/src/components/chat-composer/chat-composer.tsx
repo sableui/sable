@@ -72,6 +72,8 @@ export interface ChatComposerProps
 	sendLabel?: string
 	/** Accessible label for the stop button. @default "Stop generating" */
 	stopLabel?: string
+	/** Accessible label for the built-in attach button. @default "Add attachment" */
+	attachLabel?: string
 	/**
 	 * Helper or counter text below the controls. A function receives the send
 	 * key in effect, so a keyboard hint stays true on touch, where `enter`
@@ -141,6 +143,7 @@ export function ChatComposer({
 	label = "Message",
 	sendLabel = "Send message",
 	stopLabel = "Stop generating",
+	attachLabel = "Add attachment",
 	footer,
 	fieldRef,
 	motion,
@@ -273,7 +276,7 @@ export function ChatComposer({
 						type="button"
 						variant="ghost"
 						size="icon-sm"
-						aria-label="Add attachment"
+						aria-label={attachLabel}
 						disabled={disabled}
 						onClick={onAttach}
 					>

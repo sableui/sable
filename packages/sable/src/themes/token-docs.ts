@@ -711,6 +711,17 @@ export const TOKEN_DOCS: Record<string, TokenDoc> = {
 			} satisfies TokenDoc,
 		]),
 	),
+	...Object.fromEntries(
+		[1, 2, 3, 4, 5, 6, 7, 8].map((n) => [
+			`chart-${n}`,
+			{
+				intent: `Slot ${n} of the categorical chart palette: the colour series ${n} takes when it names none.`,
+				whenToUse: `Read through \`chartColor(${n - 1})\` (or \`var(--chart-${n})\`) for a series with no meaning attached — a category, a product, a region — and to hand the theme's palette to a charting library. Take the slots in order: the set is validated as neighbours, so skipping slots can put two similar hues side by side. Past eight series, fold the rest into "Other".`,
+				insteadOf: `A tone mark (\`tone-1-mark\`, \`success-mark\`) when the series MEANS something — revenue is the brand, errors are destructive. The chart palette is for categories with no meaning, and a reader will not map its colours to status. And not a palette family step (\`blue-500\`): those are tuned for washes and text, not for separating eight neighbours under colour-blindness.`,
+				pairsWith: ["background", "card"],
+			} satisfies TokenDoc,
+		]),
+	),
 }
 
 /**

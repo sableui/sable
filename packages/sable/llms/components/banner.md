@@ -39,6 +39,7 @@ Use Banner for page-level or app-level messages that affect the current experien
 | live | "off" \| "polite" \| "assertive" | "off" | ARIA live-region politeness for banners shown/updated at runtime (offline, RPC-down, "N new posts"). "polite" → role=status; "assertive" → role=alert. "off" keeps a static labelled region. |
 | dismissible | boolean | false | Render a trailing close button that hides the banner when clicked. |
 | onDismiss | () => void | — | Called after the banner is dismissed. |
+| dismissLabel | string | "Dismiss" | Accessible name of the dismiss button. A static banner's region is named "Announcement"; pass aria-label to rename it. |
 
 ## Variants
 
@@ -52,7 +53,7 @@ Use Banner for page-level or app-level messages that affect the current experien
 ## Accessibility
 
 - Static banners render as a labelled region (role=region); set `live` to announce dynamic status bars (role=status / role=alert) when they appear or change.
-- The dismiss control is Button (on-color-ghost, icon-xs) with an aria-label; it takes the bar's own ink, so its glyph and focus ring stay legible on soft and solid fills alike.
+- The dismiss control is Button (on-color-ghost, icon-xs) named by dismissLabel, with a 44px touch target under a coarse pointer; it takes the bar's own ink, so its glyph and focus ring stay legible on soft and solid fills alike.
 - Solid fills pair each tone with its theme-adaptive ink token, so text stays legible in light and dark.
 
 ## Related

@@ -20,6 +20,8 @@ A three-tier pricing section: heading, a Monthly/Yearly ToggleGroup, and three e
 ## Source
 
 ```tsx
+"use client"
+
 import { useState, useId } from "react"
 import { Badge, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, cn, Grid, Icon, Region, Stack, Toggle, ToggleGroup } from "@sableui/react"
 
@@ -61,7 +63,7 @@ type Period = "monthly" | "yearly"
 export interface PricingTableBlockProps {
 	className?: string
 	/** Called with the chosen tier and the billing period showing. */
-	onChoose?: (tier: string, period: Period) => void
+	onChoose?: (choice: { tier: string; period: Period }) => void
 }
 
 export function PricingTableBlock({ className, onChoose }: PricingTableBlockProps) {
@@ -84,11 +86,7 @@ export function PricingTableBlock({ className, onChoose }: PricingTableBlockProp
 				</Stack>
 				<Grid cols={{ base: 1, md: 3 }} gap={4} className="items-stretch">
 					{tiers.map((tier) => (
-						<Card
-							key={tier.id}
-							render={<article />}
-							className={cn("flex flex-col", tier.featured && "outline-primary ring-1 ring-primary")}
-						>
+						<Card key={tier.id} variant={tier.featured ? "featured" : "default"} render={<article />} className="flex flex-col">
 							<CardHeader>
 								<CardTitle render={<h3 />}>{tier.name}</CardTitle>
 								<CardDescription>{tier.blurb}</CardDescription>
@@ -115,7 +113,7 @@ export function PricingTableBlock({ className, onChoose }: PricingTableBlockProp
 								</ul>
 							</CardContent>
 							<CardFooter>
-								<Button className="w-full" variant={tier.featured ? "primary" : "outline"} onClick={() => onChoose?.(tier.id, period)}>
+								<Button className="w-full" variant={tier.featured ? "primary" : "outline"} onClick={() => onChoose?.({ tier: tier.id, period })}>
 									{tier.cta}
 								</Button>
 							</CardFooter>

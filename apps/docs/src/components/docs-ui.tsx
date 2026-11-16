@@ -32,14 +32,15 @@ import {
 } from "@sableui/react"
 import type { ComponentMeta } from "@sableui/react"
 import { brandIconSet } from "@sableui/react/icons/brands"
-import { type ReactNode, useContext, useState } from "react"
+import { type ComponentType, type ReactNode, Suspense, useContext, useEffect, useState } from "react"
 import { DESIGN_NOTES } from "../content/design-notes"
 import { CATALOG_BY_SLUG } from "../lib/catalog"
 import { markdownTwinFor } from "../lib/markdown-twins"
-import { PREVIEWS } from "../lib/previews"
+import { lazyRoute } from "../lib/lazy-route"
+import { hasPreview, PREVIEW_LOADERS } from "../lib/previews"
+import type { PreviewSlug } from "../lib/preview-index"
 import site from "../site-meta.json"
 import { CurrentRouteContext, PageTrailContext, hrefFor } from "../lib/router"
-import { Playground } from "./Playground"
 import { PreviewMotionMenu, PreviewMotionScope, PreviewReplayButton, usePreviewMotion } from "./preview-motion"
 
 export function PageHeader({
@@ -268,7 +269,12 @@ export function Example({
 	motionControl,
 }: {
 	children: ReactNode
-	code?: string
+	/**
+	 * The source shown on the Code tab and copied by Copy. A loader instead of
+	 * a string fetches it only when the tab opens or Copy is pressed, for a
+	 * page of many examples whose source would otherwise ship with the page.
+	 */
+	code?: string | (() => Promise<string>)
 	className?: string
 	flush?: boolean
 	/**
@@ -363,10 +369,29 @@ export function Example({
 				{stage}
 			</TabsPanel>
 			<TabsPanel value="code" className="pt-0">
-				<CodeBlock code={code} showCopy={false} className="max-h-[28rem] rounded-none border-0" />
+				{typeof code === "string" ? (
+					<CodeBlock code={code} showCopy={false} className="max-h-[28rem] rounded-none border-0" />
+				) : (
+					<LoadedCode load={code} />
+				)}
 			</TabsPanel>
 		</Tabs>
 	)
+}
+
+/** An Example's source, fetched when its Code tab first opens (the panel mounts then). */
+function LoadedCode({ load }: { load: () => Promise<string> }) {
+	const [text, setText] = useState<string | null>(null)
+	useEffect(() => {
+		let live = true
+		load().then((next) => {
+			if (live) setText(next)
+		})
+		return () => {
+			live = false
+		}
+	}, [load])
+	return <CodeBlock code={text ?? ""} showCopy={false} className="max-h-[28rem] min-h-40 rounded-none border-0" />
 }
 
 /**
@@ -374,32 +399,63 @@ export function Example({
  *
  * Rendering nothing rather than a "playground coming soon" panel is the same
  * rule the Playground page follows: the docs never advertise a surface that
- * does not work. Registering a preview in `lib/previews.tsx` lights this up on
+ * does not work. Registering a preview in `lib/previews.tsx` (a module in
+ * `lib/preview-entries/`, plus its loader) lights this up on
  * the component's page and in the gallery at the same time.
  */
 export function ComponentPlayground({ meta }: { meta: ComponentMeta }) {
-	const entry = PREVIEWS[componentSlug(meta.name)]
-	if (!entry) return null
+	const slug = componentSlug(meta.name)
+	if (!hasPreview(slug)) return null
+	const Loaded = playgroundFor(slug)
 	return (
 		<Section
 			title="Playground"
 			description="Try the options live."
 		>
-			<Playground
-				meta={entry.meta}
-				render={entry.render}
-				only={entry.only}
-				initial={entry.initial}
-				controls={entry.controls}
-				text={entry.text}
-				stageClassName={entry.stageClassName}
-				fixed={entry.fixed}
-				slots={entry.slots}
-				snippet={entry.snippet}
-				replayable={entry.replayable}
-			/>
+			{/* Holds the playground's usual height while its module loads, so the
+			    sections below do not jump when it arrives. */}
+			<Suspense fallback={<div aria-busy="true" className="min-h-96 rounded-lg border border-border" />}>
+				<Loaded />
+			</Suspense>
 		</Section>
 	)
+}
+
+/**
+ * One lazy component per slug, made once so React keeps it across renders.
+ * The Playground and the slug's own preview module load together, on demand:
+ * every page imports docs-ui, so a static preview table here put a preview
+ * for every component on every page.
+ */
+const PLAYGROUNDS = new Map<PreviewSlug, ComponentType>()
+function playgroundFor(slug: PreviewSlug): ComponentType {
+	let Loaded = PLAYGROUNDS.get(slug)
+	if (!Loaded) {
+		Loaded = lazyRoute(async () => {
+			const [{ Playground }, { default: entry }] = await Promise.all([import("./Playground"), PREVIEW_LOADERS[slug]()])
+			return {
+				default: function LoadedPlayground() {
+					return (
+						<Playground
+							meta={entry.meta}
+							render={entry.render}
+							only={entry.only}
+							initial={entry.initial}
+							controls={entry.controls}
+							text={entry.text}
+							stageClassName={entry.stageClassName}
+							fixed={entry.fixed}
+							slots={entry.slots}
+							snippet={entry.snippet}
+							replayable={entry.replayable}
+						/>
+					)
+				},
+			}
+		})
+		PLAYGROUNDS.set(slug, Loaded)
+	}
+	return Loaded
 }
 
 export function InlineCode({ children, className }: { children: ReactNode; className?: string }) {

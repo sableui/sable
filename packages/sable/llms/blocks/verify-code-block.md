@@ -20,6 +20,8 @@ A one-time-code card: where the code went, a six-slot OtpField grouped 3 + 3 und
 ## Source
 
 ```tsx
+"use client"
+
 import { Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, cn, Field, OtpField } from "@sableui/react"
 
 const sentTo = "ada@studio.com"
@@ -37,7 +39,7 @@ export function VerifyCodeBlock({ className, framed = true, onVerify, onResend }
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-sm", className)}>
 			<CardHeader>
-				<CardTitle>Check your email</CardTitle>
+				<CardTitle render={<h2 />}>Check your email</CardTitle>
 				<CardDescription>
 					We sent a 6-digit code to <span className="text-foreground">{sentTo}</span>.
 				</CardDescription>

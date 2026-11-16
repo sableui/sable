@@ -19,7 +19,7 @@ export interface SplitPaneProps
 	 * @default "1/1"  (e.g. "2/1", "3/2")
 	 */
 	ratio?: string
-	/** Gap between panes. Number = rhythm units (×8px); string = raw CSS. Default `--grid-gutter`. */
+	/** Gap between panes. Number = rhythm units (one baseline step each — 8px at Sable's default type, two Tailwind spacing steps, so gap={2} is gap-4); string = raw CSS. Default `--grid-gutter`. */
 	gap?: number | string
 }
 

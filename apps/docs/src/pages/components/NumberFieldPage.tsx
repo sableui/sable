@@ -68,6 +68,23 @@ export function NumberFieldPage() {
 				</Example>
 			</Section>
 
+			<Section
+				title="Sizes"
+				description="The field ladder Input, Select, Combobox and DatePicker share: md for a form, sm for a toolbar row beside sm buttons, xs for a tool panel. The steppers step down with the field."
+			>
+				<Example
+					code={`<NumberField defaultValue={4} size="md" aria-label="Medium" />
+<NumberField defaultValue={4} size="sm" aria-label="Small" />
+<NumberField defaultValue={4} size="xs" aria-label="Extra small" />`}
+				>
+					<div className="flex w-full max-w-48 flex-col gap-3">
+						<NumberField defaultValue={4} size="md" aria-label="Medium" />
+						<NumberField defaultValue={4} size="sm" aria-label="Small" />
+						<NumberField defaultValue={4} size="xs" aria-label="Extra small" />
+					</div>
+				</Example>
+			</Section>
+
 			<Section title="Disabled">
 				<Example code="<NumberField defaultValue={3} disabled />">
 					<div className="w-full max-w-48">

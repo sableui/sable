@@ -1,9 +1,11 @@
+"use client"
+
 import { NumberField as Base } from "@base-ui/react/number-field"
 import type { ComponentProps } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
 import { useDensity, useTypeTier } from "../../lib/density"
-import { FIELD_SHELL, MOBILE_FIELD_TIER } from "../../lib/field-shell"
+import { FIELD_SHELL, FIELD_SHELL_XS, MOBILE_FIELD_TIER } from "../../lib/field-shell"
 import { Button } from "../button/button"
 
 export type NumberFieldProps = Omit<
@@ -22,7 +24,49 @@ export type NumberFieldProps = Omit<
 	 * what happened before it existed.
 	 */
 	steppers?: boolean
+	/**
+	 * The field ladder, shared with Input, SelectTrigger, ComboboxInput,
+	 * SearchInput and DatePicker. `md` is the form field; `sm` the toolbar field
+	 * one rung down (`--control-sm`); `xs` the inset tool-panel field (the
+	 * `panel-field` fill, no outline). The steppers step down with the field so
+	 * they keep the same even inset at every rung. @default "md"
+	 */
+	size?: NumberFieldSize
+	/** Accessible name of the decrement stepper. @default "Decrease" */
+	decrementLabel?: string
+	/** Accessible name of the increment stepper. @default "Increase" */
+	incrementLabel?: string
 }
+
+export type NumberFieldSize = "md" | "sm" | "xs"
+
+/*
+ * Per rung: the group's height (and, at xs, the inset panel surface), the
+ * stepper Button size, the stepper's inset — half of what the shell's inner
+ * height leaves around it, so it sits with even space on every side — and the
+ * input's text column, on the same padding as Input at that rung so a stack of
+ * mixed fields shares one edge. Literal strings for Tailwind's source scan.
+ */
+const SIZES = {
+	md: {
+		group: "h-(--control-md)",
+		step: "icon-sm",
+		stepClass: "mx-[calc((var(--control-md)-var(--control-sm)-2px)/2)]",
+		text: "px-3",
+	},
+	sm: {
+		group: "h-(--control-sm)",
+		step: "icon-xs",
+		stepClass: "mx-[calc((var(--control-sm)-var(--control-xs)-2px)/2)]",
+		text: "px-2.5",
+	},
+	xs: {
+		group: cn("h-(--control-xs)", FIELD_SHELL_XS),
+		step: "icon-xs",
+		stepClass: "mx-0.5 size-[calc(var(--control-xs)-var(--spacing)*1.5)] [--button-icon:0.75rem]",
+		text: "px-1.5",
+	},
+} as const satisfies Record<NumberFieldSize, { group: string; step: "icon-sm" | "icon-xs"; stepClass: string; text: string }>
 
 /**
  * NumberField — a numeric input with decrement / increment steppers over Base UI's
@@ -37,6 +81,9 @@ export type NumberFieldProps = Omit<
 export function NumberField({
 	className,
 	steppers = true,
+	size = "md",
+	decrementLabel = "Decrease",
+	incrementLabel = "Increase",
 	"aria-describedby": ariaDescribedby,
 	"aria-invalid": ariaInvalid,
 	"aria-label": ariaLabel,
@@ -49,11 +96,12 @@ export function NumberField({
 	// inner height leaves around the button (3px at comfortable: 40 − 2px of
 	// border − 32), at every density — and `shrink-0`: as a flex child it used to be squeezed to
 	// 21px wide, turning the round hover into a capsule and halving the target.
+	const rung = SIZES[size]
 	const step = (
 		<Button
 			variant="ghost"
-			size="icon-sm"
-			className="mx-[calc((var(--control-md)-var(--control-sm)-2px)/2)] shrink-0 self-center text-muted-foreground"
+			size={rung.step}
+			className={cn(rung.stepClass, "shrink-0 self-center text-muted-foreground")}
 		/>
 	)
 	const tier = useTypeTier()
@@ -62,10 +110,11 @@ export function NumberField({
 		<Base.Root {...root}>
 			<Base.Group
 				className={cn(
-					"inline-flex h-(--control-md) w-full items-stretch overflow-hidden text-foreground",
+					"inline-flex w-full items-stretch overflow-hidden text-foreground",
 					// The shell Input wears — lib/field-shell. Its focus ring keys on
 					// focus-visible; the shell here is a group, so ring on focus-within.
 					FIELD_SHELL,
+					rung.group,
 					"focus-within:ring-2 focus-within:ring-ring",
 					"has-[input:disabled]:cursor-not-allowed has-[input:disabled]:opacity-50",
 					// FIELD_INVALID, lifted to the group: `aria-invalid` lands on the
@@ -79,7 +128,7 @@ export function NumberField({
 				)}
 			>
 				{steppers ? (
-					<Base.Decrement aria-label="Decrease" render={step}>
+					<Base.Decrement aria-label={decrementLabel} render={step}>
 						<Icon name="minus" />
 					</Base.Decrement>
 				) : null}
@@ -91,11 +140,11 @@ export function NumberField({
 						"w-full min-w-0 bg-transparent tabular-nums outline-none",
 						// Centred between two steppers; left-aligned without them, on
 						// Input's px-3 text column so a stack of fields shares one edge.
-						steppers ? "px-2 text-center" : "px-3 text-left",
+						steppers ? "px-2 text-center" : cn(rung.text, "text-left"),
 					)}
 				/>
 				{steppers ? (
-					<Base.Increment aria-label="Increase" render={step}>
+					<Base.Increment aria-label={incrementLabel} render={step}>
 						<Icon name="plus" />
 					</Base.Increment>
 				) : null}

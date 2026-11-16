@@ -9,8 +9,8 @@
  *    machine-readable catalog got a flat list of every component with no sense of
  *    which ones are siblings.
  * 2. Nothing checked that a shipped component was filed anywhere, so
- *    `PanelGroup`, `PanelSection`, `ScrubField` and `StatusBar` shipped in 0.31.0
- *    with no nav entry and no docs page and nobody noticed for four releases.
+ *    `PanelGroup`, `PanelSection`, `ScrubField` and `StatusBar` once shipped
+ *    with no nav entry and no docs page and nobody noticed for several releases.
  *
  * `build-registry` now validates this file against the components on disk in both
  * directions and fails on any drift, and the docs nav is generated from it. The
@@ -202,6 +202,7 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 	DataTable: ["Data display", "either"],
 	DateTile: ["Data display", "page"],
 	Entity: ["Data display", "either"],
+	IconTile: ["Data display", "either"],
 	GlidingHighlight: ["Data display", "either"],
 	Meter: ["Data display", "either"],
 	NumberTicker: ["Data display", "either"],

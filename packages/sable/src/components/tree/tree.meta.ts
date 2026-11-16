@@ -182,6 +182,19 @@ export const treeMeta: ComponentMeta = {
 				"Names the thing being disclosed, for the toggle's accessible label — \"Expand Background\" rather than \"Expand group\". Every example passes it; a screen-reader user hearing twenty identical \"Expand group\" buttons has no way to tell them apart.",
 		},
 		{
+			name: "expandLabel",
+			type: "(name?: string) => string",
+			default: '(name = "group") => `Expand ${name}`',
+			description:
+				"The disclosure's accessible name while collapsed, built from toggleLabel. Replace it to translate the verb (\"Développer Background\").",
+		},
+		{
+			name: "collapseLabel",
+			type: "(name?: string) => string",
+			default: '(name = "group") => `Collapse ${name}`',
+			description: "The disclosure's accessible name while expanded, built from toggleLabel.",
+		},
+		{
 			name: "icon",
 			type: "ReactNode",
 			description: "The kind marker for a TreeRow, rendered in the type column at 1em. Use a semantic Icon so it follows the app icon set.",
@@ -233,7 +246,7 @@ export const treeMeta: ComponentMeta = {
 		},
 		{
 			name: "TreeRow",
-			type: "{ depth?: number; selected?: boolean; accent?: boolean; dimmed?: boolean; expandable?: boolean; expanded?: boolean; defaultExpanded?: boolean; onExpandedChange?: (expanded: boolean) => void; subtree?: ReactNode; toggleLabel?: string; disclosureIcon?: ReactNode; icon?: ReactNode; actions?: ReactNode }",
+			type: "{ depth?: number; selected?: boolean; accent?: boolean; dimmed?: boolean; expandable?: boolean; expanded?: boolean; defaultExpanded?: boolean; onExpandedChange?: (expanded: boolean) => void; subtree?: ReactNode; toggleLabel?: string; expandLabel?: (name?: string) => string; collapseLabel?: (name?: string) => string; disclosureIcon?: ReactNode; icon?: ReactNode; actions?: ReactNode }",
 			description:
 				"One node in the hierarchy (role=treeitem inside a Tree). Controlled via expanded/onExpandedChange or uncontrolled via defaultExpanded; nest children with subtree. Always reserves both leading columns (disclosure and type), so a leaf's name lines up with its expandable siblings.",
 		},

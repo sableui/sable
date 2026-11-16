@@ -1,3 +1,5 @@
+"use client"
+
 import type { ComponentPropsWithRef, ReactNode } from "react"
 import { useRef } from "react"
 import { Icon } from "../../icon"
@@ -134,7 +136,9 @@ export function ToolCall({
 			</span>
 			<span className={cn("flex min-w-0 flex-1 items-baseline gap-2", tier.body)}>
 				<span className={cn("truncate text-foreground", !title && "font-mono")}>{title ?? name}</span>
-				{title ? <span className={cn("hidden truncate font-mono text-muted-foreground sm:inline", tier.secondary)}>{name}</span> : null}
+				{/* By the call's own width, not the window's: in a narrow card on a wide
+				    screen the name would squeeze the title to an ellipsis. */}
+				{title ? <span className={cn("hidden truncate font-mono text-muted-foreground @sm/tool-call:inline", tier.secondary)}>{name}</span> : null}
 			</span>
 			<span className={cn("shrink-0 text-muted-foreground", tier.secondary, status === "error" && "text-destructive")}>{word}</span>
 			{hasDetails ? <CollapsibleIndicator /> : null}

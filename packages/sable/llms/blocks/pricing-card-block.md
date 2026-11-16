@@ -20,6 +20,8 @@ A single-plan pricing card: a Monthly/Yearly ToggleGroup, the price and billing 
 ## Source
 
 ```tsx
+"use client"
+
 import { useState } from "react"
 import { Button, Card, CardContent, cn, Icon, Toggle, ToggleGroup } from "@sableui/react"
 

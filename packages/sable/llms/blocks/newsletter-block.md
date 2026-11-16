@@ -20,6 +20,8 @@ A newsletter sign-up card: the list's name, what it sends and how often, and an 
 ## Source
 
 ```tsx
+"use client"
+
 import { useId } from "react"
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Input } from "@sableui/react"
 

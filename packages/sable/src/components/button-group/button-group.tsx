@@ -40,3 +40,4 @@ export function ButtonGroup({ className, role = "group", ...props }: ButtonGroup
 		/>
 	)
 }
+ButtonGroup.displayName = "ButtonGroup"

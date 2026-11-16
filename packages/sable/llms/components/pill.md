@@ -2,7 +2,7 @@
 
 **Status:** stable
 
-A chip someone clicks: a filter, a tag choice, an option in a row. Always a button; pass selected to make it a toggle with aria-pressed, and leave it unset on a chip that fires an action. appearance="solid" (filters; selected lifts onto the primary surface) or "outline" (quiet chips that annotate content, like reactions); size lg, md or sm. A static label is a Badge.
+A chip someone clicks: a filter, a tag choice, an option in a row. Always a button; pass selected to make it a toggle with aria-pressed, and leave it unset on a chip that fires an action. appearance="solid" (filters; selected lifts onto the primary surface) , "outline" (quiet chips that annotate content, like a tag on a card) or "ghost" (nothing drawn at rest, for small toggles under content, like reactions); size lg, md or sm. A static label is a Badge.
 
 **Keywords:** pill, chip, filter, tag, toggle chip, category
 
@@ -17,21 +17,21 @@ Use Pill for a row of filters or choices a person clicks to narrow or toggle wha
 - Do: In a toolbar where filter chips share a row with a search field ("All 8 · Products 5 · Open source 2 … [Find a project]"), pair Pill size="lg" with SearchInput size="sm", and Button size="sm" for any action beside them. All three stand on --control-sm (32px, 28 compact), the rung the spacing doctrine gives toolbar controls, so the row is one height in either density. Pill md (28px) has no text field of its height in the page register, so md beside a field always reads as a mismatch.
 - Don't: Do not use Pill as a static label. A pressable-looking chip that does nothing is the most common cause of dead clicks in a filter row — that is a Badge. → use **Badge**
 - Don't: Do not use Pill for primary actions or important system status.
-- Don't: Do not restyle a Pill with border or background classes to get a quieter chip. That is appearance="outline" (and size="sm" for a small one); an override is a look that exists nowhere else in the system. Likewise never set h-* on a Pill to match a neighbour: pick the size that shares its rung.
+- Don't: Do not restyle a Pill with border or background classes to get a quieter chip. That is appearance="outline", or "ghost" for no chip at all (and size="sm" for a small one); an override is a look that exists nowhere else in the system. Likewise never set h-* on a Pill to match a neighbour: pick the size that shares its rung.
 
 ## Props
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| selected | boolean | false | Marks the pill as chosen. Solid lifts onto the primary surface; outline takes a primary tint and soft primary edge. Passing it, true or false, sets aria-pressed; left unset the chip is a plain action button. |
-| appearance | "solid" \| "outline" | "solid" | solid for a filter row; outline for quiet chips that annotate other content (a reaction under a message, a tag on a card), where a filled chip would compete with what it annotates. |
+| selected | boolean | false | Marks the pill as chosen. Solid lifts onto the primary surface; outline takes a primary tint and soft primary edge; ghost takes the tint with no edge. Passing it, true or false, sets aria-pressed; left unset the chip is a plain action button. |
+| appearance | "solid" \| "outline" \| "ghost" | "solid" | solid for a filter row; outline for quiet chips that annotate other content (a tag on a card), where a filled chip would compete with what it annotates; ghost for a run of small toggles under other content (the reactions under a message): nothing drawn at rest, a hover fill, and a primary tint when selected. |
 | size | "lg" \| "md" \| "sm" | "md" | lg sits on --control-sm (32px, 28 compact), the toolbar rung it shares with SearchInput sm and Button sm, for a filter row beside a search field. md sits on --control-xs (28px, 24 compact), the chip in a row of its own or among content. sm is a fixed 24px (the target floor, which density does not shrink), for chips under or inside other content. |
 | tone | "neutral" \| "red" \| "orange" \| "yellow" \| "green" \| "teal" \| "blue" \| "purple" \| "pink" | "neutral" | neutral is the chip as described. A palette family colours it as a category, like the choices in a tag picker: a wash at rest, the solid family colour when selected. Painted from the theme's generated palette. |
 | icon | ReactNode | — | Optional leading glyph (e.g. <Icon name="lock" />), rendered before the children with the base gap. |
 
 ## Variants
 
-- **appearance**: solid, outline
+- **appearance**: solid, outline, ghost
 - **size**: lg, md, sm
 - **selected**: true, false
 - **tone**: neutral, red, orange, yellow, green, teal, blue, purple, pink
@@ -93,12 +93,20 @@ const [q, setQ] = useState("")
 </Row>
 ```
 
-### Outline, small (reactions)
+### Ghost, small (reactions)
 
 ```tsx
 import { Pill, Row } from "@sableui/react"
 
-<Row gap={1}><Pill appearance="outline" size="sm" selected onClick={() => {}}>🎉 3</Pill><Pill appearance="outline" size="sm" onClick={() => {}}>👀</Pill></Row>
+<Row gap={1}><Pill appearance="ghost" size="sm" selected onClick={() => {}}>🎉 3</Pill><Pill appearance="ghost" size="sm" onClick={() => {}}>👀</Pill></Row>
+```
+
+### Outline, small (tags)
+
+```tsx
+import { Pill, Row } from "@sableui/react"
+
+<Row gap={1}><Pill appearance="outline" size="sm" selected onClick={() => {}}>Design</Pill><Pill appearance="outline" size="sm" onClick={() => {}}>Research</Pill></Row>
 ```
 
 ### With icon

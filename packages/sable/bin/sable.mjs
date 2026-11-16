@@ -2,14 +2,15 @@
 /**
  * sable — the catalog, served at the size an agent can actually read.
  *
- *   npx sable pattern --list              # the eight page shells, one line each
- *   npx sable pattern DashboardPage --skeleton
- *   npx sable block --list                # section-sized blocks: cards, forms, lists
- *   npx sable component Button --props
- *   npx sable search "date range"
- *   npx sable doctor
+ *   pnpm exec sable pattern --list        # the canonical page shells, one line each
+ *   pnpm exec sable pattern DashboardPage --skeleton
+ *   pnpm exec sable block --list          # section-sized blocks: cards, forms, lists
+ *   pnpm exec sable component Button --props
+ *   pnpm exec sable search "date range"
+ *   pnpm exec sable doctor
  *
- * Why this exists: `registry.json` is 780KB and `llms-full.txt` is 550KB. Both
+ * Why this exists: `registry.json` and `llms-full.txt` each run to well over a
+ * megabyte. Both
  * are complete and both are unreadable in a working context window, so in
  * practice an agent greps them, or skips them and writes what its training data
  * suggests — which for a library this new is nothing. The contract being
@@ -114,7 +115,7 @@ const COMMANDS = [
 	},
 	{
 		name: "sources",
-		summary: "Write the @source lines for just the Sable modules this app imports, so Tailwind generates their classes and no others (about 32 KB gzipped for all of Sable, a fraction for a typical app). doctor fails while the file is stale.",
+		summary: "Write the @source lines for just the Sable modules this app imports, so Tailwind generates their classes and no others (about 49 KB minified and gzipped for all of Sable, about half that for a typical app). doctor fails while the file is stale.",
 		arg: null,
 		flags: [{ name: "--write", value: "file.css", describe: "Write the stylesheet there (e.g. src/sable-sources.css) instead of printing it." }],
 		returns: ["sources"],
@@ -736,9 +737,27 @@ function cmdSearch() {
 		for (const name of R.iconContract?.names ?? [])
 			pool.push({ kind: "icon", name, summary: `<Icon name="${name}" />`, _s: score({ name, keywords: aliases.filter(([, to]) => to === name).map(([from]) => from), text: "" }) })
 	}
-	if (!type || type === "doc")
-		for (const d of docSlugs())
-			pool.push({ kind: "doc", name: d.slug, summary: `${d.kind} mirror`, _s: score({ name: d.slug, text: d.kind }) })
+	if (!type || type === "doc") {
+		// Docs are found by slug AND title, compared with punctuation dropped on
+		// both sides: "next.js" is the slug `nextjs`, "set up" is in "setup".
+		const flat = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "")
+		const flatQ = flat(q)
+		for (const d of docSlugs()) {
+			const title = docTitle(d.path)
+			const slug = flat(d.slug)
+			const head = flat(title)
+			let s = score({ name: d.slug, text: `${d.kind} ${title}` })
+			if (terms.length > 1 && flatQ && (slug.includes(flatQ) || head.includes(flatQ))) s += 50
+			for (const t of terms) {
+				const n = flat(t)
+				if (!n || n === t) continue // plain terms were scored above
+				if (slug === n) s += 100
+				else if (slug.includes(n)) s += 40
+				if (head.includes(n)) s += 20
+			}
+			pool.push({ kind: "doc", name: d.slug, summary: title || `${d.kind} mirror`, _s: s })
+		}
+	}
 	if (!type || type === "example")
 		for (const c of COMPONENTS)
 			for (const e of c.examples ?? []) {
@@ -1167,7 +1186,7 @@ function cmdComposition({ kind, items, about, noun, errorCode }) {
 						? `${x.name} ${firstSentence(x.summary)}`
 						: `  ${x.name.padEnd(kind === "block" ? 28 : 20)}${x.family ? x.family.padEnd(20) : ""}${firstSentence(x.intent ?? x.summary)}`,
 				),
-				DENSE ? "" : `\n  sable ${kind} <Name> --skeleton   the composition tree, ~25 lines`,
+				DENSE ? "" : `\n  sable ${kind} <Name> --skeleton   the composition tree, demo fixtures elided (shorter than --code)`,
 			]
 				.filter(Boolean)
 				.join("\n"),
@@ -1426,6 +1445,16 @@ const PACKAGE_DOCS = [
 function packageDoc(name) {
 	const q = String(name).toLowerCase()
 	return PACKAGE_DOCS.find((d) => d.slug.toLowerCase() === q || d.aliases.includes(q))
+}
+
+/** A doc's first `# ` heading, with the "Task: " style prefix dropped. */
+function docTitle(path) {
+	try {
+		const m = readFileSync(path, "utf8").slice(0, 2000).match(/^#\s+(.+)$/m)
+		return m ? m[1].replace(/^[A-Z][a-z]+:\s+/, "").trim() : ""
+	} catch {
+		return ""
+	}
 }
 
 function docSlugs() {
@@ -2078,7 +2107,7 @@ function cmdCheck() {
 	const manual = [
 		...(lowAdoption ? [{ step: "Ask about moving onto Sable", how: `${adoption.recommendation} The swaps are listed under Adoption above; sable docs auditing-an-app ("Adoption") covers how to put the choice to the user.` }] : []),
 		...MANUAL_REVIEW,
-		...(doctor.checks.some((c) => c.name === "css:size") ? [{ step: "Ship only the CSS you use", how: "sable sources --write src/sable-sources.css, then @import it in place of the whole-package @source (about 32 KB of CSS gzipped down to what the app imports). Re-run it whenever you import something new from Sable; sable check fails while it is stale." }] : []),
+		...(doctor.checks.some((c) => c.name === "css:size") ? [{ step: "Ship only the CSS you use", how: "sable sources --write src/sable-sources.css, then @import it in place of the whole-package @source (about 49 KB of CSS, minified and gzipped, down to what the app imports). Re-run it whenever you import something new from Sable; sable check fails while it is stale." }] : []),
 	]
 	const data = { paths, passed: !failed.length, failed, checks, inventory, adoption, rebuiltParts: rebuilt, manualReview: manual }
 	const MARK = { pass: "✓", fail: "✗", error: "✗" }

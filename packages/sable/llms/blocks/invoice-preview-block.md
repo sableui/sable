@@ -20,6 +20,8 @@ A draft invoice with a discount, a rolling amount due, and sending feedback insi
 ## Source
 
 ```tsx
+"use client"
+
 import { useState, useEffect } from "react"
 import { Badge, Button, Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle, cn, Field, Icon, NumberTicker, Switch, TextSwap } from "@sableui/react"
 
@@ -63,7 +65,7 @@ export function InvoicePreviewBlock({ className, framed = true, onSend }: Invoic
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs", className)}>
 			<CardHeader>
-				<CardTitle>{invoice.number}</CardTitle>
+				<CardTitle render={<h2 />}>{invoice.number}</CardTitle>
 				<CardDescription>{invoice.customer}</CardDescription>
 				<CardAction>
 					<Badge tone={state === "sent" ? "success" : "neutral"} size="sm">

@@ -1,9 +1,10 @@
-import { readFileSync } from "node:fs"
+import { readFileSync, readdirSync } from "node:fs"
 import { resolve } from "node:path"
 import { describe, expect, it } from "vitest"
 import {
 	DENSITY_TOKENS,
 	APP_SHELL_TOKENS,
+	CHART_TOKENS,
 	FIELD_TOKENS,
 	LAYERING_TOKENS,
 	MARK_TOKENS,
@@ -15,6 +16,7 @@ import {
 	TYPE_UI_TOKENS,
 	WORKSPACE_SURFACE_TOKENS,
 } from "./_contract"
+import * as contract from "./_contract"
 import {
 	CONTRAST_FLOOR,
 	GAMUT_EPSILON,
@@ -476,6 +478,29 @@ describe("workspace register foundation", () => {
 		).toBe(true)
 	})
 
+	it("stills the plain-token recipes inside a motion=off or reduced scope", () => {
+		// The theme block declares the duration ladder already multiplied by
+		// --motion-scale, and a custom property inherits as a finished value. So a
+		// <MotionScope level="off"> (a plain element) that only set the scale left
+		// every recipe built on a plain token (motion-interactive, -pop, -fade, …)
+		// playing at full speed: checked live, a .motion-interactive inside one
+		// computed 0.15s. The policy rule must zero the ladder itself.
+		for (const level of ["off", "reduced"]) {
+			const block = declarations(blockWith(stylesCss, `[data-motion="${level}"]`, "--motion-duration-fast"))
+			for (const token of MOTION_TOKENS.filter((t) => t.startsWith("motion-duration-"))) {
+				expect(block.has(token), `[data-motion="${level}"] must zero --${token}`).toBe(true)
+			}
+		}
+	})
+
+	it("ships no @source: the consumer's stylesheet owns the scan", () => {
+		// A glob here resolves against the installed dist, so every app generated
+		// every component's, block's and *.meta.js example's classes whatever it
+		// scanned, and `sable sources` could trim nothing (387 KB unminified with no
+		// app sources at all). copy-assets refuses to publish one as well.
+		expect(stylesCss.replace(/\/\*[\s\S]*?\*\//g, "")).not.toMatch(/@source\b/)
+	})
+
 	it("backs each UI type tier with a themeable token", () => {
 		for (const token of TYPE_UI_TOKENS) {
 			expect(stylesCss.includes(`--${token}`), `styles.css never reads --${token}`).toBe(true)
@@ -752,6 +777,95 @@ describe("theme contrast", () => {
 		},
 	)
 
+	it.each(themeIds)(
+		"%s authors --overlay opaque, so a media pill reads over any picture",
+		(themeId) => {
+			/*
+			 * The contract calls overlay a fixed dark SURFACE, and components multiply
+			 * its alpha themselves: `bg-overlay/85` behind a pill or a video control,
+			 * `bg-overlay/(--scrim-alpha)` for a scrim. Verdant authored it at 60%/70%
+			 * alpha, so those multiplied again: its light pill over a white photo
+			 * measured 3.60:1 and its scrim dimmed about half as much as every other
+			 * theme's. The ink pairs above passed, because they composite over the
+			 * page, not over media. So: alpha 1, and overlay-foreground on overlay/85
+			 * over pure white (the worst picture) clears 4.5:1.
+			 */
+			const failures: string[] = []
+			for (const appearance of ["light", "dark"] as const) {
+				const vars = resolveVars(cssFor(themeId), appearance)
+				const overlay = resolve("--overlay", vars)
+				const ink = resolve("--overlay-foreground", vars)
+				expect(overlay, `${appearance} --overlay resolves`).toBeTruthy()
+				expect(ink, `${appearance} --overlay-foreground resolves`).toBeTruthy()
+				if (!overlay || !ink) continue
+				if (overlay.alpha < 1) failures.push(`${appearance}: --overlay has alpha ${overlay.alpha}`)
+				const pill = compositeOver({ rgb: overlay.rgb, alpha: 0.85 * overlay.alpha }, [1, 1, 1])
+				const ratio = contrastRatio(painted(ink, { rgb: pill, alpha: 1 }), pill)
+				if (ratio < CONTRAST_FLOOR) failures.push(`${appearance}: overlay-foreground on overlay/85 over white = ${ratio.toFixed(2)}:1`)
+			}
+			expect(failures).toEqual([])
+		},
+	)
+
+	it.each(themeIds)(
+		"%s charts with a palette that separates neighbours and clears its surfaces",
+		(themeId) => {
+			/*
+			 * The chart palette was validated once, against the Sable theme's
+			 * surfaces, and inherited by every other theme with no gate at all. Each
+			 * bundled theme's EFFECTIVE set (its own slots, else Sable's) is checked
+			 * here in both modes, with the same rules the customizer's generated sets
+			 * are held to (apps/docs/src/customizer/chart-palette.ts): neighbours
+			 * apart by OKLab ΔE×100 ≥ 15 for normal vision and ≥ 8 under protanopia
+			 * and deuteranopia (Machado 2009, severity 1), and every series at least
+			 * 2:1 (the graphic floor) on background and card.
+			 */
+			const PROTAN = [0.152286, 1.052583, -0.204868, 0.114503, 0.786281, 0.099216, -0.003882, -0.048116, 1.051998]
+			const DEUTAN = [0.367322, 0.860646, -0.227968, 0.280085, 0.672501, 0.047413, -0.01182, 0.04294, 0.968881]
+			const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
+			const lab = (rgb: readonly number[], m?: number[]) => {
+				let [r, g, b] = rgb.map(clamp01)
+				if (m) [r, g, b] = [m[0] * r + m[1] * g + m[2] * b, m[3] * r + m[4] * g + m[5] * b, m[6] * r + m[7] * g + m[8] * b].map(clamp01)
+				const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b)
+				const mm = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b)
+				const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b)
+				return [
+					0.2104542553 * l + 0.793617785 * mm - 0.0040720468 * s,
+					1.9779984951 * l - 2.428592205 * mm + 0.4505937099 * s,
+					0.0259040371 * l + 0.7827717662 * mm - 0.808675766 * s,
+				]
+			}
+			const delta = (a: readonly number[], b: readonly number[], m?: number[]) => {
+				const [l1, a1, b1] = lab(a, m)
+				const [l2, a2, b2] = lab(b, m)
+				return Math.hypot(l1 - l2, a1 - a2, b1 - b2) * 100
+			}
+			const sable = cssFor(DEFAULT_THEME_ID)
+			const failures: string[] = []
+			for (const appearance of ["light", "dark"] as const) {
+				const own = resolveVars(cssFor(themeId), appearance)
+				const inherited = resolveVars(sable, appearance)
+				const series = CHART_TOKENS.map((token) => resolve(`--${token}`, own) ?? resolve(`--${token}`, inherited))
+				expect(series.every(Boolean), `${appearance}: every chart slot resolves`).toBe(true)
+				for (let i = 1; i < series.length; i++) {
+					const [a, b] = [series[i - 1]!.rgb, series[i]!.rgb]
+					const normal = delta(a, b)
+					const cvd = Math.min(delta(a, b, PROTAN), delta(a, b, DEUTAN))
+					if (normal < 15 || cvd < 8) failures.push(`${appearance}: chart-${i}/chart-${i + 1} ΔE ${normal.toFixed(1)}, CVD ${cvd.toFixed(1)}`)
+				}
+				for (const surfaceName of ["background", "card"]) {
+					const surface = surfaceOf(surfaceName, own)
+					if (!surface) continue
+					series.forEach((color, i) => {
+						const ratio = contrastRatio(painted(color!, surface), surface.rgb)
+						if (ratio < NON_TEXT_HARD_FLOOR) failures.push(`${appearance}: chart-${i + 1} on ${surfaceName} ${ratio.toFixed(2)}:1`)
+					})
+				}
+			}
+			expect(failures).toEqual([])
+		},
+	)
+
 	it.each(themeIds)("%s lets a nested .dark element take the dark tokens", (themeId) => {
 		/*
 		 * Dark islands inside a light page (an inspector, a dark sidebar, a dark
@@ -1015,8 +1129,8 @@ describe("theme contrast", () => {
 	const GAMUT_BASELINE: Record<string, number> = {
 		sable: 0.4121, // Same palette as the existing neutral default; no new exemption.
 		prism: 0.4121, // --tone-2: oklch(72% 0.225 285)
-		ember: 0.082, // --ember-100: oklch(94% 0.045 32.9)
-		meridian: 0.032, // --meridian-ember-50: oklch(97% 0.02 30)
+		ember: 0.0173, // --ring: oklch(58% 0.245 32.9) (the unread ember ramp, worst 0.082, was removed)
+		meridian: 0.008, // --success: oklch(43% 0.1 165) (the unread meridian-ember ramp, worst 0.032, was removed)
 		verdant: 0.018, // --success: oklch(50% 0.11 173)
 	}
 
@@ -1139,5 +1253,44 @@ describe("theme contrast", () => {
 			}
 		}
 		expect(failures).toEqual([])
+	})
+})
+
+describe("theme css hygiene", () => {
+	/**
+	 * Every custom property a theme declares ships on `:root` (or on every
+	 * `[data-sable-theme]` element) in every app, read or not. A 22-step ember
+	 * and soot ramp nobody referenced, a meridian-ember ramp, 59 of Sable's 78
+	 * hue steps and `--theme-shadow-2xs`/`xs`/`2xl` (which styles.css never maps)
+	 * all shipped that way. A declaration must be a contract token or be read
+	 * somewhere in the package: a `var()` in a stylesheet (the theme's own
+	 * semantic layer counts) or a name in the TypeScript.
+	 */
+	const SRC = resolve(__dirname, "..")
+	const corpus = (() => {
+		const out: string[] = []
+		const walk = (dir: string) => {
+			for (const entry of readdirSync(dir, { withFileTypes: true })) {
+				const path = resolve(dir, entry.name)
+				if (entry.isDirectory()) walk(path)
+				else if (/\.(css|tsx?)$/.test(entry.name) && !/\.test\.tsx?$/.test(entry.name)) out.push(readFileSync(path, "utf8"))
+			}
+		}
+		walk(SRC)
+		return out.join("\n")
+	})()
+	const contractTokens = new Set(
+		Object.values(contract).flatMap((value) => (Array.isArray(value) ? (value as unknown[]).filter((v): v is string => typeof v === "string") : [])),
+	)
+
+	it.each(themeIds)("%s declares nothing that nothing reads", (themeId) => {
+		const css = cssFor(themeId).replace(/\/\*[\s\S]*?\*\//g, "")
+		const declared = new Set([...css.matchAll(/^\s*--([\w-]+)\s*:/gm)].map((m) => m[1]))
+		const unread = [...declared].filter((name) => {
+			if (contractTokens.has(name)) return false
+			const escaped = name.replace(/[-]/g, "\\-")
+			return !new RegExp(`var\\(\\s*--${escaped}(?![\\w-])|["'\`]--${escaped}(?![\\w-])`).test(corpus)
+		})
+		expect(unread, `${themeId} declares tokens nothing reads — delete them, or read them`).toEqual([])
 	})
 })

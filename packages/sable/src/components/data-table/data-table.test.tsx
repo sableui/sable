@@ -255,3 +255,104 @@ describe("DataTable groups", () => {
 		expect(screen.queryAllByRole("rowheader")).toHaveLength(0)
 	})
 })
+
+describe("DataTable controlled sort", () => {
+	it("sorts by the `sort` prop and reports header clicks through onSortChange", async () => {
+		const user = userEvent.setup()
+		const onSortChange = vi.fn()
+		const { rerender } = renderWithProviders(
+			<DataTable data={data} columns={columns} sort={{ key: "age", direction: "desc" }} onSortChange={onSortChange} />,
+		)
+		expect(rowNames()).toEqual(["Bob", "Carol", "Alice"])
+		expect(screen.getByRole("columnheader", { name: /Age/ })).toHaveAttribute("aria-sort", "descending")
+
+		// Controlled: the click reports the next step and changes nothing by itself.
+		await user.click(screen.getByRole("button", { name: /Age/ }))
+		expect(onSortChange).toHaveBeenLastCalledWith(null)
+		expect(rowNames()).toEqual(["Bob", "Carol", "Alice"])
+		await user.click(screen.getByRole("button", { name: /Name/ }))
+		expect(onSortChange).toHaveBeenLastCalledWith({ key: "name", direction: "asc" })
+
+		rerender(<DataTable data={data} columns={columns} sort={null} onSortChange={onSortChange} />)
+		expect(rowNames()).toEqual(["Carol", "Alice", "Bob"])
+		expect(screen.getByRole("columnheader", { name: /Age/ })).not.toHaveAttribute("aria-sort")
+	})
+
+	it("reports clicks while uncontrolled too", async () => {
+		const user = userEvent.setup()
+		const onSortChange = vi.fn()
+		renderWithProviders(<DataTable data={data} columns={columns} onSortChange={onSortChange} />)
+		await user.click(screen.getByRole("button", { name: /Name/ }))
+		expect(onSortChange).toHaveBeenLastCalledWith({ key: "name", direction: "asc" })
+		expect(rowNames()).toEqual(["Alice", "Bob", "Carol"])
+	})
+
+	it("leaves the rows in the order given with manualSorting, and still shows the sort", () => {
+		// A server already sorted this page by age descending.
+		const page = [data[2], data[0], data[1]]
+		renderWithProviders(
+			<DataTable data={page} columns={columns} sort={{ key: "name", direction: "asc" }} manualSorting />,
+		)
+		expect(rowNames()).toEqual(["Bob", "Carol", "Alice"])
+		expect(screen.getByRole("columnheader", { name: /Name/ })).toHaveAttribute("aria-sort", "ascending")
+	})
+})
+
+describe("DataTable string order", () => {
+	type File = { name: string }
+	const fileColumns: DataTableColumn<File>[] = [{ key: "name", header: "Name", sortable: true }]
+
+	it("compares as a reader does: case-blind, digits by value, accents beside their letter", () => {
+		const files: File[] = [{ name: "Zoe" }, { name: "file10" }, { name: "Éclair" }, { name: "adam" }, { name: "file2" }, { name: "eclipse" }]
+		renderWithProviders(
+			<DataTable data={files} columns={fileColumns} defaultSort={{ key: "name", direction: "asc" }} locale="en" />,
+		)
+		expect(rowNames()).toEqual(["adam", "Éclair", "eclipse", "file2", "file10", "Zoe"])
+	})
+
+	it("keeps the order of data for equal values", () => {
+		const files: File[] = [{ name: "b" }, { name: "A" }, { name: "a" }]
+		renderWithProviders(<DataTable data={files} columns={fileColumns} defaultSort={{ key: "name", direction: "asc" }} />)
+		expect(rowNames()).toEqual(["A", "a", "b"])
+	})
+})
+
+describe("DataTable rowKey", () => {
+	it("always receives the row's index in data, never its sorted position", async () => {
+		const user = userEvent.setup()
+		const seen = new Map<string, Set<number>>()
+		const rowKey = (row: Row, index: number) => {
+			if (!seen.has(row.name)) seen.set(row.name, new Set())
+			seen.get(row.name)?.add(index)
+			return `${row.name}-${index}`
+		}
+		function Selectable() {
+			const [keys, setKeys] = useState<Set<string | number>>(new Set())
+			return <DataTable data={data} columns={columns} rowKey={rowKey} selectedKeys={keys} onSelectedKeysChange={setKeys} rowSelectionLabel={(r) => `Select ${r.name}`} />
+		}
+		renderWithProviders(<Selectable />)
+		await user.click(screen.getByRole("button", { name: /Name/ }))
+		await user.click(screen.getByRole("checkbox", { name: "Select Alice" }))
+		expect(screen.getByRole("checkbox", { name: "Select Alice" })).toHaveAttribute("aria-checked", "true")
+		expect(Object.fromEntries([...seen].map(([k, v]) => [k, [...v]]))).toEqual({ Carol: [0], Alice: [1], Bob: [2] })
+	})
+})
+
+describe("DataTable root", () => {
+	it("forwards ref and DOM props to the table", () => {
+		let table: HTMLTableElement | null = null
+		renderWithProviders(
+			<DataTable
+				data={data}
+				columns={columns}
+				ref={(el) => {
+					table = el
+				}}
+				aria-label="People"
+				data-testid="people"
+			/>,
+		)
+		expect(screen.getByRole("table", { name: "People" })).toBe(screen.getByTestId("people"))
+		expect(table).toBe(screen.getByTestId("people"))
+	})
+})

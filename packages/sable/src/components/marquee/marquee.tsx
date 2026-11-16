@@ -34,6 +34,10 @@ export interface MarqueeProps
 	fade?: boolean
 	/** Accessible label for the scrolling region (only set a role/name when meaningful). */
 	label?: string
+	/** The control's accessible name while the strip moves. @default "Pause" */
+	pauseLabel?: string
+	/** The control's accessible name while the strip is paused. @default "Play" */
+	playLabel?: string
 }
 
 /**
@@ -58,6 +62,8 @@ export function Marquee({
 	onPlayChange,
 	fade = false,
 	label,
+	pauseLabel = "Pause",
+	playLabel = "Play",
 	className,
 	style,
 	ref,
@@ -157,7 +163,7 @@ export function Marquee({
 					variant="floating"
 					size="icon-xs"
 					onClick={togglePlay}
-					aria-label={isPaused ? "Play" : "Pause"}
+					aria-label={isPaused ? playLabel : pauseLabel}
 					className="absolute end-2 top-2 z-10"
 				>
 					<PlayPauseGlyph playing={!isPaused} />

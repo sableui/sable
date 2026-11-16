@@ -112,6 +112,28 @@ export function AccordionPage() {
 				</Example>
 			</Section>
 
+			<Section
+				title="Heading level"
+				description="Each trigger sits in a heading, h3 unless you say otherwise. Set headingLevel so the questions fit the page outline: h2 for an FAQ directly under the page title, h4 under an h3 section."
+			>
+				<Example className="block">
+					<Accordion className="w-full max-w-(--measure-prose)">
+						<AccordionItem value="refund">
+							<AccordionTrigger headingLevel={2}>Can I get a refund?</AccordionTrigger>
+							<AccordionPanel>
+								Within 30 days of purchase, from billing settings.
+							</AccordionPanel>
+						</AccordionItem>
+						<AccordionItem value="seats">
+							<AccordionTrigger headingLevel={2}>Can I change my seat count?</AccordionTrigger>
+							<AccordionPanel>
+								Any time. The next invoice is prorated.
+							</AccordionPanel>
+						</AccordionItem>
+					</Accordion>
+				</Example>
+			</Section>
+
 			<MetaFooter meta={accordionMeta} />
 		</>
 	)

@@ -7,7 +7,8 @@ content, information architecture, and behavior. Inspiration is optional.
 ## One workflow
 
 1. Install and wire Sable using [getting-started.md](./getting-started.md).
-   Run `pnpm exec sable setup --agent` to connect the package-owned skill.
+   `sable init` connects the package-owned skill; in an app wired by hand, run
+   `pnpm exec sable setup --agent`.
 2. Choose a bundled preset, customize one in Canvas, or use `inspire` to develop
    an original preset from references. See [creating-a-preset.md](./creating-a-preset.md).
    Starting directly from an idea is equally valid.
@@ -86,3 +87,34 @@ working result, preset/revision used, checks, and any material limitations.
 Include a reuse inventory: imported Sable components and parts, retrieved token
 groups/utilities, and the reason for each app-owned UI/CSS addition. Inspect source
 ownership; valid classes on a hand-built control still violate the contract.
+
+## When nobody types /sable
+
+A skill loads only when a request names it or the agent decides it fits. Setup
+therefore writes a short managed block into `AGENTS.md` (Codex, Cursor) and
+`CLAUDE.md` (Claude Code), the files an agent reads on every task, so a plain
+"add a pricing page" still goes through the skill. Only the text between its
+`<!-- sable:begin -->` and `<!-- sable:end -->` markers is Sable's.
+
+## Move an existing app onto Sable
+
+`sable check` reports adoption: how many UI files compose Sable, and which
+app-built components do by hand what a Sable component already does. It is never
+a failure. When adoption is low, show the user the swaps and what each gains,
+ask once, then move them a screen at a time with `polish`. "Move this app onto
+Sable" is never a `build`. [auditing-an-app.md](./auditing-an-app.md) has the
+full guide.
+
+## Commands, the Stop hook and MCP
+
+- The CLI that ships with the package answers every lookup offline at the
+  installed version: `pnpm exec sable manifest` lists the commands; `init`,
+  `upgrade`, `doctor`, `check`, `lint`, `grade`, `search`, `component`, `docs`,
+  `sources`, `patch`, `preset` and `setup` are the ones a project meets first.
+- In Claude Code, `pnpm exec sable setup --agent --hook` adds a Stop hook that
+  runs `sable check` before a task can end; `sable init` offers it in a terminal.
+- `pnpm exec sable upgrade` updates the package and refreshes the skill entries
+  and the instructions block together.
+- Before the package is installed, the hosted MCP server at
+  `https://www.sableui.com/api/mcp` answers the same lookups through `search`,
+  `get` and `docs`. Once Sable is installed, use the CLI.

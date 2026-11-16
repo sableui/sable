@@ -104,7 +104,7 @@ const shape: Foundation = {
 			title: "Concentric menu items",
 			before: '<div className="rounded-md p-1"><div className="rounded-md">Item</div></div>',
 			after: '<div className="rounded-md popup-inset"><div className="rounded-popup-item">Item</div></div>',
-			why: "12px outer − 4px inset = 8px inner at the default ladder, and the utilities keep the subtraction right when a preset or the customizer rescales the radius or the density.",
+			why: "12px outer − 4px inset − the popup's 1px border = 7px rows at the default ladder (the border is part of the distance from the outer curve), and the utilities keep the subtraction right when a preset or the customizer rescales the radius or the density.",
 		},
 	],
 	related: ["surfaces", "spacing", "sable token radii"],

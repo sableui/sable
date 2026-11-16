@@ -95,6 +95,26 @@ describe("ToggleGroup appearance", () => {
 		expect(list.className).toContain("data-[pressed]:bg-accent")
 	})
 
+	it("draws tiles edge to edge from the card padding and keeps one chosen", async () => {
+		const onValueChange = vi.fn()
+		renderWithProviders(
+			<ToggleGroup appearance="tiles" aria-label="Device" defaultValue={["desktop"]} onValueChange={onValueChange}>
+				<Toggle value="desktop">Desktop</Toggle>
+				<Toggle value="mobile">Mobile</Toggle>
+			</ToggleGroup>,
+		)
+		const group = screen.getByRole("group", { name: "Device" })
+		expect(group).toHaveAttribute("data-appearance", "tiles")
+		const desktop = screen.getByRole("button", { name: "Desktop" })
+		expect(desktop.className).toContain("px-(--card-p,--spacing(6))")
+		expect(desktop.className).toContain("not-first:border-s")
+		expect(desktop.className).not.toContain("rounded-sm")
+		// Pressing the chosen tile does not leave the chart with nothing to plot.
+		await userEvent.click(desktop)
+		expect(onValueChange).not.toHaveBeenCalled()
+		expect(desktop).toHaveAttribute("aria-pressed", "true")
+	})
+
 	it("keeps an unpressed toggle's hover off the pressed fill", () => {
 		renderWithProviders(<Toggle aria-label="Pin">Pin</Toggle>)
 		const button = screen.getByRole("button", { name: "Pin" })

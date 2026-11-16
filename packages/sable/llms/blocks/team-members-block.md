@@ -20,6 +20,8 @@ A members card: Entity rows with avatar, name and email, a role Badge, and an Ov
 ## Source
 
 ```tsx
+"use client"
+
 import { Avatar, Badge, Button, Card, CardAction, CardDescription, CardHeader, CardList, CardTitle, cn, Entity, Icon, MenuItem, MenuSeparator, OverflowMenu } from "@sableui/react"
 
 const members = [

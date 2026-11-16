@@ -40,7 +40,13 @@ export const videoMeta: ComponentMeta = {
 			name: "onRequestPlay",
 			type: "() => void",
 			description:
-				"Placeholder only (no src): renders the play mark as a real button labelled \"Play video\" that calls this — e.g. to load the source. Without it the mark is decorative.",
+				"Placeholder only (no src): renders the play mark as a real button labelled by playLabel that calls this — e.g. to load the source. Without it the mark is decorative.",
+		},
+		{
+			name: "playLabel",
+			type: "string",
+			default: '"Play video"',
+			description: "Accessible name of the placeholder play button (with onRequestPlay).",
 		},
 		{
 			name: "src",

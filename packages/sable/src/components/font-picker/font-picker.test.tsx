@@ -106,3 +106,28 @@ describe("FontPicker", () => {
 		expect(trigger).toHaveTextContent("BodyFigtree")
 	})
 })
+
+describe("FontPicker in a form, in another language", () => {
+	it("submits the chosen family under its name", () => {
+		const { container } = render(
+			<form>
+				<Controlled name="body-font" value="Inter" />
+			</form>,
+		)
+		expect(new FormData(container.querySelector("form") as HTMLFormElement).get("body-font")).toBe("Inter")
+	})
+
+	it("takes a translated placeholder and empty message", () => {
+		const { getByRole, getByPlaceholderText, getByText } = render(
+			<Controlled
+				defaultOpen
+				searchPlaceholder={(count) => `${count} Schriften durchsuchen`}
+				emptyLabel={(query) => `Keine Schrift passt zu „${query}“.`}
+			/>,
+		)
+		expect(getByRole("button", { name: /Body/ })).toBeInTheDocument()
+		const search = getByPlaceholderText("3 Schriften durchsuchen")
+		fireEvent.change(search, { target: { value: "zzz" } })
+		expect(getByText("Keine Schrift passt zu „zzz“.")).toBeInTheDocument()
+	})
+})

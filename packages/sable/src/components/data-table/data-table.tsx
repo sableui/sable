@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useId, useMemo, useState } from "react"
+import { type ComponentPropsWithRef, type ReactNode, useId, useMemo, useState } from "react"
 import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
 import { Button } from "../button/button"
@@ -57,12 +57,19 @@ export interface DataTableGroup {
 	defaultExpanded?: boolean
 }
 
-export interface DataTableProps<Row> {
+/** A column and a direction. `null` means unsorted (the order of `data`). */
+export type DataTableSort = { key: string; direction: "asc" | "desc" }
+
+export interface DataTableProps<Row> extends Omit<ComponentPropsWithRef<"table">, "children"> {
 	/** Column definitions, left to right. */
 	columns: DataTableColumn<Row>[]
 	/** The rows. */
 	data: Row[]
-	/** Stable React key per row. @default the row index */
+	/**
+	 * Stable key per row, for React and for selection. `index` is always the
+	 * row's place in `data`, never its sorted or grouped position.
+	 * @default the row's index in `data`
+	 */
 	rowKey?: (row: Row, index: number) => string | number
 	/** Row click handler — makes rows pointer-interactive. */
 	onRowClick?: (row: Row) => void
@@ -81,8 +88,27 @@ export interface DataTableProps<Row> {
 	rowSelectionLabel?: (row: Row) => string
 	/** The select-all checkbox's accessible name. @default (count) => `Select all ${count} shown` */
 	selectAllLabel?: (count: number) => string
-	/** Initial sort. */
-	defaultSort?: { key: string; direction: "asc" | "desc" }
+	/** Initial sort, uncontrolled. */
+	defaultSort?: DataTableSort
+	/**
+	 * The sort, controlled. Pass `null` for unsorted. A header click calls
+	 * `onSortChange` with the next step of asc → desc → none.
+	 */
+	sort?: DataTableSort | null
+	/** Called with the next sort when a `sortable` header is clicked. */
+	onSortChange?: (sort: DataTableSort | null) => void
+	/**
+	 * Skip the local sort: `data` already arrives in `sort` order, from a server
+	 * that sorts and pages. The headers still show and report the sort. Without
+	 * this, a sortable header on server-paged rows reorders only the page shown.
+	 */
+	manualSorting?: boolean
+	/**
+	 * The locale strings are compared in (a BCP 47 tag). Comparison is
+	 * case-insensitive, ignores accents, and orders digits by value ("file2"
+	 * before "file10"). @default the reader's locale
+	 */
+	locale?: string
 	/** Rendered (spanning all columns) when `data` is empty. @default "No results." */
 	empty?: ReactNode
 	/** Bottom caption. */
@@ -105,7 +131,17 @@ export interface DataTableProps<Row> {
 	expandedGroups?: ReadonlySet<string>
 	/** Called with the new set of open group keys when a group is opened or closed. */
 	onExpandedGroupsChange?: (keys: Set<string>) => void
-	className?: string
+}
+
+/** Order two sort values: nulls last, strings by the collator, the rest by value. */
+function compareValues(a: unknown, b: unknown, collator: Intl.Collator): number {
+	if (a == null && b == null) return 0
+	if (a == null) return 1
+	if (b == null) return -1
+	if (typeof a === "string" && typeof b === "string") return collator.compare(a, b)
+	const va = a instanceof Date ? a.getTime() : (a as number)
+	const vb = b instanceof Date ? b.getTime() : (b as number)
+	return va < vb ? -1 : va > vb ? 1 : 0
 }
 
 /**
@@ -114,8 +150,9 @@ export interface DataTableProps<Row> {
  * cycle asc → desc → none), optional row click, checkbox selection for bulk
  * actions (`selectedKeys` + `onSelectedKeysChange`), rows grouped under
  * collapsible header rows (`groupBy` + `groups`), and an empty state.
- * For server-side data or paging, sort/page the `data` you pass in and pair it
- * with `Pagination`.
+ * For server-side data or paging, control the sort (`sort` + `onSortChange`),
+ * set `manualSorting`, pass the page the server returned, and pair it with
+ * `Pagination`.
  *
  *   <DataTable
  *     data={users}
@@ -138,6 +175,10 @@ export function DataTable<Row>({
 	rowSelectionLabel = () => "Select row",
 	selectAllLabel = (count) => `Select all ${count} shown`,
 	defaultSort,
+	sort: sortProp,
+	onSortChange,
+	manualSorting = false,
+	locale,
 	empty = "No results.",
 	caption,
 	groupBy,
@@ -146,46 +187,53 @@ export function DataTable<Row>({
 	expandedGroups,
 	onExpandedGroupsChange,
 	className,
+	...props
 }: DataTableProps<Row>) {
-	const [sort, setSort] = useState(defaultSort ?? null)
+	const [sortState, setSortState] = useState<DataTableSort | null>(defaultSort ?? null)
+	const sort = sortProp !== undefined ? sortProp : sortState
 	// Uncontrolled, the closed groups are what is held: a group that first
 	// appears later (a new status in the data) starts open.
 	const [closedGroups, setClosedGroups] = useState<Set<string>>(
 		() => new Set((groups ?? []).filter((g) => g.defaultExpanded === false).map((g) => g.key)),
 	)
 	const uid = useId()
+	// `<`/`>` on strings is code-point order: "Zoe" before "adam", "file10"
+	// before "file2", accented letters after "z". A collator orders them the
+	// way a reader does.
+	const collator = useMemo(
+		() => new Intl.Collator(locale, { numeric: true, sensitivity: "base" }),
+		[locale],
+	)
 
 	function toggleSort(key: string) {
-		setSort((prev) => {
-			if (prev?.key !== key) return { key, direction: "asc" }
-			if (prev.direction === "asc") return { key, direction: "desc" }
-			return null
-		})
+		const next: DataTableSort | null =
+			sort?.key !== key
+				? { key, direction: "asc" }
+				: sort.direction === "asc"
+					? { key, direction: "desc" }
+					: null
+		if (sortProp === undefined) setSortState(next)
+		onSortChange?.(next)
 	}
 
+	/* Each row travels with its index in `data`, so rowKey sees the same index
+	   for the React key and the selection key, sorted, grouped or not. */
 	const rows = useMemo(() => {
-		if (!sort) return data
+		const entries = data.map((row, index) => ({ row, index }))
+		if (!sort || manualSorting) return entries
 		const col = columns.find((c) => c.key === sort.key)
-		if (!col) return data
+		if (!col) return entries
 		const getValue =
 			col.sortValue ??
-			((row: Row) => (row as Record<string, unknown>)[col.key] as never)
-		return [...data].sort((a, b) => {
-			const va = getValue(a)
-			const vb = getValue(b)
-			let c = 0
-			if (va == null && vb == null) c = 0
-			else if (va == null) c = 1
-			else if (vb == null) c = -1
-			else if (va < vb) c = -1
-			else if (va > vb) c = 1
-			return sort.direction === "asc" ? c : -c
+			((row: Row) => (row as Record<string, unknown>)[col.key])
+		return entries.sort((a, b) => {
+			const c = compareValues(getValue(a.row), getValue(b.row), collator)
+			// Ties keep the order of `data`.
+			return (sort.direction === "asc" ? c : -c) || a.index - b.index
 		})
-	}, [data, sort, columns])
+	}, [data, sort, columns, manualSorting, collator])
 
-	/* The groups in display order, each holding its rows in sort order. A row's
-	   index stays its place in `rows`, so rowKey sees the same index grouped
-	   or not. */
+	/* The groups in display order, each holding its rows in sort order. */
 	const sections = useMemo(() => {
 		if (!groupBy) return null
 		const byKey = new Map<string, { row: Row; index: number }[]>()
@@ -193,7 +241,7 @@ export function DataTable<Row>({
 			const key = groupBy(row)
 			if (!byKey.has(key)) byKey.set(key, [])
 		}
-		rows.forEach((row, index) => byKey.get(groupBy(row))?.push({ row, index }))
+		for (const entry of rows) byKey.get(groupBy(entry.row))?.push(entry)
 		const listed = new Map((groups ?? []).map((g) => [g.key, g]))
 		const order = [...listed.keys(), ...[...byKey.keys()].filter((k) => !listed.has(k))]
 		return order
@@ -223,17 +271,14 @@ export function DataTable<Row>({
 	// What select-all acts on: the rows a reader can see, so a closed group's
 	// rows are not checked behind its header.
 	const shownRows = sections
-		? sections.flatMap((s) => (isExpanded(s.key) ? s.items.map((it) => it.row) : []))
+		? sections.flatMap((s) => (isExpanded(s.key) ? s.items : []))
 		: rows
 
 	const selectable = Boolean(onSelectedKeysChange)
-	// A row's key comes from its place in `data`, so it survives a re-sort.
-	const dataIndex = selectable ? new Map(data.map((row, i) => [row, i])) : null
-	const keyOf = (row: Row): DataTableRowKey => {
-		const i = dataIndex?.get(row) ?? 0
-		return rowKey ? rowKey(row, i) : i
-	}
-	const shownKeys = selectable ? shownRows.map(keyOf) : []
+	// A row's key comes from its place in `data`, so it survives a re-sort, and
+	// the React key and the selection key are the same value.
+	const keyOf = (row: Row, index: number): DataTableRowKey => (rowKey ? rowKey(row, index) : index)
+	const shownKeys = selectable ? shownRows.map((entry) => keyOf(entry.row, entry.index)) : []
 	const checkedCount = selectable ? shownKeys.filter((k) => selectedKeys?.has(k)).length : 0
 	const allChecked = shownKeys.length > 0 && checkedCount === shownKeys.length
 	function setChecked(keys: DataTableRowKey[], checked: boolean) {
@@ -246,12 +291,12 @@ export function DataTable<Row>({
 	}
 
 	const span = columns.length + (selectable ? 1 : 0)
-	function renderRow(row: Row, i: number, hidden = false) {
-		const key = selectable ? keyOf(row) : i
+	function renderRow(row: Row, index: number, hidden = false) {
+		const key = keyOf(row, index)
 		const checked = selectable && Boolean(selectedKeys?.has(key))
 		return (
 			<TableRow
-				key={rowKey ? rowKey(row, i) : i}
+				key={key}
 				hidden={hidden || undefined}
 				data-selected={checked || isRowSelected?.(row) ? "" : undefined}
 				onClick={onRowClick ? () => onRowClick(row) : undefined}
@@ -301,7 +346,7 @@ export function DataTable<Row>({
 	}
 
 	return (
-		<Table className={className}>
+		<Table className={className} {...props}>
 			{caption ? <TableCaption>{caption}</TableCaption> : null}
 			<TableHeader>
 				<TableRow>
@@ -320,51 +365,17 @@ export function DataTable<Row>({
 					{columns.map((col) => {
 						const active = sort?.key === col.key
 						return (
+							// The sort control is TableHead's own `sortable` part: one
+							// header button for a hand-built Table and for this one.
 							<TableHead
 								key={col.key}
-								aria-sort={
-									active
-										? sort.direction === "asc"
-											? "ascending"
-											: "descending"
-										: undefined
-								}
-								className={cn(col.align && ALIGN[col.align], col.className)}
+								numeric={col.align === "end"}
+								sortable={col.sortable}
+								sortDirection={active ? sort.direction : null}
+								onSort={() => toggleSort(col.key)}
+								className={cn(col.align && col.align !== "end" && ALIGN[col.align], col.className)}
 							>
-								{col.sortable ? (
-									// The negative inline margin cancels Button's padding so
-									// the label stays on the column's text edge; the header's
-									// own type and ink win over Button's action tier. In an
-									// end-aligned column the chevron leads, so the LABEL is
-									// what sits on the numbers' edge.
-									<Button
-										variant="ghost"
-										size="xs"
-										onClick={() => toggleSort(col.key)}
-										className={cn(
-											"-mx-2 gap-1 text-label-md text-muted-foreground hover:text-foreground",
-											col.align === "end" && "flex-row-reverse",
-										)}
-									>
-										{col.header}
-										{/* One chevron that turns, not two glyphs swapped: flipping
-										    asc to desc rotates the mark (motion-interactive lists
-										    `rotate`), so the reader sees the same column reverse
-										    rather than a different icon land in its place. */}
-										<Icon
-											name="chevron-up"
-											// Resting at 60%: still clearly quieter than the active
-											// chevron, but a visible mark (30% fell under 3:1).
-											className={cn(
-												"text-xs motion-interactive",
-												active && sort.direction === "desc" && "rotate-180",
-												!active && "opacity-60",
-											)}
-										/>
-									</Button>
-								) : (
-									col.header
-								)}
+								{col.header}
 							</TableHead>
 						)
 					})}
@@ -442,7 +453,7 @@ export function DataTable<Row>({
 					)
 				})
 			) : (
-				<TableBody>{rows.map((row, i) => renderRow(row, i))}</TableBody>
+				<TableBody>{rows.map(({ row, index }) => renderRow(row, index))}</TableBody>
 			)}
 		</Table>
 	)

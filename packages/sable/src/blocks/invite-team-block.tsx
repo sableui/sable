@@ -1,3 +1,5 @@
+"use client"
+
 import { Avatar, AvatarGroup } from "../components/avatar"
 import { Button } from "../components/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/card"
@@ -19,7 +21,7 @@ export function InviteTeamBlock({ className, framed = true, onSend }: InviteTeam
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs", className)}>
 			<CardHeader>
-				<CardTitle>Invite your team</CardTitle>
+				<CardTitle render={<h2 />}>Invite your team</CardTitle>
 				<CardDescription>Collaborators can edit every project.</CardDescription>
 			</CardHeader>
 			<CardContent className="flex flex-col gap-4">

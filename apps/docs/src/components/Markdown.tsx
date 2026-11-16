@@ -1,5 +1,6 @@
 import { CodeBlock, cn } from "@sableui/react"
 import { type ReactNode, useMemo } from "react"
+import { routeForDoc } from "../lib/markdown-twins"
 
 /**
  * A small Markdown renderer for the guides.
@@ -16,8 +17,10 @@ import { type ReactNode, useMemo } from "react"
  *
  * 1. Code fences render through Sable's own `CodeBlock`, so every sample in
  *    every guide gets a copy button without the guides knowing about it.
- * 2. Links to sibling `.md` files are rewritten to docs routes. The sources
- *    cross-reference each other by filename (`[building-a-tool.md](./…)`)
+ * 2. Relative links are resolved against the file's published address
+ *    (`base`, such as /llms/tasks/nextjs.md) and land on the docs route that
+ *    renders that file when there is one, or on the published file. The sources
+ *    cross-reference each other by filename (`[nextjs.md](./nextjs.md)`)
  *    because they were written to be read on disk; left alone, every one of
  *    those would 404 on the site.
  */
@@ -27,12 +30,17 @@ import { type ReactNode, useMemo } from "react"
 /** `**bold**`, `` `code` ``, `[text](href)`, `_em_` — in one pass, in order. */
 const INLINE = /(`[^`]+`)|(\*\*[^*]+\*\*)|(\[[^\]]+\]\([^)]+\))|(\*[^*\s][^*]*\*)/g
 
-function resolveHref(href: string): { href: string; internal: boolean } {
+function resolveHref(href: string, base?: string): { href: string; internal: boolean } {
 	if (href.startsWith("#")) return { href, internal: true }
+	if (base && !href.startsWith("/") && !/^[a-z][a-z0-9+.-]*:/i.test(href)) {
+		const url = new URL(href, `https://docs.invalid${base}`)
+		const route = routeForDoc(url.pathname)
+		return { href: route ? `/${route}${url.hash}` : `${url.pathname}${url.hash}`, internal: true }
+	}
 	return { href, internal: href.startsWith("/") }
 }
 
-function renderInline(text: string, keyPrefix: string): ReactNode[] {
+function renderInline(text: string, keyPrefix: string, base?: string): ReactNode[] {
 	const out: ReactNode[] = []
 	let last = 0
 	let index = 0
@@ -58,13 +66,13 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
 			// text flat printed the backticks.
 			out.push(
 				<strong key={key} className="text-foreground">
-					{renderInline(token.slice(2, -2), `${key}b`)}
+					{renderInline(token.slice(2, -2), `${key}b`, base)}
 				</strong>,
 			)
 		} else if (token.startsWith("[")) {
 			const split = token.indexOf("](")
 			const raw = token.slice(1, split)
-			const { href, internal } = resolveHref(token.slice(split + 2, -1))
+			const { href, internal } = resolveHref(token.slice(split + 2, -1), base)
 			const label = raw
 			out.push(
 				<a
@@ -80,7 +88,7 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
 			)
 		} else {
 			out.push(
-				<em key={key}>{renderInline(token.slice(1, -1), `${key}e`)}</em>,
+				<em key={key}>{renderInline(token.slice(1, -1), `${key}e`, base)}</em>,
 			)
 		}
 		last = start + token.length
@@ -240,7 +248,7 @@ const HEADING_CLASS: Record<number, string> = {
 	6: "text-title-sm",
 }
 
-function Block({ block, index }: { block: Block; index: number }) {
+function Block({ block, index, base }: { block: Block; index: number; base?: string }) {
 	switch (block.kind) {
 		case "heading": {
 			const Tag = `h${Math.min(block.level, 6)}` as "h2"
@@ -255,14 +263,14 @@ function Block({ block, index }: { block: Block; index: number }) {
 						block.level === 1 ? "mb-4" : "mt-12 mb-3 first:mt-0",
 					)}
 				>
-					{renderInline(block.text, `h${index}`)}
+					{renderInline(block.text, `h${index}`, base)}
 				</Tag>
 			)
 		}
 		case "paragraph":
 			return (
 				<p className="text-body-md text-muted-foreground mt-4 max-w-(--measure-prose)">
-					{renderInline(block.text, `p${index}`)}
+					{renderInline(block.text, `p${index}`, base)}
 				</p>
 			)
 		case "list": {
@@ -291,7 +299,7 @@ function Block({ block, index }: { block: Block; index: number }) {
 								item.depth >= 2 && "ml-10",
 							)}
 						>
-							{renderInline(item.text, `li${index}-${itemIndex}`)}
+							{renderInline(item.text, `li${index}-${itemIndex}`, base)}
 						</li>
 					))}
 				</Tag>
@@ -306,7 +314,7 @@ function Block({ block, index }: { block: Block; index: number }) {
 		case "quote":
 			return (
 				<blockquote className="text-body-md text-muted-foreground mt-5 max-w-(--measure-prose) border-l-2 border-highlight pl-4">
-					{renderInline(block.text, `q${index}`)}
+					{renderInline(block.text, `q${index}`, base)}
 				</blockquote>
 			)
 		case "table":
@@ -320,7 +328,7 @@ function Block({ block, index }: { block: Block; index: number }) {
 										key={cell}
 										className="text-label-md text-muted-foreground p-3"
 									>
-										{renderInline(cell, `th${index}`)}
+										{renderInline(cell, `th${index}`, base)}
 									</th>
 								))}
 							</tr>
@@ -338,7 +346,7 @@ function Block({ block, index }: { block: Block; index: number }) {
 											key={cellIndex}
 											className="text-body-sm text-muted-foreground p-3"
 										>
-											{renderInline(cell, `td${index}-${rowIndex}-${cellIndex}`)}
+											{renderInline(cell, `td${index}-${rowIndex}-${cellIndex}`, base)}
 										</td>
 									))}
 								</tr>
@@ -370,9 +378,12 @@ export function Markdown({
 	source,
 	/** Drop the document's own h1 — the page already renders a title. */
 	skipTitle = false,
+	/** The file's published address (/llms/tasks/nextjs.md), for its relative links. */
+	base,
 }: {
 	source: string
 	skipTitle?: boolean
+	base?: string
 }) {
 	const blocks = useMemo(() => {
 		const parsed = parseMarkdown(source)
@@ -388,7 +399,7 @@ export function Markdown({
 		<div>
 			{blocks.map((block, index) => (
 				// biome-ignore lint/suspicious/noArrayIndexKey: static parsed content
-				<Block key={index} block={block} index={index} />
+				<Block key={index} block={block} index={index} base={base} />
 			))}
 		</div>
 	)

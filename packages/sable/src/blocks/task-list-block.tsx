@@ -1,3 +1,5 @@
+"use client"
+
 import { useId, useState } from "react"
 import { Badge } from "../components/badge"
 import { Button } from "../components/button"
@@ -28,7 +30,7 @@ export function TaskListBlock({ className, framed = true, onAddTask }: TaskListB
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs", className)}>
 			<CardHeader>
-				<CardTitle>This week</CardTitle>
+				<CardTitle render={<h2 />}>This week</CardTitle>
 				<CardAction>
 					<span className="text-caption text-muted-foreground">{left} left</span>
 				</CardAction>

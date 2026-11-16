@@ -32,6 +32,8 @@ A full-height conversation surface: titled header, scrolling transcript, and a c
 ## Source
 
 ```tsx
+"use client"
+
 import { AgentAvatar, Attachment, Bubble, Button, Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle, ChatComposer, CodeBlock, Icon, Marker, MenuRadioGroup, MenuRadioItem, Message, MessageScroller, Page, SettingsMenu, SettingsRow, SimpleTooltip, StreamingText, Toolbar, ToolbarButton } from "@sableui/react"
 
 /**
@@ -90,7 +92,7 @@ export function ChatPanel() {
 				render={<section aria-labelledby="chat-title" />}
 				className="flex h-[calc(100dvh_-_--spacing(12))] flex-col overflow-hidden"
 			>
-				<CardHeader className="pb-(--card-p) shadow-[inset_0_-1px_0_var(--border)]">
+				<CardHeader divided>
 					{/* CardTitle carries the type; the h1 inside it is the page heading. */}
 					<CardTitle>
 						<h1 id="chat-title">Scroll behaviour</h1>

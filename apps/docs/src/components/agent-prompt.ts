@@ -1,6 +1,6 @@
 import { type MotionLevel, componentLabel } from "@sableui/react"
 import { isThemeId } from "@sableui/react/themes"
-import { useCustomizer } from "../customizer/CustomizerProvider"
+import { useCustomizerActions } from "../customizer/CustomizerProvider"
 import { useTheme } from "../theme"
 
 /*
@@ -35,7 +35,7 @@ export interface AgentTheme {
 
 export function useAgentTheme(): AgentTheme {
 	const { themeId, themes, mode } = useTheme()
-	const { isCustomized } = useCustomizer()
+	const { isCustomized } = useCustomizerActions()
 	return {
 		id: themeId,
 		label: themes.find((theme) => theme.id === themeId)?.label ?? themeId,

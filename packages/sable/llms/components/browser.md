@@ -22,6 +22,7 @@ Use Browser to frame a website or product surface preview when the browser chrom
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
 | url | string | — | Address shown in the centered address pill. Omit for a blank pill. |
+| elevation | "raised" \| "hero" | "raised" | raised: the soft resting shadow, for a window among other content. hero: lifted well off the page, for a product shot staged as a landing page's centrepiece (one per page). Use this instead of a shadow-* className. |
 | children | ReactNode | — | Page content rendered inside the content region. |
 
 ## Tokens used

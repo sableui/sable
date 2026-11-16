@@ -1,3 +1,5 @@
+"use client"
+
 import { Popover as Base } from "@base-ui/react/popover"
 import type { ComponentProps } from "react"
 import { anchoredScroll } from "../../lib/anchored-scroll"
@@ -87,6 +89,7 @@ export function PopoverContent({
 		</PopoverPortal>
 	)
 }
+PopoverContent.displayName = "PopoverContent"
 
 type TitleProps = Omit<ComponentProps<typeof Base.Title>, "className"> & {
 	className?: string
@@ -101,6 +104,7 @@ export function PopoverTitle({ className, ...props }: TitleProps) {
 		/>
 	)
 }
+PopoverTitle.displayName = "PopoverTitle"
 
 type DescriptionProps = Omit<
 	ComponentProps<typeof Base.Description>,
@@ -116,6 +120,7 @@ export function PopoverDescription({ className, ...props }: DescriptionProps) {
 		/>
 	)
 }
+PopoverDescription.displayName = "PopoverDescription"
 
 type ArrowProps = Omit<ComponentProps<typeof Base.Arrow>, "className"> & {
 	className?: string
@@ -143,3 +148,4 @@ export function PopoverArrow({ className, ...props }: ArrowProps) {
 		</Base.Arrow>
 	)
 }
+PopoverArrow.displayName = "PopoverArrow"

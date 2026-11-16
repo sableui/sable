@@ -97,7 +97,7 @@ export const tooltipMeta: ComponentMeta = {
 			name: "TooltipContent",
 			type: "Base UI Popup props + side | align | sideOffset + className",
 			description:
-				'Portals + positions + paints the popup. side ("top" | "bottom" | "left" | "right" | "inline-*") picks which side of the trigger to render against, defaults to "top", and auto-flips on collision; align ("start" | "center" | "end") defaults to "center"; sideOffset (gap between trigger and popup, in pixels) defaults to 6.',
+				'Portals + positions + paints the popup. side ("top" | "bottom" | "left" | "right" | "inline-*") picks which side of the trigger to render against, defaults to "top", and auto-flips on collision; align ("start" | "center" | "end") defaults to "center"; sideOffset (gap between trigger and popup, in pixels) defaults to 6. The popup caps its width at 20rem (a step inside a narrow screen) and wraps long content with text-pretty; SimpleTooltip and TooltipGroup share the cap.',
 		},
 		{
 			name: "TooltipArrow",

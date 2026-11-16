@@ -20,6 +20,8 @@ An upload queue: full-width Attachment rows — one uploading with progress and 
 ## Source
 
 ```tsx
+"use client"
+
 import { Attachment, Button, cn, Icon } from "@sableui/react"
 
 const uploading = { name: "brand-guidelines.pdf", meta: "4.2 MB of 6.8 MB", progress: 62 }

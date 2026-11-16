@@ -73,7 +73,9 @@ export function Code() { return <OtpField length={6} groupSize={3} onValueComple
 	}
 	const baseUi = () => JSON.parse(readFileSync(join(realpathSync(installed), "../../@base-ui/react/package.json"), "utf8")).version
 	strictTypes(`Base UI ${baseUi()}`, typedSubpaths.filter((name) => !konstaSubpaths.includes(name)))
-	assert(manifest.dependencies["reicon-react"], "Reicon must install automatically for the opt-in icon set.")
+	// The Reicon glyphs are vendored (scripts/build-reicon-icons.mjs), so the
+	// package must not make every consumer install reicon-react's 2,600 icons.
+	assert(!manifest.dependencies["reicon-react"], "reicon-react is a build-time source only; the glyphs ship vendored.")
 	const root = await import(pathToFileURL(join(installed, "dist/index.js")).href)
 	const { Icon, IconProvider } = root
 	// Reicon is opt-in from its subpath: the root barrel must not reach its artwork.
@@ -83,6 +85,13 @@ export function Code() { return <OtpField length={6} groupSize={3} onValueComple
 	const { renderToStaticMarkup } = await import(pathToFileURL(join(consumer, "node_modules/react-dom/server.node.js")).href)
 	assert(renderToStaticMarkup(createElement(IconProvider, { set: reiconIconSet }, createElement(Icon, { name: "heart" }))).includes("<svg"), "Packed Reicon icons do not render through IconProvider.")
 	assert(fallbackIconSet === reiconIconSet, "The obsolete fallback export must be an alias, not separate artwork.")
+	const { reiconSolidIconSet } = await import(pathToFileURL(join(installed, "dist/icon-sets/reicon-solid.js")).href)
+	assert(renderToStaticMarkup(createElement(IconProvider, { set: root.composeIconSets(reiconSolidIconSet, reiconIconSet) }, createElement(Icon, { name: "bell", variant: "solid" }))).includes("<path"), "Packed solid Reicon icons do not render through IconProvider.")
+	// The source directive survives only while each module is emitted on its own
+	// (tsup: no Rollup pass). A Server Component rendering <Button> needs it.
+	for (const file of ["components/button/button.js", "components/card/card.js", "components/input/input.js", "components/dialog/dialog.js", "icon/Icon.js"]) {
+		assert(/^"use client";/.test(readFileSync(join(installed, "dist", file), "utf8")), `dist/${file} lost its "use client" directive.`)
+	}
 	const registry = JSON.parse(readFileSync(join(installed, "registry.json"), "utf8"))
 	assert(manifest.version === registry.version, "Packed package and registry versions disagree.")
 	assert(manifest.license === "MIT", "The distributable does not declare its source license.")
@@ -110,6 +119,7 @@ export function Code() { return <OtpField length={6} groupSize={3} onValueComple
 		for (const match of css.matchAll(/@import\s+["'](\.[^"']+)["']/g)) checkCss(resolve(dirname(path), match[1]), visited)
 	}
 	checkCss(join(installed, "dist/styles.css"))
+	assert(!/@source\b/.test(readFileSync(join(installed, "dist/styles.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")), "dist/styles.css carries an @source: every app would scan all of dist and `sable sources` could trim nothing.")
 	checkCss(join(installed, "dist/themes.css"))
 	checkCss(join(installed, "dist/ios/styles.css"))
 	checkCss(join(installed, "dist/ios/frame.css"))

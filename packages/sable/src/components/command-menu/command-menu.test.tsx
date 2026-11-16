@@ -708,6 +708,14 @@ describe("CommandMenuPanel — the palette in place", () => {
 		expect(within(listbox).getAllByRole("group")).toHaveLength(2)
 	})
 
+	it("rests flat on the page unless raised", () => {
+		const { container, rerender } = renderWithProviders(<CommandMenuPanel items={panelItems()} />)
+		const panel = () => container.querySelector("[data-slot=command-menu-panel]") as HTMLElement
+		expect(panel().className).not.toContain("shadow-sm")
+		rerender(<CommandMenuPanel items={panelItems()} elevation="raised" />)
+		expect(panel().className).toContain("shadow-sm")
+	})
+
 	it("does not take focus on mount, and is not the shortcut's input", () => {
 		renderWithProviders(<CommandMenuPanel items={panelItems()} />)
 		const combobox = screen.getByRole("combobox")

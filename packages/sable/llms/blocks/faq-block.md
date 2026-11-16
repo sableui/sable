@@ -20,6 +20,8 @@ A FAQ section: the heading and a way to ask beside an Accordion of questions, ea
 ## Source
 
 ```tsx
+"use client"
+
 import { useId } from "react"
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger, cn, Region, Stack } from "@sableui/react"
 

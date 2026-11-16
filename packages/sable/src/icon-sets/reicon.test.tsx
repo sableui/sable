@@ -1,11 +1,12 @@
-import { readFileSync } from "node:fs"
-import { resolve } from "node:path"
+import { readdirSync, readFileSync, statSync } from "node:fs"
+import { join, resolve } from "node:path"
 import { render } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 import { composeIconSets } from "../icon/compose"
 import { brandIconSet } from "./brands"
 import { ICON_ALIASES, ICON_NAMES } from "../icon/names"
-import { reiconIconNames, reiconIconSet } from "./reicon"
+import { reiconIconNames, reiconIconSet, reiconSolidCoreNames } from "./reicon"
+import { reiconSolidIconNames, reiconSolidIconSet } from "./reicon-solid"
 
 /**
  * The whole reason this adapter moved into the package was drift: two apps kept
@@ -72,6 +73,65 @@ describe("reiconIconSet", () => {
 
 	it("returns null for an unknown name so composed sets can fall through", () => {
 		expect(reiconIconSet({ name: "not-a-real-icon", variant: "regular" })).toBeNull()
+	})
+})
+
+describe("solid weight", () => {
+	const markupOf = (node: ReturnType<typeof reiconIconSet>) => {
+		const { container, unmount } = render(<>{node}</>)
+		const html = container.innerHTML
+		unmount()
+		return html
+	}
+
+	it("keeps the solid weight for every glyph Sable's own source draws solid", () => {
+		// The default set carries Filled artwork only for these names; a component
+		// that starts drawing another glyph solid would silently fall back to the
+		// outline. Scan the library for literal solid call sites.
+		const root = resolve(__dirname, "..")
+		const files: string[] = []
+		const walk = (dir: string) => {
+			for (const entry of readdirSync(dir)) {
+				const path = join(dir, entry)
+				// The icon sets' own doc comments show solid usage; they are not call sites.
+				if (statSync(path).isDirectory()) entry !== "icon-sets" && walk(path)
+				else if (/\.tsx?$/.test(entry) && !/\.(test|meta)\.tsx?$/.test(entry)) files.push(path)
+			}
+		}
+		walk(root)
+		const used = new Set<string>()
+		for (const file of files) {
+			const code = readFileSync(file, "utf8")
+			for (const [tag] of code.matchAll(/<Icon\b[^>]*variant=(?:"solid"|\{[^}]*"solid"[^}]*\})[^>]*>/g)) {
+				for (const [, name] of tag.matchAll(/"([a-z][a-z-]*)"/g)) if (reiconIconNames.includes(name)) used.add(name)
+			}
+		}
+		used.add("ellipsis") // OverflowMenu's default icon, drawn solid through a prop
+		const missing = [...used].filter((name) => !reiconSolidCoreNames.includes(name))
+		expect(missing, `drawn solid in src but not in SOLID_IN_DEFAULT: ${missing.join(", ")}`).toEqual([])
+	})
+
+	it("draws the Filled weight for a core solid glyph and the outline otherwise", () => {
+		expect(markupOf(reiconIconSet({ name: "heart", variant: "solid" }))).not.toBe(
+			markupOf(reiconIconSet({ name: "heart", variant: "regular" })),
+		)
+		// Not carried by the default set: the outline, never nothing.
+		expect(markupOf(reiconIconSet({ name: "bell", variant: "solid" }))).toBe(
+			markupOf(reiconIconSet({ name: "bell", variant: "regular" })),
+		)
+	})
+
+	it("the solid subpath draws every contract name, and only for variant solid", () => {
+		const missing = contractNames.filter((name) => !reiconSolidIconNames.includes(name))
+		expect(missing).toEqual([])
+		expect(reiconSolidIconSet({ name: "bell", variant: "regular" })).toBeNull()
+		const composed = composeIconSets(reiconSolidIconSet, reiconIconSet)
+		expect(markupOf(composed({ name: "bell", variant: "solid" }))).not.toBe(
+			markupOf(reiconIconSet({ name: "bell", variant: "regular" })),
+		)
+		expect(markupOf(composed({ name: "bell", variant: "regular" }))).toBe(
+			markupOf(reiconIconSet({ name: "bell", variant: "regular" })),
+		)
 	})
 })
 

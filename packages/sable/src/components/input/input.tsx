@@ -1,3 +1,5 @@
+"use client"
+
 import { Input as BaseInput } from "@base-ui/react/input"
 import type { ComponentPropsWithRef } from "react"
 import { cn } from "../../lib/cn"
@@ -37,11 +39,14 @@ import { useDensity, useTypeTier } from "../../lib/density"
 
 export interface InputProps extends Omit<ComponentPropsWithRef<"input">, "size"> {
 	/**
-	 * The control ladder, matching Select and Combobox: `md` is the form field;
-	 * `xs` is the dense inset field of a tool panel (inspector rows, a hex
-	 * input) — an inset canvas fill, no outline, tight padding. @default "md"
+	 * The field ladder, shared with SelectTrigger, ComboboxInput, SearchInput,
+	 * NumberField and DatePicker: `md` is the form field; `sm` is the toolbar
+	 * field, one rung down on `--control-sm` beside `sm` buttons and an `sm`
+	 * Select; `xs` is the dense inset field of a tool panel (inspector rows, a
+	 * hex input) — an inset canvas fill, no outline, tight padding.
+	 * @default "md"
 	 */
-	size?: "md" | "xs"
+	size?: "md" | "sm" | "xs"
 }
 
 /**
@@ -72,7 +77,9 @@ export function Input({ className, type, size = "md", ref, ...props }: InputProp
 				"flex w-full text-foreground",
 				FIELD_SHELL,
 				FIELD_INVALID,
-				size === "xs" ? cn("h-(--control-xs) px-1.5", FIELD_SHELL_XS) : "h-(--control-md) px-3",
+				size === "xs" && cn("h-(--control-xs) px-1.5", FIELD_SHELL_XS),
+				size === "sm" && "h-(--control-sm) px-2.5",
+				size === "md" && "h-(--control-md) px-3",
 				// type="file": style the native selector button (otherwise unstyled).
 				"file:mr-3 file:cursor-pointer file:border-0 file:bg-transparent file:py-2 file:text-foreground",
 				tier.body,

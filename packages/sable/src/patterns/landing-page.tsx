@@ -17,6 +17,7 @@ import { ChatComposer } from "../components/chat-composer"
 import { Code } from "../components/code"
 import { CodeBlock } from "../components/code-block"
 import { Entity } from "../components/entity"
+import { IconTile } from "../components/icon-tile"
 import { Message } from "../components/message"
 import { Meter, MeterLabel, MeterTrack, MeterValue } from "../components/meter"
 import { PageHeader } from "../components/page-header"
@@ -237,7 +238,7 @@ export function LandingPage() {
 
 				<Region as="section" aria-label="Product preview" max="wide" className="pb-20 sm:pb-28">
 					<figure>
-						<Browser url="atlas.example/deploys" className="shadow-xl">
+						<Browser url="atlas.example/deploys" elevation="hero">
 							{/* A picture of software, not live UI: inert keeps its controls
 							    out of the tab order and the accessibility tree. */}
 							<div inert className="grid gap-4 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -365,9 +366,7 @@ export function LandingPage() {
 									{features.map((feature) => (
 										<Card key={feature.title} render={<article />} className="h-full">
 											<CardContent className="flex flex-col gap-3">
-												<span className="grid size-10 place-items-center rounded-md sable-well">
-													<Icon name={feature.icon} className="text-xl" />
-												</span>
+												<IconTile icon={feature.icon} />
 												<h3 className="pt-2 text-title-lg">{feature.title}</h3>
 												<p className="text-body-sm text-muted-foreground">{feature.body}</p>
 											</CardContent>

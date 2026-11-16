@@ -5,14 +5,14 @@ const accessibility: Foundation = {
 	title: "Accessibility",
 	summary:
 		"Sable's components ship accessible behavior from Base UI. These rules cover what an app composing them still has to get right.",
-	headline: "WCAG AA · 44px targets · visible focus · reduced motion · logical properties",
+	headline: "WCAG AA · 44px touch targets · visible focus · reduced motion · logical properties",
 	vocabularies: [
 		{
 			title: "Floors",
 			terms: [
 				{ name: "Contrast", value: "4.5:1 text · 3:1 UI and large text", use: "Every semantic text/surface pair is checked per theme by contrast.test.ts." },
-				{ name: "Hit area", value: "44×44px", use: "hit-target keeps a small control at the floor without moving layout." },
-				{ name: "Focus", value: "ring-2 ring-ring, full opacity", use: "Visible on every interactive element, in light, dark and forced-colors." },
+				{ name: "Hit area", value: "44×44px on touch · 24×24px floor", use: "A control that stands alone (a dialog's close, a banner's dismiss, a code block's copy, a carousel's arrows) grows its target to 44px under a coarse pointer without moving layout (hit-target, or lib/hit-target's hitTargetTouch inside components). Controls packed in a row (pagination numbers, calendar days, chips, tree disclosures) keep the WCAG 2.5.8 24px floor: their pitch sets their target, and a 44px slop would steal taps from the neighbour." },
+				{ name: "Focus", value: "ring-2 ring-ring, full opacity", use: "Visible on every interactive element in light and dark. Under forced colors, where every box-shadow ring is dropped, styles.css puts a 2px Highlight outline on :focus-visible instead." },
 				{ name: "Mobile input text", value: "≥ 16px", use: "iOS Safari zooms the page on focus below it." },
 				{ name: "Reduced motion", value: "--motion-scale: 0", use: "Transitions resolve instantly; loaders hold their first frame." },
 			],
@@ -87,9 +87,9 @@ const accessibility: Foundation = {
 			why: "It removes the user's chosen colors exactly where they need them.",
 		},
 		{
-			never: "outline: none without a replacement.",
-			instead: "focus-visible:ring-2 ring-ring.",
-			why: "Keyboard users lose their place.",
+			never: "outline: none without a replacement that survives forced colors.",
+			instead: "focus-visible:outline-hidden with focus-visible:ring-2 ring-ring. outline-hidden is a transparent outline that forced colors paint; a ring alone is a box-shadow, which they drop.",
+			why: "Keyboard users lose their place. styles.css restores an outline on :focus-visible under forced colors as a backstop, but a custom focus treatment in an app should not depend on it.",
 		},
 	],
 	details: [

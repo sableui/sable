@@ -1,8 +1,10 @@
 "use client"
 
 import type { ComponentPropsWithRef } from "react"
+import { Icon } from "../../icon"
 import { cn } from "../../lib/cn"
 import { useDensity } from "../../lib/density"
+import { Button } from "../button/button"
 
 /**
  * Styled native table. Wraps the <table> in a horizontally scrollable frame so
@@ -99,22 +101,83 @@ TableRow.displayName = "TableRow"
  */
 const NUMERIC = "text-end tabular-nums"
 
+export type TableSortDirection = "asc" | "desc"
+
 export interface TableHeadProps extends ComponentPropsWithRef<"th"> {
 	/** A numeric column — end-aligned, tabular figures. Set it on the column's cells too. */
 	numeric?: boolean
+	/**
+	 * Make the header a sort control: its content becomes a button that calls
+	 * `onSort`, with a chevron that turns for the direction. The table does no
+	 * sorting itself — order the rows in your handler (DataTable does this for you).
+	 */
+	sortable?: boolean
+	/** The column's current sort, or `null`/unset when another column (or none) is sorted. Sets `aria-sort`. */
+	sortDirection?: TableSortDirection | null
+	/** Called when a sortable header is activated. You decide the next direction. */
+	onSort?: () => void
 }
 
-/** A column header cell. */
-export function TableHead({ className, numeric = false, ...props }: TableHeadProps) {
+/**
+ * A column header cell. `sortable` turns its content into the sort control:
+ * a ghost button on the column's text edge with one chevron that rotates
+ * between ascending and descending, and `aria-sort` on the cell.
+ */
+export function TableHead({
+	className,
+	numeric = false,
+	sortable = false,
+	sortDirection,
+	onSort,
+	children,
+	...props
+}: TableHeadProps) {
 	return (
 		<th
+			aria-sort={
+				sortDirection === "asc" ? "ascending" : sortDirection === "desc" ? "descending" : undefined
+			}
 			className={cn(
 				"h-[var(--table-head-h,--spacing(10))] px-3 text-start align-middle text-label-md text-muted-foreground first:ps-[var(--table-edge-px,--spacing(3))] last:pe-[var(--table-edge-px,--spacing(3))]",
 				numeric && NUMERIC,
 				className,
 			)}
 			{...props}
-		/>
+		>
+			{sortable ? (
+				// The negative inline margin cancels Button's padding so the label
+				// stays on the column's text edge; the header's own type and ink win
+				// over Button's action tier. In a numeric column the chevron leads,
+				// so the LABEL is what sits on the numbers' edge.
+				<Button
+					variant="ghost"
+					size="xs"
+					onClick={onSort}
+					className={cn(
+						"-mx-2 gap-1 text-label-md text-muted-foreground hover:text-foreground",
+						numeric && "flex-row-reverse",
+					)}
+				>
+					{children}
+					{/* One chevron that turns, not two glyphs swapped: flipping asc to
+					    desc rotates the mark (motion-interactive lists `rotate`), so the
+					    reader sees the same column reverse rather than a different icon
+					    land in its place. */}
+					<Icon
+						name="chevron-up"
+						// Resting at 60%: still clearly quieter than the active
+						// chevron, but a visible mark (30% fell under 3:1).
+						className={cn(
+							"text-xs motion-interactive",
+							sortDirection === "desc" && "rotate-180",
+							!sortDirection && "opacity-60",
+						)}
+					/>
+				</Button>
+			) : (
+				children
+			)}
+		</th>
 	)
 }
 TableHead.displayName = "TableHead"

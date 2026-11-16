@@ -35,8 +35,15 @@ Use ColorField wherever a colour is a property: a canvas background, an effect p
 | onValueChange | (value: string) => void | — | Called with the new value on every commit, including mid-drag. |
 | allowTransparent | boolean | false | Offers "transparent" as a value inside the picker. Colour → transparent → colour restores the colour you had. |
 | allowAlpha | boolean | false | Enables the alpha slider, and therefore 8-digit hex output. Off by default because it widens the value format. |
-| swatches | string[] | — | Optional preset row. |
+| swatches | Array<string \| { value: string; label: string }> | — | Optional preset row. A bare hex is named by its hex; give a preset a label ("Brand red") when the hex says nothing to a listener. |
 | label | string | "Colour" | Accessible name for the trigger; the current value is appended to it. |
+| name | string | — | Submits the colour with a form under this name, through a hidden input: "#rrggbb" (lowercase), "#rrggbbaa" when allowAlpha and translucent, or "transparent" — the same shapes onValueChange emits. |
+| form | string | — | Id of a form elsewhere on the page that the hidden input belongs to. |
+| readOnly | boolean | false | Shows the colour and keeps it focusable, but the picker does not open. The value still submits. |
+| required | boolean | — | Accepted so a Field marked required does not leak the attribute onto the button. A ColorField always holds a value, so there is nothing for it to block. |
+| transparentLabel | string | "Transparent" | The transparent value's name, in the trigger's accessible name and on its toggle. |
+| hexLabel | (label: string) => string | (label) => `${label} hex` | Accessible name of the hex input, given label. |
+| eyedropperLabel | string | "Pick colour from screen" | Accessible name of the eyedropper button. |
 
 ## Tokens used
 
@@ -54,6 +61,8 @@ Use ColorField wherever a colour is a property: a canvas background, an effect p
 - The trigger's accessible name includes the current value, so a screen reader announces the colour rather than just "button" — the swatch itself conveys nothing without sight.
 - The Transparent entry is a toggle with aria-pressed, because it is a state of the value and not a navigation action.
 - The hex field is the keyboard path to any colour. The saturation/value area and the sliders are pointer-driven and are NOT keyboard operable — a known gap, and the reason the hex field is never hidden.
+- Preset swatches show a focus outline past their hairline, and are named by their label when given one, by their hex when not.
+- Inside a Field, the id, aria-describedby and aria-invalid it clones land on the trigger, so the label, description and error belong to it.
 - The eyedropper is only rendered where the EyeDropper API exists (Chromium), rather than shown and broken elsewhere.
 
 ## Related
@@ -61,6 +70,21 @@ Use ColorField wherever a colour is a property: a canvas background, an effect p
 - Components: PropertyRow, PropertyPair, ScrubField, Input, Popover
 
 ## Examples
+
+### In a form, with named presets
+
+```tsx
+import { ColorField, Field } from "@sableui/react"
+
+<Field label="Brand colour">
+  <ColorField
+    name="brand"
+    value={brand}
+    onValueChange={setBrand}
+    swatches={[{ value: "#e11d48", label: "Brand red" }, { value: "#0f172a", label: "Ink" }]}
+  />
+</Field>
+```
 
 ### Canvas background
 

@@ -72,7 +72,7 @@ export const calendarMeta: ComponentMeta = {
 			name: "numberOfMonths",
 			type: "number",
 			default: "1",
-			description: "How many month grids to render side by side.",
+			description: "How many month grids to render. They sit side by side where the space holds them and wrap below one another where it does not, judged on the calendar's own room (a narrow popover on a wide screen stacks them), not the viewport.",
 		},
 		{
 			name: "disabled",

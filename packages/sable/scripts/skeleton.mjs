@@ -5,12 +5,12 @@
  * answers it inside 130 lines of realistic demo source — fixture arrays, copy,
  * per-cell formatting. An agent picking a starting point has to read all of it
  * to see the four decisions that actually matter (which shell, which region cap,
- * which grid, what nests where), and a 782KB registry means it often reads the
- * pattern it already guessed instead of comparing all eight.
+ * which grid, what nests where), and a registry of over a megabyte means it often
+ * reads the pattern it already guessed instead of comparing them all.
  *
  * A skeleton is the same tree with the content removed: elements, the props that
- * carry layout meaning, and nesting. DashboardPage goes from 127 lines to ~25.
- * Cheap enough to print all eight and choose, which is the point — composition
+ * carry layout meaning, and nesting, a fraction of the pattern's source.
+ * Cheap enough to print every shell and choose, which is the point — composition
  * is the decision that has to be right before any component is picked.
  *
  * This is lexical, not a parser. It leans on the fact that pattern source is

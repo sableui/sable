@@ -2,15 +2,15 @@
 
 Sable's components ship accessible behavior from Base UI. These rules cover what an app composing them still has to get right.
 
-**WCAG AA · 44px targets · visible focus · reduced motion · logical properties**
+**WCAG AA · 44px touch targets · visible focus · reduced motion · logical properties**
 
 ## Floors
 
 | Name | Value | Use |
 |---|---|---|
 | `Contrast` | 4.5:1 text · 3:1 UI and large text | Every semantic text/surface pair is checked per theme by contrast.test.ts. |
-| `Hit area` | 44×44px | hit-target keeps a small control at the floor without moving layout. |
-| `Focus` | ring-2 ring-ring, full opacity | Visible on every interactive element, in light, dark and forced-colors. |
+| `Hit area` | 44×44px on touch · 24×24px floor | A control that stands alone (a dialog's close, a banner's dismiss, a code block's copy, a carousel's arrows) grows its target to 44px under a coarse pointer without moving layout (hit-target, or lib/hit-target's hitTargetTouch inside components). Controls packed in a row (pagination numbers, calendar days, chips, tree disclosures) keep the WCAG 2.5.8 24px floor: their pitch sets their target, and a 44px slop would steal taps from the neighbour. |
+| `Focus` | ring-2 ring-ring, full opacity | Visible on every interactive element in light and dark. Under forced colors, where every box-shadow ring is dropped, styles.css puts a 2px Highlight outline on :focus-visible instead. |
 | `Mobile input text` | ≥ 16px | iOS Safari zooms the page on focus below it. |
 | `Reduced motion` | --motion-scale: 0 | Transitions resolve instantly; loaders hold their first frame. |
 
@@ -33,7 +33,7 @@ Sable's components ship accessible behavior from Base UI. These rules cover what
 - **Never:** A label fill painted on a mark that carries no text — a meter, a segmented bar, a status dot, a chart series, a soft tint. **Instead:** The colour's `-mark` token (`bg-success-mark`, `bg-tone-warning-mark/15`): the same hue lifted and saturated, held to 2:1 on the page. Text contrast is for text; a graphic owes visibility, and 3:1 (WCAG 1.4.11) only when it is the sole carrier of its meaning. A fill is pinned dark enough for a white label. On a bar or dot with nothing to label, that darkness only reads as mud: a brown warning, a forest-green success.
 - **Never:** Blocking paste, or type="number" for codes and card numbers. **Instead:** type="text" inputMode="numeric" with the right autocomplete. Blocking paste breaks password managers; number inputs scroll-change identifiers.
 - **Never:** forced-color-adjust: none to 'fix' high-contrast mode. **Instead:** Let the system colors apply; verify the result. It removes the user's chosen colors exactly where they need them.
-- **Never:** outline: none without a replacement. **Instead:** focus-visible:ring-2 ring-ring. Keyboard users lose their place.
+- **Never:** outline: none without a replacement that survives forced colors. **Instead:** focus-visible:outline-hidden with focus-visible:ring-2 ring-ring. outline-hidden is a transparent outline that forced colors paint; a ring alone is a box-shadow, which they drop. Keyboard users lose their place. styles.css restores an outline on :focus-visible under forced colors as a backstop, but a custom focus treatment in an app should not depend on it.
 
 ## Details
 

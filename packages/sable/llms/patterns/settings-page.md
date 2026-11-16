@@ -27,6 +27,8 @@ Account settings inside the app shell: a sticky SideNav section rail beside a co
 ## Source
 
 ```tsx
+"use client"
+
 import { useState } from "react"
 import { AppHeader, AppShell, Avatar, BottomNav, BottomNavItem, Button, Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardList, CardTitle, Col, Columns, DestructiveActionModal, Entity, Field, Form, Grid, Icon, Input, MenuItem, MenuSeparator, NotificationBadge, OverflowMenu, Page, PageHeader, Row, Select, SelectContent, SelectItem, SelectTrigger, Sidebar, SidebarBrand, SidebarFooter, SidebarHeader, SidebarItem, SidebarNav, SideNav, SideNavItem, Stack, Switch, Textarea } from "@sableui/react"
 

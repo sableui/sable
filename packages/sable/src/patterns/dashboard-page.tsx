@@ -210,7 +210,7 @@ export function DashboardPage() {
 							<CardTitle>Accounts</CardTitle>
 							<CardDescription>Seats across your customers, newest first.</CardDescription>
 						</CardHeader>
-						<CardContent flush className="mt-4 flex-1">
+						<CardContent flush className="flex-1">
 							<DataTable
 								data={accounts}
 								rowKey={(row) => row.id}

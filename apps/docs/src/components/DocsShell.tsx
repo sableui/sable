@@ -20,15 +20,23 @@ import {
 	SideNavGroup,
 	SideNavItem,
 } from "@sableui/react"
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react"
+import { type ReactNode, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { CATALOG_BY_SLUG, SEARCH_DOCS } from "../lib/catalog"
 import { SableLogo } from "./SableLogo"
 import { GitHubLink } from "./GitHubLink"
 import { CurrentRouteContext, PageTrailContext, type PageTrail, hrefFor, navigate } from "../lib/router"
 import { makeDocsFilter } from "../lib/search"
-import { Inspector } from "../customizer/Inspector"
-import { useCustomizer } from "../customizer/CustomizerProvider"
+import { useCustomizerActions } from "../customizer/CustomizerProvider"
+import { SharedLookNotice } from "../customizer/SharedLookNotice"
 import { WIDE, useMediaQuery } from "../lib/use-media-query"
+
+/**
+ * The Customize panel is closed on almost every visit, so its code (controls,
+ * previews, export) loads when it is first wanted: on hover or focus of a
+ * Customize button, or when a page opens it.
+ */
+const loadInspector = () => import("../customizer/Inspector")
+const Inspector = lazy(() => loadInspector().then((module) => ({ default: module.Inspector })))
 
 
 export interface NavItem {
@@ -172,16 +180,23 @@ function AreaSwitcher({
 	)
 }
 
-/** Opens the Customize panel. */
-function CustomizeToggle({ compact = false }: { compact?: boolean }) {
-	const { open, setOpen } = useCustomizer()
+/** Opens the Customize panel. `onOpen` marks an explicit open, which moves focus into the panel. */
+function CustomizeToggle({ compact = false, onOpen }: { compact?: boolean; onOpen: () => void }) {
+	const { open, setOpen } = useCustomizerActions()
 	return (
 		<Button
 			variant={open ? "secondary" : "ghost"}
 			size={compact ? "icon" : "sm"}
 			aria-pressed={open}
 			aria-label={compact ? "Customize" : undefined}
-			onClick={() => setOpen(!open)}
+			// The panel returns focus here when it closes.
+			data-customize-toggle=""
+			onPointerEnter={loadInspector}
+			onFocus={loadInspector}
+			onClick={() => {
+				if (!open) onOpen()
+				setOpen(!open)
+			}}
 		>
 			{/* Text on desktop; the compact (mobile) button needs a glyph to exist. */}
 			{compact ? <Icon name="gear" /> : "Customize"}
@@ -279,8 +294,21 @@ export function DocsShell({
 	children: ReactNode
 }) {
 	const [mobileOpen, setMobileOpen] = useState(false)
-	const customizer = useCustomizer()
+	const customizer = useCustomizerActions()
 	const wide = useMediaQuery(WIDE)
+	// Focus moves into the panel only when someone opened it (not when the
+	// canvas opens it on arrival), and comes back to the visible toggle on close.
+	const [focusPanel, setFocusPanel] = useState(false)
+	const openedByToggle = useCallback(() => setFocusPanel(true), [])
+	const { setOpen: setCustomizeOpen } = customizer
+	const closeCustomize = useCallback(() => {
+		setCustomizeOpen(false)
+		setFocusPanel(false)
+		requestAnimationFrame(() => {
+			const toggles = document.querySelectorAll<HTMLElement>("[data-customize-toggle]")
+			Array.from(toggles).find((toggle) => toggle.offsetParent !== null)?.focus()
+		})
+	}, [setCustomizeOpen])
 	const [searchOpen, setSearchOpen] = useState(false)
 	const routeContent = useRef<HTMLDivElement>(null)
 	const previousRoute = useRef(current)
@@ -416,7 +444,7 @@ export function DocsShell({
 						actions={
 							<>
 								<GitHubLink />
-								<CustomizeToggle />
+								<CustomizeToggle onOpen={openedByToggle} />
 							</>
 						}
 					/>
@@ -437,6 +465,8 @@ export function DocsShell({
 								/>
 								<SheetContent
 									side="left"
+									// The area switcher fills the top row, where the built-in close would sit.
+									showCloseButton={false}
 									className="w-[320px] overflow-y-auto p-4 scrollbar-quiet"
 								>
 									<AreaSwitcher
@@ -463,7 +493,7 @@ export function DocsShell({
 							</Sheet>
 						}
 						title={<Brand />}
-						actions={<><GitHubLink compact /><CustomizeToggle compact /></>}
+						actions={<><GitHubLink compact /><CustomizeToggle compact onOpen={openedByToggle} /></>}
 						className="border-b-0 bg-background/80 backdrop-blur-md"
 					/>
 				</>
@@ -514,6 +544,8 @@ export function DocsShell({
 				)}
 				style={{ transitionProperty: "padding" }}
 			>
+				{/* A share link replaced the reader's own look: offer it back. */}
+				<SharedLookNotice />
 				{bare ? (
 					<div key={current} ref={routeContent}>
 						<CurrentRouteContext.Provider value={current}>
@@ -537,20 +569,32 @@ export function DocsShell({
 			    settings view instead: tune, close, see the result. */}
 			{wide ? (
 				customizer.open ? (
-					<Inspector
-						onClose={() => customizer.setOpen(false)}
-						className="motion-pop fixed top-[calc(var(--nav-height,56px)+12px)] right-4 bottom-4 z-(--z-overlay) w-[340px]"
-					/>
+					<Suspense fallback={null}>
+						<Inspector
+							autoFocus={focusPanel}
+							onClose={closeCustomize}
+							className="motion-pop fixed top-[calc(var(--nav-height,56px)+12px)] right-4 bottom-4 z-(--z-overlay) w-[340px]"
+						/>
+					</Suspense>
 				) : null
 			) : (
-				<Sheet open={customizer.open} onOpenChange={customizer.setOpen}>
+				// A bottom sheet that rests at half height, so the canvas stays in
+				// view above the controls while you tune; drag it up for the whole
+				// panel. Not modal: the page above scrolls and stays live.
+				<Sheet
+					open={customizer.open}
+					onOpenChange={(next) => (next ? customizer.setOpen(true) : closeCustomize())}
+					snapPoints={[0.5, 1]}
+					defaultSnapPoint={0.5}
+					modal={false}
+				>
 					<SheetContent side="bottom" className="h-dvh max-h-none gap-0 p-0">
 						<SheetTitle className="sr-only">Customize</SheetTitle>
-						<Inspector
-							floating={false}
-							onClose={() => customizer.setOpen(false)}
-							className="min-h-0 flex-1 ring-0"
-						/>
+						{customizer.open ? (
+							<Suspense fallback={null}>
+								<Inspector floating={false} onClose={closeCustomize} className="min-h-0 flex-1 ring-0" />
+							</Suspense>
+						) : null}
 					</SheetContent>
 				</Sheet>
 			)}

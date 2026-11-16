@@ -58,6 +58,10 @@ export interface FontPickerProps<Font extends FontPickerFont = FontPickerFont>
 	searchable?: boolean
 	/** Accessible name of the search field. @default "Search fonts" */
 	searchLabel?: string
+	/** The search field's placeholder, given how many fonts are listed. @default (count) => `Search ${count} fonts` */
+	searchPlaceholder?: (count: number) => string
+	/** What the list says when a search matches nothing, given the query. @default (query) => `No fonts match “${query}”.` */
+	emptyLabel?: (query: string) => string
 	/**
 	 * Load a face on demand — the app owns where fonts come from (Google Fonts,
 	 * a CDN, self-hosted). Called with `"preview"` for every listed family when
@@ -82,6 +86,9 @@ const faceOf = (font: FontPickerFont) => font.stack ?? `"${font.family}"`
  * Sable ships the control, not a catalog: `fonts` and `loadFont` come from the
  * app, so it can offer three families or three hundred from any source.
  */
+const defaultSearchPlaceholder = (count: number) => `Search ${count} fonts`
+const defaultEmptyLabel = (query: string) => `No fonts match “${query}”.`
+
 export function FontPicker<Font extends FontPickerFont = FontPickerFont>({
 	value,
 	onValueChange,
@@ -91,6 +98,8 @@ export function FontPicker<Font extends FontPickerFont = FontPickerFont>({
 	listLabel = "Font",
 	searchable = true,
 	searchLabel = "Search fonts",
+	searchPlaceholder = defaultSearchPlaceholder,
+	emptyLabel = defaultEmptyLabel,
 	loadFont,
 	open: openProp,
 	defaultOpen = false,
@@ -128,14 +137,14 @@ export function FontPicker<Font extends FontPickerFont = FontPickerFont>({
 	const currentFace = chosenOption ? undefined : chosenFont ? faceOf(chosenFont) : `"${value}"`
 
 	return (
-		<DisclosurePicker open={open} onOpenChange={setOpen} {...props}>
+		<DisclosurePicker open={open} onOpenChange={setOpen} value={value} {...props}>
 			<DisclosurePickerTrigger label={label}>
 				<span style={{ fontFamily: currentFace }}>{current}</span>
 			</DisclosurePickerTrigger>
 			<DisclosurePickerPanel
 				search={
 					searchable
-						? { value: query, onValueChange: setQuery, placeholder: `Search ${fonts.length} fonts`, label: searchLabel }
+						? { value: query, onValueChange: setQuery, placeholder: searchPlaceholder(fonts.length), label: searchLabel }
 						: undefined
 				}
 			>
@@ -153,7 +162,7 @@ export function FontPicker<Font extends FontPickerFont = FontPickerFont>({
 						))}
 					</DisclosurePickerList>
 				) : null}
-				{shownFonts.length === 0 && q ? <DisclosurePickerEmpty>No fonts match “{query}”.</DisclosurePickerEmpty> : null}
+				{shownFonts.length === 0 && q ? <DisclosurePickerEmpty>{emptyLabel(query)}</DisclosurePickerEmpty> : null}
 			</DisclosurePickerPanel>
 		</DisclosurePicker>
 	)

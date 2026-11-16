@@ -1,8 +1,8 @@
 # Task: auditing existing work against Sable
 
-This is Sable's native contract-and-taste audit, used by `$sable audit <target>`.
-`$sable critique <target>` emphasizes design judgment. These are agent skill
-modes, not shell subcommands. No other design skill is required.
+This is Sable's native contract-and-taste audit, used by `$sable audit <target>`
+(`/sable audit` in Claude Code and Cursor). It is an agent skill mode, not a
+shell subcommand. No other design skill is required.
 
 ## Establish the comparison basis
 
@@ -17,7 +17,8 @@ and native elements are not automatically violations.
 An audit reports findings by default. An explicit "audit and fix" request already
 authorizes scoped repairs and verification. Do not automatically upgrade packages,
 migrate the app, change its identity, generate variants or alter CI for a review.
-Resolve the project's installed CLI before using `npx`; in this repository use
+Run the project's installed CLI through its package manager (`pnpm exec sable`),
+never a bare `npx sable`; in the Sable repository use
 `node packages/sable/bin/sable.mjs`. Below, `sable` means that resolved CLI.
 
 Inspect the interface before reading previous verdicts. Follow
@@ -142,7 +143,7 @@ So audit in the order below: **find out what changed, then measure, then fix.**
 ## 0. Know what moved before you look at your code
 
 ```bash
-npx sable-lint --since 0.54.2      # the version you were on
+pnpm exec sable lint --since 0.23.0      # the version you were on
 ```
 
 `--since` lists only the rules added after that version, with the reason each
@@ -166,8 +167,8 @@ your app for each name on the left.
 ## 1. Run the linter, and read the new rules first
 
 ```bash
-npx sable-lint                      # ./src by default
-npx sable-lint app components       # or pass your dirs
+pnpm exec sable lint                      # ./src by default
+pnpm exec sable lint app components       # or pass your dirs
 ```
 
 Fix the `--since` rules first: those are the ones your reviewers have not seen
