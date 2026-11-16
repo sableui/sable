@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- **`useToday`, and blocks that hydrate on any clock.** `useToday()` gives
+  today on the reader's clock without a hydration mismatch: a fixed day on the
+  server and while hydrating, the reader's own straight after, and the next
+  day's once midnight passes. ScheduleBlock, DeviceComparisonBlock,
+  EventCardBlock, DeliveryOptionsBlock and ReserveTableBlock date themselves
+  from it; they read
+  `new Date()` at module scope, so a server and a reader either side of
+  midnight rendered different text.
+- **A date range changes once, on the second pick.** DatePicker `mode="range"`
+  committed `{ from, to: undefined }` on the first pick, so a stray click and
+  Escape replaced a complete range with half of one and emptied the form field.
+  The first pick is now held in the picker and shown as the start, in the
+  calendar and on the trigger;
+  `onValueChange` fires when the end is picked. **Changed:** code that reacted
+  to the half range on the first pick no longer sees it.
+- **Edge fades attach to an element that appears later.** `useEdgeFade` takes
+  `present`; CodeBlock passes it, so switching out of prompt mode fades the
+  code like any other block.
 - **Quieter lists, and a label for a group of rows.** `CardList divided={false}`
   drops the hairline between rows: the rows are spaced by padding alone, a card
   padding clear of the header, the footer and the card's edge. The new

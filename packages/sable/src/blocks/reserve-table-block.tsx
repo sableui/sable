@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "../components/button"
 import { Calendar } from "../components/calendar"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/card"
@@ -11,16 +11,11 @@ import { NumberField } from "../components/number-field"
 import { TextSwap } from "../components/text-swap"
 import { Icon } from "../icon"
 import { cn } from "../lib/cn"
+import { useToday } from "../lib/use-today"
 import { useAutoSize } from "../motion/useAutoSize"
 
 // ---block-code---
 const venue = { name: "Osteria Lina", service: "Dinner, from 6 pm", maxParty: 8 }
-// The first day that can still be booked (today), and the day picked on
-// arrival (two days out). Relative to the page load, so the sample never
-// opens on a day that has already gone; use your venue's own availability.
-const now = new Date()
-const opens = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-const initial = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2)
 
 const dayLabel = new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric" })
 const weekday = new Intl.DateTimeFormat("en-US", { weekday: "long" })
@@ -36,7 +31,13 @@ export interface ReserveTableBlockProps {
 }
 
 export function ReserveTableBlock({ className, framed = true, onReserve, onCancel }: ReserveTableBlockProps) {
-	const [date, setDate] = useState(initial)
+	// The first day that can still be booked (today), and the day picked on
+	// arrival (two days out), so the sample never opens on a day that has
+	// already gone; use your venue's own availability. useToday, not
+	// new Date(): the server and the reader may be on different days.
+	const opens = useToday()
+	const [picked, setDate] = useState<Date | null>(null)
+	const date = useMemo(() => picked ?? new Date(opens.getFullYear(), opens.getMonth(), opens.getDate() + 2), [picked, opens])
 	const [guests, setGuests] = useState(2)
 	const [reserved, setReserved] = useState(false)
 

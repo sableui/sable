@@ -23,19 +23,19 @@ A checkout step for choosing delivery: a RadioGroup of RadioCards, each with its
 ```tsx
 "use client"
 
-import { useState } from "react"
-import { Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, cn, NumberTicker, RadioCard, RadioGroup } from "@sableui/react"
+import { useState, useMemo } from "react"
+import { Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, cn, NumberTicker, RadioCard, RadioGroup, useToday } from "@sableui/react"
 
 const order = { summary: "Linen throw blanket · 1 item", subtotal: 64 }
 
 // Arrival days count from today, so the sample never promises a date that has passed.
 const day = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" })
-const inDays = (n: number) => day.format(new Date(Date.now() + n * 86_400_000))
+const inDays = (today: Date, n: number) => day.format(new Date(today.getFullYear(), today.getMonth(), today.getDate() + n))
 
 // Listed cheapest first: the first option is the one selected on arrival.
-const options = [
-	{ id: "standard", title: "Standard", detail: `Arrives ${inDays(5)}–${inDays(7)}`, price: 0 },
-	{ id: "express", title: "Express", detail: `Arrives ${inDays(2)}`, price: 12 },
+const optionsFrom = (today: Date) => [
+	{ id: "standard", title: "Standard", detail: `Arrives ${inDays(today, 5)}–${inDays(today, 7)}`, price: 0 },
+	{ id: "express", title: "Express", detail: `Arrives ${inDays(today, 2)}`, price: 12 },
 	{ id: "pickup", title: "Store pickup", detail: "Ready today from 4 pm", price: 0 },
 ]
 
@@ -50,7 +50,10 @@ export interface DeliveryOptionsBlockProps {
 }
 
 export function DeliveryOptionsBlock({ className, framed = true, onContinue }: DeliveryOptionsBlockProps) {
-	const [chosen, setChosen] = useState(options[0].id)
+	// useToday, not new Date(): the server and the reader may be on different days.
+	const today = useToday()
+	const options = useMemo(() => optionsFrom(today), [today])
+	const [chosen, setChosen] = useState("standard")
 	const option = options.find((item) => item.id === chosen) ?? options[0]
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs", className)}>

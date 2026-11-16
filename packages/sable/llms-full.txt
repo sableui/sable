@@ -9282,19 +9282,19 @@ A checkout step for choosing delivery: a RadioGroup of RadioCards, each with its
 ```tsx
 "use client"
 
-import { useState } from "react"
-import { Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, cn, NumberTicker, RadioCard, RadioGroup } from "@sableui/react"
+import { useState, useMemo } from "react"
+import { Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, cn, NumberTicker, RadioCard, RadioGroup, useToday } from "@sableui/react"
 
 const order = { summary: "Linen throw blanket · 1 item", subtotal: 64 }
 
 // Arrival days count from today, so the sample never promises a date that has passed.
 const day = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" })
-const inDays = (n: number) => day.format(new Date(Date.now() + n * 86_400_000))
+const inDays = (today: Date, n: number) => day.format(new Date(today.getFullYear(), today.getMonth(), today.getDate() + n))
 
 // Listed cheapest first: the first option is the one selected on arrival.
-const options = [
-	{ id: "standard", title: "Standard", detail: `Arrives ${inDays(5)}–${inDays(7)}`, price: 0 },
-	{ id: "express", title: "Express", detail: `Arrives ${inDays(2)}`, price: 12 },
+const optionsFrom = (today: Date) => [
+	{ id: "standard", title: "Standard", detail: `Arrives ${inDays(today, 5)}–${inDays(today, 7)}`, price: 0 },
+	{ id: "express", title: "Express", detail: `Arrives ${inDays(today, 2)}`, price: 12 },
 	{ id: "pickup", title: "Store pickup", detail: "Ready today from 4 pm", price: 0 },
 ]
 
@@ -9309,7 +9309,10 @@ export interface DeliveryOptionsBlockProps {
 }
 
 export function DeliveryOptionsBlock({ className, framed = true, onContinue }: DeliveryOptionsBlockProps) {
-	const [chosen, setChosen] = useState(options[0].id)
+	// useToday, not new Date(): the server and the reader may be on different days.
+	const today = useToday()
+	const options = useMemo(() => optionsFrom(today), [today])
+	const [chosen, setChosen] = useState("standard")
 	const option = options.find((item) => item.id === chosen) ?? options[0]
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs", className)}>
@@ -9373,16 +9376,16 @@ A comparison card: each series' total sits in the header as a pressable tile, an
 ```tsx
 "use client"
 
-import { useState } from "react"
-import { BarChart, Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Toggle, ToggleGroup } from "@sableui/react"
+import { useState, useMemo } from "react"
+import { BarChart, Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Toggle, ToggleGroup, useToday } from "@sableui/react"
 
 /** The 30 days to today — replace with your own rows ({ date, desktop, mobile }). */
-const today = new Date()
-const days = Array.from({ length: 30 }, (_, i) => ({
-	date: new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() - 29 + i)).toISOString().slice(0, 10),
-	desktop: Math.round(320 + Math.sin(i / 3) * 90 + (i % 5) * 14),
-	mobile: Math.round(260 + Math.cos(i / 4) * 80 + (i % 4) * 18),
-}))
+const daysTo = (today: Date) =>
+	Array.from({ length: 30 }, (_, i) => ({
+		date: new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() - 29 + i)).toISOString().slice(0, 10),
+		desktop: Math.round(320 + Math.sin(i / 3) * 90 + (i % 5) * 14),
+		mobile: Math.round(260 + Math.cos(i / 4) * 80 + (i % 4) * 18),
+	}))
 
 const series = [
 	{ key: "desktop", label: "Desktop" },
@@ -9402,6 +9405,9 @@ export interface DeviceComparisonBlockProps {
 
 export function DeviceComparisonBlock({ className, framed = true }: DeviceComparisonBlockProps) {
 	const [active, setActive] = useState<string>("desktop")
+	// useToday, not new Date(): the server and the reader may be on different days.
+	const today = useToday()
+	const days = useMemo(() => daysTo(today), [today])
 	const totals = Object.fromEntries(series.map((s) => [s.key, days.reduce((sum, d) => sum + d[s.key], 0)]))
 	const current = series.find((s) => s.key === active) ?? series[0]
 	return (
@@ -9474,12 +9480,10 @@ An upcoming-event card: a DateTile beside the title and time, a "starts in" Badg
 ```tsx
 "use client"
 
-import { Avatar, AvatarGroup, Badge, Button, Card, CardContent, CardDescription, CardFooter, CardTitle, cn, DateTile } from "@sableui/react"
+import { Avatar, AvatarGroup, Badge, Button, Card, CardContent, CardDescription, CardFooter, CardTitle, cn, DateTile, useToday } from "@sableui/react"
 
 const event = {
 	title: "Design review",
-	// Today, so the "starts in" badge is never on a day that has passed.
-	date: new Date(),
 	when: "Today, 2:00 – 2:45 PM",
 	starts: "In 10 min",
 	attendees: ["MO", "SR", "JL"],
@@ -9497,10 +9501,13 @@ export interface EventCardBlockProps {
 }
 
 export function EventCardBlock({ className, framed = true, onJoin, onDecline }: EventCardBlockProps) {
+	// Today, so the "starts in" badge is never on a day that has passed.
+	// useToday, not new Date(): the server and the reader may be on different days.
+	const today = useToday()
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs", className)}>
 			<CardContent className="flex gap-4">
-				<DateTile date={event.date} />
+				<DateTile date={today} />
 				<div className="flex min-w-0 flex-1 flex-col gap-1">
 					{/* The row carries the title's type, so the badge's box is exactly
 					    one title line (`h-[1lh]`): it centres on the title and never
@@ -11787,16 +11794,10 @@ A booking card: a bare Calendar for the day, a NumberField for the party size, a
 ```tsx
 "use client"
 
-import { useState, useEffect, useRef } from "react"
-import { Button, Calendar, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, cn, ConfirmButton, DateTile, Field, Icon, NumberField, TextSwap, useAutoSize } from "@sableui/react"
+import { useState, useEffect, useMemo, useRef } from "react"
+import { Button, Calendar, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, cn, ConfirmButton, DateTile, Field, Icon, NumberField, TextSwap, useAutoSize, useToday } from "@sableui/react"
 
 const venue = { name: "Osteria Lina", service: "Dinner, from 6 pm", maxParty: 8 }
-// The first day that can still be booked (today), and the day picked on
-// arrival (two days out). Relative to the page load, so the sample never
-// opens on a day that has already gone; use your venue's own availability.
-const now = new Date()
-const opens = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-const initial = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2)
 
 const dayLabel = new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric" })
 const weekday = new Intl.DateTimeFormat("en-US", { weekday: "long" })
@@ -11812,7 +11813,13 @@ export interface ReserveTableBlockProps {
 }
 
 export function ReserveTableBlock({ className, framed = true, onReserve, onCancel }: ReserveTableBlockProps) {
-	const [date, setDate] = useState(initial)
+	// The first day that can still be booked (today), and the day picked on
+	// arrival (two days out), so the sample never opens on a day that has
+	// already gone; use your venue's own availability. useToday, not
+	// new Date(): the server and the reader may be on different days.
+	const opens = useToday()
+	const [picked, setDate] = useState<Date | null>(null)
+	const date = useMemo(() => picked ?? new Date(opens.getFullYear(), opens.getMonth(), opens.getDate() + 2), [picked, opens])
 	const [guests, setGuests] = useState(2)
 	const [reserved, setReserved] = useState(false)
 
@@ -12019,8 +12026,8 @@ A three-day agenda: the day as the card title, its events down a column of start
 ```tsx
 "use client"
 
-import { useState } from "react"
-import { Avatar, AvatarGroup, Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Tabs, TabsList, TabsPanel, TabsTrigger, TextSwap, useAutoSize } from "@sableui/react"
+import { useState, useMemo } from "react"
+import { Avatar, AvatarGroup, Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Tabs, TabsList, TabsPanel, TabsTrigger, TextSwap, useAutoSize, useToday } from "@sableui/react"
 
 // `tone` is a palette family: the calendar an event belongs to. `people` are initials.
 const agenda = [
@@ -12036,21 +12043,21 @@ const agenda = [
 	],
 ] as const
 
-// Dated from the page load, today first — replace with your own days.
-const DAY = 86_400_000
+// Dated from today, today first — replace with your own days.
 const weekday = new Intl.DateTimeFormat("en-US", { weekday: "long" })
 const shortWeekday = new Intl.DateTimeFormat("en-US", { weekday: "short" })
 const monthDay = new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric" })
-const days = agenda.map((events, offset) => {
-	const date = new Date(Date.now() + offset * DAY)
-	return {
-		id: String(offset),
-		label: `${shortWeekday.format(date)} ${date.getDate()}`,
-		title: weekday.format(date),
-		date: monthDay.format(date),
-		events,
-	}
-})
+const datedFrom = (today: Date) =>
+	agenda.map((events, offset) => {
+		const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset)
+		return {
+			id: String(offset),
+			label: `${shortWeekday.format(date)} ${date.getDate()}`,
+			title: weekday.format(date),
+			date: monthDay.format(date),
+			events,
+		}
+	})
 
 export interface ScheduleBlockProps {
 	className?: string
@@ -12059,7 +12066,10 @@ export interface ScheduleBlockProps {
 }
 
 export function ScheduleBlock({ className, framed = true }: ScheduleBlockProps) {
-	const [day, setDay] = useState(days[0].id)
+	// useToday, not new Date(): the server and the reader may be on different days.
+	const today = useToday()
+	const days = useMemo(() => datedFrom(today), [today])
+	const [day, setDay] = useState("0")
 	const selected = days.find((item) => item.id === day) ?? days[0]
 	// Days hold different numbers of events: the card eases to the new height.
 	const size = useAutoSize<HTMLDivElement, HTMLDivElement>({ axis: "height" })
@@ -19085,7 +19095,7 @@ Use DatePicker when users need to choose one date — or, with granularity="minu
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| mode | "single" \| "range" | "single" | One date, or a { from, to } range. In range mode the first pick sets the start, the second the end (in either order) and closes the popover; value, defaultValue and onValueChange take a DateRange (exported), and granularity is always "day". |
+| mode | "single" \| "range" | "single" | One date, or a { from, to } range. In range mode the first pick sets the start, the second the end (in either order) and closes the popover; the value changes once, on the second pick, so dismissing after one pick keeps the range that was there; value, defaultValue and onValueChange take a DateRange (exported), and granularity is always "day". |
 | value | Date \| DateRange | — | The selected date (controlled), or the { from, to } range under mode="range" (to is unset while only the start is picked). When absent, the trigger shows a muted placeholder. |
 | defaultValue | Date \| DateRange | — | Initial value when uncontrolled (no `value` prop). |
 | onValueChange | ((date: Date \| undefined) => void) \| ((range: DateRange \| undefined) => void) | — | Fired when the day is chosen or cleared, and under granularity="minute" / "time" when the hour or minute changes. With granularity="day" it also closes the popover. In range mode it fires on both picks: with only from after the first, with both after the second. |

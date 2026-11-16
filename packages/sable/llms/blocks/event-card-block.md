@@ -22,12 +22,10 @@ An upcoming-event card: a DateTile beside the title and time, a "starts in" Badg
 ```tsx
 "use client"
 
-import { Avatar, AvatarGroup, Badge, Button, Card, CardContent, CardDescription, CardFooter, CardTitle, cn, DateTile } from "@sableui/react"
+import { Avatar, AvatarGroup, Badge, Button, Card, CardContent, CardDescription, CardFooter, CardTitle, cn, DateTile, useToday } from "@sableui/react"
 
 const event = {
 	title: "Design review",
-	// Today, so the "starts in" badge is never on a day that has passed.
-	date: new Date(),
 	when: "Today, 2:00 – 2:45 PM",
 	starts: "In 10 min",
 	attendees: ["MO", "SR", "JL"],
@@ -45,10 +43,13 @@ export interface EventCardBlockProps {
 }
 
 export function EventCardBlock({ className, framed = true, onJoin, onDecline }: EventCardBlockProps) {
+	// Today, so the "starts in" badge is never on a day that has passed.
+	// useToday, not new Date(): the server and the reader may be on different days.
+	const today = useToday()
 	return (
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs", className)}>
 			<CardContent className="flex gap-4">
-				<DateTile date={event.date} />
+				<DateTile date={today} />
 				<div className="flex min-w-0 flex-1 flex-col gap-1">
 					{/* The row carries the title's type, so the badge's box is exactly
 					    one title line (`h-[1lh]`): it centres on the title and never

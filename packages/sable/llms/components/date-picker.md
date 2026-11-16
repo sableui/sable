@@ -24,7 +24,7 @@ Use DatePicker when users need to choose one date — or, with granularity="minu
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| mode | "single" \| "range" | "single" | One date, or a { from, to } range. In range mode the first pick sets the start, the second the end (in either order) and closes the popover; value, defaultValue and onValueChange take a DateRange (exported), and granularity is always "day". |
+| mode | "single" \| "range" | "single" | One date, or a { from, to } range. In range mode the first pick sets the start, the second the end (in either order) and closes the popover; the value changes once, on the second pick, so dismissing after one pick keeps the range that was there; value, defaultValue and onValueChange take a DateRange (exported), and granularity is always "day". |
 | value | Date \| DateRange | — | The selected date (controlled), or the { from, to } range under mode="range" (to is unset while only the start is picked). When absent, the trigger shows a muted placeholder. |
 | defaultValue | Date \| DateRange | — | Initial value when uncontrolled (no `value` prop). |
 | onValueChange | ((date: Date \| undefined) => void) \| ((range: DateRange \| undefined) => void) | — | Fired when the day is chosen or cleared, and under granularity="minute" / "time" when the hour or minute changes. With granularity="day" it also closes the popover. In range mode it fires on both picks: with only from after the first, with both after the second. |

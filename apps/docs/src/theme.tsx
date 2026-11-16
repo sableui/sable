@@ -13,6 +13,8 @@ export type ThemePreference = SableThemePreference
 export type Mode = SableColorMode
 
 const PRESETS_KEY = "sable-docs-presets"
+/** The active personal preset's CSS, for index.html's boot script to paint before React mounts. */
+const BOOT_PRESET_KEY = "sable-docs-boot-preset"
 const PersonalPresets = createContext<{ presets: SablePreset[]; importPreset: (record: unknown) => SablePreset; removePreset: (id: string) => void }>({ presets: [], importPreset: () => { throw new Error("Missing ThemeProvider") }, removePreset: () => { throw new Error("Missing ThemeProvider") } })
 
 function storedPresets(): SablePreset[] {
@@ -55,6 +57,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 			if (font) loadFont(font)
 		}
 	}, [presets])
+	// A personal preset's tokens are not in the bundle, so the pre-paint script
+	// cannot know them: cache the active one's CSS for it, and clear the cache
+	// when a bundled preset is active. The style the script injected has done
+	// its job once this provider's own <style> is in the document.
+	useLayoutEffect(() => {
+		const active = presets.find(preset => preset.id === themeId)
+		try {
+			if (active) localStorage.setItem(BOOT_PRESET_KEY, JSON.stringify({ id: active.id, css: presetCss(active) }))
+			else localStorage.removeItem(BOOT_PRESET_KEY)
+		} catch { /* storage disabled: the preset paints when React mounts */ }
+		document.querySelector("style[data-sable-boot-preset]")?.remove()
+	}, [presets, themeId])
 	const importPreset = (record: unknown) => {
 		const preset = parsePreset(record)
 		if (isThemeId(preset.id)) throw new Error("Choose a personal preset ID; this ID belongs to a bundled Sable preset.")

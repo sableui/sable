@@ -171,6 +171,8 @@ const CHROME_RESET = `
 /** What the shared link replaced, restorable. */
 interface PreviousLook {
 	look: string
+	/** The share link's look that replaced it, to tell an untouched link from the reader's later edits. */
+	link?: string
 	themeId: string | null
 	mode: string | null
 }
@@ -267,19 +269,27 @@ function readInitialLook(): InitialLook {
 		return { look: decodeLook(storage(STORAGE_KEY)), previous: pending ? parsePrevious(pending) : null }
 	}
 	const ownLook = storage(STORAGE_KEY) ?? ""
+	// An earlier link is still waiting on the reader's answer, and what is in
+	// storage is still that link's look, untouched: it is not theirs. Keep the
+	// look already set aside, or a second link would overwrite it with the
+	// first link's. If they have edited since, storage is their work again and
+	// is set aside below like any other.
+	const pending = storage(PREVIOUS_KEY)
+	const kept = pending ? parsePrevious(pending) : null
+	if (kept?.link != null && kept.link === ownLook) return { look: shared, previous: { ...kept, link: encodeLook(shared) } }
 	const ownTheme = storage("sable-docs-theme-id")
 	const ownMode = storage("sable-docs-theme")
 	const sharedTheme = params.get("theme")
 	const lookDiffers = ownLook !== "" && encodeLook(decodeLook(ownLook)) !== encodeLook(shared)
 	const themeDiffers = ownTheme != null && sharedTheme != null && ownTheme !== sharedTheme
-	const previous = lookDiffers || themeDiffers ? { look: ownLook, themeId: ownTheme, mode: ownMode } : null
+	const previous = lookDiffers || themeDiffers ? { look: ownLook, themeId: ownTheme, mode: ownMode, link: encodeLook(shared) } : null
 	return { look: shared, previous }
 }
 
 function parsePrevious(raw: string): PreviousLook | null {
 	try {
 		const value = JSON.parse(raw) as Partial<PreviousLook>
-		return typeof value.look === "string" ? { look: value.look, themeId: value.themeId ?? null, mode: value.mode ?? null } : null
+		return typeof value.look === "string" ? { look: value.look, themeId: value.themeId ?? null, mode: value.mode ?? null, link: typeof value.link === "string" ? value.link : undefined } : null
 	} catch {
 		return null
 	}

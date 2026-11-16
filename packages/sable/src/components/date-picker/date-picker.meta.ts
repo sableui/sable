@@ -66,7 +66,7 @@ export const datePickerMeta: ComponentMeta = {
 			type: '"single" | "range"',
 			default: '"single"',
 			description:
-				'One date, or a { from, to } range. In range mode the first pick sets the start, the second the end (in either order) and closes the popover; value, defaultValue and onValueChange take a DateRange (exported), and granularity is always "day".',
+				'One date, or a { from, to } range. In range mode the first pick sets the start, the second the end (in either order) and closes the popover; the value changes once, on the second pick, so dismissing after one pick keeps the range that was there; value, defaultValue and onValueChange take a DateRange (exported), and granularity is always "day".',
 		},
 		{
 			name: "value",

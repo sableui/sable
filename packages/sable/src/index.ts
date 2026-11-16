@@ -278,6 +278,8 @@ export {
 // a consumer filters itself (a SearchInput over a table). See
 // lib/use-match-highlight.ts.
 export { useMatchHighlight, type UseMatchHighlightOptions } from "./lib/use-match-highlight"
+// Today on the reader's clock, without a hydration mismatch. See lib/use-today.ts.
+export { useToday } from "./lib/use-today"
 export { useCopy, type CopySource, type UseCopyOptions, type UseCopyResult } from "./lib/use-copy"
 export { useSmoothWheel, type SmoothWheelOptions } from "./lib/use-smooth-wheel"
 // The scroll spy behind SectionRail, for a contents list a consumer draws itself.

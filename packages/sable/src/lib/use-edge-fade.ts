@@ -28,10 +28,15 @@ import { useIsomorphicLayoutEffect } from "./use-isomorphic-layout-effect"
  * layout, so any parent re-render (a streaming chat, a list that updates, a
  * theme drag) paid one forced layout per Scroller, CodeBlock and TabsList on
  * the page. A ResizeObserver callback runs after layout, when the read is free.
+ *
+ * `present` is for an element that is not always rendered (CodeBlock has no
+ * `<pre>` in prompt mode): pass whether it is, and the observers attach when it
+ * appears. A ref filling in later is not something an effect can see.
  */
 export function useEdgeFade(
 	ref: RefObject<HTMLElement | null>,
 	orientation: "vertical" | "horizontal",
+	present = true,
 ): { sync: () => void; style: CSSProperties | undefined } {
 	const [showStart, setShowStart] = useState(false)
 	const [showEnd, setShowEnd] = useState(false)
@@ -88,7 +93,8 @@ export function useEdgeFade(
 			mo?.disconnect()
 			ro.disconnect()
 		}
-	}, [ref, sync])
+	// biome-ignore lint/correctness/useExhaustiveDependencies: present re-attaches the observers
+	}, [ref, sync, present])
 
 	// On the spacing scale (7 steps, 28px at the default ladder) so a denser or
 	// roomier Character moves the fade with the content it fades.

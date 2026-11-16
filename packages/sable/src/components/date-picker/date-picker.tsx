@@ -324,10 +324,14 @@ export function DatePicker(props: DatePickerProps) {
 	// (either order), then the popover closes. react-day-picker's own range
 	// logic turns a first pick into a one-day range and a repeat pick into
 	// "clear", which reads as the picker forgetting what was chosen.
+	//
+	// The first pick is held here, shown in the calendar as the start, and
+	// nothing is committed until the second: dismissing in between (Escape, a
+	// click outside) leaves the value as it was. Committing the half range threw
+	// away a complete one on a stray click, and left a form field empty.
 	function handleRangeDay(_: DateRange | undefined, day: Date) {
 		if (!anchor) {
 			setAnchor(day)
-			commit({ from: day, to: undefined })
 			return
 		}
 		const [from, to] = day < anchor ? [day, anchor] : [anchor, day]
@@ -372,7 +376,10 @@ export function DatePicker(props: DatePickerProps) {
 		return `${formatDate(from)} – ${formatDate(to)}`
 	}
 
-	const selectedLabel = range ? (dateRange?.from ? formatRange(dateRange) : "") : date ? formatDate(date) : ""
+	// While a start is held, the trigger shows it ("Oct 12 –"), so the control
+	// never reads as the old range while the calendar shows a new start.
+	const shownRange = anchor ? { from: anchor, to: undefined } : dateRange
+	const selectedLabel = range ? (shownRange?.from ? formatRange(shownRange) : "") : date ? formatDate(date) : ""
 	const emptyLabel =
 		placeholder ??
 		(range
@@ -475,7 +482,7 @@ export function DatePicker(props: DatePickerProps) {
 								bare
 								mode="range"
 								locale={locale}
-								selected={dateRange}
+								selected={anchor ? { from: anchor, to: undefined } : dateRange}
 								onSelect={handleRangeDay}
 								disabled={rangeMatchers(minDate, maxDate)}
 								defaultMonth={dateRange?.from ?? minDate}

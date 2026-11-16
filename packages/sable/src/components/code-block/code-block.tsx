@@ -121,7 +121,8 @@ export function CodeBlock({
 	const hasHeader = Boolean(filename)
 	const { copy, copied } = useCopy(code)
 	const preRef = useRef<HTMLPreElement>(null)
-	const fade = useEdgeFade(preRef, "horizontal")
+	// No <pre> in prompt mode: the fade attaches when there is one.
+	const fade = useEdgeFade(preRef, "horizontal", prompt == null)
 
 	if (prompt != null) {
 		return (

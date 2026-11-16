@@ -23,8 +23,8 @@ A three-day agenda: the day as the card title, its events down a column of start
 ```tsx
 "use client"
 
-import { useState } from "react"
-import { Avatar, AvatarGroup, Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Tabs, TabsList, TabsPanel, TabsTrigger, TextSwap, useAutoSize } from "@sableui/react"
+import { useState, useMemo } from "react"
+import { Avatar, AvatarGroup, Card, CardContent, CardDescription, CardHeader, CardTitle, cn, Tabs, TabsList, TabsPanel, TabsTrigger, TextSwap, useAutoSize, useToday } from "@sableui/react"
 
 // `tone` is a palette family: the calendar an event belongs to. `people` are initials.
 const agenda = [
@@ -40,21 +40,21 @@ const agenda = [
 	],
 ] as const
 
-// Dated from the page load, today first — replace with your own days.
-const DAY = 86_400_000
+// Dated from today, today first — replace with your own days.
 const weekday = new Intl.DateTimeFormat("en-US", { weekday: "long" })
 const shortWeekday = new Intl.DateTimeFormat("en-US", { weekday: "short" })
 const monthDay = new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric" })
-const days = agenda.map((events, offset) => {
-	const date = new Date(Date.now() + offset * DAY)
-	return {
-		id: String(offset),
-		label: `${shortWeekday.format(date)} ${date.getDate()}`,
-		title: weekday.format(date),
-		date: monthDay.format(date),
-		events,
-	}
-})
+const datedFrom = (today: Date) =>
+	agenda.map((events, offset) => {
+		const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset)
+		return {
+			id: String(offset),
+			label: `${shortWeekday.format(date)} ${date.getDate()}`,
+			title: weekday.format(date),
+			date: monthDay.format(date),
+			events,
+		}
+	})
 
 export interface ScheduleBlockProps {
 	className?: string
@@ -63,7 +63,10 @@ export interface ScheduleBlockProps {
 }
 
 export function ScheduleBlock({ className, framed = true }: ScheduleBlockProps) {
-	const [day, setDay] = useState(days[0].id)
+	// useToday, not new Date(): the server and the reader may be on different days.
+	const today = useToday()
+	const days = useMemo(() => datedFrom(today), [today])
+	const [day, setDay] = useState("0")
 	const selected = days.find((item) => item.id === day) ?? days[0]
 	// Days hold different numbers of events: the card eases to the new height.
 	const size = useAutoSize<HTMLDivElement, HTMLDivElement>({ axis: "height" })

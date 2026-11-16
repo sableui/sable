@@ -351,7 +351,8 @@ describe("DatePicker range", () => {
 		)
 		await user.click(screen.getByRole("button", { name: /pick a date range/i }))
 		await user.click(await dayButton(12))
-		expect(onValueChange).toHaveBeenLastCalledWith({ from: new Date(2026, 9, 12), to: undefined })
+		// The start is held in the picker: nothing is committed until the end.
+		expect(onValueChange).not.toHaveBeenCalled()
 		// Still open for the end.
 		expect(screen.getByRole("grid")).toBeInTheDocument()
 		await user.click(await dayButton(8))

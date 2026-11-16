@@ -1,19 +1,20 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { BarChart } from "../components/bar-chart"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/card"
 import { Toggle, ToggleGroup } from "../components/toggle"
 import { cn } from "../lib/cn"
+import { useToday } from "../lib/use-today"
 
 // ---block-code---
 /** The 30 days to today — replace with your own rows ({ date, desktop, mobile }). */
-const today = new Date()
-const days = Array.from({ length: 30 }, (_, i) => ({
-	date: new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() - 29 + i)).toISOString().slice(0, 10),
-	desktop: Math.round(320 + Math.sin(i / 3) * 90 + (i % 5) * 14),
-	mobile: Math.round(260 + Math.cos(i / 4) * 80 + (i % 4) * 18),
-}))
+const daysTo = (today: Date) =>
+	Array.from({ length: 30 }, (_, i) => ({
+		date: new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() - 29 + i)).toISOString().slice(0, 10),
+		desktop: Math.round(320 + Math.sin(i / 3) * 90 + (i % 5) * 14),
+		mobile: Math.round(260 + Math.cos(i / 4) * 80 + (i % 4) * 18),
+	}))
 
 const series = [
 	{ key: "desktop", label: "Desktop" },
@@ -33,6 +34,9 @@ export interface DeviceComparisonBlockProps {
 
 export function DeviceComparisonBlock({ className, framed = true }: DeviceComparisonBlockProps) {
 	const [active, setActive] = useState<string>("desktop")
+	// useToday, not new Date(): the server and the reader may be on different days.
+	const today = useToday()
+	const days = useMemo(() => daysTo(today), [today])
 	const totals = Object.fromEntries(series.map((s) => [s.key, days.reduce((sum, d) => sum + d[s.key], 0)]))
 	const current = series.find((s) => s.key === active) ?? series[0]
 	return (
