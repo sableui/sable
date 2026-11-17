@@ -61,7 +61,7 @@ export function PricingCardBlock({ className, framed = true, onStart }: PricingC
 				</ToggleGroup>
 				<div className="flex flex-col gap-1">
 					<div className="flex items-baseline gap-1.5">
-						<span className="text-heading-2">{plan[period].price}</span>
+						<span className="text-mono-xl">{plan[period].price}</span>
 						<span className="text-body-sm text-muted-foreground">per seat / month</span>
 					</div>
 					<span className="text-body-sm text-muted-foreground">{plan[period].note}</span>

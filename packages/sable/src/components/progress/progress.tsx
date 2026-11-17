@@ -148,7 +148,7 @@ type ValueProps = Omit<ComponentProps<typeof Base.Value>, "className"> & {
 export function ProgressValue({ className, ...props }: ValueProps) {
 	return (
 		<Base.Value
-			className={cn("text-mono-sm text-muted-foreground", className)}
+			className={cn("text-mono-caption text-muted-foreground", className)}
 			{...props}
 		/>
 	)

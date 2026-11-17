@@ -70,7 +70,7 @@ export function CartBlock({ className, framed = true, onQuantityChange, onRemove
 				<CardDescription>{count === 1 ? "1 item" : `${count} items`}</CardDescription>
 			</CardHeader>
 			{cart.length ? (
-				<CardList>
+				<CardList divided={false}>
 					{cart.map((line) => (
 						<Entity
 							key={line.id}
@@ -111,11 +111,11 @@ export function CartBlock({ className, framed = true, onQuantityChange, onRemove
 					<dl className="flex flex-col gap-2 text-body-sm">
 						<div className="flex items-baseline justify-between gap-3">
 							<dt className="text-muted-foreground">Subtotal</dt>
-							<dd className="text-mono-sm">{money.format(subtotal)}</dd>
+							<dd className="text-mono-md">{money.format(subtotal)}</dd>
 						</div>
 						<div className="flex items-baseline justify-between gap-3">
 							<dt className="text-muted-foreground">Shipping</dt>
-							<dd className="text-mono-sm">{delivery ? money.format(delivery) : "Free"}</dd>
+							<dd className="text-mono-md">{delivery ? money.format(delivery) : "Free"}</dd>
 						</div>
 						<div className="flex items-baseline justify-between gap-3 pt-1">
 							<dt className="text-label-lg">Total</dt>

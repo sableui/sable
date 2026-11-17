@@ -30,7 +30,7 @@ export function ProductCardBlock({ className, framed = true, onCollect }: Produc
 				<CardTitle render={<h2 />}>{product.title}</CardTitle>
 				<CardDescription>{product.maker}</CardDescription>
 				<CardAction>
-					<Badge tone="1">{product.badge}</Badge>
+					<Badge tone="1" size="sm">{product.badge}</Badge>
 				</CardAction>
 			</CardHeader>
 			<CardFooter className="justify-between pt-4">

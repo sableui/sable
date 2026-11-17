@@ -76,13 +76,13 @@ export function InvoicePreviewBlock({ className, framed = true, onSend }: Invoic
 			<CardContent className="flex flex-col gap-5">
 				<div className="flex flex-col gap-1">
 					<span className="text-body-sm text-muted-foreground">Amount due</span>
-					<NumberTicker value={amount} format={{ style: "currency", currency: "USD" }} className="text-heading-2" />
+					<NumberTicker value={amount} format={{ style: "currency", currency: "USD" }} className="text-mono-xl" />
 				</div>
 				<dl className="flex flex-col gap-2 text-body-sm">
 					{invoice.lines.map((line) => (
 						<div key={line.label} className="flex justify-between gap-3">
 							<dt>{line.label}</dt>
-							<dd>{money.format(line.amount)}</dd>
+							<dd className="text-mono-md">{money.format(line.amount)}</dd>
 						</div>
 					))}
 				</dl>
@@ -90,7 +90,7 @@ export function InvoicePreviewBlock({ className, framed = true, onSend }: Invoic
 					label="10% discount"
 					orientation="horizontal"
 					disabled={state === "sending"}
-					trailing={discounted ? <span className="text-body-sm text-muted-foreground">−{money.format(deduction)}</span> : undefined}
+					trailing={discounted ? <span className="text-mono-md text-muted-foreground">−{money.format(deduction)}</span> : undefined}
 				>
 					<Switch
 						checked={discounted}

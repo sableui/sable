@@ -331,7 +331,7 @@ describe("Card seams", () => {
 		expect(content.className).toContain("[[data-slot=card-header]:not([data-divided])+&]:mt-")
 	})
 
-	it("drops the row hairlines for a quiet list, and rules off a labelled group", () => {
+	it("drops every hairline for a quiet list: rows, a labelled group, and the footer", () => {
 		const { container } = render(
 			<Card>
 				<CardList divided={false}>
@@ -339,11 +339,15 @@ describe("Card seams", () => {
 					<CardListLabel render={<h3 />}>Devices</CardListLabel>
 					<div>Row</div>
 				</CardList>
+				<CardFooter>Footer</CardFooter>
 			</Card>,
 		)
 		const list = container.querySelector("[data-slot=card-list]") as HTMLElement
-		expect(list.className).not.toContain("[&>*+*]:shadow-")
-		expect(list.className).toContain("[&>[data-slot=card-list-label]:not(:first-child)]:shadow-[inset_0_1px_0_var(--border)]")
+		expect(list.className).not.toContain("shadow-")
+		expect(list.className).toContain("[&>[data-slot=card-list-label]:not(:first-child)]:mt-")
+		expect(list).not.toHaveAttribute("data-divided")
+		// The footer's rule keys on a divided list.
+		expect((container.querySelector("[data-slot=card-footer]") as HTMLElement).className).toContain("[data-slot=card-list][data-divided]")
 		expect(container.querySelector("h3[data-slot=card-list-label]")?.textContent).toBe("Devices")
 	})
 })

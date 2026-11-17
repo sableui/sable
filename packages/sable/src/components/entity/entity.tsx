@@ -127,8 +127,11 @@ export function Entity({
 				// (sable-surface-interactive), so a selected row reads on a card, a
 				// well or a popover alike — and stays filled while hovered, which a
 				// fixed hover:bg-muted/50 used to override.
+				// Half the usual hover step. A row leads with a tile on the muted fill
+				// (an Avatar's initials, an IconTile), and the full step IS that
+				// fill: hovering the row erased the tile it was pointing at.
 				interactive &&
-					"sable-surface-interactive relative rounded-[var(--entity-radius,var(--radius-md))] motion-interactive",
+					"sable-surface-interactive relative rounded-[var(--entity-radius,var(--radius-md))] motion-interactive [--sable-surface-hover-bg:color-mix(in_oklab,var(--foreground)_4%,transparent)]",
 				className,
 			)}
 			data-selected={interactive && selected ? "" : undefined}

@@ -73,7 +73,7 @@ export function ProfileCardBlock({ className, framed = true, onFollowChange, onS
 						</Button>
 					</div>
 				</div>
-				<div className="flex flex-col gap-0.5">
+				<div className="flex flex-col">
 					<CardTitle render={<h2 />}>{profile.name}</CardTitle>
 					<CardDescription>{profile.handle}</CardDescription>
 				</div>

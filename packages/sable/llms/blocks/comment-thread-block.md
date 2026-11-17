@@ -100,7 +100,7 @@ export function CommentThreadBlock({ className, framed = true, onComment, onLike
 			<Avatar variant="art" size="sm" fallback={comment.author.initials} alt="" />
 			<div className="flex min-w-0 flex-1 flex-col gap-1">
 				<div className="flex flex-wrap items-baseline gap-x-2">
-					<span className="text-label-md">{comment.author.name}</span>
+					<span className="text-title-sm">{comment.author.name}</span>
 					<span className="text-caption text-muted-foreground">
 						<RelativeTime date={comment.postedAt} />
 					</span>

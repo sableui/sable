@@ -35,7 +35,7 @@ export function EventCardBlock({ className, framed = true, onJoin, onDecline }: 
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs", className)}>
 			<CardContent className="flex gap-4">
 				<DateTile date={today} />
-				<div className="flex min-w-0 flex-1 flex-col gap-1">
+				<div className="flex min-w-0 flex-1 flex-col">
 					{/* The row carries the title's type, so the badge's box is exactly
 					    one title line (`h-[1lh]`): it centres on the title and never
 					    makes the row taller than the title alone. When a bolder or

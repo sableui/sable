@@ -101,7 +101,7 @@ export function StorageBlock({ className, framed = true, onClear }: StorageBlock
 								// Unknown until the clear finishes, so a placeholder the size of the value.
 								<Skeleton className="h-4 w-12" />
 							) : (
-								<span className="text-mono-sm">{gb(item.id === "cache" && cleared ? 0 : item.size)}</span>
+								<span className="text-mono-md">{gb(item.id === "cache" && cleared ? 0 : item.size)}</span>
 							)}
 						</li>
 					))}

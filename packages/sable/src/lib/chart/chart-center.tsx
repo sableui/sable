@@ -31,9 +31,9 @@ export interface ChartCenterProps {
 export function ChartCenter({ center, x, y, placement = "middle", locale, motion }: ChartCenterProps) {
 	const value =
 		typeof center.value === "number" ? (
-			<NumberTicker value={center.value} format={centerValueFormat(center.value)} locales={locale} motion={motion} className="text-heading-2 text-foreground" />
+			<NumberTicker value={center.value} format={centerValueFormat(center.value)} locales={locale} motion={motion} className="text-mono-xl text-foreground" />
 		) : (
-			<span className="text-heading-2 text-foreground tabular-nums">{center.value}</span>
+			<span className="text-mono-xl text-foreground">{center.value}</span>
 		)
 	const middle = placement === "middle"
 	return (

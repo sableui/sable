@@ -95,8 +95,8 @@ export function ScheduleBlock({ className, framed = true }: ScheduleBlockProps) 
 													className="flex min-w-0 flex-1 items-center gap-2 rounded-(--card-inner-radius) bg-palette-wash px-3 py-2 text-palette-text [--avatar-group-ring:var(--palette-wash)]"
 												>
 													<div className="flex min-w-0 flex-1 flex-col">
-														<span className="truncate text-label-md">{event.name}</span>
-														<span className="text-caption">{event.length}</span>
+														<span className="truncate text-title-sm">{event.name}</span>
+														<span className="text-body-sm">{event.length}</span>
 													</div>
 													{event.people.length ? (
 														<AvatarGroup

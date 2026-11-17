@@ -2,6 +2,35 @@
 
 ## Unreleased
 
+- **Small text gets its line height back, and a title sits closer to its
+  description.** `text-title-sm`, `text-body-sm` and `text-mono-md` snap their
+  line height to half a baseline step. Their ratio falls between two whole
+  steps, so whole-step rounding dropped them to about 1.2 (13px on a 16px
+  line): rows read cramped beside card titles at 1.5, and wrapped descriptions
+  read as a block. They now hold about 1.45 to 1.55 (13px on 20px), and two
+  such lines are whole steps again. CardHeader drops the gap between its title
+  and description: the two are spaced by their own leading, like a row's two
+  lines. **Changed:** anything set in those tiers is taller: a two-line Entity
+  row by one step (8px at the defaults), a `body-sm` table cell by half a
+  step, a wrapped description by half a step a line. A card header with a
+  description is about the same height as before.
+- **One type role, one tier, across the blocks.** An audit of every text style
+  on the canvas found the same role set in different tiers from block to block.
+  Now: a headline figure is `text-mono-xl` everywhere (PricingCardBlock,
+  SubscriptionBlock and InvoicePreviewBlock set theirs in `text-heading-2`,
+  the sans, beside balances and KPIs in mono); a number in a row or ledger is
+  `text-mono-md`, the size of the text beside it (CartBlock, StorageBlock,
+  RecentOrdersBlock, InvoicePreviewBlock, DeliveryOptionsBlock and
+  DashboardPage used `text-mono-sm`, two sizes smaller, or the sans); a row's
+  name is `text-title-sm` over `text-body-sm`, as Entity sets it (ScheduleBlock
+  events and CommentThreadBlock authors were `text-label-md`, a size down);
+  ProductCardBlock's badge is `sm` like every other filled badge in a card.
+  Meter's and Progress's value labels move from `text-mono-sm` to
+  `text-mono-caption`, the size of the label they sit beside.
+  A chart's centre figure and PricingTableBlock's prices are `text-mono-xl`
+  too. And a title over its supporting line is spaced as CardHeader spaces
+  it wherever it is set by hand (ProfileCardBlock, EventCardBlock,
+  ReserveTableBlock), where each block had picked its own gap.
 - **`useToday`, and blocks that hydrate on any clock.** `useToday()` gives
   today on the reader's clock without a hydration mismatch: a fixed day on the
   server and while hydrating, the reader's own straight after, and the next
@@ -24,8 +53,8 @@
   drops the hairline between rows: the rows are spaced by padding alone, a card
   padding clear of the header, the footer and the card's edge. The new
   `CardListLabel` names a group of rows ("Signed-in devices", "Sources",
-  "Recent"); in a quiet list a label after the first row draws the one rule
-  that separates its group. SecurityBlock, CitedAnswerBlock and SearchBlock use
+  "Recent"); in a quiet list a label after the first row sets its group off
+  with space, and the footer below draws no rule. CartBlock is a quiet list too. SecurityBlock, CitedAnswerBlock and SearchBlock use
   both, in place of a hand-padded heading between ruled rows. SearchBlock's
   status line ("Recent", "3 results") is now the list's label rather than a
   line of the header.

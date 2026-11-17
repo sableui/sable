@@ -98,7 +98,7 @@ export function RecentOrdersBlock({ className, framed = true, onOpen, onViewAll 
 					columns={[
 						// First, and never hidden: the table insets its first column to the card's padding.
 						{ key: "customer", header: "Customer", sortable: true },
-						{ key: "id", header: "Order", className: "hidden @md/orders:table-cell", cell: (order) => <span className="text-mono-sm">#{order.id}</span> },
+						{ key: "id", header: "Order", className: "hidden @md/orders:table-cell", cell: (order) => <span className="text-mono-md">#{order.id}</span> },
 						{
 							key: "placed",
 							header: "Placed",
@@ -120,7 +120,7 @@ export function RecentOrdersBlock({ className, framed = true, onOpen, onViewAll 
 								</Badge>
 							),
 						},
-						{ key: "total", header: "Total", align: "end", sortable: true, sortValue: (order) => order.total, cell: (order) => money.format(order.total) },
+						{ key: "total", header: "Total", align: "end", sortable: true, sortValue: (order) => order.total, cell: (order) => <span className="text-mono-md">{money.format(order.total)}</span> },
 					]}
 				/>
 			</CardContent>

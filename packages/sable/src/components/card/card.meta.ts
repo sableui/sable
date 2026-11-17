@@ -145,13 +145,13 @@ export const cardMeta: ComponentMeta = {
 			name: "CardList",
 			type: 'ComponentPropsWithRef<"div"> & { divided?: boolean }',
 			description:
-				"Rows that run edge to edge in the card (Entity rows, most often), divided by hairlines. Insets each row to the card's own padding, so a list card lines up with every other card at any density, with no hand-tuned px-* on the rows. Under a CardHeader it opens with a hairline and a gap; alone it fills the card. `divided={false}` drops the hairlines for a quiet list of a few rows: the rows are spaced by padding alone, and the only rule is the one a CardListLabel draws between groups.",
+				"Rows that run edge to edge in the card (Entity rows, most often), divided by hairlines. Insets each row to the card's own padding, so a list card lines up with every other card at any density, with no hand-tuned px-* on the rows. Under a CardHeader it opens with a hairline and a gap; alone it fills the card. `divided={false}` drops the hairlines for a quiet list of a few rows: the rows are spaced by padding alone, a CardListLabel sets a group off with space, and the footer below draws no rule.",
 		},
 		{
 			name: "CardListLabel",
 			type: 'ComponentPropsWithRef<"div"> & { render?: useRender.RenderProp }',
 			description:
-				"The name of a group of rows in a CardList (\"Signed-in devices\", \"Sources\"), on the rows' text edge and close above them. Pass `render={<h3 />}` to make it a heading. In a `divided={false}` list, a label after the first row draws the one rule that separates its group. Never a hand-padded heading between rows.",
+				"The name of a group of rows in a CardList (\"Signed-in devices\", \"Sources\"), on the rows' text edge and close above them. Pass `render={<h3 />}` to make it a heading. In a `divided={false}` list, a label after the first row sets its group off with space. Never a hand-padded heading between rows.",
 		},
 		{
 			name: "CardFooter",

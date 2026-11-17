@@ -69,7 +69,7 @@ export function DeliveryOptionsBlock({ className, framed = true, onContinue }: D
 							value={item.id}
 							title={item.title}
 							description={item.detail}
-							trailing={item.price ? money.format(item.price) : "Free"}
+							trailing={<span className="text-mono-md">{item.price ? money.format(item.price) : "Free"}</span>}
 						/>
 					))}
 				</RadioGroup>

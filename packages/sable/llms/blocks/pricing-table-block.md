@@ -100,7 +100,7 @@ export function PricingTableBlock({ className, onChoose }: PricingTableBlockProp
 							</CardHeader>
 							<CardContent className="flex flex-1 flex-col gap-5">
 								<div className="flex items-baseline gap-1.5">
-									<span className="text-heading-2">${tier[period]}</span>
+									<span className="text-mono-xl">${tier[period]}</span>
 									<span className="text-body-sm text-muted-foreground">per seat / month</span>
 								</div>
 								<ul className="flex flex-col gap-2 text-body-sm">

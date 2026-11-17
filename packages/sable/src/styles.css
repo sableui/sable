@@ -613,6 +613,14 @@
    tier's (and each theme's) intended proportion and snaps the result — 24px
    and 40px there at the default 8px step.
 
+   The small reading tiers (title-sm, body-sm, mono-md) snap to HALF a step.
+   Their ratio lands almost exactly between two whole steps (13px at 1.5 is
+   19.5px, between 16 and 24), so whole-step rounding threw them down to a
+   1.2 line: a row's two lines sat cramped under a card title rounded up to
+   1.5, and a wrapped description read as a block. On half steps they keep
+   their 1.4 to 1.5, and two such lines (an Entity's title and subtitle) are
+   whole steps again.
+
    The reading tiers (body, title, caption, mono-md) also take
    --leading-scale, so Airy opens the text itself; display, heading and label
    leading is a shape the theme chose and only snaps. The `ui-*` tier is
@@ -724,7 +732,7 @@
 @utility text-title-sm {
 	font-size: calc(var(--type-title-sm-size, 0.875rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-title-weight, 600);
-	line-height: round(nearest, calc(var(--type-title-leading, 1.4) * var(--leading-scale, 1) * 1em), var(--baseline-step, 0.25rem));
+	line-height: round(nearest, calc(var(--type-title-leading, 1.4) * var(--leading-scale, 1) * 1em), calc(var(--baseline-step, 0.25rem) / 2));
 	letter-spacing: var(--type-title-sm-tracking, -0.005em);
 }
 
@@ -756,7 +764,7 @@
 @utility text-body-sm {
 	font-size: calc(var(--type-body-sm-size, 0.8125rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-body-sm-weight, 400);
-	line-height: round(nearest, calc(var(--type-body-sm-leading, 1.5) * var(--leading-scale, 1) * 1em), var(--baseline-step, 0.25rem));
+	line-height: round(nearest, calc(var(--type-body-sm-leading, 1.5) * var(--leading-scale, 1) * 1em), calc(var(--baseline-step, 0.25rem) / 2));
 	letter-spacing: var(--type-body-sm-tracking, 0);
 }
 /* The dense floor of the body ramp — running text in operator consoles,
@@ -921,7 +929,7 @@
 	font-family: var(--font-mono);
 	font-size: calc(var(--type-mono-md-size, 0.8125rem) * var(--type-base, 16) / 16);
 	font-weight: var(--type-mono-md-weight, 400);
-	line-height: round(nearest, calc(var(--type-mono-md-leading, 1.5) * var(--leading-scale, 1) * 1em), var(--baseline-step, 0.25rem));
+	line-height: round(nearest, calc(var(--type-mono-md-leading, 1.5) * var(--leading-scale, 1) * 1em), calc(var(--baseline-step, 0.25rem) / 2));
 	letter-spacing: var(--type-mono-md-tracking, 0);
 	font-variant-numeric: tabular-nums;
 }

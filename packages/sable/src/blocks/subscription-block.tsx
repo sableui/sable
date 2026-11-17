@@ -50,7 +50,7 @@ export function SubscriptionBlock({ className, framed = true, onChangePlan, onUp
 			</CardHeader>
 			<CardContent className="flex flex-col gap-5">
 				<div className="flex items-baseline gap-1.5">
-					<span className="text-heading-2">{plan.price}</span>
+					<span className="text-mono-xl">{plan.price}</span>
 					<span className="text-body-sm text-muted-foreground">per {plan.period}</span>
 				</div>
 				{/* A level against a limit: Meter, not Progress. */}

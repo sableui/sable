@@ -6062,9 +6062,9 @@ export function DashboardPage() {
 										sortValue: (row) => row.used * row.price,
 										cell: (row) =>
 											row.used > 0 ? (
-												<span className="text-mono-sm">{usd.format(row.used * row.price)}</span>
+												<span className="text-mono-md">{usd.format(row.used * row.price)}</span>
 											) : (
-												<span className="text-mono-sm text-muted-foreground">—</span>
+												<span className="text-mono-md text-muted-foreground">—</span>
 											),
 									},
 									{
@@ -6105,7 +6105,7 @@ export function DashboardPage() {
 									{payout.lines.map((line) => (
 										<div key={line.label} className="contents">
 											<dt>{line.label}</dt>
-											<dd className={typeof line.value === "number" ? "text-end text-mono-sm" : "text-end"}>
+											<dd className={typeof line.value === "number" ? "text-end text-mono-md" : "text-end"}>
 												{typeof line.value === "number" ? usdCents.format(line.value) : line.value}
 											</dd>
 										</div>
@@ -6130,7 +6130,7 @@ export function DashboardPage() {
 										leading={<Avatar variant="art" size="sm" fallback={person.initials} alt="" />}
 										title={person.name}
 										subtitle={`${person.handle} · ${person.seats} seats`}
-										action={<span className="text-mono-sm">{usd.format(person.spent)}</span>}
+										action={<span className="text-mono-md">{usd.format(person.spent)}</span>}
 									/>
 								))}
 							</CardList>
@@ -8628,7 +8628,7 @@ export function CartBlock({ className, framed = true, onQuantityChange, onRemove
 				<CardDescription>{count === 1 ? "1 item" : `${count} items`}</CardDescription>
 			</CardHeader>
 			{cart.length ? (
-				<CardList>
+				<CardList divided={false}>
 					{cart.map((line) => (
 						<Entity
 							key={line.id}
@@ -8669,11 +8669,11 @@ export function CartBlock({ className, framed = true, onQuantityChange, onRemove
 					<dl className="flex flex-col gap-2 text-body-sm">
 						<div className="flex items-baseline justify-between gap-3">
 							<dt className="text-muted-foreground">Subtotal</dt>
-							<dd className="text-mono-sm">{money.format(subtotal)}</dd>
+							<dd className="text-mono-md">{money.format(subtotal)}</dd>
 						</div>
 						<div className="flex items-baseline justify-between gap-3">
 							<dt className="text-muted-foreground">Shipping</dt>
-							<dd className="text-mono-sm">{delivery ? money.format(delivery) : "Free"}</dd>
+							<dd className="text-mono-md">{delivery ? money.format(delivery) : "Free"}</dd>
 						</div>
 						<div className="flex items-baseline justify-between gap-3 pt-1">
 							<dt className="text-label-lg">Total</dt>
@@ -9037,7 +9037,7 @@ export function CommentThreadBlock({ className, framed = true, onComment, onLike
 			<Avatar variant="art" size="sm" fallback={comment.author.initials} alt="" />
 			<div className="flex min-w-0 flex-1 flex-col gap-1">
 				<div className="flex flex-wrap items-baseline gap-x-2">
-					<span className="text-label-md">{comment.author.name}</span>
+					<span className="text-title-sm">{comment.author.name}</span>
 					<span className="text-caption text-muted-foreground">
 						<RelativeTime date={comment.postedAt} />
 					</span>
@@ -9328,7 +9328,7 @@ export function DeliveryOptionsBlock({ className, framed = true, onContinue }: D
 							value={item.id}
 							title={item.title}
 							description={item.detail}
-							trailing={item.price ? money.format(item.price) : "Free"}
+							trailing={<span className="text-mono-md">{item.price ? money.format(item.price) : "Free"}</span>}
 						/>
 					))}
 				</RadioGroup>
@@ -9508,7 +9508,7 @@ export function EventCardBlock({ className, framed = true, onJoin, onDecline }: 
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-xs", className)}>
 			<CardContent className="flex gap-4">
 				<DateTile date={today} />
-				<div className="flex min-w-0 flex-1 flex-col gap-1">
+				<div className="flex min-w-0 flex-1 flex-col">
 					{/* The row carries the title's type, so the badge's box is exactly
 					    one title line (`h-[1lh]`): it centres on the title and never
 					    makes the row taller than the title alone. When a bolder or
@@ -10135,13 +10135,13 @@ export function InvoicePreviewBlock({ className, framed = true, onSend }: Invoic
 			<CardContent className="flex flex-col gap-5">
 				<div className="flex flex-col gap-1">
 					<span className="text-body-sm text-muted-foreground">Amount due</span>
-					<NumberTicker value={amount} format={{ style: "currency", currency: "USD" }} className="text-heading-2" />
+					<NumberTicker value={amount} format={{ style: "currency", currency: "USD" }} className="text-mono-xl" />
 				</div>
 				<dl className="flex flex-col gap-2 text-body-sm">
 					{invoice.lines.map((line) => (
 						<div key={line.label} className="flex justify-between gap-3">
 							<dt>{line.label}</dt>
-							<dd>{money.format(line.amount)}</dd>
+							<dd className="text-mono-md">{money.format(line.amount)}</dd>
 						</div>
 					))}
 				</dl>
@@ -10149,7 +10149,7 @@ export function InvoicePreviewBlock({ className, framed = true, onSend }: Invoic
 					label="10% discount"
 					orientation="horizontal"
 					disabled={state === "sending"}
-					trailing={discounted ? <span className="text-body-sm text-muted-foreground">−{money.format(deduction)}</span> : undefined}
+					trailing={discounted ? <span className="text-mono-md text-muted-foreground">−{money.format(deduction)}</span> : undefined}
 				>
 					<Switch
 						checked={discounted}
@@ -11109,7 +11109,7 @@ export function PricingCardBlock({ className, framed = true, onStart }: PricingC
 				</ToggleGroup>
 				<div className="flex flex-col gap-1">
 					<div className="flex items-baseline gap-1.5">
-						<span className="text-heading-2">{plan[period].price}</span>
+						<span className="text-mono-xl">{plan[period].price}</span>
 						<span className="text-body-sm text-muted-foreground">per seat / month</span>
 					</div>
 					<span className="text-body-sm text-muted-foreground">{plan[period].note}</span>
@@ -11235,7 +11235,7 @@ export function PricingTableBlock({ className, onChoose }: PricingTableBlockProp
 							</CardHeader>
 							<CardContent className="flex flex-1 flex-col gap-5">
 								<div className="flex items-baseline gap-1.5">
-									<span className="text-heading-2">${tier[period]}</span>
+									<span className="text-mono-xl">${tier[period]}</span>
 									<span className="text-body-sm text-muted-foreground">per seat / month</span>
 								</div>
 								<ul className="flex flex-col gap-2 text-body-sm">
@@ -11311,7 +11311,7 @@ export function ProductCardBlock({ className, framed = true, onCollect }: Produc
 				<CardTitle render={<h2 />}>{product.title}</CardTitle>
 				<CardDescription>{product.maker}</CardDescription>
 				<CardAction>
-					<Badge tone="1">{product.badge}</Badge>
+					<Badge tone="1" size="sm">{product.badge}</Badge>
 				</CardAction>
 			</CardHeader>
 			<CardFooter className="justify-between pt-4">
@@ -11400,7 +11400,7 @@ export function ProfileCardBlock({ className, framed = true, onFollowChange, onS
 						</Button>
 					</div>
 				</div>
-				<div className="flex flex-col gap-0.5">
+				<div className="flex flex-col">
 					<CardTitle render={<h2 />}>{profile.name}</CardTitle>
 					<CardDescription>{profile.handle}</CardDescription>
 				</div>
@@ -11725,7 +11725,7 @@ export function RecentOrdersBlock({ className, framed = true, onOpen, onViewAll 
 					columns={[
 						// First, and never hidden: the table insets its first column to the card's padding.
 						{ key: "customer", header: "Customer", sortable: true },
-						{ key: "id", header: "Order", className: "hidden @md/orders:table-cell", cell: (order) => <span className="text-mono-sm">#{order.id}</span> },
+						{ key: "id", header: "Order", className: "hidden @md/orders:table-cell", cell: (order) => <span className="text-mono-md">#{order.id}</span> },
 						{
 							key: "placed",
 							header: "Placed",
@@ -11747,7 +11747,7 @@ export function RecentOrdersBlock({ className, framed = true, onOpen, onViewAll 
 								</Badge>
 							),
 						},
-						{ key: "total", header: "Total", align: "end", sortable: true, sortValue: (order) => order.total, cell: (order) => money.format(order.total) },
+						{ key: "total", header: "Total", align: "end", sortable: true, sortValue: (order) => order.total, cell: (order) => <span className="text-mono-md">{money.format(order.total)}</span> },
 					]}
 				/>
 			</CardContent>
@@ -11853,7 +11853,7 @@ export function ReserveTableBlock({ className, framed = true, onReserve, onCance
 							</CardHeader>
 							<CardContent className="flex items-center gap-4">
 								<DateTile date={date} />
-								<div className="flex min-w-0 flex-col gap-1">
+								<div className="flex min-w-0 flex-col">
 									<span className="text-title-lg">Table for {guests}</span>
 									<span className="text-body-sm text-muted-foreground">
 										{weekday.format(date)} · {venue.service}
@@ -12114,8 +12114,8 @@ export function ScheduleBlock({ className, framed = true }: ScheduleBlockProps) 
 													className="flex min-w-0 flex-1 items-center gap-2 rounded-(--card-inner-radius) bg-palette-wash px-3 py-2 text-palette-text [--avatar-group-ring:var(--palette-wash)]"
 												>
 													<div className="flex min-w-0 flex-1 flex-col">
-														<span className="truncate text-label-md">{event.name}</span>
-														<span className="text-caption">{event.length}</span>
+														<span className="truncate text-title-sm">{event.name}</span>
+														<span className="text-body-sm">{event.length}</span>
 													</div>
 													{event.people.length ? (
 														<AvatarGroup
@@ -12404,7 +12404,7 @@ export function SecurityBlock({ className, framed = true, onTwoFactorChange, onM
 				<CardTitle render={<h2 />}>Security</CardTitle>
 				<CardDescription>How you sign in, and where you are signed in.</CardDescription>
 			</CardHeader>
-			{/* Two short groups: no rule per row, one between the groups. */}
+			{/* Two short groups, set apart by space: no rules. */}
 			<CardList divided={false}>
 				<Entity
 					leading={<IconTile icon="lock" size="sm" appearance="muted" />}
@@ -13183,7 +13183,7 @@ export function StorageBlock({ className, framed = true, onClear }: StorageBlock
 								// Unknown until the clear finishes, so a placeholder the size of the value.
 								<Skeleton className="h-4 w-12" />
 							) : (
-								<span className="text-mono-sm">{gb(item.id === "cache" && cleared ? 0 : item.size)}</span>
+								<span className="text-mono-md">{gb(item.id === "cache" && cleared ? 0 : item.size)}</span>
 							)}
 						</li>
 					))}
@@ -13427,7 +13427,7 @@ export function SubscriptionBlock({ className, framed = true, onChangePlan, onUp
 			</CardHeader>
 			<CardContent className="flex flex-col gap-5">
 				<div className="flex items-baseline gap-1.5">
-					<span className="text-heading-2">{plan.price}</span>
+					<span className="text-mono-xl">{plan.price}</span>
 					<span className="text-body-sm text-muted-foreground">per {plan.period}</span>
 				</div>
 				{/* A level against a limit: Meter, not Progress. */}
@@ -17070,8 +17070,8 @@ Use Card for a discrete thing with its own boundary, such as one product, one no
 | CardDescription | ComponentPropsWithRef<"div"> | Muted supporting line under the title. |
 | CardAction | ComponentPropsWithRef<"div"> | Header-aligned top-right action slot (e.g. an overflow menu, switch, or close button). Place inside CardHeader, which becomes a 2-column grid when present and collapses to a single column otherwise. A ghost or link Button that ends the slot bleeds by its own padding at the end, so a "View all" label or a "⋯" glyph sits on the card's content edge; filled buttons keep their edge there. |
 | CardContent | ComponentPropsWithRef<"div"> & { flush?: boolean } | The body region. Padding follows the density knob on all sides — does not assume a preceding CardHeader, so it is safe to use standalone (e.g. no CardHeader in the card). When paired with CardHeader, the seam stays tight because CardHeader zeroes its own bottom padding. `flush` runs it edge to edge for a table: the Table insets its first and last columns by exactly the card padding, so it lines up with the header — never hand-set pl-6/pr-6 on columns. |
-| CardList | ComponentPropsWithRef<"div"> & { divided?: boolean } | Rows that run edge to edge in the card (Entity rows, most often), divided by hairlines. Insets each row to the card's own padding, so a list card lines up with every other card at any density, with no hand-tuned px-* on the rows. Under a CardHeader it opens with a hairline and a gap; alone it fills the card. `divided={false}` drops the hairlines for a quiet list of a few rows: the rows are spaced by padding alone, and the only rule is the one a CardListLabel draws between groups. |
-| CardListLabel | ComponentPropsWithRef<"div"> & { render?: useRender.RenderProp } | The name of a group of rows in a CardList ("Signed-in devices", "Sources"), on the rows' text edge and close above them. Pass `render={<h3 />}` to make it a heading. In a `divided={false}` list, a label after the first row draws the one rule that separates its group. Never a hand-padded heading between rows. |
+| CardList | ComponentPropsWithRef<"div"> & { divided?: boolean } | Rows that run edge to edge in the card (Entity rows, most often), divided by hairlines. Insets each row to the card's own padding, so a list card lines up with every other card at any density, with no hand-tuned px-* on the rows. Under a CardHeader it opens with a hairline and a gap; alone it fills the card. `divided={false}` drops the hairlines for a quiet list of a few rows: the rows are spaced by padding alone, a CardListLabel sets a group off with space, and the footer below draws no rule. |
+| CardListLabel | ComponentPropsWithRef<"div"> & { render?: useRender.RenderProp } | The name of a group of rows in a CardList ("Signed-in devices", "Sources"), on the rows' text edge and close above them. Pass `render={<h3 />}` to make it a heading. In a `divided={false}` list, a label after the first row sets its group off with space. Never a hand-padded heading between rows. |
 | CardFooter | ComponentPropsWithRef<"div"> & { actions?: boolean } | Bottom row for actions/meta. Padding follows the density knob. `actions` marks it as the card's action row (buttons only): in a sheet (IosSheet, a bottom SheetContent) it becomes a full-width stack pinned to the bottom, primary on top; on a page nothing changes. |
 
 ## Props
@@ -22571,7 +22571,7 @@ import { Meter } from "@sableui/react"
 
 <div className="flex items-center gap-3">
 	<Meter value={8} max={10} segments={10} size="sm" tone="success" className="w-24" aria-label="ICP score" getAriaValueText={(_, v) => `${v} out of 10`} />
-	<span className="text-mono-sm text-foreground">8/10</span>
+	<span className="text-mono-caption text-foreground">8/10</span>
 </div>
 ```
 

@@ -400,14 +400,14 @@ The page is set in **lines**, the way print is. The unit is one line of body tex
 --baseline-step = round(body size × body leading × --leading-scale ÷ --baseline-split, 1px)
 --baseline      = --baseline-step × --baseline-split
 --spacing       = --baseline-step ÷ 2        (so p-4 is two steps)
-line-height     = round(tier ratio × 1em, --baseline-step)
+line-height     = round(tier ratio × 1em, --baseline-step)   (title-sm, body-sm, mono-md: half a step)
 ```
 
 At Sable's defaults (15px body on 1.55) that is a 24px line in 8px thirds, and `--spacing` comes out at exactly Tailwind's 0.25rem — nothing moved until the type does. On the docs site, which sets `--type-base: 14` on desktop, it is 21px in 7px steps.
 
 **What a theme chooses.** `--theme-baseline-split` — steps per line, thirds by default; halves read calmer and more editorial, and finer than thirds stops giving structure unless every value is chosen by eye. `--theme-leading-scale` — how open the reading text is set; Prism sets 0.86 (a 7px step), Poppy 1.1 (a 9px step). Density *is* leading: the customizer's Compact ↔ Airy moves `--leading-scale`, the line grows, and every gap, gutter and control gap follows. Setting `--spacing` by hand pulls the gaps off the lines.
 
-**A rhythm, not a lock.** The baseline is where spacing *comes from*, not a grid every letter is forced onto. Line heights are whole steps and the spacing scale is in steps, so a page built from Sable's tiers and gaps falls into a steady rhythm on its own. It is not enforced past that: content-sized things (a card with a 40px button, a code block, a demo stage) are as tall as they are, and pinning every baseline to a line on a responsive page breaks layouts rather than calming them.
+**A rhythm, not a lock.** The baseline is where spacing *comes from*, not a grid every letter is forced onto. Line heights are whole steps (half steps for the small reading tiers, whose ratio falls between two whole ones; two such lines are whole steps again) and the spacing scale is in steps, so a page built from Sable's tiers and gaps falls into a steady rhythm on its own. It is not enforced past that: content-sized things (a card with a 40px button, a code block, a demo stage) are as tall as they are, and pinning every baseline to a line on a responsive page breaks layouts rather than calming them.
 
 **Habits that keep the rhythm:**
 - Vertical space between blocks in even Tailwind steps (`gap-2`, `gap-4`, `py-6`, `mt-12`) or `Stack`/`Row`/`Grid` gap numbers. An odd step is half a baseline step — fine inside a control, a small drift between blocks.

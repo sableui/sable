@@ -38,13 +38,17 @@ describe("typography art direction", () => {
 		}
 	})
 
-	it("puts every page-tier leading on the baseline step, keeping the theme's ratio", () => {
+	it("puts every page-tier leading on the baseline step (half a step for the small reading tiers), keeping the theme's ratio", () => {
+		// Their ratio falls between two whole steps, which rounded them down to a 1.2 line.
+		const halfStep = ["title-sm", "body-sm", "mono-md"]
 		const page = utilities.filter((utility) => !utility[1].startsWith("ui-"))
 		for (const [, tier, block] of page) {
 			const leading = block.match(/line-height:\s*([^;]+);/)?.[1]
 			if (!leading) continue
 			expect(leading, tier).toMatch(
-				/^round\(nearest, calc\(var\(--type-[\w-]+-leading, [\d.]+\)( \* var\(--leading-scale, 1\))? \* 1em\), var\(--baseline-step, 0\.25rem\)\)$/,
+				halfStep.includes(tier)
+					? /^round\(nearest, calc\(var\(--type-[\w-]+-leading, [\d.]+\) \* var\(--leading-scale, 1\) \* 1em\), calc\(var\(--baseline-step, 0\.25rem\) \/ 2\)\)$/
+					: /^round\(nearest, calc\(var\(--type-[\w-]+-leading, [\d.]+\)( \* var\(--leading-scale, 1\))? \* 1em\), var\(--baseline-step, 0\.25rem\)\)$/,
 			)
 		}
 	})

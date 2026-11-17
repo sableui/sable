@@ -85,7 +85,7 @@ export function ReserveTableBlock({ className, framed = true, onReserve, onCance
 							</CardHeader>
 							<CardContent className="flex items-center gap-4">
 								<DateTile date={date} />
-								<div className="flex min-w-0 flex-col gap-1">
+								<div className="flex min-w-0 flex-col">
 									<span className="text-title-lg">Table for {guests}</span>
 									<span className="text-body-sm text-muted-foreground">
 										{weekday.format(date)} · {venue.service}

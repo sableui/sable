@@ -169,7 +169,10 @@ export function CardHeader({
 				// card's last child (a stat card: label, number, sparkline) nothing
 				// follows to pad the bottom, so it keeps its own; zeroed, the number
 				// sat on the card's bottom edge.
-				"grid auto-rows-min grid-cols-1 items-start gap-1.5 p-[var(--card-p,--spacing(6))] pb-0 last:pb-[var(--card-p,--spacing(6))] has-data-[slot=card-action]:grid-cols-[1fr_auto]",
+				// No row gap: the title and the description are spaced by their own
+				// leading, as a row's two lines are; a gap on top set them further
+				// apart than any other name-and-detail pair on the page.
+				"grid auto-rows-min grid-cols-1 items-start gap-x-1.5 gap-y-0 p-[var(--card-p,--spacing(6))] pb-0 last:pb-[var(--card-p,--spacing(6))] has-data-[slot=card-action]:grid-cols-[1fr_auto]",
 				divided && "pb-[var(--card-p,--spacing(6))] shadow-[inset_0_-1px_0_var(--border)]",
 				className,
 			)}
@@ -310,7 +313,8 @@ export interface CardListProps extends ComponentPropsWithRef<"div"> {
 	/**
 	 * Draw a hairline between rows. Turn it off for a quiet list, where rows are
 	 * set apart by their own spacing and the only rules are the ones between
-	 * groups (a CardListLabel after the first opens its group with one). A list
+	 * groups, which is space too (a CardListLabel after the first opens its
+	 * group with it), and the footer below draws no rule either. A list
 	 * of a few short rows under a title reads cleaner that way; keep the
 	 * hairlines for long or dense lists, where the eye needs the tracks.
 	 * @default true
@@ -336,10 +340,11 @@ export function CardList({
 					: // No rules, so the list's own padding does the spacing: half the
 					  // card padding above and below, which with a row's own half makes
 					  // one card padding from the header to the first row's text and
-					  // from the last row's text to the card's edge or the footer's rule.
-					  // A label after the first row opens a new group: one rule, a card
-					  // padding clear on each side.
-					  "pb-[calc(var(--card-p,--spacing(6))/2)] [[data-slot=card-header]+&]:mt-[calc(var(--card-p,--spacing(6))/2)] [&>[data-slot=card-list-label]:not(:first-child)]:mt-[calc(var(--card-p,--spacing(6))/2)] [&>[data-slot=card-list-label]:not(:first-child)]:pt-[var(--card-p,--spacing(6))] [&>[data-slot=card-list-label]:not(:first-child)]:shadow-[inset_0_1px_0_var(--border)]",
+					  // from the last row's text to the card's edge or the footer.
+					  // A label after the first row opens a new group with space
+					  // alone: a rule there would be the one line left in a list
+					  // that has dropped its lines.
+					  "pb-[calc(var(--card-p,--spacing(6))/2)] [[data-slot=card-header]+&]:mt-[calc(var(--card-p,--spacing(6))/2)] [&>[data-slot=card-list-label]:not(:first-child)]:mt-[calc(var(--card-p,--spacing(6))/2)]",
 				className,
 			)}
 			{...props}
@@ -356,8 +361,8 @@ export interface CardListLabelProps extends ComponentPropsWithRef<"div"> {
 /**
  * The name of a group of rows in a CardList ("Signed-in devices", "Sources",
  * "Recent"). It sits on the rows' text edge, close above the rows it names. In
- * a list without hairlines, a label after the first row also draws the one
- * rule that separates its group from the rows above.
+ * a list without hairlines, a label after the first row sets its group off
+ * from the rows above with space.
  *
  *   <CardList divided={false}>
  *     <Entity title="Passkeys" … />
@@ -400,7 +405,8 @@ export interface CardFooterProps extends ComponentPropsWithRef<"div"> {
  *
  * - straight after a CardHeader (no content between), it takes the card
  *   padding, or the actions sat right on the title;
- * - after an edge-to-edge part (a flush CardContent, a CardList), whose last
+ * - after an edge-to-edge part (a flush CardContent, a divided CardList; a
+ *   list that has dropped its hairlines gets no rule here either), whose last
  *   row runs to the card's edges, it takes the padding AND a hairline — the
  *   mirror of the hairline CardList draws under a CardHeader. Without it the
  *   footer read as one more row of the table or list above it. A visually
@@ -427,8 +433,8 @@ export function CardFooter({
 			className={cn(
 				"flex items-center gap-2 p-[var(--card-p,--spacing(6))] pt-0",
 				"[[data-slot=card-header]+&]:pt-[var(--card-p,--spacing(6))]",
-				"[:is([data-slot=card-list],[data-slot=card-content][data-flush])+&]:shadow-[inset_0_1px_0_var(--border)] [:is([data-slot=card-list],[data-slot=card-content][data-flush])+&]:pt-[var(--card-p,--spacing(6))]",
-				"[:is([data-slot=card-list],[data-slot=card-content][data-flush])+.sr-only+&]:shadow-[inset_0_1px_0_var(--border)] [:is([data-slot=card-list],[data-slot=card-content][data-flush])+.sr-only+&]:pt-[var(--card-p,--spacing(6))]",
+				"[:is([data-slot=card-list][data-divided],[data-slot=card-content][data-flush])+&]:shadow-[inset_0_1px_0_var(--border)] [:is([data-slot=card-list][data-divided],[data-slot=card-content][data-flush])+&]:pt-[var(--card-p,--spacing(6))]",
+				"[:is([data-slot=card-list][data-divided],[data-slot=card-content][data-flush])+.sr-only+&]:shadow-[inset_0_1px_0_var(--border)] [:is([data-slot=card-list][data-divided],[data-slot=card-content][data-flush])+.sr-only+&]:pt-[var(--card-p,--spacing(6))]",
 				className,
 				stacked && "mt-auto flex-col-reverse items-stretch justify-start",
 			)}

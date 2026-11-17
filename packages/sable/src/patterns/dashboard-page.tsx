@@ -256,9 +256,9 @@ export function DashboardPage() {
 										sortValue: (row) => row.used * row.price,
 										cell: (row) =>
 											row.used > 0 ? (
-												<span className="text-mono-sm">{usd.format(row.used * row.price)}</span>
+												<span className="text-mono-md">{usd.format(row.used * row.price)}</span>
 											) : (
-												<span className="text-mono-sm text-muted-foreground">—</span>
+												<span className="text-mono-md text-muted-foreground">—</span>
 											),
 									},
 									{
@@ -299,7 +299,7 @@ export function DashboardPage() {
 									{payout.lines.map((line) => (
 										<div key={line.label} className="contents">
 											<dt>{line.label}</dt>
-											<dd className={typeof line.value === "number" ? "text-end text-mono-sm" : "text-end"}>
+											<dd className={typeof line.value === "number" ? "text-end text-mono-md" : "text-end"}>
 												{typeof line.value === "number" ? usdCents.format(line.value) : line.value}
 											</dd>
 										</div>
@@ -324,7 +324,7 @@ export function DashboardPage() {
 										leading={<Avatar variant="art" size="sm" fallback={person.initials} alt="" />}
 										title={person.name}
 										subtitle={`${person.handle} · ${person.seats} seats`}
-										action={<span className="text-mono-sm">{usd.format(person.spent)}</span>}
+										action={<span className="text-mono-md">{usd.format(person.spent)}</span>}
 									/>
 								))}
 							</CardList>

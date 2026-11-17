@@ -61,7 +61,7 @@ export function SecurityBlock({ className, framed = true, onTwoFactorChange, onM
 				<CardTitle render={<h2 />}>Security</CardTitle>
 				<CardDescription>How you sign in, and where you are signed in.</CardDescription>
 			</CardHeader>
-			{/* Two short groups: no rule per row, one between the groups. */}
+			{/* Two short groups, set apart by space: no rules. */}
 			<CardList divided={false}>
 				<Entity
 					leading={<IconTile icon="lock" size="sm" appearance="muted" />}

@@ -136,7 +136,7 @@ import { Meter } from "@sableui/react"
 
 <div className="flex items-center gap-3">
 	<Meter value={8} max={10} segments={10} size="sm" tone="success" className="w-24" aria-label="ICP score" getAriaValueText={(_, v) => `${v} out of 10`} />
-	<span className="text-mono-sm text-foreground">8/10</span>
+	<span className="text-mono-caption text-foreground">8/10</span>
 </div>
 ```
 
