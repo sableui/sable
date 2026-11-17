@@ -1,6 +1,6 @@
 # What's new
 
-## Unreleased
+## 0.25.0
 
 - **Small text gets its line height back, and a title sits closer to its
   description.** `text-title-sm`, `text-body-sm` and `text-mono-md` snap their
