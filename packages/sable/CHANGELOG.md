@@ -1,6 +1,6 @@
 # What's new
 
-## Unreleased
+## 0.25.1
 
 - **One look for a conversation, with a person or with an assistant.** The
   reader's own message is `tint` and the other person's is `outline`
