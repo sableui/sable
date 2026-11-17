@@ -21,7 +21,7 @@ export const bubbleMeta: ComponentMeta = {
 			{
 				guidance: "do",
 				description:
-					"Use `muted` for the other party and `primary` for the reader's own messages. Two treatments is the whole vocabulary a conversation needs to say who is speaking.",
+					"Use `tint` for the reader's own messages and `outline` for the other person, in every conversation: between people and with an assistant alike, so the two read as one product. An assistant's long answer is `plain`. `muted` and `primary` are the heavier pair, for a thread on a busy or dark surface where the light pair would not hold.",
 			},
 			{
 				guidance: "do",
@@ -100,7 +100,7 @@ export const bubbleMeta: ComponentMeta = {
 			type: '"muted" | "primary" | "tint" | "outline" | "plain"',
 			default: '"muted"',
 			description:
-				"Surface treatment. `muted` for the other party, `primary` for the reader's own messages, `tint` for the reader's own in a light thread (a wash of the brand colour over the thread's surface), `outline` for a quieter own-side, `plain` for long-form output that should not sit in a box (also drops the measure cap and padding).",
+				"Surface treatment. The usual pair: `tint` for the reader's own messages (a wash of the brand colour over the thread's surface) and `outline` for the other person. `plain` for long-form assistant output that should not sit in a box (also drops the measure cap and padding). `muted` (other party) and `primary` (own) are the heavier pair, for a busy or dark surface.",
 		},
 		{
 			name: "align",
@@ -195,7 +195,7 @@ export const bubbleMeta: ComponentMeta = {
 	examples: [
 		{
 			label: "Two sides",
-			code: '<>\n\t<Message messageId="m1"><Bubble>Did the deploy finish?</Bubble></Message>\n\t<Message messageId="m2" align="end"><Bubble variant="primary" align="end">Green across the board.</Bubble></Message>\n</>',
+			code: '<>\n\t<Message messageId="m1"><Bubble variant="outline">Did the deploy finish?</Bubble></Message>\n\t<Message messageId="m2" align="end"><Bubble variant="tint" align="end">Green across the board.</Bubble></Message>\n</>',
 		},
 		{
 			label: "Long-form assistant output",
@@ -207,7 +207,7 @@ export const bubbleMeta: ComponentMeta = {
 		},
 		{
 			label: "A grouped run drops the repeated tail",
-			code: '<>\n\t<Message messageId="m1" align="end"><Bubble variant="primary" align="end">One more thing.</Bubble></Message>\n\t<Message messageId="m2" align="end" grouped><Bubble variant="primary" align="end" tail={false}>The staging cert expires Friday.</Bubble></Message>\n</>',
+			code: '<>\n\t<Message messageId="m1" align="end"><Bubble variant="tint" align="end">One more thing.</Bubble></Message>\n\t<Message messageId="m2" align="end" grouped><Bubble variant="tint" align="end" tail={false}>The staging cert expires Friday.</Bubble></Message>\n</>',
 		},
 	],
 }

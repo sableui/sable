@@ -53,7 +53,6 @@ export const CANVAS_TILES: CanvasTile[] = [
 	tile("TrafficTrendBlock"),
 	tile("WalletBlock"),
 	tile("InviteTeamBlock"),
-	tile("ChatThreadBlock"),
 	tile("OrderTrackingBlock"),
 	tile("NotificationSettingsBlock"),
 	tile("FeedbackFormBlock"),

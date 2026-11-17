@@ -73,7 +73,7 @@ export function AgentRunBlock({ className, framed = true, onSend }: AgentRunBloc
 		<Card variant={framed ? "default" : "flat"} className={cn("w-full max-w-sm", className)}>
 			<CardContent className="flex flex-col gap-3">
 				<Message messageId="question" align="end">
-					<Bubble variant="primary" align="end">
+					<Bubble variant="tint" align="end">
 						{question}
 					</Bubble>
 				</Message>

@@ -191,7 +191,7 @@ export function ChatPanel() {
 					    it refers to stack in a single Message, so they share a side, an
 					    edge and a timestamp rather than reading as two sends. */}
 					<Message messageId="t_05" align="end">
-						<Bubble variant="primary" align="end">
+						<Bubble variant="tint" align="end">
 							Here's ours. Does the same fix cover new messages arriving?
 						</Bubble>
 						<Attachment

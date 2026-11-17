@@ -1,5 +1,16 @@
 # What's new
 
+## Unreleased
+
+- **One look for a conversation, with a person or with an assistant.** The
+  reader's own message is `tint` and the other person's is `outline`
+  everywhere: AgentRunBlock, ChatThreadBlock, ChatPanel and LandingPage set
+  the reader's side in solid `primary` (and the other in `muted`), so a chat
+  with an assistant read dark and heavy beside MessageReactionsBlock. Bubble's
+  guidance names the light pair as the usual one; `muted` and `primary` stay
+  for a busy or dark surface. **Changed:** those four render lighter; no API
+  changed.
+
 ## 0.25.0
 
 - **Small text gets its line height back, and a title sits closer to its

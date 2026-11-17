@@ -12,7 +12,7 @@ The tinted (or untinted) surface a turn's content sits on. Kept separate from Me
 
 ### Best practices
 
-- Do: Use `muted` for the other party and `primary` for the reader's own messages. Two treatments is the whole vocabulary a conversation needs to say who is speaking.
+- Do: Use `tint` for the reader's own messages and `outline` for the other person, in every conversation: between people and with an assistant alike, so the two read as one product. An assistant's long answer is `plain`. `muted` and `primary` are the heavier pair, for a thread on a busy or dark surface where the light pair would not hold.
 - Do: Reach for `variant="plain"` for long-form assistant output — rendered markdown, code blocks, tables. A tinted box around three paragraphs reads as a quote block rather than as a turn, and `plain` drops the measure cap with the surface.
 - Do: Pass the same `align` you gave the enclosing Message, so the tail lands on the speaker's side.
 - Do: Set `tail={false}` on the continuation bubbles in a grouped run — the tail marks where a speaker starts, and repeating it on every line makes a block of one person's messages look like four separate turns.
@@ -43,7 +43,7 @@ The tinted (or untinted) surface a turn's content sits on. Kept separate from Me
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| variant | "muted" \| "primary" \| "tint" \| "outline" \| "plain" | "muted" | Surface treatment. `muted` for the other party, `primary` for the reader's own messages, `tint` for the reader's own in a light thread (a wash of the brand colour over the thread's surface), `outline` for a quieter own-side, `plain` for long-form output that should not sit in a box (also drops the measure cap and padding). |
+| variant | "muted" \| "primary" \| "tint" \| "outline" \| "plain" | "muted" | Surface treatment. The usual pair: `tint` for the reader's own messages (a wash of the brand colour over the thread's surface) and `outline` for the other person. `plain` for long-form assistant output that should not sit in a box (also drops the measure cap and padding). `muted` (other party) and `primary` (own) are the heavier pair, for a busy or dark surface. |
 | align | "start" \| "end" | "start" | Which side of the conversation the bubble is on — puts the tail on the speaker's side. Match it to the enclosing Message. |
 | tail | boolean | true | Draw the tail: a small ear off the speaker-side top corner, which goes square to meet it. The same 5px in every theme's radius language, flat through fully pilled. The bubble keeps the ear's space either way, so turning it off for the continuation bubbles in a grouped run keeps the run aligned. |
 | ...div props | ComponentPropsWithRef<"div"> | — | Spread onto the surface element. |
@@ -84,8 +84,8 @@ The tinted (or untinted) surface a turn's content sits on. Kept separate from Me
 import { Bubble, Message } from "@sableui/react"
 
 <>
-	<Message messageId="m1"><Bubble>Did the deploy finish?</Bubble></Message>
-	<Message messageId="m2" align="end"><Bubble variant="primary" align="end">Green across the board.</Bubble></Message>
+	<Message messageId="m1"><Bubble variant="outline">Did the deploy finish?</Bubble></Message>
+	<Message messageId="m2" align="end"><Bubble variant="tint" align="end">Green across the board.</Bubble></Message>
 </>
 ```
 
@@ -123,7 +123,7 @@ import { Bubble, BubbleReaction, BubbleReactionAdd, BubbleReactions, Message } f
 import { Bubble, Message } from "@sableui/react"
 
 <>
-	<Message messageId="m1" align="end"><Bubble variant="primary" align="end">One more thing.</Bubble></Message>
-	<Message messageId="m2" align="end" grouped><Bubble variant="primary" align="end" tail={false}>The staging cert expires Friday.</Bubble></Message>
+	<Message messageId="m1" align="end"><Bubble variant="tint" align="end">One more thing.</Bubble></Message>
+	<Message messageId="m2" align="end" grouped><Bubble variant="tint" align="end" tail={false}>The staging cert expires Friday.</Bubble></Message>
 </>
 ```

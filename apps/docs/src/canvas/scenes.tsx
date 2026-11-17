@@ -1,11 +1,11 @@
 import { cn } from "@sableui/react"
 import {
-	ChatThreadBlock,
 	EventCardBlock,
 	FeedbackFormBlock,
 	InviteTeamBlock,
 	InvoicePreviewBlock,
 	MediaPlayerBlock,
+	MessageReactionsBlock,
 	NotificationListBlock,
 	NotificationSettingsBlock,
 	OrderTrackingBlock,
@@ -95,7 +95,8 @@ export const StatScene = /*#__PURE__*/ scene(RevenueBreakdownBlock)
 export const SettingsScene = /*#__PURE__*/ scene(NotificationSettingsBlock)
 /** `onSend` lets the iPhone canvas answer Send; on the web it stays a specimen. */
 export const InviteScene = /*#__PURE__*/ scene<{ onSend?: () => void }>(InviteTeamBlock)
-export const ChatScene = /*#__PURE__*/ scene(ChatThreadBlock)
+/** The homepage's conversation: the reactable thread, the fuller of the two chat blocks. */
+export const ChatScene = /*#__PURE__*/ scene(MessageReactionsBlock)
 export const NowPlayingScene = /*#__PURE__*/ scene(MediaPlayerBlock)
 export const EventScene = /*#__PURE__*/ scene(EventCardBlock)
 export const ProfileScene = /*#__PURE__*/ scene(ProfileCardBlock)

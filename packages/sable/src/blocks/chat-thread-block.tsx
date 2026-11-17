@@ -12,7 +12,7 @@ const messages = [
 
 export interface ChatThreadBlockProps {
 	className?: string
-	/** false drops the card's surface and border. Keep it framed on a muted page: incoming bubbles are the muted surface too. */
+	/** false drops the card's surface and border. for a panel or sheet that already frames it. */
 	framed?: boolean
 }
 
@@ -22,7 +22,7 @@ export function ChatThreadBlock({ className, framed = true }: ChatThreadBlockPro
 			<CardContent className="flex flex-col gap-2">
 				{messages.map((m) => (
 					<Message key={m.id} messageId={m.id} align={m.mine ? "end" : undefined}>
-						<Bubble variant={m.mine ? "primary" : undefined} align={m.mine ? "end" : undefined}>
+						<Bubble variant={m.mine ? "tint" : "outline"} align={m.mine ? "end" : undefined}>
 							{m.text}
 						</Bubble>
 					</Message>

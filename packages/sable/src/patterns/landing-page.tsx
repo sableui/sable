@@ -327,12 +327,12 @@ export function LandingPage() {
 									</CardHeader>
 									<CardContent className="flex flex-col gap-4">
 										<Message align="end">
-											<Bubble variant="primary" align="end">
+											<Bubble variant="tint" align="end">
 												What shipped to production today?
 											</Bubble>
 										</Message>
 										<Message>
-											<Bubble>
+											<Bubble variant="outline">
 												Three deploys. Search ranking is fixed, webhook keys are
 												rotated, and usage-based billing is building now.
 											</Bubble>
