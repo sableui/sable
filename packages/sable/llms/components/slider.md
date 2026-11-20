@@ -15,7 +15,7 @@ Use Slider for bounded numeric choices where approximate adjustment is faster th
 - Do: Use visible labels, min/max context, and value output when precision matters.
 - Do: Choose steps that match the real granularity of the setting.
 - Don't: Do not use Slider when users must enter an exact arbitrary number; use NumberField.
-- Don't: Do not use it without showing the value. A slider with no numeric readout makes any precise choice guesswork — pair it with a ScrubField or a NumberField.
+- Don't: Do not use it without showing the value. A slider with no numeric readout makes any precise choice guesswork — pair it with a NumberField, or in a panel or toolbar use SliderField, which carries the number inside the track. → use **SliderField**
 - Don't: Do not resize the thumb's box on hover, focus, or drag. The thumb is a fixed-size hit target wrapping a decorative dot; only the dot scales. A target that grows under the cursor is a target nobody can learn, and WCAG 2.5.8 measures target size at rest. Restyle the dot, not the box.
 
 ### Anatomy
@@ -79,7 +79,7 @@ Use Slider for bounded numeric choices where approximate adjustment is faster th
 
 ## Related
 
-- Components: NumberField, Progress
+- Components: NumberField, SliderField, Progress
 
 ## Examples
 

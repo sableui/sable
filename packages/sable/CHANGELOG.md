@@ -1,5 +1,16 @@
 # What's new
 
+## Unreleased
+
+- **SliderField: a slider drawn as a field.** The whole box is the track, the
+  fill is the value's share of the range and the number sits inside it, so a
+  bounded property takes one control where it took a Slider with a ScrubField
+  beside it, and the drag target is the full field. Double-click, Enter or a
+  typed digit turns the readout into a text input; Escape puts back the value
+  from before. It sits on the field ladder (`md`, `sm`, `xs`) and reports a
+  settled change through `onValueCommitted`. **Added:** nothing existing
+  changed.
+
 ## 0.25.1
 
 - **One look for a conversation, with a person or with an assistant.** The

@@ -120,6 +120,7 @@ export const COMPONENT_TAXONOMY: Record<string, [ComponentGroup, ComponentRegist
 	Radio: ["Selection", "either"],
 	Select: ["Selection", "either"],
 	Slider: ["Selection", "either"],
+	SliderField: ["Selection", "either"],
 	Switch: ["Selection", "either"],
 	ThemeSelector: ["Selection", "either"],
 	ThemeSwitcher: ["Selection", "either"],

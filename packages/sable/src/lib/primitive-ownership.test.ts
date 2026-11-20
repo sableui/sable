@@ -66,7 +66,10 @@ const OWNERS: Record<string, { owners: string[]; why?: string }> = {
 	"@base-ui/react/radio-group": { owners: ["radio"] },
 	"@base-ui/react/select": { owners: ["select"] },
 	"@base-ui/react/separator": { owners: ["separator"] },
-	"@base-ui/react/slider": { owners: ["slider"] },
+	"@base-ui/react/slider": {
+		owners: ["slider", "slider-field"],
+		why: "SliderField takes the slider behaviour with a different anatomy: the field is the track, the thumb carries no paint and the fill is its own element. Composed from Slider's parts it would have to undo the rail, the dot and the thumb's size, which is the override-class restyle the variants rule forbids.",
+	},
 	"@base-ui/react/switch": { owners: ["switch"] },
 	"@base-ui/react/tabs": { owners: ["tabs"] },
 	"@base-ui/react/toast": { owners: ["toast"] },

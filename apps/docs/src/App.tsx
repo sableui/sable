@@ -439,6 +439,10 @@ const pages: Record<string, ComponentType> = {
 		"FontPickerPage",
 	),
 	slider: page(() => import("./pages/components/SliderPage"), "SliderPage"),
+	"slider-field": page(
+		() => import("./pages/components/SliderFieldPage"),
+		"SliderFieldPage",
+	),
 	combobox: page(
 		() => import("./pages/components/ComboboxPage"),
 		"ComboboxPage",

@@ -1,6 +1,6 @@
 # Sable (@sableui/react)
 
-> An owned, themeable React component system. Default theme: **Sable** (designed dark-first, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; icons through a pluggable adapter, with Reicon's set ready to mount. 128 components, layout primitives, blocks, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
+> An owned, themeable React component system. Default theme: **Sable** (designed dark-first, content-first, fluid product UI). Behavior from Base UI; styling via Tailwind v4 + semantic CSS-variable tokens; icons through a pluggable adapter, with Reicon's set ready to mount. 129 components, layout primitives, blocks, and a **patterns** tier of canonical page shells. The full, per-component contract is the generated `registry.json`.
 
 ## Start here
 
@@ -437,7 +437,7 @@ export function Providers({ children }: { children: ReactNode }) {
 - **ToastProvider** (part of Toast) — Wraps Base UI Toast.Provider and renders the themed Viewport + toast list.
 - **TooltipProvider** (part of Tooltip) — Wraps an app or group of Tooltips to share open/close delays.
 
-### Components (128) — full props/subcomponents/variants/guidance/a11y/examples in registry.json → components
+### Components (129) — full props/subcomponents/variants/guidance/a11y/examples in registry.json → components
 
 - **Accordion** — Stacked, collapsible disclosure sections over Base UI Accordion — roving focus, arrow-key navigation, ARIA region/heading/button wiring, and an animated height transition. *Parts:* AccordionItem, AccordionTrigger, AccordionPanel. → [`llms/components/accordion.md`](./llms/components/accordion.md)
 - **ActivityHeatmap** — A calendar heatmap: one value per day as a grid of weeks by weekdays — the GitHub contribution graph, for any daily measure. → [`llms/components/activity-heatmap.md`](./llms/components/activity-heatmap.md)
@@ -544,6 +544,7 @@ export function Providers({ children }: { children: ReactNode }) {
 - **SideNav** — A lightweight in-content vertical navigation list - the settings / docs sub-nav, distinct from the app-chrome Sidebar. *Parts:* SideNavItem, SideNavGroup. → [`llms/components/side-nav.md`](./llms/components/side-nav.md)
 - **Skeleton** — Loading placeholder — a muted, shimmering block (rounded-md bg-muted motion-shimmer). → [`llms/components/skeleton.md`](./llms/components/skeleton.md)
 - **Slider** — Slider over Base UI Slider — pointer + keyboard control, ARIA slider wiring, and range support via multiple thumbs. *Parts:* SliderRoot, SliderControl, SliderTrack, SliderIndicator, SliderThumb, SliderValue. → [`llms/components/slider.md`](./llms/components/slider.md)
+- **SliderField** — A slider drawn as a field: the whole box is the track, the fill is the value's share of the range, and the number sits inside it. → [`llms/components/slider-field.md`](./llms/components/slider-field.md)
 - **Sparkline** — **BETA.** A word-sized trend with no axes — a line, a line over a soft fill, or columns — sized by its container, for stat cards, table cells and sentences. → [`llms/components/sparkline.md`](./llms/components/sparkline.md)
 - **Spinner** — Pure SVG activity indicator. → [`llms/components/spinner.md`](./llms/components/spinner.md)
 - **StatusBar** — The bottom chrome strip of a Workspace: ambient document facts — dimensions, counts, sync state — in the micro type tier. *Parts:* StatusBarGroup, StatusBarSeparator. → [`llms/components/status-bar.md`](./llms/components/status-bar.md)

@@ -28,7 +28,8 @@ export const sliderMeta: ComponentMeta = {
 			},
 			{
 				guidance: "dont",
-				description: "Do not use it without showing the value. A slider with no numeric readout makes any precise choice guesswork — pair it with a ScrubField or a NumberField.",
+				description: "Do not use it without showing the value. A slider with no numeric readout makes any precise choice guesswork — pair it with a NumberField, or in a panel or toolbar use SliderField, which carries the number inside the track.",
+				instead: ["SliderField"],
 			},
 			{
 				guidance: "dont",
@@ -71,6 +72,7 @@ export const sliderMeta: ComponentMeta = {
 	related: {
 		components: [
 			"NumberField",
+			"SliderField",
 			"Progress",
 		],
 	},

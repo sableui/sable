@@ -1052,6 +1052,15 @@
       ],
       "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
     },
+    "SliderField": {
+      "source": "SliderField",
+      "strategy": "preserve",
+      "importFrom": "@sableui/react",
+      "components": [
+        "SliderField"
+      ],
+      "guidance": "Use the Sable component as it is, in the preset. Adapt layout and touch targets to the phone; do not swap in a native lookalike or restyle it."
+    },
     "Sparkline": {
       "source": "Sparkline",
       "strategy": "preserve",

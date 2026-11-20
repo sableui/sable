@@ -49,6 +49,7 @@ The question to ask is always **what the user is doing**, not what it looks like
 | Entering a one-time code | `OtpField` | `Input type="number"` |
 | Entering a number, nudging with keys or steppers | `NumberField` | `Input type="number"` |
 | Scrubbing a number by dragging, in tool chrome | `ScrubField` | `Slider` (page register) |
+| A bounded number in a panel or toolbar, dragged or typed | `SliderField` | a `Slider` with a `ScrubField` beside it |
 | Choosing a value along a range | `Slider` | `NumberField` when the exact value matters more than position |
 | Adding files | `FileDropzone`, with accepted files listed as `Attachment` rows | a bare `<input type="file">` |
 

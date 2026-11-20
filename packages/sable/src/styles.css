@@ -524,6 +524,15 @@
 	   the track. A knob only sits on its rail, so it keeps one small shadow. */
 	--knob-shadow: var(--theme-knob-shadow, 0 1px 2px 0 rgb(0 0 0 / 0.05));
 
+	/* The grip on a SliderField's fill: a small raised face, a step lighter than
+	   the fill it rides on in BOTH modes. The fill is a tint of `--foreground`,
+	   so no surface token works: `--background` is lighter than it in a light
+	   theme and darker in a dark one, and the Switch's near-white knob is loud
+	   on a dark fill. So the lightness is chosen from the ink's, as
+	   `--switch-thumb-on` chooses from the track's: near-white while the ink is
+	   dark, a mid grey once the ink is light. */
+	--slider-grip: var(--theme-slider-grip, oklch(from var(--foreground) clamp(0.58, calc((0.6 - l) * 1000), 0.99) 0.002 90));
+
 	/* Art direction for generated imagery (GradientArt; see ART_TOKENS in
 	   themes/_contract.ts). The default paints the four decorative tones,
 	   lifted from their text strength to an art strength, glowing over the brand

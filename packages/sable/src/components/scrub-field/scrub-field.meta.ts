@@ -48,7 +48,7 @@ export const scrubFieldMeta: ComponentMeta = {
 			{
 				guidance: "dont",
 				description:
-					"Pair it with a Slider AND give it a glyph. The slider is already the drag affordance; two on one row is the same gesture twice. Omit icon/prefix when there's a slider.",
+					"Pair it with a Slider AND give it a glyph. The slider is already the drag affordance; two on one row is the same gesture twice. Omit icon/prefix when there's a slider. For a value with both bounds, SliderField is that pair as one control.",
 			},
 			{
 				guidance: "dont",
@@ -58,7 +58,7 @@ export const scrubFieldMeta: ComponentMeta = {
 		],
 	},
 	related: {
-		components: ["NumberField", "Slider", "PanelSection", "Workspace", "Input"],
+		components: ["NumberField", "Slider", "SliderField", "PanelSection", "Workspace", "Input"],
 	},
 	status: "stable",
 	props: [

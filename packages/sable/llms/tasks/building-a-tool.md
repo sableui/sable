@@ -121,6 +121,7 @@ The decisions that keep it one system:
 |---|---|---|
 | a property grid | `PanelSection` + `PropertyRow` / `PropertyPair` | `Card` — in 240px it spends its border and inset on nothing |
 | a numeric property | `ScrubField` | `NumberField` — its two steppers put a ~112px floor on a ~44px slot |
+| a numeric property with two bounds (opacity, strength) | `SliderField size="xs"` | a `Slider` beside a `ScrubField`: two controls and a 6px rail for one number |
 | a layers / object list | `Tree`, with `selectionFollowsFocus` when the arrows should select | a hand-nested list — no selection model or keyboard; ArrowUp/Down handled on each row |
 | the app's menus (File, Edit, View) | `Menubar` + `MenubarTrigger`, items with `shortcut` | one `Menu` per title side by side — ←/→ never leave the open menu |
 | an empty panel section | `TreeEmpty` | `EmptyState` — `px-6 py-12` around a `size-12` disc |

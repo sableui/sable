@@ -17,7 +17,7 @@ Use ScrubField for numeric properties in tool chrome — an inspector, a propert
 - Do: Bracket undo with onGestureStart/onGestureEnd. A scrub fires per frame, so without it one undo rewinds a single pixel of the drag.
 - Do: Set `step` to the real precision (0.01 for a normalised threshold). Display precision follows it, so a seed shows 1234 and never 1,234.
 - Don't: Add a separate drag gripper beside the glyph. The icon or prefix already is the scrub handle; a second one is the same affordance twice and costs width a 240px panel does not have.
-- Don't: Pair it with a Slider AND give it a glyph. The slider is already the drag affordance; two on one row is the same gesture twice. Omit icon/prefix when there's a slider.
+- Don't: Pair it with a Slider AND give it a glyph. The slider is already the drag affordance; two on one row is the same gesture twice. Omit icon/prefix when there's a slider. For a value with both bounds, SliderField is that pair as one control.
 - Don't: Use it in a page form. It is chrome-sized and has no label, description, or error slots — that's Field plus Input or NumberField.
 
 ## Props
@@ -65,7 +65,7 @@ Use ScrubField for numeric properties in tool chrome — an inspector, a propert
 
 ## Related
 
-- Components: NumberField, Slider, PanelSection, Workspace, Input
+- Components: NumberField, Slider, SliderField, PanelSection, Workspace, Input
 
 ## Examples
 
