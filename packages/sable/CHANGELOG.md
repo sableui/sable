@@ -1,6 +1,6 @@
 # What's new
 
-## Unreleased
+## 0.26.0
 
 - **SliderField: a slider drawn as a field.** The whole box is the track, the
   fill is the value's share of the range and the number sits inside it, so a
